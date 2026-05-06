@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import * as $api from '@api/sdk';
-
-import type { FormationEnum } from '@/types/enums.types';
+import type { DateOnlyJson } from 'shared-models';
 
 import { useTab } from '@/hooks/useTab';
+import type { FormationEnum } from '@/types/enums.types';
+import * as $api from '@api/sdk';
 import type { FoundJusticeContactsDto } from '@api/types';
-import type { DateOnlyJson } from 'shared-models';
 
 export const agendaKeys = {
   searchChairmen: (formation: FormationEnum | undefined) => ['agenda', 'searchChairmen', formation] as const,
@@ -17,7 +16,7 @@ export const agendaKeys = {
   isSessionReadyForDocGeneration: (sessionId: string) =>
     ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const,
   detailsAgendaMetadata: (query: { agendaId: string | undefined | null }) =>
-    ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const
+    ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const,
 };
 
 export const useSearchChairmenQuery = (props: { formation: FormationEnum | undefined }) =>
@@ -26,7 +25,7 @@ export const useSearchChairmenQuery = (props: { formation: FormationEnum | undef
 
     queryKey: agendaKeys.searchChairmen(props.formation),
     queryFn: () =>
-      $api.docs.searchChairmen({ query: { formation: props.formation } }).then(({ data = null }) => data)
+      $api.docs.searchChairmen({ query: { formation: props.formation } }).then(({ data = null }) => data),
   });
 
 export function useCreateAgendaMutation() {
@@ -46,17 +45,17 @@ export function useCreateAgendaMutation() {
             nominationFileIds: command.nominationFileIds,
             date: command.date,
             sessionMeetingDate: command.sessionMeetingDate,
-            chairmanId: command.chairmanId
-          }
+            chairmanId: command.chairmanId,
+          },
         })
         .then(({ data }) => data!),
 
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({
-        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId })
+        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
       });
-    }
+    },
   });
 }
 
@@ -67,9 +66,11 @@ export const useDetailsAgendaMetadataQuery = (query: { agendaId: string | undefi
     queryFn: async () => {
       if (!query.agendaId) return;
 
-      const { data = null } = await $api.docs.detailsAgendaMetadata({ path: { agendaId: query.agendaId } });
+      const { data = null } = await $api.docs.detailsAgendaMetadata({
+        path: { agendaId: query.agendaId },
+      });
       return data;
-    }
+    },
   });
 
 export function useUpdateAgendaMutation(sessionId: string) {
@@ -89,17 +90,17 @@ export function useUpdateAgendaMutation(sessionId: string) {
             nominationFileIds: command.nominationFileIds,
             date: command.date,
             sessionMeetingDate: command.sessionMeetingDate,
-            chairmanId: command.chairmanId
-          }
+            chairmanId: command.chairmanId,
+          },
         })
         .then(({ data }) => data!),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({
-        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId })
+        queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
       });
-    }
+    },
   });
 }
 
@@ -109,8 +110,12 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
     queryKey: agendaKeys.agendaHtml(query.id ?? ''),
     queryFn: () =>
       $api.docs
-        .generateAgendaHtml({ path: { agendaId: query.id! }, query: { force: query.force }, parseAs: 'text' })
-        .then(({ data }) => (data ?? null) as string | null)
+        .generateAgendaHtml({
+          path: { agendaId: query.id! },
+          query: { force: query.force },
+          parseAs: 'text',
+        })
+        .then(({ data }) => (data ?? null) as string | null),
   });
 
 export function useGenerateAgendaPdfMutation() {
@@ -121,14 +126,14 @@ export function useGenerateAgendaPdfMutation() {
         .generateAgendaPdf({
           path: { agendaId: command.agendaId },
           query: { force: command.force },
-          parseAs: 'stream'
+          parseAs: 'stream',
         })
         .then(({ response }) => response.body?.cancel()),
 
     onSuccess: (_, { sessionId }) =>
       queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(sessionId)
-      })
+        queryKey: agendaKeys.findSessionDocs(sessionId),
+      }),
   });
 }
 
@@ -141,15 +146,15 @@ export const useFindAgendaNominationFilesQuery = (query: {
     refetchOnWindowFocus: false,
     queryKey: agendaKeys.findAgendaNominationFiles({
       sessionId: query.sessionId,
-      ignoreAgendaId: query.ignoreAgendaId ?? undefined
+      ignoreAgendaId: query.ignoreAgendaId ?? undefined,
     }),
     queryFn: () =>
       $api.docs
         .findAgendaNominationFiles({
           path: { sessionId: query.sessionId },
-          query: { ignoreAgendaId: query.ignoreAgendaId ?? undefined }
+          query: { ignoreAgendaId: query.ignoreAgendaId ?? undefined },
         })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export const useFindSessionDocsQuery = (query: { sessionId: string }) =>
@@ -158,15 +163,17 @@ export const useFindSessionDocsQuery = (query: { sessionId: string }) =>
     queryFn: () =>
       $api.docs
         .findSessionDocs({ path: { sessionId: query.sessionId }, priority: 'low' })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export const useDetailsSessionAgendaMutation = () =>
   useMutation({
     mutationFn: (command: { sessionId: string; agendaId: string }) =>
       $api.docs
-        .detailsSessionAgenda({ path: { sessionId: command.sessionId, agendaId: command.agendaId } })
-        .then(({ data }) => data!)
+        .detailsSessionAgenda({
+          path: { sessionId: command.sessionId, agendaId: command.agendaId },
+        })
+        .then(({ data }) => data!),
   });
 
 export const useDetailsSessionOfficialReportsMutation = () =>
@@ -174,9 +181,9 @@ export const useDetailsSessionOfficialReportsMutation = () =>
     mutationFn: (command: { sessionId: string; officialReportId: string }) =>
       $api.docs
         .detailsSessionOfficialReport({
-          path: { sessionId: command.sessionId, officialReportId: command.officialReportId }
+          path: { sessionId: command.sessionId, officialReportId: command.officialReportId },
         })
-        .then(({ data }) => data!)
+        .then(({ data }) => data!),
   });
 
 export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: string }) =>
@@ -185,7 +192,7 @@ export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: strin
     queryFn: () =>
       $api.docs
         .isSessionReadyForDocGeneration({ path: { sessionId: query.sessionId } })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export function useDeleteAgenda(sessionId: string) {
@@ -196,8 +203,10 @@ export function useDeleteAgenda(sessionId: string) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
-      queryClient.invalidateQueries({ queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId) });
-    }
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
+      });
+    },
   });
 }
 
@@ -208,11 +217,11 @@ export const officialReportKeys = {
   findJusticeContacts: (query: { search?: string } = {}) => [
     'officialReport',
     'findJusticeContact',
-    query.search ? { search: query.search } : undefined
+    query.search ? { search: query.search } : undefined,
   ],
   officialReportHtml: (id: string) => ['officialReport', 'officialReportHtml', id] as const,
   details: (officialReportId: string | undefined | null) =>
-    ['officialReport', 'details', officialReportId ?? undefined] as const
+    ['officialReport', 'details', officialReportId ?? undefined] as const,
 };
 
 export const useListAgendasForNewOfficialReportQuery = (query: {
@@ -225,9 +234,9 @@ export const useListAgendasForNewOfficialReportQuery = (query: {
       $api.docs
         .listAgendasForNewOfficialReport({
           path: { sessionId: query.sessionId },
-          query: { ignoreOfficialReportId: query.ignoreOfficialReportId }
+          query: { ignoreOfficialReportId: query.ignoreOfficialReportId },
         })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export const useListMembersForNewOfficialReportQuery = (query: { sessionId: string }) =>
@@ -238,7 +247,7 @@ export const useListMembersForNewOfficialReportQuery = (query: { sessionId: stri
     queryFn: () =>
       $api.docs
         .listMembersForNewOfficialReport({ path: { sessionId: query.sessionId } })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export const useListSecretariesGeneralQuery = () =>
@@ -246,7 +255,7 @@ export const useListSecretariesGeneralQuery = () =>
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     queryKey: officialReportKeys.listSecretaries(),
-    queryFn: () => $api.docs.listSecretariesGeneral().then(({ data = null }) => data)
+    queryFn: () => $api.docs.listSecretariesGeneral().then(({ data = null }) => data),
   });
 
 export const useFindJusticeContacts = (query: { search: string | undefined }) =>
@@ -257,9 +266,9 @@ export const useFindJusticeContacts = (query: { search: string | undefined }) =>
     queryFn: () =>
       $api.docs
         .searchOfficialReportJusticeContact({
-          query: { search: query.search }
+          query: { search: query.search },
         })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });
 
 export function useCreateJusticeContactMutation() {
@@ -284,9 +293,9 @@ export function useCreateJusticeContactMutation() {
           }
 
           return { items: items.map((item) => (item.id === data.id ? data : item)) };
-        }
+        },
       );
-    }
+    },
   });
 }
 
@@ -314,10 +323,10 @@ export function useCreateOfficialReportMutation() {
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
             agendas: command.agendas as [string, ...string[]],
-            members: command.members as [string, ...string[]]
-          }
+            members: command.members as [string, ...string[]],
+          },
         })
-        .then(({ data }) => data!)
+        .then(({ data }) => data!),
   });
 }
 
@@ -330,9 +339,9 @@ export const useOfficialReportHtmlQuery = (query: { id: string | undefined; forc
         .generateOfficialReportHtml({
           path: { officialReportId: query.id! },
           query: { force: query.force },
-          parseAs: 'text'
+          parseAs: 'text',
         })
-        .then(({ data }) => (data ?? null) as string | null)
+        .then(({ data }) => (data ?? null) as string | null),
   });
 
 export function useGenerateOfficialReportPdfMutation() {
@@ -343,14 +352,14 @@ export function useGenerateOfficialReportPdfMutation() {
         .generateOfficialReportPdf({
           path: { officialReportId: command.officialReportId },
           query: { force: command.force },
-          parseAs: 'stream'
+          parseAs: 'stream',
         })
         .then(({ response }) => response.body?.cancel()),
 
     onSuccess: (_, { sessionId }) =>
       queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(sessionId)
-      })
+        queryKey: agendaKeys.findSessionDocs(sessionId),
+      }),
   });
 }
 
@@ -362,8 +371,10 @@ export function useDeleteOfficialReportMutation(sessionId: string) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
-      queryClient.invalidateQueries({ queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId) });
-    }
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
+      });
+    },
   });
 }
 
@@ -375,10 +386,10 @@ export const useDetailsOfficialReportQuery = (query: { officialReportId: string 
       if (!query.officialReportId) return;
 
       const { data = null } = await $api.docs.detailsOfficialReport({
-        path: { officialReportId: query.officialReportId }
+        path: { officialReportId: query.officialReportId },
       });
       return data;
-    }
+    },
   });
 
 export function useUpdateOfficialReportMutation(sessionId: string) {
@@ -406,15 +417,15 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
             agendas: command.agendas as [string, ...string[]],
-            members: command.members as [string, ...string[]]
-          }
+            members: command.members as [string, ...string[]],
+          },
         })
         .then(({ data }) => data!),
 
     onSuccess: (_, { officialReportId }) => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-    }
+    },
   });
 }
 
@@ -427,11 +438,11 @@ export const presentationPlanKeys = {
     ['justicePresentationPlan', 'agendas', query.ignore || undefined] as const,
   nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const,
   presented: (query: { pageIndex?: number; pageSize?: number } = {}) =>
-    ['justicePresentationPlan', 'presented', query.pageIndex, query.pageSize] as const
+    ['justicePresentationPlan', 'presented', query.pageIndex, query.pageSize] as const,
 };
 
 export const useListPresentationPlansAgendasQuery = (
-  options: { ignorePlanId?: string | undefined | null } = {}
+  options: { ignorePlanId?: string | undefined | null } = {},
 ) =>
   useQuery({
     refetchOnMount: false,
@@ -441,10 +452,10 @@ export const useListPresentationPlansAgendasQuery = (
     queryKey: presentationPlanKeys.planAgendas({ ignore: options.ignorePlanId }),
     queryFn: async () => {
       const { data = null } = await $api.docs.listPresentationPlanAgendas({
-        query: { ignore: options.ignorePlanId ?? undefined }
+        query: { ignore: options.ignorePlanId ?? undefined },
       });
       return data;
-    }
+    },
   });
 
 export function useCreateJusticePresentationPlanMutation() {
@@ -459,13 +470,15 @@ export function useCreateJusticePresentationPlanMutation() {
       time: { hours: number; minutes: number };
     }) =>
       $api.docs.createJusticePresentationPlan({
-        body: body
+        body: body,
       }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
+        }),
+      ]),
   });
 }
 
@@ -483,13 +496,15 @@ export function useUpdateJusticePresentationPlanMutation() {
     }) =>
       $api.docs.updateJusticePresentationPlan({
         body,
-        path: { planId: body.id }
+        path: { planId: body.id },
       }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
+        }),
+      ]),
   });
 }
 
@@ -502,11 +517,11 @@ export const useJusticePresentationPlanMetadataQuery = (options: {
     queryFn: async () => {
       if (!options.presentationPlanId) return null;
       const { data = null } = await $api.docs.detailsPresentationPlanMetadata({
-        path: { planId: options.presentationPlanId }
+        path: { planId: options.presentationPlanId },
       });
 
       return data;
-    }
+    },
   });
 
 export const useJusticePresentationPlanHtmlQuery = (options: {
@@ -521,11 +536,11 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
 
       const { data = null } = await $api.docs.generatePresentationPlanHtml({
         query: { force: options.force },
-        path: { planId: options.presentationPlanId }
+        path: { planId: options.presentationPlanId },
       });
 
       return data as string | null;
-    }
+    },
   });
 
 export function useJusticePresentationPlanPdfMutation() {
@@ -534,9 +549,9 @@ export function useJusticePresentationPlanPdfMutation() {
       $api.docs
         .generatePresentationPlanPdf({
           path: { planId: options.presentationPlanId },
-          parseAs: 'stream'
+          parseAs: 'stream',
         })
-        .then(({ response }) => response.body?.cancel())
+        .then(({ response }) => response.body?.cancel()),
   });
 }
 
@@ -549,8 +564,10 @@ export function useDeleteJusticePresentationPlanMutation() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
+        }),
+      ]),
   });
 }
 
@@ -563,8 +580,10 @@ export function usePresentPlanMutation() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
+        }),
+      ]),
   });
 }
 
@@ -578,8 +597,10 @@ export function useUnPresentPlanMutation() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
+        }),
+      ]),
   });
 }
 
@@ -591,7 +612,7 @@ export const useListNonPresentedPlansQuery = () =>
     queryFn: async () => {
       const { data = null } = await $api.docs.listNonPresentedPlans();
       return data;
-    }
+    },
   });
 
 export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
@@ -601,11 +622,11 @@ export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; p
     queryKey: presentationPlanKeys.presented(query),
     queryFn: async () => {
       const { data = null } = await $api.docs.listPresentedPlans({
-        query: { page: (query.pageIndex ?? 0) + 1, limit: query.pageSize }
+        query: { page: (query.pageIndex ?? 0) + 1, limit: query.pageSize },
       });
 
       return data;
-    }
+    },
   });
 
 export function useOpenJusticePresentationPlanPdfDocumentMutation() {
@@ -613,11 +634,11 @@ export function useOpenJusticePresentationPlanPdfDocumentMutation() {
   return useMutation({
     mutationFn: async (mutation: { planId: string }) => {
       const { data } = await $api.docs.detailsJusticePresentationPlanPdfDocument({
-        path: { planId: mutation.planId }
+        path: { planId: mutation.planId },
       });
 
       if (!data) return;
       tab.open(data.url);
-    }
+    },
   });
 }

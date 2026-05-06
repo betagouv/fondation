@@ -1,10 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Select from '@codegouvfr/react-dsfr/Select';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import React, { type SyntheticEvent } from 'react';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useUpdateTitleMutation } from '@queries/members.queries';
 
 type MemberTitleValue = 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
@@ -12,7 +12,7 @@ type MemberRole = 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
 
 const TITLE_LABELS: Record<MemberTitleValue, string> = {
   PRESIDENT_SIEGE: 'Président du Siège',
-  PRESIDENT_PARQUET: 'Président du Parquet'
+  PRESIDENT_PARQUET: 'Président du Parquet',
 };
 
 function getAssumedTitle(role: MemberRole): MemberTitleValue | null {
@@ -31,7 +31,9 @@ function MemberTitleAction(props: {
 
   const assumedTitle = React.useMemo(() => getAssumedTitle(member.role), [member]);
 
-  const { mutateAsync: updateTitle, isPending: isUpdating } = useUpdateTitleMutation({ userId: member.id });
+  const { mutateAsync: updateTitle, isPending: isUpdating } = useUpdateTitleMutation({
+    userId: member.id,
+  });
 
   const onUpdate = React.useCallback(
     async (title: MemberTitleValue) => {
@@ -41,7 +43,7 @@ function MemberTitleAction(props: {
           <>
             Définir la distinction de <span className="title">"{TITLE_LABELS[title]}"</span>.
           </>
-        )
+        ),
       });
 
       if (isConfirmed) {
@@ -53,15 +55,15 @@ function MemberTitleAction(props: {
           onError: () => {
             alerts.pushAlert({
               severity: 'error',
-              title: 'Erreur pendant la définition de la distinction'
+              title: 'Erreur pendant la définition de la distinction',
             });
-          }
+          },
         });
       } else {
         setEditing(false);
       }
     },
-    [confirmation, alerts, updateTitle]
+    [confirmation, alerts, updateTitle],
   );
 
   const onDelete = React.useCallback(
@@ -70,21 +72,24 @@ function MemberTitleAction(props: {
 
       const { isConfirmed } = await confirmation.waitForConfirmation({
         title: 'Supprimer la distinction ?',
-        content: <p>Confirmer la suppression de la distinction. Vous pourrez la modifier ultérieurement</p>
+        content: <p>Confirmer la suppression de la distinction. Vous pourrez la modifier ultérieurement</p>,
       });
 
       if (isConfirmed) {
         await updateTitle(null, {
           onSuccess: () => setEditing(false),
           onError: () => {
-            alerts.pushAlert({ severity: 'error', title: 'Erreur pendant la suppression de la distinction' });
-          }
+            alerts.pushAlert({
+              severity: 'error',
+              title: 'Erreur pendant la suppression de la distinction',
+            });
+          },
         });
       } else {
         setEditing(false);
       }
     },
-    [confirmation, alerts, updateTitle]
+    [confirmation, alerts, updateTitle],
   );
 
   if (member.title) {
@@ -140,7 +145,7 @@ function MemberTitleAction(props: {
         nativeSelectProps={{
           value: '',
           autoFocus: true,
-          onChange: (e) => onUpdate(e.target.value as MemberTitleValue)
+          onChange: (e) => onUpdate(e.target.value as MemberTitleValue),
         }}
       >
         <option value="" disabled>

@@ -1,8 +1,10 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import type { FC } from 'react';
+
 import { reportHtmlIds } from '../../dom/html-ids';
 import { summaryLabels } from '../../labels/summary-labels';
+
 import { AttachedFilesList } from './AttachedFilesList';
 import { Card } from './Card';
 
@@ -17,7 +19,7 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   reportId,
   attachments,
   onFilesAttached,
-  onAttachedFileDeleted
+  onAttachedFileDeleted,
 }) => {
   return (
     <Card id={reportHtmlIds.overview.attachedFilesSection} label="Pièces jointes">
@@ -31,7 +33,7 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
               if (e.target.files && e.target.files.length > 0) {
                 onFilesAttached([...e.target.files]);
               }
-            }
+            },
           }}
           hint={
             <div>

@@ -9,9 +9,7 @@ export const timeOnlySchema = z.object({
 export type TimeOnly = z.infer<typeof timeOnlySchema>;
 
 export function timeOnlyToDate(time: TimeOnly): Date {
-  return new Date(
-    Date.UTC(2026, 0, 10, time.hours, time.minutes, time.seconds, 0),
-  );
+  return new Date(Date.UTC(2026, 0, 10, time.hours, time.minutes, time.seconds, 0));
 }
 
 export function dateToTimeOnly(date: Date): TimeOnly {

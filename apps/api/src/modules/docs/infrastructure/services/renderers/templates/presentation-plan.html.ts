@@ -1,11 +1,14 @@
 import { html } from 'common-tags';
 import { format } from 'date-fns';
+
 import { Magistrat, TypeDeSaisine } from 'shared-models';
+
+import { date, fullname } from '../helpers';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
-import { date, fullname } from '../helpers';
+
 import { commonDocumentCss, documentLayout } from './common.html';
 
 function css(): string {
@@ -56,15 +59,12 @@ function header(ctx: {
     `Le type de saisine n'est pas supporté: "${ctx.typeDeSaisine}"`,
   );
 
-  const formation =
-    ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
+  const formation = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
 
   return html`
     <h1>${saisineTitle}</h1>
     <h2>Notice de restitution&nbsp;: séance du ${date(ctx.date)}</h2>
-    <p class="formation">
-      Formation compétente à l'égard des magistrats du ${formation}
-    </p>
+    <p class="formation">Formation compétente à l'égard des magistrats du ${formation}</p>
   `;
 }
 
@@ -110,8 +110,7 @@ function nonValidatedParagraph(ctx: {
     .map(
       (file) => html`
         <p>
-          <strong>${file.name}</strong>, pour la proposition au poste de
-          ${file.targetedPosition}
+          <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
           (${file.targetedGrade})${file.outcomeComment
             ? `, aux motifs que&nbsp;:${file.outcomeComment}`
             : ''}.
@@ -147,12 +146,8 @@ function presentationPlanSessionSection(ctx: {
 }) {
   const nonValidated = nonValidatedParagraph(ctx);
 
-  const nonValidatedCount = ctx.nominationFiles.filter(
-    (file) => file.outcome === 'NON_VALIDATED',
-  ).length;
-  const validatedCount = ctx.nominationFiles.filter(
-    (file) => file.outcome === 'VALIDATED',
-  ).length;
+  const nonValidatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'NON_VALIDATED').length;
+  const validatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'VALIDATED').length;
 
   const validatedParagraph =
     validatedCount > 0
@@ -174,9 +169,7 @@ function presentationPlanSessionSection(ctx: {
         </p> `
       : '';
 
-  const commentParagraph = ctx.comment?.trim()
-    ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>`
-    : '';
+  const commentParagraph = ctx.comment?.trim() ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>` : '';
 
   return html`
     <h3>${ctx.sessionName}</h3>
@@ -199,8 +192,8 @@ function content(ctx: {
   return html`
     <h3>Introduction</h3>
     <p>
-      Faire confirmer par la DSJ qu’elle renonce au délai de huit jours prévus à
-      l’article 35 du décret du 9 mars 1994 pour la fixation de l’ordre du jour.
+      Faire confirmer par la DSJ qu’elle renonce au délai de huit jours prévus à l’article 35 du décret du 9
+      mars 1994 pour la fixation de l’ordre du jour.
     </p>
 
     ${ctx.agendas.map(presentationPlanSessionSection).join('\n')}
@@ -210,8 +203,7 @@ function content(ctx: {
       <li>DSJ&nbsp;: ${ctx.justiceContactName}</li>
       <li>SG&nbsp;: ${fullname(ctx.secretary)}</li>
       <li>
-        Heure de début de la séance de restitution&nbsp;:
-        ${format(timeOnlyToDate(ctx.time), "HH'h'mm")}
+        Heure de début de la séance de restitution&nbsp;: ${format(timeOnlyToDate(ctx.time), "HH'h'mm")}
       </li>
     </ul>
   `;

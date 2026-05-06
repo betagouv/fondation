@@ -1,5 +1,6 @@
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 import React from 'react';
+
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export type ObservationFollowUpCommentEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
 export type ObservationFollowUpCommentCallback = (event: ObservationFollowUpCommentEvent) => void;
@@ -13,5 +14,5 @@ type ObservationFollowUpCommentContextType = {
 };
 
 export const ObservationFollowUpCommentContext = React.createContext(
-  null as unknown as ObservationFollowUpCommentContextType
+  null as unknown as ObservationFollowUpCommentContextType,
 );

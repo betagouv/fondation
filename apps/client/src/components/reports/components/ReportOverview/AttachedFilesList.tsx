@@ -2,9 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 
-import { generateReportFilePublicUrl } from '@queries/reports.queries';
-
 import { DeleteAttachmentModal } from '../../../shared/DeleteAttachmentModal';
+import { generateReportFilePublicUrl } from '@queries/reports.queries';
 
 export function AttachedFilesList(props: {
   reportId: string;
@@ -13,7 +12,10 @@ export function AttachedFilesList(props: {
 }) {
   const { mutate: createAttachmentLink } = useMutation({
     mutationFn: async (fileName: string) => {
-      const result = await generateReportFilePublicUrl({ reportId: props.reportId, fileNames: [fileName] });
+      const result = await generateReportFilePublicUrl({
+        reportId: props.reportId,
+        fileNames: [fileName],
+      });
       if (!result || !result.items.length) throw new Error();
 
       const $a = document.createElement('a');
@@ -25,7 +27,7 @@ export function AttachedFilesList(props: {
 
       $a.click();
       $a.remove();
-    }
+    },
   });
 
   return (

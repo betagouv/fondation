@@ -20,6 +20,6 @@ export const createSuccessModal = ({ id, message, title = 'Succès' }: SuccessMo
   return {
     open: modal.open,
     close: modal.close,
-    Component
+    Component,
   };
 };

@@ -7,8 +7,8 @@ export const reportListTableLabels = {
     observersCount: 'Observants',
     priority: 'Priorité',
     state: 'Statut',
-    dueDate: 'Echéance'
-  }
+    dueDate: 'Echéance',
+  },
 };
 
 export type ReportListTableLabels = typeof reportListTableLabels;

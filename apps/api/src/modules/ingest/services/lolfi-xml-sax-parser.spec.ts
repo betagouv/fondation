@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+
 import { LolfiNode, LolfiXmlSaxParser } from './lolfi-xml-sax-parser';
 
 describe('LOLFI XML Parser', () => {
@@ -39,7 +40,7 @@ describe('LOLFI XML Parser', () => {
         name: 'entity',
         attributes: { id: '1' },
         content: null,
-        // prettier-ignore
+        // oxfmt-ignore
         children: [
           { name: 'id', content: '1001', attributes: {}, children: [] },
           { name: 'name', content: 'HANNAH ARENDT', attributes: {}, children: [] },
@@ -51,7 +52,7 @@ describe('LOLFI XML Parser', () => {
         name: 'entity',
         attributes: { id: '2' },
         content: null,
-        // prettier-ignore
+        // oxfmt-ignore
         children: [
           { name: 'id', content: '1002', attributes: {}, children: [] },
           { name: 'name', content: 'ANTONIO GRAMSCI', attributes: {}, children: [] },

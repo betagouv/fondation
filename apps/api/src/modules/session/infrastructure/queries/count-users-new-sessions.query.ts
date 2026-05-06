@@ -17,6 +17,4 @@ export class CountUsersNewSessionsQuery {
   }
 }
 
-export class CountUsersNewSessionsDto extends createZodDto(
-  z.object({ count: z.number() }),
-) {}
+export class CountUsersNewSessionsDto extends createZodDto(z.object({ count: z.number() })) {}

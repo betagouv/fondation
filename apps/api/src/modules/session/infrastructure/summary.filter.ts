@@ -9,20 +9,13 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import {
-  NoAuthorAvailable,
-  OnlyAuthorCanWriteSummary,
-  UnknownReader,
-} from '../domain/summary';
+import { NoAuthorAvailable, OnlyAuthorCanWriteSummary, UnknownReader } from '../domain/summary';
 
 @Injectable()
 export class SummaryFilter implements NestInterceptor {
   private readonly logger = new Logger(SummaryFilter.name);
 
-  intercept(
-    _context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Observable<any> | Promise<Observable<any>> {
+  intercept(_context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
       catchError((err) => {
         return throwError(() => {
@@ -41,14 +34,11 @@ export class SummaryFilter implements NestInterceptor {
           }
 
           if (err instanceof OnlyAuthorCanWriteSummary) {
-            this.logger.warn(
-              `user ${err.userId} tried updating someone else's summary`,
-              {
-                userId: err.userId,
-                authorId: err.authorId,
-                nominationFileId: err.nominationFileId,
-              },
-            );
+            this.logger.warn(`user ${err.userId} tried updating someone else's summary`, {
+              userId: err.userId,
+              authorId: err.authorId,
+              nominationFileId: err.nominationFileId,
+            });
 
             return new ForbiddenException();
           }

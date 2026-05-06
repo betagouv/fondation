@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+
 import type { TestApp } from './test-app';
 
 class ExcludeJurisdictionModal {
@@ -70,7 +71,7 @@ export class MembersPage {
       | 'Prénom'
       | 'Formation'
       | 'Distinction'
-      | 'Titre'
+      | 'Titre',
   ): Locator {
     return this.app.page.locator(`dt:has-text("${label}") + dd`);
   }

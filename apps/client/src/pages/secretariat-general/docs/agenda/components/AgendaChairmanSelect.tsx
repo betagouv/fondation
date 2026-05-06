@@ -1,9 +1,9 @@
 import Select from '@codegouvfr/react-dsfr/Select';
+import React from 'react';
 
+import { useAgenda } from '../context/AgendaContext';
 import { toFullName } from '@/utils/user.utils';
 import { useSearchChairmenQuery } from '@queries/agenda.queries';
-import React from 'react';
-import { useAgenda } from '../context/AgendaContext';
 
 export function AgendaChairmanSelect(props: {
   value: string;
@@ -18,7 +18,7 @@ export function AgendaChairmanSelect(props: {
   React.useEffect(() => {
     if (data && data.items.length > 0 && !props.value) {
       const president = data.items.find((p) =>
-        session.formation === 'PARQUET' ? p.title === 'PRESIDENT_PARQUET' : p.title === 'PRESIDENT_SIEGE'
+        session.formation === 'PARQUET' ? p.title === 'PRESIDENT_PARQUET' : p.title === 'PRESIDENT_SIEGE',
       );
 
       if (president) props.onChange(president.id);
@@ -35,7 +35,7 @@ export function AgendaChairmanSelect(props: {
       nativeSelectProps={{
         value: props.value,
         onChange: (e) => props.onChange(e.target.value),
-        disabled: isPending
+        disabled: isPending,
       }}
       state={props.error ? 'error' : 'default'}
       stateRelatedMessage={props.error}

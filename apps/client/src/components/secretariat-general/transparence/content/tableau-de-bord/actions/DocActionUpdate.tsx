@@ -1,9 +1,10 @@
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { FoundSessionDocsDto } from '@api/types';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { generatePath, useNavigate } from 'react-router';
+
+import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import type { FoundSessionDocsDto } from '@api/types';
 
 export function DocActionUpdate(props: {
   sessionId: string;
@@ -24,7 +25,10 @@ export function DocActionUpdate(props: {
     }
 
     return {
-      to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, { sessionId, officialReportId: doc.id })
+      to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+        sessionId,
+        officialReportId: doc.id,
+      }),
     };
   }, [sessionId, doc]);
 
@@ -40,7 +44,7 @@ export function DocActionUpdate(props: {
             continuer ?
           </p>
         ),
-        i18n: { confirm: `Oui, et supprimer le PV lié` }
+        i18n: { confirm: `Oui, et supprimer le PV lié` },
       });
 
       if (isConfirmed) {

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import z from 'zod';
 
 @Injectable()
 export class ListNonPresentedPlansQuery {

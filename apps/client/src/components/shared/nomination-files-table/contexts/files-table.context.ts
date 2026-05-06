@@ -1,5 +1,6 @@
-import type { FormationEnum } from '@/types/enums.types';
 import React from 'react';
+
+import type { FormationEnum } from '@/types/enums.types';
 
 export type NominationFilesTableContextType = {
   sessionId: string;
@@ -11,7 +12,7 @@ export type NominationFilesTableContextType = {
 };
 
 export const NominationFilesTableContext = React.createContext<NominationFilesTableContextType>(
-  null as unknown as NominationFilesTableContextType
+  null as unknown as NominationFilesTableContextType,
 );
 
 export function useNominationFilesTable(): NominationFilesTableContextType {

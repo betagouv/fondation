@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import type React from 'react';
 
 export function PermanentBanner(
-  props: React.PropsWithChildren<{ className?: string; style?: React.CSSProperties }>
+  props: React.PropsWithChildren<{ className?: string; style?: React.CSSProperties }>,
 ) {
   return (
     <p

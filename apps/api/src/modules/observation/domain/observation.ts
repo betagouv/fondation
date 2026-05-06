@@ -1,4 +1,5 @@
 import { Id, makeId } from 'src/utils/id';
+
 import { ObservationFollowUp } from './observation-follow-up';
 
 export class UserNotAllowedToAttachScreenshotsError extends Error {
@@ -124,10 +125,7 @@ export class Observation {
     linkedFiles: readonly { observationId: string; fileId: string }[];
     files: readonly { id: string }[];
   }): Observation {
-    this.assertNominationFileIsObservable(
-      command.magistratId,
-      command.nominationFile,
-    );
+    this.assertNominationFileIsObservable(command.magistratId, command.nominationFile);
 
     const id = makeId('ObservationId');
     const observation = new Observation(
@@ -174,9 +172,7 @@ export class Observation {
     this.#messages.push(new ObservationFilesAttached(this.id, command.files));
   }
 
-  linkFiles(command: {
-    files: readonly { observationId: string; fileId: string }[];
-  }): void {
+  linkFiles(command: { files: readonly { observationId: string; fileId: string }[] }): void {
     if (command.files.length === 0) return;
 
     for (const file of command.files) {
@@ -219,37 +215,19 @@ export class Observation {
     if (command.files.length === 0) return;
 
     this.#messages.push(
-      new ObservationMemberCommentScreenshotsAttached(
-        this.id,
-        command.userId,
-        command.files,
-      ),
+      new ObservationMemberCommentScreenshotsAttached(this.id, command.userId, command.files),
     );
   }
 
-  writeMemberComment(command: {
-    userId: string;
-    reporterIds: readonly string[];
-    comment: string;
-  }): void {
+  writeMemberComment(command: { userId: string; reporterIds: readonly string[]; comment: string }): void {
     if (!command.reporterIds.includes(command.userId)) {
       throw new UserNotAllowedToWriteCommentError();
     }
 
-    this.#messages.push(
-      new ObservationMemberCommentWritten(
-        this.id,
-        command.userId,
-        command.comment,
-      ),
-    );
+    this.#messages.push(new ObservationMemberCommentWritten(this.id, command.userId, command.comment));
   }
 
-  followUpWith(command: {
-    followUp: string | null;
-    comment: string | null;
-    userId: string | null;
-  }): void {
+  followUpWith(command: { followUp: string | null; comment: string | null; userId: string | null }): void {
     if (command.followUp === null) {
       this.#messages.push(new ObservationFollowedUp(this.id, null, null));
       return;
@@ -259,9 +237,7 @@ export class Observation {
       followUp: command.followUp,
       comment: command.comment,
     });
-    this.#messages.push(
-      new ObservationFollowedUp(this.id, followUp, command.userId),
-    );
+    this.#messages.push(new ObservationFollowedUp(this.id, followUp, command.userId));
   }
 
   private static assertNominationFileIsObservable(
@@ -271,9 +247,7 @@ export class Observation {
       observations: readonly { magistratId: string }[];
     },
   ): asserts nominationFile {
-    const observationExists = nominationFile.observations.some(
-      (o) => o.magistratId === magistratId,
-    );
+    const observationExists = nominationFile.observations.some((o) => o.magistratId === magistratId);
 
     if (observationExists) {
       throw new ObservationAlreadyExist(nominationFile.id, magistratId);

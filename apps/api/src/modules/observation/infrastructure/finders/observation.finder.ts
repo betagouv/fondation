@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -16,9 +17,7 @@ export class ObservationFinder {
     observations: readonly { magistratId: string }[];
   } | null> {
     if (!query.tx) {
-      return this.prisma.$transaction(async (tx) =>
-        this.findExistingObservation({ ...query, tx }),
-      );
+      return this.prisma.$transaction(async (tx) => this.findExistingObservation({ ...query, tx }));
     }
 
     return query.tx.dossierDeNomination.findUnique({
@@ -42,9 +41,7 @@ export class ObservationFinder {
     }[];
   }): Promise<{ items: { observationId: string; fileId: string }[] }> {
     if (!query.tx) {
-      return this.prisma.$transaction(async (tx) =>
-        this.findExistingFiles({ ...query, tx }),
-      );
+      return this.prisma.$transaction(async (tx) => this.findExistingFiles({ ...query, tx }));
     }
 
     const observations = await query.tx.observation.findMany({

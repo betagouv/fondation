@@ -2,12 +2,13 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import { Link } from 'react-router';
 
+import { getObservationDetailsPath } from '../../utils/route-path.utils';
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { useIsSg } from '@/hooks/roles.hook';
 import { DateOnly } from '@/models/date-only.model';
 import type { GetObservationDetailsResponseDto } from '@api/types';
-import { getObservationDetailsPath } from '../../utils/route-path.utils';
+
 import { LolfiMagistratLink } from './LolfiMagistratLink';
 import { ObservationDescription } from './ObservationDescription';
 import { ObservationFollowUpSelector } from './observations/follow-up-selector/ObservationFollowUpSelector';
@@ -35,7 +36,7 @@ export function ObservationDetailsContent({
   backLink,
   context,
   onUpdateMemberComment,
-  uploadFiles
+  uploadFiles,
 }: ObservationDetailsContentProps) {
   const isSg = useIsSg();
   const observant = observation.observant;
@@ -212,8 +213,8 @@ export function ObservationDetailsContent({
                           context,
                           sessionId,
                           nominationFileId: proposition.nominationFileId,
-                          observationId: proposition.observationId
-                        })
+                          observationId: proposition.observationId,
+                        }),
                       }}
                       enlargeLink
                       size="small"

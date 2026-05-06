@@ -1,24 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
 import { Gender } from 'shared-models';
-import {
-  PrismaUserDutyEnum,
-  PrismaUserTitleEnum,
-} from 'src/generated/prisma/enums';
+
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { roleEnumToPrismaRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { z } from 'zod';
 
 @Injectable()
 export class FindMembersForNewOfficialReportQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    sessionId: string;
-  }): Promise<FoundMembersForNewOfficialReportDto> {
+  async handle(query: { sessionId: string }): Promise<FoundMembersForNewOfficialReportDto> {
     return this.prisma.$transaction(async (tx) => {
       const session = await tx.session.findUnique({
         where: { id: query.sessionId, deletedAt: null },
@@ -29,9 +26,9 @@ export class FindMembersForNewOfficialReportQuery {
       const members = await tx.user.findMany({
         where: {
           role: {
-            in: formationToMemberRole(
-              prismaFormationEnumToFormationEnum(session.formation),
-            ).map(roleEnumToPrismaRoleEnum),
+            in: formationToMemberRole(prismaFormationEnumToFormationEnum(session.formation)).map(
+              roleEnumToPrismaRoleEnum,
+            ),
           },
         },
         select: {

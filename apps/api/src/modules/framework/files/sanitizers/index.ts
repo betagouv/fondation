@@ -1,8 +1,10 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Readable, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+
 import { MultipartFile } from '../multipart/multipart.file';
+
 import { ImageSanitizer } from './image.sanitizer';
 import { PdfSanitizer } from './pdf.sanitizer';
 
@@ -11,9 +13,7 @@ export class Sanitizer implements OnApplicationBootstrap {
   private readonly sanitizers = [new PdfSanitizer(), new ImageSanitizer()];
 
   async sanitize(file: MultipartFile): Promise<MultipartFile> {
-    const transformers = this.sanitizers
-      .filter((s) => s.handles(file.mimeType))
-      .map((x) => x.sanitize());
+    const transformers = this.sanitizers.filter((s) => s.handles(file.mimeType)).map((x) => x.sanitize());
 
     if (transformers.length === 0) return file;
 
@@ -36,9 +36,7 @@ export class Sanitizer implements OnApplicationBootstrap {
     await Promise.allSettled(
       this.sanitizers
         .filter((sanitizer) => 'onApplicationBootstrap' in sanitizer)
-        .map((sanitizer: unknown) =>
-          (sanitizer as OnApplicationBootstrap).onApplicationBootstrap(),
-        ),
+        .map((sanitizer: unknown) => (sanitizer as OnApplicationBootstrap).onApplicationBootstrap()),
     );
   }
 }

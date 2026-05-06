@@ -1,7 +1,8 @@
-import { reportHtmlIds } from '../../dom/html-ids';
-
-import { useAttachScreenshotMutation } from '@queries/reports.queries';
 import React from 'react';
+
+import { reportHtmlIds } from '../../dom/html-ids';
+import { useAttachScreenshotMutation } from '@queries/reports.queries';
+
 import { TextareaCard } from './TextareaCard';
 import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
 
@@ -19,7 +20,7 @@ export const ReportEditor: React.FC<ReportEditorProps> = ({ reportId, comment, o
       const result = await mutateAsync({ files: files as File[], reportId });
       return (result?.items ?? []).map(({ id, name, url }) => ({ id, name, url: new URL(url) }));
     },
-    [mutateAsync, reportId]
+    [mutateAsync, reportId],
   );
 
   return (

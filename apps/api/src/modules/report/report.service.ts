@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
-import { ReportRepository } from './infrastructure/report.repository';
 import { ReportFileUsage, Role, NominationFile } from 'shared-models';
+
+import { Files } from '../framework/files';
+import { StoredFile } from '../framework/files/multipart/multipart.types';
+import { isDefined } from 'src/utils/is-defined';
+
+import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
+import { type DetailedReportDto, DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import {
   GetReportFileUrlsQuery,
   type GetReportFileUrlsResponseDto,
 } from './infrastructure/queries/get-report-file-urls.query';
-import {
-  type DetailedReportDto,
-  DetailReportQuery,
-} from './infrastructure/queries/detail-report.query';
-import { StoredFile } from '../framework/files/multipart/multipart.types';
-import { Files } from '../framework/files';
-import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
-import { isDefined } from 'src/utils/is-defined';
+import { ReportRepository } from './infrastructure/report.repository';
 
 @Injectable()
 export class ReportService {
@@ -70,9 +69,7 @@ export class ReportService {
       fileUsage: ReportFileUsage.EMBEDDED_SCREENSHOT,
     });
 
-    const urls = await this.files.getPublicUrls(
-      command.files.map((file) => file.id),
-    );
+    const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
 
     return {
       items: command.files
@@ -98,10 +95,7 @@ export class ReportService {
     return this.getReportFileUrlsQuery.handle(query);
   }
 
-  detailReport(query: {
-    user: { id: string; role: Role };
-    reportId: string;
-  }): Promise<DetailedReportDto> {
+  detailReport(query: { user: { id: string; role: Role }; reportId: string }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
   }
 

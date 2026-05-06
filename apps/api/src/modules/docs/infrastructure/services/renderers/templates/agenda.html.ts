@@ -1,16 +1,16 @@
 import { stripIndent } from 'common-tags';
+
 import { Gender, Magistrat } from 'shared-models';
+
+import { conjunctionList, date, titled } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import type { Pretty } from 'src/utils/types';
-import { conjunctionList, date, titled } from '../helpers';
+
 import { commonDocumentCss, documentLayout } from './common.html';
 
 export const html = stripIndent;
 
-function agendaHeader(ctx: {
-  sessionMeetingDate: Date;
-  formation: Magistrat.Formation;
-}): string {
+function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Formation }): string {
   return html`
     <h1>Avis du conseil supérieur de la magistrature</h1>
     <p class="formation">
@@ -20,9 +20,7 @@ function agendaHeader(ctx: {
     </p>
     <div class="subtitle-row">
       <p class="subtitle">Ordre du jour</p>
-      <p class="date">
-        Séance du ${date(ctx.sessionMeetingDate, 'do MMMM yyyy')}
-      </p>
+      <p class="date">Séance du ${date(ctx.sessionMeetingDate, 'do MMMM yyyy')}</p>
     </div>
   `;
 }
@@ -44,30 +42,20 @@ function agendaNominationParagraph(
   const targetPosition = ctx.targetedPosition
     ? `, au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
     : '';
-  const reporters =
-    ctx.reporters.length > 0
-      ? `, au rapport de ${conjunctionList(ctx.reporters)}`
-      : '';
+  const reporters = ctx.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.reporters)}` : '';
 
   return html`
     <p class="article" data-file="${index}">
-      <strong>${ctx.name}</strong
-      >${currentPosition}${targetPosition}${reporters}.
+      <strong>${ctx.name}</strong>${currentPosition}${targetPosition}${reporters}.
     </p>
   `;
 }
 
 type AgendaContentCtx = Pretty<Parameters<typeof agendaNominationParagraph>[0]>;
-function agendaContent(ctx: {
-  nominationFiles: readonly AgendaContentCtx[];
-}): string {
+function agendaContent(ctx: { nominationFiles: readonly AgendaContentCtx[] }): string {
   return html`
-    <p class="introduction">
-      Sur la proposition du garde des Sceaux de nommer&nbsp;:
-    </p>
-    ${ctx.nominationFiles
-      .map((n, i) => agendaNominationParagraph(n, i + 1))
-      .join('\n')}
+    <p class="introduction">Sur la proposition du garde des Sceaux de nommer&nbsp;:</p>
+    ${ctx.nominationFiles.map((n, i) => agendaNominationParagraph(n, i + 1)).join('\n')}
   `;
 }
 
@@ -81,9 +69,7 @@ function agendaFooter(ctx: {
   };
 }): string {
   return html`
-    <p class="redaction-place">
-      Fait à Paris, le ${date(ctx.date, 'do MMMM yyyy')}
-    </p>
+    <p class="redaction-place">Fait à Paris, le ${date(ctx.date, 'do MMMM yyyy')}</p>
     <p class="signature">${titled(ctx.chairman)}</p>
   `;
 }

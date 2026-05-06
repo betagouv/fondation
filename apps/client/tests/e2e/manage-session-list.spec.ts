@@ -13,7 +13,7 @@ test.describe('Gérer une liste de sessions', () => {
       transparence1 = `Transparence 1 - ${crypto.randomUUID()}`;
       transparence2 = `Transparence 2 - ${crypto.randomUUID()}`;
 
-      // prettier-ignore
+      // oxfmt-ignore
       {
         // Soit une session "Transparence 1" en date du "01/03/2026"
         await http.sessions.createSession({ name: transparence1, date: new Date('2026-03-01'), formation: 'PARQUET', observationClosingDate: new Date('2026-03-10') });
@@ -23,7 +23,7 @@ test.describe('Gérer une liste de sessions', () => {
     });
 
     test(`les sessions doivent être triées par ordre décroissant de date de publication par défaut`, async ({
-      app
+      app,
     }) => {
       // Quand je visualise la liste des sessions
       await app.pages.manageSessions.goto();

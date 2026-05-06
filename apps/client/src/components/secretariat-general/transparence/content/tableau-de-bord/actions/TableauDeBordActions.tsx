@@ -1,14 +1,13 @@
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Badge from '@codegouvfr/react-dsfr/Badge';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 import { NominationSessionAttachmentList } from '@/components/shared/NominationSessionAttachmentList';
-import * as importAttachments from './ImportAttachmentModal';
-
-import { NominationSessionDocsList } from './NominationSessionDocsList';
-
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
+
+import * as importAttachments from './ImportAttachmentModal';
+import { NominationSessionDocsList } from './NominationSessionDocsList';
 import { TableauDeBordActionList } from './TableauDeBordActionsList';
 
 export function TableauDeBordActions({ sessionId }: { sessionId: string }) {

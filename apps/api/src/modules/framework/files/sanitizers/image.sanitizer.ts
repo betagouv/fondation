@@ -1,5 +1,7 @@
-import ExifTransformer from 'exif-be-gone';
 import { type Duplex } from 'node:stream';
+
+import ExifTransformer from 'exif-be-gone';
+
 import { FILE_MIME_TYPES, FileMimeType } from '../mime-type';
 
 /** this is a wrapper around [exif-be-gone](http://npmjs.com/package/exif-be-gone) */

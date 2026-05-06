@@ -16,10 +16,7 @@ function parseEnumGrants(datamodel) {
     if (dbName && schema) results.push({ dbName, schema });
   }
 
-  return results.sort(
-    (a, b) =>
-      a.schema.localeCompare(b.schema) || a.dbName.localeCompare(b.dbName),
-  );
+  return results.sort((a, b) => a.schema.localeCompare(b.schema) || a.dbName.localeCompare(b.dbName));
 }
 
 const OUTPUT = __dirname + '/../../scripts/gen-group-role.sql';
@@ -33,12 +30,9 @@ generatorHandler({
   async onGenerate(h) {
     const datasource = h.datasources.find((d) => d.name === 'db');
 
-    const schemas =
-      datasource?.schemas.toSorted((a, b) => a.localeCompare(b)) ?? [];
+    const schemas = datasource?.schemas.toSorted((a, b) => a.localeCompare(b)) ?? [];
 
-    const dbName = new URL(
-      datasource?.url?.value ?? process.env[datasource?.url?.fromEnvVar] ?? '',
-    ).pathname;
+    const dbName = new URL(datasource?.url?.value ?? process.env[datasource?.url?.fromEnvVar] ?? '').pathname;
     assert.ok(dbName);
 
     const allSchemas = schemas.map((x) => `"${x}"`).join(',\n  ');

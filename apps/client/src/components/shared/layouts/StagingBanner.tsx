@@ -1,4 +1,5 @@
 import { colors } from '@codegouvfr/react-dsfr';
+
 import { PermanentBanner } from './PermanentBanner';
 
 const textColor = colors.decisions.text.default.warning.default;

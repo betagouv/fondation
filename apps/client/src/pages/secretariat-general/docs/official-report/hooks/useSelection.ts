@@ -20,7 +20,7 @@ export function useMonoSelection<T extends { id: string }>(options: {
       setSelection(item);
       onChange(item);
     },
-    [options.items, setSelection, onChange]
+    [options.items, setSelection, onChange],
   );
 
   React.useEffect(() => {

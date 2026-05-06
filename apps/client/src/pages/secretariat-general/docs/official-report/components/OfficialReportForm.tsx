@@ -1,24 +1,24 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { FormattedMessage } from 'react-intl';
 import z from 'zod';
 
+import { useOfficialReport } from '../context/OfficialReportContext';
+import { Mandatory } from '@/components/shared/Mandatory';
 import { DateOnly } from '@/models/date-only.model';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
   useListMembersForNewOfficialReportQuery,
-  useListSecretariesGeneralQuery
+  useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
 
-import { Mandatory } from '@/components/shared/Mandatory';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import { FormattedMessage } from 'react-intl';
-import { useOfficialReport } from '../context/OfficialReportContext';
 import { JusticeContactSelector } from './JusticeContactSelector';
 
 const OfficialReportMetadataSchema = z.object({
@@ -29,7 +29,7 @@ const OfficialReportMetadataSchema = z.object({
   chairmanId: z.uuid('Veuillez sélectionner un président'),
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
   memberIds: z.array(z.uuid()).nonempty('Veuillez sélectionner au moins un membre'),
-  agendaId: z.string().nonempty('Veuillez sélectionner un ordre du jour')
+  agendaId: z.string().nonempty('Veuillez sélectionner un ordre du jour'),
 });
 
 export function OfficialReportForm() {
@@ -40,7 +40,7 @@ export function OfficialReportForm() {
 
   const { data: agendas } = useListAgendasForNewOfficialReportQuery({
     sessionId: session.id,
-    ignoreOfficialReportId: officialReportId ?? undefined
+    ignoreOfficialReportId: officialReportId ?? undefined,
   });
 
   const secretaries = React.useMemo(() => secretariesData?.items ?? [], [secretariesData]);
@@ -50,9 +50,9 @@ export function OfficialReportForm() {
       members.filter((m) =>
         m.duty === 'PRESIDENT' && session.formation === 'PARQUET'
           ? m.title === 'DEPUTY_PRESIDENT_PARQUET' || m.title === 'PRESIDENT_PARQUET'
-          : m.title === 'DEPUTY_PRESIDENT_SIEGE' || m.title === 'PRESIDENT_SIEGE'
+          : m.title === 'DEPUTY_PRESIDENT_SIEGE' || m.title === 'PRESIDENT_SIEGE',
       ),
-    [members, session]
+    [members, session],
   );
 
   const defaultValues = React.useMemo(
@@ -66,9 +66,9 @@ export function OfficialReportForm() {
       chairmanId: metadata?.chairmanId ?? '',
       secretaryId: metadata?.secretaryId ?? '',
       memberIds: metadata?.memberIds ?? ([] as string[]),
-      agendaId: metadata?.agendaId ?? ''
+      agendaId: metadata?.agendaId ?? '',
     }),
-    [metadata]
+    [metadata],
   );
 
   const {
@@ -76,17 +76,17 @@ export function OfficialReportForm() {
     setValue,
     getValues,
     handleSubmit,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm({
     mode: 'all',
     defaultValues,
-    resolver: zodResolver(OfficialReportMetadataSchema)
+    resolver: zodResolver(OfficialReportMetadataSchema),
   });
 
   React.useEffect(() => {
     if (chairmen.length > 0 && !metadata?.chairmanId) {
       const president = chairmen.find((c) =>
-        session.formation === 'PARQUET' ? c.title === 'PRESIDENT_PARQUET' : c.title === 'PRESIDENT_SIEGE'
+        session.formation === 'PARQUET' ? c.title === 'PRESIDENT_PARQUET' : c.title === 'PRESIDENT_SIEGE',
       );
       if (president) setValue('chairmanId', president.id);
     }
@@ -106,7 +106,7 @@ export function OfficialReportForm() {
       if (!metadata?.memberIds.length) {
         setValue(
           'memberIds',
-          members.map((m) => m.id)
+          members.map((m) => m.id),
         );
       }
     }
@@ -117,7 +117,11 @@ export function OfficialReportForm() {
       const agendaId: string = event.currentTarget.value;
       if (!agendaId) return;
 
-      setValue('agendaId', agendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+      setValue('agendaId', agendaId, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
       const agenda = agendas?.items.find(({ id }) => id === agendaId);
       if (!agenda || !agenda.chairmanId) return;
@@ -127,10 +131,10 @@ export function OfficialReportForm() {
       setValue('chairmanId', agenda.chairmanId, {
         shouldDirty: true,
         shouldTouch: true,
-        shouldValidate: true
+        shouldValidate: true,
       });
     },
-    [agendas, chairmen, setValue]
+    [agendas, chairmen, setValue],
   );
 
   const onMemberChange = React.useCallback(
@@ -141,11 +145,11 @@ export function OfficialReportForm() {
       } else {
         setValue(
           'memberIds',
-          currentMemberIds.filter((x) => x !== event.target.value)
+          currentMemberIds.filter((x) => x !== event.target.value),
         );
       }
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
   return (
@@ -172,7 +176,10 @@ export function OfficialReportForm() {
               <option value={agenda.id} key={agenda.id}>
                 <FormattedMessage
                   defaultMessage={`{name} - ODJ du {date, date, short}`}
-                  values={{ date: DateOnly.fromStoreModel(agenda.date).toDate(), name: agenda.session.name }}
+                  values={{
+                    date: DateOnly.fromStoreModel(agenda.date).toDate(),
+                    name: agenda.session.name,
+                  }}
                 />
               </option>
             ))}
@@ -227,7 +234,10 @@ export function OfficialReportForm() {
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
-            nativeSelectProps={{ value: field.value, onChange: (e) => field.onChange(e.target.value) }}
+            nativeSelectProps={{
+              value: field.value,
+              onChange: (e) => field.onChange(e.target.value),
+            }}
             state={errors.chairmanId ? 'error' : 'default'}
             stateRelatedMessage={errors.chairmanId?.message}
           >
@@ -254,7 +264,10 @@ export function OfficialReportForm() {
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
-            nativeSelectProps={{ value: field.value, onChange: (e) => field.onChange(e.target.value) }}
+            nativeSelectProps={{
+              value: field.value,
+              onChange: (e) => field.onChange(e.target.value),
+            }}
             state={errors.secretaryId ? 'error' : 'default'}
             stateRelatedMessage={errors.secretaryId?.message}
           >
@@ -288,8 +301,8 @@ export function OfficialReportForm() {
                 ...field,
                 value: member.id,
                 onChange: onMemberChange,
-                checked: field.value.includes(member.id)
-              }
+                checked: field.value.includes(member.id),
+              },
             }))}
             state={errors.memberIds && 'error'}
             stateRelatedMessage={errors.memberIds?.message}
@@ -341,8 +354,8 @@ export function OfficialReportForm() {
           {
             type: 'submit',
             disabled: !isValid,
-            children: <FormattedMessage defaultMessage="Générer le PV" />
-          }
+            children: <FormattedMessage defaultMessage="Générer le PV" />,
+          },
         ]}
       />
     </form>

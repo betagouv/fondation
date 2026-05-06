@@ -17,6 +17,8 @@ import type { ClientOptions as ClientOptions2 } from './types.ts';
  * `setConfig()`. This is useful for example if you're using Next.js
  * to ensure your client always has the correct values.
  */
-export type CreateClientConfig<T extends ClientOptions = ClientOptions2> = (override?: Config<ClientOptions & T>) => Config<Required<ClientOptions> & T>;
+export type CreateClientConfig<T extends ClientOptions = ClientOptions2> = (
+  override?: Config<ClientOptions & T>,
+) => Config<Required<ClientOptions> & T>;
 
 export const client = createClient(createClientConfig(createConfig<ClientOptions2>()));

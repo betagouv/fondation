@@ -32,9 +32,7 @@ export class LolfiNominationSessionFinder {
           lolfiSessionId: props.id,
           date: props.creationDate,
           typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-          name:
-            props.name ??
-            `Transparence du ${format(props.creationDate.toDate(), 'dd/MM/yyyy')}`,
+          name: props.name ?? `Transparence du ${format(props.creationDate.toDate(), 'dd/MM/yyyy')}`,
 
           dueDate: null,
           positionStartDate: null,

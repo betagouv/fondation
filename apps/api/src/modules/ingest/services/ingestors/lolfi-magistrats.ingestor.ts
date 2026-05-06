@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertMagistratRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -28,9 +29,7 @@ export class LolfiMagistratsIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawMagistrat; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawMagistrat; success: boolean }>) {
       const errors: { entityId: string; error: string }[] = [];
       const accumulator: RawMagistrat[] = [];
       const ids = new Set<number>();
@@ -93,9 +92,7 @@ export class LolfiMagistratsIngestor {
     return this.prisma
       .$transaction(async (tx) => {
         if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(
-            insertMagistratRawQuery(props.items),
-          );
+          const unknown = await tx.$queryRawTyped(insertMagistratRawQuery(props.items));
 
           if (unknown.length > 0) {
             for (const u of unknown) {

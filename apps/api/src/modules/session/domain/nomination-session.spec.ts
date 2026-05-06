@@ -1,13 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
 import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
+
 import { LodamNominationFile } from './nomination-file';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from './nomination-file-outcome';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 import {
   CantUpdateNominationFiles,
   LodamNominationSessionFilesCreated,
@@ -130,16 +129,12 @@ describe('NominationSession', () => {
         id: expect.any(String),
         version: 4,
       }),
-      new NominationSessionFileReportersAffected(
-        'session-id',
-        expect.any(String),
-        [
-          {
-            nominationFileId: 'nomination-file-id-1',
-            reporterIds: ['reporter-1', 'reporter-2'],
-          },
-        ],
-      ),
+      new NominationSessionFileReportersAffected('session-id', expect.any(String), [
+        {
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: ['reporter-1', 'reporter-2'],
+        },
+      ]),
     ]);
   });
 
@@ -199,11 +194,9 @@ describe('NominationSession', () => {
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionFilePrioritiesUpdated(
-        'session-id',
-        'nomination-file-id-1',
-        [PrioriteEnum.OUTRE_MER],
-      ),
+      new NominationSessionFilePrioritiesUpdated('session-id', 'nomination-file-id-1', [
+        PrioriteEnum.OUTRE_MER,
+      ]),
     ]);
   });
 
@@ -258,11 +251,7 @@ describe('NominationSession', () => {
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionFilePrioritiesUpdated(
-        'session-id',
-        'nomination-file-id-1',
-        [],
-      ),
+      new NominationSessionFilePrioritiesUpdated('session-id', 'nomination-file-id-1', []),
     ]);
   });
 
@@ -278,11 +267,7 @@ describe('NominationSession', () => {
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionAffectationVersionPublished(
-        'session-id',
-        'version-id',
-        'user-id',
-      ),
+      new NominationSessionAffectationVersionPublished('session-id', 'version-id', 'user-id'),
     ]);
   });
 
@@ -312,35 +297,30 @@ describe('NominationSession', () => {
 
     const { messages } = session;
     expect(messages).toEqual([
-      new NominationSessionAffectationVersionPublished(
-        'session-id',
-        undefined,
-        'user-id',
-      ),
+      new NominationSessionAffectationVersionPublished('session-id', undefined, 'user-id'),
     ]);
   });
 
   describe('NominationSession tree creation (LODAM)', () => {
     it('should create a nomination session tree', () => {
-      const session =
-        NominationSession.createLodamNominationTreeAndAffectMembers({
-          name: 'TEST transparence LODAM PARQUET',
-          date: new DateOnly(2025, 1, 1),
-          observationClosingDate: new DateOnly(2025, 2, 1),
-          formation: Magistrat.Formation.PARQUET,
-          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-          dueDate: null,
-          positionStartDate: null,
-          userId: randomUUID(),
+      const session = NominationSession.createLodamNominationTreeAndAffectMembers({
+        name: 'TEST transparence LODAM PARQUET',
+        date: new DateOnly(2025, 1, 1),
+        observationClosingDate: new DateOnly(2025, 2, 1),
+        formation: Magistrat.Formation.PARQUET,
+        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        dueDate: null,
+        positionStartDate: null,
+        userId: randomUUID(),
 
-          // prettier-ignore
-          formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
-          // prettier-ignore
-          files: [
+        // oxfmt-ignore
+        formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
+        // oxfmt-ignore
+        files: [
             { fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
             { fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
           ],
-        });
+      });
 
       expect(session.messages[0]).toEqual(
         new NominationSessionCreated(
@@ -356,14 +336,12 @@ describe('NominationSession', () => {
         ),
       );
 
-      expect(session.messages[1]).toEqual(
-        new NominationSessionValidated(session.id, expect.any(String)),
-      );
+      expect(session.messages[1]).toEqual(new NominationSessionValidated(session.id, expect.any(String)));
 
       expect(session.messages[2]).toEqual(
         new LodamNominationSessionFilesCreated(
           session.id,
-          // prettier-ignore
+          // oxfmt-ignore
           [
             { id: expect.any(String), fileNumber: 1, name: 'ARENDT HANNAH', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.HH, targetedGrade: Magistrat.Grade.HH, targetedPosition: 'Procureur de la République TJ GRASSE', currentPosition: 'Procureur de la République TJ NARBONNE', lastPositionDate: new DateOnly(2020, 9, 1), lastRankingDate: new DateOnly(2010, 12, 17), rank: '(10 sur une liste de 12)', biography: null, birthDate: new DateOnly(1968, 4, 9), careerInformation: null, observers: [] },
             { id: expect.any(String), fileNumber: 2, name: 'GRAMSCI ANTONIO', reporters: ['BOURDIEU Pierre'], grade: Magistrat.Grade.I, targetedGrade: Magistrat.Grade.I, targetedPosition: 'Vice-président TJ  CAHORS', currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION', lastPositionDate: new DateOnly(2019, 9, 1), lastRankingDate: new DateOnly(2019, 12, 7), rank: '(2 sur une liste de 2)', biography: null, birthDate: new DateOnly(1991, 12, 23), careerInformation: null, observers: [] }
@@ -375,7 +353,7 @@ describe('NominationSession', () => {
         new NominationSessionFileReportersAffected(
           session.id,
           null,
-          // prettier-ignore
+          // oxfmt-ignore
           [
             { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] },
             { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] }
@@ -396,9 +374,9 @@ describe('NominationSession', () => {
           positionStartDate: null,
           userId: randomUUID(),
 
-          // prettier-ignore
+          // oxfmt-ignore
           formationMembers: [],
-          // prettier-ignore
+          // oxfmt-ignore
           files: [
             { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
             { fileNumber: 2, reporters: ['BOURDIEU Pierre'] }
@@ -485,9 +463,7 @@ describe('NominationSession', () => {
     expect(() =>
       session.updateNominationFileObservers({
         nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
-        existingNominationFiles: [
-          { id: 'nomination-file-id-1', fileNumber: 1 },
-        ],
+        existingNominationFiles: [{ id: 'nomination-file-id-1', fileNumber: 1 }],
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
@@ -519,13 +495,7 @@ describe('NominationSession', () => {
     });
 
     const messages = session.messages;
-    expect(messages).toEqual([
-      new NominationFileOutcomeDefined(
-        'nomination-file-id-1',
-        'VALIDATED',
-        null,
-      ),
-    ]);
+    expect(messages).toEqual([new NominationFileOutcomeDefined('nomination-file-id-1', 'VALIDATED', null)]);
   });
 
   it('should define another nomination file outcome', () => {
@@ -555,13 +525,7 @@ describe('NominationSession', () => {
     });
 
     const messages = session.messages;
-    expect(messages).toEqual([
-      new NominationFileOutcomeDefined(
-        'nomination-file-id-1',
-        'WITHDRAWN',
-        null,
-      ),
-    ]);
+    expect(messages).toEqual([new NominationFileOutcomeDefined('nomination-file-id-1', 'WITHDRAWN', null)]);
   });
 
   it('should reset the nomination file outcome', () => {
@@ -588,8 +552,6 @@ describe('NominationSession', () => {
     });
 
     const messages = session.messages;
-    expect(messages).toEqual([
-      new NominationFileOutcomeDefined('nomination-file-id-1', null, null),
-    ]);
+    expect(messages).toEqual([new NominationFileOutcomeDefined('nomination-file-id-1', null, null)]);
   });
 });

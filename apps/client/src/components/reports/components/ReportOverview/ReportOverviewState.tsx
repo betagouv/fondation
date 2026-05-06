@@ -1,9 +1,11 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, FC } from 'react';
+
 import { NominationFile } from 'shared-models';
 
-import type { DetailedReportDto } from '@api/types';
 import { stateToLabel } from '../../labels/state-label.mapper';
+import type { DetailedReportDto } from '@api/types';
+
 import { Card } from './Card';
 
 export type ReportOverviewStateProps = {

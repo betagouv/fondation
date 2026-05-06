@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { PrismaService } from 'src/modules/framework/database';
 import z from 'zod';
+
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class IsSessionReadyForDocGenerationQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    sessionId: string;
-  }): Promise<DocGenerationSessionReadinessDto> {
-    const { canCreateAgenda, canCreateOfficialReport, isReady } =
-      await this.prisma.$transaction(async (tx) => {
+  async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
+    const { canCreateAgenda, canCreateOfficialReport, isReady } = await this.prisma.$transaction(
+      async (tx) => {
         const hasAnyAgendaWithoutOfficialReport = await tx.agenda.findFirst({
           select: { id: true },
           where: { officialReportId: null, sessionId: query.sessionId },
@@ -33,27 +32,25 @@ export class IsSessionReadyForDocGenerationQuery {
           };
         }
 
-        const hasAnyNonReportedWithOutcomeFile =
-          await tx.dossierDeNomination.findFirst({
-            select: { id: true },
-            where: {
-              agendaInclusions: { none: {} },
-              sessionId: query.sessionId,
-              outcome: {
-                not: null,
-                notIn: ['ASSESSING', 'SUSPENDED', 'WAITING_DSJ'],
-              },
+        const hasAnyNonReportedWithOutcomeFile = await tx.dossierDeNomination.findFirst({
+          select: { id: true },
+          where: {
+            agendaInclusions: { none: {} },
+            sessionId: query.sessionId,
+            outcome: {
+              not: null,
+              notIn: ['ASSESSING', 'SUSPENDED', 'WAITING_DSJ'],
             },
-          });
+          },
+        });
 
         return {
-          isReady:
-            !!hasAnyAgendaWithoutOfficialReport ||
-            !!hasAnyNonReportedWithOutcomeFile,
+          isReady: !!hasAnyAgendaWithoutOfficialReport || !!hasAnyNonReportedWithOutcomeFile,
           canCreateAgenda: !!hasAnyNonReportedWithOutcomeFile,
           canCreateOfficialReport: !!hasAnyAgendaWithoutOfficialReport,
         };
-      });
+      },
+    );
 
     return { isReady, canCreateAgenda, canCreateOfficialReport };
   }

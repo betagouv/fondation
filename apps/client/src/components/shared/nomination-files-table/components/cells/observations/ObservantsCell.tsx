@@ -1,10 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { useObservationsModal } from './ObservationsModalContext';
 
 export function ObservantsCell({ nominationFile }: { nominationFile: SessionNominationFile }) {
@@ -50,7 +50,7 @@ export function ObservantsCell({ nominationFile }: { nominationFile: SessionNomi
       nominationFile={{
         ...nominationFile,
         legacyObservers: nominationFile.content.observants ?? [],
-        name: nominationFile.content.nomMagistrat
+        name: nominationFile.content.nomMagistrat,
       }}
     />
   );

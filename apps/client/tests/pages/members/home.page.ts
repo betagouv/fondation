@@ -1,4 +1,5 @@
 import type { Locator } from '@playwright/test';
+
 import type { TestMemberApp } from '../test-member-app';
 
 export class MemberHomePage {
@@ -8,7 +9,7 @@ export class MemberHomePage {
     await this.app.homeLink.click();
     await this.app.page
       .getByRole('heading', {
-        name: `Bonjour, ${this.app.member.gender === 'MALE' ? 'Monsieur' : 'Madame'} ${this.app.member.lastName.toUpperCase()}.`
+        name: `Bonjour, ${this.app.member.gender === 'MALE' ? 'Monsieur' : 'Madame'} ${this.app.member.lastName.toUpperCase()}.`,
       })
       .waitFor();
   }

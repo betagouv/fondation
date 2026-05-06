@@ -33,8 +33,10 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
           legend={<span className="text-sm font-bold uppercase">Colonnes</span>}
           options={hidableColumns.map((column) => {
             const isVisible = column.getIsVisible();
-            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-            const label = flexRender(column.columnDef.header, { table: props.table, column } as any);
+            const label = flexRender(column.columnDef.header, {
+              table: props.table,
+              column,
+            } as any); // oxlint-disable-line @typescript-eslint/no-explicit-any
             return {
               label,
               title: typeof label === 'string' ? (isVisible ? `Masquer ${label}` : `Afficher ${label}`) : '',
@@ -42,8 +44,8 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
               nativeInputProps: {
                 disabled: !column.getCanHide(),
                 checked: column.getIsVisible(),
-                onChange: column.getToggleVisibilityHandler()
-              }
+                onChange: column.getToggleVisibilityHandler(),
+              },
             };
           })}
         />

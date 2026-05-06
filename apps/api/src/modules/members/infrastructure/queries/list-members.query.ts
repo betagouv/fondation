@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
+import { Magistrat } from 'shared-models';
+
+import { isMember, MEMBER_ROLES } from '../member.utils';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { listMembersRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 
 @Injectable()
 export class ListMembersQuery {
@@ -84,6 +81,4 @@ const MemberListItemDtoSchema = z.object({
   ),
 });
 
-export class PaginatedMemberListItemDto extends createPaginatedZodDto(
-  MemberListItemDtoSchema,
-) {}
+export class PaginatedMemberListItemDto extends createPaginatedZodDto(MemberListItemDtoSchema) {}

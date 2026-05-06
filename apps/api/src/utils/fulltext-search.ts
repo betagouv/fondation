@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+
 import { unaccent } from './unaccent';
 
 export function toFullTextQuery(input: string): string {

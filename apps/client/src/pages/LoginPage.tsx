@@ -1,10 +1,9 @@
 import { Navigate, useLocation } from 'react-router';
 
-import { useUser } from '@queries/auth.queries';
-
 import Login from '@/components/login/Login';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useUser } from '@queries/auth.queries';
 
 export const LoginPage = () => {
   const location = useLocation();

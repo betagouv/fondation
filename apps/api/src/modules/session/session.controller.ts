@@ -16,35 +16,17 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
+import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, UseMultipartBody, type Multipart } from '../framework/files';
+import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { DateOnly } from 'src/utils/date-only';
 
 import { LodamNominationFile } from './domain/nomination-file';
-import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
-import { SessionExceptionFilter } from './infrastructure/session.filter';
-import { SessionService } from './infrastructure/sessions.service';
-
-import {
-  ApiExtraModels,
-  ApiOkResponse,
-  ApiTags,
-  getSchemaPath,
-} from '@nestjs/swagger';
-import { DateOnly } from 'src/utils/date-only';
-import {
-  FILE_EXTENSIONS,
-  FILE_MIME_TYPES,
-  UseMultipartBody,
-  type Multipart,
-} from '../framework/files';
-import {
-  ApiPaginated,
-  Pagination,
-  QueryPagination,
-} from '../framework/pagination';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
@@ -66,6 +48,7 @@ import {
   NoneAffectationVersion,
   SomeAffectationVersion,
 } from './infrastructure/finders/affectation-version.finder';
+import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
@@ -76,6 +59,8 @@ import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/li
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
+import { SessionExceptionFilter } from './infrastructure/session.filter';
+import { SessionService } from './infrastructure/sessions.service';
 
 @ApiTags('Sessions')
 @UseInterceptors(SessionExceptionFilter)
@@ -123,8 +108,7 @@ export class SessionController {
     overrideFiles: false,
     deleteOnFail: false,
     schema: ImportNominationSessionFromLodamXlsxDto,
-    destination: ({ id, mimetype }) =>
-      `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @ZodResponse({
     type: CreatedNominationSessionDto,
@@ -152,8 +136,7 @@ export class SessionController {
     overrideFiles: false,
     deleteOnFail: false,
     schema: UpdateNominationSessionFilesObserversDto,
-    destination: ({ id, mimetype }) =>
-      `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateSessionObservers(
@@ -184,9 +167,7 @@ export class SessionController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Header('Content-Type', FILE_MIME_TYPES.xlsx)
   @Get('/:sessionId/files.xlsx')
-  listNominationFilesAsExcel(
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
-  ): Promise<StreamableFile> {
+  listNominationFilesAsExcel(@Param('sessionId', ParseUUIDPipe) sessionId: string): Promise<StreamableFile> {
     return this.sessions.listNominationFilesAsExcel({ sessionId });
   }
 
@@ -366,10 +347,7 @@ export class SessionController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Delete('/:sessionId/attachments/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeSessionAttachment(
-    @Param('sessionId') sessionId: string,
-    @Param('fileId') fileId: string,
-  ) {
+  async removeSessionAttachment(@Param('sessionId') sessionId: string, @Param('fileId') fileId: string) {
     await this.sessions.removeNominationSessionAttachment({
       sessionId,
       fileId,
@@ -425,13 +403,8 @@ export class SessionController {
         ...data,
 
         date: DateOnly.fromString(data.date, 'yyyy-MM-dd'),
-        observationsClosingDate: DateOnly.fromString(
-          data.observationsClosingDate,
-          'yyyy-MM-dd',
-        ),
-        dueDate: data.dueDate
-          ? DateOnly.fromString(data.dueDate, 'yyyy-MM-dd')
-          : null,
+        observationsClosingDate: DateOnly.fromString(data.observationsClosingDate, 'yyyy-MM-dd'),
+        dueDate: data.dueDate ? DateOnly.fromString(data.dueDate, 'yyyy-MM-dd') : null,
         positionStartDate: data.positionStartDate
           ? DateOnly.fromString(data.positionStartDate, 'yyyy-MM-dd')
           : null,

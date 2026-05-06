@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { dateOnlyJsonSchema } from 'shared-models';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import z from 'zod';
 
 @Injectable()
 export class DetailsOfficialReportQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    officialReportId: string;
-  }): Promise<DetailedOfficialReportMetadataDto> {
+  async handle(query: { officialReportId: string }): Promise<DetailedOfficialReportMetadataDto> {
     const report = await this.prisma.officialReport.findUnique({
       where: { id: query.officialReportId },
       select: {
@@ -38,12 +38,9 @@ export class DetailsOfficialReportQuery {
       members: report.members.map(({ memberId }) => memberId).filter(isDefined),
       chairmanId: report.chairmanId,
       secretaryId: report.secretaryId,
-      justiceDepartmentContactId:
-        report.justiceDepartmentContactId?.toString() ?? null,
+      justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       sessionMeetingDate: DateOnly.fromDate(report.sessionMeetingDate).toJson(),
-      sessionMeetingStartingTime: dateToTimeOnly(
-        report.sessionMeetingStartingTime,
-      ),
+      sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
     };
   }
 }

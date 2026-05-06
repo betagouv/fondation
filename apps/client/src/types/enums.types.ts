@@ -5,7 +5,7 @@ import type {
   DetailedReportDto,
   DetailedUserResponseDto,
   FollowUpOnObservationDto,
-  PaginatedNominationFiles
+  PaginatedNominationFiles,
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
@@ -14,7 +14,7 @@ export const RoleEnumLabels: Record<RoleEnum, string> = {
   MEMBRE_DU_PARQUET: 'Membre du parquet',
   MEMBRE_COMMUN: 'Membre commun',
   ADJOINT_SECRETAIRE_GENERAL: 'Secrétariat général',
-  ADMIN: 'Administrateur'
+  ADMIN: 'Administrateur',
 };
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
@@ -33,40 +33,40 @@ export const GradeEnum: Record<GradeEnum, GradeEnum> = {
   G1: 'G1',
   G2: 'G2',
   G3: 'G3',
-  G3sup: 'G3sup'
+  G3sup: 'G3sup',
 };
 
 export type FormationEnum = NonNullable<DetailedReportDto['formation']>;
 export const FormationEnum: Record<FormationEnum, FormationEnum> = {
   PARQUET: 'PARQUET',
-  SIEGE: 'SIEGE'
+  SIEGE: 'SIEGE',
 };
 
 export const FormationEnumLabel = {
   PARQUET: 'parquet',
-  SIEGE: 'siège'
+  SIEGE: 'siège',
 } as const satisfies Record<FormationEnum, string>;
 
 export type TypeDeSaisineEnum = NonNullable<DetailedNominationSessionDto['typeDeSaisine']>;
 export const TypeDeSaisineEnum = {
-  TRANSPARENCE_GDS: 'TRANSPARENCE_GDS'
+  TRANSPARENCE_GDS: 'TRANSPARENCE_GDS',
 } satisfies Record<TypeDeSaisineEnum, TypeDeSaisineEnum>;
 
 export const TypeDeSaisineEnumLabels: Record<TypeDeSaisineEnum, string> = {
-  TRANSPARENCE_GDS: 'Transparence'
+  TRANSPARENCE_GDS: 'Transparence',
 };
 
 export type PrioriteEnum = NonNullable<AffectReportersDto['items'][number]['priorities']>[number];
 export const PrioriteEnum = {
   ETOILE: 'ETOILE',
   OUTRE_MER: 'OUTRE_MER',
-  PROFILE: 'PROFILE'
+  PROFILE: 'PROFILE',
 } satisfies Record<PrioriteEnum, PrioriteEnum>;
 
 export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
   ETOILE: 'Étoilé',
   OUTRE_MER: 'Outre-mer',
-  PROFILE: 'Profilé'
+  PROFILE: 'Profilé',
 };
 
 export type NominationFileOutcomeEnum = NonNullable<
@@ -80,7 +80,7 @@ export const NominationFileOutcomeEnum = {
   REMOVED: 'REMOVED',
   WITHDRAWN: 'WITHDRAWN',
   ASSESSING: 'ASSESSING',
-  WAITING_DSJ: 'WAITING_DSJ'
+  WAITING_DSJ: 'WAITING_DSJ',
 } as const satisfies Record<NominationFileOutcomeEnum, NominationFileOutcomeEnum>;
 
 const NOMINATION_FILE_OUTCOME_LABELS = {
@@ -91,7 +91,7 @@ const NOMINATION_FILE_OUTCOME_LABELS = {
     REMOVED: 'retrait',
     WITHDRAWN: 'retrait (désistement)',
     ASSESSING: 'en attente évaluation',
-    WAITING_DSJ: 'en attente complément DSJ'
+    WAITING_DSJ: 'en attente complément DSJ',
   },
   SIEGE: {
     VALIDATED: 'avis conforme',
@@ -100,8 +100,8 @@ const NOMINATION_FILE_OUTCOME_LABELS = {
     REMOVED: 'retrait',
     WITHDRAWN: 'retrait (désistement)',
     ASSESSING: 'en attente évaluation',
-    WAITING_DSJ: 'en attente complément DSJ'
-  }
+    WAITING_DSJ: 'en attente complément DSJ',
+  },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
 export function outcomeLabel(outcome: {
@@ -115,13 +115,13 @@ export type ObservationFollowupEnum = NonNullable<FollowUpOnObservationDto['foll
 export const ObservationFollowUpEnum = {
   ALERT: 'ALERT',
   INTERESTING: 'INTERESTING',
-  REFERENCE: 'REFERENCE'
+  REFERENCE: 'REFERENCE',
 } as const satisfies Record<ObservationFollowupEnum, ObservationFollowupEnum>;
 
 export const ObservationFollowUpEnumLabels = {
   ALERT: 'Signalement',
   REFERENCE: 'Recommandation',
-  INTERESTING: `Digne d'intérêt`
+  INTERESTING: `Digne d'intérêt`,
 } as const satisfies Record<ObservationFollowupEnum, string>;
 
 export type JobStatusEnum = DetailedJobDto['status'];
@@ -130,7 +130,7 @@ export const JobStatusEnum = {
   FAILED: 'FAILED',
   IDLE: 'IDLE',
   RUNNING: 'RUNNING',
-  SUCCEEDED: 'SUCCEEDED'
+  SUCCEEDED: 'SUCCEEDED',
 } as const satisfies Record<JobStatusEnum, JobStatusEnum>;
 
 export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
@@ -138,7 +138,7 @@ export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
   FAILED: 'échec',
   IDLE: 'en attente',
   RUNNING: 'en cours',
-  SUCCEEDED: 'succès'
+  SUCCEEDED: 'succès',
 };
 
 export type UpdatableNominationFileStatusEnum =

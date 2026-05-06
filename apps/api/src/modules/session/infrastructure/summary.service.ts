@@ -1,18 +1,14 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+
+import { Summary } from '../domain/summary';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import {
-  FILE_MIME_TYPES,
-  filenameToMimeType,
-} from 'src/modules/framework/files/mime-type';
+import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { SimpleAuthService } from 'src/modules/simple-auth';
 import { isDefined } from 'src/utils/is-defined';
-import { Summary } from '../domain/summary';
+
 import { IncludedFilesInSummaryContentDto } from './dtos/summary.dto';
-import {
-  DetailedSummaryDto,
-  DetailSummaryQuery,
-} from './queries/detail-summary.query';
+import { DetailedSummaryDto, DetailSummaryQuery } from './queries/detail-summary.query';
 import {
   GeneratedSummaryAttachmentPublicUrlDto,
   GetSummaryAttachmentUrlQuery,
@@ -79,9 +75,7 @@ export class SummaryService {
     });
     await this.summaryRepository.persist(summary);
 
-    const urls = await this.files.getPublicUrls(
-      command.files.map(({ id }) => id),
-    );
+    const urls = await this.files.getPublicUrls(command.files.map(({ id }) => id));
     const items = Object.entries(urls)
       .map(([id, url]) => {
         const existingFile = command.files.find((f) => f.id === id);

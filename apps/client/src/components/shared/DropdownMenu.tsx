@@ -16,7 +16,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
   isOpen: controlledIsOpen,
   onOpenChange,
   className,
-  disabled = false
+  disabled = false,
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
@@ -33,7 +33,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
       }
       onOpenChange?.(value);
     },
-    [disabled, controlledIsOpen, onOpenChange]
+    [disabled, controlledIsOpen, onOpenChange],
   );
 
   const updateDropdownPosition = () => {
@@ -41,7 +41,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
       const rect = triggerRef.current.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX
+        left: rect.left + window.scrollX,
       });
     }
   };
@@ -101,7 +101,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
         position: 'absolute',
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left}px`,
-        zIndex: 9999
+        zIndex: 9999,
       }}
       className={className}
     >

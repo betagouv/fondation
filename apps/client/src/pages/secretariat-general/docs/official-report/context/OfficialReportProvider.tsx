@@ -5,7 +5,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useCreateOfficialReportMutation,
   useDetailsOfficialReportQuery,
-  useUpdateOfficialReportMutation
+  useUpdateOfficialReportMutation,
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -22,11 +22,13 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
   const createOfficialReport = useCreateOfficialReportMutation();
   const updateOfficialReport = useUpdateOfficialReportMutation(sessionId);
 
-  const { data: session, isFetching: sessionFetching } = useDetailedNominationSessionQuery({ sessionId });
+  const { data: session, isFetching: sessionFetching } = useDetailedNominationSessionQuery({
+    sessionId,
+  });
   const {
     data: officialReportMetadata,
     isFetching: officialReportMetadataFetching,
-    isFetched: metadataFetched
+    isFetched: metadataFetched,
   } = useDetailsOfficialReportQuery({ officialReportId });
 
   const [state, setState] = React.useState(null as OfficialReport | null);
@@ -44,7 +46,7 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
       justiceDepartmentContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
       chairmanId: officialReportMetadata.chairmanId ?? '',
       secretaryId: officialReportMetadata.secretaryId ?? '',
-      memberIds: officialReportMetadata.members
+      memberIds: officialReportMetadata.members,
     }));
   }, [officialReportMetadata]);
 
@@ -53,12 +55,12 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
       sessionFetching ||
       officialReportMetadataFetching ||
       (metadataFetched && state?.chairmanId !== officialReportMetadata?.chairmanId),
-    [sessionFetching, officialReportMetadataFetching, state, metadataFetched, officialReportMetadata]
+    [sessionFetching, officialReportMetadataFetching, state, metadataFetched, officialReportMetadata],
   );
 
   const cancel = React.useCallback(
     () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId })),
-    [navigate, sessionId]
+    [navigate, sessionId],
   );
 
   const submit = React.useCallback(
@@ -73,7 +75,7 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
         chairmanId: metadata.chairmanId,
         secretaryId: metadata.secretaryId,
         agendas: [metadata.agendaId],
-        members: metadata.memberIds
+        members: metadata.memberIds,
       };
 
       if (officialReportId) {
@@ -81,20 +83,30 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
           { ...payload, officialReportId },
           {
             onSuccess: () =>
-              navigate(generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, { sessionId, officialReportId }))
-          }
+              navigate(
+                generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+                  sessionId,
+                  officialReportId,
+                }),
+              ),
+          },
         );
       } else {
         createOfficialReport.mutate(
           { ...payload, sessionId },
           {
             onSuccess: ({ id: officialReportId }) =>
-              navigate(generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, { sessionId, officialReportId }))
-          }
+              navigate(
+                generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+                  sessionId,
+                  officialReportId,
+                }),
+              ),
+          },
         );
       }
     },
-    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate]
+    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate],
   );
 
   return (
@@ -105,7 +117,7 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
         officialReportId,
         report: state,
         session: { id: sessionId, formation: session?.formation ?? 'SIEGE' },
-        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending
+        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending,
       }}
     >
       {isFetching ? <span className="ri-loader-4-line animate-spin" /> : props.children}

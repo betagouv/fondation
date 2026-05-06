@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import z from 'zod';
+
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 
 export class IngestLolfiArchiveDto extends createZodDto(
   z.object({

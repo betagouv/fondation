@@ -1,5 +1,5 @@
 {
-  "editor.formatOnSave": true,
+  "search.useIgnoreFiles": true,
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -9,9 +9,5 @@
     "dist": true,
     "src/coverage": true,
     "src/generated/prisma": true
-  },
-  "search.useIgnoreFiles": true,
-  "[typescript][javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

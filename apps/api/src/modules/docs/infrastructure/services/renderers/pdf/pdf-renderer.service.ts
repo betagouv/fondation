@@ -1,6 +1,7 @@
+import path from 'node:path';
+
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import path from 'node:path';
 import Piscina from 'piscina';
 
 @Injectable()
@@ -24,10 +25,7 @@ export class PdfRenderer implements OnModuleDestroy {
 
   private async internalRender(html: string): Promise<Buffer> {
     const buffer: Uint8Array = await this.pool.run(html);
-    Sentry.getActiveSpan()?.setAttribute(
-      'output_file.bytes_size',
-      buffer.byteLength,
-    );
+    Sentry.getActiveSpan()?.setAttribute('output_file.bytes_size', buffer.byteLength);
 
     return Buffer.from(buffer);
   }

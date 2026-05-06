@@ -13,7 +13,7 @@ type MemberExclusionSelectorProps = {
 
 export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
   formation,
-  excludedMemberIdsRef
+  excludedMemberIdsRef,
 }) => {
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebounce(search, 600);
@@ -24,7 +24,7 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
   const { data: membersData } = useMemberListQuery({
     formations: ['COMMUN', formation],
     search: debouncedSearch.trim() || undefined,
-    pagination: { pageIndex: 0, pageSize: 100 }
+    pagination: { pageIndex: 0, pageSize: 100 },
   });
 
   const members = membersData?.items ?? [];
@@ -54,7 +54,7 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
           placeholder: 'Rechercher un membre...',
           value: search,
           onChange: (e) => setSearch(e.target.value),
-          type: 'text'
+          type: 'text',
         }}
       />
       {displayedMembers.length > 0 && (
@@ -64,8 +64,8 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
               label: `${member.lastName} ${member.firstName}`.toUpperCase(),
               nativeInputProps: {
                 checked: selected.has(member.id),
-                onChange: () => toggle(member)
-              }
+                onChange: () => toggle(member),
+              },
             }))}
           />
         </div>

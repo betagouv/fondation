@@ -1,13 +1,10 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as util from 'node:util';
+
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ignoreAsync } from 'src/utils/promises';
@@ -30,10 +27,7 @@ export class LolfiCryptoService {
   }
 
   shouldDecrypt(options: { type: string | undefined }): boolean {
-    return (
-      typeof options.type === 'string' &&
-      options.type.startsWith(FILE_MIME_TYPES.smime)
-    );
+    return typeof options.type === 'string' && options.type.startsWith(FILE_MIME_TYPES.smime);
   }
 
   async decrypt(smimeEncrypted: Buffer): Promise<Buffer> {
@@ -56,9 +50,7 @@ export class LolfiCryptoService {
 
       return await fs.readFile(outputPath);
     } finally {
-      ignoreAsync(() =>
-        Promise.allSettled([inputPath, outputPath].map(fs.unlink)),
-      );
+      ignoreAsync(() => Promise.allSettled([inputPath, outputPath].map(fs.unlink)));
     }
   }
 }

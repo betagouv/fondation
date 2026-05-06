@@ -1,5 +1,6 @@
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import React from 'react';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type ObservationFollowUpReminderContextType = {
   nominationFile: SessionNominationFile | null;
@@ -7,5 +8,5 @@ type ObservationFollowUpReminderContextType = {
 };
 
 export const ObservationFollowUpReminderContext = React.createContext(
-  null as unknown as ObservationFollowUpReminderContextType
+  null as unknown as ObservationFollowUpReminderContextType,
 );

@@ -3,10 +3,8 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { Magistrat } from 'shared-models';
-import {
-  PrismaUserDutyEnum,
-  PrismaUserTitleEnum,
-} from 'src/generated/prisma/enums';
+
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
@@ -17,16 +15,12 @@ import { roleEnumToPrismaRoleEnum } from 'src/modules/shared/mappers/role-enum.m
 export class FindChairmenQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    formation: Magistrat.Formation | undefined;
-  }): Promise<FoundChairmenDto> {
+  async handle(query: { formation: Magistrat.Formation | undefined }): Promise<FoundChairmenDto> {
     const users = await this.prisma.user.findMany({
       where: {
         duty: 'PRESIDENT',
         role: {
-          in: formationToMemberRole(query.formation).map(
-            roleEnumToPrismaRoleEnum,
-          ),
+          in: formationToMemberRole(query.formation).map(roleEnumToPrismaRoleEnum),
         },
       },
       select: {
@@ -52,10 +46,8 @@ export class FindChairmenQuery {
   }
 }
 
-// prettier-ignore
 type TitledPrismaUser = { duty: PrismaUserDutyEnum | null; title: PrismaUserTitleEnum | null };
 
-// prettier-ignore
 type Chairman<User> = User & { title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'>; duty: 'PRESIDENT' };
 
 function isUserChairman(formation: Magistrat.Formation | undefined) {
@@ -76,10 +68,7 @@ export class FoundChairmenDto extends createZodDto(
         firstName: z.string(),
         lastName: z.string(),
         duty: z.enum([PrismaUserDutyEnum.PRESIDENT]),
-        title: z
-          .enum(PrismaUserTitleEnum)
-          .exclude(['FIRST_SECRETARY'])
-          .nullable(),
+        title: z.enum(PrismaUserTitleEnum).exclude(['FIRST_SECRETARY']).nullable(),
         displayTitle: z.string().nullable(),
       }),
     ),

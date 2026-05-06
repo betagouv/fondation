@@ -1,8 +1,9 @@
 import { NominationFile } from 'shared-models';
 
+import { reportHtmlIds } from '../../dom/html-ids';
 import type { GroupRulesChecked } from '@/types/rules.types';
 import type { DetailedReportDto } from '@api/types';
-import { reportHtmlIds } from '../../dom/html-ids';
+
 import { ReportRule } from './ReportRule';
 
 export type ReportRulesProps = {

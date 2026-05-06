@@ -2,15 +2,14 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
-import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
-import * as importAttachments from './tableau-de-bord/actions/ImportAttachmentModal';
-
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
+import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
+
+import * as importAttachments from './tableau-de-bord/actions/ImportAttachmentModal';
 import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
 import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
 import { TableauDeBordValidationCallOut } from './tableau-de-bord/resume/TableauDeBordValidationCallOut';
@@ -36,13 +35,13 @@ export function Transparence() {
     segments: [
       {
         label: 'Secrétariat général',
-        to: ROUTE_PATHS.SG.DASHBOARD
+        to: ROUTE_PATHS.SG.DASHBOARD,
       },
       {
         label: 'Gérer une session',
-        to: ROUTE_PATHS.SG.MANAGE_SESSION
-      }
-    ]
+        to: ROUTE_PATHS.SG.MANAGE_SESSION,
+      },
+    ],
   };
 
   return (

@@ -1,16 +1,5 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { timeOnlyToDate } from 'src/utils/time-only';
 import {
   JusticePresentationPlan,
   JusticePresentationPlanCreated,
@@ -19,6 +8,12 @@ import {
   JusticePresentationPlanUnPresented,
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class JusticePresentationPlanRepository {
@@ -41,9 +36,7 @@ export class JusticePresentationPlanRepository {
     if (!found || found.agendas.length === 0) throw new NotFoundException();
     return JusticePresentationPlan.from({
       id: found.id,
-      formation: prismaFormationEnumToFormationEnum(
-        assertIsDefined(found.agendas[0]).agenda.formation,
-      ),
+      formation: prismaFormationEnumToFormationEnum(assertIsDefined(found.agendas[0]).agenda.formation),
     });
   }
 
@@ -78,9 +71,7 @@ export class JusticePresentationPlanRepository {
     });
 
     if (!justiceContact) {
-      this.logger.error(
-        `unknown justice contact: ${message.state.justiceContactId}`,
-      );
+      this.logger.error(`unknown justice contact: ${message.state.justiceContactId}`);
       throw new InternalServerErrorException();
     }
 

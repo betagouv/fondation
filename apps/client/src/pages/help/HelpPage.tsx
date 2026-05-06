@@ -1,7 +1,8 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useUser } from '@queries/auth.queries';
 
 export function HelpPage() {

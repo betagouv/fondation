@@ -1,10 +1,11 @@
+import Notice, { type NoticeProps } from '@codegouvfr/react-dsfr/Notice';
+import React from 'react';
+
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import type { DetailedNominationSessionDto } from '@api/types';
-import Notice, { type NoticeProps } from '@codegouvfr/react-dsfr/Notice';
 import { useUser } from '@queries/auth.queries';
 import { useValidateSessionMutation } from '@queries/nomination-sessions.queries';
-import React from 'react';
 
 export function TableauDeBordValidationCallOut(props: {
   session: DetailedNominationSessionDto | null | undefined;
@@ -25,8 +26,8 @@ export function TableauDeBordValidationCallOut(props: {
       content: <p>En validant, cette alerte ne sera plus affiché</p>,
       i18n: {
         cancel: 'Annuler',
-        confirm: 'Confirmer et masquer cette alerte'
-      }
+        confirm: 'Confirmer et masquer cette alerte',
+      },
     });
 
     if (isConfirmed) {
@@ -34,8 +35,8 @@ export function TableauDeBordValidationCallOut(props: {
         { sessionId: props.session.id, userId: user.id },
         {
           onSuccess: () => setIsClosed(true),
-          onError: () => alerts.pushAlert({ severity: 'error', title: `Error pendant la validation` })
-        }
+          onError: () => alerts.pushAlert({ severity: 'error', title: `Error pendant la validation` }),
+        },
       );
     }
   }, [confirmation, props, user, validateSession, alerts, setIsClosed]);
@@ -45,7 +46,7 @@ export function TableauDeBordValidationCallOut(props: {
   const noticeProps = {
     isClosed,
     isClosable: !isValidatingSession,
-    onClose: onValidateSession
+    onClose: onValidateSession,
   } as unknown as NoticeProps;
 
   return (

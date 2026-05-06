@@ -1,7 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
-import { dateOnlyJsonSchema } from 'shared-models';
-import { timeOnlySchema } from 'src/utils/time-only';
 import { z } from 'zod';
+
+import { dateOnlyJsonSchema } from 'shared-models';
+
+import { timeOnlySchema } from 'src/utils/time-only';
 
 export class CreateOrUpdateAgendaDto extends createZodDto(
   z.object({
@@ -12,17 +14,13 @@ export class CreateOrUpdateAgendaDto extends createZodDto(
   }),
 ) {}
 
-export class CreatedAgendaDto extends createZodDto(
-  z.object({ id: z.uuid() }),
-) {}
+export class CreatedAgendaDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
 export class FindAgendaNominationFilesQueryDto extends createZodDto(
   z.object({ ignoreAgendaId: z.string().optional() }),
 ) {}
 
-export class CreatedOfficialReportDto extends createZodDto(
-  z.object({ id: z.uuid() }),
-) {}
+export class CreatedOfficialReportDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
 export class CreateOrUpdateOfficialReportDto extends createZodDto(
   z.object({
@@ -60,9 +58,7 @@ export class ListAgendasForNewOfficialReportQueryDto extends createZodDto(
   }),
 ) {}
 
-export class CreatedJusticePresentationPlanDto extends createZodDto(
-  z.object({ id: z.string() }),
-) {}
+export class CreatedJusticePresentationPlanDto extends createZodDto(z.object({ id: z.string() })) {}
 
 export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
   z.object({

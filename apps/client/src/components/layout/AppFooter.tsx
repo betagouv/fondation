@@ -1,8 +1,8 @@
 import Footer from '@codegouvfr/react-dsfr/Footer';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { useMatch } from 'react-router';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useMatch } from 'react-router';
 
 const VERSION = import.meta.env.VITE_TAGGED_VERSION;
 export const AppFooter = () => {
@@ -32,15 +32,15 @@ export const AppFooter = () => {
           ? [
               <span key="appVersion" className={cx('fr-footer__bottom-link')}>
                 Version: {VERSION}
-              </span>
+              </span>,
             ]
-          : [])
+          : []),
       ]}
       domains={isLogin ? undefined : []}
       classes={{
         root: isLogin ? undefined : 'shadow-none',
         body: isLogin ? undefined : 'hidden',
-        bottomList: isLogin ? undefined : ''
+        bottomList: isLogin ? undefined : '',
       }}
       license={''}
     />

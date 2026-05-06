@@ -1,12 +1,13 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import type { FC } from 'react';
+
 import { EditorButton } from './EditorButton';
 
 export const BulletListButton: FC = () => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleBulletList()
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleBulletList(),
   });
 
   const toggleBulletList = () => {

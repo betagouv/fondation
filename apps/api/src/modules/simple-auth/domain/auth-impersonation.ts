@@ -11,9 +11,7 @@ export class AuthImpersonation {
   private static readonly DEFAULT_DURATION = 1 * time.HOURS;
 
   get expiresAt(): Date {
-    return new Date(
-      this.startedAt.getTime() + AuthImpersonation.DEFAULT_DURATION,
-    );
+    return new Date(this.startedAt.getTime() + AuthImpersonation.DEFAULT_DURATION);
   }
 
   private constructor(
@@ -45,11 +43,7 @@ export class AuthImpersonation {
     return impersonation;
   }
 
-  static start(props: {
-    authSessionId: string;
-    impersonateId: string;
-    now: Date;
-  }): AuthImpersonation {
+  static start(props: { authSessionId: string; impersonateId: string; now: Date }): AuthImpersonation {
     return new AuthImpersonation(
       makeId('ImpersonationId'),
       props.now,

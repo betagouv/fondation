@@ -1,5 +1,6 @@
 import { Transform, TransformCallback } from 'node:stream';
 import { StringDecoder } from 'node:string_decoder';
+
 import sax from 'sax';
 
 export type LolfiNode = {
@@ -70,10 +71,7 @@ class LolfiNodeBuilder {
     return this;
   }
 
-  protected replaceChild(
-    reference: LolfiNodeBuilder,
-    snapshot: LolfiNode,
-  ): void {
+  protected replaceChild(reference: LolfiNodeBuilder, snapshot: LolfiNode): void {
     const idx = this.children.findIndex((x) => x === reference);
     if (idx !== -1) this.children.splice(idx, 1, snapshot);
   }
@@ -182,11 +180,7 @@ export class LolfiXmlSaxParser extends Transform {
     }
   }
 
-  override _transform(
-    chunk: Buffer,
-    _encoding: unknown,
-    callback: TransformCallback,
-  ): void {
+  override _transform(chunk: Buffer, _encoding: unknown, callback: TransformCallback): void {
     try {
       const utf8 = this.stringDecoder.write(chunk);
       if (utf8.length) this.parser.write(utf8);

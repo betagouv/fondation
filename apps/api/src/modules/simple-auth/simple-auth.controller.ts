@@ -35,11 +35,7 @@ import { Role } from 'shared-models';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import {
-  LoginDto,
-  RegisteredUserDto,
-  RegisterUserDto,
-} from './infrastructure/dto/auth.dto';
+import { LoginDto, RegisteredUserDto, RegisterUserDto } from './infrastructure/dto/auth.dto';
 import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUser, HasRole } from './simple-auth.decorator';
@@ -168,12 +164,8 @@ export class SimpleAuthController {
     this.decorateResponse(res, impersonation).end();
   }
 
-  private decorateResponse(
-    res: ExpressResponse,
-    data: AuthSession | AuthImpersonation,
-  ): ExpressResponse {
-    const key =
-      data instanceof AuthImpersonation ? 'impersonationId' : 'sessionId';
+  private decorateResponse(res: ExpressResponse, data: AuthSession | AuthImpersonation): ExpressResponse {
+    const key = data instanceof AuthImpersonation ? 'impersonationId' : 'sessionId';
 
     return res.cookie(key, data.id, {
       ...SimpleAuthController.COOKIE_OPTIONS,
@@ -181,10 +173,7 @@ export class SimpleAuthController {
     });
   }
 
-  private unDecorateResponse(
-    res: ExpressResponse,
-    key: 'sessionId' | 'impersonationId',
-  ): ExpressResponse {
+  private unDecorateResponse(res: ExpressResponse, key: 'sessionId' | 'impersonationId'): ExpressResponse {
     return res.clearCookie(key, SimpleAuthController.COOKIE_OPTIONS);
   }
 }

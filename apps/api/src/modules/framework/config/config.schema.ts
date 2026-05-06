@@ -12,10 +12,7 @@ export const ConfigSchema = z.object({
 
   originUrl: z.prefault(z.url().regex(/[^/]$/), process.env.ORIGIN_URL!),
 
-  frontendOriginUrl: z.prefault(
-    z.url().regex(/[^/]$/),
-    process.env.FRONTEND_ORIGIN_URL!,
-  ),
+  frontendOriginUrl: z.prefault(z.url().regex(/[^/]$/), process.env.FRONTEND_ORIGIN_URL!),
 
   e2eApiToken: z
     .prefault(z.string().trim().nonempty().nullish(), process.env.E2E_API_TOKEN)
@@ -23,10 +20,7 @@ export const ConfigSchema = z.object({
 
   sentryDsn: z.prefault(z.url().optional(), process.env.SENTRY_DSN),
 
-  databaseUrl: z.prefault(
-    z.url().startsWith('postgresql://'),
-    process.env.DATABASE_URL!,
-  ),
+  databaseUrl: z.prefault(z.url().startsWith('postgresql://'), process.env.DATABASE_URL!),
 
   lolfi: z.preprocess(
     () => ({}),
@@ -51,10 +45,7 @@ export const ConfigSchema = z.object({
     process.env.INBOUND_ALLOWED_API_TOKENS ?? '',
   ),
 
-  chromiumExecutablePath: z.prefault(
-    z.string().optional(),
-    process.env.CHROMIUM_EXECUTABLE_PATH,
-  ),
+  chromiumExecutablePath: z.prefault(z.string().optional(), process.env.CHROMIUM_EXECUTABLE_PATH),
 
   scalingo: z.preprocess(
     () => ({}),
@@ -64,18 +55,14 @@ export const ConfigSchema = z.object({
     }),
   ),
 
-  mattermostWebhook: z.prefault(
-    z.url().nullish(),
-    process.env.MATTERMOST_WEBHOOK,
-  ),
+  mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
 
   s3: z.preprocess(
     () => ({}),
     z.object({
       bucket: z.prefault(
         z.string(),
-        process.env.S3_BUCKET ||
-          /** @deprecated */ process.env.S3_REPORTS_ATTACHED_FILES_BUCKET!,
+        process.env.S3_BUCKET || /** @deprecated */ process.env.S3_REPORTS_ATTACHED_FILES_BUCKET!,
       ),
 
       region: z.prefault(z.string(), process.env.S3_REGION || 'fr-par'),
@@ -87,21 +74,16 @@ export const ConfigSchema = z.object({
         z.object({
           accessKeyId: z.prefault(
             z.string(),
-            process.env.S3_ACCESS_KEY ||
-              /** @deprecated */ process.env.SCW_ACCESS_KEY!,
+            process.env.S3_ACCESS_KEY || /** @deprecated */ process.env.SCW_ACCESS_KEY!,
           ),
           secretAccessKey: z.prefault(
             z.string(),
-            process.env.S3_SECRET_KEY ||
-              /** @deprecated */ process.env.SCW_SECRET_KEY!,
+            process.env.S3_SECRET_KEY || /** @deprecated */ process.env.SCW_SECRET_KEY!,
           ),
         }),
       ),
 
-      forcePathStyle: z.prefault(
-        z.boolean(),
-        process.env.S3_FORCE_PATH_STYLE === 'true',
-      ),
+      forcePathStyle: z.prefault(z.boolean(), process.env.S3_FORCE_PATH_STYLE === 'true'),
 
       endpoint: z.prefault(
         process.env.NODE_ENV === 'production'
@@ -114,8 +96,7 @@ export const ConfigSchema = z.object({
         process.env.NODE_ENV === 'production'
           ? z.prefault(
               z.string(),
-              process.env.S3_ENCRYPTION_KEY ||
-                /** @deprecated */ process.env.SCW_ENCRYPTION_KEY!,
+              process.env.S3_ENCRYPTION_KEY || /** @deprecated */ process.env.SCW_ENCRYPTION_KEY!,
             )
           : z.undefined(),
     }),

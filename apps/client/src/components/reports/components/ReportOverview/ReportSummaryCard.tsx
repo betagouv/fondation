@@ -1,12 +1,12 @@
 import './ReportSummaryCard.css';
-
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import React from 'react';
 
+import { reportHtmlIds } from '../../dom/html-ids';
 import type { DetailedReportDto } from '@api/types';
 import { useGenerateSummaryAttachmentPublicUrlMutation } from '@queries/summary.queries';
-import { reportHtmlIds } from '../../dom/html-ids';
+
 import { Card } from './Card';
 
 export function ReportSummaryCard(props: {
@@ -29,7 +29,11 @@ export function ReportSummaryCard(props: {
           buttons={
             (props.summary?.attachments ?? []).map(({ fileId, name, type }) => ({
               onClick: () =>
-                mutate({ fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId }),
+                mutate({
+                  fileId,
+                  nominationFileId: props.nominationFileId,
+                  sessionId: props.sessionId,
+                }),
               priority: 'tertiary no outline',
               iconPosition: 'left',
               children: name,
@@ -38,7 +42,7 @@ export function ReportSummaryCard(props: {
                   ? 'ri-file-pdf-fill'
                   : type.startsWith('image/')
                     ? 'ri-file-image-fill'
-                    : 'ri-file-fille'
+                    : 'ri-file-fille',
             })) as unknown as [ButtonProps, ...ButtonProps[]]
           }
         />

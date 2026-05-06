@@ -1,5 +1,7 @@
 import { Role } from 'shared-models';
+
 import { AuthPassword } from 'src/modules/simple-auth/domain/auth-password';
+
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import { AdminUserRoleEnum, UserTitleEnum } from './user-enum';
@@ -88,13 +90,10 @@ export class User {
   updateRole(nextRole: AdminUserRoleEnum): void {
     const target = AdminUserTitle.from(nextRole);
 
-    const roleUpdateRequireOtherUsersUnTitling =
-      target.title !== null && target.title !== this.role.title;
+    const roleUpdateRequireOtherUsersUnTitling = target.title !== null && target.title !== this.role.title;
 
     if (roleUpdateRequireOtherUsersUnTitling) {
-      this.#messages.push(
-        new UsersUntitled(this.id, target.title, target.unTitle()),
-      );
+      this.#messages.push(new UsersUntitled(this.id, target.title, target.unTitle()));
     }
 
     const targetRole = this.role.reTitle(target);

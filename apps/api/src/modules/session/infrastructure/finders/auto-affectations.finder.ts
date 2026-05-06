@@ -1,21 +1,21 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+
 import { Magistrat } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
-
-import { Prisma } from 'src/generated/prisma/client';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-
-import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
 import {
   AutoAffectationMember,
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectation';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
+import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
+
 import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
@@ -52,10 +52,7 @@ export class AutoAffectationsFinder {
 
       return {
         ...txSession,
-        dossierDeNominations: await this.withJurisdiction(
-          tx,
-          nominationFiles.items,
-        ),
+        dossierDeNominations: await this.withJurisdiction(tx, nominationFiles.items),
       };
     });
 
@@ -70,10 +67,10 @@ export class AutoAffectationsFinder {
       sessionId: predicate.sessionId,
       excludedMemberIds: predicate.excludedMemberIds,
     });
-    const files = this.toAutoAffectationNominationFiles(
-      session.dossierDeNominations,
-      { date, formation },
-    );
+    const files = this.toAutoAffectationNominationFiles(session.dossierDeNominations, {
+      date,
+      formation,
+    });
 
     return AutoAffectations.from({
       files,
@@ -93,32 +90,24 @@ export class AutoAffectationsFinder {
     session: { formation: Magistrat.Formation; date: DateOnly },
   ): AutoAffectationNominationFile[] {
     return nominationFiles
-      .map(
-        ({
-          id,
-          number,
-          targetedGrade,
-          targetedJurisdiction,
-          currentJurisdiction,
-        }) => {
-          if (
-            !isDefined(number) ||
-            !isGrade(targetedGrade) ||
-            (!currentJurisdiction && !targetedJurisdiction)
-          ) {
-            return null;
-          }
+      .map(({ id, number, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
+        if (
+          !isDefined(number) ||
+          !isGrade(targetedGrade) ||
+          (!currentJurisdiction && !targetedJurisdiction)
+        ) {
+          return null;
+        }
 
-          return AutoAffectationNominationFile.from({
-            id,
-            session,
-            targetedGrade,
-            number,
-            currentJurisdiction,
-            targetedJurisdiction,
-          });
-        },
-      )
+        return AutoAffectationNominationFile.from({
+          id,
+          session,
+          targetedGrade,
+          number,
+          currentJurisdiction,
+          targetedJurisdiction,
+        });
+      })
       .filter(isDefined);
   }
 
@@ -140,22 +129,19 @@ export class AutoAffectationsFinder {
 
     if (memberIds.length === 0) return [];
 
-    const [membersExcludedJurisdictions, memberYearlyWorkload] =
-      await this.prisma.$transaction([
-        this.prisma.user.findMany({
-          where: { id: { in: memberIds } },
-          select: {
-            id: true,
-            excludedJurisdictionIds: {
-              select: { jurisdictionId: true },
-            },
+    const [membersExcludedJurisdictions, memberYearlyWorkload] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where: { id: { in: memberIds } },
+        select: {
+          id: true,
+          excludedJurisdictionIds: {
+            select: { jurisdictionId: true },
           },
-        }),
+        },
+      }),
 
-        this.prisma.$queryRawTyped(
-          findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation),
-        ),
-      ]);
+      this.prisma.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),
+    ]);
 
     const affectationCountByMemberIdAndGrade = memberYearlyWorkload.reduce(
       (map, { targetedGrade, workload, reporterId }) => {
@@ -172,23 +158,14 @@ export class AutoAffectationsFinder {
 
     const excludedJurisdictionIdByMemberId = new Map(
       membersExcludedJurisdictions.map(
-        (x) =>
-          [
-            x.id,
-            x.excludedJurisdictionIds.map(
-              ({ jurisdictionId }) => jurisdictionId,
-            ),
-          ] as const,
+        (x) => [x.id, x.excludedJurisdictionIds.map(({ jurisdictionId }) => jurisdictionId)] as const,
       ),
     );
 
     return memberIds.map((id) => {
-      const excludedJurisdictions = new Set<string>(
-        excludedJurisdictionIdByMemberId.get(id) ?? [],
-      );
+      const excludedJurisdictions = new Set<string>(excludedJurisdictionIdByMemberId.get(id) ?? []);
       const affectationCountPerGrade =
-        affectationCountByMemberIdAndGrade.get(id) ??
-        new Map<Magistrat.Grade, number>();
+        affectationCountByMemberIdAndGrade.get(id) ?? new Map<Magistrat.Grade, number>();
 
       return AutoAffectationMember.from({
         id,
@@ -214,9 +191,7 @@ export class AutoAffectationsFinder {
       currentJurisdiction: string | null;
     })[]
   > {
-    const result = await tx.$queryRaw<
-      { id: string; current: string | null; target: string | null }[]
-    >`
+    const result = await tx.$queryRaw<{ id: string; current: string | null; target: string | null }[]>`
       WITH queried_positions AS (
         SELECT
           (p.content ->> 'id')::UUID AS id,

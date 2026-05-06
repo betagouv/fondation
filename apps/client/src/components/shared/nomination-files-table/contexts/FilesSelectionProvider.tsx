@@ -1,15 +1,16 @@
 import React from 'react';
+
 import { FilesSelectionContext } from './files-selection.context';
 
 export function FilesSelectionProvider(
-  props: React.PropsWithChildren<{ selection: Record<string, boolean> }>
+  props: React.PropsWithChildren<{ selection: Record<string, boolean> }>,
 ) {
   const selectedIds = React.useMemo(
     () =>
       Object.entries(props.selection)
         .filter(([_key, isSelected]) => isSelected)
         .map(([key]) => key),
-    [props.selection]
+    [props.selection],
   );
 
   return <FilesSelectionContext value={{ selectedIds }}>{props.children}</FilesSelectionContext>;

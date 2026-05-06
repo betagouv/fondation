@@ -5,7 +5,7 @@ import React from 'react';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import {
   useDetailedNominationSessionAffectationsVersionQuery,
-  usePublishVersionMutation
+  usePublishVersionMutation,
 } from '@queries/nomination-sessions.queries';
 
 import { DocGenerationAction } from './DocGenerationAction';
@@ -20,9 +20,9 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
   const { isDraft, hasNoVersionYet } = React.useMemo(
     () => ({
       hasNoVersionYet: metadata?.version === 0,
-      isDraft: metadata && 'status' in metadata && metadata.status === 'BROUILLON'
+      isDraft: metadata && 'status' in metadata && metadata.status === 'BROUILLON',
     }),
-    [metadata]
+    [metadata],
   );
 
   const onPublishAffectations = React.useCallback(() => {
@@ -32,17 +32,17 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
         onSuccess: () => {
           alerts.pushAlert({
             severity: 'success',
-            title: 'Session publiée avec succès'
+            title: 'Session publiée avec succès',
           });
         },
 
         onError: () => {
           alerts.pushAlert({
             severity: 'error',
-            title: 'Erreur lors de la publication des affectations'
+            title: 'Erreur lors de la publication des affectations',
           });
-        }
-      }
+        },
+      },
     );
   }, [publishAffectations, alerts, props]);
 
@@ -50,7 +50,7 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
     <ul
       className={clsx(
         'm-0 flex list-none flex-row-reverse flex-wrap items-center gap-4 p-0',
-        props.className
+        props.className,
       )}
     >
       {(isDraft || hasNoVersionYet) && (

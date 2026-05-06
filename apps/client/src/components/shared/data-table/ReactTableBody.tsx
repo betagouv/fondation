@@ -1,9 +1,8 @@
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { flexRender, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type { PropsWithChildren } from 'react';
-
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 
 function ReactTableBodyPlaceholder<Data extends RowData>(props: PropsWithChildren<{ table: Table<Data> }>) {
   const rowCount = props.table.getFilteredRowModel().rows.length;
@@ -45,9 +44,9 @@ export function ReactTableBody<Data extends RowData>(props: {
                     nativeInputProps: {
                       checked: row.getIsSelected(),
                       disabled: !row.getCanSelect(),
-                      onChange: row.getToggleSelectedHandler()
-                    }
-                  }
+                      onChange: row.getToggleSelectedHandler(),
+                    },
+                  },
                 ]}
               />
             </td>
@@ -55,7 +54,7 @@ export function ReactTableBody<Data extends RowData>(props: {
 
           {row.getVisibleCells().map((cell) => {
             const classNames = cx({
-              'fr-cell--multiline': cell.column.columnDef.meta?.multiline !== false
+              'fr-cell--multiline': cell.column.columnDef.meta?.multiline !== false,
             });
 
             return (

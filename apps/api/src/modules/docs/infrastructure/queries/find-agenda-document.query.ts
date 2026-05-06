@@ -1,13 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import z from 'zod';
+
+import { AgendaRenderContext, AgendaRenderer } from '../services/renderers/agenda.renderer';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import z from 'zod';
-import {
-  AgendaRenderContext,
-  AgendaRenderer,
-} from '../services/renderers/agenda.renderer';
 
 @Injectable()
 export class FindAgendaDocumentQuery {
@@ -65,11 +63,7 @@ export class FindAgendaDocumentQuery {
         chairman: {
           firstName: ctx.chairmanFirstName,
           lastName: ctx.chairmanLastName,
-          title: z
-            .enum(USER_TITLES)
-            .nullable()
-            .catch(null)
-            .parse(ctx.chairmanTitle),
+          title: z.enum(USER_TITLES).nullable().catch(null).parse(ctx.chairmanTitle),
           gender: prismaGenderEnumToGenderEnum(ctx.chairmanGender),
         },
         nominationFiles: ctx.nominationFiles.map((f) => ({

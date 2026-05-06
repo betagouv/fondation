@@ -17,8 +17,7 @@ class ScalingoBearer {
   ) {}
 
   isExpired(): boolean {
-    const expiresAt =
-      this.createdAt.getTime() + ScalingoBearer.EXPIRATION_TIME_MS;
+    const expiresAt = this.createdAt.getTime() + ScalingoBearer.EXPIRATION_TIME_MS;
 
     return expiresAt < this.clock.now().getTime();
   }
@@ -50,15 +49,10 @@ class ScalingoHttpService {
   }): Promise<{ container: { id: string } }> {
     await this.withValidBearer();
 
-    const url = new URL(
-      `/v1/apps/${this.appName}/run`,
-      ScalingoHttpService.BASE_URL,
-    ).toString();
+    const url = new URL(`/v1/apps/${this.appName}/run`, ScalingoHttpService.BASE_URL).toString();
 
     if (options.detached === false) {
-      this.logger.warn(
-        `Will run the command "${options.command}" as attached one-off`,
-      );
+      this.logger.warn(`Will run the command "${options.command}" as attached one-off`);
     }
 
     const { data } = await lastValueFrom(
@@ -75,10 +69,7 @@ class ScalingoHttpService {
     return data;
   }
 
-  async sendContainerSignal(options: {
-    containerId: string;
-    signal?: 'SIGUSR1' | 'SIGUSR2';
-  }): Promise<void> {
+  async sendContainerSignal(options: { containerId: string; signal?: 'SIGUSR1' | 'SIGUSR2' }): Promise<void> {
     await this.withValidBearer();
 
     const url = new URL(
@@ -112,29 +103,19 @@ export class ScalingoHttpContainer {
     readonly abortController: AbortController,
   ) {}
 
-  async withAuthentication<T>(
-    factory: (x: ScalingoHttpService) => Promise<T>,
-  ): Promise<T> {
+  async withAuthentication<T>(factory: (x: ScalingoHttpService) => Promise<T>): Promise<T> {
     let bearer = this.bearer;
     if (!bearer || bearer.isExpired()) {
       bearer = await this.getBearer();
     }
 
-    const service = new ScalingoHttpService(
-      this.http,
-      this.appName,
-      bearer,
-      this,
-    );
+    const service = new ScalingoHttpService(this.http, this.appName, bearer, this);
 
     return factory(service);
   }
 
   async getBearer(): Promise<ScalingoBearer> {
-    const url = new URL(
-      '/v1/tokens/exchange',
-      ScalingoHttpContainer.AUTH_BASE_URL,
-    ).toString();
+    const url = new URL('/v1/tokens/exchange', ScalingoHttpContainer.AUTH_BASE_URL).toString();
 
     const { data } = await lastValueFrom(
       this.http.post(
@@ -150,10 +131,7 @@ export class ScalingoHttpContainer {
     const { token } = await z.object({ token: z.string() }).parseAsync(data);
     return new ScalingoBearer(
       token,
-      addMilliseconds(
-        this.clock.now(),
-        ScalingoHttpContainer.EXPIRATION_TIME_MS,
-      ),
+      addMilliseconds(this.clock.now(), ScalingoHttpContainer.EXPIRATION_TIME_MS),
       this.clock,
     );
   }

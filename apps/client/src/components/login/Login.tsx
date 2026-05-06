@@ -1,12 +1,12 @@
-import { Button } from '@codegouvfr/react-dsfr/Button';
-import { Input } from '@codegouvfr/react-dsfr/Input';
 import { PasswordInput } from '@codegouvfr/react-dsfr/blocks/PasswordInput';
+import { Button } from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useNavigate } from 'react-router';
 
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useLogin } from '@queries/auth.queries';
 
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
 
 export const Login = () => {
@@ -23,7 +23,7 @@ export const Login = () => {
 
     await authenticateAsync(
       { email, password },
-      { onSuccess: () => navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD) }
+      { onSuccess: () => navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD) },
     );
   };
 
@@ -40,7 +40,7 @@ export const Login = () => {
             autoCorrect: 'off',
             autoCapitalize: 'off',
             autoComplete: 'email',
-            spellCheck: false
+            spellCheck: false,
           }}
         />
         <PasswordInput
@@ -51,7 +51,7 @@ export const Login = () => {
             autoCorrect: 'off',
             autoCapitalize: 'off',
             autoComplete: 'current-password',
-            spellCheck: false
+            spellCheck: false,
           }}
         />
         <Button type="submit">Se connecter</Button>

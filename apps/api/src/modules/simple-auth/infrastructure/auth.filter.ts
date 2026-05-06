@@ -1,9 +1,5 @@
-import {
-  Catch,
-  ExceptionFilter,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Catch, ExceptionFilter, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+
 import { AuthUserNotAuthentifiable } from '../domain/auth-user';
 
 @Catch(AuthUserNotAuthentifiable)

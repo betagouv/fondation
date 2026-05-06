@@ -34,5 +34,5 @@ export const summaryScrollListenersFactory = () => ({
       clearTimeout(scrollTimeout);
       isScrollingToSummarySection = false;
     });
-  }
+  },
 });

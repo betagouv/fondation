@@ -1,4 +1,4 @@
-name: "Deploy production"
+name: 'Deploy production'
 permissions:
   contents: read
   packages: read

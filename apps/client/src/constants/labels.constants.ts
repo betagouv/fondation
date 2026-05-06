@@ -5,6 +5,6 @@ export const labels = {
     currentPosition: 'Poste actuel',
     targettedPosition: 'Poste pressenti',
     dureeDuPoste: 'Durée sur le poste',
-    rank: 'Rang'
-  }
+    rank: 'Rang',
+  },
 } as const;

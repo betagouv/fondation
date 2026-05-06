@@ -1,9 +1,8 @@
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
-import {
-  AffectableMember,
-  AutoAffectationMember,
-} from './auto-affectation-member';
+
+import { AffectableMember, AutoAffectationMember } from './auto-affectation-member';
 import { AutoAffectationNominationFile } from './auto-affectation-nomination-file';
 
 describe('auto affectation member', () => {
@@ -13,7 +12,7 @@ describe('auto affectation member', () => {
   };
 
   it('should sort members', () => {
-    // prettier-ignore
+    // oxfmt-ignore
     const members = [
       AutoAffectationMember.from({ session, id: 'member-1', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 1]]) }),
       AutoAffectationMember.from({ session, id: 'member-2', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([[Magistrat.Grade.G3, 1]]) }),
@@ -45,12 +44,7 @@ describe('auto affectation member', () => {
 
   describe('affectable member', () => {
     it('should not allow an affectation from an excluded jurisdiction', () => {
-      const member = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -67,15 +61,10 @@ describe('auto affectation member', () => {
     });
 
     it('should check affectation on a list of files', () => {
-      const member = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       const files = ['CA  STRASBOURG', 'CA  NANTES'].map(
-        // prettier-ignore
+        // oxfmt-ignore
         (targetedJurisdiction, i) => AutoAffectationNominationFile.from({ number: i + 1, id: `file-${i + 1}`, targetedGrade: Magistrat.Grade.G2, currentJurisdiction: 'CA  LYON', targetedJurisdiction, session }),
       );
 
@@ -83,12 +72,7 @@ describe('auto affectation member', () => {
     });
 
     it('should not allow an affectation from another formation', () => {
-      const member = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -108,12 +92,7 @@ describe('auto affectation member', () => {
     });
 
     it('should allow an affectation', () => {
-      const member = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -130,19 +109,9 @@ describe('auto affectation member', () => {
     });
 
     it('should exchange files with another member', () => {
-      const member1 = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
-      const member2 = new AffectableMember(
-        3,
-        'member-2',
-        Magistrat.Formation.SIEGE,
-        new Set(),
-      );
+      const member2 = new AffectableMember(3, 'member-2', Magistrat.Formation.SIEGE, new Set());
 
       member2.affect([
         AutoAffectationNominationFile.from({
@@ -188,18 +157,11 @@ describe('auto affectation member', () => {
         expect.objectContaining({ nominationFileId: 'file-1' }),
         expect.objectContaining({ nominationFileId: 'file-2' }),
       ]);
-      expect(member2.affectations).toEqual([
-        expect.objectContaining({ nominationFileId: 'file-3' }),
-      ]);
+      expect(member2.affectations).toEqual([expect.objectContaining({ nominationFileId: 'file-3' })]);
     });
 
     it('should NOT exchange files with another not compatible member', () => {
-      const member1 = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       const member2 = new AffectableMember(
         3,
@@ -251,12 +213,7 @@ describe('auto affectation member', () => {
     });
 
     it('should NOT exchange files with a member without affectations', () => {
-      const member1 = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES']),
-      );
+      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
 
       const member2 = new AffectableMember(
         3,
@@ -290,12 +247,7 @@ describe('auto affectation member', () => {
         new Set(['CA  NANTES', 'CA  LYON']),
       );
 
-      const member2 = new AffectableMember(
-        3,
-        'member-2',
-        Magistrat.Formation.SIEGE,
-        new Set(),
-      );
+      const member2 = new AffectableMember(3, 'member-2', Magistrat.Formation.SIEGE, new Set());
 
       member2.affect([
         AutoAffectationNominationFile.from({

@@ -1,21 +1,23 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import React from 'react';
 import { generatePath } from 'react-router';
 
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/components/shared/menu';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
 
 export function DocGenerationAction(props: { sessionId: string }) {
-  const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId: props.sessionId });
+  const { data: readiness } = useIsSessionReadyForDocGenerationQuery({
+    sessionId: props.sessionId,
+  });
 
   const [agendaPath, officialReportPath] = React.useMemo(
     () => [
       generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId: props.sessionId }),
-      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId })
+      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId }),
     ],
-    [props.sessionId]
+    [props.sessionId],
   );
 
   if (!readiness?.isReady) return null;

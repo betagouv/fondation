@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+
 import type { TestApp } from './test-app';
 
 class ObservationModal {
@@ -91,7 +92,7 @@ export class ManageSingleSessionPage {
   sessionRow(selector: { number: number } | { name: string }): Locator {
     return this.app.page
       .getByRole('row', {
-        name: 'number' in selector ? selector.number.toString(10) : selector.name
+        name: 'number' in selector ? selector.number.toString(10) : selector.name,
       })
       .first();
   }

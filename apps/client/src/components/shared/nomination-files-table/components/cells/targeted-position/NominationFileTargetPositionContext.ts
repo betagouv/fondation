@@ -1,5 +1,6 @@
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import React from 'react';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type NominationFileTargetPositionContextType = {
   nominationFile: SessionNominationFile | null;
@@ -7,5 +8,5 @@ type NominationFileTargetPositionContextType = {
 };
 
 export const NominationFileTargetPositionContext = React.createContext(
-  null as unknown as NominationFileTargetPositionContextType
+  null as unknown as NominationFileTargetPositionContextType,
 );

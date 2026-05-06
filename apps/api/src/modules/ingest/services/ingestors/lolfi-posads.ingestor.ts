@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertAdministrativePositionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -27,9 +28,7 @@ export class LolfiPosadsIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawPause; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawPause; success: boolean }>) {
       const accumulator: RawPause[] = [];
       const ids = new Set<string>();
 
@@ -64,18 +63,11 @@ export class LolfiPosadsIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
-    items: RawPause[];
-    jobId: number;
-    fileId: string;
-    result: { success: boolean };
-  }) {
-    return this.prisma
-      .$queryRawTyped(insertAdministrativePositionsRawQuery(props.items))
-      .catch((error) => {
-        this.logger.error(`Failed flushing POSADS.xml chunk`, error);
-        props.result.success = false;
-      });
+  private flush(props: { items: RawPause[]; jobId: number; fileId: string; result: { success: boolean } }) {
+    return this.prisma.$queryRawTyped(insertAdministrativePositionsRawQuery(props.items)).catch((error) => {
+      this.logger.error(`Failed flushing POSADS.xml chunk`, error);
+      props.result.success = false;
+    });
   }
 }
 
@@ -85,8 +77,7 @@ const RawPauseSchema = z.object({
   reel: z
     .string()
     .regex(/^\d(?:,\d+)?$/, {
-      error: ({ input }) =>
-        `nombre entre 0,0 et 1,0 attendu. "${input}" fourni`,
+      error: ({ input }) => `nombre entre 0,0 et 1,0 attendu. "${input}" fourni`,
     })
     .transform((x) => Number(x.replace(',', '.')))
     .pipe(z.number().gte(0.0).lte(1.0)),

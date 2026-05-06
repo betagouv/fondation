@@ -1,22 +1,21 @@
 import { stripIndent } from 'common-tags';
+
 import { Gender, Magistrat } from 'shared-models';
+
+import { conjunctionList, date, displayTitled, fullname } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
-import { conjunctionList, date, displayTitled, fullname } from '../helpers';
+
 import { commonDocumentCss, documentLayout } from './common.html';
 
 const html = stripIndent;
 
-function header(ctx: {
-  formation: Magistrat.Formation;
-  sessionMeetingDate: DateOnly;
-}): string {
+function header(ctx: { formation: Magistrat.Formation; sessionMeetingDate: DateOnly }): string {
   return html`
     <h1>
-      Procès-verbal de restitution de la séance du
-      ${date(ctx.sessionMeetingDate, 'dd/MM/yyyy')} tenue à Paris au Conseil
-      supérieur de la magistrature
+      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeetingDate, 'dd/MM/yyyy')} tenue à Paris
+      au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
       ${ctx.formation === Magistrat.Formation.SIEGE
@@ -49,13 +48,10 @@ function officialReportNominationParagraph(ctx: {
     : '';
 
   const reporters =
-    ctx.file.reporters.length > 0
-      ? `, au rapport de ${conjunctionList(ctx.file.reporters)}`
-      : '';
+    ctx.file.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.file.reporters)}` : '';
 
   return html`<p class="file">
-    <strong>${ctx.file.name}</strong
-    >${currentPosition}${targetedPosition}${reporters}.
+    <strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.
   </p>`;
 }
 
@@ -89,8 +85,7 @@ function content(ctx: {
   files: readonly OfficialReportNominationFile[];
 }): string {
   const presidentTitle =
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' ||
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
+    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
       ? `président suppléant de la formation`
       : `président de la formation`;
 
@@ -102,17 +97,13 @@ function content(ctx: {
 
   const membersList = html`
     <ul class="members-list">
-      ${ctx.members
-        .map((member) => `<li>${displayTitled(member)}</li>`)
-        .join('')}
+      ${ctx.members.map((member) => `<li>${displayTitled(member)}</li>`).join('')}
     </ul>
   `;
 
   const sessionMeetingTime = `${ctx.sessionMeetingTime.hours
     .toString()
-    .padStart(2, '0')}h${ctx.sessionMeetingTime.minutes
-    .toString()
-    .padStart(2, '0')}`;
+    .padStart(2, '0')}h${ctx.sessionMeetingTime.minutes.toString().padStart(2, '0')}`;
 
   const outcomesOrder = new Map(
     (
@@ -129,9 +120,7 @@ function content(ctx: {
     .entries()
     .map(([outcome, files]) => ({
       outcome,
-      html: html`<h2>
-          ${displayOutcomeTitle({ formation: ctx.formation, outcome })}
-        </h2>
+      html: html`<h2>${displayOutcomeTitle({ formation: ctx.formation, outcome })}</h2>
         ${files
           .map((file) =>
             officialReportNominationParagraph({
@@ -142,11 +131,7 @@ function content(ctx: {
           .join('\n')}`,
     }))
     .toArray()
-    .sort(
-      (a, b) =>
-        (outcomesOrder.get(a.outcome) ?? 10) -
-        (outcomesOrder.get(b.outcome) ?? 10),
-    )
+    .sort((a, b) => (outcomesOrder.get(a.outcome) ?? 10) - (outcomesOrder.get(b.outcome) ?? 10))
     .map(({ html }) => html)
     .join('\n');
 
@@ -156,8 +141,7 @@ function content(ctx: {
     <p><strong>En présence de&nbsp;:</strong></p>
     <ul class="secretaries">
       <li>
-        ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`}
-        ${fullname(ctx.secretary)},
+        ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`} ${fullname(ctx.secretary)},
         ${ctx.secretary.title === 'FIRST_SECRETARY'
           ? ctx.secretary.gender === Gender.M
             ? `secrétaire général`
@@ -171,19 +155,16 @@ function content(ctx: {
 
     ${ctx.hasRenouncement
       ? html`<p>
-          ${ctx.justiceDepartmentContact} indique renoncer au délai de
-          convocation de huit jours prévus par l'article 35 du décret n°94-199
-          du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
+          ${ctx.justiceDepartmentContact} indique renoncer au délai de convocation de huit jours prévus par
+          l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
           magistrature.
         </p>`
       : ''}
     <p>
-      À ${sessionMeetingTime}, ${fullname(ctx.chairman)}, ${presidentTitle},
-      déclare la séance ouverte.
-      ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis
-      émis par le Conseil sur les propositions figurant à l'ordre du jour arrêté
-      le ${date(ctx.agendaDate)} sur la circulaire de transparence du
-      ${date(ctx.sessionDate)}&nbsp;:
+      À ${sessionMeetingTime}, ${fullname(ctx.chairman)}, ${presidentTitle}, déclare la séance ouverte.
+      ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis émis par le Conseil sur les
+      propositions figurant à l'ordre du jour arrêté le ${date(ctx.agendaDate)} sur la circulaire de
+      transparence du ${date(ctx.sessionDate)}&nbsp;:
     </p>
     ${outcomes}
   `;
@@ -215,8 +196,7 @@ function footer(ctx: {
         : `la secrétaire générale adjointe, ${fullname(ctx.secretary)}`;
 
   const president =
-    ctx.chairman.title === 'PRESIDENT_PARQUET' ||
-    ctx.chairman.title === 'PRESIDENT_SIEGE'
+    ctx.chairman.title === 'PRESIDENT_PARQUET' || ctx.chairman.title === 'PRESIDENT_SIEGE'
       ? ctx.chairman.gender === Gender.M
         ? `le président, ${fullname(ctx.chairman)}`
         : `la présidente, ${fullname(ctx.chairman)}`

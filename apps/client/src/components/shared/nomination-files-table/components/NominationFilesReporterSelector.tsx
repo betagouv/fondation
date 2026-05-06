@@ -11,7 +11,7 @@ export type SelectMultipleRapporteursProps = {
 export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps> = ({
   availableRapporteurs,
   selectedRapporteurs,
-  onSelectionChange
+  onSelectionChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,7 +35,7 @@ export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps>
             placeholder: 'Rechercher un rapporteur...',
             value: searchTerm,
             onChange: (e) => setSearchTerm(e.target.value),
-            type: 'text'
+            type: 'text',
           }}
         />
       </div>
@@ -50,9 +50,9 @@ export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps>
                   label: `${rapporteur.lastName} ${rapporteur.firstName}`.toUpperCase(),
                   nativeInputProps: {
                     checked: selectedRapporteurs.includes(rapporteur.userId),
-                    onChange: () => toggleRapporteur(rapporteur.userId)
-                  }
-                }
+                    onChange: () => toggleRapporteur(rapporteur.userId),
+                  },
+                },
               ]}
             />
           ))

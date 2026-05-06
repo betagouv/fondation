@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
+
 import { Magistrat, TypeDeSaisine } from 'shared-models';
-import { DateOnly } from 'src/utils/date-only';
+
 import { NominationFile } from '../domain/nomination-file';
 import { NominationSession } from '../domain/nomination-session';
+import { DateOnly } from 'src/utils/date-only';
+
 import { NominationSessionRepository } from './repositories/nomination-session.repository';
 
 @Injectable()
 export class SessionsTestService {
-  constructor(
-    private readonly nominationSessionRepository: NominationSessionRepository,
-  ) {}
+  constructor(private readonly nominationSessionRepository: NominationSessionRepository) {}
 
   async create(command: {
     name: string;
@@ -30,9 +31,7 @@ export class SessionsTestService {
     sessionId: string;
     files: readonly NominationFile[];
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(
-      command.sessionId,
-    );
+    const session = await this.nominationSessionRepository.find(command.sessionId);
 
     session.associateNominationFiles(command);
     await this.nominationSessionRepository.persist(session);

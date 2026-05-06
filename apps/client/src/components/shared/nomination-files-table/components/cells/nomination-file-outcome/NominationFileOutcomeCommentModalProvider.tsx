@@ -1,7 +1,9 @@
 import React from 'react';
-import { OutcomeCommentModalContext, type OutcomeCommentCallback } from './OutcomeCommentModalContext';
+
 import type { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+
 import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
+import { OutcomeCommentModalContext, type OutcomeCommentCallback } from './OutcomeCommentModalContext';
 
 export function NominationFileOutcomeCommentModalProvider(props: {
   formation: FormationEnum;
@@ -20,7 +22,7 @@ export function NominationFileOutcomeCommentModalProvider(props: {
       commentCallback?.({ type: 'comment', value: comment });
       reset();
     },
-    [commentCallback, reset]
+    [commentCallback, reset],
   );
 
   const onDrop = React.useCallback(() => {

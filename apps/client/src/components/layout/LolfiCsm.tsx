@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+
 import { useUser } from '@queries/auth.queries';
 
 export const LolfiCsm = () => {

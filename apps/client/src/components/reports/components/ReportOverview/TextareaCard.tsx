@@ -17,7 +17,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   label,
   content,
   onContentChange,
-  uploadFiles
+  uploadFiles,
 }) => {
   return (
     <Card id={cardId}>

@@ -5,10 +5,10 @@ import clsx from 'clsx';
 
 import { Magistrat } from 'shared-models';
 
+import { formationToLabel } from '../../labels/labels-mappers';
+import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
 
-import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
-import { formationToLabel } from '../../labels/labels-mappers';
 import { SessionBlock } from './SessionBlock';
 
 export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTypeGardeDesSceaux[] }) {
@@ -27,14 +27,14 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
       [Magistrat.Formation.PARQUET]: {
         length: 0,
         affected: [] as SessionOfTypeGardeDesSceaux[],
-        nonAffected: [] as SessionOfTypeGardeDesSceaux[]
+        nonAffected: [] as SessionOfTypeGardeDesSceaux[],
       },
       [Magistrat.Formation.SIEGE]: {
         length: 0,
         affected: [] as SessionOfTypeGardeDesSceaux[],
-        nonAffected: [] as SessionOfTypeGardeDesSceaux[]
-      }
-    }
+        nonAffected: [] as SessionOfTypeGardeDesSceaux[],
+      },
+    },
   );
 
   const tabs = [Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET]
@@ -51,7 +51,10 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                   <li key={session.label}>
                     <Tag
                       linkProps={{
-                        to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'affectations' })
+                        to: getDetailSessionGdsPath({
+                          sessionId: session.id,
+                          focus: 'affectations',
+                        }),
                       }}
                     >
                       {session.label} - {session.fileCount}
@@ -73,7 +76,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                     {/* TODO: grey */}
                     <Tag
                       linkProps={{
-                        to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'general' })
+                        to: getDetailSessionGdsPath({ sessionId: session.id, focus: 'general' }),
                       }}
                     >
                       {session.label}
@@ -86,7 +89,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
             )}
           </section>
         </div>
-      )
+      ),
     }));
 
   return (

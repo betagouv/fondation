@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertGradesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -27,9 +28,7 @@ export class LolfiGradesIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawGrade; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawGrade; success: boolean }>) {
       const grades = new Map<string, ExtractedGrade>();
       const massGrades = new Map<string, ExtractedMessGrade>();
 
@@ -121,11 +120,5 @@ const RawGradeSchema = z.object({
 
 type RawGrade = z.infer<typeof RawGradeSchema>;
 
-type ExtractedGrade = Pick<
-  RawGrade,
-  'grade' | 'libelle' | 'tri' | 'masse_grade'
->;
-type ExtractedMessGrade = Pick<
-  RawGrade,
-  'masse_grade' | 'mg_libelle' | 'mg_tri'
->;
+type ExtractedGrade = Pick<RawGrade, 'grade' | 'libelle' | 'tri' | 'masse_grade'>;
+type ExtractedMessGrade = Pick<RawGrade, 'masse_grade' | 'mg_libelle' | 'mg_tri'>;

@@ -1,19 +1,14 @@
+import { pipeline } from 'node:stream/promises';
+
 import { HttpService } from '@nestjs/axios';
-import {
-  Body,
-  Controller,
-  Inject,
-  Module,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Inject, Module, Post, Req, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import type { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import { lastValueFrom } from 'rxjs';
+
 import { HasRole } from '../simple-auth';
+
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
 @Controller('/api/f')

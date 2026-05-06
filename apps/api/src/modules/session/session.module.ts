@@ -1,9 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 
-import { MembersModule } from '../members';
-
 import { DocsModule } from '../docs/docs.module';
 import { IngestModule } from '../ingest/ingest.module';
+import { MembersModule } from '../members';
+
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
 import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';

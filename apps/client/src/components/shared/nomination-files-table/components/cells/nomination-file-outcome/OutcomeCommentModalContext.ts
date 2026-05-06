@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
+
 import { nominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
 
 type OutcomeCommentCallbackEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
@@ -16,7 +17,7 @@ type OutcomeCommentDialogContextType = {
 
 /** @internal */
 export const OutcomeCommentModalContext = React.createContext<OutcomeCommentDialogContextType>(
-  null as unknown as OutcomeCommentDialogContextType
+  null as unknown as OutcomeCommentDialogContextType,
 );
 
 export function useOutcomeCommentDialog() {
@@ -31,7 +32,7 @@ export function useOutcomeCommentDialog() {
         nominationFileOutcomeCommentModal.open();
       });
     },
-    [setOutcome, setCommentCallback]
+    [setOutcome, setCommentCallback],
   );
 
   return { waitForOutcomeComment };

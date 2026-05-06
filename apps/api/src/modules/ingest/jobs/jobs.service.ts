@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+
 import { Pagination } from 'src/modules/framework/pagination';
+
 import { DetailedJobDto, DetailsJobQuery } from './queries/details-job.query';
 import { ListJobsQuery, PaginatedJobsDto } from './queries/list-jobs.query';
 

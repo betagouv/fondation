@@ -23,7 +23,7 @@ export const MenuContent = React.memo((props: React.PropsWithChildren) => (
           'transition-[transform,scale,opacity]',
           'data-[ending-style]:scale-90 data-[starting-style]:scale-90 data-[ending-style]:opacity-0',
           'data-[starting-style]:opacity-0',
-          'min-w-[var(--anchor-width)]'
+          'min-w-[var(--anchor-width)]',
         )}
       >
         {props.children}
@@ -47,7 +47,7 @@ export const MenuItem = React.memo((props: ButtonProps) => (
           'w-full',
           'first:data-[highlighted]:rounded-t-md',
           'last:data-[highlighted]:rounded-b-md',
-          props.className
+          props.className,
         )}
       >
         {props.children}

@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
+
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import z from 'zod';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class DetailNominationSessionQuery {
@@ -15,9 +17,7 @@ export class DetailNominationSessionQuery {
     private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
-  async handle(query: {
-    sessionId: string;
-  }): Promise<DetailedNominationSessionDto> {
+  async handle(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
     const session = await this.prisma.$transaction(async (tx) => {
       const optionalVersion = await this.affectationVersionFinder.last({
         sessionId: query.sessionId,
@@ -51,28 +51,20 @@ export class DetailNominationSessionQuery {
 
     if (!session) throw new NotFoundException();
 
-    const affectationsCount =
-      session.affectationVersions[0]?._count.affectations ?? 0;
-    const isDeletable =
-      session._count.attachments === 0 && affectationsCount === 0;
+    const affectationsCount = session.affectationVersions[0]?._count.affectations ?? 0;
+    const isDeletable = session._count.attachments === 0 && affectationsCount === 0;
 
     return {
       id: session.id,
       name: session.name,
       formation: prismaFormationEnumToFormationEnum(session.formation),
-      observationsClosingDate: DateOnly.fromDate(
-        session.observationsClosingDate,
-      ).toJson(),
+      observationsClosingDate: DateOnly.fromDate(session.observationsClosingDate).toJson(),
       date: DateOnly.fromDate(session.date).toJson(),
-      dueDate: session.dueDate
-        ? DateOnly.fromDate(session.dueDate).toJson()
-        : null,
+      dueDate: session.dueDate ? DateOnly.fromDate(session.dueDate).toJson() : null,
       positionStartDate: session.positionStartDate
         ? DateOnly.fromDate(session.positionStartDate).toJson()
         : null,
-      typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(
-        session.typeDeSaisine,
-      ),
+      typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
       isValidated: session.isValidated,
       isDeletable,
     };

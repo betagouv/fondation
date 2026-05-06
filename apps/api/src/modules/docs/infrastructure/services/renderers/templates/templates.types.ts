@@ -1,6 +1,4 @@
-export type TemplateFunction<Ctx extends Record<string, unknown>> = (
-  ctx: Ctx,
-) => string;
+export type TemplateFunction<Ctx extends Record<string, unknown>> = (ctx: Ctx) => string;
 
 export class Template<Context extends Record<string, unknown>> {
   // oxlint-disable-next-line @typescript-eslint/ban-ts-comment

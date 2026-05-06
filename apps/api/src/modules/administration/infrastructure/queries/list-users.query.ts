@@ -1,17 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Gender } from 'shared-models';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertIsDefined } from 'src/utils/is-defined';
 import z from 'zod';
+
+import { Gender } from 'shared-models';
+
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   ADMIN_USER_ROLES_ENUM,
@@ -21,6 +12,13 @@ import {
   adminUserRoleEnumToTitle,
 } from '../../domain/user-enum';
 import { ListUsersQueryDto } from '../dto/administration.dto';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { Sortable } from 'src/modules/framework/sorting';
+import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ListUsersQuery {
@@ -32,19 +30,16 @@ export class ListUsersQuery {
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
-    const roles: Prisma.UserWhereInput[] | undefined = query.roles?.map(
-      (role) => {
-        const idRoles = adminUserRoleEnumToIdentityRoles(role);
-        return {
-          title: adminUserRoleEnumToTitle(role),
-          duty: adminUserRoleEnumToDuty(role),
+    const roles: Prisma.UserWhereInput[] | undefined = query.roles?.map((role) => {
+      const idRoles = adminUserRoleEnumToIdentityRoles(role);
+      return {
+        title: adminUserRoleEnumToTitle(role),
+        duty: adminUserRoleEnumToDuty(role),
 
-          role: idRoles.length === 1 ? idRoles[0] : undefined,
-          OR:
-            idRoles.length > 1 ? idRoles.map((role) => ({ role })) : undefined,
-        } satisfies Prisma.UserWhereInput;
-      },
-    );
+        role: idRoles.length === 1 ? idRoles[0] : undefined,
+        OR: idRoles.length > 1 ? idRoles.map((role) => ({ role })) : undefined,
+      } satisfies Prisma.UserWhereInput;
+    });
 
     const whereRole: Prisma.UserWhereInput = roles
       ? roles.length === 1
@@ -57,12 +52,11 @@ export class ListUsersQuery {
         whereRole,
         {
           OR: query.search
-            ? // prettier-ignore
-              [
-              { email: { contains: query.search, mode: 'insensitive' as const } },
-              { firstName: { contains: query.search, mode: 'insensitive' as const } },
-              { lastName: { contains: query.search, mode: 'insensitive' as const } },
-            ]
+            ? [
+                { email: { contains: query.search, mode: 'insensitive' as const } },
+                { firstName: { contains: query.search, mode: 'insensitive' as const } },
+                { lastName: { contains: query.search, mode: 'insensitive' as const } },
+              ]
             : undefined,
         },
       ],

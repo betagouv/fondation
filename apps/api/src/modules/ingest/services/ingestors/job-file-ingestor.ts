@@ -1,18 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
+
+import { Injectable, Logger } from '@nestjs/common';
+import type { Readable } from 'node:stream';
 import z from 'zod';
 import { fr } from 'zod/locales';
 
+import { LolfiJob } from '../lolfi-job.type';
+import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { ResultBuilder } from 'src/utils/result';
-import { LolfiJob } from '../lolfi-job.type';
-import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 
 @Injectable()
 export class JobFileIngestor {
@@ -29,9 +30,7 @@ export class JobFileIngestor {
     file: LolfiJob['files'][number];
     tag: string;
     schema: z.ZodType<T>;
-    mapper: (
-      item: AsyncIterable<{ data: T; success: boolean }>,
-    ) => AsyncIterable<unknown>;
+    mapper: (item: AsyncIterable<{ data: T; success: boolean }>) => AsyncIterable<unknown>;
   }): Promise<{ success: boolean }> {
     let start: number;
     const { job, file } = options;
@@ -58,9 +57,7 @@ export class JobFileIngestor {
               tx,
               file,
               jobId: job.id,
-              errors: [
-                { error: `Impossible de récupérer le fichier "${file.name}"` },
-              ],
+              errors: [{ error: `Impossible de récupérer le fichier "${file.name}"` }],
             });
           }
 
@@ -75,10 +72,7 @@ export class JobFileIngestor {
       }
 
       const fileContent$ = assertIsDefined(fileContentResult.fileContent);
-      const result = new ResultBuilder<
-        T,
-        { num: number | undefined; error: z.ZodError }
-      >();
+      const result = new ResultBuilder<T, { num: number | undefined; error: z.ZodError }>();
 
       start = performance.now();
       this.logger.log(`Started ingesting ${options.file.name}`);
@@ -92,9 +86,7 @@ export class JobFileIngestor {
         async function* (source: AsyncIterable<LolfiNode>) {
           for await (const item of source) {
             const parseResult = await options.schema.safeParseAsync(
-              Object.fromEntries(
-                item.children.map(({ name, content }) => [name, content]),
-              ),
+              Object.fromEntries(item.children.map(({ name, content }) => [name, content])),
             );
 
             if (!parseResult.success) {
@@ -131,9 +123,7 @@ export class JobFileIngestor {
       });
     } finally {
       const duration = start! ? (performance.now() - start).toFixed(2) : null;
-      this.logger.log(
-        `Done ingesting ${options.file.name}${duration ? ` (${duration}ms)` : ''}`,
-      );
+      this.logger.log(`Done ingesting ${options.file.name}${duration ? ` (${duration}ms)` : ''}`);
     }
   }
 
@@ -144,9 +134,7 @@ export class JobFileIngestor {
     file: { id: string; name: string };
   }): Promise<{ success: boolean }> {
     if (!context.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.succeedJobFile({ ...context, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.succeedJobFile({ ...context, tx }));
     }
 
     return context.tx.ingestionJobFile
@@ -163,10 +151,7 @@ export class JobFileIngestor {
       .then(
         () => ({ success: true }),
         (error) => {
-          this.logger.error(
-            `Failed succeeding job #${context.jobId} ${context.file.name}`,
-            error,
-          );
+          this.logger.error(`Failed succeeding job #${context.jobId} ${context.file.name}`, error);
           return { success: false };
         },
       );
@@ -179,9 +164,7 @@ export class JobFileIngestor {
     tx?: Prisma.TransactionClient;
   }): Promise<{ success: false }> {
     if (!context.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.failJobFile({ ...context, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.failJobFile({ ...context, tx }));
     }
 
     this.logger.error(`${context.file.name} failed`);
@@ -204,10 +187,7 @@ export class JobFileIngestor {
         },
       })
       .catch((error) => {
-        this.logger.error(
-          `Failed failing job #${context.jobId} ${context.file.name}`,
-          error,
-        );
+        this.logger.error(`Failed failing job #${context.jobId} ${context.file.name}`, error);
       });
 
     return { success: false };

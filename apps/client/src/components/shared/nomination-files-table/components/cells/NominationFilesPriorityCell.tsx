@@ -1,6 +1,7 @@
+import { useNominationFilesTable } from '../../contexts/files-table.context';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { useNominationFilesTable } from '../../contexts/files-table.context';
+
 import { NominationFilesPrioritySelectorCell } from './NominationFilesPrioritySelectorCell';
 
 const NominationFilesPriorityReadOnly = ({ file: { priorities } }: { file: SessionNominationFile }) => (

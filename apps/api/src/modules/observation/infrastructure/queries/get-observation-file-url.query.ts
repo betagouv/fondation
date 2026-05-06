@@ -12,10 +12,7 @@ export class GetObservationFileUrlQuery {
     private readonly files: Files,
   ) {}
 
-  async handle(query: {
-    observationId: string;
-    fileId: string;
-  }): Promise<GetObservationFileUrlResponseDto> {
+  async handle(query: { observationId: string; fileId: string }): Promise<GetObservationFileUrlResponseDto> {
     const observationFile = await this.prisma.observationFile.findUnique({
       where: {
         observationId_fileId: {
@@ -35,9 +32,7 @@ export class GetObservationFileUrlQuery {
 
     if (!observationFile) throw new NotFoundException();
 
-    const urlsRecord = await this.files.getPublicUrls([
-      observationFile.file.id,
-    ]);
+    const urlsRecord = await this.files.getPublicUrls([observationFile.file.id]);
     const url = urlsRecord[observationFile.file.id];
 
     if (!url) throw new NotFoundException();

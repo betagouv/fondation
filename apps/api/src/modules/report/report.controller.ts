@@ -16,13 +16,10 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
+
+import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
-import {
-  FILE_EXTENSIONS,
-  UseMultipartBody,
-  type Multipart,
-} from '../framework/files';
 import {
   AttachedScreenshotsDto,
   AttachReportFileDto,

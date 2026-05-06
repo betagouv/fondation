@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import z from 'zod';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
 
 import { Magistrat, Role, TypeDeSaisine } from 'shared-models';
 
@@ -33,9 +33,7 @@ export class InternalListMemberSessionsQuery {
         createdAt: session.createdAt.toISOString(),
         fileCount: Number(session.fileCount ?? 0),
         formation: prismaFormationEnumToFormationEnum(session.formation),
-        typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(
-          session.typeDeSaisine,
-        ),
+        typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
       };
     });
 
@@ -43,16 +41,9 @@ export class InternalListMemberSessionsQuery {
   }
 
   // TODO: extract
-  private static labelizeSession(session: {
-    date: Date;
-    name: string;
-  }): string {
+  private static labelizeSession(session: { date: Date; name: string }): string {
     const { date: d } = session;
-    const formattedDate = [
-      d.getUTCDate(),
-      d.getUTCMonth() + 1,
-      d.getUTCFullYear(),
-    ]
+    const formattedDate = [d.getUTCDate(), d.getUTCMonth() + 1, d.getUTCFullYear()]
       .map((x) => x.toString().padStart(2, '0'))
       .join('/');
 

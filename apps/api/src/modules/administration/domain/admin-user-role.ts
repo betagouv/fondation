@@ -1,6 +1,8 @@
 import { Role } from 'shared-models';
+
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined } from 'src/utils/is-defined';
+
 import { AdminUserTitle } from './admin-user-title';
 import {
   AdminUserRoleEnum,
@@ -18,16 +20,13 @@ export class AdminUserRole {
     if (output.length === 1) return assertIsDefined(output[0]);
 
     if (
-      (this.identityRole === Role.ADMIN ||
-        this.identityRole === Role.MEMBRE_COMMUN) &&
+      (this.identityRole === Role.ADMIN || this.identityRole === Role.MEMBRE_COMMUN) &&
       output.includes(this.identityRole)
     ) {
       return this.identityRole;
     }
 
-    const [filtered] = output.filter(
-      (role) => role !== Role.ADMIN && role !== Role.MEMBRE_COMMUN,
-    );
+    const [filtered] = output.filter((role) => role !== Role.ADMIN && role !== Role.MEMBRE_COMMUN);
     return assertIsDefined(filtered);
   }
 
@@ -55,11 +54,7 @@ export class AdminUserRole {
     return new AdminUserRole(target, this.identityRole);
   }
 
-  static from(props: {
-    role: Role;
-    duty: UserDutyEnum | null;
-    title: UserTitleEnum | null;
-  }): AdminUserRole {
+  static from(props: { role: Role; duty: UserDutyEnum | null; title: UserTitleEnum | null }): AdminUserRole {
     switch (props.role) {
       case Role.ADMIN:
       case Role.ADJOINT_SECRETAIRE_GENERAL: {

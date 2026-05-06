@@ -12,7 +12,7 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry'
+    trace: 'on-first-retry',
   },
 
   projects: [
@@ -20,8 +20,8 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
-      dependencies: ['setup']
-    }
+      dependencies: ['setup'],
+    },
   ],
 
   webServer: [
@@ -29,12 +29,12 @@ export default defineConfig({
       name: 'backend',
       command: 'pnpm run --filter api start:e2e',
       url: 'http://localhost:3000/_health',
-      reuseExistingServer: !process.env.CI
+      reuseExistingServer: !process.env.CI,
     },
     {
       command: 'pnpm run --filter client dev',
       url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI
-    }
-  ]
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

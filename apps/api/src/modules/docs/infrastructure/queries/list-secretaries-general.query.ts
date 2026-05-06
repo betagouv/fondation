@@ -1,17 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { Gender } from 'shared-models';
-import {
-  PrismaUserDutyEnum,
-  PrismaUserTitleEnum,
-} from 'src/generated/prisma/enums';
-import {
-  UserDutyEnum,
-  UserTitleEnum,
-} from 'src/modules/administration/domain/user-enum';
+
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import z from 'zod';
 
 @Injectable()
 export class ListSecretariesGeneralQuery {
@@ -32,12 +28,10 @@ export class ListSecretariesGeneralQuery {
     });
 
     return {
-      items: secretaries
-        .filter(ListSecretariesGeneralQuery.isSecretary)
-        .map(({ gender, ...s }) => ({
-          ...s,
-          gender: prismaGenderEnumToGenderEnum(gender),
-        })),
+      items: secretaries.filter(ListSecretariesGeneralQuery.isSecretary).map(({ gender, ...s }) => ({
+        ...s,
+        gender: prismaGenderEnumToGenderEnum(gender),
+      })),
     };
   }
 
@@ -53,10 +47,7 @@ export class ListSecretariesGeneralQuery {
     duty: 'SECRETARY';
     title: 'FIRST_SECRETARY' | null;
   } {
-    return (
-      value.duty === 'SECRETARY' &&
-      [null, 'FIRST_SECRETARY'].includes(value.title)
-    );
+    return value.duty === 'SECRETARY' && [null, 'FIRST_SECRETARY'].includes(value.title);
   }
 }
 

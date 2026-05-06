@@ -1,12 +1,12 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { usePresentationPlan } from '../contexts/presentation-plan.context';
 import { useSelection } from '@/hooks/useSelection.hook';
 import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
-import Button from '@codegouvfr/react-dsfr/Button';
-import React from 'react';
-import { usePresentationPlan } from '../contexts/presentation-plan.context';
 
 export function PresentationAgendaSelectionList(props: {
   formation: 'PARQUET' | 'SIEGE';
@@ -22,7 +22,7 @@ export function PresentationAgendaSelectionList(props: {
 
   const formationItems = React.useMemo(
     () => (items ?? []).filter((item) => item.formation === formation),
-    [items, formation]
+    [items, formation],
   );
 
   const formationLabel = React.useMemo(() => FormationEnumLabel[formation], [formation]);
@@ -32,15 +32,19 @@ export function PresentationAgendaSelectionList(props: {
         const date = DateOnly.fromStoreModel(item.date).toDate();
         return { id: item.id, date };
       }),
-    [formationItems]
+    [formationItems],
   );
 
-  const selection = useSelection({ items: viewItems, defaultSelection: [], toString: ({ id }) => id });
+  const selection = useSelection({
+    items: viewItems,
+    defaultSelection: [],
+    toString: ({ id }) => id,
+  });
   const onCheckboxChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       selection.toggle(event.target.value, event.target.checked);
     },
-    [selection]
+    [selection],
   );
 
   const [isNavigating, setIsNavigating] = React.useState<boolean>(false);
@@ -76,13 +80,17 @@ export function PresentationAgendaSelectionList(props: {
       <Checkbox
         small
         options={viewItems.map((item) => ({
-          nativeInputProps: { value: item.id, checked: selection.has(item), onChange: onCheckboxChange },
+          nativeInputProps: {
+            value: item.id,
+            checked: selection.has(item),
+            onChange: onCheckboxChange,
+          },
           label: (
             <FormattedMessage
               values={{ ...item, formation: formationLabel }}
               defaultMessage="Ordre du jour {formation} du {date, date, short}"
             />
-          )
+          ),
         }))}
       />
     </>

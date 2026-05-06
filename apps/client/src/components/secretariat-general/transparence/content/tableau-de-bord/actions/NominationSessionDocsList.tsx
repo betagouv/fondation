@@ -1,7 +1,8 @@
 import clsx from 'clsx';
+import React from 'react';
 
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
-import React from 'react';
+
 import { DocActionDelete } from './DocActionDelete';
 import { DocActionDetails } from './DocActionDetails';
 import { DocActionUpdate } from './DocActionUpdate';
@@ -12,7 +13,7 @@ export function NominationSessionDocsList(props: { sessionId: string }) {
   const isActing = React.useMemo(() => Object.values(currentlyActing).some((x) => x), [currentlyActing]);
   const setIsActing = React.useCallback(
     (id: string) => (isActing: boolean) => setCurrentlyActing((s) => ({ ...s, [id]: isActing })),
-    [setCurrentlyActing]
+    [setCurrentlyActing],
   );
 
   const { data: docs } = useFindSessionDocsQuery({ sessionId: props.sessionId });

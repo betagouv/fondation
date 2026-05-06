@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
-import { MEMBER_ROLES } from '../member.utils';
+
 import { Magistrat } from 'shared-models';
+
+import { MEMBER_ROLES } from '../member.utils';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class InternalFindMembersQuery {

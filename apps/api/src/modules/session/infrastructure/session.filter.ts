@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  CallHandler,
-  ExecutionContext,
-  NestInterceptor,
-} from '@nestjs/common';
+import { BadRequestException, CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
@@ -24,10 +19,7 @@ export class SessionExceptionFilter implements NestInterceptor {
       catchError((err) => {
         return throwError(() => {
           if (err instanceof NonFormationMemberDefinedAsReporter) {
-            return new BadRequestException(
-              { message: err.message },
-              { cause: err },
-            );
+            return new BadRequestException({ message: err.message }, { cause: err });
           }
 
           if (err instanceof NominationSessionAffectationHasUnknownReporter) {
@@ -68,9 +60,7 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof NominationFileOutcomeRequiresComment) {
             throw new BadRequestException(
               {
-                validationErrors: [
-                  `l'issue définie doit obligatoirement être accompagnée d'un commentaire`,
-                ],
+                validationErrors: [`l'issue définie doit obligatoirement être accompagnée d'un commentaire`],
               },
               { cause: err },
             );

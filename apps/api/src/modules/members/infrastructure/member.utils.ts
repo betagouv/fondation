@@ -1,4 +1,5 @@
 import { Magistrat, Role } from 'shared-models';
+
 import { assertNever } from 'src/utils/assert-never';
 
 export const MEMBER_ROLES = [
@@ -24,8 +25,6 @@ export function roleToFormation(role: Role): Magistrat.Formation | undefined {
   }
 }
 
-export function isMember<T extends { role: string }>(
-  user: T,
-): user is T & { role: MemberRole } {
+export function isMember<T extends { role: string }>(user: T): user is T & { role: MemberRole } {
   return MEMBER_ROLES.includes(user.role as any);
 }

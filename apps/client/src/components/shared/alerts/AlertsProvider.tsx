@@ -1,6 +1,6 @@
+import { Alert, type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
 import React from 'react';
 
-import { Alert, type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
 import { AlertsContext, type AlertContextType, type AlertProps } from './alerts.context';
 
 function AlertsProvider(props: React.PropsWithChildren) {
@@ -10,7 +10,7 @@ function AlertsProvider(props: React.PropsWithChildren) {
     (alert) => {
       setAlerts((a) => a.concat({ ...alert, id: crypto.randomUUID(), createdAt: new Date() }));
     },
-    [setAlerts]
+    [setAlerts],
   );
 
   return <AlertsContext value={{ alerts, setAlerts, pushAlert }}>{props.children}</AlertsContext>;
@@ -21,7 +21,7 @@ AlertsProvider.Alerts = function InnerAlertList(
     ref?: React.Ref<HTMLUListElement>;
     // closable by default
     closable?: false;
-  }
+  },
 ) {
   const ctx = React.useContext(AlertsContext);
 

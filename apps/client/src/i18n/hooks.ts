@@ -1,10 +1,11 @@
 import { differenceInMonths, differenceInYears, formatDuration } from 'date-fns';
 import { fr as dateLocaleFr } from 'date-fns/locale/fr';
 import React from 'react';
+import { useIntl } from 'react-intl';
+
+import type { DateOnlyJson } from 'shared-models';
 
 import { DateOnly } from '@/models/date-only.model';
-import { useIntl } from 'react-intl';
-import type { DateOnlyJson } from 'shared-models';
 
 function asDate(value: Date | DateOnly | DateOnlyJson): Date {
   return value instanceof DateOnly
@@ -37,10 +38,10 @@ export function useIntlBirthDate() {
 
       return $t(
         { defaultMessage: `{birthDate, date, dateOnlyShort} ({age})` },
-        { birthDate: asDate(birthDate), age }
+        { birthDate: asDate(birthDate), age },
       );
     },
-    [$t, formatAge]
+    [$t, formatAge],
   );
 }
 
@@ -61,6 +62,6 @@ export function useIntlPositionDuration() {
 
       return formatDuration({ months, years }, { locale: dateLocaleFr, delimiter });
     },
-    [delimiter]
+    [delimiter],
   );
 }

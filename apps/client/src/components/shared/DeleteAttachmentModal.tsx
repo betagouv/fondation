@@ -14,7 +14,7 @@ export function DeleteAttachmentModal(props: { fileName: string; onDelete: () =>
           Confirmez-vous la suppression du fichier:{' '}
           <strong>&laquo;&nbsp;{props.fileName}&nbsp;&raquo;</strong>
         </p>
-      )
+      ),
     });
 
     if (isConfirmed) props.onDelete();

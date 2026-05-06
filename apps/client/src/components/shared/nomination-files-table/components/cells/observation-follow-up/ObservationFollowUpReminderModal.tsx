@@ -1,21 +1,19 @@
-import React from 'react';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-
-import type { ObservationFollowupEnum } from '@/types/enums.types';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { capitalize } from '@/utils/string.utils';
-
-import { ObservationFollowUpSelector } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpSelector';
-import { observationFollowUpCommentModal } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialog';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import React from 'react';
 
 import { useNominationFilesTable } from '../../../contexts/files-table.context';
+import { observationFollowUpCommentModal } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialog';
+import { ObservationFollowUpSelector } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpSelector';
 import { DateOnly } from '@/models/date-only.model';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
+import { capitalize } from '@/utils/string.utils';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export const observationFollowUpReminderModal = createModal({
   isOpenedByDefault: false,
-  id: `observation-follow-up-reminder-modal`
+  id: `observation-follow-up-reminder-modal`,
 });
 
 type ObservationWithFollowUp = {
@@ -34,14 +32,18 @@ function SingleObservationWithFollowUpSelector(props: {
 }) {
   const formattedDate = React.useMemo(
     () => DateOnly.fromDateOnly(props.observation.date, 'dd/MM/yyyy'),
-    [props.observation]
+    [props.observation],
   );
 
   const onChange = React.useCallback(
     (data: { followUp: ObservationFollowupEnum | null; comment: string | null }) => {
-      props.onChange({ ...props.observation, followUp: data.followUp, followUpComment: data.comment });
+      props.onChange({
+        ...props.observation,
+        followUp: data.followUp,
+        followUpComment: data.comment,
+      });
     },
-    [props]
+    [props],
   );
 
   return (
@@ -81,7 +83,7 @@ export function ObservationFollowUpReminderModal(props: {
     onConceal() {
       setWillDrop(true);
       observationFollowUpReminderModal.open();
-    }
+    },
   });
 
   const [isDirty, setDirty] = React.useState<boolean>(false);
@@ -112,7 +114,7 @@ export function ObservationFollowUpReminderModal(props: {
         props.onClose();
         setObservations([]);
       }
-    }
+    },
   });
 
   const onChange = React.useCallback(
@@ -120,12 +122,12 @@ export function ObservationFollowUpReminderModal(props: {
       setDirty(true);
       setObservations((obs) => obs.map((o) => (o.id === observation.id ? observation : o)));
     },
-    [setObservations]
+    [setObservations],
   );
 
   const missingFollowUpCount = React.useMemo(
     () => observations.filter(({ followUp }) => followUp === null).length,
-    [observations]
+    [observations],
   );
 
   const description =
@@ -145,8 +147,13 @@ export function ObservationFollowUpReminderModal(props: {
       title="Suite aux observations"
       buttons={[
         missingFollowUpCount === 0 || isDirty
-          ? { children: 'Fermer', iconId: 'fr-icon-close-line', iconPosition: 'right', priority: 'primary' }
-          : { children: 'Ignorer', priority: 'secondary' }
+          ? {
+              children: 'Fermer',
+              iconId: 'fr-icon-close-line',
+              iconPosition: 'right',
+              priority: 'primary',
+            }
+          : { children: 'Ignorer', priority: 'secondary' },
       ]}
     >
       {description}

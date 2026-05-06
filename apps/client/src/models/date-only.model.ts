@@ -1,17 +1,18 @@
 import { format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { DateOnlyJson } from 'shared-models';
 import { z } from 'zod';
+
+import type { DateOnlyJson } from 'shared-models';
 
 const dateOnlyJsonSchema = z.object({
   year: z.number(),
   month: z.number().min(1).max(12),
-  day: z.number().min(1).max(31)
+  day: z.number().min(1).max(31),
 });
 
 function validDate<T, U>(
   message: string,
-  mapper: (value: T) => U
+  mapper: (value: T) => U,
 ): (value: T, ctx: z.core.ParsePayload) => U {
   return (input: T, ctx) => {
     try {
@@ -34,11 +35,11 @@ export class DateOnly {
   static codec(message?: string) {
     return z.codec(z.iso.date('Date invalide'), dateOnlyJsonSchema, {
       decode: validDate(message || 'Date invalide', (value) =>
-        DateOnly.fromString(value, 'yyyy-MM-dd').toStoreModel()
+        DateOnly.fromString(value, 'yyyy-MM-dd').toStoreModel(),
       ),
       encode: validDate(message || 'Date invalide', (value) =>
-        DateOnly.fromStoreModel(value).toFormattedString('yyyy-MM-dd')
-      )
+        DateOnly.fromStoreModel(value).toFormattedString('yyyy-MM-dd'),
+      ),
     });
   }
 
@@ -75,10 +76,10 @@ export class DateOnly {
   private static fromString(
     dateString: string,
     format: 'dd-MM-yyyy' | 'yyyy-MM-dd' = 'dd-MM-yyyy',
-    locale = 'fr'
+    locale = 'fr',
   ): DateOnly {
     const date = parse(dateString, format, new Date(), {
-      locale: locale === 'fr' ? fr : undefined
+      locale: locale === 'fr' ? fr : undefined,
     });
 
     return new DateOnly(assertIsValidDate(date, `Date invalide: "${dateString}"`));

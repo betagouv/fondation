@@ -3,8 +3,8 @@ import z from 'zod';
 
 import { PrioriteEnum } from 'shared-models';
 
-import { createSortableDto } from 'src/modules/framework/sorting';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
+import { createSortableDto } from 'src/modules/framework/sorting';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
@@ -46,9 +46,7 @@ function toNullableArray(value: unknown): undefined | unknown[] {
 
 export class ListNominationFilesQueryDto extends createSortableDto(
   z.object({
-    sortBy: z
-      .enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade'])
-      .optional(),
+    sortBy: z.enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade']).optional(),
 
     outcomes: z
       .string()

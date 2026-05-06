@@ -1,35 +1,25 @@
+import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-  StreamableFile,
-} from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
+import { Prisma } from 'src/generated/prisma/client';
+import { DateOnly } from 'src/utils/date-only';
+import { TimeOnly } from 'src/utils/time-only';
+
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
 import { OfficialReport } from './domain/official-report';
-import {
-  CreatedAgendaDto,
-  CreatedOfficialReportDto,
-} from './infrastructure/docs.dto';
+import { CreatedAgendaDto, CreatedOfficialReportDto } from './infrastructure/docs.dto';
 import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
 } from './infrastructure/finders/agenda-nomination-files.finder';
-import {
-  AgendaFinder,
-  FoundAgendasDto,
-} from './infrastructure/finders/agenda.finder';
+import { AgendaFinder, FoundAgendasDto } from './infrastructure/finders/agenda.finder';
 import {
   DetailedAgendaMetadata,
   DetailsAgendaMetadataQuery,
@@ -53,10 +43,7 @@ import {
 } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
-import {
-  FindChairmenQuery,
-  FoundChairmenDto,
-} from './infrastructure/queries/find-chairmen.query';
+import { FindChairmenQuery, FoundChairmenDto } from './infrastructure/queries/find-chairmen.query';
 import {
   FindJusticeContactsQuery,
   FoundJusticeContactsDto,
@@ -69,10 +56,7 @@ import { FindOfficialReportDocumentPdfQuery } from './infrastructure/queries/fin
 import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-official-report-document.query';
 import { FindPresentationPlanDocumentPdfQuery } from './infrastructure/queries/find-presentation-plan-document-pdf.query';
 import { FindPresentationPlanDocumentQuery } from './infrastructure/queries/find-presentation-plan-document.query';
-import {
-  FindSessionDocsQuery,
-  FoundSessionDocsDto,
-} from './infrastructure/queries/find-session-docs.query';
+import { FindSessionDocsQuery, FoundSessionDocsDto } from './infrastructure/queries/find-session-docs.query';
 import {
   InternalFindNominationFilesLinkedDocsQuery,
   InternalFoundNominationFilesLinkedDocsDto,
@@ -134,9 +118,7 @@ export class DocsService {
     private readonly sessions: SessionService,
   ) {}
 
-  searchChairmen(query: {
-    formation: Magistrat.Formation | undefined;
-  }): Promise<FoundChairmenDto> {
+  searchChairmen(query: { formation: Magistrat.Formation | undefined }): Promise<FoundChairmenDto> {
     return this.findChairmenQuery.handle(query);
   }
 
@@ -159,11 +141,10 @@ export class DocsService {
       id: command.chairmanId,
     });
 
-    const { items: nominationFiles } =
-      await this.agendaNominationFilesFinder.find({
-        sessionId: command.sessionId,
-        ids: command.nominationFileIds,
-      });
+    const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
+      sessionId: command.sessionId,
+      ids: command.nominationFileIds,
+    });
 
     const agenda = Agenda.create({
       chairman,
@@ -195,12 +176,11 @@ export class DocsService {
       id: command.chairmanId,
     });
 
-    const { items: nominationFiles } =
-      await this.agendaNominationFilesFinder.find({
-        sessionId: agenda.sessionId,
-        ids: command.nominationFileIds,
-        ignoreAgendaId: command.agendaId,
-      });
+    const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
+      sessionId: agenda.sessionId,
+      ids: command.nominationFileIds,
+      ignoreAgendaId: command.agendaId,
+    });
 
     agenda.update({
       chairman,
@@ -219,17 +199,11 @@ export class DocsService {
     await this.agendaRepository.persist(agenda);
   }
 
-  getOrCreateAgendaDocument(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<string> {
+  getOrCreateAgendaDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  getOrCreateAgendaDocumentPdf(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  getOrCreateAgendaDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 
@@ -237,10 +211,7 @@ export class DocsService {
     return this.findSessionDocsQuery.handle(query);
   }
 
-  detailsSessionAgenda(query: {
-    sessionId: string;
-    agendaId: string;
-  }): Promise<DetailedSessionAgenda> {
+  detailsSessionAgenda(query: { sessionId: string; agendaId: string }): Promise<DetailedSessionAgenda> {
     return this.detailsSessionAgendaQuery.handle(query);
   }
 
@@ -250,21 +221,15 @@ export class DocsService {
     return this.detailsSessionOfficialReportQuery.handle(query);
   }
 
-  isSessionReadyForDocGeneration(query: {
-    sessionId: string;
-  }): Promise<DocGenerationSessionReadinessDto> {
+  isSessionReadyForDocGeneration(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
     return this.isSessionReadyForDocGenerationQuery.handle(query);
   }
 
-  detailsAgendaMetadata(query: {
-    agendaId: string;
-  }): Promise<DetailedAgendaMetadata> {
+  detailsAgendaMetadata(query: { agendaId: string }): Promise<DetailedAgendaMetadata> {
     return this.detailsAgendaMetadataQuery.handle(query);
   }
 
-  searchJusticeContacts(query: {
-    search: string;
-  }): Promise<FoundJusticeContactsDto> {
+  searchJusticeContacts(query: { search: string }): Promise<FoundJusticeContactsDto> {
     return this.findJusticeContactsQuery.handle(query);
   }
 
@@ -318,11 +283,10 @@ export class DocsService {
     });
 
     const uniqueAgendaIds = new Set(command.agendaIds);
-    const { items: agendas } =
-      await this.agendaFinder.findNonIncludedInOfficialReport({
-        ids: uniqueAgendaIds,
-        formation: session.formation,
-      });
+    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
+      ids: uniqueAgendaIds,
+      formation: session.formation,
+    });
 
     if (agendas.length !== uniqueAgendaIds.size) {
       throw new NotFoundException();
@@ -379,12 +343,11 @@ export class DocsService {
     });
 
     const uniqueAgendaIds = new Set(command.agendaIds);
-    const { items: agendas } =
-      await this.agendaFinder.findNonIncludedInOfficialReport({
-        ids: uniqueAgendaIds,
-        formation: report.formation,
-        ignoreOfficialReportId: command.id,
-      });
+    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
+      ids: uniqueAgendaIds,
+      formation: report.formation,
+      ignoreOfficialReportId: command.id,
+    });
 
     if (agendas.length !== uniqueAgendaIds.size) {
       throw new NotFoundException();
@@ -407,17 +370,11 @@ export class DocsService {
     await this.officialReportRepository.persist(report);
   }
 
-  getOrCreateOfficialReportDocument(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<string> {
+  getOrCreateOfficialReportDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
     return this.findOfficialReportDocumentQuery.handle(query);
   }
 
-  getOrCreateOfficialReportDocumentPdf(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  getOrCreateOfficialReportDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     return this.findOfficialReportDocumentPdfQuery.handle(query);
   }
 
@@ -433,15 +390,11 @@ export class DocsService {
     await this.officialReportRepository.persist(officialReport);
   }
 
-  findPresentationPlanAgendas(query: {
-    ignorePlanId: string | undefined;
-  }): Promise<FoundAgendasDto> {
+  findPresentationPlanAgendas(query: { ignorePlanId: string | undefined }): Promise<FoundAgendasDto> {
     return this.agendaFinder.findNonIncludedInPresentationPlan(query);
   }
 
-  detailsPresentationPlanMetadata(query: {
-    id: string;
-  }): Promise<DetailedPresentationPlanMetadataDto> {
+  detailsPresentationPlanMetadata(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
     return this.detailsPresentationPlanMetadataQuery.handle(query);
   }
 
@@ -456,9 +409,7 @@ export class DocsService {
   }): Promise<{ id: string }> {
     const agendasById = new Map(command.agendas.map((a) => [a.id, a] as const));
     const agendaIds = new Set(agendasById.keys());
-    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan(
-      { ids: agendaIds },
-    );
+    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({ ids: agendaIds });
 
     if (items.length !== agendaIds.size) throw new NotFoundException();
 
@@ -508,9 +459,10 @@ export class DocsService {
 
     const agendasById = new Map(command.agendas.map((a) => [a.id, a] as const));
     const agendaIds = new Set(agendasById.keys());
-    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan(
-      { ids: agendaIds, ignorePlanId: command.id },
-    );
+    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({
+      ids: agendaIds,
+      ignorePlanId: command.id,
+    });
 
     if (items.length !== agendaIds.size) throw new NotFoundException();
 
@@ -552,17 +504,11 @@ export class DocsService {
     await this.justicePresentationPlanRepository.persist(plan);
   }
 
-  findPresentationPlanDocument(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<string> {
+  findPresentationPlanDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
     return this.findPresentationPlanDocumentQuery.handle(query);
   }
 
-  findPresentationPlanDocumentPdf(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  findPresentationPlanDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     return this.findPresentationPlanDocumentPdfQuery.handle(query);
   }
 
@@ -570,9 +516,7 @@ export class DocsService {
     return this.listNonPresentedPlansQuery.handle();
   }
 
-  listPresentedPlans(query: {
-    pagination: Pagination;
-  }): Promise<ListedPresentedPlansDto> {
+  listPresentedPlans(query: { pagination: Pagination }): Promise<ListedPresentedPlansDto> {
     return this.listPresentedPlansQuery.handle(query);
   }
 
@@ -592,9 +536,7 @@ export class DocsService {
     await this.justicePresentationPlanRepository.persist(plan);
   }
 
-  async detailsPresentationPlanPdfDocument(query: {
-    id: string;
-  }): Promise<{ id: string; url: string }> {
+  async detailsPresentationPlanPdfDocument(query: { id: string }): Promise<{ id: string; url: string }> {
     return this.detailsPresentationPlanPdfDocumentQuery.handle(query);
   }
 

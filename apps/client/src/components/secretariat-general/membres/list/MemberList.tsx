@@ -1,14 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
-
-import type { PaginatedMemberListItemDto } from '@api/types';
-import { useMemberListQuery } from '@queries/members.queries';
+import { defineMessage } from 'react-intl';
 
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import { defineMessage } from 'react-intl';
+import type { PaginatedMemberListItemDto } from '@api/types';
+import { useMemberListQuery } from '@queries/members.queries';
+
 import { MemberListStatCell } from './MemberListStateCell';
 
 const h = createColumnHelper<PaginatedMemberListItemDto['items'][number]>();
@@ -26,10 +26,10 @@ const columns = [
         values: [
           { id: 'COMMUN', label: 'Commun' },
           { id: 'PARQUET', label: 'Parquet' },
-          { id: 'SIEGE', label: 'Siège' }
-        ]
-      }
-    }
+          { id: 'SIEGE', label: 'Siège' },
+        ],
+      },
+    },
   }),
 
   h.accessor('lastName', {
@@ -37,7 +37,7 @@ const columns = [
     enableSorting: true,
     enableHiding: false,
     header: 'Nom de famille',
-    cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
+    cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>,
   }),
 
   h.accessor('firstName', {
@@ -45,7 +45,7 @@ const columns = [
     enableSorting: true,
     enableHiding: false,
     header: 'Prénom',
-    cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>
+    cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>,
   }),
 
   h.accessor('stats', {
@@ -55,7 +55,7 @@ const columns = [
       const currentYear = new Date().getFullYear();
       return `Stats ${currentYear}`;
     },
-    cell: ({ cell }) => <MemberListStatCell stats={cell.getValue()} />
+    cell: ({ cell }) => <MemberListStatCell stats={cell.getValue()} />,
   }),
 
   h.display({
@@ -70,8 +70,8 @@ const columns = [
         title={`Éditer ${capitalize(row.original.firstName)} ${row.original.lastName.toUpperCase()}`}
         linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', row.original.id) }}
       />
-    )
-  })
+    ),
+  }),
 ];
 
 export function MemberList() {
@@ -79,7 +79,7 @@ export function MemberList() {
     pagination: { pageIndex: 0, pageSize: 50 },
     columnFilters: [] as { id: 'formation'; value: ('COMMUN' | 'PARQUET' | 'SIEGE')[] }[],
     sorting: [] as [{ id: 'lastName' | 'firstName'; desc: boolean }] | [],
-    globalFilter: ''
+    globalFilter: '',
   });
 
   const formations = (tableState.columnFilters ?? []).find(({ id }) => id === 'formation')?.value;
@@ -88,7 +88,7 @@ export function MemberList() {
     formations,
     sorting: tableState.sorting,
     pagination: tableState.pagination,
-    search: tableState.globalFilter ?? ''
+    search: tableState.globalFilter ?? '',
   });
 
   const table = useDataTable({
@@ -97,12 +97,14 @@ export function MemberList() {
     getRowId: (row) => row.id,
     rowCount: data?.totalCount,
     meta: {
-      paginationItemLabel: defineMessage({ defaultMessage: '{count, plural, one {membre} other {membres}}' })
+      paginationItemLabel: defineMessage({
+        defaultMessage: '{count, plural, one {membre} other {membres}}',
+      }),
     },
     state: tableState,
     onStateChange: setTableState,
 
-    enableGlobalFilter: true
+    enableGlobalFilter: true,
   });
 
   return (

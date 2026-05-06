@@ -6,7 +6,7 @@ import { ReactTableHead } from './ReactTableHead';
 import { ReactTableWrapper } from './ReactTableWrapper';
 
 export function ReactTableContent<Data extends RowData>(
-  props: PropsWithChildren<{ table: Table<Data>; placeholder?: React.ReactNode }>
+  props: PropsWithChildren<{ table: Table<Data>; placeholder?: React.ReactNode }>,
 ) {
   return (
     <ReactTableWrapper table={props.table}>

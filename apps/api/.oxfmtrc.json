@@ -1,0 +1,22 @@
+{
+  "$schema": "../../node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": ["src/generated"],
+  "singleQuote": true,
+  "printWidth": 110,
+  "trailingComma": "all",
+  "sortImports": {
+    "sortSideEffects": false,
+    "customGroups": [
+      { "elementNamePattern": ["shared-models", "shared-models/**"], "groupName": "shared-models" }
+    ],
+    "internalPattern": ["src/"],
+    "groups": [
+      "value-builtin",
+      ["value-external", "type-external", "value-import", "type-import"],
+      "shared-models",
+      ["value-internal", "type-internal", "value-parent", "type-parent"],
+      ["value-sibling", "type-sibling"],
+      "unknown"
+    ]
+  }
+}

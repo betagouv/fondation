@@ -1,8 +1,6 @@
 import { Gender, Magistrat, Role } from 'shared-models';
-import {
-  UserDutyEnum,
-  UserTitleEnum,
-} from 'src/modules/administration/domain/user-enum';
+
+import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -59,32 +57,16 @@ export class JusticePresentationPlan {
     readonly formation: Magistrat.Formation,
   ) {}
 
-  static from(props: {
-    id: string;
-    formation: Magistrat.Formation;
-  }): JusticePresentationPlan {
-    return new JusticePresentationPlan(
-      makeId('JusticePresentationPlanId', props.id),
-      props.formation,
-    );
+  static from(props: { id: string; formation: Magistrat.Formation }): JusticePresentationPlan {
+    return new JusticePresentationPlan(makeId('JusticePresentationPlanId', props.id), props.formation);
   }
 
-  static create(
-    command: CreateJusticePresentationPlanCommand,
-  ): JusticePresentationPlan {
+  static create(command: CreateJusticePresentationPlanCommand): JusticePresentationPlan {
     const formation = this.extractFormation(command.agendas);
-    const plan = new JusticePresentationPlan(
-      makeId('JusticePresentationPlanId'),
-      formation,
-    );
+    const plan = new JusticePresentationPlan(makeId('JusticePresentationPlanId'), formation);
 
     plan.#messages.push(
-      new JusticePresentationPlanCreated(
-        plan.id,
-        command.authorId,
-        plan.formation,
-        plan.buildState(command),
-      ),
+      new JusticePresentationPlanCreated(plan.id, command.authorId, plan.formation, plan.buildState(command)),
     );
 
     return plan;
@@ -92,11 +74,7 @@ export class JusticePresentationPlan {
 
   update(command: UpdateJusticePresentationPlanCommand): void {
     this.#messages.push(
-      new JusticePresentationPlanUpdated(
-        this.id,
-        command.authorId,
-        this.buildState(command),
-      ),
+      new JusticePresentationPlanUpdated(this.id, command.authorId, this.buildState(command)),
     );
   }
 
@@ -112,9 +90,7 @@ export class JusticePresentationPlan {
     this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
   }
 
-  private buildState(
-    props: UpdateJusticePresentationPlanCommand,
-  ): JusticePresentationPlanState {
+  private buildState(props: UpdateJusticePresentationPlanCommand): JusticePresentationPlanState {
     const { chairman, secretary, agendas, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
@@ -138,25 +114,15 @@ export class JusticePresentationPlan {
     }
 
     const titles = new Map<Magistrat.Formation, Set<UserTitleEnum | null>>([
-      [
-        Magistrat.Formation.PARQUET,
-        new Set(['DEPUTY_PRESIDENT_PARQUET', 'PRESIDENT_PARQUET']),
-      ],
-      [
-        Magistrat.Formation.SIEGE,
-        new Set(['DEPUTY_PRESIDENT_SIEGE', 'PRESIDENT_SIEGE']),
-      ],
+      [Magistrat.Formation.PARQUET, new Set(['DEPUTY_PRESIDENT_PARQUET', 'PRESIDENT_PARQUET'])],
+      [Magistrat.Formation.SIEGE, new Set(['DEPUTY_PRESIDENT_SIEGE', 'PRESIDENT_SIEGE'])],
     ]);
 
-    if (!titles.get(this.formation)?.has(user.title))
-      throw new UnknownPresentationPlanChairman();
+    if (!titles.get(this.formation)?.has(user.title)) throw new UnknownPresentationPlanChairman();
   }
 
   private assertsSecretary(user: PlanUser): asserts user is Secretary {
-    if (
-      user.duty !== 'SECRETARY' ||
-      (user.title !== 'FIRST_SECRETARY' && user.title !== null)
-    ) {
+    if (user.duty !== 'SECRETARY' || (user.title !== 'FIRST_SECRETARY' && user.title !== null)) {
       throw new UnknownPresentationPlanSecretary();
     }
   }
@@ -204,11 +170,7 @@ type Secretary = Omit<PlanUser, 'duty' | 'title'> & {
 
 type Chairman = Omit<PlanUser, 'duty' | 'title'> & {
   duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT';
-  title:
-    | 'PRESIDENT_PARQUET'
-    | 'PRESIDENT_SIEGE'
-    | 'DEPUTY_PRESIDENT_SIEGE'
-    | 'DEPUTY_PRESIDENT_PARQUET';
+  title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
 };
 
 export type JusticePresentationPlanState = {

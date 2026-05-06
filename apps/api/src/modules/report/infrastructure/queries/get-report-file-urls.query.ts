@@ -36,11 +36,7 @@ export class GetReportFileUrlsQuery {
 
     const files = new Map(
       report.files.map(
-        ({ file }) =>
-          [
-            file.id,
-            { id: file.id, name: file.name, path: file.path.join('/') },
-          ] as const,
+        ({ file }) => [file.id, { id: file.id, name: file.name, path: file.path.join('/') }] as const,
       ),
     );
 
@@ -50,9 +46,7 @@ export class GetReportFileUrlsQuery {
       items: Object.entries(fileUrls)
         .map(([fileId, fileUrl]) => {
           const file = files.get(fileId);
-          return file
-            ? { id: file.id, name: file.name, url: fileUrl.toString() }
-            : undefined;
+          return file ? { id: file.id, name: file.name, url: fileUrl.toString() } : undefined;
         })
         .filter(isDefined),
     };
@@ -61,8 +55,6 @@ export class GetReportFileUrlsQuery {
 
 export class GetReportFileUrlsResponseDto extends createZodDto(
   z.object({
-    items: z.array(
-      z.object({ id: z.string(), name: z.string(), url: z.url() }),
-    ),
+    items: z.array(z.object({ id: z.string(), name: z.string(), url: z.url() })),
   }),
 ) {}

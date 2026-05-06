@@ -8,6 +8,6 @@ export const AUTHORIZED_ROLES = {
     'ADJOINT_SECRETAIRE_GENERAL',
     'MEMBRE_COMMUN',
     'MEMBRE_DU_PARQUET',
-    'MEMBRE_DU_SIEGE'
-  ] satisfies RoleEnum[]
+    'MEMBRE_DU_SIEGE',
+  ] satisfies RoleEnum[],
 } as Record<'NONE' | 'MEMBER' | 'SG' | 'ALL', unknown[]>;

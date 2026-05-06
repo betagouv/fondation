@@ -13,6 +13,7 @@ import {
   serializePrimitiveParam,
 } from '../core/pathSerializer.ts';
 import { getUrl } from '../core/utils.ts';
+
 import type { Client, ClientOptions, Config, RequestOptions } from './types.ts';
 
 export const createQuerySerializer = <T = unknown>({
@@ -90,9 +91,7 @@ export const getParseAs = (contentType: string | null): Exclude<Config['parseAs'
     return 'formData';
   }
 
-  if (
-    ['application/', 'audio/', 'image/', 'video/'].some((type) => cleanContent.startsWith(type))
-  ) {
+  if (['application/', 'audio/', 'image/', 'video/'].some((type) => cleanContent.startsWith(type))) {
     return 'blob';
   }
 
@@ -189,9 +188,7 @@ const headersEntries = (headers: Headers): Array<[string, string]> => {
   return entries;
 };
 
-export const mergeHeaders = (
-  ...headers: Array<Required<Config>['headers'] | undefined>
-): Headers => {
+export const mergeHeaders = (...headers: Array<Required<Config>['headers'] | undefined>): Headers => {
   const mergedHeaders = new Headers();
   for (const header of headers) {
     if (!header) {
@@ -210,10 +207,7 @@ export const mergeHeaders = (
       } else if (value !== undefined) {
         // assume object headers are meant to be JSON stringified, i.e. their
         // content value in OpenAPI specification is 'application/json'
-        mergedHeaders.set(
-          key,
-          typeof value === 'object' ? JSON.stringify(value) : (value as string),
-        );
+        mergedHeaders.set(key, typeof value === 'object' ? JSON.stringify(value) : (value as string));
       }
     }
   }
@@ -282,12 +276,7 @@ export interface Middleware<Req, Res, Err, Options> {
   response: Interceptors<ResInterceptor<Res, Req, Options>>;
 }
 
-export const createInterceptors = <Req, Res, Err, Options>(): Middleware<
-  Req,
-  Res,
-  Err,
-  Options
-> => ({
+export const createInterceptors = <Req, Res, Err, Options>(): Middleware<Req, Res, Err, Options> => ({
   error: new Interceptors<ErrInterceptor<Err, Res, Req, Options>>(),
   request: new Interceptors<ReqInterceptor<Req, Options>>(),
   response: new Interceptors<ResInterceptor<Res, Req, Options>>(),

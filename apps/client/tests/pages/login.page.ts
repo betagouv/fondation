@@ -1,4 +1,5 @@
 import type { Locator } from '@playwright/test';
+
 import type { TestAnonymousApp } from './test-anonymous-app';
 
 export class LoginPage {

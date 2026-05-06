@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import * as $api from '@api/sdk';
 import type { DetailedSummaryDto } from '@api/types';
 
@@ -10,7 +11,7 @@ export const summaryKeys = {
     nominationFileId: string;
     search?: string;
     includeIds?: readonly string[];
-  }) => ['summaries', 'searchSummaryReaders', props] as const
+  }) => ['summaries', 'searchSummaryReaders', props] as const,
 };
 
 export const useSummaryQuery = (options: { sessionId: string; nominationFileId: string }) =>
@@ -48,7 +49,7 @@ export const useSummaryQuery = (options: { sessionId: string; nominationFileId: 
       }
 
       return data ?? null;
-    }
+    },
   });
 
 export function useAttachSummaryFilesMutation() {
@@ -58,13 +59,13 @@ export function useAttachSummaryFilesMutation() {
       const { nominationFileId, sessionId } = mutation;
       await $api.summaries.attachSummaryFiles({
         path: { sessionId, nominationFileId },
-        body: { files: mutation.files }
+        body: { files: mutation.files },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId }) =>
       queryClient.invalidateQueries({
-        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId })
-      })
+        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+      }),
   });
 }
 
@@ -77,7 +78,7 @@ export function useDetachSummaryFilesMutation() {
 
       await $api.summaries.detachSummaryFiles({
         path: { sessionId, nominationFileId },
-        query: { fileIds: mutation.fileIds }
+        query: { fileIds: mutation.fileIds },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, fileIds }) => {
@@ -90,12 +91,12 @@ export function useDetachSummaryFilesMutation() {
             ...old,
             summary: {
               ...old.summary,
-              attachments: old.summary.attachments.filter((a) => !fileIds.includes(a.id))
-            }
+              attachments: old.summary.attachments.filter((a) => !fileIds.includes(a.id)),
+            },
           } satisfies DetailedSummaryDto;
-        }
+        },
       );
-    }
+    },
   });
 }
 
@@ -104,7 +105,7 @@ export const useGenerateSummaryAttachmentPublicUrlMutation = () =>
     async mutationFn(mutation: { sessionId: string; nominationFileId: string; fileId: string }) {
       const { sessionId, nominationFileId, fileId } = mutation;
       const { data } = await $api.summaries.generateAttachmentPublicUrl({
-        path: { sessionId, nominationFileId, fileId }
+        path: { sessionId, nominationFileId, fileId },
       });
 
       if (!data) return;
@@ -118,7 +119,7 @@ export const useGenerateSummaryAttachmentPublicUrlMutation = () =>
 
       $a.click();
       $a.remove();
-    }
+    },
   });
 
 export function useIncludeFileInSummaryContentMutation() {
@@ -128,7 +129,7 @@ export function useIncludeFileInSummaryContentMutation() {
       const { sessionId, nominationFileId, files } = mutation;
       const { data } = await $api.summaries.includeFilesInContent({
         path: { sessionId, nominationFileId },
-        body: { files: [...files] }
+        body: { files: [...files] },
       });
 
       return data ?? null;
@@ -144,12 +145,12 @@ export function useIncludeFileInSummaryContentMutation() {
             ...old,
             summary: {
               ...old.summary,
-              screenshots: old.summary.screenshots.concat(data.items)
-            }
+              screenshots: old.summary.screenshots.concat(data.items),
+            },
           } satisfies DetailedSummaryDto;
-        }
+        },
       );
-    }
+    },
   });
 }
 
@@ -160,7 +161,7 @@ export function useWriteSummaryMutation() {
       const { sessionId, nominationFileId, content } = mutation;
       await $api.summaries.writeSummary({
         path: { sessionId, nominationFileId },
-        body: { content }
+        body: { content },
       });
     },
     onSuccess(_, { sessionId, nominationFileId, content }) {
@@ -173,12 +174,12 @@ export function useWriteSummaryMutation() {
             ...old,
             summary: {
               ...old.summary,
-              content
-            }
+              content,
+            },
           } satisfies DetailedSummaryDto;
-        }
+        },
       );
-    }
+    },
   });
 }
 
@@ -195,7 +196,7 @@ export const useSearchSummaryReadersQuery = (options: {
       const { sessionId, nominationFileId, search, includeIds } = options;
       const { data } = await $api.summaries.searchSummaryReaders({
         path: { sessionId, nominationFileId },
-        query: (search ?? '').length > 2 ? { search } : (includeIds ?? []).length ? { includeIds } : {}
+        query: (search ?? '').length > 2 ? { search } : (includeIds ?? []).length ? { includeIds } : {},
       });
 
       if (data && !options.search && options.includeIds && options.includeIds.length > 0) {
@@ -208,7 +209,7 @@ export const useSearchSummaryReadersQuery = (options: {
       }
 
       return data ?? null;
-    }
+    },
   });
 
 export function useUpdateSummaryReadersMutation() {
@@ -223,14 +224,14 @@ export function useUpdateSummaryReadersMutation() {
       const { sessionId, nominationFileId, readerIds } = mutation;
       await $api.summaries.updateSummaryReadersList({
         path: { sessionId, nominationFileId },
-        body: { readerIds: readerIds as string[] }
+        body: { readerIds: readerIds as string[] },
       });
     },
 
     onSuccess: (_, { sessionId, nominationFileId }) =>
       queryClient.invalidateQueries({
-        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId })
-      })
+        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+      }),
   });
 }
 
@@ -239,10 +240,10 @@ export function useCreateSummaryMutation() {
     mutationFn: async (mutation: { sessionId: string; nominationFileId: string }) => {
       const { sessionId, nominationFileId } = mutation;
       const { data } = await $api.summaries.createSummary({
-        path: { sessionId, nominationFileId }
+        path: { sessionId, nominationFileId },
       });
 
       return data ?? null;
-    }
+    },
   });
 }

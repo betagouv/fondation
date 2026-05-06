@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "lint:check": "oxlint",
-    "format:check": "pnpm run -r format:check",
+    "format:check": "oxfmt --check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
     "build": "pnpm run -r build",
@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "husky": "^9.1.6",
+    "oxfmt": "^0.47.0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
     "type-fest": "^4.41.0"

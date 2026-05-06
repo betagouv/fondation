@@ -1,4 +1,3 @@
-import { OnApplicationBootstrap } from '@nestjs/common';
 import { exec, spawn } from 'node:child_process';
 import {
   PassThrough,
@@ -8,7 +7,11 @@ import {
   type TransformCallback,
   type Writable,
 } from 'node:stream';
+
+import { OnApplicationBootstrap } from '@nestjs/common';
+
 import { FILE_MIME_TYPES, type FileMimeType } from '../mime-type';
+
 import { type FileSanitizer } from './sanitizer';
 
 /**
@@ -75,9 +78,7 @@ class GhostscriptPdfTransform extends Transform {
       }
     });
 
-    gs.stdout
-      .on('data', (data) => this.push(data))
-      .on('error', (err) => this.destroy(err));
+    gs.stdout.on('data', (data) => this.push(data)).on('error', (err) => this.destroy(err));
 
     gs.stderr
       .on('data', (data) => this.destroy(new Error(String(data))))
@@ -89,11 +90,7 @@ class GhostscriptPdfTransform extends Transform {
     callback();
   }
 
-  _transform(
-    chunk: any,
-    encoding: BufferEncoding,
-    callback: TransformCallback,
-  ) {
+  _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
     if (this.#stdin.write(chunk, encoding)) {
       process.nextTick(callback);
     } else {

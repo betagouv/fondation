@@ -1,4 +1,5 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
+
 import { useReportListFocus } from './useReportListFocus';
 
 export function ReportListViewToggle(props: { onChange?: (focus: 'general' | 'affectations') => unknown }) {
@@ -18,7 +19,7 @@ export function ReportListViewToggle(props: { onChange?: (focus: 'general' | 'af
       labelPosition="right"
       className="nowrap"
       classes={{
-        label: 'flex-nowrap flex-grow whitespace-nowrap before:!mr-3'
+        label: 'flex-nowrap flex-grow whitespace-nowrap before:!mr-3',
       }}
     />
   );

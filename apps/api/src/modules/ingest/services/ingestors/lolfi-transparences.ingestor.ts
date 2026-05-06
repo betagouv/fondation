@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertNominationRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -28,18 +29,14 @@ export class LolfiTransparencesIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawNomination; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawNomination; success: boolean }>) {
       const errors: { entityId: string; error: string }[] = [];
       const accumulator: RawNomination[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.num_transparence)) {
-          self.logger.warn(
-            `Nomination "${data.num_transparence}" is duplicated. Ignored`,
-          );
+          self.logger.warn(`Nomination "${data.num_transparence}" is duplicated. Ignored`);
           errors.push({
             entityId: String(data.num_transparence),
             error: `Transparence "${data.num_transparence}" dupliquée. La première occurrence est la seule sauvegardée`,
@@ -95,9 +92,7 @@ export class LolfiTransparencesIngestor {
     return this.prisma
       .$transaction(async (tx) => {
         if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(
-            insertNominationRawQuery(props.items),
-          );
+          const unknown = await tx.$queryRawTyped(insertNominationRawQuery(props.items));
 
           if (unknown.length > 0) {
             for (const u of unknown) {
@@ -155,9 +150,7 @@ const RawNominationSchema = z.object({
   num_transparence: z.coerce.number().int().gt(0),
   num_session: z.coerce.number().int().gt(0),
   num_emploi_cible: z.coerce.number().int().gt(0),
-  type_mouvement: z
-    .enum(['E', 'A'])
-    .transform((x) => (x === 'A' ? 'PROMOTION' : 'EQUIVALENT')),
+  type_mouvement: z.enum(['E', 'A']).transform((x) => (x === 'A' ? 'PROMOTION' : 'EQUIVALENT')),
   ta: z.coerce.number().int().gt(1900).nullable(),
   resultat: z.coerce.number().transform((x) => x == 1),
   id: z.coerce.number().int().gt(0),

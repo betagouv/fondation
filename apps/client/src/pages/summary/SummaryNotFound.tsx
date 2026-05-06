@@ -7,6 +7,7 @@ import { useContext } from 'react';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
 import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+
 import { SummaryContext } from './SummaryContext';
 
 /** @see https://www.systeme-de-design.gouv.fr/version-courante/fr/modeles/pages-types/page-d-erreurs */
@@ -20,7 +21,7 @@ export function SummaryNotFound() {
     buttons.push({
       priority: 'primary',
       children: 'Liste des propositions',
-      linkProps: { to: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId) }
+      linkProps: { to: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId) },
     });
   } else {
     buttons.push({
@@ -29,16 +30,16 @@ export function SummaryNotFound() {
       linkProps: {
         to: {
           pathname: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId),
-          search: '?focus=general'
-        }
-      }
+          search: '?focus=general',
+        },
+      },
     });
   }
 
   buttons.push({
     priority: buttons.length ? 'secondary' : 'primary',
     children: "Page d'accueil",
-    linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD }
+    linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
   });
 
   return (
@@ -51,7 +52,7 @@ export function SummaryNotFound() {
           'fr-grid-row',
           'fr-grid-row--gutters',
           'fr-grid-row--middle',
-          'fr-grid-row--center'
+          'fr-grid-row--center',
         )}
       >
         <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
@@ -71,7 +72,7 @@ export function SummaryNotFound() {
             'fr-col-offset-md-1',
             'fr-px-6w',
             'fr-px-md-0',
-            'fr-py-0'
+            'fr-py-0',
           )}
         >
           <div className="relative h-[200px] w-40">

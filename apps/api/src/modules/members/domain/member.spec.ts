@@ -1,6 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
+
 import { Role } from 'shared-models';
+
 import { makeId } from 'src/utils/id';
+
 import { ExcludedMemberJurisdictions, Member } from './member';
 
 describe('Member', () => {
@@ -45,8 +48,6 @@ describe('Member', () => {
       jurisdictionIds: new Set(),
     });
 
-    expect(() => member.excludeJurisdictions(['TGI LYON'])).toThrow(
-      NotFoundException,
-    );
+    expect(() => member.excludeJurisdictions(['TGI LYON'])).toThrow(NotFoundException);
   });
 });

@@ -1,11 +1,10 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useAgendaHtmlQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
-
-import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
-import { useIntl } from 'react-intl';
 
 export function AgendaPreviewPage() {
   const { $t } = useIntl();
@@ -19,8 +18,8 @@ export function AgendaPreviewPage() {
     generatePdf.mutate(
       { sessionId: sessionId!, agendaId: agendaId! },
       {
-        onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }))
-      }
+        onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
+      },
     );
   }, [sessionId, agendaId, generatePdf, navigate]);
 

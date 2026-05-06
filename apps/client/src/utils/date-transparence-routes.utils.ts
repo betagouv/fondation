@@ -1,5 +1,7 @@
-import type { DateOnlyJson } from 'shared-models';
 import { z } from 'zod';
+
+import type { DateOnlyJson } from 'shared-models';
+
 import { DateOnly } from '../models/date-only.model';
 
 export class DateTransparenceRoutesMapper {
@@ -14,7 +16,7 @@ export class DateTransparenceRoutesMapper {
     return DateOnly.ZOD_JSON_SCHEMA.parse({
       year,
       month,
-      day
+      day,
     });
   }
 }

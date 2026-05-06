@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core';
+
 import { dataFileIdKey, dataFileNameKey } from './constant';
 
 export type FilesUploader = (files: readonly File[]) => Promise<{ id: string; url: URL; name: string }[]>;
@@ -26,8 +27,8 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
               src: $img.src,
               width: $img.width,
               height: $img.height,
-              dataFileName: file.name
-            }
+              dataFileName: file.name,
+            },
           };
 
           if (options.pos !== undefined && options.pos !== null) {
@@ -44,7 +45,7 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
       for (const { id: fileId, name, url } of uploadedFiles) {
         const content = {
           type: 'image',
-          attrs: { src: url.toString(), [dataFileIdKey]: fileId, [dataFileNameKey]: name }
+          attrs: { src: url.toString(), [dataFileIdKey]: fileId, [dataFileNameKey]: name },
         };
 
         let found = false;

@@ -1,4 +1,5 @@
 import type { Locator } from '@playwright/test';
+
 import type { TestApp } from './test-app';
 
 export class ManageSessionsPage {

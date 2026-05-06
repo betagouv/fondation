@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { useAffectationRow } from '../../contexts/files-affectations.context';
 import { DropdownSelectMultiple } from '@/components/shared/DropdownSelectMultiple';
 import { PriorityBadge, PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { PrioriteEnum } from '@/types/enums.types';
-import { useAffectationRow } from '../../contexts/files-affectations.context';
 
 const PRIORITY_SELECTOR_ITEMS = Object.values(PrioriteEnum);
 
@@ -13,7 +13,7 @@ export function NominationFilesPrioritySelectorCell(props: { fileId: string }) {
   const selected = React.useMemo(() => priorities ?? [], [priorities]);
   const setSelected = React.useCallback(
     (selected: readonly PrioriteEnum[]) => prioritize(new Set(selected)),
-    [prioritize]
+    [prioritize],
   );
 
   return (

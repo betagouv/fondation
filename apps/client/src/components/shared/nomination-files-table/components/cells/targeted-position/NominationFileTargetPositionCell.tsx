@@ -8,6 +8,7 @@ import React from 'react';
 import { useIsSg } from '@/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { NominationFileTargetPositionContext } from './NominationFileTargetPositionContext';
 import { nominationFileTargetPositionModal } from './NominationFileTargetPositionProvider';
 
@@ -19,7 +20,7 @@ function normalizePosition(position: string | undefined | null): string {
 }
 
 const HEARING_ALERT_POSITIONS = ['Procureur Général', 'Procureur de la République'].map(
-  (x) => new RegExp(`^${normalizePosition(x)} (?!\\s*adjoint)`, 'i')
+  (x) => new RegExp(`^${normalizePosition(x)} (?!\\s*adjoint)`, 'i'),
 );
 
 function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile): {
@@ -37,7 +38,7 @@ function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile):
 
   return {
     position,
-    hasAlert: isSg && !isAlertHidden && HEARING_ALERT_POSITIONS.some((x) => x.test(normalizedPosition))
+    hasAlert: isSg && !isAlertHidden && HEARING_ALERT_POSITIONS.some((x) => x.test(normalizedPosition)),
   };
 }
 
@@ -64,7 +65,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
       >
         <i
           style={{
-            color: colors.decisions.text.default.warning.default
+            color: colors.decisions.text.default.warning.default,
           }}
           className={clsx(
             cx('fr-icon-warning-fill'),
@@ -76,7 +77,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
 
             'before:block',
             'before:content-[""]',
-            'before:size-4'
+            'before:size-4',
           )}
         />
         <span

@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+
 import { TypeDeSaisine } from 'shared-models';
+
+import {
+  PresentationPlanRenderContext,
+  PresentationPlanRenderer,
+} from '../services/renderers/presentation-plan.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
-import {
-  PresentationPlanRenderContext,
-  PresentationPlanRenderer,
-} from '../services/renderers/presentation-plan.renderer';
 
 @Injectable()
 export class FindPresentationPlanDocumentQuery {
@@ -77,10 +79,7 @@ export class FindPresentationPlanDocumentQuery {
         date: DateOnly.fromDate(plan.date),
         time: dateToTimeOnly(plan.time),
         formation: prismaFormationEnumToFormationEnum(
-          assertIsDefined(
-            plan.agendas[0]!.agenda.formation,
-            'unknown plan formation',
-          ),
+          assertIsDefined(plan.agendas[0]!.agenda.formation, 'unknown plan formation'),
         ),
         justiceContactName: plan.justiceDepartmentContactName,
         secretary: {
@@ -95,8 +94,7 @@ export class FindPresentationPlanDocumentQuery {
             lastName: a.agenda.chairmanLastName,
           },
           nominationFiles: a.agenda.nominationFiles.filter(
-            (file): file is typeof file & { targetedPosition: string } =>
-              isDefined(file.targetedPosition),
+            (file): file is typeof file & { targetedPosition: string } => isDefined(file.targetedPosition),
           ),
         })),
       } satisfies PresentationPlanRenderContext;

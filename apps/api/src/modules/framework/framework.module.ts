@@ -23,13 +23,6 @@ import { ObservabilityModule } from './observability';
     HttpModule.register(),
     ObservabilityModule,
   ],
-  exports: [
-    ClockModule,
-    ConfigModule,
-    DatabaseModule,
-    FilesModule,
-    HttpModule,
-    ObservabilityModule,
-  ],
+  exports: [ClockModule, ConfigModule, DatabaseModule, FilesModule, HttpModule, ObservabilityModule],
 })
 export class FrameworkModule {}

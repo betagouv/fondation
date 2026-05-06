@@ -9,14 +9,11 @@ import {
 } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import * as Sentry from '@sentry/node';
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-  IRoute,
-} from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse, IRoute } from 'express';
 import { Observable, tap } from 'rxjs';
 
 import * as time from 'src/utils/time';
+
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
 @Injectable()
@@ -28,11 +25,7 @@ export class SentryService {
     this.isEnabled = !!config.sentryDsn;
   }
 
-  captureException(
-    exception: unknown,
-    request: ExpressRequest,
-    status: number,
-  ): void {
+  captureException(exception: unknown, request: ExpressRequest, status: number): void {
     if (!this.isEnabled) return;
 
     const { route, body, headers, method } = request;
@@ -57,10 +50,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     this.isEnabled = !!config.sentryDsn;
   }
 
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> {
     if (context.getType() !== 'http' || !this.isEnabled) return next.handle();
 
     const start = performance.now();
@@ -77,11 +67,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     );
   }
 
-  private observeRequest(
-    start: number,
-    ctx: ExecutionContext,
-    error?: unknown,
-  ): void {
+  private observeRequest(start: number, ctx: ExecutionContext, error?: unknown): void {
     const http = ctx.switchToHttp();
     const req = http.getRequest<ExpressRequest>();
     const res = http.getResponse<ExpressResponse>();
@@ -104,29 +90,22 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     }
 
     /** @see https://github.com/open-telemetry/semantic-conventions/blob/v1.27.0/docs/http/http-metrics.md#metric-httpserverrequestduration */
-    Sentry.metrics.distribution(
-      'http.server.request.duration',
-      durationSeconds,
-      {
-        unit: 's',
-        attributes: {
-          'url.scheme': req.protocol,
-          'network.protocol.version': req.httpVersion,
-          'http.request.method': req.method.toUpperCase(),
-          'http.response.status_code': res.statusCode,
-          'http.route': (req.route as IRoute).path,
-          'error.type': errorType,
-        },
+    Sentry.metrics.distribution('http.server.request.duration', durationSeconds, {
+      unit: 's',
+      attributes: {
+        'url.scheme': req.protocol,
+        'network.protocol.version': req.httpVersion,
+        'http.request.method': req.method.toUpperCase(),
+        'http.response.status_code': res.statusCode,
+        'http.route': (req.route as IRoute).path,
+        'error.type': errorType,
       },
-    );
+    });
   }
 }
 
 @Module({
   exports: [SentryService],
-  providers: [
-    SentryService,
-    { provide: APP_INTERCEPTOR, useClass: HttpMetricsInterceptor },
-  ],
+  providers: [SentryService, { provide: APP_INTERCEPTOR, useClass: HttpMetricsInterceptor }],
 })
 export class ObservabilityModule {}

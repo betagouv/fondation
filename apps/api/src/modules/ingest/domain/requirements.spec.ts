@@ -7,7 +7,7 @@ describe('withLolfiFileRequirements', () => {
       { id: 'file-2', name: 'JURIDICTIONS.xml' },
     ];
 
-    // prettier-ignore
+    // oxfmt-ignore
     expect(withLolfiFileRequirements(files)).toEqual([
       { id: 'file-1', name: 'TYPE_JURIDICTION.xml', requirements: [] },
       { id: 'file-2', name: 'JURIDICTIONS.xml', requirements: [{ requiredFileId: 'file-1' }] },
@@ -21,7 +21,7 @@ describe('withLolfiFileRequirements', () => {
       { id: 'file-3', name: 'unknown-file.xml' },
     ];
 
-    // prettier-ignore
+    // oxfmt-ignore
     expect(withLolfiFileRequirements(files)).toEqual([
       { id: 'file-1', name: 'TYPE_JURIDICTION.xml', requirements: [] },
       { id: 'file-2', name: 'JURIDICTIONS.xml', requirements: [{ requiredFileId: 'file-1' }] },

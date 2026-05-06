@@ -1,8 +1,7 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { inspect } from 'node:util';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
+
 import { withLolfiFileRequirements } from '../domain/requirements';
 import { JobRunner } from '../jobs';
 import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
@@ -11,6 +10,10 @@ import {
   IngestedLolfiArchiveFailed,
   LolfiArchiveIngestor,
 } from '../services/lolfi-archive-ingest';
+import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
+import { PrismaService } from 'src/modules/framework/database';
+
 import {
   DetailedLolfiSession,
   InternalDetailsLolfiSessionQuery,
@@ -29,10 +32,7 @@ export class IngestService {
     private readonly internalDetailsLolfiSessionQuery: InternalDetailsLolfiSessionQuery,
   ) {}
 
-  async ingestLolfiFiles(
-    jobId: number,
-    signal: AbortSignal,
-  ): Promise<{ success: boolean }> {
+  async ingestLolfiFiles(jobId: number, signal: AbortSignal): Promise<{ success: boolean }> {
     return this.lolfiFilesIngestor.ingest(jobId, signal);
   }
 
@@ -44,10 +44,7 @@ export class IngestService {
     | {
         id: number;
         status: 'FAILED';
-        errors: (
-          | IngestedLolfiArchiveFailed
-          | { type: 'Unknown'; message: string }
-        )[];
+        errors: (IngestedLolfiArchiveFailed | { type: 'Unknown'; message: string })[];
       }
   > {
     const runningJobExists = await this.prisma.ingestionJob.findFirst({
@@ -79,10 +76,7 @@ export class IngestService {
             data: { metadata: metadata.toJSON() },
           })
           .catch((error) => {
-            this.logger.error(
-              `Failed recording metadata for job #${jobId}`,
-              error,
-            );
+            this.logger.error(`Failed recording metadata for job #${jobId}`, error);
           });
       } catch (e) {
         await tx.ingestionJob
@@ -152,9 +146,7 @@ export class IngestService {
     return job.id;
   }
 
-  internalDetailsLolfiSession(
-    sessionId: number,
-  ): Promise<DetailedLolfiSession> {
+  internalDetailsLolfiSession(sessionId: number): Promise<DetailedLolfiSession> {
     return this.internalDetailsLolfiSessionQuery.handle(sessionId);
   }
 }

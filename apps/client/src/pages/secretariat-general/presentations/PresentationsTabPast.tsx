@@ -1,12 +1,13 @@
-import { DateOnly } from '@/models/date-only.model';
-import { timeOnlyToDate } from '@/utils/time-only.util';
 import Button from '@codegouvfr/react-dsfr/Button';
-import {
-  useListPresentedPlansQuery,
-  useOpenJusticePresentationPlanPdfDocumentMutation
-} from '@queries/agenda.queries';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
+
+import { DateOnly } from '@/models/date-only.model';
+import { timeOnlyToDate } from '@/utils/time-only.util';
+import {
+  useListPresentedPlansQuery,
+  useOpenJusticePresentationPlanPdfDocumentMutation,
+} from '@queries/agenda.queries';
 
 export function PresentationsTabPast() {
   const { data: pastPresentations, isSuccess } = useListPresentedPlansQuery();
@@ -17,7 +18,7 @@ export function PresentationsTabPast() {
     id: item.id,
     date: DateOnly.fromStoreModel(item.date).toDate(),
     time: timeOnlyToDate(item.time),
-    formation: item.formation === 'SIEGE' ? 'siège' : 'parquet'
+    formation: item.formation === 'SIEGE' ? 'siège' : 'parquet',
   }));
 
   const onOpenPdf = React.useCallback(
@@ -27,7 +28,7 @@ export function PresentationsTabPast() {
 
       return openPresentationPdf.mutate({ planId });
     },
-    [openPresentationPdf]
+    [openPresentationPdf],
   );
 
   return (

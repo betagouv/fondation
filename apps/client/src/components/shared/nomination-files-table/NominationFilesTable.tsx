@@ -1,19 +1,14 @@
 import './NominationFilesTable.css';
-
 import React from 'react';
+import { defineMessage } from 'react-intl';
 
+import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
 
-import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
-
-import { useNominationFilesTable } from './contexts/files-table.context';
-import { useNominationFilesTableColumns } from './useNominationFilesTableColumns.hook';
-
-import { useIsSgNavigation } from '@/hooks/roles.hook';
-import { defineMessage } from 'react-intl';
-import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationFollowUpReminderProvider } from './components/cells/observation-follow-up/ObservationFollowUpReminderProvider';
@@ -22,9 +17,11 @@ import { NominationFileTargetPositionProvider } from './components/cells/targete
 import { NominationFilesTableActionsBar } from './components/NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './components/NominationFilesAffectationsStatus';
 import { NominationFilesStatusBadges } from './components/NominationFilesStatusBadges';
+import { useNominationFilesTable } from './contexts/files-table.context';
 import { FilesAffectationsProvider } from './contexts/FilesAffectationsProvider';
 import { FilesSelectionProvider } from './contexts/FilesSelectionProvider';
 import { NominationFilesTableProvider } from './contexts/NominationFilesTableProvider';
+import { useNominationFilesTableColumns } from './useNominationFilesTableColumns.hook';
 
 function NominationFilesTableInner(props: React.PropsWithChildren) {
   const isSg = useIsSgNavigation();
@@ -36,7 +33,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     pagination: { pageIndex: 0, pageSize: 50 },
     sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedGrade'; desc: boolean }],
     columnFilters: [] as { id: 'priorities' | 'reporters' | 'outcomes'; value: string[] }[],
-    rowSelection: {}
+    rowSelection: {},
   });
 
   React.useEffect(() => {
@@ -53,8 +50,8 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
       priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
       reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
       outcomes: tableState.columnFilters.find(({ id }) => id === 'outcomes')
-        ?.value as (NominationFileOutcomeEnum | null)[]
-    }
+        ?.value as (NominationFileOutcomeEnum | null)[],
+    },
   });
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 
@@ -68,9 +65,11 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     onStateChange: setTableState,
     meta: {
       paginationItemLabel: isSg
-        ? defineMessage({ defaultMessage: '{count, plural, one {proposition} other {propositions}}' })
-        : defineMessage({ defaultMessage: '{count, plural, one {dossier} other {dossiers}}' })
-    }
+        ? defineMessage({
+            defaultMessage: '{count, plural, one {proposition} other {propositions}}',
+          })
+        : defineMessage({ defaultMessage: '{count, plural, one {dossier} other {dossiers}}' }),
+    },
   });
 
   return (
@@ -98,7 +97,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
 
                       <DataTable
                         classNames={{
-                          content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto'
+                          content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto',
                         }}
                         table={table}
                         placeholder={
@@ -126,7 +125,7 @@ export function NominationFilesTable(
     isEditable?: false;
     sessionId: string;
     formation: FormationEnum;
-  }>
+  }>,
 ) {
   return (
     <NominationFilesTableProvider {...props}>

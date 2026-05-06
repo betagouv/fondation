@@ -1,23 +1,23 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useEffect, useRef, useState, type FC } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { FormattedMessage } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
 import { Mandatory } from '@/components/shared/Mandatory';
 import { toFullName } from '@/utils/user.utils';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
   useSearchMagistratsQuery,
   useUpdateObservationMutation,
   type MagistratSearchResult,
-  type Observation
+  type Observation,
 } from '@queries/observations.queries';
-import { FormattedMessage } from 'react-intl';
 
 const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 
@@ -28,7 +28,7 @@ const observationFormSchema = z.object({
   files: z.array(z.instanceof(File)).optional(),
   linkedFiles: z
     .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
-    .optional()
+    .optional(),
 });
 
 type FormSchema = z.infer<typeof observationFormSchema>;
@@ -51,7 +51,7 @@ export const ObservationForm: FC<{
     setValue,
     getValues,
     watch,
-    formState: { errors }
+    formState: { errors },
   } = useForm<FormSchema>({
     resolver: zodResolver(observationFormSchema),
     defaultValues: {
@@ -59,9 +59,9 @@ export const ObservationForm: FC<{
       dateReception: observation?.dateReception?.split('T')[0] ?? '',
       description: observation?.description,
       files: [],
-      linkedFiles: []
+      linkedFiles: [],
     },
-    mode: 'onChange'
+    mode: 'onChange',
   });
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,18 +75,18 @@ export const ObservationForm: FC<{
   const { data: observationsAttachments } = useListObservationsAttachments({
     sessionId,
     excludeObservationId: observation?.id,
-    magistratId: selectedMagistrat?.id
+    magistratId: selectedMagistrat?.id,
   });
 
   const {
     mutate: createObservation,
     reset: resetCreateMutation,
-    error: createError
+    error: createError,
   } = useCreateObservationMutation();
   const {
     mutate: updateObservation,
     reset: resetUpdateMutation,
-    error: updateError
+    error: updateError,
   } = useUpdateObservationMutation();
 
   const files = watch('files') ?? [];
@@ -99,7 +99,7 @@ export const ObservationForm: FC<{
         lastName: observation.magistrat.lastName,
         usedName: '',
         grade: null,
-        currentPosition: observation.magistrat.currentPosition ?? null
+        currentPosition: observation.magistrat.currentPosition ?? null,
       });
       setSearchTerm(`${observation.magistrat.lastName} ${observation.magistrat.firstName}`);
     }
@@ -139,8 +139,8 @@ export const ObservationForm: FC<{
           detachFileIds: filesToDetach,
           linkedObservationsAttachments: (data.linkedFiles ?? []).map(({ observationId, fileId }) => ({
             observationId,
-            fileId
-          }))
+            fileId,
+          })),
         },
         {
           onSettled() {
@@ -149,8 +149,8 @@ export const ObservationForm: FC<{
           onSuccess: () => {
             resetForm();
             onSuccess?.();
-          }
-        }
+          },
+        },
       );
     } else {
       createObservation(
@@ -163,8 +163,8 @@ export const ObservationForm: FC<{
           files: data.files ?? [],
           linkedObservationsAttachments: (data.linkedFiles ?? []).map(({ observationId, fileId }) => ({
             observationId,
-            fileId
-          }))
+            fileId,
+          })),
         },
         {
           onSettled() {
@@ -173,8 +173,8 @@ export const ObservationForm: FC<{
           onSuccess: () => {
             resetForm();
             onSuccess?.();
-          }
-        }
+          },
+        },
       );
     }
   };
@@ -199,9 +199,9 @@ export const ObservationForm: FC<{
       (linkedFiles ?? []).filter((value) => {
         const items = observationsAttachments?.items ?? [];
         return !items.some(
-          (item) => item.observationId === value.observationId && item.fileId === value.fileId
+          (item) => item.observationId === value.observationId && item.fileId === value.fileId,
         );
-      })
+      }),
     );
   }, [linkedFiles, observationsAttachments]);
 
@@ -222,11 +222,11 @@ export const ObservationForm: FC<{
       } else {
         setValue(
           'linkedFiles',
-          current.filter((x) => x.fileId !== fileId && x.observationId !== observationId)
+          current.filter((x) => x.fileId !== fileId && x.observationId !== observationId),
         );
       }
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
   return (
@@ -255,7 +255,7 @@ export const ObservationForm: FC<{
               type: 'date',
               value: field.value,
               onChange: field.onChange,
-              required: true
+              required: true,
             }}
           />
         )}
@@ -289,7 +289,7 @@ export const ObservationForm: FC<{
                 setSelectedMagistrat(null);
                 setValue('magistratId', '');
               }
-            }
+            },
           }}
         />
         {showResults && debouncedSearch.length >= 2 && (
@@ -402,7 +402,7 @@ export const ObservationForm: FC<{
                 if (e.target.files) {
                   field.onChange(Array.from(e.target.files));
                 }
-              }
+              },
             }}
           />
         )}
@@ -435,10 +435,10 @@ export const ObservationForm: FC<{
                     onClick: onLinkFileClicked,
                     'data-name': item.name,
                     'data-file-id': item.fileId,
-                    'data-observation-id': item.observationId
+                    'data-observation-id': item.observationId,
                   }}
                   pressed={field.value?.some(
-                    (x) => x.observationId === item.observationId && x.fileId === item.fileId
+                    (x) => x.observationId === item.observationId && x.fileId === item.fileId,
                   )}
                 >
                   {item.name}

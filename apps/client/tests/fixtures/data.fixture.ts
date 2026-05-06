@@ -17,7 +17,7 @@ export class DataHttpClient {
       ressort?: string | null;
       villeJur?: string | null;
       ville?: string | null;
-    }[]
+    }[],
   ): Promise<void> {
     await this.http.post('/_/data/jurisdictions', { data: { items: data } });
   }
@@ -30,7 +30,7 @@ export class DataHttpClient {
       usedName: string | null;
       marriedName: string | null;
       civilite: 'M.' | 'MME';
-    }>[]
+    }>[],
   ): Promise<void> {
     await this.http.post('/_/data/magistrats', {
       data: {
@@ -46,9 +46,9 @@ export class DataHttpClient {
           marriedName:
             item.marriedName !== undefined
               ? item.marriedName
-              : faker.helpers.maybe(() => faker.person.lastName(), { probability: 0.4 })
-        }))
-      }
+              : faker.helpers.maybe(() => faker.person.lastName(), { probability: 0.4 }),
+        })),
+      },
     });
   }
 }

@@ -1,7 +1,7 @@
 import { Accordion } from '@codegouvfr/react-dsfr/Accordion';
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
-import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import React from 'react';
 
@@ -9,10 +9,11 @@ import { allRulesMapV2, NominationFile } from 'shared-models';
 
 import type { GroupRulesChecked, ReportRuleValue } from '@/types/rules.types';
 import type { DetailedReportDto } from '@api/types';
+
 import { Card } from './Card';
 
 const RULE_NAME_SET = new Set<NominationFile.RuleName>(
-  Object.values(allRulesMapV2).flatMap((rules) => [...rules])
+  Object.values(allRulesMapV2).flatMap((rules) => [...rules]),
 );
 
 function isRuleName(value: string): value is NominationFile.RuleName {
@@ -33,7 +34,7 @@ export function ReportRule({ id, rulesChecked, onUpdateReportRule, rules, ruleGr
   const groupRuleNames = new Set<NominationFile.RuleName>(allRulesMapV2[ruleGroup]);
 
   const atLeastOneNonValidated = Object.entries(targetedRules).some(
-    ([ruleName, rule]) => isRuleName(ruleName) && groupRuleNames.has(ruleName) && rule.validated === false
+    ([ruleName, rule]) => isRuleName(ruleName) && groupRuleNames.has(ruleName) && rule.validated === false,
   );
 
   let title: string;
@@ -89,7 +90,7 @@ function RuleCheckboxes(props: {
         nativeInputProps: {
           checked,
           name: ruleName,
-          onChange: () => props.onUpdateReportRule(ruleName as NominationFile.RuleName)
+          onChange: () => props.onUpdateReportRule(ruleName as NominationFile.RuleName),
         },
         label: (
           <>
@@ -103,9 +104,9 @@ function RuleCheckboxes(props: {
               }
             />
           </>
-        )
+        ),
       })),
-    [props]
+    [props],
   );
 
   return (

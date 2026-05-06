@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { isDefined } from 'src/utils/is-defined';
-import z from 'zod';
 
 @Injectable()
 export class FindSessionDocsQuery {
@@ -40,9 +41,7 @@ export class FindSessionDocsQuery {
               : undefined,
           ),
           officialReportFiles.map(({ id, pdf }) =>
-            pdf
-              ? { id, name: pdf.name, type: 'officialReport' as const }
-              : undefined,
+            pdf ? { id, name: pdf.name, type: 'officialReport' as const } : undefined,
           ),
         )
         .filter(isDefined),

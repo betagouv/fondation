@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
-import z from 'zod';
 
 @Injectable()
 export class DetailsJobQuery {

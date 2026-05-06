@@ -6,14 +6,12 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
+
 import { CantDemoteFromAdmin, CantPromoteMemberToAdmin } from '../domain/user';
 
 @Injectable()
 export class AdministrationErrorMapper implements NestInterceptor {
-  intercept(
-    _ctx: ExecutionContext,
-    next: CallHandler<unknown>,
-  ): Observable<unknown> {
+  intercept(_ctx: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> {
     return next.handle().pipe(
       catchError((error: unknown) =>
         throwError(() => {

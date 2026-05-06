@@ -46,11 +46,5 @@
     // This improves issue grouping in Sentry.
     "sourceRoot": "/"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "test/**/*.ts",
-    "cli/**/*.ts",
-    "oxlint.config.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts", "cli/**/*.ts", "oxlint.config.ts"]
 }

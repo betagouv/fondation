@@ -29,7 +29,7 @@ function ObservationDescriptionEditor(props: {
       observationId: props.observation.id,
       nominationFileId: props.nominationFileId,
       sessionId: props.sessionId,
-      linkedObservationsAttachments: []
+      linkedObservationsAttachments: [],
     });
   }, [props, mutate, debouncedDescription]);
 
@@ -38,7 +38,7 @@ function ObservationDescriptionEditor(props: {
       const value = e.target.value || '';
       setDescription(value);
     },
-    [setDescription]
+    [setDescription],
   );
 
   return <Input textArea label="" nativeTextAreaProps={{ value: description, onChange, autoFocus: true }} />;

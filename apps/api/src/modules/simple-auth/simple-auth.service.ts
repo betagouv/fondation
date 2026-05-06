@@ -1,22 +1,17 @@
 import { Injectable } from '@nestjs/common';
 
+import { Gender, Role } from 'shared-models';
+
 import { Clock } from '../framework/clock';
 
-import { Gender, Role } from 'shared-models';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthUser } from './domain/auth-user';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
-import {
-  DetailedUserResponseDto,
-  DetailsUserQuery,
-} from './infrastructure/queries/details-user.query';
+import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
-import {
-  ListedUsersDto,
-  ListUsersQuery,
-} from './infrastructure/queries/list-users.query';
+import { ListedUsersDto, ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 
 @Injectable()
@@ -35,9 +30,7 @@ export class SimpleAuthService {
     return this.findMachineQuery.handle(query);
   }
 
-  findUserFromValidSession(
-    sessionId: string,
-  ): Promise<{ id: string; role: string } | null> {
+  findUserFromValidSession(sessionId: string): Promise<{ id: string; role: string } | null> {
     return this.detailsUserFromSessionQuery.handle({ sessionId });
   }
 
@@ -48,13 +41,8 @@ export class SimpleAuthService {
     return this.detailsUserFromImpersonationQuery.handle(impersonation);
   }
 
-  async login(command: {
-    email: string;
-    password: string;
-  }): Promise<AuthSession> {
-    const user = await this.userRepository.findByEmail(
-      command.email.toLowerCase(),
-    );
+  async login(command: { email: string; password: string }): Promise<AuthSession> {
+    const user = await this.userRepository.findByEmail(command.email.toLowerCase());
     const session = await user.authenticate({
       plainPassword: command.password,
       now: this.clock.now(),
@@ -81,19 +69,13 @@ export class SimpleAuthService {
     return this.listUsersQuery.handle(query);
   }
 
-  async unAuthenticate(command: {
-    userId: string;
-    sessionId: string;
-  }): Promise<void> {
+  async unAuthenticate(command: { userId: string; sessionId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unAuthenticate(command.sessionId);
     await this.userRepository.persist(user);
   }
 
-  async unImpersonate(command: {
-    userId: string;
-    impersonationId: string;
-  }): Promise<void> {
+  async unImpersonate(command: { userId: string; impersonationId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unImpersonate({ impersonationId: command.impersonationId });
     await this.userRepository.persist(user);

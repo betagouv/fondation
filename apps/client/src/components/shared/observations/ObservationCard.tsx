@@ -1,12 +1,12 @@
 import Card from '@codegouvfr/react-dsfr/Card';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import clsx from 'clsx';
 
 import type { DetailedReportDto } from '@/generated/api/types';
 import { DateOnly } from '@/models/date-only.model';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import clsx from 'clsx';
 
 type ObservationCardProps = {
   observation: DetailedReportDto['observations'][number] | SessionNominationFile['observations'][number];
@@ -21,7 +21,7 @@ export function ObservationCard({
   sessionId,
   nominationFileId,
   context,
-  reportId
+  reportId,
 }: ObservationCardProps) {
   const shouldDisplayCommentIcon = observation.hasDescription || observation.hasUserComment;
   const magistratName = observation.magistrat
@@ -34,7 +34,7 @@ export function ObservationCard({
     context,
     sessionId,
     nominationFileId,
-    observationId: observation.id
+    observationId: observation.id,
   });
   const linkWithReport = reportId ? `${observationPath}?reportId=${reportId}` : observationPath;
 

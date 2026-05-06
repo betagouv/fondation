@@ -12,7 +12,9 @@ export const summarySectionsObserverFactory = (sectionIds: string[], notify: Not
     .map((id) => document.getElementById(id))
     .filter<HTMLElement>((node) => !!node);
 
-  const observer = new IntersectionObserver(notifyMostVisibleSectionFactory(notify), { threshold: 1 });
+  const observer = new IntersectionObserver(notifyMostVisibleSectionFactory(notify), {
+    threshold: 1,
+  });
 
   const observeSections = () => sectionNodes.forEach((sectionNode) => observer.observe(sectionNode));
   const unobserveSections = () => sectionNodes.forEach((sectionNode) => observer.unobserve(sectionNode));

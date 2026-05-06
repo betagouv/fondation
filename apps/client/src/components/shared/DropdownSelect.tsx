@@ -1,5 +1,6 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import React, { useState, type FC } from 'react';
+
 import { DropdownMenu } from './DropdownMenu';
 
 export interface DropdownSelectOption<T extends string = string> {
@@ -27,7 +28,7 @@ export const DropdownSelect = <T extends string = string>({
   buttonPriority = 'tertiary no outline',
   buttonSize = 'small',
   className,
-  disabled
+  disabled,
 }: DropdownSelectProps<T>): ReturnType<FC> => {
   const [isOpen, setIsOpen] = useState(false);
 

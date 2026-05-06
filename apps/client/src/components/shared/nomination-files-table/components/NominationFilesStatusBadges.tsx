@@ -1,8 +1,8 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import clsx from 'clsx';
 
-import { useNominationFilesStatusCountsQuery } from '@queries/nomination-sessions.queries';
 import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useNominationFilesStatusCountsQuery } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesStatusBadges(props: { className?: string }) {
   const { sessionId, isEditable } = useNominationFilesTable();

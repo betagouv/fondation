@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+
 import { PdfRenderer } from './pdf/pdf-renderer.service';
 import { presentationPlanTemplate } from './templates/presentation-plan.html';
 
-export type PresentationPlanRenderContext =
-  typeof presentationPlanTemplate.$type;
+export type PresentationPlanRenderContext = typeof presentationPlanTemplate.$type;
 
 @Injectable()
 export class PresentationPlanRenderer {

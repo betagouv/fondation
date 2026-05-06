@@ -11,7 +11,7 @@ import { SessionGardeDesSceauxList } from './SessionGardeDesSceauxList';
 const Sessions = () => {
   const { user } = useUser();
   const { data: sessionsList, isPending: areSessionsPending } = useListMemberGdsSessions({
-    userId: user?.id
+    userId: user?.id,
   });
 
   const civility = user?.civility;

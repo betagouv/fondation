@@ -1,9 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+
 import { Magistrat } from 'shared-models';
+
+import { NominationFile } from '../../domain/nomination-file';
 import { IngestService } from 'src/modules/ingest/infrastructure/ingest.service';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
-import { NominationFile } from '../../domain/nomination-file';
 
 @Injectable()
 export class LolfiNominationFilesFinder {
@@ -12,11 +14,8 @@ export class LolfiNominationFilesFinder {
     private readonly ingest: IngestService,
   ) {}
 
-  async find(
-    sessionId: number,
-  ): Promise<Record<Magistrat.Formation, { items: NominationFile[] }>> {
-    const { items: files } =
-      await this.ingest.internalDetailsLolfiSession(sessionId);
+  async find(sessionId: number): Promise<Record<Magistrat.Formation, { items: NominationFile[] }>> {
+    const { items: files } = await this.ingest.internalDetailsLolfiSession(sessionId);
 
     const parquet: NominationFile[] = [];
     const siege: NominationFile[] = [];
@@ -29,19 +28,13 @@ export class LolfiNominationFilesFinder {
         birthDate: DateOnly.fromOptionalDate(file.magistrat.birthDate),
         careerInformation: null,
         currentPosition: capitalize(file.magistrat.currentPosition ?? ''),
-        grade: assertIsDefined(
-          file.magistrat.grade,
-          'Magistrat LOLFI has no grade',
-        ),
+        grade: assertIsDefined(file.magistrat.grade, 'Magistrat LOLFI has no grade'),
         lastPositionDate: DateOnly.fromOptionalDate(file.lastPositionDate),
         lastRankingDate: DateOnly.fromOptionalDate(file.lastRankingDate),
         rank: file.rank,
         targetedGrade: file.targetedGrade,
         targetedPosition: capitalize(
-          assertIsDefined(
-            file.targetedPosition,
-            'Magistrat LOLFI has not targeted position',
-          ),
+          assertIsDefined(file.targetedPosition, 'Magistrat LOLFI has not targeted position'),
         ),
 
         detectedMagistratId: file.magistrat.id,

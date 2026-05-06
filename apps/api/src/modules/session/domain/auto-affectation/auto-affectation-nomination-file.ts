@@ -1,5 +1,7 @@
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
+
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
 
 export class AutoAffectationNominationFile {
@@ -41,8 +43,7 @@ export class AutoAffectationNominationFile {
     const map = new Map<Magistrat.Grade, AutoAffectationNominationFile[]>();
     for (const file of iterable) {
       const key =
-        file.targetedGrade === Magistrat.Grade.G3 ||
-        file.targetedGrade === Magistrat.Grade.G3SUP
+        file.targetedGrade === Magistrat.Grade.G3 || file.targetedGrade === Magistrat.Grade.G3SUP
           ? Magistrat.Grade.G3
           : file.targetedGrade;
 

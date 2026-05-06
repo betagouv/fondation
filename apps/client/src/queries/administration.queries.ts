@@ -7,7 +7,7 @@ import type { DetailedAdminUserDto } from '@api/types';
 export const adminKeys = {
   users: (params: { search?: string; page?: number; pageSize?: number }) =>
     ['admin', 'users', params] as const,
-  user: (userId: string | undefined) => ['admin', 'user', userId] as const
+  user: (userId: string | undefined) => ['admin', 'user', userId] as const,
 };
 
 export function useAdminUsersQuery(params: {
@@ -29,10 +29,10 @@ export function useAdminUsersQuery(params: {
             search: params.search?.trim() || undefined,
             page: params.pagination.pageIndex + 1,
             limit: params.pagination.pageSize,
-            roles: params.roles
-          }
+            roles: params.roles,
+          },
         })
-        .then(({ data }) => data ?? null)
+        .then(({ data }) => data ?? null),
   });
 }
 
@@ -41,17 +41,17 @@ export function useAdminUserDetailQuery(userId: string | undefined) {
     enabled: !!userId,
     queryKey: adminKeys.user(userId),
     queryFn: () =>
-      $api.administration.detailsUser({ path: { userId: userId! } }).then(({ data = null }) => data)
+      $api.administration.detailsUser({ path: { userId: userId! } }).then(({ data = null }) => data),
   });
 }
 
 function updateUser(
   queryClient: ReturnType<typeof useQueryClient>,
   userId: string,
-  patch: Partial<DetailedAdminUserDto>
+  patch: Partial<DetailedAdminUserDto>,
 ) {
   queryClient.setQueryData(adminKeys.user(userId), (data: DetailedAdminUserDto | undefined) =>
-    data ? { ...data, ...patch } : data
+    data ? { ...data, ...patch } : data,
   );
 }
 
@@ -59,13 +59,14 @@ export function useUpdateUserEmailMutation(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: { email: string }) => $api.administration.updateEmail({ path: { userId }, body }),
-    onSuccess: (_, { email }) => updateUser(queryClient, userId, { email })
+    onSuccess: (_, { email }) => updateUser(queryClient, userId, { email }),
   });
 }
 
 export function useUpdateUserPasswordMutation(userId: string) {
   return useMutation({
-    mutationFn: (body: { password: string }) => $api.administration.updatePassword({ path: { userId }, body })
+    mutationFn: (body: { password: string }) =>
+      $api.administration.updatePassword({ path: { userId }, body }),
   });
 }
 
@@ -74,7 +75,7 @@ export function useUpdateUserRoleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { role: AdminUserRoleEnum }) =>
       $api.administration.updateRole({ path: { userId }, body }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) }),
   });
 }
 
@@ -83,7 +84,7 @@ export function useUpdateUserDisplayTitleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { displayTitle: string | null }) =>
       $api.administration.updateDisplayTitle({ path: { userId }, body }),
-    onSuccess: (_, { displayTitle }) => updateUser(queryClient, userId, { displayTitle })
+    onSuccess: (_, { displayTitle }) => updateUser(queryClient, userId, { displayTitle }),
   });
 }
 
@@ -92,7 +93,7 @@ export function usePromoteUserToAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.promoteToAdmin({ path: { userId } }),
-    onSuccess: () => updateUser(queryClient, userId, { isAdmin: true })
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: true }),
   });
 }
 
@@ -101,6 +102,6 @@ export function useDemoteUserFromAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.demoteFromAdmin({ path: { userId } }),
-    onSuccess: () => updateUser(queryClient, userId, { isAdmin: false })
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: false }),
   });
 }

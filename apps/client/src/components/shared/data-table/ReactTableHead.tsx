@@ -3,6 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { flexRender, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
+
 import { IndeterminateCheckbox } from '../indeterminate-checkbox/IndeterminateCheckbox';
 
 /** @internal */
@@ -34,7 +35,7 @@ export function ReactTableHead<Data extends RowData>(props: { table: Table<Data>
               'fr-col--xs': size === 'xs',
               'fr-col--sm': size === 'sm',
               'fr-col--md': size === 'md',
-              'fr-col--lg': size === 'lg'
+              'fr-col--lg': size === 'lg',
             });
             const styles = size?.endsWith('%') ? { width: size } : undefined;
 

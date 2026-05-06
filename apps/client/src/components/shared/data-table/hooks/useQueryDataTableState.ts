@@ -32,7 +32,7 @@ function omitEmptyFilters(filters: readonly { id: string; value: unknown }[]) {
  * ```
  */
 export function useQueryDataTableState<State extends Partial<DataTableState<string>>>(
-  initialState: State = {} as State
+  initialState: State = {} as State,
 ): [State, React.Dispatch<React.SetStateAction<TableState>>] {
   assertIsPageSize(initialState.pagination?.pageSize);
   const { pagination, sorting, columnFilters, globalFilter, ...initialNonQueryState } = initialState;
@@ -44,7 +44,7 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
     page: parseAsIndex.withDefault(pagination?.pageIndex ?? 0),
     perPage: parseAsInteger.withDefault(pagination?.pageSize ?? 50),
     filters: parseAsFilters.withDefault(columnFilters ?? []),
-    q: parseAsString.withDefault(globalFilter ?? '')
+    q: parseAsString.withDefault(globalFilter ?? ''),
   });
 
   const tableState = React.useMemo(
@@ -57,9 +57,9 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
             : [],
         columnFilters: queryState.filters ?? [],
         globalFilter: queryState.q,
-        ...nonQueryState
+        ...nonQueryState,
       }) as State,
-    [queryState, nonQueryState]
+    [queryState, nonQueryState],
   );
 
   const setState = React.useCallback(
@@ -77,12 +77,12 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
         JSON.stringify({
           globalFilter: tableState.globalFilter,
           columnFilters: tableState.columnFilters,
-          sorting: tableState.sorting
+          sorting: tableState.sorting,
         }) !==
         JSON.stringify({
           globalFilter: newGlobalFilter,
           columnFilters: newColumnFilters,
-          sorting: newSorting
+          sorting: newSorting,
         })
       ) {
         paginationState.pageIndex = 0;
@@ -95,10 +95,10 @@ export function useQueryDataTableState<State extends Partial<DataTableState<stri
         desc: newSorting?.[0]?.desc ?? false,
         sortBy: newSorting?.[0]?.id ?? '',
         filters: omitEmptyFilters(newColumnFilters ?? []),
-        q: (newGlobalFilter ?? '').trim()
+        q: (newGlobalFilter ?? '').trim(),
       });
     },
-    [tableState, setQueryState, setNonQueryState]
+    [tableState, setQueryState, setNonQueryState],
   );
 
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any

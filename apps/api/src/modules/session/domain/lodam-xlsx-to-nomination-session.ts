@@ -1,10 +1,13 @@
+import { setTimeout } from 'node:timers/promises';
+import { inspect } from 'node:util';
+
 import { Logger } from '@nestjs/common';
 import * as xlsx from 'node-xlsx';
-import { setTimeout } from 'node:timers/promises';
 
-import { inspect } from 'node:util';
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
+
 import { LodamNominationFile } from './nomination-file';
 
 const logger = new Logger('lodamXlsxToNominationSession');
@@ -12,8 +15,7 @@ export function lodamXlsxToNominationFiles(input: {
   form?: { date: DateOnly };
   file: Buffer;
 }): Promise<
-  | { success: false; errors: LineResultFailure['error'][] }
-  | { success: true; files: LodamNominationFile[] }
+  { success: false; errors: LineResultFailure['error'][] } | { success: true; files: LodamNominationFile[] }
 > {
   const [result] = xlsx.parse<RawLodamLine>(input.file, {
     raw: false,
@@ -31,8 +33,7 @@ export async function lodamToNominationFiles(
   rawLines: readonly RawLodamLine[],
   date: Date,
 ): Promise<
-  | { success: false; errors: LineResultFailure['error'][] }
-  | { success: true; files: LodamNominationFile[] }
+  { success: false; errors: LineResultFailure['error'][] } | { success: true; files: LodamNominationFile[] }
 > {
   const lineResults: LineResult[] = [];
   let parsedLinesCount = 0;
@@ -87,9 +88,7 @@ export function parseLodamXlsxLine(
       success: false,
       error: {
         lineNumber,
-        messages: [
-          `Le numéro de proposition est inexploitable: "${line.fileNumber}"`,
-        ],
+        messages: [`Le numéro de proposition est inexploitable: "${line.fileNumber}"`],
       },
     } satisfies LineResultFailure;
   }
@@ -148,10 +147,7 @@ export function parseLodamXlsxLine(
 
   output.set('biography', (line.biography ?? '').trim() || null);
   output.set('currentPosition', (line.currentPosition ?? '').trim() || null);
-  output.set(
-    'careerInformation',
-    (line.careerInformation ?? '').trim() || null,
-  );
+  output.set('careerInformation', (line.careerInformation ?? '').trim() || null);
 
   const targetedPositionAndGrade = (line.targetedPosition ?? '').trim();
   if (targetedPositionAndGrade.length === 0) {
@@ -215,10 +211,7 @@ export function parseLodamXlsxLine(
 
   const value = Object.fromEntries(
     ([...RAW_LODAM_HEADERS, 'rank', 'grade', 'targetedGrade'] as const)
-      .filter(
-        (field): field is FieldName | 'rank' | 'grade' | 'targetedGrade' =>
-          !field.startsWith('_'),
-      )
+      .filter((field): field is FieldName | 'rank' | 'grade' | 'targetedGrade' => !field.startsWith('_'))
       .map((field) => [field, output.get(field)] as const),
   ) as unknown as LineResultSuccess['value'];
 
@@ -284,9 +277,7 @@ type LineResultSuccess = {
 
 type LineResultFailure = {
   success: false;
-  error:
-    | { lineNumber: number; messages: string[] }
-    | { fileNumber: number; messages: string[] };
+  error: { lineNumber: number; messages: string[] } | { fileNumber: number; messages: string[] };
 };
 
 type LineResult = LineResultSuccess | LineResultFailure;

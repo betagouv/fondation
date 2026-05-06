@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertCandidatesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -28,18 +29,14 @@ export class LolfiCandidatsIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawCandidate; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawCandidate; success: boolean }>) {
       const errors: { entityId: string; error: string }[] = [];
       const accumulator: RawCandidate[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.num_candidat)) {
-          self.logger.warn(
-            `Candidate "${data.num_candidat}" is duplicated. Ignored`,
-          );
+          self.logger.warn(`Candidate "${data.num_candidat}" is duplicated. Ignored`);
           errors.push({
             entityId: String(data.num_candidat),
             error: `Candidat "${data.num_candidat}" dupliqué. La première occurrence est la seule sauvegardée`,
@@ -95,9 +92,7 @@ export class LolfiCandidatsIngestor {
     return this.prisma
       .$transaction(async (tx) => {
         if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(
-            insertCandidatesRawQuery(props.items),
-          );
+          const unknown = await tx.$queryRawTyped(insertCandidatesRawQuery(props.items));
 
           if (unknown.length > 0) {
             for (const u of unknown) {
@@ -151,9 +146,7 @@ export class LolfiCandidatsIngestor {
 const RawCandidateSchema = z.object({
   id: z.coerce.number().int().gt(0),
   num_candidat: z.coerce.number().int().gt(0),
-  demande_conjointe: z
-    .union([z.literal('0'), z.literal('1')])
-    .transform((x) => x === '1'),
+  demande_conjointe: z.union([z.literal('0'), z.literal('1')]).transform((x) => x === '1'),
   nom_ville_conjoint: z.string().trim().nonempty().nullable(),
   observation: z.string().trim().nonempty().nullable(),
   date_modification: RawLolfiDate,

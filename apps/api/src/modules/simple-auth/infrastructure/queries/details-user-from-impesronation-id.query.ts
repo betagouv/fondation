@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { captureException } from '@sentry/node';
+
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -36,13 +37,10 @@ export class DetailsUserFromImpersonationQuery {
     if (found.session.sessionId !== impersonation.authSessionId) {
       // should not happen
       captureException(
-        Object.assign(
-          new Error(`Received impersonated request from wrong session`),
-          {
-            expectedSessionId: found.session.sessionId,
-            providedSessionId: impersonation.authSessionId,
-          },
-        ),
+        Object.assign(new Error(`Received impersonated request from wrong session`), {
+          expectedSessionId: found.session.sessionId,
+          providedSessionId: impersonation.authSessionId,
+        }),
       );
       this.logger.error(
         `Received impersonated request from wrong session. Expected "${found.session.sessionId}", received: "${impersonation.authSessionId}"`,
@@ -54,10 +52,10 @@ export class DetailsUserFromImpersonationQuery {
     if (found.session.user.role !== 'ADMIN') {
       // should not happen
       captureException(
-        Object.assign(
-          new Error(`Received impersonated request from non ADMIN user`),
-          { userId: found.session.user.id, userRole: found.session.user.role },
-        ),
+        Object.assign(new Error(`Received impersonated request from non ADMIN user`), {
+          userId: found.session.user.id,
+          userRole: found.session.user.role,
+        }),
       );
       this.logger.error(
         `Received impersonated request from wrong session. Expected "${found.session.sessionId}", received: "${impersonation.authSessionId}"`,
@@ -67,10 +65,7 @@ export class DetailsUserFromImpersonationQuery {
     }
 
     const now = this.clock.now().getTime();
-    if (
-      found.expiresAt.getTime() <= now ||
-      found.session.expiresAt.getTime() <= now
-    ) {
+    if (found.expiresAt.getTime() <= now || found.session.expiresAt.getTime() <= now) {
       return null;
     }
 

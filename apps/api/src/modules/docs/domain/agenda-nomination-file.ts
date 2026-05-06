@@ -1,4 +1,5 @@
 import { Magistrat } from 'shared-models';
+
 import { DocNominationFileOutcomeEnum } from './doc-nomination-file-outcome';
 
 export type AgendaNominationFile = {

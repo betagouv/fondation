@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import z from 'zod';
+
 import { Magistrat } from 'shared-models';
+
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertIsDefined } from 'src/utils/is-defined';
-import z from 'zod';
 
 @Injectable()
 export class InternalDetailsLolfiSessionQuery {
@@ -13,37 +15,26 @@ export class InternalDetailsLolfiSessionQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(sessionId: number): Promise<DetailedLolfiSession> {
-    const nominationFiles = await this.prisma.$queryRawTyped(
-      detailLolfiSessionRawQuery(sessionId),
-    );
-    const perPositionId = Map.groupBy(
-      nominationFiles,
-      (file) => file.detectedTargetedPositionId,
-    );
+    const nominationFiles = await this.prisma.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
+    const perPositionId = Map.groupBy(nominationFiles, (file) => file.detectedTargetedPositionId);
 
     const GradeSchema = z.enum(Magistrat.Grade);
     const items: DetailedLolfiSession['items'] = [];
     for (const [positionId, files] of perPositionId) {
       const designatedFiles = files.filter(({ isDesignated }) => isDesignated);
       if (!designatedFiles.length) {
-        this.logger.warn(
-          `no designated nomination in session ${sessionId} on position ${positionId}`,
-        );
+        this.logger.warn(`no designated nomination in session ${sessionId} on position ${positionId}`);
         continue;
       }
 
       for (const file of designatedFiles) {
         if (!file.formation) {
-          this.logger.warn(
-            `Magistrat ${file.magistratExternalId} has no formation`,
-          );
+          this.logger.warn(`Magistrat ${file.magistratExternalId} has no formation`);
           continue;
         }
 
         if (!file.targetedPosition) {
-          this.logger.warn(
-            `Magistrat ${file.magistratExternalId} has no targeted position`,
-          );
+          this.logger.warn(`Magistrat ${file.magistratExternalId} has no targeted position`);
           continue;
         }
 

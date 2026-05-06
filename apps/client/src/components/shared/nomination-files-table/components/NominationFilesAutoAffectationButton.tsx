@@ -2,16 +2,17 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 
+import { useAffectations } from '../contexts/files-affectations.context';
+import { useSelectedFileIds } from '../contexts/files-selection.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { confirmationModal, useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
-  useCountUnaffectedFilesQuery
+  useCountUnaffectedFilesQuery,
 } from '@queries/nomination-sessions.queries';
-import { useAffectations } from '../contexts/files-affectations.context';
-import { useSelectedFileIds } from '../contexts/files-selection.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
+
 import { MemberExclusionSelector } from './MemberExclusionSelector';
 
 export function NominationFilesAutoAffectationButton() {
@@ -34,7 +35,7 @@ export function NominationFilesAutoAffectationButton() {
 
   const { data, isFetching } = useCountUnaffectedFilesQuery({
     sessionId,
-    nominationFileIds: nonAffectedFileIds
+    nominationFileIds: nonAffectedFileIds,
   });
 
   const unaffectedFilesCount = data?.count ?? 0;
@@ -69,7 +70,7 @@ export function NominationFilesAutoAffectationButton() {
           </p>
           <MemberExclusionSelector formation={formation} excludedMemberIdsRef={excludedMemberIdsRef} />
         </>
-      )
+      ),
     });
 
     if (!isConfirmed) return;
@@ -78,7 +79,7 @@ export function NominationFilesAutoAffectationButton() {
       {
         sessionId,
         nominationFileIds: nonAffectedFileIds,
-        excludedMemberIds: excludedMemberIdsRef.current.length ? excludedMemberIdsRef.current : undefined
+        excludedMemberIds: excludedMemberIdsRef.current.length ? excludedMemberIdsRef.current : undefined,
       },
       {
         onSuccess: () => {
@@ -87,10 +88,10 @@ export function NominationFilesAutoAffectationButton() {
         onError: () => {
           alerts.pushAlert({
             severity: 'error',
-            title: "Erreur lors de l'attribution automatique des rapports."
+            title: "Erreur lors de l'attribution automatique des rapports.",
           });
-        }
-      }
+        },
+      },
     );
   }, [
     isFetching,
@@ -101,7 +102,7 @@ export function NominationFilesAutoAffectationButton() {
     sessionId,
     nonAffectedFileIds,
     alerts,
-    edition
+    edition,
   ]);
 
   return (

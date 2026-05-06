@@ -1,6 +1,7 @@
 import { colors } from '@codegouvfr/react-dsfr/fr/colors';
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import React, { useRef } from 'react';
+
 import { EditorButton } from './EditorButton';
 
 export const TextColorButton = () => {
@@ -9,11 +10,11 @@ export const TextColorButton = () => {
   const textColors = colors.getHex({ isDark: false }).decisions.text;
   const editorTextColor = useEditorState({
     editor,
-    selector: (ctx) => ctx.editor?.getAttributes('textStyle').color
+    selector: (ctx) => ctx.editor?.getAttributes('textStyle').color,
   });
   const isDisabled = useEditorState({
     editor,
-    selector: ({ editor }) => !editor || !editor.can().setColor('#000000')
+    selector: ({ editor }) => !editor || !editor.can().setColor('#000000'),
   });
 
   const [textColor, setTextColor] = React.useState(editorTextColor ?? textColors.default.grey.default);
@@ -21,7 +22,7 @@ export const TextColorButton = () => {
   const predefinedColors = [
     textColors.default.grey.default,
     textColors.default.success.default,
-    textColors.default.error.default
+    textColors.default.error.default,
   ];
 
   const setColor: React.ChangeEventHandler<HTMLInputElement> = (event) => {

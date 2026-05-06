@@ -19,14 +19,14 @@ export function AgendaFileSearch(props: {
       setSearch(e.target.value);
       debouncedChange(e.target.value);
     },
-    [setSearch, debouncedChange]
+    [setSearch, debouncedChange],
   );
 
   const onSearchKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Escape' && searchRef.current) searchRef.current.blur();
     },
-    [searchRef]
+    [searchRef],
   );
 
   return (

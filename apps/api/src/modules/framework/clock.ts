@@ -11,9 +11,7 @@ export class Clock {
 export class ClockModule implements OnApplicationBootstrap {
   onApplicationBootstrap() {
     if (process.env.TZ !== 'Etc/UTC' || this.timeZoneName !== 'UTC') {
-      throw new Error(
-        'The current time zone is not UTC\n  Please override the TZ envvar to "Etc/UTC"\n\n',
-      );
+      throw new Error('The current time zone is not UTC\n  Please override the TZ envvar to "Etc/UTC"\n\n');
     }
   }
 

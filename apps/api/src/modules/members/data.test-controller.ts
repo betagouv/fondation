@@ -2,6 +2,7 @@ import { Body, Controller, Post, UseGuards, UsePipes } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { createZodDto, ZodValidationPipe } from 'nestjs-zod';
 import z from 'zod';
+
 import { PrismaService } from '../framework/database';
 import { DevelopmentEnvironmentGuard } from '../simple-auth/infrastructure/guards/development-environment.guard';
 
@@ -65,9 +66,7 @@ export class DataTestController {
 
   @Post('/magistrats')
   @UsePipes(ZodValidationPipe)
-  async createMagistrats(
-    @Body() { items: data }: CreateMagistratTestDto,
-  ): Promise<void> {
+  async createMagistrats(@Body() { items: data }: CreateMagistratTestDto): Promise<void> {
     await this.prisma.magistrat.createMany({
       data,
       skipDuplicates: true,

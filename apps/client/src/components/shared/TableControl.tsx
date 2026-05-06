@@ -1,6 +1,7 @@
 import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useMemo, useState, type FC } from 'react';
+
 import { ITEMS_PAR_PAGE } from '../../types/table.types';
 import { pluralize } from '../../utils/string.utils';
 
@@ -23,7 +24,7 @@ export const TableControl: FC<TableControlProps> = ({
   totalPages,
   currentPage,
   label = 'sessions',
-  setCurrentPage
+  setCurrentPage,
 }) => {
   const [internalItemsPerPage, setInternalItemsPerPage] = useState<number>(50);
   const value = externalItemsPerPage ?? internalItemsPerPage;
@@ -37,7 +38,7 @@ export const TableControl: FC<TableControlProps> = ({
 
   const displayedLabel = useMemo(
     () => (typeof label === 'string' ? label : pluralize(totalItems, label)),
-    [label, totalItems]
+    [label, totalItems],
   );
 
   return (
@@ -52,7 +53,7 @@ export const TableControl: FC<TableControlProps> = ({
           className={'flex max-w-[400px]'}
           nativeSelectProps={{
             onChange: (event) => handleChange(Number(event.target.value)),
-            value
+            value,
           }}
         >
           {ITEMS_PAR_PAGE.map((item) => (
@@ -71,7 +72,7 @@ export const TableControl: FC<TableControlProps> = ({
 
           // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          to: undefined
+          to: undefined,
         })}
         showFirstLast
       />

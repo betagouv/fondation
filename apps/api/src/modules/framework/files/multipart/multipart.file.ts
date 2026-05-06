@@ -1,4 +1,5 @@
 import { File, type FileOptions } from 'node:buffer';
+
 import { FILE_MIME_TYPES, FileMimeType, isMimeType } from '../mime-type';
 
 export class MultipartFile extends File {
@@ -18,15 +19,12 @@ export class MultipartFile extends File {
       deleteOnFail: boolean;
     };
   }) {
-    const { overrideFiles, deleteOnFail, path, id, ...fileOptions } =
-      props.options;
+    const { overrideFiles, deleteOnFail, path, id, ...fileOptions } = props.options;
 
     super(props.buffers, props.filename, fileOptions);
 
     this.id = id;
-    this.mimeType = isMimeType(fileOptions.type)
-      ? fileOptions.type
-      : FILE_MIME_TYPES.bin;
+    this.mimeType = isMimeType(fileOptions.type) ? fileOptions.type : FILE_MIME_TYPES.bin;
     this.path = path;
     this.deleteOnFail = deleteOnFail;
     this.overrideFiles = overrideFiles;

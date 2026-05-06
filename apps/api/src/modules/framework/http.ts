@@ -1,20 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { AXIOS_INSTANCE_TOKEN } from '@nestjs/axios/dist/http.constants';
-import {
-  DynamicModule,
-  Inject,
-  Injectable,
-  Logger,
-  Module,
-} from '@nestjs/common';
+import { DynamicModule, Inject, Injectable, Logger, Module } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import axios, {
-  AxiosError,
-  AxiosHeaders,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
+import axios, { AxiosError, AxiosHeaders, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import retry from 'axios-retry';
 import { catchError, tap, throwError, type Observable } from 'rxjs';
 
@@ -31,32 +19,21 @@ class InstrumentedHttpService implements Required<HttpService> {
     'x-amz-server-side-encryption-customer-key',
   ]);
 
-  constructor(
-    @Inject(INTERNAL_HTTP_SERVICE) private readonly http: HttpService,
-  ) {}
+  constructor(@Inject(INTERNAL_HTTP_SERVICE) private readonly http: HttpService) {}
 
   get axiosRef() {
     return this.http.axiosRef;
   }
 
-  delete<T = any, D = any>(
-    url: string,
-    config?: AxiosRequestConfig<D>,
-  ): Observable<AxiosResponse<T, D>> {
+  delete<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Observable<AxiosResponse<T, D>> {
     return this.request({ ...config, method: 'delete', url });
   }
 
-  get<T = any, D = any>(
-    url: string,
-    config?: AxiosRequestConfig<D>,
-  ): Observable<AxiosResponse<T, D>> {
+  get<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Observable<AxiosResponse<T, D>> {
     return this.request({ ...config, method: 'get', url });
   }
 
-  head<T = any, D = any>(
-    url: string,
-    config?: AxiosRequestConfig<D>,
-  ): Observable<AxiosResponse<T, D>> {
+  head<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Observable<AxiosResponse<T, D>> {
     return this.request({ ...config, method: 'head', url });
   }
 
@@ -89,9 +66,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request(
-      this.toMultipart({ ...config, url, data, method: 'patch' }),
-    );
+    return this.request(this.toMultipart({ ...config, url, data, method: 'patch' }));
   }
 
   postForm<T = any, D = any>(
@@ -99,9 +74,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request(
-      this.toMultipart({ ...config, url, data, method: 'post' }),
-    );
+    return this.request(this.toMultipart({ ...config, url, data, method: 'post' }));
   }
 
   putForm<T = any, D = any>(
@@ -109,9 +82,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request(
-      this.toMultipart({ ...config, url, data, method: 'put' }),
-    );
+    return this.request(this.toMultipart({ ...config, url, data, method: 'put' }));
   }
 
   request<T = any>(config: AxiosRequestConfig): Observable<AxiosResponse<T>> {
@@ -128,18 +99,11 @@ class InstrumentedHttpService implements Required<HttpService> {
 
         return this.http.request(config).pipe(
           tap((response) => {
-            span.setAttributes(
-              InstrumentedHttpService.responseAttributes(response),
-            );
+            span.setAttributes(InstrumentedHttpService.responseAttributes(response));
           }),
           catchError((error) => {
             if (error instanceof AxiosError && error.response) {
-              span.setAttributes(
-                InstrumentedHttpService.responseAttributes(
-                  error.response,
-                  error,
-                ),
-              );
+              span.setAttributes(InstrumentedHttpService.responseAttributes(error.response, error));
             }
 
             return throwError(() => error);
@@ -149,9 +113,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     );
   }
 
-  private static requestAttributes(
-    config: AxiosRequestConfig,
-  ): Record<string, string | undefined> {
+  private static requestAttributes(config: AxiosRequestConfig): Record<string, string | undefined> {
     let hostname, port;
     const { method, url } = config;
     try {
@@ -229,10 +191,7 @@ class HttpModule {
             retry(instance, {
               onRetry(count) {
                 console.log('retry', count);
-                Sentry.getActiveSpan()?.setAttribute(
-                  'http.request.resend_count',
-                  count,
-                );
+                Sentry.getActiveSpan()?.setAttribute('http.request.resend_count', count);
               },
             });
 

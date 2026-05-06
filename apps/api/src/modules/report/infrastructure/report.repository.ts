@@ -1,9 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { assertNever } from 'src/utils/assert-never';
-
 import {
   Report,
   ReportFilesAttached,
@@ -11,6 +7,9 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
+import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
+import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class ReportRepository {
@@ -42,9 +41,7 @@ export class ReportRepository {
 
       const { firstName, lastName } = user;
       const reporterFullName =
-        lastName.toUpperCase() +
-        ' ' +
-        (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
+        lastName.toUpperCase() + ' ' + (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
       const session = await tx.session.findUnique({
         select: { name: true },
@@ -133,9 +130,7 @@ export class ReportRepository {
     });
   }
 
-  private async persistReportRuleValidationUpdated(
-    message: ReportRuleValidationUpdated,
-  ) {
+  private async persistReportRuleValidationUpdated(message: ReportRuleValidationUpdated) {
     return this.prisma.report.update({
       where: { id: message.id },
       data: {

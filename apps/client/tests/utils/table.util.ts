@@ -18,7 +18,7 @@ export function table<T extends Record<string, unknown> = Record<string, unknown
   const headers: readonly string[] = template[0].split('|').map((x) => x.trim());
   assert.ok(
     args.length % headers.length === 0,
-    `Expected the same amount of parameters as headers. ${headers.length} expected, ${args.length % headers.length} provided.`
+    `Expected the same amount of parameters as headers. ${headers.length} expected, ${args.length % headers.length} provided.`,
   );
 
   const output: Record<string, unknown>[] = [];

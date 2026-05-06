@@ -21,7 +21,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
   selectedUserIds,
   onSelectionChange,
   placeholder = 'Rechercher et ajouter des utilisateurs...',
-  label
+  label,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +37,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
         setDropdownPosition({
           top: rect.bottom,
           left: rect.left,
-          width: rect.width
+          width: rect.width,
         });
       }
     };
@@ -77,16 +77,16 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
         .filter(
           (u) =>
             searchTerm === '' ||
-            `${u.lastName} ${u.firstName}`.toLowerCase().includes(searchTerm.toLowerCase())
+            `${u.lastName} ${u.firstName}`.toLowerCase().includes(searchTerm.toLowerCase()),
         )
         .sort((a, b) => a.lastName.localeCompare(b.lastName))
         .slice(0, 10),
-    [availableUsers, selectedUserIds, searchTerm]
+    [availableUsers, selectedUserIds, searchTerm],
   );
 
   const selectedUsers = useMemo(
     () => availableUsers.filter((u) => selectedUserIds.includes(u.userId)),
-    [availableUsers, selectedUserIds]
+    [availableUsers, selectedUserIds],
   );
 
   const addUser = (event: React.MouseEvent, userId: string) => {
@@ -144,7 +144,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
             onChange: (e) => handleInputChange(e.target.value),
             onFocus: () => searchTerm.length > 0 && setIsOpen(true),
             type: 'text',
-            autoComplete: 'off'
+            autoComplete: 'off',
           }}
         />
 
@@ -158,7 +158,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
                 width: `${dropdownPosition.width}px`,
-                maxHeight: '240px'
+                maxHeight: '240px',
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
@@ -179,7 +179,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
                 ))}
               </ul>
             </div>,
-            document.body
+            document.body,
           )}
 
         {isOpen &&
@@ -192,14 +192,14 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
-                width: `${dropdownPosition.width}px`
+                width: `${dropdownPosition.width}px`,
               }}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
               Aucun utilisateur trouvé
             </div>,
-            document.body
+            document.body,
           )}
       </div>
 

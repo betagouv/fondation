@@ -25,9 +25,9 @@ describe('NominationFileOutcome', () => {
   });
 
   it('should throw, when the provided outcome is unknown', () => {
-    expect(() =>
-      NominationFileOutcome.from({ outcome: 'unknown', comment: null }),
-    ).toThrow(UnknownNominationFileOutcome);
+    expect(() => NominationFileOutcome.from({ outcome: 'unknown', comment: null })).toThrow(
+      UnknownNominationFileOutcome,
+    );
   });
 
   it('should parse a string and comment to an outcome', () => {

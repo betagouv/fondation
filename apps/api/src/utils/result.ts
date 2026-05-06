@@ -2,9 +2,7 @@ export type Result<Success, Failure> =
   | { success: false; errors: Failure[] }
   | { success: true; data: Success[] };
 
-export type DetailedFailure<Failure> =
-  | { success: true }
-  | { success: false; errors: Failure[] };
+export type DetailedFailure<Failure> = { success: true } | { success: false; errors: Failure[] };
 
 export class ResultBuilder<Success, Failure> {
   #success: boolean = true;

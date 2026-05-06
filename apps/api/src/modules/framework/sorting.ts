@@ -9,26 +9,17 @@ type ToSortable<Schema> =
   Schema extends z.ZodObject<infer Shape>
     ? z.ZodObject<
         Shape & {
-          sortDesc: z.ZodCodec<
-            z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodBoolean]>>,
-            z.ZodBoolean
-          >;
+          sortDesc: z.ZodCodec<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodBoolean]>>, z.ZodBoolean>;
         }
       >
     : never;
 
-export function createSortableDto<const Schema extends ZodAbstractSortable>(
-  schema: Schema,
-) {
+export function createSortableDto<const Schema extends ZodAbstractSortable>(schema: Schema) {
   const extendedSchema = schema.safeExtend({
-    sortDesc: z.codec(
-      z.union([z.string(), z.boolean()]).optional().describe('true'),
-      z.boolean(),
-      {
-        decode: (str) => str === 'true' || str === true,
-        encode: (value) => value.toString(),
-      },
-    ),
+    sortDesc: z.codec(z.union([z.string(), z.boolean()]).optional().describe('true'), z.boolean(), {
+      decode: (str) => str === 'true' || str === true,
+      encode: (value) => value.toString(),
+    }),
   });
 
   return createZodDto(extendedSchema as ToSortable<Schema>);

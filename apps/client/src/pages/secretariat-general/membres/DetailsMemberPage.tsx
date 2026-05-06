@@ -1,11 +1,10 @@
 import { Navigate, useParams } from 'react-router';
 
-import { useDetailedMember } from '@queries/members.queries';
-
-import { PageContentLayout } from '../../../components/shared/PageContentLayout';
-import { ROUTE_PATHS } from '../../../utils/route-path.utils';
 import { DetailsMember } from '../../../components/secretariat-general/membres/details/DetailsMember';
 import { DetailsMemberHeader } from '../../../components/secretariat-general/membres/details/DetailsMemberHeader';
+import { PageContentLayout } from '../../../components/shared/PageContentLayout';
+import { ROUTE_PATHS } from '../../../utils/route-path.utils';
+import { useDetailedMember } from '@queries/members.queries';
 
 export function DetailsMemberPage() {
   const params = useParams();

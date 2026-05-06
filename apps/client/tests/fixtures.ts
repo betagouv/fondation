@@ -1,7 +1,9 @@
 /* oxlint-disable react-hooks/rules-of-hooks */
 
 import { test as base } from '@playwright/test';
+
 import type { RegisterUserDto } from '../src/generated/api/types';
+
 import { ApiHttpClient } from './fixtures/api.fixture';
 import { type RegisteredUser, type UserRole } from './fixtures/auth.fixture';
 import { TestAnonymousApp } from './pages/test-anonymous-app';
@@ -17,11 +19,11 @@ type Fixtures = {
   anonymousApp: TestAnonymousApp;
 
   newMemberApp: <Role extends UserRole>(
-    dto: Partial<RegisterUserDto> & { role: Role }
+    dto: Partial<RegisterUserDto> & { role: Role },
   ) => Promise<TestMemberApp<Role>>;
 
   registerUser: <Role extends UserRole = 'MEMBRE_COMMUN'>(
-    dto?: Partial<RegisterUserDto>
+    dto?: Partial<RegisterUserDto>,
   ) => Promise<RegisteredUser<Role>>;
 };
 
@@ -48,7 +50,7 @@ export const test = base.extend<Fixtures>({
     const http = await playwright.request.newContext({
       failOnStatusCode: true,
       baseURL: 'http://localhost:3000',
-      extraHTTPHeaders: { authorization: `Bearer ${token}` }
+      extraHTTPHeaders: { authorization: `Bearer ${token}` },
     });
 
     return use(new ApiHttpClient(http));
@@ -59,8 +61,8 @@ export const test = base.extend<Fixtures>({
       (dto?: Partial<RegisterUserDto>) =>
         http.auth.registerUser({
           defaultUser: dto,
-          role: dto?.role ?? 'MEMBRE_COMMUN'
-        }) as any // oxlint-disable-line
+          role: dto?.role ?? 'MEMBRE_COMMUN',
+        }) as any, // oxlint-disable-line
     ),
 
   newMemberApp: async ({ anonymousApp: app, registerUser }, use) => {
@@ -74,7 +76,7 @@ export const test = base.extend<Fixtures>({
         await memberApp.pages.home.goto();
 
         return memberApp;
-      }
+      },
     );
-  }
+  },
 });

@@ -12,35 +12,35 @@ export default defineConfig({
       `// this file is auto-generated`,
       '//',
       `// Licensed under the Apache License, Version 2.0`,
-      '//'
-    ]
+      '//',
+    ],
   },
   plugins: [
     {
       name: '@hey-api/typescript',
-      definitions: (name: string) => name.replace(/Output$/, '')
+      definitions: (name: string) => name.replace(/Output$/, ''),
     },
     {
       name: '@hey-api/client-fetch',
       runtimeConfigPath: '../../utils/http.config.ts',
-      throwOnError: false
+      throwOnError: false,
     },
     {
       name: '@hey-api/sdk',
       transformer: false,
       operations: {
         strategy: 'byTags',
-        containerName: { casing: 'camelCase' }
-      }
-    }
+        containerName: { casing: 'camelCase' },
+      },
+    },
   ],
   parser: {
     pagination: { keywords: [] },
     hooks: {
       operations: {
         isMutation: (operation) =>
-          operation.method !== 'get' || operation.id === 'createNominationSessionAttachmentUrl'
-      }
-    }
-  }
+          operation.method !== 'get' || operation.id === 'createNominationSessionAttachmentUrl',
+      },
+    },
+  },
 });

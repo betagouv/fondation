@@ -1,6 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import type { FC } from 'react';
+
 import type { HeadingLevel } from '../extensions/constant';
+
 import { EditorButton } from './EditorButton';
 
 type HeadingButtonProps = {
@@ -11,7 +13,7 @@ export const HeadingButton: FC<HeadingButtonProps> = ({ level }) => {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
-    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleHeading({ level })
+    selector: (ctx) => !ctx.editor || !ctx.editor.can().toggleHeading({ level }),
   });
 
   const toggleHeading = () => {

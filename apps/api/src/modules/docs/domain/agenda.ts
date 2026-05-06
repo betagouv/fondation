@@ -1,7 +1,9 @@
 import { Gender } from 'shared-models';
+
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
+
 import { AgendaNominationFile } from './agenda-nomination-file';
 
 export class AgendaCreated {
@@ -65,10 +67,7 @@ export class Agenda {
     return this.#messages;
   }
 
-  static from(props: {
-    id: Id<'AgendaId'>;
-    sessionId: Id<'SessionId'>;
-  }): Agenda {
+  static from(props: { id: Id<'AgendaId'>; sessionId: Id<'SessionId'> }): Agenda {
     return new Agenda(props.id, props.sessionId);
   }
 
@@ -119,10 +118,7 @@ export class Agenda {
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
   }): Agenda {
-    const agenda = new Agenda(
-      makeId('AgendaId'),
-      makeId('SessionId', props.sessionId),
-    );
+    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
 
     agenda.#messages.push(
       new AgendaCreated(

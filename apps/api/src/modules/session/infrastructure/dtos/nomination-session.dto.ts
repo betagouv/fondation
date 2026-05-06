@@ -1,11 +1,13 @@
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { Magistrat } from 'shared-models';
+
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import z from 'zod';
-import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
 const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
   file: z
@@ -16,9 +18,7 @@ const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
     name: z.string().trim().nonempty(),
     formation: z.enum(Magistrat.Formation),
     date: z.iso.date().transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
-    observationClosingDate: z.iso
-      .date()
-      .transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
+    observationClosingDate: z.iso.date().transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
     dueDate: z.iso
       .date()
       .transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd'))
@@ -34,9 +34,7 @@ export class ImportNominationSessionFromLodamXlsxDto extends createZodDto(
   ImportNominationSessionFromLodamXlsxDtoSchema,
 ) {}
 
-export class CreatedNominationSessionDto extends createZodDto(
-  z.object({ id: z.string() }),
-) {}
+export class CreatedNominationSessionDto extends createZodDto(z.object({ id: z.string() })) {}
 
 export class UpdateNominationSessionFilesObserversDto extends createZodDto(
   z.object({
@@ -58,9 +56,7 @@ export class UpdateNominationSessionDto extends createZodDto(
 ) {}
 
 /** @deprecated */
-export class UploadSessionAttachmentDto extends createZodDto(
-  z.object({ file: z.file() }),
-) {}
+export class UploadSessionAttachmentDto extends createZodDto(z.object({ file: z.file() })) {}
 
 export class UploadSessionAttachmentsDto extends createZodDto(
   z.object({
@@ -89,13 +85,9 @@ export class ListGdsNominationSessionsQueryDto extends createSortableDto(
 
 export class CountUnaffectedFilesQueryDto extends createZodDto(
   z.object({
-    nominationFileIds: z.codec(
-      z.string().optional(),
-      z.array(z.uuid()).optional(),
-      {
-        decode: (str) => str?.split(','),
-        encode: (value) => value?.join(','),
-      },
-    ),
+    nominationFileIds: z.codec(z.string().optional(), z.array(z.uuid()).optional(), {
+      decode: (str) => str?.split(','),
+      encode: (value) => value?.join(','),
+    }),
   }),
 ) {}

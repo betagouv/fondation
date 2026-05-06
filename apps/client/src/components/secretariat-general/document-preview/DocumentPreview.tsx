@@ -1,8 +1,9 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { FormattedMessage, useIntl } from 'react-intl';
+
 import fontsCss from './document-fonts.css?inline';
 
 export function injectFonts(html: string): string {
@@ -11,7 +12,7 @@ export function injectFonts(html: string): string {
     `<style>
         .pagedjs_page { margin: 12px; }
       </style>
-    </head>`
+    </head>`,
   );
 }
 
@@ -49,7 +50,9 @@ export function DocumentPreviewLayout(props: {
               disabled={isValidating}
               iconId={isValidating ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
               iconPosition="right"
-              className={clsx({ 'after:size-5 after:animate-spin after:content-[""]': isValidating })}
+              className={clsx({
+                'after:size-5 after:animate-spin after:content-[""]': isValidating,
+              })}
               onClick={onValidate}
             >
               <FormattedMessage defaultMessage={`Valider le document`} />

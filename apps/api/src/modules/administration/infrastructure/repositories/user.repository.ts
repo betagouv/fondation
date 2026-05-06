@@ -1,10 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
-import {
-  prismaRoleEnumToRoleEnum,
-  roleEnumToPrismaRoleEnum,
-} from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
+
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   User,
@@ -17,6 +12,12 @@ import {
   UserRoleUpdated,
   UsersUntitled,
 } from '../../domain/user';
+import { PrismaService } from 'src/modules/framework/database';
+import {
+  prismaRoleEnumToRoleEnum,
+  roleEnumToPrismaRoleEnum,
+} from 'src/modules/shared/mappers/role-enum.mapper';
+import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class UserRepository {
@@ -44,9 +45,7 @@ export class UserRepository {
     });
   }
 
-  async findManyByLastName(
-    lastNames: readonly string[],
-  ): Promise<Map<string, User>> {
+  async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.prisma.user.findMany({
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
       select: { id: true, lastName: true, role: true, title: true, duty: true },
@@ -68,9 +67,7 @@ export class UserRepository {
   }
 
   async persistMany(users: User[]): Promise<void> {
-    await this.prisma.$transaction(
-      users.flatMap((user) => this.persistUser(user)),
-    );
+    await this.prisma.$transaction(users.flatMap((user) => this.persistUser(user)));
   }
 
   async persist(user: User): Promise<void> {
@@ -79,20 +76,13 @@ export class UserRepository {
 
   private persistUser(user: User) {
     return user.messages.map((message: UserEvent) => {
-      if (message instanceof UserEmailUpdated)
-        return this.persistEmailUpdated(message);
-      if (message instanceof UserPasswordUpdated)
-        return this.persistPasswordUpdated(message);
-      if (message instanceof UserRoleUpdated)
-        return this.persistRoleUpdated(message);
-      if (message instanceof UserDisplayTitleUpdated)
-        return this.persistDisplayTitleUpdated(message);
-      if (message instanceof UsersUntitled)
-        return this.persistUsersUntitled(message);
-      if (message instanceof UserPromotedToAdmin)
-        return this.persistUserPromotedToAdmin(message);
-      if (message instanceof UserDemotedFromAdmin)
-        return this.persistUserDemotedFromAdmin(message);
+      if (message instanceof UserEmailUpdated) return this.persistEmailUpdated(message);
+      if (message instanceof UserPasswordUpdated) return this.persistPasswordUpdated(message);
+      if (message instanceof UserRoleUpdated) return this.persistRoleUpdated(message);
+      if (message instanceof UserDisplayTitleUpdated) return this.persistDisplayTitleUpdated(message);
+      if (message instanceof UsersUntitled) return this.persistUsersUntitled(message);
+      if (message instanceof UserPromotedToAdmin) return this.persistUserPromotedToAdmin(message);
+      if (message instanceof UserDemotedFromAdmin) return this.persistUserDemotedFromAdmin(message);
 
       return assertNever(message);
     });

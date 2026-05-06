@@ -4,13 +4,14 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Magistrat } from 'shared-models';
-import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
+import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
+import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 
 @Injectable()
 export class AgendaNominationFilesFinder {
@@ -47,9 +48,7 @@ export class AgendaNominationFilesFinder {
 
     const ids = new Set(rows.map(({ id }) => id));
     const output = items.flatMap((item) => {
-      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(
-        item.outcome.value,
-      );
+      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(item.outcome.value);
 
       if (!ids.has(item.id) && outcomeValue !== 'SUSPENDED') return [];
 

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 
 @Injectable()

@@ -6,9 +6,11 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { formatDate } from 'date-fns';
+
+import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
-import { AgendaRenderer } from '../services/renderers/agenda.renderer';
+
 import { FindAgendaDocumentQuery } from './find-agenda-document.query';
 
 @Injectable()
@@ -22,10 +24,7 @@ export class FindAgendaDocumentPdfQuery {
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
   ) {}
 
-  async handle(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     const file = await this.prisma.$transaction(async (tx) => {
       const agenda = await tx.agenda.findUnique({
         where: { id: query.id },
@@ -61,9 +60,7 @@ export class FindAgendaDocumentPdfQuery {
     const name = `Ordre du jour - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
     const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
 
-    const [pdfFileId] = await this.files.create([
-      { buffer, name, path, mimeType: FILE_MIME_TYPES.pdf },
-    ]);
+    const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
       await this.prisma.$transaction([

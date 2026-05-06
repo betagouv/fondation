@@ -1,38 +1,42 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useCallback, useMemo, useState } from 'react';
-
-import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
-import { useMemberListQuery } from '@queries/members.queries';
 
 import { useAffectations } from '../contexts/files-affectations.context';
 import { useSelectedFileIds } from '../contexts/files-selection.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
+import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { useMemberListQuery } from '@queries/members.queries';
 
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
 
 const actionsGroupeesModal = createModal({
   id: 'actions-groupees-modal',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 type None = 'NONE';
 const PRIORITIES = ([] as (PrioriteEnum | None)[]).concat(Object.values(PrioriteEnum), 'NONE').map((x) => ({
   value: x,
-  label: x === 'NONE' ? 'Aucune' : PrioriteEnumLabels[x]
+  label: x === 'NONE' ? 'Aucune' : PrioriteEnumLabels[x],
 }));
 
 export function NominationFilesBatchOperationsButton() {
   const { formation } = useNominationFilesTable();
   const { data } = useMemberListQuery({
     formations: ['COMMUN', formation],
-    pagination: { pageIndex: 0, pageSize: 100 }
+    pagination: { pageIndex: 0, pageSize: 100 },
   });
 
   const availableRapporteurs = useMemo(
-    () => (data?.items ?? []).map(({ id, firstName, lastName }) => ({ userId: id, firstName, lastName })),
-    [data]
+    () =>
+      (data?.items ?? []).map(({ id, firstName, lastName }) => ({
+        userId: id,
+        firstName,
+        lastName,
+      })),
+    [data],
   );
 
   const selectedFileIds = useSelectedFileIds();
@@ -68,10 +72,10 @@ export function NominationFilesBatchOperationsButton() {
                 fileId,
                 localPriorities.includes('NONE')
                   ? new Set()
-                  : new Set(localPriorities.filter((x) => x !== 'NONE'))
-              ] as const
-          )
-        )
+                  : new Set(localPriorities.filter((x) => x !== 'NONE')),
+              ] as const,
+          ),
+        ),
       );
     }
 
@@ -85,7 +89,7 @@ export function NominationFilesBatchOperationsButton() {
     setLocalPriorities,
     setLocalSelection,
     localPriorities,
-    localSelection
+    localSelection,
   ]);
 
   const togglePriority = useCallback(
@@ -97,7 +101,7 @@ export function NominationFilesBatchOperationsButton() {
         setLocalPriorities((p) => p.filter((x) => x !== priority));
       }
     },
-    []
+    [],
   );
 
   return (
@@ -118,12 +122,12 @@ export function NominationFilesBatchOperationsButton() {
           {
             children: 'Annuler',
             priority: 'secondary',
-            onClick: handleCancel
+            onClick: handleCancel,
           },
           {
             children: 'Appliquer',
-            onClick: handleApply
-          }
+            onClick: handleApply,
+          },
         ]}
       >
         <div className="flex flex-col gap-2">
@@ -135,8 +139,8 @@ export function NominationFilesBatchOperationsButton() {
                 ...option,
                 nativeInputProps: {
                   checked: localPriorities.includes(option.value),
-                  onChange: (e) => togglePriority(option.value, e)
-                }
+                  onChange: (e) => togglePriority(option.value, e),
+                },
               }))}
             />
           </div>

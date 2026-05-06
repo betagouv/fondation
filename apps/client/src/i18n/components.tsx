@@ -1,8 +1,10 @@
-import type { DateOnly } from '@/models/date-only.model';
 import React from 'react';
 import { useIntl } from 'react-intl';
 
 import type { DateOnlyJson } from 'shared-models';
+
+import type { DateOnly } from '@/models/date-only.model';
+
 import { useIntlAge, useIntlBirthDate, useIntlPositionDuration } from './hooks';
 
 function Formatted(props: React.PropsWithChildren) {

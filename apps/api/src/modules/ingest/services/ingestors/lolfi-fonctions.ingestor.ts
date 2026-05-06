@@ -1,11 +1,13 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
+
+import { LolfiJob } from '../lolfi-job.type';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -29,9 +31,7 @@ export class LolfiFonctionsIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: RawFunction; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: RawFunction; success: boolean }>) {
       const accumulator: RawFunction[] = [];
 
       for await (const { data, success } of source) {
@@ -64,12 +64,10 @@ export class LolfiFonctionsIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$queryRawTyped(insertFunctionsRawQuery(props.items))
-      .catch((error) => {
-        this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
-        props.result.success = false;
-      });
+    return this.prisma.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
+      this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
+      props.result.success = false;
+    });
   }
 }
 

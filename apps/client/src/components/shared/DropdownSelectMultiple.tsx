@@ -1,6 +1,7 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import React, { useState, type PropsWithChildren } from 'react';
+
 import { DropdownMenu } from './DropdownMenu';
 
 export type DropdownSelectMultipleProps<T> = {
@@ -28,15 +29,15 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
   const [itemsMap, setItemsMap] = React.useState(
     () =>
       new Map<unknown, T>(
-        (props.value ?? []).map((item) => [props.itemToString?.(item) ?? item, item] as const)
-      )
+        (props.value ?? []).map((item) => [props.itemToString?.(item) ?? item, item] as const),
+      ),
   );
 
   React.useEffect(() => {
     setItemsMap(
       new Map<unknown, T>(
-        (props.value ?? []).map((item) => [props.itemToString?.(item) ?? item, item] as const)
-      )
+        (props.value ?? []).map((item) => [props.itemToString?.(item) ?? item, item] as const),
+      ),
     );
   }, [props, setItemsMap]);
 
@@ -51,7 +52,7 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
       setItemsMap(new Map(itemsMap));
       props.onChange?.(Array.from(itemsMap.values()));
     },
-    [props, itemsMap, setItemsMap]
+    [props, itemsMap, setItemsMap],
   );
 
   const trigger = (
@@ -77,7 +78,7 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
           classes={{
             content: 'm-0',
             inputGroup: 'hover:bg-gray-100 pr-2 pl-4 py-0 first-of-type:!mt-0',
-            root: 'border border-gray-50 overflow-y-auto m-0'
+            root: 'border border-gray-50 overflow-y-auto m-0',
           }}
           options={props.items.map((item, i) => {
             const key = getKey(item);
@@ -88,8 +89,8 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
                 className: i === 0 ? 'mt-0' : undefined,
                 checked: itemsMap.has(key),
                 onChange: () => select(key, item),
-                value: key as string
-              }
+                value: key as string,
+              },
             };
           })}
         />

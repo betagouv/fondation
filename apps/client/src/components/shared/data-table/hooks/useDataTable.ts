@@ -7,7 +7,7 @@ import {
   type RowData,
   type Table,
   type TableMeta,
-  type TableOptions
+  type TableOptions,
 } from '@tanstack/react-table';
 
 type DataTableProps<Data extends RowData> = Omit<
@@ -77,7 +77,7 @@ export function useDataTable<Data extends RowData>(props: DataTableProps<Data>):
 
       // TODO: add this feature once the DropdownMenu is able to handle the window collision
       /** @see ReactTableColumnVisibility */
-      columnVisibilityEnabled: false // !!props.enableColumnVisibility,
-    }
+      columnVisibilityEnabled: false, // !!props.enableColumnVisibility,
+    },
   });
 }

@@ -6,19 +6,20 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { formatDate } from 'date-fns';
+
 import { Magistrat } from 'shared-models';
+
+import { PresentationPlanRenderer } from '../services/renderers/presentation-plan.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
-import { PresentationPlanRenderer } from '../services/renderers/presentation-plan.renderer';
+
 import { FindPresentationPlanDocumentQuery } from './find-presentation-plan-document.query';
 
 @Injectable()
 export class FindPresentationPlanDocumentPdfQuery {
-  private readonly logger = new Logger(
-    FindPresentationPlanDocumentPdfQuery.name,
-  );
+  private readonly logger = new Logger(FindPresentationPlanDocumentPdfQuery.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -27,10 +28,7 @@ export class FindPresentationPlanDocumentPdfQuery {
     private readonly presentationPlanRenderer: PresentationPlanRenderer,
   ) {}
 
-  async handle(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     const file = await this.prisma.$transaction(async (tx) => {
       const plan = await tx.justicePresentationPlan.findUnique({
         where: { id: query.id },
@@ -53,9 +51,7 @@ export class FindPresentationPlanDocumentPdfQuery {
 
       const file$ = await this.files.getFile({ fileId: plan.pdf?.id, tx });
       if (!file$) {
-        this.logger.error(
-          `Could not retrieve the presentation plan (${query.id}) from S3`,
-        );
+        this.logger.error(`Could not retrieve the presentation plan (${query.id}) from S3`);
         throw new InternalServerErrorException();
       }
 
@@ -90,10 +86,7 @@ export class FindPresentationPlanDocumentPdfQuery {
         data: { pdfId: pdfFileId },
       })
       .catch((err) => {
-        this.logger.warn(
-          `Failed storing presentation plan ${query.id} pdf file`,
-          err,
-        );
+        this.logger.warn(`Failed storing presentation plan ${query.id} pdf file`, err);
       });
 
     return new StreamableFile(buffer, {

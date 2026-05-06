@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { pipeline } from 'node:stream/promises';
+
+import { Injectable } from '@nestjs/common';
 import * as unzipper from 'unzipper';
 
 import { Clock } from 'src/modules/framework/clock';
@@ -7,6 +8,7 @@ import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { Result, ResultBuilder } from 'src/utils/result';
+
 import { LolfiCryptoService } from './lolfi-crypto.service';
 import { passthroughHash } from './passthrough-hash';
 
@@ -32,10 +34,7 @@ export class LolfiArchiveIngestor {
     'TYPE_JURIDICTION.xml',
   ]);
 
-  async ingest(
-    buffer: Buffer,
-    options: { type: string | undefined },
-  ): Promise<IngestedLolfiArchive> {
+  async ingest(buffer: Buffer, options: { type: string | undefined }): Promise<IngestedLolfiArchive> {
     let archiveBuffer = buffer;
     if (this.crypto.shouldDecrypt(options)) {
       archiveBuffer = await this.crypto.decrypt(buffer);
@@ -45,9 +44,7 @@ export class LolfiArchiveIngestor {
     const hashes = new Map(
       await Promise.all(
         dir.files
-          .filter(
-            (file) => file.type === 'File' && file.path.endsWith('.sha256'),
-          )
+          .filter((file) => file.type === 'File' && file.path.endsWith('.sha256'))
           .map(
             async (file) =>
               [
@@ -59,26 +56,17 @@ export class LolfiArchiveIngestor {
     );
 
     const now = this.clock.now().toISOString();
-    const result = new ResultBuilder<
-      IngestedLolfiArchiveSuccess,
-      IngestedLolfiArchiveFailed
-    >();
+    const result = new ResultBuilder<IngestedLolfiArchiveSuccess, IngestedLolfiArchiveFailed>();
 
     const seenFiles = new Set<string>();
     await this.files.openBatchStreamSession(async (h) => {
-      for (const file of dir.files.filter(
-        (file) => file.type === 'File' && file.path.endsWith('.xml'),
-      )) {
+      for (const file of dir.files.filter((file) => file.type === 'File' && file.path.endsWith('.xml'))) {
         const fileId = makeId('FileId');
-        const filePath = assertIsDefined(
-          file.path.split('/').at(-1),
-          `expected a file name`,
-        );
+        const filePath = assertIsDefined(file.path.split('/').at(-1), `expected a file name`);
 
         seenFiles.add(filePath);
 
-        const { promise: hashedPromise, stream: computeHash } =
-          passthroughHash('sha256');
+        const { promise: hashedPromise, stream: computeHash } = passthroughHash('sha256');
 
         const isHashValidPromise = hashedPromise.then((hash) => {
           const expected = hashes.get(file.path);
@@ -102,18 +90,13 @@ export class LolfiArchiveIngestor {
           meta: { id: fileId },
         });
 
-        const pipelinePromise = pipeline(
-          file.stream(),
-          computeHash,
-          toFileStorage,
-        );
+        const pipelinePromise = pipeline(file.stream(), computeHash, toFileStorage);
 
         await Promise.all([isHashValidPromise, pipelinePromise]);
       }
     });
 
-    const missingFiles =
-      LolfiArchiveIngestor.EXPECTED_FILES.difference(seenFiles);
+    const missingFiles = LolfiArchiveIngestor.EXPECTED_FILES.difference(seenFiles);
     for (const missingFile of missingFiles) {
       result.fail({
         type: 'LolfiMissingFileError',
@@ -147,7 +130,4 @@ export type IngestedLolfiArchiveSuccess = {
   sha256: string;
 };
 
-export type IngestedLolfiArchive = Result<
-  IngestedLolfiArchiveSuccess,
-  IngestedLolfiArchiveFailed
->;
+export type IngestedLolfiArchive = Result<IngestedLolfiArchiveSuccess, IngestedLolfiArchiveFailed>;

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
+
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const linkedObservationsAttachmentsMultipartSchema = z
@@ -13,15 +14,12 @@ export class CreateObservationDto extends createZodDto(
       magistratId: z.uuid(),
       dateReception: z.iso.date(),
       description: z.string().nullish(),
-      linkedObservationsAttachments:
-        linkedObservationsAttachmentsMultipartSchema,
+      linkedObservationsAttachments: linkedObservationsAttachmentsMultipartSchema,
     }),
   }),
 ) {}
 
-export class CreateObservationResponseDto extends createZodDto(
-  z.object({ id: z.string() }),
-) {}
+export class CreateObservationResponseDto extends createZodDto(z.object({ id: z.string() })) {}
 
 export class ListObservationsQueryDto extends createZodDto(
   z.object({
@@ -51,8 +49,7 @@ export class UpdateObservationDto extends createZodDto(
         .union([z.string(), z.array(z.string())])
         .transform((x) => ([] as string[]).concat(x))
         .optional(),
-      linkedObservationsAttachments:
-        linkedObservationsAttachmentsMultipartSchema,
+      linkedObservationsAttachments: linkedObservationsAttachmentsMultipartSchema,
     }),
   }),
 ) {}

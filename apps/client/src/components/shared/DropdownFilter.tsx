@@ -21,7 +21,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
   options,
   selectedValues,
   onSelectionChange,
-  className
+  className,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,8 +57,8 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       name: `checkboxes-${option.value}`,
       value: option.value,
       checked: selectedValues.includes(option.value),
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChangeHandler(option.value, e.target.checked)
-    }
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChangeHandler(option.value, e.target.checked),
+    },
   }));
 
   return (
@@ -75,7 +75,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
             boxShadow: 'none',
             '--idle': 'transparent',
             '--hover': 'var(--background-action-low-blue-france-hover)',
-            '--active': 'var(--background-action-low-blue-france-active)'
+            '--active': 'var(--background-action-low-blue-france-active)',
           } as React.CSSProperties
         }
         onClick={toggleDropdown}
@@ -88,7 +88,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
         <span
           className={clsx(
             'fr-icon-arrow-down-s-line transition-transform duration-200',
-            isOpen && 'rotate-180'
+            isOpen && 'rotate-180',
           )}
           aria-hidden="true"
         ></span>

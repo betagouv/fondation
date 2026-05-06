@@ -1,9 +1,17 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useTab } from '@/hooks/useTab';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { toFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
   useAdminUserDetailQuery,
@@ -12,18 +20,10 @@ import {
   useUpdateUserDisplayTitleMutation,
   useUpdateUserEmailMutation,
   useUpdateUserPasswordMutation,
-  useUpdateUserRoleMutation
+  useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
-
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { useTab } from '@/hooks/useTab';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { toFullName } from '@/utils/user.utils';
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
-import { useQueryClient } from '@tanstack/react-query';
-import { FormattedMessage, useIntl } from 'react-intl';
+
 import { PROMOTABLE_ROLES, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
 import { AdminUserRole } from './AdminUserRole';
 
@@ -34,7 +34,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
 
   const formError = React.useMemo(
     () => (email.trim().length === 0 ? `Champ obligatoire` : undefined),
-    [email]
+    [email],
   );
 
   const handleEdit = React.useCallback(() => {
@@ -102,7 +102,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
               autoFocus: true,
               autoComplete: 'off',
               value: email,
-              onChange: (e) => setEmail(e.target.value)
+              onChange: (e) => setEmail(e.target.value),
             }}
           />
         </form>
@@ -123,7 +123,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   const [isDirty, setIsDirty] = React.useState<boolean>(false);
   const formError = React.useMemo(
     () => (isDirty && password.trim().length === 0 ? `Champ obligatoire` : undefined),
-    [isDirty, password]
+    [isDirty, password],
   );
 
   const onChange = React.useCallback(
@@ -132,7 +132,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
       const value = e.target.value;
       setPassword(value);
     },
-    [isDirty, setIsDirty, setPassword]
+    [isDirty, setIsDirty, setPassword],
   );
 
   const changeEdition = React.useCallback(
@@ -141,7 +141,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
       setIsDirty(false);
       setEditing(edition);
     },
-    [setIsDirty, setEditing]
+    [setIsDirty, setEditing],
   );
 
   const handleSave = React.useCallback(
@@ -158,23 +158,31 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 
             const fullName = toFullName(props.user);
             const { isConfirmed } = await confirmation.waitForConfirmation({
-              title: $t({ defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?` }),
+              title: $t({
+                defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?`,
+              }),
               i18n: { confirm: $t({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
               content: (
                 <p>
                   <FormattedMessage
-                    values={{ fullName, gender: props.user.gender, italic: (chunk) => <em>{chunk}</em> }}
+                    values={{
+                      fullName,
+                      gender: props.user.gender,
+                      italic: (chunk) => <em>{chunk}</em>,
+                    }}
                     defaultMessage={`Le mot de passe de <italic>{fullName}</italic> a été mis à jour. Voulez-vous {gender, select, MALE {le} other {la}} notifier par mail\u00A0?`}
                   />
                 </p>
-              )
+              ),
             });
 
             if (isConfirmed) {
               const subject = `Mot de passe FONDATION mis à jour`;
               const intro = $t(
-                { defaultMessage: `Bonjour {gender, select, MALE {M.} other {Mme}}\u00A0{lastName},` },
-                { gender: props.user.gender, lastName: props.user.lastName.toUpperCase() }
+                {
+                  defaultMessage: `Bonjour {gender, select, MALE {M.} other {Mme}}\u00A0{lastName},`,
+                },
+                { gender: props.user.gender, lastName: props.user.lastName.toUpperCase() },
               );
 
               /** @warning formatjs discards line breaks */
@@ -194,11 +202,11 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             }
 
             reset();
-          }
-        }
+          },
+        },
       );
     },
-    [password, confirmation, props, changeEdition, updatePassword, reset, $t]
+    [password, confirmation, props, changeEdition, updatePassword, reset, $t],
   );
 
   return (
@@ -254,7 +262,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
               required: true,
               value: password,
               onChange: onChange,
-              placeholder: 'Nouveau mot de passe...'
+              placeholder: 'Nouveau mot de passe...',
             }}
           />
         </form>
@@ -289,7 +297,7 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
                 </p>
                 <p className="font-bold">Êtes-vous sûr de vouloir continuer ?</p>
               </>
-            )
+            ),
           });
 
           if (!isConfirmed) return;
@@ -301,11 +309,11 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
               queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
               return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
             }
-          }
+          },
         });
       }
     },
-    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate]
+    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate],
   );
 
   if (!PROMOTABLE_ROLES.includes(props.user.role)) return null;
@@ -340,11 +348,11 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
         {
           onSuccess: () => {
             setEditing(false);
-          }
-        }
+          },
+        },
       );
     },
-    [props, setEditing, updateRole]
+    [props, setEditing, updateRole],
   );
 
   return (
@@ -379,7 +387,11 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           label=""
           state={error ? 'error' : undefined}
           stateRelatedMessage={error ? 'Erreur à la mise à jour du rôle' : undefined}
-          nativeSelectProps={{ autoFocus: true, onChange: handleChange, defaultValue: props.user.role }}
+          nativeSelectProps={{
+            autoFocus: true,
+            onChange: handleChange,
+            defaultValue: props.user.role,
+          }}
         >
           {ROLE_OPTIONS.map(({ name, options }) => (
             <optgroup label={name} key={name}>
@@ -423,7 +435,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
 
       mutate({ displayTitle: newTitle }, { onSuccess: () => setEditing(false) });
     },
-    [mutate, displayTitle, setEditing, props]
+    [mutate, displayTitle, setEditing, props],
   );
 
   return (
@@ -465,7 +477,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
               autoComplete: 'off',
               value: displayTitle,
               onChange: (e) => setDisplayTitle(e.target.value),
-              placeholder: 'Saisissez un titre...'
+              placeholder: 'Saisissez un titre...',
             }}
           />
         </form>
@@ -492,7 +504,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
       onSuccess() {
         const url = new URL(generatePath(ROUTE_PATHS.TRANSPARENCES.DASHBOARD), window.location.href);
         tab.open(url);
-      }
+      },
     });
   }, [tab, impersonate]);
 
@@ -554,8 +566,8 @@ export function AdminUserDetailPage() {
             currentPageLabel: isLoading ? '...' : fullName!,
             segments: [
               { label: 'Administration', to: {} },
-              { label: 'Utilisateurs', to: ROUTE_PATHS.ADMIN.USERS }
-            ]
+              { label: 'Utilisateurs', to: ROUTE_PATHS.ADMIN.USERS },
+            ],
           }}
         />
         {hasHistory && (

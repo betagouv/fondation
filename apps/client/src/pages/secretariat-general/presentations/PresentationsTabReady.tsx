@@ -1,6 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
+import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
@@ -9,15 +11,14 @@ import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { timeOnlyToDate } from '@/utils/time-only.util';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import {
   useDeleteJusticePresentationPlanMutation,
   useListNonPresentedPlansQuery,
   useListPresentationPlansAgendasQuery,
   useOpenJusticePresentationPlanPdfDocumentMutation,
-  usePresentPlanMutation
+  usePresentPlanMutation,
 } from '@queries/agenda.queries';
-import React from 'react';
+
 import { PresentationAgendaSelectionList } from './components/PresentationAgendaSelecionList';
 
 export function PresentationsTabReady() {
@@ -47,7 +48,7 @@ export function PresentationsTabReady() {
 
       openPdf.mutate({ planId });
     },
-    [openPdf]
+    [openPdf],
   );
 
   const onClickPresent = React.useCallback(
@@ -66,14 +67,14 @@ export function PresentationsTabReady() {
               <FormattedMessage defaultMessage="Voulez-vous continuer?" />
             </p>
           </>
-        )
+        ),
       });
 
       if (!isConfirmed) return;
 
       mutatePresentation.mutate({ presentationPlanId });
     },
-    [confirmation, mutatePresentation, $t]
+    [confirmation, mutatePresentation, $t],
   );
 
   const onClickDelete = React.useCallback(
@@ -92,14 +93,14 @@ export function PresentationsTabReady() {
               <FormattedMessage defaultMessage="Voulez-vous continuer?" />
             </p>
           </>
-        )
+        ),
       });
 
       if (!isConfirmed) return;
 
       mutateDeletion.mutate({ presentationPlanId });
     },
-    [confirmation, mutateDeletion, $t]
+    [confirmation, mutateDeletion, $t],
   );
 
   if (isFetching) {
@@ -108,7 +109,7 @@ export function PresentationsTabReady() {
         <p
           className={clsx(
             'text-md text-center text-gray-600 before:animate-spin before:content-[""]',
-            cx('ri-loader-4-line')
+            cx('ri-loader-4-line'),
           )}
         >
           <FormattedMessage defaultMessage="Chargement..." />
@@ -159,7 +160,9 @@ export function PresentationsTabReady() {
                     className="rounded-full"
                     priority="tertiary no outline"
                     iconId="fr-icon-edit-fill"
-                    linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: item.id }) }}
+                    linkProps={{
+                      to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: item.id }),
+                    }}
                   />
 
                   <Button

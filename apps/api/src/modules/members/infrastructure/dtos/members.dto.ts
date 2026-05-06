@@ -1,8 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { NominationFile, PrioriteEnum } from 'shared-models';
+
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { isDefined } from 'src/utils/is-defined';
-import z from 'zod';
 
 export class ListMembersQueryDto extends createZodDto(
   z.object({
@@ -16,15 +18,11 @@ export class ListMembersQueryDto extends createZodDto(
   }),
 ) {}
 
-export class WriteNominationFileMemberMemoDto extends createZodDto(
-  z.object({ memo: z.string() }),
-) {}
+export class WriteNominationFileMemberMemoDto extends createZodDto(z.object({ memo: z.string() })) {}
 
 export class DetailsMemberSessionQueryDto extends createSortableDto(
   z.object({
-    sortBy: z
-      .enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade'])
-      .optional(),
+    sortBy: z.enum(['fileNumber', 'name', 'targetedPosition', 'targetedGrade']).optional(),
 
     priorities: z
       .string()

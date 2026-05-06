@@ -12,7 +12,7 @@ const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
     REMOVED: 'retrait',
     WITHDRAWN: 'désistement',
     ASSESSING: 'évaluation',
-    WAITING_DSJ: 'complément DSJ'
+    WAITING_DSJ: 'complément DSJ',
   },
   SIEGE: {
     VALIDATED: 'conforme',
@@ -21,8 +21,8 @@ const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
     REMOVED: 'retrait',
     WITHDRAWN: 'désistement',
     ASSESSING: 'évaluation',
-    WAITING_DSJ: 'complément DSJ'
-  }
+    WAITING_DSJ: 'complément DSJ',
+  },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
 const NOMINATION_FILE_OUTCOME_ACRONYM = {
@@ -33,7 +33,7 @@ const NOMINATION_FILE_OUTCOME_ACRONYM = {
     REMOVED: 'R',
     WITHDRAWN: 'RD',
     ASSESSING: 'EVL',
-    WAITING_DSJ: 'DSJ'
+    WAITING_DSJ: 'DSJ',
   },
   SIEGE: {
     VALIDATED: 'AC',
@@ -42,8 +42,8 @@ const NOMINATION_FILE_OUTCOME_ACRONYM = {
     REMOVED: 'R',
     WITHDRAWN: 'RD',
     ASSESSING: 'EVL',
-    WAITING_DSJ: 'DSJ'
-  }
+    WAITING_DSJ: 'DSJ',
+  },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
 const NOMINATION_FILE_OUTCOME_ICON = {
@@ -53,7 +53,7 @@ const NOMINATION_FILE_OUTCOME_ICON = {
   REMOVED: 'fr-icon-warning-fill',
   WITHDRAWN: undefined,
   ASSESSING: 'ri-timer-fill',
-  WAITING_DSJ: 'ri-timer-fill'
+  WAITING_DSJ: 'ri-timer-fill',
 } as const satisfies Record<NominationFileOutcomeEnum, IconClassName | undefined>;
 
 const NOMINATION_FILE_OUTCOME_SEVERITY = {
@@ -63,7 +63,7 @@ const NOMINATION_FILE_OUTCOME_SEVERITY = {
   REMOVED: 'warning',
   WITHDRAWN: undefined,
   ASSESSING: 'info',
-  WAITING_DSJ: 'info'
+  WAITING_DSJ: 'info',
 } as const satisfies Record<NominationFileOutcomeEnum, AlertProps.Severity | undefined>;
 
 export const useNominationFileOutcome = (outcome: {
@@ -78,16 +78,16 @@ export const useNominationFileOutcome = (outcome: {
             acronym: '',
             label: '',
             icon: undefined,
-            severity: undefined
+            severity: undefined,
           }
         : {
             badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.outcome],
             acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.outcome],
             icon: NOMINATION_FILE_OUTCOME_ICON[outcome.outcome],
             severity: NOMINATION_FILE_OUTCOME_SEVERITY[outcome.outcome],
-            label: outcomeLabel({ value: outcome.outcome, formation: outcome.formation })
+            label: outcomeLabel({ value: outcome.outcome, formation: outcome.formation }),
           },
-    [outcome]
+    [outcome],
   );
 
 export const useSortedNominationFileOutcomes = (): readonly NominationFileOutcomeEnum[] =>
@@ -100,7 +100,7 @@ export const useSortedNominationFileOutcomes = (): readonly NominationFileOutcom
         'WAITING_DSJ',
         'ASSESSING',
         'WITHDRAWN',
-        'REMOVED'
+        'REMOVED',
       ] as const satisfies NominationFileOutcomeEnum[],
-    []
+    [],
   );

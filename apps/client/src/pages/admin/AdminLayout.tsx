@@ -1,6 +1,7 @@
+import { Outlet } from 'react-router';
+
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
-import { Outlet } from 'react-router';
 
 export function AdminLayout() {
   return (

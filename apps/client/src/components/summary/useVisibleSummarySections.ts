@@ -5,7 +5,7 @@ export const SUMMARY_SECTION_ANCHORS = [
   { id: 'biographie', label: 'Biographie' },
   { id: 'observants', label: 'Observants' },
   { id: 'synthese', label: 'Synthèse' },
-  { id: 'pieces-jointes', label: 'Pièces jointes' }
+  { id: 'pieces-jointes', label: 'Pièces jointes' },
 ] as const;
 
 export type SummarySectionAnchor = (typeof SUMMARY_SECTION_ANCHORS)[number]['id'];
@@ -16,7 +16,7 @@ export function useVisibleSummarySections(): {
   showSection: (id: SummarySectionAnchor) => void;
 } {
   const [sections, setSections] = React.useState(
-    SUMMARY_SECTION_ANCHORS.map((section) => ({ ...section, isVisible: false }))
+    SUMMARY_SECTION_ANCHORS.map((section) => ({ ...section, isVisible: false })),
   );
 
   const showSection = React.useCallback(
@@ -26,7 +26,7 @@ export function useVisibleSummarySections(): {
         setSections(sections.map((s) => (s.id === id ? { ...s, isVisible: true } : s)));
       }
     },
-    [sections, setSections]
+    [sections, setSections],
   );
 
   const visibleSections = sections.filter(({ isVisible }) => isVisible);

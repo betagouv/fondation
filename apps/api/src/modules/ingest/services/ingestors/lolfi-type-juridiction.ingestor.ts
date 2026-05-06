@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { LolfiJob } from '../lolfi-job.type';
 import { insertJurisdictionTypesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -27,9 +28,7 @@ export class LolfiTypeJuridictionIngestor {
     const mappingResult = { success: true };
 
     // oxlint-disable-next-line require-yield
-    async function* mapper(
-      source: AsyncIterable<{ data: TypeJuridiction; success: boolean }>,
-    ) {
+    async function* mapper(source: AsyncIterable<{ data: TypeJuridiction; success: boolean }>) {
       const accumulator: TypeJuridiction[] = [];
 
       for await (const { data, success } of source) {
@@ -55,10 +54,7 @@ export class LolfiTypeJuridictionIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
-    items: TypeJuridiction[];
-    result: { success: boolean };
-  }) {
+  private flush(props: { items: TypeJuridiction[]; result: { success: boolean } }) {
     return this.prisma
       .$queryRawTyped(insertJurisdictionTypesRawQuery(props.items))
       .then(

@@ -6,6 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
+
 import { EmptyAgenda } from '../domain/agenda';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
@@ -23,10 +24,7 @@ import {
 
 @Injectable()
 export class DocsFilter implements NestInterceptor {
-  intercept(
-    _context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Observable<any> | Promise<Observable<any>> {
+  intercept(_context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
       catchError((err) =>
         throwError(() => {

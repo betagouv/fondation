@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import z from 'zod';
+
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
-import z from 'zod';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 
 @Injectable()
 export class ListJobsQuery {
@@ -19,15 +16,13 @@ export class ListJobsQuery {
     const [totalCount, items] = await this.prisma.$transaction([
       this.prisma.ingestionJob.count({
         where: {
-          status:
-            query.statuses.length > 0 ? { in: query.statuses } : undefined,
+          status: query.statuses.length > 0 ? { in: query.statuses } : undefined,
         },
       }),
       this.prisma.ingestionJob.findMany({
         orderBy: { id: 'desc' },
         where: {
-          status:
-            query.statuses.length > 0 ? { in: query.statuses } : undefined,
+          status: query.statuses.length > 0 ? { in: query.statuses } : undefined,
         },
         take: query.pagination.limit,
         skip: (query.pagination.page - 1) * query.pagination.limit,

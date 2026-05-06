@@ -6,9 +6,11 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { formatDate } from 'date-fns';
+
+import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
-import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
+
 import { FindOfficialReportDocumentQuery } from './find-official-report-document.query';
 
 @Injectable()
@@ -22,10 +24,7 @@ export class FindOfficialReportDocumentPdfQuery {
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
   ) {}
 
-  async handle(query: {
-    id: string;
-    forceNew?: boolean;
-  }): Promise<StreamableFile> {
+  async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
     const file = await this.prisma.$transaction(async (tx) => {
       const report = await tx.officialReport.findUnique({
         where: { id: query.id },
@@ -42,9 +41,7 @@ export class FindOfficialReportDocumentPdfQuery {
 
       const file$ = await this.files.getFile({ fileId: report.pdf.id, tx });
       if (!file$) {
-        this.logger.error(
-          `Could not retrieve the official report PDF file from S3`,
-        );
+        this.logger.error(`Could not retrieve the official report PDF file from S3`);
         throw new InternalServerErrorException();
       }
 
@@ -66,9 +63,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const name = `PV - ${formation} ${formatDate(file.sessionMeetingDate, 'dd-MM-yyyy')}.pdf`;
     const path = `sessions/${agenda.sessionId}/official-reports/${query.id}.pdf`;
 
-    const [pdfFileId] = await this.files.create([
-      { buffer, name, path, mimeType: FILE_MIME_TYPES.pdf },
-    ]);
+    const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
       await this.prisma.officialReport.update({

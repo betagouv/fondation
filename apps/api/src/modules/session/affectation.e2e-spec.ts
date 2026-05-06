@@ -4,14 +4,17 @@ import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker/locale/fr';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Gender, Role } from 'shared-models';
-import { AppModule } from 'src/app.module';
 import { agent } from 'supertest';
+
+import { Gender, Role } from 'shared-models';
+
 import { PrismaService } from '../framework/database';
 import { FILE_MIME_TYPES } from '../framework/files';
 import { UpdateReportDto } from '../report/infrastructure/dtos/report.dto';
 import { DetailedReportDto } from '../report/infrastructure/queries/detail-report.query';
 import { SimpleAuthService } from '../simple-auth';
+import { AppModule } from 'src/app.module';
+
 import { AffectReportersDto } from './infrastructure/dtos/nomination-file.dto';
 import { ListedMemberSessionsDto } from './infrastructure/queries/internal-list-member-sessions.query';
 
@@ -40,9 +43,7 @@ describe('Session Affectations E2E', () => {
   afterAll(async () => {
     if (!process.env.CI) {
       const prisma = app.get(PrismaService);
-      await prisma
-        .$executeRawUnsafe(`TRUNCATE nominations_context.session CASCADE`)
-        .catch();
+      await prisma.$executeRawUnsafe(`TRUNCATE nominations_context.session CASCADE`).catch();
     }
 
     await app.close();
@@ -115,10 +116,7 @@ describe('Session Affectations E2E', () => {
         cookie: loginRes.headers['set-cookie'] as string,
       };
 
-      const LODAM_FILE_PATH = path.join(
-        __dirname,
-        '../../../test/assets/lodam/lodam_transparence.xlsx',
-      );
+      const LODAM_FILE_PATH = path.join(__dirname, '../../../test/assets/lodam/lodam_transparence.xlsx');
       const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
       const importRes = await http
         .post('/api/sessions/v2/lodam')
@@ -152,15 +150,13 @@ describe('Session Affectations E2E', () => {
       member.cookie = loginRes.headers['set-cookie'] as string;
 
       const listMemberSessionsRes = await http
-        .get(
-          `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`,
-        )
+        .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
         .set({ cookie: member.cookie })
         .expect(HttpStatus.OK);
 
-      expect(
-        (listMemberSessionsRes.body as ListedMemberSessionsDto).items,
-      ).not.toContainEqual({ id: sessionId });
+      expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).not.toContainEqual({
+        id: sessionId,
+      });
     });
 
     describe('when the admin publish the session with an affectation', () => {
@@ -199,15 +195,11 @@ describe('Session Affectations E2E', () => {
 
       test("then the session should be visible inside the members' list", async () => {
         const listMemberSessionsRes = await http
-          .get(
-            `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`,
-          )
+          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
           .set({ cookie: member.cookie })
           .expect(HttpStatus.OK);
 
-        expect(
-          (listMemberSessionsRes.body as ListedMemberSessionsDto).items,
-        ).toContainEqual(
+        expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).toContainEqual(
           expect.objectContaining({
             id: sessionId,
             isAffected: true,
@@ -217,21 +209,17 @@ describe('Session Affectations E2E', () => {
 
       test('then the report should be editable', async () => {
         const listMemberSessionsRes = await http
-          .get(
-            `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`,
-          )
+          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
           .set({ cookie: member.cookie })
           .expect(HttpStatus.OK);
-        const firstAffected = (
-          listMemberSessionsRes.body as ListedMemberSessionsDto
-        ).items.find((x) => x.isAffected);
+        const firstAffected = (listMemberSessionsRes.body as ListedMemberSessionsDto).items.find(
+          (x) => x.isAffected,
+        );
         expect(firstAffected).toBeDefined();
         assert.ok(firstAffected);
 
         const detailedSession = await http
-          .get(
-            `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`,
-          )
+          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`)
           .set({ cookie: member.cookie })
           .expect(HttpStatus.OK);
 
@@ -282,15 +270,11 @@ describe('Session Affectations E2E', () => {
           member.cookie = loginRes.headers['set-cookie'] as string;
 
           const listMemberSessionsRes = await http
-            .get(
-              `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`,
-            )
+            .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
             .set({ cookie: member.cookie })
             .expect(HttpStatus.OK);
 
-          expect(
-            (listMemberSessionsRes.body as ListedMemberSessionsDto).items,
-          ).toContainEqual(
+          expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).toContainEqual(
             expect.objectContaining({ id: sessionId, isAffected: false }),
           );
         });
@@ -325,21 +309,17 @@ describe('Session Affectations E2E', () => {
 
           test('then the report should keep the previous editions', async () => {
             const listMemberSessionsRes = await http
-              .get(
-                `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`,
-              )
+              .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
               .set({ cookie: member.cookie })
               .expect(HttpStatus.OK);
-            const firstAffected = (
-              listMemberSessionsRes.body as ListedMemberSessionsDto
-            ).items.find((x) => x.isAffected);
+            const firstAffected = (listMemberSessionsRes.body as ListedMemberSessionsDto).items.find(
+              (x) => x.isAffected,
+            );
             expect(firstAffected).toBeDefined();
             assert.ok(firstAffected);
 
             const detailedSession = await http
-              .get(
-                `/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`,
-              )
+              .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`)
               .set({ cookie: member.cookie })
               .expect(HttpStatus.OK);
 
@@ -352,9 +332,7 @@ describe('Session Affectations E2E', () => {
               .set({ cookie: member.cookie })
               .expect(HttpStatus.OK);
 
-            expect((reportRes.body as DetailedReportDto).state).toBe(
-              'IN_PROGRESS',
-            );
+            expect((reportRes.body as DetailedReportDto).state).toBe('IN_PROGRESS');
           });
         });
       });

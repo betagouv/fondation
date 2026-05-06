@@ -3,12 +3,11 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 
-import { useUser } from '@queries/auth.queries';
-
 import { PageLayout } from '@/components/layout/PageLayout';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
 import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useUser } from '@queries/auth.queries';
 
 export function AppErrorBoundary() {
   const { user } = useUser();
@@ -20,15 +19,15 @@ export function AppErrorBoundary() {
     buttons.push({
       priority: 'primary',
       children: 'Accueil',
-      linkProps: { to: ROUTE_PATHS.SG.DASHBOARD }
+      linkProps: { to: ROUTE_PATHS.SG.DASHBOARD },
     });
   } else if (user?.role) {
     buttons.push({
       priority: 'primary',
       children: 'Accueil',
       linkProps: {
-        to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD
-      }
+        to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+      },
     });
   }
 
@@ -42,8 +41,8 @@ export function AppErrorBoundary() {
     priority: 'secondary',
     children: 'Contactez-nous',
     linkProps: {
-      href: `mailto:informatique.csm@justice.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    }
+      href: `mailto:informatique.csm@justice.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    },
   });
 
   return (
@@ -57,7 +56,7 @@ export function AppErrorBoundary() {
             'fr-grid-row',
             'fr-grid-row--gutters',
             'fr-grid-row--middle',
-            'fr-grid-row--center'
+            'fr-grid-row--center',
           )}
         >
           <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
@@ -85,7 +84,7 @@ export function AppErrorBoundary() {
               'fr-col-offset-md-1',
               'fr-px-6w',
               'fr-px-md-0',
-              'fr-py-0'
+              'fr-py-0',
             )}
           >
             <div className="relative h-[200px] w-40">

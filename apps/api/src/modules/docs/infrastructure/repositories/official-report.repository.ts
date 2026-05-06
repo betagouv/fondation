@@ -1,21 +1,17 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { timeOnlyToDate } from 'src/utils/time-only';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+
 import {
   OfficialReport,
   OfficialReportCreated,
   OfficialReportDeleted,
   OfficialReportUpdated,
 } from '../../domain/official-report';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -44,10 +40,7 @@ export class OfficialReportRepository {
   persist(report: OfficialReport): Promise<void> {
     return this.prisma.$transaction(async (tx) => {
       for (const message of report.messages) {
-        if (
-          message instanceof OfficialReportCreated ||
-          message instanceof OfficialReportUpdated
-        ) {
+        if (message instanceof OfficialReportCreated || message instanceof OfficialReportUpdated) {
           await this.persistOfficialReportCreatedOrUpdated(tx, message);
         } else if (message instanceof OfficialReportDeleted) {
           await this.persistOfficialReportDeleted(tx, message);
@@ -68,17 +61,13 @@ export class OfficialReportRepository {
     });
 
     if (!justiceContact) {
-      this.logger.error(
-        `Unknown justice contact "${message.justiceDepartmentContactId}"`,
-      );
+      this.logger.error(`Unknown justice contact "${message.justiceDepartmentContactId}"`);
       throw new InternalServerErrorException();
     }
 
     const justiceContactName = justiceContact.name.trim();
     if (!justiceContactName) {
-      this.logger.error(
-        `justice contact "${message.justiceDepartmentContactId}" name is empty`,
-      );
+      this.logger.error(`justice contact "${message.justiceDepartmentContactId}" name is empty`);
       throw new InternalServerErrorException();
     }
 
@@ -87,9 +76,7 @@ export class OfficialReportRepository {
       create: {
         id: message.id,
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
-        sessionMeetingStartingTime: timeOnlyToDate(
-          message.sessionMeetingStartingTime,
-        ),
+        sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
         hasRenunciation: message.hasRenunciation,
         justiceDepartmentContactId: justiceContact.id,
         justiceDepartmentContactName: justiceContact.name,
@@ -121,9 +108,7 @@ export class OfficialReportRepository {
       },
       update: {
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
-        sessionMeetingStartingTime: timeOnlyToDate(
-          message.sessionMeetingStartingTime,
-        ),
+        sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
         hasRenunciation: message.hasRenunciation,
         justiceDepartmentContactId: justiceContact.id,
         justiceDepartmentContactName: justiceContact.name,
@@ -158,10 +143,7 @@ export class OfficialReportRepository {
     });
   }
 
-  private async persistOfficialReportDeleted(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportDeleted,
-  ) {
+  private async persistOfficialReportDeleted(tx: Prisma.TransactionClient, message: OfficialReportDeleted) {
     await tx.agenda.updateMany({
       where: { officialReportId: message.officialReportId },
       data: { officialReportId: null },
