@@ -37,6 +37,7 @@ export class LolfiSessionsIngestor {
     const mappingResult = { success: true };
 
     const accumulator: RawSession[] = [];
+    // oxlint-disable-next-line require-yield
     async function* mapper(
       source: AsyncIterable<{ data: RawSession; success: boolean }>,
     ) {

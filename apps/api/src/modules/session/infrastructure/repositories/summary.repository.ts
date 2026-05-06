@@ -80,7 +80,7 @@ export class SummaryRepository {
           await this.persistSummaryContentWritten(tx, message);
         else if (message instanceof UpdatedSummaryReaderList)
           await this.persistUpdatedSummaryReaderList(tx, message);
-        else await assertNever(message);
+        else assertNever(message);
       }
     });
   }

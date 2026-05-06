@@ -25,7 +25,7 @@ export class IsSessionReadyForDocGenerationQuery {
           },
         });
 
-        if (!!hasAnySuspendedFile) {
+        if (hasAnySuspendedFile) {
           return {
             isReady: true,
             canCreateAgenda: true,

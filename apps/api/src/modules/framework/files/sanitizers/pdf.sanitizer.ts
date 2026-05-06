@@ -43,7 +43,11 @@ export class PdfSanitizer implements OnApplicationBootstrap, FileSanitizer {
 
 /** @see https://www.jameskerr.blog/posts/pipe-nodejs-readable-stream-into-child-process/ */
 class GhostscriptPdfTransform extends Transform {
+  // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   #stdin: Writable;
+  // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   #stdout: Readable;
 
   _construct(callback: TransformCallback): void {

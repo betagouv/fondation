@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --fix",
-    "lint:check": "eslint .",
+    "lint": "oxlint --fix",
+    "lint:check": "oxlint",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --check \"src/**/*.{ts,tsx}\" --write",
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",

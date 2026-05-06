@@ -72,7 +72,7 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
     const meta = await ScalingoJobMetadata.from(metadata);
     if (!meta.success) {
       this.logger.error(
-        `Could not read metadata: ${z.formatError(meta.error)}`,
+        `Could not read metadata: ${z.prettifyError(meta.error)}`,
       );
       return;
     }

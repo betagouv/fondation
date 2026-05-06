@@ -382,7 +382,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           nativeSelectProps={{ autoFocus: true, onChange: handleChange, defaultValue: props.user.role }}
         >
           {ROLE_OPTIONS.map(({ name, options }) => (
-            <optgroup label={name}>
+            <optgroup label={name} key={name}>
               {options.map(({ id, label }) => (
                 <option key={id} value={id}>
                   {intl.formatMessage(label, { gender: props.user.gender })}

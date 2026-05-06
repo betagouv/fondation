@@ -33,7 +33,7 @@ export class DetailsMemberSessionQueryDto extends createSortableDto(
         (x ?? '').split(',').flatMap((x) => {
           const trimmed = x.trim();
           if (trimmed === 'null') return [null];
-          if (!!trimmed) return [trimmed];
+          if (trimmed) return [trimmed];
           return [];
         }),
       )

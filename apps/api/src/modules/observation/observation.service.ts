@@ -96,7 +96,7 @@ export class ObservationService {
 
     if (linkedFiles.length !== command.linkedAttachments.length) {
       this.logger.warn(
-        `Did not find some linked attachments:\nCommand: \n  ${command.linkedAttachments.map((x) => '  - ' + JSON.stringify(x)).join('\n')}\n\Found:\n   ${linkedFiles.map((x) => '  -' + JSON.stringify(x)).join('\n')}`,
+        `Did not find some linked attachments:\nCommand: \n  ${command.linkedAttachments.map((x) => '  - ' + JSON.stringify(x)).join('\n')}\n\nFound:\n   ${linkedFiles.map((x) => '  -' + JSON.stringify(x)).join('\n')}`,
       );
       throw new BadRequestException();
     }

@@ -37,7 +37,7 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
             const label = flexRender(column.columnDef.header, { table: props.table, column } as any);
             return {
               label,
-              title: typeof label === 'string' && isVisible ? `Masquer ${label}` : `Afficher ${label}`,
+              title: typeof label === 'string' ? (isVisible ? `Masquer ${label}` : `Afficher ${label}`) : '',
               key: column.id,
               nativeInputProps: {
                 disabled: !column.getCanHide(),

@@ -62,6 +62,7 @@ export class AutoAffectationMember {
   }
 
   static fromLeastToMostWorkload(
+    this: void,
     a: AutoAffectationMember,
     b: AutoAffectationMember,
   ): number {

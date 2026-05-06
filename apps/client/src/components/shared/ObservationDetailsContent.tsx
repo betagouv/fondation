@@ -112,6 +112,7 @@ export function ObservationDetailsContent({
                     iconId="fr-icon-external-link-line"
                     iconPosition="right"
                     linkProps={{ target: '_blank', href: observant.externalUrl }}
+                    // oxlint-disable-next-line react/no-children-prop
                     children={undefined /* FIXME: TS issue otherwise */}
                   />
                 </dd>

@@ -1,9 +1,10 @@
+import type { FormationEnum } from '@/types/enums.types';
+import type { DetailedReportDto } from '@api/types';
 import type { NavigateFunction } from 'react-router';
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
-import type { DetailedReportDto } from '@api/types';
-import type { FormationEnum } from '@/types/enums.types';
+import { assertNever } from './types.util';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
@@ -77,10 +78,7 @@ export const getTransparencesBreadCrumb = (
       };
     }
 
-    default: {
-      const _exhaustiveCheck: never = currentPage;
-      console.info(_exhaustiveCheck);
-      throw new Error(`Unhandled page: ${currentPage}`);
-    }
+    default:
+      return assertNever(currentPage);
   }
 };

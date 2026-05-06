@@ -10,6 +10,8 @@ export function assertIsPageSize(
     pageSize !== null &&
     (!Number.isFinite(pageSize) || !PAGE_SIZES.has(pageSize as any)) // eslint-disable-line @typescript-eslint/no-explicit-any
   ) {
-    throw new Error(`the page size should be one of (${[...PAGE_SIZES].toString()}). ${pageSize} provided`);
+    throw new Error(
+      `the page size should be one of (${[...PAGE_SIZES].toString()}). ${JSON.stringify(pageSize)} provided`
+    );
   }
 }

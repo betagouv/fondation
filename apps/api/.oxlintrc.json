@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["jest*.config.js", "dist", "src/generated"],
+  "overrides": [
+    {
+      "files": ["./scripts/**/*.js"],
+      "rules": { "typescript/no-require-imports": "off" }
+    },
+    {
+      "files": ["./src/**/*.{dto,controller}.ts"],
+      "rules": {
+        "typescript/no-misused-spread": "off"
+      }
+    }
+  ]
+}

@@ -144,14 +144,14 @@ export class Files implements OnApplicationBootstrap {
         files.map((file) => {
           const publicUrl = file.filePublicUrls[0];
           if (publicUrl) {
-            return {
+            return Promise.resolve({
               ...publicUrl,
               fileId: file.id,
               publicUrl: new URL(
                 `${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`,
               ),
               existing: true,
-            };
+            });
           }
 
           return this.generatePublicUrl(file);

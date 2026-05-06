@@ -17,7 +17,7 @@ export const AppFooter = () => {
       accessibility="non compliant"
       contentDescription={isLogin ? contentDescription : undefined}
       bottomItems={[
-        <span className={cx('fr-footer__bottom-link')}>
+        <span key="anonymousFooter" className={cx('fr-footer__bottom-link')}>
           Sauf mention explicite de propriété intellectuelle détenue par des tiers, les contenus de ce site
           sont proposés sous{' '}
           <a
@@ -29,7 +29,11 @@ export const AppFooter = () => {
           </a>
         </span>,
         ...(VERSION && !isLogin
-          ? [<span className={cx('fr-footer__bottom-link')}>Version: {VERSION}</span>]
+          ? [
+              <span key="appVersion" className={cx('fr-footer__bottom-link')}>
+                Version: {VERSION}
+              </span>
+            ]
           : [])
       ]}
       domains={isLogin ? undefined : []}

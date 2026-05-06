@@ -7,39 +7,30 @@ export const getSgBreadCrumb = (path: RoutePathSecretariat): BreadcrumbVM => {
   };
 
   switch (path) {
-    case ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE: {
-      const secretariatGeneralSegments = [
-        {
-          label: 'Secrétariat général',
-          ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
-        },
-        {
-          label: 'Tableau de bord',
-          ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
-        }
-      ];
+    case ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE:
       return {
         currentPageLabel: 'Créer une nouvelle transparence',
-        segments: secretariatGeneralSegments
+        segments: [
+          {
+            label: 'Secrétariat général',
+            ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
+          },
+          {
+            label: 'Tableau de bord',
+            ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
+          }
+        ]
       };
-    }
-    case ROUTE_PATHS.SG.DASHBOARD: {
-      const secretariatGeneralSegments = [
-        {
-          label: 'Secrétariat général',
-          ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
-        }
-      ];
+
+    default:
       return {
         currentPageLabel: 'Tableau de bord',
-        segments: secretariatGeneralSegments
+        segments: [
+          {
+            label: 'Secrétariat général',
+            ...SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES
+          }
+        ]
       };
-    }
-
-    default: {
-      const _exhaustiveCheck = path;
-      console.info(_exhaustiveCheck);
-      throw new Error(`Unhandled page: ${path}`);
-    }
   }
 };

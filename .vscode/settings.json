@@ -1,0 +1,4 @@
+{
+  "oxc.enable.oxlint": true,
+  "oxc.trace.server": true
+}

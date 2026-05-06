@@ -76,5 +76,5 @@ const conjunctionListFormatter = new Intl.ListFormat('fr', {
 export function conjunctionList<T extends string | { toString(): string }>(
   items: readonly T[],
 ) {
-  return conjunctionListFormatter.format(items.map((x) => `${x}`));
+  return conjunctionListFormatter.format(items.map((x) => String(x)));
 }

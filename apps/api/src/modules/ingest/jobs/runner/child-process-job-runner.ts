@@ -27,7 +27,9 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
   async cancel(metadata: unknown): Promise<void> {
     const meta = await ChildProcessJobMetadata.from(metadata);
     if (!meta.success) {
-      this.logger.warn(`Could not read metadata: ${z.formatError(meta.error)}`);
+      this.logger.warn(
+        `Could not read metadata: ${z.prettifyError(meta.error)}`,
+      );
       return;
     }
 
@@ -78,7 +80,7 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
       child.on('message', (msg) => {
         if (exited) return;
 
-        this.logger.debug(`Received message: "${msg}"`);
+        this.logger.debug(`Received message: ${JSON.stringify(msg)}`);
         if (msg !== 'started') return;
 
         exited = true;

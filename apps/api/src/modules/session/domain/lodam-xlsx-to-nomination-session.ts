@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import * as xlsx from 'node-xlsx';
 import { setTimeout } from 'node:timers/promises';
 
+import { inspect } from 'node:util';
 import { Magistrat } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
 import { LodamNominationFile } from './nomination-file';
@@ -45,7 +46,7 @@ export async function lodamToNominationFiles(
       try {
         return parseLodamXlsxLine(date, line, lineNumber, fileNumbers);
       } catch (e) {
-        logger.warn(`failed parsing LODAM line ${lineNumber}: ${e}`);
+        logger.warn(`failed parsing LODAM line ${lineNumber}: ${inspect(e)}`);
         return {
           success: false,
           error: { lineNumber, messages: [`Ligne mal formée`] },

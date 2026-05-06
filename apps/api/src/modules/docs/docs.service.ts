@@ -340,6 +340,7 @@ export class DocsService {
       authorId: command.authorId,
       formation: session.formation,
       hasRenunciation: command.hasRenunciation,
+      // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
       sessionMeetingStartingTime: command.sessionMeetingTime,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
@@ -393,6 +394,7 @@ export class DocsService {
       agendas,
       members,
       chairman,
+      // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
 
       authorId: command.authorId,
@@ -428,7 +430,7 @@ export class DocsService {
   async deleteOfficialReport(command: { id: string }): Promise<void> {
     const officialReport = await this.officialReportRepository.find(command);
     officialReport.delete();
-    this.officialReportRepository.persist(officialReport);
+    await this.officialReportRepository.persist(officialReport);
   }
 
   findPresentationPlanAgendas(query: {
@@ -477,6 +479,7 @@ export class DocsService {
     const plan = JusticePresentationPlan.create({
       agendas,
       chairman,
+      // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
       justiceContactId: command.justiceContactId,
       authorId: command.authorId,
@@ -528,6 +531,7 @@ export class DocsService {
     plan.update({
       agendas,
       chairman,
+      // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
       justiceContactId: command.justiceContactId,
       authorId: command.authorId,

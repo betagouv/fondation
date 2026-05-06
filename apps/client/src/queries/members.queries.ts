@@ -51,7 +51,7 @@ export const useMemberListQuery = (
 
       let sortBy: 'firstName' | 'lastName' | undefined, sortDirection: 'desc' | undefined;
       if (options.sorting) {
-        const [{ id = undefined, desc = undefined } = {}] = options.sorting;
+        const [{ id, desc } = {}] = options.sorting;
         sortBy = id === 'lastName' ? 'lastName' : id === 'firstName' ? 'firstName' : undefined;
         sortDirection = desc ? 'desc' : undefined;
       }

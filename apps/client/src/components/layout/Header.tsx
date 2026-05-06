@@ -116,7 +116,11 @@ export const AppHeader = () => {
         alt: 'Conseil Supérieur de la Magistrature'
       }}
       homeLinkProps={{ to: '/', title: 'Accueil' }}
-      quickAccessItems={[<HelpPageButton />, <LolfiCsm />, <Avatar />]}
+      quickAccessItems={[
+        <HelpPageButton key="header help link" />,
+        <LolfiCsm key="header lolfi link" />,
+        <Avatar key="header avatar" />
+      ]}
       navigation={shouldShowNavBar ? navigation : []}
     />
   );

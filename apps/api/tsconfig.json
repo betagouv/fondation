@@ -9,7 +9,7 @@
     "target": "ESNext",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    // "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -20,6 +20,20 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "lib": ["ESNext"],
+    "types": [
+      "node",
+      "jest",
+      "bcrypt",
+      "common-tags",
+      "cookie-parser",
+      "express",
+      "inquirer",
+      "pg",
+      "sax",
+      "supertest",
+      "unzipper",
+      "multer"
+    ],
 
     "paths": {
       "src/*": ["./src/*"]
@@ -38,6 +52,5 @@
     "test/**/*.ts",
     "cli/**/*.ts",
     "oxlint.config.ts"
-  ],
-  "references": [{ "path": "../../packages/shared-models" }]
+  ]
 }

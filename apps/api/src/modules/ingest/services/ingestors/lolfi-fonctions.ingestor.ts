@@ -28,6 +28,7 @@ export class LolfiFonctionsIngestor {
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
+    // oxlint-disable-next-line require-yield
     async function* mapper(
       source: AsyncIterable<{ data: RawFunction; success: boolean }>,
     ) {
@@ -78,7 +79,7 @@ const RawFunctionSchema = z.object({
   tri: z.coerce.number().int().gte(-32_768).lte(32_767),
   lieufc: z
     .union([z.literal('0'), z.literal('1'), z.literal('2')], {
-      error: (iss) => `0, 1 ou 2 attendu. "${iss.input}" fourni`,
+      error: (iss) => `0, 1 ou 2 attendu. ${JSON.stringify(iss.input)} fourni`,
     })
     .transform((x) =>
       x === '0'

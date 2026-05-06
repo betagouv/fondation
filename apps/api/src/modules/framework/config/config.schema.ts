@@ -10,10 +10,10 @@ export const ConfigSchema = z.object({
 
   cookieSecret: z.prefault(z.string().min(32), process.env.COOKIE_SECRET!),
 
-  originUrl: z.prefault(z.url().regex(/[^\/]$/), process.env.ORIGIN_URL!),
+  originUrl: z.prefault(z.url().regex(/[^/]$/), process.env.ORIGIN_URL!),
 
   frontendOriginUrl: z.prefault(
-    z.url().regex(/[^\/]$/),
+    z.url().regex(/[^/]$/),
     process.env.FRONTEND_ORIGIN_URL!,
   ),
 
@@ -105,11 +105,8 @@ export const ConfigSchema = z.object({
 
       endpoint: z.prefault(
         process.env.NODE_ENV === 'production'
-          ? z
-              .url()
-              .startsWith('https://')
-              .regex(/[^\/]$/)
-          : z.url().regex(/[^\/]$/),
+          ? z.url().startsWith('https://').regex(/[^/]$/)
+          : z.url().regex(/[^/]$/),
         process.env.S3_ENDPOINT || 'https://s3.fr-par.scw.cloud',
       ),
 

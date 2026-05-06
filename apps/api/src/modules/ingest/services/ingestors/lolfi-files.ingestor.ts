@@ -15,6 +15,7 @@ import { SessionService } from 'src/modules/session/infrastructure/sessions.serv
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
+import { noop } from 'src/utils/noop';
 import { dag } from '../../domain/requirements';
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
@@ -61,7 +62,7 @@ export class LolfiFilesIngestor {
       if (signal.aborted) return { success: true };
 
       if (!success) {
-        this.failJob(jobId);
+        this.failJob(jobId).catch(noop);
         return { success };
       }
 

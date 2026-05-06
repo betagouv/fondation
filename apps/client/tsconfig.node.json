@@ -21,5 +21,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "tests/**/*.ts", "openapi-ts.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "oxlint.config.ts",
+    "tests/**/*.ts",
+    "openapi-ts.config.ts"
+  ]
 }

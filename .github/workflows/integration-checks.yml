@@ -80,7 +80,7 @@ jobs:
         run: pnpm types:check
 
       - name: Lint
-        run: pnpm lint:check
+        run: node_modules/.bin/oxlint --deny-warnings
 
       - name: Format
         run: pnpm format:check

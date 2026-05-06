@@ -27,6 +27,7 @@ export class LolfiTransparencesIngestor {
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
+    // oxlint-disable-next-line require-yield
     async function* mapper(
       source: AsyncIterable<{ data: RawNomination; success: boolean }>,
     ) {

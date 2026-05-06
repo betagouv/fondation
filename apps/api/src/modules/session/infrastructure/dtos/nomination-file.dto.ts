@@ -39,9 +39,7 @@ export class AffectReportersDto extends createZodDto(
   }),
 ) {}
 
-function toNullableArray(
-  value: unknown | undefined | null,
-): undefined | (unknown | null)[] {
+function toNullableArray(value: unknown): undefined | unknown[] {
   if (value === undefined) return undefined;
   return ([] as unknown[]).concat(value);
 }

@@ -29,13 +29,13 @@ export class DetailsMemberQuery {
       gender: user.gender,
       displayTitle: user.displayTitle ?? null,
       title: toMemberTitle(user.title),
-      excludedJurisdictions: (user.excludedJurisdictions ?? []).map(
+      excludedJurisdictions: ((user.excludedJurisdictions as any[]) ?? []).map(
         (j: { id: string; label: string }) => ({
           id: j.id,
           label: j.label,
         }),
       ),
-      stats: (user.stats ?? []).map(
+      stats: ((user.stats as any[]) ?? []).map(
         (stat: {
           year: number;
           count: number;

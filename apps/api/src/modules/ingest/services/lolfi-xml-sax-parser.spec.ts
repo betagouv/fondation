@@ -22,6 +22,7 @@ describe('LOLFI XML Parser', () => {
   `;
 
   function collect<T>(array: T[]) {
+    // oxlint-disable-next-line require-yield
     return async function* (source: AsyncIterable<T>) {
       for await (const item of source) array.push(item);
     };

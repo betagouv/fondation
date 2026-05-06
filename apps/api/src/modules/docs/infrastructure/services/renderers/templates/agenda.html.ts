@@ -38,10 +38,10 @@ function agendaNominationParagraph(
   },
   index: number,
 ): string {
-  const currentPosition = !!ctx.currentPosition
+  const currentPosition = ctx.currentPosition
     ? `, actuellement ${ctx.currentPosition} (${ctx.currentGrade})`
     : '';
-  const targetPosition = !!ctx.targetedPosition
+  const targetPosition = ctx.targetedPosition
     ? `, au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
     : '';
   const reporters =

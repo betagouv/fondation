@@ -10,6 +10,7 @@ import {
 import * as Sentry from '@sentry/node';
 import axios, {
   AxiosError,
+  AxiosHeaders,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
@@ -42,21 +43,21 @@ class InstrumentedHttpService implements Required<HttpService> {
     url: string,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), method: 'delete', url });
+    return this.request({ ...config, method: 'delete', url });
   }
 
   get<T = any, D = any>(
     url: string,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), method: 'get', url });
+    return this.request({ ...config, method: 'get', url });
   }
 
   head<T = any, D = any>(
     url: string,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), method: 'head', url });
+    return this.request({ ...config, method: 'head', url });
   }
 
   patch<T = any, D = any>(
@@ -64,7 +65,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), data, method: 'patch', url });
+    return this.request({ ...config, data, method: 'patch', url });
   }
 
   post<T = any, D = any>(
@@ -72,7 +73,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), data, method: 'post', url });
+    return this.request({ ...config, data, method: 'post', url });
   }
 
   put<T = any, D = any>(
@@ -80,7 +81,7 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({ ...(config ?? {}), data, method: 'put', url });
+    return this.request({ ...config, data, method: 'put', url });
   }
 
   patchForm<T = any, D = any>(
@@ -88,16 +89,9 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({
-      ...(config ?? {}),
-      url,
-      data,
-      method: 'patch',
-      headers: {
-        ...(config?.headers ?? {}),
-        'content-type': 'multipart/form-data',
-      },
-    });
+    return this.request(
+      this.toMultipart({ ...config, url, data, method: 'patch' }),
+    );
   }
 
   postForm<T = any, D = any>(
@@ -105,16 +99,9 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({
-      ...(config ?? {}),
-      url,
-      data,
-      method: 'post',
-      headers: {
-        ...(config?.headers ?? {}),
-        'content-type': 'multipart/form-data',
-      },
-    });
+    return this.request(
+      this.toMultipart({ ...config, url, data, method: 'post' }),
+    );
   }
 
   putForm<T = any, D = any>(
@@ -122,16 +109,9 @@ class InstrumentedHttpService implements Required<HttpService> {
     data?: D,
     config?: AxiosRequestConfig<D>,
   ): Observable<AxiosResponse<T, D>> {
-    return this.request({
-      ...(config ?? {}),
-      url,
-      data,
-      method: 'put',
-      headers: {
-        ...(config?.headers ?? {}),
-        'content-type': 'multipart/form-data',
-      },
-    });
+    return this.request(
+      this.toMultipart({ ...config, url, data, method: 'put' }),
+    );
   }
 
   request<T = any>(config: AxiosRequestConfig): Observable<AxiosResponse<T>> {
@@ -216,6 +196,19 @@ class InstrumentedHttpService implements Required<HttpService> {
     if (error?.status) output['error.type'] = String(error.status);
 
     return output;
+  }
+
+  private toMultipart(config: AxiosRequestConfig): AxiosRequestConfig {
+    let headers = config?.headers;
+    if (headers instanceof AxiosHeaders) {
+      headers.set('content-type', 'multipart/form-data');
+    } else if (headers != undefined) {
+      headers['Content-Type'] = 'multipart/form-data';
+    } else {
+      headers = { 'Content-Type': 'multipart/form-data' };
+    }
+
+    return { ...config, headers };
   }
 }
 

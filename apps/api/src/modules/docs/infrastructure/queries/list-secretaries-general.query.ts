@@ -47,6 +47,7 @@ export class ListSecretariesGeneralQuery {
       title: PrismaUserTitleEnum | null;
     },
   >(
+    this: void,
     value: T,
   ): value is T & {
     duty: 'SECRETARY';
