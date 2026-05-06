@@ -154,7 +154,6 @@ export class OfficialReport {
       secretary: props.secretary,
       authorId: props.authorId,
       members: props.members.map(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
           ...m,
           title: displayTitle,

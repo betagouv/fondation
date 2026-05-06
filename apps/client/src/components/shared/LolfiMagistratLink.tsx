@@ -10,7 +10,7 @@ export function LolfiMagistratLink(props: {
   small?: boolean;
 }) {
   return (
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     <Button
       size={props.small ? 'small' : undefined}

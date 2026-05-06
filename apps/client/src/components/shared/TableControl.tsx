@@ -1,6 +1,6 @@
+import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useMemo, useState, type FC } from 'react';
-import { Pagination } from '@codegouvfr/react-dsfr/Pagination';
 import { ITEMS_PAR_PAGE } from '../../types/table.types';
 import { pluralize } from '../../utils/string.utils';
 
@@ -69,7 +69,7 @@ export const TableControl: FC<TableControlProps> = ({
         getPageLinkProps={(pageNumber) => ({
           onClick: () => setCurrentPage(pageNumber),
 
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           to: undefined
         })}

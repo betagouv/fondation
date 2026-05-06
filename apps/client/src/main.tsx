@@ -58,6 +58,6 @@ declare module '@codegouvfr/react-dsfr/spa' {
 }
 
 if (import.meta.env.DEV) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__TANSTACK_QUERY_CLIENT__ = queryClient;
 }

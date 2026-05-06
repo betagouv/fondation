@@ -55,7 +55,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
   useLayoutEffect(() => {
     if (activeFile && !isOpen) {
       // Bug in @codegouvfr/react-dsfr implementation for the modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const modalExists = Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal);
       if (modalExists) {
         modalObservations.open();

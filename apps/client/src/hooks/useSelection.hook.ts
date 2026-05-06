@@ -7,7 +7,7 @@ export function useSelection<T, Key extends string>(props: {
   toString: (item: T) => Key | Falsy;
 }) {
   const [selection, setSelection] = React.useState(new Set(props.defaultSelection));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const selectItem = React.useCallback((item: T) => props.toString(item), []);
 
   React.useEffect(() => {

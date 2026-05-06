@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 
 import '@tanstack/react-table';
 import type { MessageDescriptor } from 'react-intl';

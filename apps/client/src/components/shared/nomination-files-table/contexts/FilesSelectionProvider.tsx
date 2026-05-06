@@ -7,7 +7,7 @@ export function FilesSelectionProvider(
   const selectedIds = React.useMemo(
     () =>
       Object.entries(props.selection)
-        .filter(([_key, isSelected]) => isSelected) // eslint-disable-line @typescript-eslint/no-unused-vars
+        .filter(([_key, isSelected]) => isSelected)
         .map(([key]) => key),
     [props.selection]
   );

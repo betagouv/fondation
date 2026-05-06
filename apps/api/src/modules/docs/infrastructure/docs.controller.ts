@@ -339,7 +339,6 @@ export class DocsController {
     type: FoundMembersForNewOfficialReportDto,
   })
   listSecretariesGeneralForNewOfficialReport(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Param('sessionId') _sessionId: string,
   ): Promise<ListedSecretariesGeneralDto> {
     return this.docs.listSecretariesGeneral();

@@ -1,5 +1,5 @@
-import React from 'react';
 import { type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
+import React from 'react';
 
 type AlertSeverity = DsfrAlertProps['severity'];
 export type AlertProps = {
@@ -18,5 +18,5 @@ export type AlertContextType = {
 export const AlertsContext = React.createContext<AlertContextType | null>(null);
 
 export function useAlerts(): Pick<AlertContextType, 'pushAlert'> {
-  return React.useContext(AlertsContext) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  return React.useContext(AlertsContext) as any; // oxlint-disable-line @typescript-eslint/no-explicit-any
 }

@@ -9,7 +9,7 @@ export function NominationFilesTableProvider(
   const [totalRowsCount, setTotalRowsCount] = React.useState<number>(0);
 
   const ctx = React.useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     const ctxValue: any = {
       sessionId: props.sessionId,
       formation: props.formation,

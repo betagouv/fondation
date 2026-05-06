@@ -39,7 +39,6 @@ export class ForwardsController {
       return;
     }
 
-    /* eslint-disable */
     const {
       host: _host,
       authorization: _authorization,
@@ -47,7 +46,6 @@ export class ForwardsController {
       'content-length': _contentLength,
       ...requestHeaders
     } = req.headers;
-    /* eslint-enable */
 
     try {
       const { data, headers, status, statusText } = await lastValueFrom(

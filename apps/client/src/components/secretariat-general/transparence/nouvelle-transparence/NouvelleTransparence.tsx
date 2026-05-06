@@ -122,7 +122,7 @@ const NouvelleTransparence: FC = () => {
       />
 
       {transparenceUploadError ? (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         <UploadExcelFailedAlert validationErrors={(transparenceUploadError as any).validationErrors} />
       ) : null}
 

@@ -3,7 +3,6 @@ import type { JobFile, Tree } from './job.types';
 export function tree(files: readonly JobFile[]): Tree[] {
   const nodes = new Map(
     files.map((file) => {
-      // eslint-disable-next-line
       const { requirements: _req, ...node } = file;
       return [file.id, { ...node, children: [] }] as const;
     })

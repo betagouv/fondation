@@ -33,7 +33,7 @@ export class LolfiSessionsIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: false } | { success: true; values: RawSession[] }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
     const accumulator: RawSession[] = [];

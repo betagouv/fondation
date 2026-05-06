@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 
 import type { ITEMS_PAR_PAGE } from '@/types/table.types';
 import type { TableState } from '@tanstack/react-table';

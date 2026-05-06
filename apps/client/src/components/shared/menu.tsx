@@ -9,7 +9,7 @@ export const MenuSeparator = BaseMenu.Separator;
 export const MenuTrigger = React.memo((props: ButtonProps) => (
   <BaseMenu.Trigger
     nativeButton
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     render={(renderProps: any) => <Button {...renderProps} {...props} />}
   />
 ));
@@ -35,7 +35,7 @@ export const MenuContent = React.memo((props: React.PropsWithChildren) => (
 export const MenuItem = React.memo((props: ButtonProps) => (
   <BaseMenu.Item
     nativeButton={!props.linkProps}
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     render={(renderProps: any, state) => (
       <Button
         priority="tertiary no outline"

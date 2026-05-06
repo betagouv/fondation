@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 /** @ts-ignore */
 
 import { z } from 'zod';

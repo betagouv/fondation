@@ -110,7 +110,7 @@ describe('parseMultipartBody', () => {
   });
 });
 
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment */
+/* oxlint-disable @typescript-eslint/ban-ts-comment */
 describe('Multipart Type', () => {
   it('should convert a z.core.File into StoredFile', () => {
     const dtoSchema = createZodDto(
@@ -122,7 +122,7 @@ describe('Multipart Type', () => {
       NonNullable<Dto['files']> extends StoredFile[] ? 'pass' : 'fail';
 
     // @ts-expect-error
-    const assertion: Assertion = 'fail';
+    const _assertion: Assertion = 'fail';
   });
 });
 /* eslint-enable */

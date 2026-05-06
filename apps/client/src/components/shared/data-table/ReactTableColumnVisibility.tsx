@@ -33,7 +33,7 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
           legend={<span className="text-sm font-bold uppercase">Colonnes</span>}
           options={hidableColumns.map((column) => {
             const isVisible = column.getIsVisible();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             const label = flexRender(column.columnDef.header, { table: props.table, column } as any);
             return {
               label,

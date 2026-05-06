@@ -8,7 +8,7 @@ export function assertIsPageSize(
     import.meta.env.PROD &&
     pageSize !== undefined &&
     pageSize !== null &&
-    (!Number.isFinite(pageSize) || !PAGE_SIZES.has(pageSize as any)) // eslint-disable-line @typescript-eslint/no-explicit-any
+    (!Number.isFinite(pageSize) || !PAGE_SIZES.has(pageSize as any)) // oxlint-disable-line @typescript-eslint/no-explicit-any
   ) {
     throw new Error(
       `the page size should be one of (${[...PAGE_SIZES].toString()}). ${JSON.stringify(pageSize)} provided`

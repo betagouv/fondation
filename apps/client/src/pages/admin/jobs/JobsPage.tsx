@@ -141,7 +141,7 @@ export function JobsPage() {
                           {
                             linkProps: {
                               to: '#',
-                              // eslint-disable-next-line
+                              // oxlint-disable-next-line
                               // @ts-ignore
                               onClick: (e) => {
                                 e.preventDefault();

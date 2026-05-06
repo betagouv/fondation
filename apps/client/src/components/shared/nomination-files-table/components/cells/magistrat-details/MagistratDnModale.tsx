@@ -55,7 +55,7 @@ export function MagistratModaleProvider(
   const modalExists = useCallback(
     () =>
       // Bug in @codegouvfr/react-dsfr implementation for the modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal),
     [modalRef]
   );

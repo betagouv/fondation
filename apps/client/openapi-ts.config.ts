@@ -8,7 +8,7 @@ export default defineConfig({
     importFileExtension: '.ts',
     fileName: { suffix: null },
     header: [
-      `/* eslint-disable */`,
+      `/* oxlint-disable */`,
       `// this file is auto-generated`,
       '//',
       `// Licensed under the Apache License, Version 2.0`,

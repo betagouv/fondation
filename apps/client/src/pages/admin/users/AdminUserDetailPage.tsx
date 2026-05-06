@@ -483,7 +483,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const fullName = toFullName(user);
   const isUserImpersonable = !(
     ['FIRST_SECRETARY', 'OFFICER', 'SECRETARY'] satisfies DetailedAdminUserDto['role'][]
-  ).includes(user.role as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+  ).includes(user.role as any); // oxlint-disable-line @typescript-eslint/no-explicit-any
 
   const tab = useTab();
   const { mutate: impersonate, isPending } = useImpersonateMutation({ userId: props.user.id });

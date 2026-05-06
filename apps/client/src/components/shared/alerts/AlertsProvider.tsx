@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { AlertsContext, type AlertContextType, type AlertProps } from './alerts.context';
 import { Alert, type AlertProps as DsfrAlertProps } from '@codegouvfr/react-dsfr/Alert';
+import { AlertsContext, type AlertContextType, type AlertProps } from './alerts.context';
 
 function AlertsProvider(props: React.PropsWithChildren) {
   const [alerts, setAlerts] = React.useState<AlertProps[]>([]);
@@ -36,7 +36,7 @@ AlertsProvider.Alerts = function InnerAlertList(
             title={alert.title}
             description={alert.description}
             onClose={() => ctx.setAlerts(ctx.alerts.filter(({ id }) => id !== alert.id))}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             {...(props as any)}
             closable={props.closable !== false}
           />
