@@ -41,6 +41,7 @@ export class LolfiNominationSessionFinder {
           observationClosingDate: null,
         });
 
+      if (nominationFiles[formation].items.length === 0) continue;
       session.associateNominationFiles({
         files: nominationFiles[formation].items,
       });
