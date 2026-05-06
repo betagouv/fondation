@@ -4,9 +4,9 @@ export const EMBEDDED_SCREENSHOTS_ACCEPTED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
   'image/gif',
-  'image/webp'
+  'image/webp',
 ];
 
 export const TRANSPARENCES_ACCEPTED_MIME_TYPES = [
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];

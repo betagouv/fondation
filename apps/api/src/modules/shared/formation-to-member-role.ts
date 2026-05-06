@@ -1,4 +1,5 @@
 import { Magistrat } from 'shared-models';
+
 import { assertNever } from 'src/utils/assert-never';
 
 export function formationToMemberRole(

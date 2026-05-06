@@ -1,22 +1,21 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { generatePath, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
-
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { DateOnly } from '@/models/date-only.model';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import { useUser } from '@queries/auth.queries';
 import {
   useDetailedNominationSessionQuery,
   useUpdateNominationSessionMutation,
-  useValidateSessionMutation
+  useValidateSessionMutation,
 } from '@queries/nomination-sessions.queries';
-import { generatePath, useNavigate, useParams } from 'react-router';
 
 function TableauDeBordEditTransparence(props: { session: DetailedNominationSessionDto }) {
   const navigate = useNavigate();
@@ -31,7 +30,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
     control,
     setError,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(
       z.object({
@@ -39,8 +38,8 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
         date: z.iso.date('Format de date invalide'),
         observationsClosingDate: z.iso.date('Format de date invalide'),
         dueDate: z.iso.date('Format de date invalide').nullable(),
-        positionStartDate: z.iso.date('Format de date invalide').nullable()
-      })
+        positionStartDate: z.iso.date('Format de date invalide').nullable(),
+      }),
     ),
     defaultValues: {
       name: session?.name ?? '',
@@ -51,8 +50,8 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
       dueDate: session?.dueDate ? DateOnly.fromDateOnly(session.dueDate, 'yyyy-MM-dd') : null,
       positionStartDate: session?.positionStartDate
         ? DateOnly.fromDateOnly(session.positionStartDate, 'yyyy-MM-dd')
-        : null
-    }
+        : null,
+    },
   });
 
   const onSubmit = async (data: {
@@ -72,13 +71,15 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
 
           validateSession(
             { userId: user.id, sessionId: session.id },
-            { onSettled: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id })) }
+            {
+              onSettled: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id })),
+            },
           );
         },
         onError: () => {
           setError(`root`, { message: 'Erreur lors de la modification de la transparence' });
-        }
-      }
+        },
+      },
     );
   };
 
@@ -106,7 +107,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
               onChange,
               autoFocus: true,
               ...field,
-              placeholder: 'Nom de la transparence'
+              placeholder: 'Nom de la transparence',
             }}
             state={errors.name ? 'error' : 'default'}
             stateRelatedMessage={errors.name?.message}
@@ -129,7 +130,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
               type: 'date',
               value,
               onChange,
-              ...field
+              ...field,
             }}
             state={errors.date ? 'error' : 'default'}
             stateRelatedMessage={errors.date?.message}
@@ -153,7 +154,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
               type: 'date',
               value,
               onChange,
-              ...field
+              ...field,
             }}
             state={errors.observationsClosingDate ? 'error' : 'default'}
             stateRelatedMessage={errors.observationsClosingDate?.message}
@@ -172,7 +173,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
               type: 'date',
               value: value ?? undefined,
               onChange,
-              ...field
+              ...field,
             }}
             state={errors.dueDate ? 'error' : 'default'}
             stateRelatedMessage={errors.dueDate?.message}
@@ -191,7 +192,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
               type: 'date',
               value: value ?? undefined,
               onChange,
-              ...field
+              ...field,
             }}
             state={errors.positionStartDate ? 'error' : 'default'}
             stateRelatedMessage={errors.positionStartDate?.message}
@@ -205,13 +206,13 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             id: 'annuler',
             children: 'Annuler',
             priority: 'tertiary',
-            linkProps: { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id }) }
+            linkProps: { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id }) },
           },
           {
             id: 'enregistrer',
             children: 'Enregistrer',
-            type: 'submit'
-          }
+            type: 'submit',
+          },
         ]}
       />
     </form>

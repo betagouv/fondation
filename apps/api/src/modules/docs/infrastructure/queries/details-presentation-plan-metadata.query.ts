@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import z from 'zod';
 
 @Injectable()
 export class DetailsPresentationPlanMetadataQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    id: string;
-  }): Promise<DetailedPresentationPlanMetadataDto> {
+  async handle(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
     const plan = await this.prisma.justicePresentationPlan.findUnique({
       where: { id: query.id },
       select: {
@@ -44,15 +44,12 @@ export class DetailsPresentationPlanMetadataQuery {
       isPresented: plan.isPresented,
       date: DateOnly.fromDate(plan.date).toJson(),
       time: dateToTimeOnly(plan.time),
-      formation: prismaFormationEnumToFormationEnum(
-        assertIsDefined(plan.agendas[0]).agenda.formation,
-      ),
+      formation: prismaFormationEnumToFormationEnum(assertIsDefined(plan.agendas[0]).agenda.formation),
       agendas: plan.agendas.map(({ agendaId, comment }) => ({
         comment,
         id: agendaId,
       })),
-      justiceDepartmentContactId:
-        plan.justiceDepartmentContactId?.toString() ?? null,
+      justiceDepartmentContactId: plan.justiceDepartmentContactId?.toString() ?? null,
     };
   }
 }
@@ -64,9 +61,7 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     date: dateOnlyJsonSchema,
     isPresented: z.boolean(),
     formation: z.enum(Magistrat.Formation),
-    agendas: z.array(
-      z.object({ id: z.string(), comment: z.string().nullable() }),
-    ),
+    agendas: z.array(z.object({ id: z.string(), comment: z.string().nullable() })),
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

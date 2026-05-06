@@ -5,10 +5,10 @@ import React, { type FC } from 'react';
 import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useUser } from '@queries/auth.queries';
-import { useDetailedMemberGdsSession } from '@queries/members.queries';
+import { NominationFile } from 'shared-models';
 
+import { PageContentLayout } from '../../../shared/PageContentLayout';
+import { gradeToLabel } from '../../labels/labels-mappers';
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
@@ -17,12 +17,13 @@ import {
   PrioriteEnumLabels,
   type FormationEnum,
   type GradeEnum,
-  type ReportStatusEnum
+  type ReportStatusEnum,
 } from '@/types/enums.types';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedMemberSessionDto } from '@api/types';
-import { NominationFile } from 'shared-models';
-import { PageContentLayout } from '../../../shared/PageContentLayout';
-import { gradeToLabel } from '../../labels/labels-mappers';
+import { useUser } from '@queries/auth.queries';
+import { useDetailedMemberGdsSession } from '@queries/members.queries';
+
 import { HeaderReportList } from './HeaderReportList';
 import { ReportList } from './ReportList';
 import { ReportListViewToggle } from './ReportListViewToggle';
@@ -39,7 +40,7 @@ function useReportListColumns(sessionId: string) {
         enableSorting: true,
         header: 'N°',
         cell: ({ getValue }) => getValue(),
-        meta: { size: '10%' }
+        meta: { size: '10%' },
       }),
 
       h.accessor('name', {
@@ -52,7 +53,7 @@ function useReportListColumns(sessionId: string) {
             priority="tertiary no outline"
             size="small"
             linkProps={{
-              to: generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id: row.original.id })
+              to: generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id: row.original.id }),
             }}
           >
             <div className="text-left leading-4 underline">{row.original.name}</div>
@@ -60,27 +61,27 @@ function useReportListColumns(sessionId: string) {
               <span className="text-xs">{row.original.currentPosition}</span>
             ) : null}
           </Button>
-        )
+        ),
       }),
 
       h.accessor('grade', {
         enableSorting: false,
         header: 'Grade actuel',
         cell: ({ getValue }) => gradeToLabel(getValue() as GradeEnum),
-        meta: { size: '10%' }
+        meta: { size: '10%' },
       }),
 
       h.accessor('targettedPosition', {
         id: 'targetedPosition',
         enableSorting: false,
         header: 'Poste cible',
-        cell: ({ getValue }) => getValue() ?? '-'
+        cell: ({ getValue }) => getValue() ?? '-',
       }),
 
       h.accessor('targetedGrade', {
         enableSorting: true,
         header: 'Grade cible',
-        cell: ({ getValue }) => gradeToLabel(getValue())
+        cell: ({ getValue }) => gradeToLabel(getValue()),
       }),
 
       h.accessor('observations', {
@@ -94,10 +95,10 @@ function useReportListColumns(sessionId: string) {
               name: row.original.name,
               id: row.original.nominationFileId,
               observations: row.original.observations,
-              legacyObservers: row.original.observers
+              legacyObservers: row.original.observers,
             }}
           />
-        )
+        ),
       }),
 
       h.accessor('priorities', {
@@ -112,11 +113,11 @@ function useReportListColumns(sessionId: string) {
             values: [{ id: 'null', label: 'Aucune' }].concat(
               ([PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER, PrioriteEnum.PROFILE] as const).map((id) => ({
                 id,
-                label: PrioriteEnumLabels[id]
-              }))
-            )
-          }
-        }
+                label: PrioriteEnumLabels[id],
+              })),
+            ),
+          },
+        },
       }),
 
       h.accessor('state', {
@@ -133,11 +134,11 @@ function useReportListColumns(sessionId: string) {
               { id: NominationFile.ReportState.NEW, label: 'Nouveau' },
               { id: NominationFile.ReportState.IN_PROGRESS, label: 'En cours' },
               { id: NominationFile.ReportState.READY_TO_SUPPORT, label: 'Prêt à soutenir' },
-              { id: NominationFile.ReportState.SUPPORTED, label: 'Soutenu' }
-            ]
-          }
-        }
-      })
+              { id: NominationFile.ReportState.SUPPORTED, label: 'Soutenu' },
+            ],
+          },
+        },
+      }),
     ];
   }, [sessionId]);
 }
@@ -155,7 +156,7 @@ export const ReportListPage: FC = () => {
     columnFilters: [] as (
       | { id: 'status'; value: string[] }
       | { id: 'priorities'; value: (PrioriteEnum | 'null')[] }
-    )[]
+    )[],
   });
 
   const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedMemberGdsSession({
@@ -166,7 +167,7 @@ export const ReportListPage: FC = () => {
       ?.value as (PrioriteEnum | null)[],
 
     sessionId: sessionId!,
-    userId: user?.id
+    userId: user?.id,
   });
 
   const table = useDataTable({
@@ -182,9 +183,9 @@ export const ReportListPage: FC = () => {
 
     meta: {
       paginationItemLabel: defineMessage({
-        defaultMessage: `{count, plural, one {rapport} other {rapports}}`
-      })
-    }
+        defaultMessage: `{count, plural, one {rapport} other {rapports}}`,
+      }),
+    },
   });
 
   const onChange = React.useCallback(() => {
@@ -192,7 +193,7 @@ export const ReportListPage: FC = () => {
       ...state,
       sorting: [],
       columnFilters: [],
-      pagination: { pageIndex: 0, pageSize: 50 }
+      pagination: { pageIndex: 0, pageSize: 50 },
     }));
   }, [setTableState]);
 

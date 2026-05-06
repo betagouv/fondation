@@ -15,16 +15,12 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
-import {
-  ApiPaginated,
-  Pagination,
-  QueryPagination,
-} from 'src/modules/framework/pagination';
+import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
+import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
+import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
-import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
-import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import {
   DetailsMemberSessionQueryDto,
   ListMembersQueryDto,
@@ -68,9 +64,7 @@ export class MembersController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/:userId')
   @ZodResponse({ type: DetailedMemberDto, status: HttpStatus.OK })
-  detailsMember(
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<DetailedMemberDto> {
+  detailsMember(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedMemberDto> {
     return this.members.detailsMember({ userId });
   }
 
@@ -100,10 +94,7 @@ export class MembersController {
   @Put('/:userId/title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
-  updateTitle(
-    @Param('userId') userId: string,
-    @Body() { title }: UpdateMemberTitleDto,
-  ): Promise<void> {
+  updateTitle(@Param('userId') userId: string, @Body() { title }: UpdateMemberTitleDto): Promise<void> {
     return this.members.updateTitle({ userId, title });
   }
 
@@ -147,9 +138,7 @@ export class MembersController {
   }
 
   @HasRole()
-  @Put(
-    '/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo',
-  )
+  @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeNominationFileMemberMemo(
     @AuthedUser() authedUser: { id: string },

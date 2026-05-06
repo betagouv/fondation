@@ -1,5 +1,6 @@
-import { Gender, Role } from 'shared-models';
 import z from 'zod';
+
+import { Gender, Role } from 'shared-models';
 
 import { makeId } from 'src/utils/id';
 
@@ -83,10 +84,7 @@ export class AuthUser {
     readonly password: AuthPassword,
   ) {}
 
-  async authenticate(props: {
-    plainPassword: string;
-    now: Date;
-  }): Promise<AuthSession> {
+  async authenticate(props: { plainPassword: string; now: Date }): Promise<AuthSession> {
     if (!(await this.password.equals(props.plainPassword))) {
       throw new AuthUserNotAuthentifiable();
     }
@@ -134,11 +132,7 @@ export class AuthUser {
     return user;
   }
 
-  impersonate(props: {
-    authSessionId: string;
-    userId: string;
-    now: Date;
-  }): AuthImpersonation {
+  impersonate(props: { authSessionId: string; userId: string; now: Date }): AuthImpersonation {
     const impersonation = AuthImpersonation.start({
       authSessionId: props.authSessionId,
       impersonateId: props.userId,
@@ -151,9 +145,7 @@ export class AuthUser {
   }
 
   unImpersonate(props: { impersonationId: string }): void {
-    this.#messages.push(
-      new AuthImpersonationRevoked(this.id, props.impersonationId),
-    );
+    this.#messages.push(new AuthImpersonationRevoked(this.id, props.impersonationId));
   }
 
   readonly #messages: AuthUserEvent[] = [];

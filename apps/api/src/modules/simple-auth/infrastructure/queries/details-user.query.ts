@@ -4,10 +4,7 @@ import z from 'zod';
 
 import { Gender, Role } from 'shared-models';
 
-import {
-  USER_DUTIES,
-  USER_TITLES,
-} from 'src/modules/administration/domain/user-enum';
+import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';

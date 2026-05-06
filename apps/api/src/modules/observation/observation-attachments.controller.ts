@@ -1,15 +1,11 @@
-import {
-  Controller,
-  Get,
-  HttpStatus,
-  Param,
-  Query,
-  UsePipes,
-} from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
+
 import { Role } from 'shared-models';
+
 import { HasRole } from '../simple-auth';
+
 import { ListObservationsAttachmentsQueryDto } from './infrastructure/dtos/observation.dto';
 import { ListedObservationsAttachmentsDto } from './infrastructure/queries/list-observations-attachments.query';
 import { ObservationService } from './observation.service';

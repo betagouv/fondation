@@ -1,16 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import {
-  searchMagistratRawQuery,
-  searchMagistratTotalCountRawQuery,
-} from 'src/generated/prisma/sql';
+import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { toMagistratFullTextQuery } from 'src/utils/fulltext-search';
 
 @Injectable()
@@ -22,19 +15,13 @@ export class SearchMagistratsQuery {
     ignoreIds: readonly string[] | undefined;
     pagination: Pagination;
   }): Promise<SearchMagistratsResponseDto> {
-    const searchQuery = query.search?.trim()
-      ? toMagistratFullTextQuery(query.search)
-      : null;
+    const searchQuery = query.search?.trim() ? toMagistratFullTextQuery(query.search) : null;
 
     const ignoreIds: string[] | null =
-      query.ignoreIds && query.ignoreIds.length > 0
-        ? (query.ignoreIds as string[])
-        : null;
+      query.ignoreIds && query.ignoreIds.length > 0 ? (query.ignoreIds as string[]) : null;
 
     const [[resultTotal], resultItems] = await this.prisma.$transaction([
-      this.prisma.$queryRawTyped(
-        searchMagistratTotalCountRawQuery(searchQuery, ignoreIds),
-      ),
+      this.prisma.$queryRawTyped(searchMagistratTotalCountRawQuery(searchQuery, ignoreIds)),
       this.prisma.$queryRawTyped(
         searchMagistratRawQuery(
           searchQuery,
@@ -45,19 +32,17 @@ export class SearchMagistratsQuery {
       ),
     ]);
 
-    const items = resultItems.map(
-      ({ id, grade, firstName, lastName, usedName, ...item }) => ({
-        id,
-        grade,
-        firstName,
-        lastName,
-        usedName,
-        currentPosition:
-          item.functionId && item.jurisdictionId
-            ? `${item.functionId} ${item.jurisdictionId}`
-            : item.currentPosition,
-      }),
-    );
+    const items = resultItems.map(({ id, grade, firstName, lastName, usedName, ...item }) => ({
+      id,
+      grade,
+      firstName,
+      lastName,
+      usedName,
+      currentPosition:
+        item.functionId && item.jurisdictionId
+          ? `${item.functionId} ${item.jurisdictionId}`
+          : item.currentPosition,
+    }));
 
     return paginate({
       items,

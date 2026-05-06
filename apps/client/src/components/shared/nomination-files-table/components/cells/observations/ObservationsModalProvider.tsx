@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
   type FC,
-  type PropsWithChildren
+  type PropsWithChildren,
 } from 'react';
 
 import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
@@ -22,7 +22,7 @@ type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
 
 const modalObservations = createModal({
   id: 'modal-observations',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 const formatDate = (dateString: string) => {
@@ -30,7 +30,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   });
 };
 
@@ -49,14 +49,16 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
       setEditingObservation(null);
       setDeletingObservation(null);
       setActiveFile(null);
-    }
+    },
   });
 
   useLayoutEffect(() => {
     if (activeFile && !isOpen) {
       // Bug in @codegouvfr/react-dsfr implementation for the modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const modalExists = Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal);
+      const modalExists = Boolean(
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+        modalRef.current && (window as any).dsfr(modalRef.current)?.modal,
+      );
       if (modalExists) {
         modalObservations.open();
       }
@@ -94,14 +96,14 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
       {
         sessionId: activeFile.sessionId,
         nominationFileId: activeFile.id,
-        observationId: deletingObservation.id
+        observationId: deletingObservation.id,
       },
       {
         onSuccess: () => {
           setDeletingObservation(null);
           setModalMode('view');
-        }
-      }
+        },
+      },
     );
   };
 
@@ -124,7 +126,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
     (pending: boolean) => {
       setIsPending(pending);
     },
-    [setIsPending]
+    [setIsPending],
   );
 
   return (
@@ -144,12 +146,12 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                   priority: 'secondary' as const,
                   disabled: isPending,
                   onClick: () => setModalMode('create'),
-                  doClosesModal: false
+                  doClosesModal: false,
                 },
                 {
                   doClosesModal: true,
-                  children: 'Fermer'
-                }
+                  children: 'Fermer',
+                },
               ]
             : modalMode === 'create'
               ? [
@@ -157,7 +159,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                     doClosesModal: true,
                     priority: 'secondary' as const,
                     disabled: isPending,
-                    children: 'Annuler'
+                    children: 'Annuler',
                   },
                   {
                     doClosesModal: false,
@@ -166,9 +168,9 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                     disabled: isPending,
                     nativeButtonProps: {
                       type: 'submit',
-                      form: 'observation-form'
-                    }
-                  }
+                      form: 'observation-form',
+                    },
+                  },
                 ]
               : modalMode === 'confirm-delete'
                 ? [
@@ -177,7 +179,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       priority: 'secondary' as const,
                       children: 'Annuler',
                       disabled: isPending,
-                      onClick: handleCancelDelete
+                      onClick: handleCancelDelete,
                     },
                     {
                       doClosesModal: false,
@@ -186,9 +188,9 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       disabled: isPending,
                       onClick: handleConfirmDelete,
                       nativeButtonProps: {
-                        disabled: isDeleting
-                      }
-                    }
+                        disabled: isDeleting,
+                      },
+                    },
                   ]
                 : [
                     {
@@ -196,7 +198,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       priority: 'secondary' as const,
                       children: 'Retour',
                       disabled: isPending,
-                      onClick: handleBackToView
+                      onClick: handleBackToView,
                     },
                     {
                       doClosesModal: false,
@@ -205,9 +207,9 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
                       disabled: isPending,
                       nativeButtonProps: {
                         type: 'submit',
-                        form: 'observation-form'
-                      }
-                    }
+                        form: 'observation-form',
+                      },
+                    },
                   ]
         }
       >

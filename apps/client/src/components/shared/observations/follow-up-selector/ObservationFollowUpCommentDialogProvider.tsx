@@ -2,11 +2,11 @@ import React from 'react';
 
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 
-import { ObservationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
 import {
   ObservationFollowUpCommentContext,
-  type ObservationFollowUpCommentCallback
+  type ObservationFollowUpCommentCallback,
 } from './ObservationFollowUpCommentContext';
+import { ObservationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
 
 export function ObservationFollowUpCommentProvider(props: React.PropsWithChildren) {
   const [followUp, setFollowUp] = React.useState<ObservationFollowupEnum | null>(null);
@@ -15,7 +15,7 @@ export function ObservationFollowUpCommentProvider(props: React.PropsWithChildre
   const onDrop = React.useCallback(() => callback?.({ type: 'drop' }), [callback]);
   const onChange = React.useCallback(
     (value: string | null) => callback?.({ type: 'comment', value }),
-    [callback]
+    [callback],
   );
 
   return (

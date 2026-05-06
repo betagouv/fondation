@@ -1,4 +1,5 @@
 import { useSummary } from '@/pages/summary/SummaryContext';
+
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionBiography() {

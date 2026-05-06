@@ -1,11 +1,13 @@
+import React from 'react';
+import { generatePath, useNavigate, useParams } from 'react-router';
+
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useCreateJusticePresentationPlanMutation,
   useJusticePresentationPlanMetadataQuery,
-  useUpdateJusticePresentationPlanMutation
+  useUpdateJusticePresentationPlanMutation,
 } from '@queries/agenda.queries';
-import React from 'react';
-import { generatePath, useNavigate, useParams } from 'react-router';
+
 import { PresentationPlanContext } from './presentation-plan.context';
 import type { PresentationPlanContextType } from './presentation-plan.type';
 
@@ -13,7 +15,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
   const { planId = null } = useParams<{ planId: string }>();
 
   const { data: metadata, isFetching: isFetchingMeta } = useJusticePresentationPlanMetadataQuery({
-    presentationPlanId: planId
+    presentationPlanId: planId,
   });
 
   const { mutate: create, isPending: isCreating } = useCreateJusticePresentationPlanMutation();
@@ -28,7 +30,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     secretaryId: null,
     date: null,
     justiceContactId: null,
-    time: null
+    time: null,
   });
 
   React.useEffect(() => {
@@ -46,7 +48,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       chairmanId: s.chairmanId ?? metadata.chairmanId,
       date: s.date ?? metadata.date,
       justiceContactId: s.justiceContactId ?? metadata.justiceDepartmentContactId,
-      time: s.time ?? metadata.time
+      time: s.time ?? metadata.time,
     }));
   }, [metadata]);
 
@@ -63,11 +65,11 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       setState((s) => ({
         ...s,
         formation: options.formation,
-        agendas: Object.fromEntries(options.agendaIds.map((id) => [id, null]))
+        agendas: Object.fromEntries(options.agendaIds.map((id) => [id, null])),
       }));
       navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_NEW));
     },
-    [navigate, setState]
+    [navigate, setState],
   );
 
   const setMetadata = React.useCallback(
@@ -80,7 +82,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     }) => {
       setState((s) => ({ ...s, ...options, step: 'AGENDA_COMMENTS' }));
     },
-    [setState]
+    [setState],
   );
 
   const createPlan = React.useCallback(
@@ -99,8 +101,8 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         justiceContactId: state.justiceContactId,
         agendas: Object.entries(options.agendas).map(([id, comment]) => ({
           id,
-          comment: comment?.trim() || null
-        }))
+          comment: comment?.trim() || null,
+        })),
       };
 
       const onSuccess = (planId: string) => {
@@ -113,11 +115,11 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         create(payload, {
           onSuccess: ({ data }) => {
             if (data) return onSuccess(data.id);
-          }
+          },
         });
       }
     },
-    [state, setState, planId, update, create, navigate]
+    [state, setState, planId, update, create, navigate],
   );
 
   return (

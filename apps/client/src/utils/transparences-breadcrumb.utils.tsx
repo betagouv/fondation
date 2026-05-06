@@ -1,13 +1,16 @@
 import type { NavigateFunction } from 'react-router';
+
 import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
-import type { DetailedReportDto } from '@api/types';
 import type { FormationEnum } from '@/types/enums.types';
+import type { DetailedReportDto } from '@api/types';
+
+import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
+import { assertNever } from './types.util';
 
 export enum TransparencesCurrentPage {
   perGdsTransparencyReports = 'per-gds-transparency-reports',
-  gdsReport = 'gds-report'
+  gdsReport = 'gds-report',
 }
 
 type TransparencesCurrentPageType =
@@ -22,31 +25,31 @@ type TransparencesCurrentPageType =
 
 export const getTransparencesBreadCrumb = (
   currentPage: TransparencesCurrentPageType,
-  navigate: NavigateFunction
+  navigate: NavigateFunction,
 ): BreadcrumbVM => {
   const TRANSPARENCES_ANCHOR_ATTRIBUTES = {
     to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
-    }
+    },
   };
 
   const transparenciesSegment = {
     label: 'Transparences',
-    ...TRANSPARENCES_ANCHOR_ATTRIBUTES
+    ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
   };
 
   const gdsTransparenciesSegment = {
     label: 'Pouvoir de proposition du garde des Sceaux',
-    ...TRANSPARENCES_ANCHOR_ATTRIBUTES
+    ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
   };
 
   switch (currentPage.name) {
     case TransparencesCurrentPage.perGdsTransparencyReports: {
       return {
         currentPageLabel: `Formation ${formationToLabel(currentPage.formation)}`,
-        segments: [transparenciesSegment, gdsTransparenciesSegment]
+        segments: [transparenciesSegment, gdsTransparenciesSegment],
       };
     }
 
@@ -55,7 +58,7 @@ export const getTransparencesBreadCrumb = (
       if (!report) {
         return {
           currentPageLabel: 'Rapport non trouvé',
-          segments: [transparenciesSegment, gdsTransparenciesSegment]
+          segments: [transparenciesSegment, gdsTransparenciesSegment],
         };
       }
 
@@ -68,19 +71,16 @@ export const getTransparencesBreadCrumb = (
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
           navigate(path);
-        }
+        },
       };
 
       return {
         currentPageLabel: report.name,
-        segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment]
+        segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment],
       };
     }
 
-    default: {
-      const _exhaustiveCheck: never = currentPage;
-      console.info(_exhaustiveCheck);
-      throw new Error(`Unhandled page: ${currentPage}`);
-    }
+    default:
+      return assertNever(currentPage);
   }
 };

@@ -1,5 +1,7 @@
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import React from 'react';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { ObservationFollowUpReminderContext } from './ObservationFollowUpReminderContext';
 import { observationFollowUpReminderModal } from './ObservationFollowUpReminderModal';
 
@@ -13,7 +15,7 @@ export function useObservationFollowUpReminderModal() {
         observationFollowUpReminderModal.open();
       }
     },
-    [ctx]
+    [ctx],
   );
 
   if (!ctx) throw new Error('Unknown ObservationFollowUpReminderContext');

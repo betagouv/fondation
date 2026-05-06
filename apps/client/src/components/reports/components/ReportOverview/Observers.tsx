@@ -1,16 +1,16 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import clsx from 'clsx';
 
+import { reportHtmlIds } from '../../dom/html-ids';
 import { ObservationCard } from '@/components/shared/observations';
 import type { DetailedReportDto } from '@api/types';
-import clsx from 'clsx';
-import { reportHtmlIds } from '../../dom/html-ids';
 
 export const Observers = ({
   observers,
   observations,
   sessionId,
   nominationFileId,
-  reportId
+  reportId,
 }: {
   observers: string[] | null;
   observations?: DetailedReportDto['observations'];

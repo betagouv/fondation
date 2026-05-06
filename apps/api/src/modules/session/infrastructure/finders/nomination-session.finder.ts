@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -6,14 +7,9 @@ import { PrismaService } from 'src/modules/framework/database';
 export class NominationSessionFinder {
   constructor(private readonly prisma: PrismaService) {}
 
-  async attachmentsCount(query: {
-    sessionId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<number> {
+  async attachmentsCount(query: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<number> {
     if (!query.tx) {
-      return this.prisma.$transaction(async (tx) =>
-        this.attachmentsCount({ ...query, tx }),
-      );
+      return this.prisma.$transaction(async (tx) => this.attachmentsCount({ ...query, tx }));
     }
 
     const count = await query.tx.session.findUnique({
@@ -32,9 +28,7 @@ export class NominationSessionFinder {
     if (!query.versionId) return 0;
 
     if (!query.tx) {
-      return this.prisma.$transaction(async (tx) =>
-        this.affectedReportersCount({ ...query, tx }),
-      );
+      return this.prisma.$transaction(async (tx) => this.affectedReportersCount({ ...query, tx }));
     }
 
     const count = await query.tx.session.findUnique({

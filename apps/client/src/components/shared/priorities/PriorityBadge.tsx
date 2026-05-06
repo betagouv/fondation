@@ -1,18 +1,19 @@
-import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import React from 'react';
 
+import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
+
 const color = {
   ETOILE: 'warning',
   OUTRE_MER: 'new',
-  PROFILE: 'info'
+  PROFILE: 'info',
 } as const satisfies Record<PrioriteEnum, AlertProps.Severity | 'new' | null>;
 
 const acronyms = {
   ETOILE: 'E',
   OUTRE_MER: 'OM',
-  PROFILE: 'P'
+  PROFILE: 'P',
 } as const satisfies Record<PrioriteEnum, string>;
 
 function InternalPriorityBadge(props: { priority: PrioriteEnum; small?: false; acronym?: true }) {

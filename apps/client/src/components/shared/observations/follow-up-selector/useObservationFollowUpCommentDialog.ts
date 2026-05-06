@@ -1,9 +1,10 @@
 import React from 'react';
 
 import type { ObservationFollowupEnum } from '@/types/enums.types';
+
 import {
   ObservationFollowUpCommentContext,
-  type ObservationFollowUpCommentEvent
+  type ObservationFollowUpCommentEvent,
 } from './ObservationFollowUpCommentContext';
 import { observationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
 
@@ -21,7 +22,7 @@ export function useObservationFollowUpCommentDialog() {
         observationFollowUpCommentModal.open();
       });
     },
-    [ctx]
+    [ctx],
   );
 
   return { waitForComment };

@@ -7,7 +7,7 @@ export function SummaryAutoSaveAlert() {
   const { canWriteSummary } = useSummary();
   const [isVisible, setIsVisible] = useLocallyStoredState<boolean>({
     state: canWriteSummary,
-    key: 'summary.auto_save_alert_visible'
+    key: 'summary.auto_save_alert_visible',
   });
 
   if (!canWriteSummary) return null;

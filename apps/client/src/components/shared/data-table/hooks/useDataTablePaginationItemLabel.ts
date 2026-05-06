@@ -3,7 +3,7 @@ import React from 'react';
 import { useIntl } from 'react-intl';
 
 export function useDataTablePaginationItemLabel<Data extends RowData>(
-  table: Table<Data>
+  table: Table<Data>,
 ): string | undefined {
   const intl = useIntl();
   const count = table.getRowCount();

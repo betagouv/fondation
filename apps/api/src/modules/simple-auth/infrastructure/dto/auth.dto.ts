@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
-import { Gender, Role } from 'shared-models';
 import z from 'zod';
+
+import { Gender, Role } from 'shared-models';
 
 export const LoginDtoSchema = z.object({
   email: z.email().trim(),
@@ -20,6 +21,4 @@ export class RegisterUserDto extends createZodDto(
   }),
 ) {}
 
-export class RegisteredUserDto extends createZodDto(
-  z.object({ id: z.uuid() }),
-) {}
+export class RegisteredUserDto extends createZodDto(z.object({ id: z.uuid() })) {}

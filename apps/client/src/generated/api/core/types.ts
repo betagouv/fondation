@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 // this file is auto-generated
 //
 // Licensed under the Apache License, Version 2.0
@@ -55,10 +55,7 @@ export interface Config {
    */
   headers?:
     | RequestInit['headers']
-    | Record<
-        string,
-        string | number | boolean | (string | number | boolean)[] | null | undefined | unknown
-      >;
+    | Record<string, string | number | boolean | (string | number | boolean)[] | null | undefined | unknown>;
   /**
    * The request method.
    *

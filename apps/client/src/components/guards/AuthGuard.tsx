@@ -1,8 +1,7 @@
 import { Navigate } from 'react-router';
 
-import { useUser } from '@queries/auth.queries';
-
 import { ROUTE_PATHS } from '../../utils/route-path.utils';
+import { useUser } from '@queries/auth.queries';
 
 interface AuthGuardProps {
   children: React.ReactNode;

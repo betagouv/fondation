@@ -1,5 +1,6 @@
-import type { FormationEnum } from '@/types/enums.types';
 import type { DateOnlyJson } from 'shared-models';
+
+import type { FormationEnum } from '@/types/enums.types';
 
 export type AgendaStep = {
   index: 1 | 2;

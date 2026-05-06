@@ -1,15 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { Gender, Role } from 'shared-models';
-import {
-  PrismaUserDutyEnum,
-  PrismaUserTitleEnum,
-} from 'src/generated/prisma/enums';
+
+import { isMember, MEMBER_ROLES } from '../member.utils';
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import z from 'zod';
-import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
 export class InternalGetMemberQuery {

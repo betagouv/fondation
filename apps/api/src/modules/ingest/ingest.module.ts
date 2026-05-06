@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { SessionModule } from 'src/modules/session/session.module';
+
 import { IngestController } from './infrastructure/ingest.controller';
 import { IngestService } from './infrastructure/ingest.service';
 import { InternalDetailsLolfiSessionQuery } from './infrastructure/queries/internal-details-lolfi-session.query';

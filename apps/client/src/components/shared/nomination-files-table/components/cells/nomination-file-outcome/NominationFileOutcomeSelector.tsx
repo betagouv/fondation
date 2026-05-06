@@ -1,23 +1,24 @@
 import React, { useMemo } from 'react';
 
+import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 import { DropdownSelect } from '@/components/shared/DropdownSelect';
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,
-  type SessionNominationFile
+  type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
-import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
+
+import { useSortedNominationFileOutcomes } from './nomination-file-outcome-badge.utils';
 import { NominationFileOutcomeBadge } from './NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from './OutcomeCommentModalContext';
-import { useSortedNominationFileOutcomes } from './nomination-file-outcome-badge.utils';
 
 export function NominationFileOutcomeSelector(props: { nominationFile: SessionNominationFile }) {
   const nominationFileId = React.useMemo(() => props.nominationFile.id, [props]);
   const initialOutcome = React.useMemo(() => props.nominationFile.content.outcome?.value, [props]);
 
   const [outcome, setOutcome] = React.useState<NominationFileOutcomeEnum | '@@EMPTY'>(
-    initialOutcome ?? ('@@EMPTY' as const)
+    initialOutcome ?? ('@@EMPTY' as const),
   );
 
   const { sessionId, formation } = useNominationFilesTable();
@@ -25,7 +26,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
   const observationFollowUps = useObservationFollowUpReminderModal();
   const { mutate, reset, isPending } = useDefineNominationFileOutcomeMutation({
     sessionId,
-    nominationFileId
+    nominationFileId,
   });
 
   const onChange = React.useCallback(
@@ -45,11 +46,11 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
           },
           onError(error) {
             console.error(error);
-          }
-        }
+          },
+        },
       );
     },
-    [mutate, reset, observationFollowUps, props.nominationFile]
+    [mutate, reset, observationFollowUps, props.nominationFile],
   );
 
   const onOutcomeChange = React.useCallback(
@@ -69,7 +70,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
       setOutcome(outcome);
       onChange({ value: outcome, comment: event.value });
     },
-    [setOutcome, onChange, reset, outcomeCommentDialog]
+    [setOutcome, onChange, reset, outcomeCommentDialog],
   );
 
   const baseOptions = useSortedNominationFileOutcomes();
@@ -94,10 +95,10 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
                   outcome={value}
                   key={`short_outcome_option_${value}`}
                 />
-              )
-            }
+              ),
+            },
       ),
-    [baseOptions, formation]
+    [baseOptions, formation],
   );
 
   return <DropdownSelect options={options} disabled={isPending} value={outcome} onChange={onOutcomeChange} />;

@@ -6,9 +6,9 @@ import supertest from 'supertest';
 
 import { Gender, ReportFileUsage, Role } from 'shared-models';
 
-import { AppModule } from 'src/app.module';
 import { PrismaService } from '../framework/database';
 import { SimpleAuthService } from '../simple-auth';
+import { AppModule } from 'src/app.module';
 
 describe('Report E2E', () => {
   let cookie: string;
@@ -84,9 +84,7 @@ describe('Report E2E', () => {
       .post('/api/auth/v2/login')
       .send({ email: user.email, password: user.password })
       .expect(HttpStatus.NO_CONTENT);
-    cookie = ([] as string[]).concat(
-      loginResponse.header['set-cookie'] as string[] | string,
-    )[0] as string;
+    cookie = ([] as string[]).concat(loginResponse.header['set-cookie'] as string[] | string)[0] as string;
   });
 
   it('should attach files to a report', async () => {

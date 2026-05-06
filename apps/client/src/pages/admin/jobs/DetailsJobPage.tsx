@@ -1,9 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useDetailsJobQuery } from '@queries/jobs.queries';
 import clsx from 'clsx';
 import React from 'react';
 import { useOutletContext, useParams } from 'react-router';
+
+import { useDetailsJobQuery } from '@queries/jobs.queries';
+
 import { JOB_STATUS_ICONS } from './common/job-status.utils';
 import type { JobsPageOutletContextType } from './common/jobs-page-outlet-context.type';
 import { JobFilesTree } from './components/JobFilesTree';
@@ -18,11 +20,11 @@ export function DetailsJobPage() {
 
   const { icon, textColor } = React.useMemo(
     () => JOB_STATUS_ICONS[job?.status ?? status ?? 'IDLE'],
-    [job, status]
+    [job, status],
   );
   const selectedFile = React.useMemo(
     () => (selectedFileId ? (job?.files ?? []).find((file) => file.id === selectedFileId) : undefined),
-    [selectedFileId, job]
+    [selectedFileId, job],
   );
 
   const entityName = React.useMemo(() => {
@@ -111,7 +113,7 @@ export function DetailsJobPage() {
               className={clsx(
                 cx('ri-close-circle-fill'),
                 'mr-1 before:align-middle before:content-[""]',
-                textColor
+                textColor,
               )}
             />
             Erreurs

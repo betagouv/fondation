@@ -13,9 +13,7 @@ describe('full text search', () => {
 
   describe('toMagistratFullTextQuery', () => {
     it('should convert a simple text query into a postgresql ts_query adapted to the index in the magistrat table', () => {
-      expect(toMagistratFullTextQuery(`Albert.Einstein@justice`)).toBe(
-        `albert.einstein@justice:C*`,
-      );
+      expect(toMagistratFullTextQuery(`Albert.Einstein@justice`)).toBe(`albert.einstein@justice:C*`);
     });
   });
 });

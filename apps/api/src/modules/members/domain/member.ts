@@ -1,5 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+
 import { Role } from 'shared-models';
+
 import { JurisdictionId } from './jurisdiction';
 import { MemberDutyEnum, MemberTitleEnum } from './member-enums';
 
@@ -10,11 +12,7 @@ export class Member {
     readonly jurisdictionIds: Set<JurisdictionId>,
   ) {}
 
-  static from(props: {
-    id: string;
-    role: Role;
-    jurisdictionIds: Set<JurisdictionId>;
-  }): Member {
+  static from(props: { id: string; role: Role; jurisdictionIds: Set<JurisdictionId> }): Member {
     return new Member(props.id, props.role, props.jurisdictionIds ?? new Set());
   }
 
@@ -50,13 +48,7 @@ export class Member {
       throw new IncompatibleTitle();
     }
 
-    this.#messages.push(
-      new MemberTitleUpdated(
-        this.id,
-        title,
-        title === null ? null : 'PRESIDENT',
-      ),
-    );
+    this.#messages.push(new MemberTitleUpdated(this.id, title, title === null ? null : 'PRESIDENT'));
   }
 
   readonly #messages: MemberEvent[] = [];
@@ -65,10 +57,7 @@ export class Member {
   }
 }
 
-export type MemberEvent =
-  | ExcludedMemberJurisdictions
-  | MemberDisplayTitleUpdated
-  | MemberTitleUpdated;
+export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated | MemberTitleUpdated;
 
 export class ExcludedMemberJurisdictions {
   readonly userId: string;

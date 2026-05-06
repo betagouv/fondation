@@ -1,4 +1,5 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
+
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 
 export function MemberListHeader() {
@@ -9,8 +10,8 @@ export function MemberListHeader() {
         segments={[
           {
             label: 'Secrétariat général',
-            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD }
-          }
+            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD },
+          },
         ]}
       />
     </div>

@@ -3,19 +3,14 @@ import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
+import { ListGdsNominationSessionsQueryDto } from '../dtos/nomination-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-
-import { ListGdsNominationSessionsQueryDto } from '../dtos/nomination-session.dto';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];
@@ -38,13 +33,10 @@ export class ListNominationSessionsQuery {
       }),
     };
 
-    const orderBy: Prisma.SessionOrderByWithRelationInput[] = query.sorting
-      .sortBy
+    const orderBy: Prisma.SessionOrderByWithRelationInput[] = query.sorting.sortBy
       ? [
           {
-            [query.sorting.sortBy]: query.sorting.sortDesc
-              ? ('desc' as const)
-              : ('asc' as const),
+            [query.sorting.sortBy]: query.sorting.sortDesc ? ('desc' as const) : ('asc' as const),
           },
         ]
       : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
@@ -81,9 +73,7 @@ export class ListNominationSessionsQuery {
     return paginate({ items, totalCount, pagination: query.pagination });
   }
 
-  private static computeStatus(session: {
-    isValidated: boolean;
-  }): SessionStatus {
+  private static computeStatus(session: { isValidated: boolean }): SessionStatus {
     if (!session.isValidated) return 'TO_VALIDATE';
     return 'READY';
   }

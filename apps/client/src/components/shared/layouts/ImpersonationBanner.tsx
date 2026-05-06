@@ -1,8 +1,10 @@
-import { toFullName } from '@/utils/user.utils';
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useLogout, useUser } from '@queries/auth.queries';
 import React from 'react';
+
+import { toFullName } from '@/utils/user.utils';
+import { useLogout, useUser } from '@queries/auth.queries';
+
 import { PermanentBanner } from './PermanentBanner';
 
 const text = colors.options.purpleGlycine.main494.default;
@@ -16,7 +18,7 @@ export function ImpersonationBanner() {
     mutate(undefined, {
       onSuccess: () => {
         window.close();
-      }
+      },
     });
   }, [mutate]);
 

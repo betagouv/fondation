@@ -3,15 +3,14 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
-import type { ListedNominationSessionsDto } from '@api/types';
-import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
-
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { DateOnly } from '@/models/date-only.model';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import type { ListedNominationSessionsDto } from '@api/types';
+import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { SessionStatusBadge } from './SessionStatusBadge';
 
 const h = createColumnHelper<ListedNominationSessionsDto['items'][number]>();
@@ -25,7 +24,7 @@ const columns = [
       <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
         {row.original.name}
       </Link>
-    )
+    ),
   }),
 
   h.accessor('formation', {
@@ -39,10 +38,10 @@ const columns = [
         label: 'Formation',
         values: [
           { id: 'PARQUET', label: 'Parquet' },
-          { id: 'SIEGE', label: 'Siège' }
-        ]
-      }
-    }
+          { id: 'SIEGE', label: 'Siège' },
+        ],
+      },
+    },
   }),
 
   h.accessor('date', {
@@ -50,7 +49,7 @@ const columns = [
     enableSorting: true,
     sortDescFirst: false,
     header: 'Date de publication',
-    cell: ({ cell }) => DateOnly.fromDateOnly(cell.getValue())
+    cell: ({ cell }) => DateOnly.fromDateOnly(cell.getValue()),
   }),
 
   h.accessor('dueDate', {
@@ -60,20 +59,20 @@ const columns = [
     cell: ({ cell }) => {
       const val = cell.getValue();
       return val ? DateOnly.fromDateOnly(val) : null;
-    }
+    },
   }),
 
   h.accessor('status', {
     id: 'status',
     enableSorting: false,
     header: 'Statut',
-    cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />
-  })
+    cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
+  }),
 ];
 
 const breadcrumb: BreadcrumbVM = {
   currentPageLabel: 'Gérer une session',
-  segments: [{ label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD }]
+  segments: [{ label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD }],
 };
 
 export function ManageSession() {
@@ -83,7 +82,7 @@ export function ManageSession() {
   const [tableState, setTableState] = useQueryDataTableState({
     pagination: { pageIndex: 0, pageSize: 50 },
     columnFilters: [] as { id: 'formation'; value: ('PARQUET' | 'SIEGE')[] }[],
-    sorting: [] as [{ id: 'date' | 'dueDate'; desc: boolean }] | []
+    sorting: [] as [{ id: 'date' | 'dueDate'; desc: boolean }] | [],
   });
 
   const formations = tableState.columnFilters?.find(({ id }) => id === 'formation')?.value;
@@ -91,7 +90,7 @@ export function ManageSession() {
   const { data, isLoading } = useListedGdsNominationSessionsQuery({
     pagination: tableState.pagination,
     sorting: tableState.sorting,
-    filters: { formations }
+    filters: { formations },
   });
 
   const table = useDataTable({
@@ -101,11 +100,11 @@ export function ManageSession() {
     rowCount: data?.totalCount,
     meta: {
       paginationItemLabel: defineMessage({
-        defaultMessage: '{count, plural, one {session} other {sessions}}'
-      })
+        defaultMessage: '{count, plural, one {session} other {sessions}}',
+      }),
     },
     state: tableState,
-    onStateChange: setTableState
+    onStateChange: setTableState,
   });
 
   return (

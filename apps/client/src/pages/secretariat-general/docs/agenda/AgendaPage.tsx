@@ -1,6 +1,6 @@
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
-
 import clsx from 'clsx';
+
 import { useAgenda } from './context/AgendaContext';
 import { AgendaProvider } from './context/AgendaProvider';
 import { AgendaMetadataStep } from './steps/AgendaMetadataStep';

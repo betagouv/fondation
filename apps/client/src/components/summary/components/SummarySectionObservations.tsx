@@ -1,5 +1,6 @@
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { capitalize } from '@/utils/string.utils';
+
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionObservations() {
@@ -25,7 +26,7 @@ export function SummarySectionObservations() {
             {[
               capitalize(magistrat.firstName),
               magistrat.usedName?.toUpperCase(),
-              magistrat.lastName?.toUpperCase()
+              magistrat.lastName?.toUpperCase(),
             ]
               .filter((x) => !!x?.trim())
               .join(' ')}

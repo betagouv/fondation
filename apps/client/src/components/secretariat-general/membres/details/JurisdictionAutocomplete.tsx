@@ -1,8 +1,9 @@
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
-import { useFoundJurisdictionsQuery } from '../jurisdictions.queries';
 import { useCallback, useMemo, useState } from 'react';
 import { useDebounce } from 'use-debounce';
+
+import { useFoundJurisdictionsQuery } from '../jurisdictions.queries';
 
 export function JuridictionAutocomplete(props: {
   selected: readonly { id: string; label: string | null }[];
@@ -14,7 +15,7 @@ export function JuridictionAutocomplete(props: {
   const [includeIds, setIncludeIds] = useState<string[] | undefined>([...selected]);
   const { data: foundJurisdictions, isLoading } = useFoundJurisdictionsQuery({
     includeIds,
-    search: debouncedSearch
+    search: debouncedSearch,
   });
 
   const selectedIds = useMemo(() => new Set(selected), [selected]);
@@ -61,7 +62,7 @@ export function JuridictionAutocomplete(props: {
                     props.onChange?.(newSelected);
                     return newSelected;
                   });
-                }
+                },
               },
               label: item.label ? (
                 <div>
@@ -70,7 +71,7 @@ export function JuridictionAutocomplete(props: {
                 </div>
               ) : (
                 <div>{item.id}</div>
-              )
+              ),
             }))}
           />
         )}

@@ -1,9 +1,10 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
-import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
-import { capitalize } from '../../../../utils/string.utils';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { useNavigate } from 'react-router';
+
+import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
+import { capitalize } from '../../../../utils/string.utils';
 
 export function DetailsMemberHeader(props: { member: { firstName: string; lastName: string } }) {
   const navigate = useNavigate();
@@ -18,12 +19,12 @@ export function DetailsMemberHeader(props: { member: { firstName: string; lastNa
         segments={[
           {
             label: 'Secrétariat général',
-            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD }
+            linkProps: { to: ROUTE_PATHS.SG.DASHBOARD },
           },
           {
             label: 'Gérer les membres',
-            linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS }
-          }
+            linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
+          },
         ]}
       />
 

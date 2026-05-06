@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 // this file is auto-generated
 //
 // Licensed under the Apache License, Version 2.0
@@ -43,9 +43,7 @@ const serializeUrlSearchParamsPair = (data: URLSearchParams, key: string, value:
 };
 
 export const formDataBodySerializer = {
-  bodySerializer: <T extends Record<string, any> | Array<Record<string, any>>>(
-    body: T,
-  ): FormData => {
+  bodySerializer: <T extends Record<string, any> | Array<Record<string, any>>>(body: T): FormData => {
     const data = new FormData();
 
     Object.entries(body).forEach(([key, value]) => {

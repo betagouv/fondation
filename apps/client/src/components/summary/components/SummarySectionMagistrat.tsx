@@ -1,12 +1,12 @@
 import { differenceInYears } from 'date-fns';
 import React from 'react';
 
-import { DateOnly } from '@/models/date-only.model';
-
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { FormattedPositionDuration } from '@/i18n/components';
+import { DateOnly } from '@/models/date-only.model';
 import { useSummary } from '@/pages/summary/SummaryContext';
+
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionMagistrat() {

@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { Gender, Magistrat } from 'shared-models';
-import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
 import z from 'zod';
+
+import { Gender, Magistrat } from 'shared-models';
+
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildName, buildPosition } from '../helpers/magistrat.helper';
+import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class InternalFindAgendaNominationFilesQuery {
-  private readonly logger = new Logger(
-    InternalFindAgendaNominationFilesQuery.name,
-  );
+  private readonly logger = new Logger(InternalFindAgendaNominationFilesQuery.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -24,9 +24,7 @@ export class InternalFindAgendaNominationFilesQuery {
     ids?: readonly string[];
   }): Promise<InternalFoundAgendaNominationFiles> {
     if ('ids' in query && (query.ids ?? []).length > 32_000) {
-      this.logger.error(
-        `Received ${(query.ids ?? []).length} ids to search. Limited to 32000`,
-      );
+      this.logger.error(`Received ${(query.ids ?? []).length} ids to search. Limited to 32000`);
       throw new BadRequestException();
     }
 

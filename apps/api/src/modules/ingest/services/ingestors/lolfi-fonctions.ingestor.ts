@@ -1,11 +1,13 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
+
+import { LolfiJob } from '../lolfi-job.type';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -25,12 +27,11 @@ export class LolfiFonctionsIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: boolean }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
-    async function* mapper(
-      source: AsyncIterable<{ data: RawFunction; success: boolean }>,
-    ) {
+    // oxlint-disable-next-line require-yield
+    async function* mapper(source: AsyncIterable<{ data: RawFunction; success: boolean }>) {
       const accumulator: RawFunction[] = [];
 
       for await (const { data, success } of source) {
@@ -63,12 +64,10 @@ export class LolfiFonctionsIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$queryRawTyped(insertFunctionsRawQuery(props.items))
-      .catch((error) => {
-        this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
-        props.result.success = false;
-      });
+    return this.prisma.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
+      this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
+      props.result.success = false;
+    });
   }
 }
 
@@ -78,7 +77,7 @@ const RawFunctionSchema = z.object({
   tri: z.coerce.number().int().gte(-32_768).lte(32_767),
   lieufc: z
     .union([z.literal('0'), z.literal('1'), z.literal('2')], {
-      error: (iss) => `0, 1 ou 2 attendu. "${iss.input}" fourni`,
+      error: (iss) => `0, 1 ou 2 attendu. ${JSON.stringify(iss.input)} fourni`,
     })
     .transform((x) =>
       x === '0'

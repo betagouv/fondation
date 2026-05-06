@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
+import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { useSummary } from '@/pages/summary/SummaryContext';
 import { useIncludeFileInSummaryContentMutation, useWriteSummaryMutation } from '@queries/summary.queries';
-import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
-import React from 'react';
 
 export function SummaryEditor() {
   const { sessionId, nominationFileId, summary, canWriteSummary } = useSummary();
@@ -14,14 +15,14 @@ export function SummaryEditor() {
       const data = await includeFiles({ sessionId, nominationFileId, files });
       return (data?.items ?? []).map(({ url, name, id }) => ({ id, name, url: new URL(url) }));
     },
-    [sessionId, nominationFileId, includeFiles]
+    [sessionId, nominationFileId, includeFiles],
   );
 
   const onChange = React.useCallback(
     (content: string) => {
       writeSummary({ sessionId, nominationFileId, content });
     },
-    [sessionId, nominationFileId, writeSummary]
+    [sessionId, nominationFileId, writeSummary],
   );
 
   if (!canWriteSummary) return null;

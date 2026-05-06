@@ -1,8 +1,6 @@
 {
   "name": "api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
   "private": true,
   "license": "UNLICENSED",
   "files": [
@@ -11,17 +9,16 @@
   ],
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
     "start": "dotenvx run -- nest start",
     "start:e2e": "dotenvx run -f .env.e2e -f .env -- nest start",
     "dev": "dotenvx run -- nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "lint": "oxlint --fix",
+    "lint:check": "oxlint",
     "types:check": "tsc --noEmit",
     "test": "jest --config ./test/jest/jest.config.ts",
-    "test:it": "dotenvx run -- jest --runInBand --config ./test/jest/jest-integration.config.ts",
     "test:e2e": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-e2e.config.ts",
     "test:all": "dotenvx run -f .env.e2e -f .env -- jest --runInBand --config ./test/jest/jest-all.config.ts",
     "cli": "dotenvx run -- ts-node -r tsconfig-paths/register src/cli.ts",
@@ -83,16 +80,8 @@
     "@types/sax": "^1.2.7",
     "@types/supertest": "^7.2.0",
     "@types/unzipper": "^0.10.11",
-    "@typescript-eslint/eslint-plugin": "^8.46.3",
-    "@typescript-eslint/parser": "^8.46.3",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.39.3",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
     "expect": "^30.2.0",
-    "globals": "^17.3.0",
     "jest": "^30.2.0",
-    "prettier": "^3.8.1",
     "prisma": "6.19.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.2.2",
@@ -100,7 +89,6 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript": "^5.9.3"
   }
 }

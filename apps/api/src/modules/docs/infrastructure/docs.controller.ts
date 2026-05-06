@@ -17,26 +17,16 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
-
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { Role } from 'shared-models';
 
-import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiProduces,
-  ApiQuery,
-  ApiResponse,
-} from '@nestjs/swagger';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import {
-  ApiPaginated,
-  Pagination,
-  QueryPagination,
-} from 'src/modules/framework/pagination';
 import { DocsService } from '../docs.service';
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+
 import {
   CreatedAgendaDto,
   CreatedJusticePresentationPlanDto,
@@ -57,15 +47,9 @@ import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query'
 import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
 import { DetailedPresentationPlanMetadataDto } from './queries/details-presentation-plan-metadata.query';
 import { DetailedPresentationPlanPdfDocumentDto } from './queries/details-presentation-plan-pdf-document.query';
-import {
-  DetailedSessionAgenda,
-  DetailedSessionDoc,
-} from './queries/details-session-agenda.query';
+import { DetailedSessionAgenda, DetailedSessionDoc } from './queries/details-session-agenda.query';
 import { DetailedSessionOfficialReportDto } from './queries/details-session-official-report.query';
-import {
-  FoundChairmenDto,
-  SearchChairmenQueryDto,
-} from './queries/find-chairmen.query';
+import { FoundChairmenDto, SearchChairmenQueryDto } from './queries/find-chairmen.query';
 import { FoundJusticeContactsDto } from './queries/find-justice-contacts.query';
 import { FoundMembersForNewOfficialReportDto } from './queries/find-members-for-new-official-report.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
@@ -83,9 +67,7 @@ export class DocsController {
   @Get('/chairmen')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: FoundChairmenDto, status: HttpStatus.OK })
-  searchChairmen(
-    @Query() query: SearchChairmenQueryDto,
-  ): Promise<FoundChairmenDto> {
+  searchChairmen(@Query() query: SearchChairmenQueryDto): Promise<FoundChairmenDto> {
     return this.docs.searchChairmen({
       formation: query.formation,
     });
@@ -152,9 +134,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/docs')
   @ZodResponse({ type: FoundSessionDocsDto, status: HttpStatus.OK })
-  findSessionDocs(
-    @Param('sessionId') sessionId: string,
-  ): Promise<FoundSessionDocsDto> {
+  findSessionDocs(@Param('sessionId') sessionId: string): Promise<FoundSessionDocsDto> {
     return this.docs.findSessionDocs({ sessionId });
   }
 
@@ -213,11 +193,7 @@ export class DocsController {
   @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
   generateAgendaHtml(
     @Param('agendaId') agendaId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<string> {
     return this.docs.getOrCreateAgendaDocument({ id: agendaId, forceNew });
@@ -229,11 +205,7 @@ export class DocsController {
   @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
   generateAgendaPdf(
     @Param('agendaId') agendaId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<StreamableFile> {
     return this.docs.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
@@ -242,9 +214,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/agendas/:agendaId')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaMetadata })
-  detailsAgendaMetadata(
-    @Param('agendaId') agendaId: string,
-  ): Promise<DetailedAgendaMetadata> {
+  detailsAgendaMetadata(@Param('agendaId') agendaId: string): Promise<DetailedAgendaMetadata> {
     return this.docs.detailsAgendaMetadata({ agendaId });
   }
 
@@ -339,7 +309,6 @@ export class DocsController {
     type: FoundMembersForNewOfficialReportDto,
   })
   listSecretariesGeneralForNewOfficialReport(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Param('sessionId') _sessionId: string,
   ): Promise<ListedSecretariesGeneralDto> {
     return this.docs.listSecretariesGeneral();
@@ -352,11 +321,7 @@ export class DocsController {
   @Get('/official-reports/:officialReportId.html')
   generateOfficialReportHtml(
     @Param('officialReportId') officialReportId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<string> {
     return this.docs.getOrCreateOfficialReportDocument({
@@ -372,11 +337,7 @@ export class DocsController {
   @Get('/official-reports/:officialReportId.pdf')
   generateOfficialReportPdf(
     @Param('officialReportId') officialReportId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<StreamableFile> {
     return this.docs.getOrCreateOfficialReportDocumentPdf({
@@ -423,9 +384,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Delete('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteOfficialReport(
-    @Param('officialReportId') officialReportId: string,
-  ): Promise<void> {
+  async deleteOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
     await this.docs.deleteOfficialReport({ id: officialReportId });
   }
 
@@ -446,11 +405,7 @@ export class DocsController {
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   generatePresentationPlanHtml(
     @Param('planId') planId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<string> {
     return this.docs.findPresentationPlanDocument({
@@ -465,11 +420,7 @@ export class DocsController {
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   generatePresentationPlanPdf(
     @Param('planId') planId: string,
-    @Query(
-      'force',
-      new ParseBoolPipe({ optional: true }),
-      new DefaultValuePipe(false),
-    )
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
   ): Promise<StreamableFile> {
     return this.docs.findPresentationPlanDocumentPdf({
@@ -482,9 +433,7 @@ export class DocsController {
   @Get('/presentation-plans/presented')
   @ApiPaginated()
   @ZodResponse({ type: ListedPresentedPlansDto, status: HttpStatus.OK })
-  listPresentedPlans(
-    @QueryPagination() pagination: Pagination,
-  ): Promise<ListedPresentedPlansDto> {
+  listPresentedPlans(@QueryPagination() pagination: Pagination): Promise<ListedPresentedPlansDto> {
     return this.docs.listPresentedPlans({ pagination });
   }
 
@@ -545,9 +494,7 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Delete('/presentation-plans/:planId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteJusticePresentationPlan(
-    @Param('planId') planId: string,
-  ): Promise<void> {
+  deleteJusticePresentationPlan(@Param('planId') planId: string): Promise<void> {
     return this.docs.deletePresentationPlan({ id: planId });
   }
 

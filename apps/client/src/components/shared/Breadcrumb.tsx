@@ -1,6 +1,6 @@
+import DsfrBreadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import type { FC } from 'react';
 
-import DsfrBreadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import type { BreadcrumbVM } from '../../models/breadcrumb-vm.model';
 
 export type BreadcrumbProps = {
@@ -22,7 +22,7 @@ export const Breadcrumb: FC<BreadcrumbProps> = ({
     currentPageLabel={currentPageLabel}
     segments={segments.map(({ label, to }) => ({
       label,
-      linkProps: { to }
+      linkProps: { to },
     }))}
   />
 );

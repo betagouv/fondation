@@ -7,8 +7,7 @@ export const DOC_NOMINATION_FILE_OUTCOME_ENUM = [
   'SUSPENDED',
   'WITHDRAWN',
 ] as const;
-export type DocNominationFileOutcomeEnum =
-  (typeof DOC_NOMINATION_FILE_OUTCOME_ENUM)[number];
+export type DocNominationFileOutcomeEnum = (typeof DOC_NOMINATION_FILE_OUTCOME_ENUM)[number];
 
 export function nominationFileOutcomeToDocNominationFileOutcome(
   value: NominationFileOutcomeEnum,

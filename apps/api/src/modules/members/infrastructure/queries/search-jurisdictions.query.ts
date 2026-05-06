@@ -21,16 +21,13 @@ export class SearchJurisdictionsQuery {
             { codejur: { not: { startsWith: 'TI' } } },
             { codejur: { not: { startsWith: 'TGI' } } },
             {
-              codejur: query.includeIds
-                ? { notIn: query.includeIds }
-                : undefined,
+              codejur: query.includeIds ? { notIn: query.includeIds } : undefined,
             },
             {
               OR: query.search
-                ? //prettier-ignore
-                  [
+                ? [
                     { codejur: { contains: query.search, mode: 'insensitive' } },
-                    { ville:   { contains: query.search, mode: 'insensitive' } },
+                    { ville: { contains: query.search, mode: 'insensitive' } },
                     { libelle: { contains: query.search, mode: 'insensitive' } },
                   ]
                 : undefined,
@@ -71,9 +68,7 @@ export const FoundJurisdictionsItemSchema = z.object({
   ville: z.string().nullable(),
 });
 
-export type FoundJurisdictionsItem = z.infer<
-  typeof FoundJurisdictionsItemSchema
->;
+export type FoundJurisdictionsItem = z.infer<typeof FoundJurisdictionsItemSchema>;
 
 export class ListedJurisdictions extends createZodDto(
   z.object({ items: z.array(FoundJurisdictionsItemSchema) }),

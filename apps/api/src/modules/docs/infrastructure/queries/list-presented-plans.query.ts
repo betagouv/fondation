@@ -1,22 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import z from 'zod';
+
 import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import z from 'zod';
 
 @Injectable()
 export class ListPresentedPlansQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    pagination: Pagination;
-  }): Promise<ListedPresentedPlansDto> {
+  async handle(query: { pagination: Pagination }): Promise<ListedPresentedPlansDto> {
     const [totalCount, items] = await this.prisma.$transaction([
       this.prisma.justicePresentationPlan.count({
         where: { isPresented: true },

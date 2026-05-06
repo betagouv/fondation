@@ -11,10 +11,13 @@ import {
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { createZodDto, ZodResponse, ZodValidationPipe } from 'nestjs-zod';
+import z from 'zod';
+
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
+
 import { DevelopmentEnvironmentGuard } from 'src/modules/simple-auth/infrastructure/guards/development-environment.guard';
 import { DateOnly } from 'src/utils/date-only';
-import z from 'zod';
+
 import { gradeEnumToSortableTargetedGrade } from './repositories/sortable-targeted-grade';
 import { SessionsTestService } from './sessions.test-service';
 
@@ -27,9 +30,7 @@ export class CreateSessionTestDto extends createZodDto(
     observationClosingDate: dateOnlyJsonSchema
       .nullable()
       .transform((json) => (json ? DateOnly.fromJson(json) : null)),
-    dueDate: dateOnlyJsonSchema
-      .nullable()
-      .transform((json) => (json ? DateOnly.fromJson(json) : null)),
+    dueDate: dateOnlyJsonSchema.nullable().transform((json) => (json ? DateOnly.fromJson(json) : null)),
     positionStartDate: dateOnlyJsonSchema
       .nullable()
       .transform((json) => (json ? DateOnly.fromJson(json) : null)),
@@ -37,9 +38,7 @@ export class CreateSessionTestDto extends createZodDto(
   }),
 ) {}
 
-export class CreatedSessionTestDto extends createZodDto(
-  z.object({ id: z.string() }),
-) {}
+export class CreatedSessionTestDto extends createZodDto(z.object({ id: z.string() })) {}
 
 export class AssociateNominationFilesToSessionTestDto extends createZodDto(
   z.object({
@@ -71,9 +70,7 @@ export class AssociateNominationFilesToSessionTestDto extends createZodDto(
         })
         .transform((x) => ({
           ...x,
-          sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
-            x.targetedGrade,
-          ),
+          sortableTargetedGrade: gradeEnumToSortableTargetedGrade(x.targetedGrade),
         })),
     ),
   }),
@@ -91,9 +88,7 @@ export class SessionTestController {
   @Post()
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.CREATED, type: CreatedSessionTestDto })
-  createSession(
-    @Body() body: CreateSessionTestDto,
-  ): Promise<CreatedSessionTestDto> {
+  createSession(@Body() body: CreateSessionTestDto): Promise<CreatedSessionTestDto> {
     return this.sessions.create(body);
   }
 

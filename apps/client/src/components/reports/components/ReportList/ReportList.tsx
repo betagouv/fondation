@@ -1,14 +1,14 @@
+import type { RowData, Table } from '@tanstack/react-table';
+
+import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
+import { DataTable } from '@/components/shared/data-table';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
-import { DataTable } from '@/components/shared/data-table';
-import type { RowData, Table } from '@tanstack/react-table';
-import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
-
 export function ReportList<Data extends RowData>(
-  props: React.PropsWithChildren<{ sessionId: string; table: Table<Data> }>
+  props: React.PropsWithChildren<{ sessionId: string; table: Table<Data> }>,
 ) {
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
-    sessionId: props.sessionId
+    sessionId: props.sessionId,
   });
 
   return (

@@ -4,26 +4,26 @@ import { summaryLabels, type SummarySection } from '../components/reports/labels
 export const SUMMARY_SECTIONS: SummarySection[] = [
   {
     anchorId: reportHtmlIds.overview.biographySection,
-    label: summaryLabels.biography
+    label: summaryLabels.biography,
   },
   {
     anchorId: reportHtmlIds.overview.fileComment,
-    label: summaryLabels.fileComment
+    label: summaryLabels.fileComment,
   },
   {
     anchorId: reportHtmlIds.overview.summary,
-    label: summaryLabels.summary
+    label: summaryLabels.summary,
   },
   {
     anchorId: reportHtmlIds.overview.commentSection,
-    label: summaryLabels.comment
+    label: summaryLabels.comment,
   },
   {
     anchorId: reportHtmlIds.overview.observersSection,
-    label: summaryLabels.observers
+    label: summaryLabels.observers,
   },
   {
     anchorId: reportHtmlIds.overview.attachedFilesSection,
-    label: summaryLabels.attachedFiles
-  }
+    label: summaryLabels.attachedFiles,
+  },
 ];

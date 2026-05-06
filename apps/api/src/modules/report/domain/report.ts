@@ -1,4 +1,5 @@
 import { NominationFile, ReportFileUsage } from 'shared-models';
+
 import { Id, makeId } from 'src/utils/id';
 
 export class ReportFilesAttached {
@@ -36,11 +37,7 @@ export class ReportRuleValidationUpdated {
   ) {}
 }
 
-type ReportEvent =
-  | ReportFilesAttached
-  | ReportFilesDetached
-  | ReportUpdated
-  | ReportRuleValidationUpdated;
+type ReportEvent = ReportFilesAttached | ReportFilesDetached | ReportUpdated | ReportRuleValidationUpdated;
 
 export class Report {
   private constructor(
@@ -72,21 +69,14 @@ export class Report {
     if (command.files.length === 0) return;
 
     this.#messages.push(
-      new ReportFilesAttached(
-        this.id,
-        command.reporterId,
-        command.fileUsage,
-        command.files,
-      ),
+      new ReportFilesAttached(this.id, command.reporterId, command.fileUsage, command.files),
     );
   }
 
   detachFiles(command: { reporterId: string; fileNames: readonly string[] }) {
     if (command.fileNames.length === 0) return;
 
-    this.#messages.push(
-      new ReportFilesDetached(this.id, command.reporterId, command.fileNames),
-    );
+    this.#messages.push(new ReportFilesDetached(this.id, command.reporterId, command.fileNames));
   }
 
   update(command: {
@@ -99,13 +89,7 @@ export class Report {
   }
 
   updateRuleValidation(command: { ruleId: string; isValidated: boolean }) {
-    this.#messages.push(
-      new ReportRuleValidationUpdated(
-        this.id,
-        command.ruleId,
-        command.isValidated,
-      ),
-    );
+    this.#messages.push(new ReportRuleValidationUpdated(this.id, command.ruleId, command.isValidated));
   }
 
   readonly #messages: ReportEvent[] = [];

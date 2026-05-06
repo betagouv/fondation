@@ -1,9 +1,9 @@
 import { Inject, Module, OnApplicationShutdown } from '@nestjs/common';
+import { Pool } from 'pg';
 
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 
 import { PG_POOL_TOKEN } from './database.constants';
-import { Pool } from 'pg';
 import { PrismaService } from './prisma.service';
 
 @Module({
@@ -12,8 +12,7 @@ import { PrismaService } from './prisma.service';
     {
       provide: PG_POOL_TOKEN,
       inject: [API_CONFIG_TOKEN],
-      useFactory: (config: ApiConfig) =>
-        new Pool({ connectionString: config.databaseUrl }),
+      useFactory: (config: ApiConfig) => new Pool({ connectionString: config.databaseUrl }),
     },
     PrismaService,
   ],

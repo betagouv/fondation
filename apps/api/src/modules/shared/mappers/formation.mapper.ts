@@ -1,10 +1,9 @@
 import { Magistrat } from 'shared-models';
+
 import { PrismaFormationEnum } from 'src/generated/prisma/enums';
 import { assertNever } from 'src/utils/assert-never';
 
-export function prismaFormationEnumToFormationEnum(
-  value: PrismaFormationEnum,
-): Magistrat.Formation {
+export function prismaFormationEnumToFormationEnum(value: PrismaFormationEnum): Magistrat.Formation {
   switch (value) {
     case 'PARQUET':
       return Magistrat.Formation.PARQUET;
@@ -15,9 +14,7 @@ export function prismaFormationEnumToFormationEnum(
   }
 }
 
-export function formationEnumToPrismaFormationEnum(
-  value: Magistrat.Formation,
-): PrismaFormationEnum {
+export function formationEnumToPrismaFormationEnum(value: Magistrat.Formation): PrismaFormationEnum {
   switch (value) {
     case Magistrat.Formation.PARQUET:
       return 'PARQUET';
@@ -28,9 +25,7 @@ export function formationEnumToPrismaFormationEnum(
   }
 }
 
-export function formationLabel(
-  value: Magistrat.Formation | PrismaFormationEnum,
-): string {
+export function formationLabel(value: Magistrat.Formation | PrismaFormationEnum): string {
   switch (value) {
     case PrismaFormationEnum.PARQUET:
     case Magistrat.Formation.PARQUET:

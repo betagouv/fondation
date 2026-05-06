@@ -1,7 +1,9 @@
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import React from 'react';
+
+import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { NominationFileOutcomeBadge } from './NominationFileOutcomeBadge';
 
 export function NominationFileOutcome(props: { nominationFile: SessionNominationFile }) {

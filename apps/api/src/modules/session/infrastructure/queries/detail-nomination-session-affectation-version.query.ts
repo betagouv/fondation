@@ -1,10 +1,8 @@
-import { PrismaService } from 'src/modules/framework/database';
-import {
-  AffectationVersionFinder,
-  FoundAffectationVersion,
-} from '../finders/affectation-version.finder';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import { Injectable, NotFoundException } from '@nestjs/common';
+
+import { AffectationVersionFinder, FoundAffectationVersion } from '../finders/affectation-version.finder';
+import { PrismaService } from 'src/modules/framework/database';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 
 @Injectable()
 export class DetailNominationSessionAffectationVersionQuery {

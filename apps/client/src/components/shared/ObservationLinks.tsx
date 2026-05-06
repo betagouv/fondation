@@ -2,6 +2,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import React from 'react';
 import { Link } from 'react-router';
+
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 
 export function ObservationLinks(props: {
@@ -41,7 +42,7 @@ export function ObservationLinks(props: {
                     context: props.context ?? 'sg',
                     sessionId: props.sessionId,
                     nominationFileId: props.nominationFile.id,
-                    observationId: obs.id
+                    observationId: obs.id,
                   })}
                 >
                   {obs.magistrat?.firstName} {obs.magistrat?.lastName}

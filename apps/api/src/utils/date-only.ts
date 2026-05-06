@@ -1,5 +1,6 @@
 import { isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
 import { DateOnlyJson } from 'shared-models';
 
 export class DateOnly {
@@ -29,19 +30,13 @@ export class DateOnly {
     return new DateOnly(json.year, json.month, json.day);
   }
 
-  static fromOptionalDate<T extends Date | null | undefined>(
-    date: T,
-  ): DateOnly | Exclude<T, Date> {
+  static fromOptionalDate<T extends Date | null | undefined>(date: T): DateOnly | Exclude<T, Date> {
     if (date === undefined || date === null) return date as Exclude<T, Date>;
     return this.fromDate(date);
   }
 
   static fromDate(dueDate: Date): DateOnly {
-    return new DateOnly(
-      dueDate.getFullYear(),
-      dueDate.getMonth() + 1,
-      dueDate.getDate(),
-    );
+    return new DateOnly(dueDate.getFullYear(), dueDate.getMonth() + 1, dueDate.getDate());
   }
 
   static fromString(
@@ -53,10 +48,6 @@ export class DateOnly {
       locale: locale === 'fr' ? fr : undefined,
     });
 
-    return new DateOnly(
-      date.getFullYear(),
-      date.getMonth() + 1,
-      date.getDate(),
-    );
+    return new DateOnly(date.getFullYear(), date.getMonth() + 1, date.getDate());
   }
 }

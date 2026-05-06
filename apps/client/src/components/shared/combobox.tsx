@@ -1,7 +1,7 @@
 import {
   Combobox as BaseCombobox,
   type ComboboxInputProps,
-  type ComboboxItemProps
+  type ComboboxItemProps,
 } from '@base-ui/react/combobox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import clsx from 'clsx';
@@ -17,7 +17,7 @@ export function ComboboxInputGroup(props: React.PropsWithChildren) {
       className={clsx(
         'w-64 cursor-text rounded-md border border-gray-200 bg-[canvas] px-1.5 py-1',
         'focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-blue-france-sun-113',
-        'min-[500px]:w-[22rem]'
+        'min-[500px]:w-[22rem]',
       )}
     >
       {props.children}
@@ -47,7 +47,7 @@ export function ComboboxInput({
       className={clsx(
         `h-8 min-w-12 flex-1 rounded-md border-0 bg-transparent pl-2`,
         `text-base font-normal text-gray-900 outline-none`,
-        className
+        className,
       )}
     />
   );
@@ -77,7 +77,7 @@ export function ComboboxContent(props: React.PropsWithChildren) {
             'data-[ending-style]:scale-90 data-[starting-style]:scale-90 data-[ending-style]:opacity-0',
             'data-[starting-style]:opacity-0',
             'max-h-[min(var(--available-height),24rem)] w-[var(--anchor-width)] max-w-[var(--available-width)]',
-            'data-[empty]:py-4 data-[empty]:pl-4 data-[empty]:pr-2'
+            'data-[empty]:py-4 data-[empty]:pl-4 data-[empty]:pr-2',
           )}
         >
           {props.children}
@@ -100,7 +100,7 @@ export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
         `data-[highlighted]:outline-2 data-[highlighted]:outline-blue-500 data-[highlighted]:hover:outline-0`,
         `last:rounded-b-md data-[highlighted]:outline-offset-2 first:data-[highlighted]:rounded-t-none`,
         `data-[highlighted]:before:z-[-1] data-[highlighted]:before:bg-[#f6f6f6] last:data-[highlighted]:before:rounded-b-md`,
-        className
+        className,
       )}
     />
   );

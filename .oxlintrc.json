@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/oxlint/configuration_schema.json",
+  "categories": { "correctness": "off" },
+  "env": { "builtin": true, "jest": true, "node": true },
+  "options": { "typeAware": true },
+  "rules": {
+    "no-console": "error",
+    "no-debugger": "error",
+    "no-array-constructor": "error",
+    "no-unused-expressions": "error",
+    "no-unused-vars": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-duplicate-enum-values": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-extra-non-null-assertion": "error",
+    "typescript/no-misused-new": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-this-alias": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/triple-slash-reference": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "typescript/await-thenable": "error"
+  },
+  "overrides": [
+    {
+      "files": ["./scripts/**/*.js"],
+      "rules": {
+        "no-console": "off",
+        "typescript/no-require-imports": "off"
+      }
+    }
+  ]
+}

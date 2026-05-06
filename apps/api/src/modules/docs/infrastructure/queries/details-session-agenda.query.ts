@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import z from 'zod';
 
 @Injectable()
 export class DetailsSessionAgendaQuery {
@@ -22,9 +23,7 @@ export class DetailsSessionAgendaQuery {
 
     if (!file || !file.pdf) throw new NotFoundException();
 
-    const { [file.pdf.id]: url } = await this.files.getPublicUrls([
-      file.pdf.id,
-    ]);
+    const { [file.pdf.id]: url } = await this.files.getPublicUrls([file.pdf.id]);
 
     if (!url) throw new NotFoundException();
 
@@ -39,6 +38,4 @@ export class DetailedSessionAgenda extends createZodDto(
   }),
 ) {}
 
-export const DetailedSessionDoc = createZodDto(
-  DetailedSessionAgenda.schema.meta({ deprecated: true }),
-);
+export const DetailedSessionDoc = createZodDto(DetailedSessionAgenda.schema.meta({ deprecated: true }));

@@ -1,22 +1,28 @@
-import type { FormationEnum } from '@/types/enums.types';
 import React from 'react';
+
+import type { FormationEnum } from '@/types/enums.types';
+
 import { NominationFilesTableContext, type NominationFilesTableContextType } from './files-table.context';
 
 export function NominationFilesTableProvider(
-  props: React.PropsWithChildren<{ sessionId: string; formation: FormationEnum; isEditable?: false }>
+  props: React.PropsWithChildren<{
+    sessionId: string;
+    formation: FormationEnum;
+    isEditable?: false;
+  }>,
 ) {
   const [isEditing, setEditing] = React.useState<boolean>(false);
   const [totalRowsCount, setTotalRowsCount] = React.useState<number>(0);
 
   const ctx = React.useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     const ctxValue: any = {
       sessionId: props.sessionId,
       formation: props.formation,
       isEditable: props.isEditable !== false,
       totalRowsCount,
       setTotalRowsCount,
-      edition: undefined
+      edition: undefined,
     };
 
     if (props.isEditable !== false) {

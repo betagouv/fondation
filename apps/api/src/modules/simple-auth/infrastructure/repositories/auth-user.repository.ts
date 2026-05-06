@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
+
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
@@ -9,6 +8,8 @@ import {
   AuthUserRegistered,
   AuthUserUnAuthenticated,
 } from '../../domain/auth-user';
+import { PrismaService } from 'src/modules/framework/database';
+import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class AuthUserRepository {
@@ -65,9 +66,7 @@ export class AuthUserRepository {
   }
 
   private persistUserAuthenticated(event: AuthUserAuthenticated) {
-    const expiresAt = new Date(
-      event.session.startedAt.getTime() + event.session.durationMs,
-    );
+    const expiresAt = new Date(event.session.startedAt.getTime() + event.session.durationMs);
 
     return this.prisma.authSession.create({
       data: {
@@ -93,9 +92,7 @@ export class AuthUserRepository {
     });
   }
 
-  private persistImpersonationStarted({
-    impersonation,
-  }: AuthImpersonationStarted) {
+  private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {
     return this.prisma.authImpersonation.create({
       data: {
         id: impersonation.id,
@@ -107,17 +104,13 @@ export class AuthUserRepository {
     });
   }
 
-  private persistImpersonationRevoked({
-    impersonationId,
-  }: AuthImpersonationRevoked) {
+  private persistImpersonationRevoked({ impersonationId }: AuthImpersonationRevoked) {
     return this.prisma.authImpersonation.deleteMany({
       where: { id: impersonationId },
     });
   }
 
-  private persistAuthUserUnAuthenticated({
-    sessionId,
-  }: AuthUserUnAuthenticated) {
+  private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
     return this.prisma.authSession.delete({ where: { sessionId } });
   }
 }

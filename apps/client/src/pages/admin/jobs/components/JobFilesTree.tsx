@@ -1,6 +1,8 @@
 import React from 'react';
+
 import { type JobFile } from '../common/job.types';
 import { tree } from '../common/tree.utils';
+
 import { JobFileBranch } from './JobFilesBranch';
 
 export function JobFilesTree(props: { files: readonly JobFile[] }) {

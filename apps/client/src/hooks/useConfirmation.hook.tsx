@@ -1,3 +1,5 @@
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import {
   createContext,
   useCallback,
@@ -5,12 +7,13 @@ import {
   useEffect,
   useState,
   type PropsWithChildren,
-  type ReactNode
+  type ReactNode,
 } from 'react';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
-export const confirmationModal = createModal({ isOpenedByDefault: false, id: `confirmation_modal` });
+export const confirmationModal = createModal({
+  isOpenedByDefault: false,
+  id: `confirmation_modal`,
+});
 
 type ConfirmationOptions = {
   title?: string;
@@ -24,7 +27,7 @@ type ConfirmationContextType = {
 type ConfirmationResponse = { isConfirmed: boolean };
 
 const ConfirmationContext = createContext<ConfirmationContextType>(
-  null as unknown as ConfirmationContextType
+  null as unknown as ConfirmationContextType,
 );
 
 export function ConfirmationProvider({ children }: PropsWithChildren) {
@@ -35,7 +38,7 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
     onConceal() {
       setState({});
       setOnClick(null);
-    }
+    },
   });
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
           setOnClick(null);
         });
       }),
-    [setState, setOnClick]
+    [setState, setOnClick],
   );
 
   return (
@@ -67,14 +70,14 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
             doClosesModal: true,
             children: state.i18n?.cancel || 'Ne rien faire',
             priority: 'secondary',
-            onClick: () => onClick?.(false)
+            onClick: () => onClick?.(false),
           },
           {
             doClosesModal: true,
             children: state.i18n?.confirm || 'Confirmer',
             priority: 'primary',
-            onClick: () => onClick?.(true)
-          }
+            onClick: () => onClick?.(true),
+          },
         ]}
       >
         {state.content}
@@ -91,6 +94,6 @@ export function useConfirmation() {
   return {
     buttonProps: confirmationModal.buttonProps,
     waitForConfirmation: (options: ConfirmationOptions): Promise<ConfirmationResponse> =>
-      ctx?.open(options).then((isConfirmed) => ({ isConfirmed }))
+      ctx?.open(options).then((isConfirmed) => ({ isConfirmed })),
   };
 }

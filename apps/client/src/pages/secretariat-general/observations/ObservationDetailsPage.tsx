@@ -1,6 +1,9 @@
 import React from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
+import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
+import { PageContentLayout } from '../../../components/shared/PageContentLayout';
+import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
@@ -8,11 +11,8 @@ import {
   useAttachObservationMemberCommentScreenshotsMutation,
   useGetObservationFileUrlMutation,
   useObservationDetailsQuery,
-  useWriteObservationMemberCommentMutation
+  useWriteObservationMemberCommentMutation,
 } from '@queries/observations.queries';
-import { ObservationDetailsContent } from '../../../components/shared/ObservationDetailsContent';
-import { PageContentLayout } from '../../../components/shared/PageContentLayout';
-import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 
 export function ObservationDetailsPage() {
   const { sessionId, nominationFileId, observationId } = useParams<{
@@ -30,11 +30,11 @@ export function ObservationDetailsPage() {
   const {
     data: observation,
     isLoading,
-    isError
+    isError,
   } = useObservationDetailsQuery({
     sessionId: sessionId ?? '',
     nominationFileId: nominationFileId ?? '',
-    observationId: observationId ?? ''
+    observationId: observationId ?? '',
   });
 
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
@@ -47,15 +47,15 @@ export function ObservationDetailsPage() {
         sessionId: sessionId ?? '',
         nominationFileId: nominationFileId ?? '',
         observationId: observationId ?? '',
-        files: files as File[]
+        files: files as File[],
       });
       return (result?.items ?? []).map(({ id, name, url }) => ({
         id,
         name,
-        url: new URL(url)
+        url: new URL(url),
       }));
     },
-    [attachFiles, sessionId, nominationFileId, observationId]
+    [attachFiles, sessionId, nominationFileId, observationId],
   );
 
   if (isLoading) {
@@ -77,7 +77,7 @@ export function ObservationDetailsPage() {
   const handleDownloadFile = (fileId: string) => {
     getFileUrl(
       { sessionId, nominationFileId, observationId, fileId },
-      { onSuccess: (url) => window.open(url, '_blank') }
+      { onSuccess: (url) => window.open(url, '_blank') },
     );
   };
 
@@ -86,14 +86,17 @@ export function ObservationDetailsPage() {
       sessionId,
       nominationFileId,
       observationId,
-      comment
+      comment,
     });
   };
 
   const backLink = isSgContext
     ? { to: `/secretariat-general/session/${sessionId}`, label: 'Retour à la session' }
     : reportId
-      ? { to: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId), label: 'Retour au rapport' }
+      ? {
+          to: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId),
+          label: 'Retour au rapport',
+        }
       : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
 
   return (

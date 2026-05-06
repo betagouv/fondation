@@ -1,5 +1,4 @@
 import './AgendaNominationFile.css';
-
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
@@ -22,7 +21,11 @@ export function AgendaNominationFile(props: {
       className="anf m-0"
       options={[
         {
-          nativeInputProps: { onChange: props.onChange, value: props.file.id, checked: props.checked },
+          nativeInputProps: {
+            onChange: props.onChange,
+            value: props.file.id,
+            checked: props.checked,
+          },
           label: (
             <div className="flex w-full items-start gap-1 py-4">
               <div className="w-[3ch] flex-shrink-0">{props.file.number}</div>
@@ -41,7 +44,7 @@ export function AgendaNominationFile(props: {
                     props.file.magistrat.position.grade,
                     [props.file.magistrat.position.functionId, props.file.magistrat.position.jurisdictionId]
                       .filter((x) => !!x)
-                      .join(' ')
+                      .join(' '),
                   ]
                     .filter((x) => !!x)
                     .join(' - ') || '-'}
@@ -62,14 +65,14 @@ export function AgendaNominationFile(props: {
                   props.file.targetPosition.grade,
                   [props.file.targetPosition.functionId, props.file.targetPosition.jurisdictionId]
                     .filter((x) => !!x)
-                    .join(' ')
+                    .join(' '),
                 ]
                   .filter((x) => !!x)
                   .join(' - ') || '-'}
               </div>
             </div>
-          )
-        }
+          ),
+        },
       ]}
     />
   );

@@ -8,9 +8,7 @@ import { PrismaService } from 'src/modules/framework/database';
 export class ListNominationSessionAttachmentsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    sessionId: string;
-  }): Promise<ListedNominationSessionAttachmentDto> {
+  async handle(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
     const session = await this.prisma.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {

@@ -1,4 +1,5 @@
 import { Magistrat } from 'shared-models';
+
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -12,8 +13,7 @@ const NOMINATION_FILE_OUTCOMES = [
   'WAITING_DSJ',
 ] as const;
 
-export type NominationFileOutcomeEnum =
-  (typeof NOMINATION_FILE_OUTCOMES)[number];
+export type NominationFileOutcomeEnum = (typeof NOMINATION_FILE_OUTCOMES)[number];
 
 export class NominationFileOutcome {
   /** @internal exposed for DTOs definitions  */
@@ -24,10 +24,7 @@ export class NominationFileOutcome {
     readonly comment: string | null,
   ) {}
 
-  static from(props: {
-    outcome: string;
-    comment: string | null;
-  }): NominationFileOutcome {
+  static from(props: { outcome: string; comment: string | null }): NominationFileOutcome {
     const outcome = this.assertIsNominationFileOutcome(props.outcome);
     const comment = this.assertRequiredComment({
       outcome,

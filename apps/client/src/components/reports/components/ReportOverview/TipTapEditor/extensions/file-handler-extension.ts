@@ -1,4 +1,5 @@
 import { FileHandler as TipTapFileHandler } from '@tiptap/extension-file-handler';
+
 import { makeEditorImageUploader, type FilesUploader } from './editor-file-uploader';
 
 export function FileHandler(uploadFiles: FilesUploader) {
@@ -11,6 +12,6 @@ export function FileHandler(uploadFiles: FilesUploader) {
     },
     onDrop: (editor, files, pos) => {
       editorUploader({ editor, files, pos });
-    }
+    },
   });
 }

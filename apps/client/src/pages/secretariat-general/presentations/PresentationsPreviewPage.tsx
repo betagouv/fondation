@@ -1,13 +1,13 @@
-import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
-import {
-  useJusticePresentationPlanHtmlQuery,
-  useJusticePresentationPlanPdfMutation
-} from '@queries/agenda.queries';
+import React from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { DocumentPreviewLayout } from '@/components/secretariat-general/document-preview/DocumentPreview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import React from 'react';
+import {
+  useJusticePresentationPlanHtmlQuery,
+  useJusticePresentationPlanPdfMutation,
+} from '@queries/agenda.queries';
 
 export function PresentationPreviewPage() {
   const { $t } = useIntl();
@@ -16,7 +16,7 @@ export function PresentationPreviewPage() {
 
   const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({
     presentationPlanId: planId,
-    force: true
+    force: true,
   });
   const generatePdf = useJusticePresentationPlanPdfMutation();
 
@@ -25,7 +25,7 @@ export function PresentationPreviewPage() {
 
     generatePdf.mutate(
       { presentationPlanId: planId },
-      { onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)) }
+      { onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)) },
     );
   }, [generatePdf, planId, navigate]);
 

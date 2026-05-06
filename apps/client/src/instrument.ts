@@ -15,8 +15,8 @@ Sentry.init({
       useLocation,
       useNavigationType,
       createRoutesFromChildren,
-      matchRoutes
-    })
+      matchRoutes,
+    }),
   ],
-  sendDefaultPii: false
+  sendDefaultPii: false,
 });

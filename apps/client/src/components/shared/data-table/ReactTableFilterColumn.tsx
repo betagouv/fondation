@@ -1,10 +1,12 @@
-import type { TableMetaFilterEnum } from '@/tanstack-react-table';
 import type { RowData, Table } from '@tanstack/react-table';
 import React from 'react';
 import { useIntl } from 'react-intl';
+
 import { DropdownFilter } from '../DropdownFilter';
-import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
+import type { TableMetaFilterEnum } from '@/tanstack-react-table';
+
 import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
+import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
 
 function ReactTableFilterEnum<Data extends RowData>(props: {
   table: Table<Data>;
@@ -14,14 +16,14 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
     .getState()
     .columnFilters.find(({ id }) => id === props.filter.filterId) ?? {
     id: props.filter.filterId,
-    value: []
+    value: [],
   }) as { id: string; value: string[] };
 
   const options = (
     props.filter.emptyValue ? [props.filter.emptyValue].concat(props.filter.values) : props.filter.values
   ).map(({ id: value, label }) => ({
     value,
-    label
+    label,
   }));
 
   const onSelectionChange = React.useCallback(
@@ -31,10 +33,10 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
           ? filters
               .filter((filter) => filter.id !== props.filter.filterId)
               .concat({ id: props.filter.filterId, value: selection })
-          : [{ id: props.filter.filterId, value: selection }]
+          : [{ id: props.filter.filterId, value: selection }],
       );
     },
-    [props.table, props.filter]
+    [props.table, props.filter],
   );
 
   return (
@@ -53,7 +55,7 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
     .getState()
     .columnFilters.some(
       ({ value }) =>
-        (Array.isArray(value) && value.length > 0) || (typeof value === 'string' && value.trim().length > 0)
+        (Array.isArray(value) && value.length > 0) || (typeof value === 'string' && value.trim().length > 0),
     );
 
   const rowsCount = props.table.getRowCount();

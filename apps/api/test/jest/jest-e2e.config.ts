@@ -9,10 +9,7 @@ const jestConfig: JestConfigWithTsJest = {
   },
   testMatch: ['**/{src,cli}/**/*.e2e-spec.(ts)'],
   testEnvironment: 'node',
-  collectCoverageFrom: [
-    '<rootDir>/src/**/*.ts',
-    '!<rootDir>/src/**/*.e2e-spec.ts',
-  ],
+  collectCoverageFrom: ['<rootDir>/src/**/*.ts', '!<rootDir>/src/**/*.e2e-spec.ts'],
 };
 
 export default jestConfig;

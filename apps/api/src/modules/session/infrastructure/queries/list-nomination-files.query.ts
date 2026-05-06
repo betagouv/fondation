@@ -2,21 +2,16 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import {
-  dateOnlyJsonSchema,
-  Magistrat,
-  PrioriteEnum,
-  Role,
-} from 'shared-models';
+import { dateOnlyJsonSchema, Magistrat, PrioriteEnum, Role } from 'shared-models';
 
+import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
+import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
+import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import {
@@ -25,19 +20,6 @@ import {
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { partition } from 'src/utils/iterables';
-import {
-  NOMINATION_SESSION_FILE_STATUSES,
-  UpdatableNominationFile,
-} from '../../domain/nomination-file';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from '../../domain/nomination-file-outcome';
-import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
-import {
-  AffectationVersionFinder,
-  OptionalAffectationVersion,
-} from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -60,9 +42,7 @@ export class ListNominationFilesQuery {
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(
-      query.user.role,
-    );
+    const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(query.user.role);
 
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
     const orderBy = (() => {
@@ -96,10 +76,7 @@ export class ListNominationFilesQuery {
 
       const where: Prisma.DossierDeNominationWhereInput = {
         sessionId: query.sessionId,
-        ...ListNominationFilesQuery.filtersToPrismaWhere(
-          query.filters,
-          lastVersion,
-        ),
+        ...ListNominationFilesQuery.filtersToPrismaWhere(query.filters, lastVersion),
       };
 
       const txCount = await tx.dossierDeNomination.count({ where });
@@ -172,11 +149,10 @@ export class ListNominationFilesQuery {
       });
 
       const nominationFileIds = new Set(txFiles.map(({ id }) => id));
-      const { items: linkedDocs } =
-        await this.docs.internalFindNominationFilesLinkedDocs({
-          tx,
-          nominationFileIds,
-        });
+      const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
+        tx,
+        nominationFileIds,
+      });
 
       return [
         txCount,
@@ -224,13 +200,10 @@ export class ListNominationFilesQuery {
           rang: x.rank,
           historique: x.biography,
           observants: x.observers,
-          dateDeNaissance:
-            DateOnly.fromOptionalDate(x.birthDate)?.toJson() ?? null,
+          dateDeNaissance: DateOnly.fromOptionalDate(x.birthDate)?.toJson() ?? null,
           dateEchéance: DateOnly.fromOptionalDate(x.dueDate)?.toJson() ?? null,
-          datePassageAuGrade:
-            DateOnly.fromOptionalDate(x.lastRankingDate)?.toJson() ?? null,
-          datePriseDeFonctionPosteActuel:
-            DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
+          datePassageAuGrade: DateOnly.fromOptionalDate(x.lastRankingDate)?.toJson() ?? null,
+          datePriseDeFonctionPosteActuel: DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
           informationCarrière: null,
           detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
           detectedJurisdictionId: x.detectedJurisdictionId ?? null,
@@ -247,13 +220,11 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
-        reporters: x.reporterIds.map(
-          ({ user: { id, firstName, lastName } }) => ({
-            id,
-            firstName,
-            lastName,
-          }),
-        ),
+        reporters: x.reporterIds.map(({ user: { id, firstName, lastName } }) => ({
+          id,
+          firstName,
+          lastName,
+        })),
         observations: x.observations.map((obs) => {
           return {
             id: obs.id,
@@ -283,9 +254,7 @@ export class ListNominationFilesQuery {
               canWrite: x.summary.authorId === query.user.id,
               canRead:
                 x.summary.authorId === query.user.id ||
-                x.summary.readers.some(
-                  ({ userId }) => userId === query.user.id,
-                ),
+                x.summary.readers.some(({ userId }) => userId === query.user.id),
             }
           : null,
       };
@@ -305,10 +274,7 @@ export class ListNominationFilesQuery {
     const where: Prisma.DossierDeNominationWhereInput[] = [];
 
     if (filters.priorities.length > 0) {
-      const [hasNoPriority, priorities] = partition(
-        filters.priorities,
-        (x) => x === null,
-      );
+      const [hasNoPriority, priorities] = partition(filters.priorities, (x) => x === null);
 
       // WHERE priorities = ARRAY[] OR priorities && ${priorities}::priorite_enum[]
       where.push({
@@ -325,10 +291,7 @@ export class ListNominationFilesQuery {
     }
 
     if (filters.reporterIds.length > 0) {
-      const [hasNoReporter, reporterIds] = partition(
-        filters.reporterIds,
-        (x) => x === null,
-      );
+      const [hasNoReporter, reporterIds] = partition(filters.reporterIds, (x) => x === null);
 
       // WHERE (
       //   NOT EXISTS (select id from nomination_file_to_reporter nfr WHERE nfr.version_id = ${lastVersion.optionalId})
@@ -338,9 +301,7 @@ export class ListNominationFilesQuery {
         OR: [
           {
             reporterIds:
-              hasNoReporter.length > 0
-                ? { none: { versionId: lastVersion.optionalId } }
-                : undefined,
+              hasNoReporter.length > 0 ? { none: { versionId: lastVersion.optionalId } } : undefined,
           },
           {
             reporterIds:
@@ -358,10 +319,7 @@ export class ListNominationFilesQuery {
     }
 
     if (filters.outcomes.length > 0) {
-      const [hasNoOutcome, withOutcome] = partition(
-        filters.outcomes,
-        (x) => x === null,
-      );
+      const [hasNoOutcome, withOutcome] = partition(filters.outcomes, (x) => x === null);
 
       // WHERE outcome IS NULL OR outcome IN (...${outcomes})
       where.push({
@@ -378,11 +336,7 @@ export class ListNominationFilesQuery {
 
 const NominationFileContentSchema = z.object({
   // open api generator does not support z.literal (json schema const)
-  version: z
-    .number()
-    .min(2)
-    .max(2)
-    .meta({ example: 2, description: 'always 2' }),
+  version: z.number().min(2).max(2).meta({ example: 2, description: 'always 2' }),
   nomMagistrat: z.string(),
   numeroDeDossier: z.number().nullable(),
   dateEchéance: dateOnlyJsonSchema.nullable(),
@@ -436,21 +390,13 @@ const NominationFileAffectationItemSchema = z.object({
       followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
-      magistrat: z
-        .object({ id: z.string(), firstName: z.string(), lastName: z.string() })
-        .nullable(),
+      magistrat: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
     }),
   ),
   memo: z.string().nullable(),
-  summary: z
-    .object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() })
-    .nullable(),
+  summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
 });
 
-export type NominationFileAffectationItem = z.infer<
-  typeof NominationFileAffectationItemSchema
->;
+export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;
 
-export class PaginatedNominationFiles extends createPaginatedZodDto(
-  NominationFileAffectationItemSchema,
-) {}
+export class PaginatedNominationFiles extends createPaginatedZodDto(NominationFileAffectationItemSchema) {}

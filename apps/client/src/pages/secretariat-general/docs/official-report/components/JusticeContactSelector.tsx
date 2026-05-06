@@ -1,7 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useMonoSelection } from '../hooks/useSelection';
 import {
   ComboboxContent,
   ComboboxEmpty,
@@ -9,13 +11,11 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxRoot,
-  type ComboboxChangeEventDetails
+  type ComboboxChangeEventDetails,
 } from '@/components/shared/combobox';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { unaccent } from '@/utils/string.utils';
 import { useCreateJusticeContactMutation, useFindJusticeContacts } from '@queries/agenda.queries';
-import clsx from 'clsx';
-import { useMonoSelection } from '../hooks/useSelection';
 
 export function JusticeContactSelector(props: {
   value: string | null;
@@ -41,7 +41,7 @@ export function JusticeContactSelector(props: {
       items
         .map((item) => ({ ...item, id: String(item.id), isCreatable: false }))
         .concat(trimmed && !hasExact ? [{ id: `create:${trimmed}`, name: trimmed, isCreatable: true }] : []),
-    [items, hasExact, trimmed]
+    [items, hasExact, trimmed],
   );
 
   const onSelect = React.useCallback(
@@ -50,13 +50,13 @@ export function JusticeContactSelector(props: {
 
       props.onChange(item?.id ?? null);
     },
-    [setSearch, props]
+    [setSearch, props],
   );
 
   const { selection, select } = useMonoSelection({
     onSelect,
     items: viewItems,
-    defaultValueId: props.value
+    defaultValueId: props.value,
   });
 
   const onValueChange = React.useCallback(
@@ -65,7 +65,7 @@ export function JusticeContactSelector(props: {
 
       select(item);
     },
-    [select]
+    [select],
   );
 
   const { mutate: createJusticeContactMutation, isPending: isCreating } = useCreateJusticeContactMutation();
@@ -79,7 +79,7 @@ export function JusticeContactSelector(props: {
             defaultMessage={`Le contact «\u00A0{trimmed}\u00A0» sera créé.`}
           />
         </p>
-      )
+      ),
     });
 
     if (!isConfirmed) return;
@@ -89,14 +89,14 @@ export function JusticeContactSelector(props: {
       {
         onSuccess(created) {
           if (created) select(created.id);
-        }
-      }
+        },
+      },
     );
   }, [trimmed, confirmation, $t, createJusticeContactMutation, select]);
 
   const addTitle = React.useMemo(
     () => $t({ defaultMessage: `ajouter «\u00A0{trimmed}\u00A0»` }, { trimmed }),
-    [trimmed, $t]
+    [trimmed, $t],
   );
 
   return (
@@ -139,8 +139,8 @@ export function JusticeContactSelector(props: {
                       `data-[highlighted]:outline data-[highlighted]:outline-2`,
                       `data-[highlighted]:outline-offset-2 data-[highlighted]:outline-blue-500`,
                       {
-                        'before:size-4 before:animate-spin before:content-[""]': isFetching || isCreating
-                      }
+                        'before:size-4 before:animate-spin before:content-[""]': isFetching || isCreating,
+                      },
                     )}
                     title={addTitle}
                     iconId={isFetching ? 'ri-loader-4-line' : 'fr-icon-add-line'}

@@ -3,7 +3,9 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker';
+
 import { Magistrat } from 'shared-models';
+
 import {
   lodamToNominationFiles,
   lodamXlsxToNominationFiles,
@@ -12,10 +14,7 @@ import {
 
 describe('lodamXlsxToNominationSession', () => {
   describe('XLSX Lodam', () => {
-    const PATH = path.join(
-      __dirname,
-      '../../../../test/assets/lodam/lodam_transparence.xlsx',
-    );
+    const PATH = path.join(__dirname, '../../../../test/assets/lodam/lodam_transparence.xlsx');
 
     it('should parse a LODAM xlsx file correctly', async () => {
       const file = await fs.readFile(PATH);
@@ -124,9 +123,7 @@ describe('lodamXlsxToNominationSession', () => {
         errors: [
           {
             lineNumber: 1,
-            messages: [
-              'Le numéro de proposition est inexploitable: "not a number"',
-            ],
+            messages: ['Le numéro de proposition est inexploitable: "not a number"'],
           },
         ],
       });
@@ -147,9 +144,7 @@ describe('lodamXlsxToNominationSession', () => {
         errors: expect.arrayContaining([
           {
             fileNumber: 1,
-            messages: expect.arrayContaining([
-              'l.3 un dossier n°1 est déjà défini l.1',
-            ]),
+            messages: expect.arrayContaining(['l.3 un dossier n°1 est déjà défini l.1']),
           },
         ]),
       });
@@ -214,10 +209,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.observers).toEqual([
-        'BOURDIEU Pierre',
-        'GRAMSCI Antonio',
-      ]);
+      expect(result.files[0]?.observers).toEqual(['BOURDIEU Pierre', 'GRAMSCI Antonio']);
     });
 
     it('should parse a list of reporters', async () => {
@@ -231,10 +223,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.reporters).toEqual([
-        'BOURDIEU Pierre',
-        'GRAMSCI Antonio',
-      ]);
+      expect(result.files[0]?.reporters).toEqual(['BOURDIEU Pierre', 'GRAMSCI Antonio']);
     });
 
     it('should parse the birth date from dd/mm/yyyy', async () => {
@@ -244,9 +233,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.birthDate?.toDate()).toEqual(
-        new Date('1930-08-01T00:00:00Z'),
-      );
+      expect(result.files[0]?.birthDate?.toDate()).toEqual(new Date('1930-08-01T00:00:00Z'));
     });
 
     it("should fail when the date can't be parsed", async () => {
@@ -273,9 +260,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.lastPositionDate?.toDate()).toEqual(
-        new Date('2020-01-01T00:00:00Z'),
-      );
+      expect(result.files[0]?.lastPositionDate?.toDate()).toEqual(new Date('2020-01-01T00:00:00Z'));
     });
 
     it('should parse the last ranking date from dd/mm/yyyy', async () => {
@@ -285,9 +270,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.lastRankingDate?.toDate()).toEqual(
-        new Date('2019-01-01T00:00:00Z'),
-      );
+      expect(result.files[0]?.lastRankingDate?.toDate()).toEqual(new Date('2019-01-01T00:00:00Z'));
     });
 
     it('should parse the grade from the name', async () => {

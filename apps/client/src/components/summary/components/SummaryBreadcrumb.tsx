@@ -40,11 +40,11 @@ function SgSummaryBreadcrumb() {
                 label: data.name,
                 to: {
                   pathname: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId),
-                  search: `?active=${nominationFileId}`
-                }
-              }
+                  search: `?active=${nominationFileId}`,
+                },
+              },
             ],
-            currentPageLabel: 'Synthèse'
+            currentPageLabel: 'Synthèse',
           }}
         />
       )}
@@ -80,14 +80,14 @@ function MemberSummaryBreadcrumb() {
               { label: 'Transparences', to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
               {
                 label: 'Pouvoir de proposition du garde des Sceaux',
-                to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD
+                to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
               },
               {
                 label: transparencyToLabel(data.name, data.date),
-                to: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId)
-              }
+                to: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId),
+              },
             ],
-            currentPageLabel: 'Synthèse'
+            currentPageLabel: 'Synthèse',
           }}
         />
       )}

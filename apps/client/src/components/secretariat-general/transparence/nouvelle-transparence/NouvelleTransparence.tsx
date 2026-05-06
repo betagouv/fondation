@@ -1,24 +1,25 @@
 import { ButtonsGroup } from '@codegouvfr/react-dsfr/ButtonsGroup';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Input from '@codegouvfr/react-dsfr/Input';
+import Notice from '@codegouvfr/react-dsfr/Notice';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
+import clsx from 'clsx';
 import { useCallback, useRef, type FC } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { Magistrat } from 'shared-models';
 import { z } from 'zod';
 
-import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
+import { Magistrat } from 'shared-models';
 
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import Notice from '@codegouvfr/react-dsfr/Notice';
-import clsx from 'clsx';
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { formationToLabel } from '../../../reports/labels/labels-mappers';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { PageContentLayout } from '../../../shared/PageContentLayout';
+import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
+
 import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 const mandatoryField = 'Champ obligatoire.';
@@ -28,13 +29,13 @@ const optionalDate = z.iso.date(invalidDateFormat).optional();
 const nouvelleTransparenceDtoSchema = z.object({
   name: z
     .string({
-      message: mandatoryField
+      message: mandatoryField,
     })
     .trim()
     .min(1, mandatoryField),
   date: z.iso.date(invalidDateFormat),
   formation: z.enum(Magistrat.Formation, {
-    message: mandatoryField
+    message: mandatoryField,
   }),
   dueDate: optionalDate,
   positionStartDate: optionalDate,
@@ -42,15 +43,15 @@ const nouvelleTransparenceDtoSchema = z.object({
   file: z
     .instanceof(File, { message: mandatoryField })
     .refine((file) => file.size > 0, {
-      message: mandatoryField
+      message: mandatoryField,
     })
     .refine(
       (file) => {
         const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
         return validTypes.includes(file.type);
       },
-      { error: 'Veuillez importer un fichier au bon format.' }
-    )
+      { error: 'Veuillez importer un fichier au bon format.' },
+    ),
 });
 
 type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
@@ -63,16 +64,16 @@ const NouvelleTransparence: FC = () => {
     mutateAsync: addTransparencyAsync,
     error: transparenceUploadError,
     reset: resetTransparencyMutation,
-    isPending
+    isPending,
   } = useCreateNominationSessionFromLodamMutation();
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
   } = useForm<FormSchema>({
-    resolver: zodResolver(nouvelleTransparenceDtoSchema)
+    resolver: zodResolver(nouvelleTransparenceDtoSchema),
   });
 
   const onSubmit: SubmitHandler<FormSchema> = useCallback(
@@ -87,10 +88,10 @@ const NouvelleTransparence: FC = () => {
             inputRef.current.value = '';
             inputRef.current.files = null;
           }
-        }
+        },
       });
     },
-    [resetTransparencyMutation, addTransparencyAsync, navigate]
+    [resetTransparencyMutation, addTransparencyAsync, navigate],
   );
 
   return (
@@ -111,7 +112,7 @@ const NouvelleTransparence: FC = () => {
             <span
               className={clsx(
                 cx('ri-calendar-2-fill'),
-                'font-medium underline before:mb-1 before:mr-1 before:size-4 before:align-middle before:content-[""]'
+                'font-medium underline before:mb-1 before:mr-1 before:size-4 before:align-middle before:content-[""]',
               )}
             >
               1<sup>er</sup> avril
@@ -122,8 +123,10 @@ const NouvelleTransparence: FC = () => {
       />
 
       {transparenceUploadError ? (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <UploadExcelFailedAlert validationErrors={(transparenceUploadError as any).validationErrors} />
+        <UploadExcelFailedAlert
+          // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+          validationErrors={(transparenceUploadError as any).validationErrors}
+        />
       ) : null}
 
       <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
@@ -142,7 +145,7 @@ const NouvelleTransparence: FC = () => {
                 value,
                 onChange,
                 ...field,
-                placeholder: 'Nom de la transparence'
+                placeholder: 'Nom de la transparence',
               }}
               state={errors.name ? 'error' : 'default'}
               stateRelatedMessage={errors.name?.message}
@@ -164,7 +167,7 @@ const NouvelleTransparence: FC = () => {
                 type: 'date',
                 value,
                 onChange,
-                ...field
+                ...field,
               }}
               state={errors.date ? 'error' : 'default'}
               stateRelatedMessage={errors.date?.message}
@@ -184,7 +187,7 @@ const NouvelleTransparence: FC = () => {
               nativeSelectProps={{
                 value,
                 onChange,
-                defaultValue: ''
+                defaultValue: '',
               }}
               state={errors.formation ? 'error' : 'default'}
               stateRelatedMessage={errors.formation?.message}
@@ -212,7 +215,7 @@ const NouvelleTransparence: FC = () => {
                 type: 'date',
                 value,
                 onChange,
-                ...field
+                ...field,
               }}
               state={errors.observationClosingDate ? 'error' : 'default'}
               stateRelatedMessage={errors.observationClosingDate?.message}
@@ -230,7 +233,7 @@ const NouvelleTransparence: FC = () => {
                 type: 'date',
                 value,
                 onChange,
-                ...field
+                ...field,
               }}
               state={errors.dueDate ? 'error' : 'default'}
               stateRelatedMessage={errors.dueDate?.message}
@@ -248,7 +251,7 @@ const NouvelleTransparence: FC = () => {
                 type: 'date',
                 value,
                 onChange,
-                ...field
+                ...field,
               }}
               state={errors.positionStartDate ? 'error' : 'default'}
               stateRelatedMessage={errors.positionStartDate?.message}
@@ -271,7 +274,7 @@ const NouvelleTransparence: FC = () => {
                     resetTransparencyMutation();
                     onChange(file);
                   }
-                }
+                },
               }}
               hint="Format supporté : xlsx."
               label={
@@ -293,14 +296,14 @@ const NouvelleTransparence: FC = () => {
               type: 'reset',
               onClick: () => {
                 reset();
-              }
+              },
             },
             {
               id: 'enregistrer',
               children: 'Enregistrer',
               type: 'submit',
-              disabled: isPending
-            }
+              disabled: isPending,
+            },
           ]}
           inlineLayoutWhen="always"
         />

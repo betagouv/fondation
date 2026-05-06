@@ -15,7 +15,7 @@ export function useLocallyStoredState<T extends Jsonifiable>(options: {
       writeLocalStorage(options.key, next);
       setReactState(next);
     },
-    [state, options.key, setReactState]
+    [state, options.key, setReactState],
   );
 
   return [state, update];

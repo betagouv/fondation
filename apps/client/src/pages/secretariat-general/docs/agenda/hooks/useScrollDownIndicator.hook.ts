@@ -8,7 +8,7 @@ export function useScrollDownIndicator(props: { root: React.RefObject<HTMLElemen
     if (!sentinelRef.current || !props.root.current) return;
 
     const observer = new IntersectionObserver(([entry]) => setHasMore(!entry.isIntersecting), {
-      root: props.root.current
+      root: props.root.current,
     });
 
     observer.observe(sentinelRef.current);

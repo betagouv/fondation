@@ -67,28 +67,24 @@ export class ObservationService {
       fileId: string;
     }[];
   }): Promise<{ id: string }> {
-    const [nominationFile, linkedFiles] = await this.prisma.$transaction(
-      async (tx) => {
-        const txNominationFile =
-          await this.observationFinder.findExistingObservation({
-            sessionId: command.sessionId,
-            nominationFileId: command.nominationFileId,
-            magistratId: command.magistratId,
-            tx,
-          });
+    const [nominationFile, linkedFiles] = await this.prisma.$transaction(async (tx) => {
+      const txNominationFile = await this.observationFinder.findExistingObservation({
+        sessionId: command.sessionId,
+        nominationFileId: command.nominationFileId,
+        magistratId: command.magistratId,
+        tx,
+      });
 
-        const { items: txLinkedFiles } =
-          await this.observationFinder.findExistingFiles({
-            tx,
-            files: command.linkedAttachments.map((attachment) => ({
-              ...attachment,
-              magistratId: command.magistratId,
-            })),
-          });
+      const { items: txLinkedFiles } = await this.observationFinder.findExistingFiles({
+        tx,
+        files: command.linkedAttachments.map((attachment) => ({
+          ...attachment,
+          magistratId: command.magistratId,
+        })),
+      });
 
-        return [txNominationFile, txLinkedFiles];
-      },
-    );
+      return [txNominationFile, txLinkedFiles];
+    });
 
     if (!nominationFile) {
       throw new NotFoundException();
@@ -96,7 +92,7 @@ export class ObservationService {
 
     if (linkedFiles.length !== command.linkedAttachments.length) {
       this.logger.warn(
-        `Did not find some linked attachments:\nCommand: \n  ${command.linkedAttachments.map((x) => '  - ' + JSON.stringify(x)).join('\n')}\n\Found:\n   ${linkedFiles.map((x) => '  -' + JSON.stringify(x)).join('\n')}`,
+        `Did not find some linked attachments:\nCommand: \n  ${command.linkedAttachments.map((x) => '  - ' + JSON.stringify(x)).join('\n')}\n\nFound:\n   ${linkedFiles.map((x) => '  -' + JSON.stringify(x)).join('\n')}`,
       );
       throw new BadRequestException();
     }
@@ -116,13 +112,8 @@ export class ObservationService {
     return { id: observation.id };
   }
 
-  async deleteObservation(command: {
-    userId: string;
-    observationId: string;
-  }): Promise<void> {
-    const observation = await this.observationRepository.findById(
-      command.observationId,
-    );
+  async deleteObservation(command: { userId: string; observationId: string }): Promise<void> {
+    const observation = await this.observationRepository.findById(command.observationId);
 
     observation.delete();
     await this.observationRepository.persist(observation);
@@ -137,9 +128,7 @@ export class ObservationService {
     filesToAttach: readonly { id: string }[];
     fileIdsToDetach: readonly string[];
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(
-      command.observationId,
-    );
+    const observation = await this.observationRepository.findById(command.observationId);
 
     if (command.magistratId !== observation.magistratId) {
       const existingObservation = await this.prisma.observation.findUnique({
@@ -171,9 +160,7 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
-  listObservations(query: {
-    nominationFileId: string;
-  }): Promise<ListObservationsResponseDto> {
+  listObservations(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
     return this.listObservationsQuery.handle(query);
   }
 
@@ -205,9 +192,7 @@ export class ObservationService {
       sessionId: command.sessionId,
     });
 
-    const observation = await this.observationRepository.findById(
-      command.observationId,
-    );
+    const observation = await this.observationRepository.findById(command.observationId);
 
     try {
       observation.attachMemberCommentScreenshots({
@@ -224,9 +209,7 @@ export class ObservationService {
 
     await this.observationRepository.persist(observation);
 
-    const urls = await this.files.getPublicUrls(
-      command.files.map((file) => file.id),
-    );
+    const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
 
     return {
       items: command.files
@@ -256,9 +239,7 @@ export class ObservationService {
       sessionId: command.sessionId,
     });
 
-    const observation = await this.observationRepository.findById(
-      command.observationId,
-    );
+    const observation = await this.observationRepository.findById(command.observationId);
 
     try {
       observation.writeMemberComment({
@@ -282,9 +263,7 @@ export class ObservationService {
     followUp: string | null;
     comment: string | null;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(
-      command.observationId,
-    );
+    const observation = await this.observationRepository.findById(command.observationId);
     observation.followUpWith(command);
     await this.observationRepository.persist(observation);
   }

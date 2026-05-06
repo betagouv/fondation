@@ -1,7 +1,7 @@
+import { useCurrentEditor } from '@tiptap/react';
 import React from 'react';
 
 import { EditorButton } from './EditorButton';
-import { useCurrentEditor } from '@tiptap/react';
 
 export const ImageUploadButton: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -17,7 +17,7 @@ export const ImageUploadButton: React.FC = () => {
 
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    [editor, fileInputRef]
+    [editor, fileInputRef],
   );
 
   if (!editor || !editor.can().uploadFiles?.()) {

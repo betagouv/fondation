@@ -1,13 +1,13 @@
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type React from 'react';
 
+import { ReactTableColumnVisibility } from './ReactTableColumnVisibility';
 import { ReactTableContent } from './ReactTableContent';
 import { ReactTableFilterColumn } from './ReactTableFilterColumn';
 import { ReactTableFilterSearch } from './ReactTableFilterSearch';
 import { ReactTablePagination } from './ReactTablePagination';
-import { ReactTableColumnVisibility } from './ReactTableColumnVisibility';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 
 export function DataTable<Data extends RowData>(
   props: React.PropsWithChildren<{
@@ -15,7 +15,7 @@ export function DataTable<Data extends RowData>(
     caption?: React.ReactNode;
     placeholder?: React.ReactNode;
     classNames?: { filters?: string; content?: string; pagination?: string };
-  }>
+  }>,
 ) {
   const { table } = props;
 
@@ -25,7 +25,7 @@ export function DataTable<Data extends RowData>(
         <header
           className={clsx(
             'flex items-center justify-between',
-            props.classNames?.filters || cx('fr-container')
+            props.classNames?.filters || cx('fr-container'),
           )}
         >
           {table.options.enableColumnFilters || table.options.enableGlobalFilter ? (
@@ -38,7 +38,7 @@ export function DataTable<Data extends RowData>(
           {props.children || table.options.meta?.columnVisibilityEnabled ? (
             <div
               className={clsx('table-filter-end', 'flex', 'items-center', {
-                'self-justify-end': !table.options.enableFilters
+                'self-justify-end': !table.options.enableFilters,
               })}
             >
               <div>{props.children}</div>

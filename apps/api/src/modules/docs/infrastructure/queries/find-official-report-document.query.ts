@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import z from 'zod';
+
+import {
+  type OfficialReportRenderContext,
+  OfficialReportRenderer,
+} from '../services/renderers/official-report.renderer';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import z from 'zod';
-import {
-  type OfficialReportRenderContext,
-  OfficialReportRenderer,
-} from '../services/renderers/official-report.renderer';
 
 @Injectable()
 export class FindOfficialReportDocumentQuery {
@@ -115,8 +116,7 @@ export class FindOfficialReportDocumentQuery {
           firstName: ctx.secretaryFirstName,
           lastName: ctx.secretaryLastName,
           gender: prismaGenderEnumToGenderEnum(ctx.secretaryGender),
-          title:
-            ctx.secretaryTitle === 'FIRST_SECRETARY' ? 'FIRST_SECRETARY' : null,
+          title: ctx.secretaryTitle === 'FIRST_SECRETARY' ? 'FIRST_SECRETARY' : null,
           displayTitle: ctx.secretaryDisplayTitle,
         },
         members: ctx.members.map((m) => ({

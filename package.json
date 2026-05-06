@@ -3,17 +3,21 @@
   "version": "1.0.0",
   "license": "Apache-2.0",
   "scripts": {
-    "lint:check": "pnpm run -r lint:check",
-    "format:check": "pnpm run -r format:check",
+    "lint:check": "oxlint",
+    "format:check": "oxfmt --check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
     "build": "pnpm run -r build",
     "prepush": "pnpm --filter shared-models build; pnpm lint:check; pnpm format:check; pnpm types:check",
     "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
-    "heroku-postbuild": "echo 'App already built'"
+    "heroku-postbuild": "echo 'App already built'",
+    "lint": "oxlint"
   },
   "devDependencies": {
     "husky": "^9.1.6",
+    "oxfmt": "^0.47.0",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
     "type-fest": "^4.41.0"
   },
   "engines": {

@@ -2,30 +2,29 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { useReportQuery } from '@queries/reports.queries';
-
 import { NominationFile } from 'shared-models';
+
 import {
   getTransparencesBreadCrumb,
-  TransparencesCurrentPage
+  TransparencesCurrentPage,
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { ScrollToTop } from '../../../shared/ScrollToTop';
+import { useReportQuery } from '@queries/reports.queries';
+import { useAttachReportFilesMutation } from '@queries/reports.queries';
+import { useDetachReportFilesMutation, useUpdateReportMutation } from '@queries/reports.queries';
+
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
+import { formatBiography, formatObservers } from './formatters';
 import { MagistratIdentity } from './MagistratIdentity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
-
-import { useAttachReportFilesMutation } from '@queries/reports.queries';
-import { ReportOverviewState } from './ReportOverviewState';
-import { Summary } from './Summary';
-
-import { useDetachReportFilesMutation, useUpdateReportMutation } from '@queries/reports.queries';
 import { ReportOverviewFileComment } from './ReportOverviewFileComment';
+import { ReportOverviewState } from './ReportOverviewState';
 import { ReportSummaryCard } from './ReportSummaryCard';
-import { formatBiography, formatObservers } from './formatters';
+import { Summary } from './Summary';
 
 export type ReportOverviewProps = {
   id: string;
@@ -46,9 +45,9 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const breadcrumb = getTransparencesBreadCrumb(
     {
       name: TransparencesCurrentPage.gdsReport,
-      report: retrievedReport
+      report: retrievedReport,
     },
-    navigate
+    navigate,
   );
 
   const formattedObservers = formatObservers(retrievedReport.observers);
@@ -62,14 +61,14 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     attachReportFiles({
       reportId: id,
       files,
-      usage: 'ATTACHMENT'
+      usage: 'ATTACHMENT',
     });
   };
 
   const onAttachedFileDeleted = async (fileName: string) => {
     detachReportFiles({
       reportId: id,
-      fileNames: [fileName]
+      fileNames: [fileName],
     });
   };
 

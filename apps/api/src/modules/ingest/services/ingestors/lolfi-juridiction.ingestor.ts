@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertJurisdictionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -24,12 +25,11 @@ export class LolfiJuridictionIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: boolean }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
-    async function* mapper(
-      source: AsyncIterable<{ data: RawJurisdiction; success: boolean }>,
-    ) {
+    // oxlint-disable-next-line require-yield
+    async function* mapper(source: AsyncIterable<{ data: RawJurisdiction; success: boolean }>) {
       const accumulator: RawJurisdiction[] = [];
 
       for await (const { data, success } of source) {
@@ -74,9 +74,7 @@ export class LolfiJuridictionIngestor {
   }) {
     return this.prisma
       .$transaction(async (tx) => {
-        const unknownJurisdictionTypes = await tx.$queryRawTyped(
-          insertJurisdictionsRawQuery(props.items),
-        );
+        const unknownJurisdictionTypes = await tx.$queryRawTyped(insertJurisdictionsRawQuery(props.items));
 
         if (unknownJurisdictionTypes.length === 0) return;
 

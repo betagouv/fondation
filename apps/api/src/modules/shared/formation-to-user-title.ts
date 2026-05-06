@@ -1,4 +1,5 @@
 import { Magistrat } from 'shared-models';
+
 import { USER_TITLES, UserTitleEnum } from '../administration/domain/user-enum';
 
 export function formationToUserTitle(

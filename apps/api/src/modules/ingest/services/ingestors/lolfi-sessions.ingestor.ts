@@ -1,10 +1,11 @@
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -20,9 +21,7 @@ export class LolfiSessionsIngestor {
     @Inject(API_CONFIG_TOKEN)
     config: ApiConfig,
   ) {
-    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction
-      ? new Date(Date.UTC(2026, 3, 1))
-      : true;
+    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction ? new Date(Date.UTC(2026, 3, 1)) : true;
   }
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -33,19 +32,16 @@ export class LolfiSessionsIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: false } | { success: true; values: RawSession[] }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
     const accumulator: RawSession[] = [];
-    async function* mapper(
-      source: AsyncIterable<{ data: RawSession; success: boolean }>,
-    ) {
+    // oxlint-disable-next-line require-yield
+    async function* mapper(source: AsyncIterable<{ data: RawSession; success: boolean }>) {
       const ids = new Set<number>();
       for await (const { data, success } of source) {
         if (ids.has(data.num_session)) {
-          self.logger.warn(
-            `SESSIONS.xml ${data.num_session} is duplicated. Ignoring`,
-          );
+          self.logger.warn(`SESSIONS.xml ${data.num_session} is duplicated. Ignoring`);
           continue;
         }
 
@@ -77,27 +73,18 @@ export class LolfiSessionsIngestor {
     return { success: finalSuccess };
   }
 
-  private flush(props: {
-    items: RawSession[];
-    jobId: number;
-    fileId: string;
-    result: { success: boolean };
-  }) {
-    return this.prisma
-      .$queryRawTyped(insertLolfiSessionRawQuery(props.items))
-      .catch((error) => {
-        this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
-        props.result.success = false;
-      });
+  private flush(props: { items: RawSession[]; jobId: number; fileId: string; result: { success: boolean } }) {
+    return this.prisma.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
+      this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
+      props.result.success = false;
+    });
   }
 
   private cleanResult(values: readonly RawSession[]): RawSession[] {
     if (this.FLAG_ENABLE_LOLFI_SESSIONS === true) return [...values];
 
     const flagDate = this.FLAG_ENABLE_LOLFI_SESSIONS.getTime();
-    return values.filter(
-      (value) => flagDate <= value.date_publication.getTime(),
-    );
+    return values.filter((value) => flagDate <= value.date_publication.getTime());
   }
 }
 

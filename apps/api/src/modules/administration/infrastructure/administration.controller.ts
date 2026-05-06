@@ -13,14 +13,13 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
+
 import { Role } from 'shared-models';
-import {
-  ApiPaginated,
-  Pagination,
-  QueryPagination,
-} from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+
 import { AdministrationService } from '../administration.service';
+import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import { HasRole } from 'src/modules/simple-auth';
+
 import { AdministrationErrorMapper } from './administration.filter';
 import {
   ListUsersQueryDto,
@@ -57,9 +56,7 @@ export class AdministrationController {
   @HasRole(Role.ADMIN)
   @Get('/users/:userId')
   @ZodResponse({ type: DetailedAdminUserDto, status: HttpStatus.OK })
-  detailsUser(
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<DetailedAdminUserDto> {
+  detailsUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedAdminUserDto> {
     return this.administration.detailsUser({ userId });
   }
 
@@ -110,18 +107,14 @@ export class AdministrationController {
   @HasRole(Role.ADMIN)
   @Put('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  promoteToAdmin(
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<void> {
+  promoteToAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
     return this.administration.promoteToAdmin({ userId });
   }
 
   @HasRole(Role.ADMIN)
   @Delete('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  demoteFromAdmin(
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<void> {
+  demoteFromAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
     return this.administration.demoteFromAdmin({ userId });
   }
 }

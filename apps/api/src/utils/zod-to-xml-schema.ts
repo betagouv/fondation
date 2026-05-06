@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 /** @ts-ignore */
 
 import { z } from 'zod';
@@ -49,13 +49,7 @@ export function zodToXmlSchema<T extends z.ZodObject>(input: {
 
 function toElement(
   name: string,
-  property:
-    | z.ZodNullable
-    | z.ZodOptional
-    | z.ZodNumber
-    | z.ZodInt
-    | z.ZodString
-    | z.ZodEnum,
+  property: z.ZodNullable | z.ZodOptional | z.ZodNumber | z.ZodInt | z.ZodString | z.ZodEnum,
 ) {
   let isNullable = false;
   let subProperty: z.ZodType = property;
@@ -111,27 +105,19 @@ function stringToElement(options: {
   types: string[];
   elements: string[];
 }): void {
-  const json: z.core.JSONSchema.JSONSchema = (
-    options.property as any
-  ).toJSONSchema();
+  const json: z.core.JSONSchema.JSONSchema = (options.property as any).toJSONSchema();
 
   const restrictions = [
-    ...(json.pattern && !options.isNullable
-      ? [`<xs:pattern value="${escapeXml(json.pattern)}" />`]
-      : []),
+    ...(json.pattern && !options.isNullable ? [`<xs:pattern value="${escapeXml(json.pattern)}" />`] : []),
     ...(json.pattern && options.isNullable
       ? [`<xs:pattern value="[*]{0}|${escapeXml(json.pattern)}" />`]
       : []),
-    ...(json.minLength && !options.isNullable
-      ? [`<xs:minLength value="${json.minLength}" />`]
-      : []),
+    ...(json.minLength && !options.isNullable ? [`<xs:minLength value="${json.minLength}" />`] : []),
     ...(json.maxLength ? [`<xs:maxLength value="${json.maxLength}" />`] : []),
   ];
 
   if (!options.isNullable && restrictions.length === 0) {
-    options.elements.push(
-      `<xs:element name="${options.name}" type="xs:string" />`,
-    );
+    options.elements.push(`<xs:element name="${options.name}" type="xs:string" />`);
     return;
   }
 
@@ -146,9 +132,7 @@ function stringToElement(options: {
     options.types.push(simpleType);
 
     if (!options.isNullable) {
-      options.elements.push(
-        `<xs:element name="${options.name}" type="${options.name}_simple_type" />`,
-      );
+      options.elements.push(`<xs:element name="${options.name}" type="${options.name}_simple_type" />`);
       return;
     }
   }
@@ -176,9 +160,7 @@ function numberToElement(options: {
   elements: string[];
   types: string[];
 }) {
-  const json: z.core.JSONSchema.JSONSchema = (
-    options.property as any
-  ).toJSONSchema();
+  const json: z.core.JSONSchema.JSONSchema = (options.property as any).toJSONSchema();
 
   let baseType;
 
@@ -199,19 +181,14 @@ function numberToElement(options: {
         : undefined;
 
   const minExclusive =
-    json.exclusiveMinimum === true &&
-    typeof json.minimum === 'number' &&
-    json.minimum > 0
+    json.exclusiveMinimum === true && typeof json.minimum === 'number' && json.minimum > 0
       ? json.minimum
       : typeof json.exclusiveMinimum === 'number' && json.exclusiveMinimum > 1
         ? json.exclusiveMinimum
         : undefined;
 
   if (json.type === 'integer') {
-    if (
-      (minimum !== undefined && minimum > 0) ||
-      (minExclusive !== undefined && minExclusive >= 0)
-    ) {
+    if ((minimum !== undefined && minimum > 0) || (minExclusive !== undefined && minExclusive >= 0)) {
       baseType = 'xs:positiveInteger';
     } else if (
       (minimum !== undefined && minimum >= 0) ||
@@ -227,8 +204,7 @@ function numberToElement(options: {
 
   const pattern = options.isNullable
     ? json.type === 'integer'
-      ? baseType === 'xs:positiveInteger' ||
-        baseType === 'xs:nonNegativeInteger'
+      ? baseType === 'xs:positiveInteger' || baseType === 'xs:nonNegativeInteger'
         ? /[0-9]*/
         : /-?[0-9]*/
       : /-?[0-9]*(\.[0-9]+)?/
@@ -239,27 +215,17 @@ function numberToElement(options: {
     ...(!pattern && minExclusive !== undefined && !options.isNullable
       ? [`<xs:minExclusive value="${minExclusive}" />`]
       : []),
-    ...(!pattern && maxExclusive !== undefined
-      ? [`<xs:maxExclusive value="${maxExclusive}" />`]
-      : []),
+    ...(!pattern && maxExclusive !== undefined ? [`<xs:maxExclusive value="${maxExclusive}" />`] : []),
     ...(!pattern && minimum !== undefined && !options.isNullable
       ? [`<xs:minInclusive value="${minimum}" />`]
       : []),
-    ...(!pattern && maximum !== undefined
-      ? [`<xs:maxInclusive value="${maximum}" />`]
-      : []),
+    ...(!pattern && maximum !== undefined ? [`<xs:maxInclusive value="${maximum}" />`] : []),
 
-    ...(pattern
-      ? [
-          `<xs:pattern value="${escapeXml(pattern.toString().replace(/(^\/|\/$)/g, ''))}" />`,
-        ]
-      : []),
+    ...(pattern ? [`<xs:pattern value="${escapeXml(pattern.toString().replace(/(^\/|\/$)/g, ''))}" />`] : []),
   ];
 
   if (!options.isNullable && restrictions.length === 0) {
-    options.elements.push(
-      `<xs:element name="${options.name}" type="${baseType}" />`,
-    );
+    options.elements.push(`<xs:element name="${options.name}" type="${baseType}" />`);
     return;
   }
 
@@ -274,9 +240,7 @@ function numberToElement(options: {
     options.types.push(simpleType);
 
     if (!options.isNullable) {
-      options.elements.push(
-        `<xs:element name="${options.name}" type="${options.name}_simple_type" />`,
-      );
+      options.elements.push(`<xs:element name="${options.name}" type="${options.name}_simple_type" />`);
       return;
     }
   }
@@ -303,9 +267,7 @@ function enumToElement(options: {
   elements: string[];
   types: string[];
 }) {
-  const json: z.core.JSONSchema.JSONSchema = (
-    options.property as any
-  ).toJSONSchema();
+  const json: z.core.JSONSchema.JSONSchema = (options.property as any).toJSONSchema();
 
   if (options.isNullable) {
     const simpleType = `
@@ -343,9 +305,7 @@ function enumToElement(options: {
   `;
   options.types.push(simpleType);
 
-  options.elements.push(
-    `<xs:element name="${options.name}" type="${options.name}_simple_type" />`,
-  );
+  options.elements.push(`<xs:element name="${options.name}" type="${options.name}_simple_type" />`);
   return;
 }
 

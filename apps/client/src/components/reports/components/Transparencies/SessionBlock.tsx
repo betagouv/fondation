@@ -11,7 +11,7 @@ export const SessionBlock: FC<SessionBlockProps> = ({
   hidden = false,
   title,
   noTransparenciesText,
-  children
+  children,
 }) => (
   <div className="flex-[1_1_0]">
     <h2 style={{ color: colors.decisions.text.title.blueFrance.default }}>{title}</h2>

@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
+import { useAffectations } from '../contexts/files-affectations.context';
+import { useNominationFilesTable } from '../contexts/files-table.context';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
-import { useAffectations } from '../contexts/files-affectations.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
 
 export function NominationFilesSaveAffectationsButton() {
   const alerts = useAlerts();
@@ -22,8 +22,8 @@ export function NominationFilesSaveAffectationsButton() {
         affectations: getAffectations().map(({ reporterIds, priorities, id }) => ({
           reporterIds,
           nominationFileId: id,
-          priorities: priorities
-        }))
+          priorities: priorities,
+        })),
       },
       {
         onSettled: () => {
@@ -33,7 +33,9 @@ export function NominationFilesSaveAffectationsButton() {
         onError: async (err) => {
           let description: React.ReactNode | undefined;
           if (err instanceof HttpException) {
-            const { validationErrors } = (await err.response.json()) as { validationErrors: string[] };
+            const { validationErrors } = (await err.response.json()) as {
+              validationErrors: string[];
+            };
 
             description =
               validationErrors.length > 1 ? (
@@ -50,10 +52,10 @@ export function NominationFilesSaveAffectationsButton() {
           alerts.pushAlert({
             severity: 'error',
             title: `Erreur pendant la mise à jour des affectation`,
-            description
+            description,
           });
-        }
-      }
+        },
+      },
     );
   }, [
     alerts,
@@ -63,7 +65,7 @@ export function NominationFilesSaveAffectationsButton() {
     edition,
     getAffectations,
     saveAffectations,
-    resetAffectations
+    resetAffectations,
   ]);
 
   return (

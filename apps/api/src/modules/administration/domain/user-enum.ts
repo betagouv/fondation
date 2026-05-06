@@ -1,8 +1,6 @@
 import { Role } from 'shared-models';
-import {
-  PrismaUserDutyEnum,
-  PrismaUserTitleEnum,
-} from 'src/generated/prisma/enums';
+
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { assertNever } from 'src/utils/assert-never';
 
 export const USER_TITLES = [
@@ -14,28 +12,15 @@ export const USER_TITLES = [
 ] as const;
 export type UserTitleEnum = (typeof USER_TITLES)[number];
 
-export const USER_DUTIES = [
-  'PRESIDENT',
-  'DEPUTY_PRESIDENT',
-  'SECRETARY',
-  'OFFICER',
-] as const;
+export const USER_DUTIES = ['PRESIDENT', 'DEPUTY_PRESIDENT', 'SECRETARY', 'OFFICER'] as const;
 export type UserDutyEnum = (typeof USER_DUTIES)[number];
 
-export function toUserTitle(
-  value: PrismaUserTitleEnum | null,
-): UserTitleEnum | null {
-  return USER_TITLES.includes(value as UserTitleEnum)
-    ? (value as UserTitleEnum)
-    : null;
+export function toUserTitle(value: PrismaUserTitleEnum | null): UserTitleEnum | null {
+  return USER_TITLES.includes(value as UserTitleEnum) ? (value as UserTitleEnum) : null;
 }
 
-export function toUserDuty(
-  value: PrismaUserDutyEnum | null,
-): UserDutyEnum | null {
-  return USER_DUTIES.includes(value as UserDutyEnum)
-    ? (value as UserDutyEnum)
-    : null;
+export function toUserDuty(value: PrismaUserDutyEnum | null): UserDutyEnum | null {
+  return USER_DUTIES.includes(value as UserDutyEnum) ? (value as UserDutyEnum) : null;
 }
 
 export const ADMIN_USER_ROLES_ENUM = [
@@ -54,9 +39,7 @@ export const ADMIN_USER_ROLES_ENUM = [
 ] as const;
 export type AdminUserRoleEnum = (typeof ADMIN_USER_ROLES_ENUM)[number];
 
-export function adminUserRoleEnumToTitle(
-  role: AdminUserRoleEnum,
-): UserTitleEnum | null {
+export function adminUserRoleEnumToTitle(role: AdminUserRoleEnum): UserTitleEnum | null {
   switch (role) {
     case 'DEPUTY_PRESIDENT_PARQUET':
       return 'DEPUTY_PRESIDENT_PARQUET';
@@ -83,9 +66,7 @@ export function adminUserRoleEnumToTitle(
   }
 }
 
-export function adminUserRoleEnumToDuty(
-  role: AdminUserRoleEnum,
-): UserDutyEnum | null {
+export function adminUserRoleEnumToDuty(role: AdminUserRoleEnum): UserDutyEnum | null {
   switch (role) {
     case 'DEPUTY_PRESIDENT_PARQUET':
     case 'DEPUTY_PRESIDENT_SIEGE':
@@ -112,9 +93,7 @@ export function adminUserRoleEnumToDuty(
   }
 }
 
-export function adminUserRoleEnumToIdentityRoles(
-  role: AdminUserRoleEnum,
-): Role[] {
+export function adminUserRoleEnumToIdentityRoles(role: AdminUserRoleEnum): Role[] {
   switch (role) {
     case 'DEPUTY_PRESIDENT_PARQUET':
     case 'PRESIDENT_PARQUET':

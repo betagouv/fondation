@@ -15,7 +15,7 @@ export function MagistratSummaryButton(props: { sessionId: string; nominationFil
   const link = React.useMemo(
     () =>
       ROUTE_PATHS.SUMMARY.replace(':sessionId', props.sessionId).replace(':fileId', props.nominationFile.id),
-    [props]
+    [props],
   );
 
   const { summary } = props.nominationFile;
@@ -28,8 +28,8 @@ export function MagistratSummaryButton(props: { sessionId: string; nominationFil
       { sessionId: props.sessionId, nominationFileId: props.nominationFile.id },
       {
         onSuccess: () => navigate(link),
-        onSettled: () => reset()
-      }
+        onSettled: () => reset(),
+      },
     );
   }, [link, props, mutate, reset, navigate]);
 

@@ -1,7 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { useUpdateDisplayTitleMutation } from '@queries/members.queries';
 import { useCallback, useId, useState } from 'react';
+
+import { useUpdateDisplayTitleMutation } from '@queries/members.queries';
 
 export function MemberDisplayTitle(props: { member: { id: string; displayTitle: string | null } }) {
   const [isEditing, setEditing] = useState(false);
@@ -12,13 +13,13 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
     (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
       setDisplayTitle(e.target.value);
     },
-    [setDisplayTitle]
+    [setDisplayTitle],
   );
 
   const {
     mutate: updateDisplayTitle,
     isPending: isUpdating,
-    error
+    error,
   } = useUpdateDisplayTitleMutation({ userId: props.member.id });
 
   const toggleEdition = useCallback(
@@ -41,10 +42,10 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
       updateDisplayTitle(displayTitle.trim() || null, {
         onSuccess() {
           setEditing(false);
-        }
+        },
       });
     },
-    [isEditing, displayTitle, updateDisplayTitle, props]
+    [isEditing, displayTitle, updateDisplayTitle, props],
   );
 
   return (
@@ -90,7 +91,7 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
               autoComplete: 'off',
               value: displayTitle,
               onChange: onTitleChange,
-              placeholder: 'Saisissez un titre...'
+              placeholder: 'Saisissez un titre...',
             }}
           />
         </form>

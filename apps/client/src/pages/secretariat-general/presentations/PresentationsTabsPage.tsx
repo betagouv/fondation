@@ -1,12 +1,12 @@
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
-
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import { useListPresentationPlansAgendasQuery } from '@queries/agenda.queries';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
+
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useListPresentationPlansAgendasQuery } from '@queries/agenda.queries';
 
 const PresentationsBreadcrumb = React.memo(function PresentationsBreadcrumb() {
   const { $t } = useIntl();
@@ -17,8 +17,11 @@ const PresentationsBreadcrumb = React.memo(function PresentationsBreadcrumb() {
       breadcrumb={{
         currentPageLabel: $t({ defaultMessage: `Restitutions` }),
         segments: [
-          { label: $t({ defaultMessage: 'Secrétariat Général' }), to: generatePath(ROUTE_PATHS.SG.DASHBOARD) }
-        ]
+          {
+            label: $t({ defaultMessage: 'Secrétariat Général' }),
+            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
+          },
+        ],
       }}
     />
   );
@@ -38,20 +41,22 @@ export function PresentationsTabsPage() {
       const path = tabId === 'past' ? ROUTE_PATHS.SG.PRESENTATIONS_PAST : ROUTE_PATHS.SG.PRESENTATIONS_READY;
       return navigate(generatePath(path));
     },
-    [navigate]
+    [navigate],
   );
 
   const tabLabelPast = formatMessage({ defaultMessage: 'Passées' });
   const tabLabelReady = formatMessage(
-    { defaultMessage: '{count, plural, =0 {À restituer} other {À restituer <counter>{count}</counter>}}' },
+    {
+      defaultMessage: '{count, plural, =0 {À restituer} other {À restituer <counter>{count}</counter>}}',
+    },
     {
       count: (agendas?.items ?? []).length,
       counter: (label) => (
         <Badge className="ml-1" as="span" small>
           {label}
         </Badge>
-      )
-    }
+      ),
+    },
   );
 
   return (
@@ -67,7 +72,7 @@ export function PresentationsTabsPage() {
         onTabChange={onTabChange}
         tabs={[
           { tabId: 'past', label: tabLabelPast },
-          { tabId: 'ready', label: tabLabelReady }
+          { tabId: 'ready', label: tabLabelReady },
         ]}
       >
         <Outlet />

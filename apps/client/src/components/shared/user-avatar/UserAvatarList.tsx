@@ -1,8 +1,10 @@
-import { toFullName } from '@/utils/user.utils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
+
+import { toFullName } from '@/utils/user.utils';
+
 import { userAvatarSizes } from './user-avatar.utils';
 import { UserAvatar } from './UserAvatar';
 
@@ -22,7 +24,7 @@ export function UserAvatarList(props: {
     <ul
       className={clsx(
         'm-0 flex cursor-pointer list-none items-center gap-x-2 p-0',
-        (props.direction ?? 'row') === 'row' ? 'flex-row' : 'flex-col'
+        (props.direction ?? 'row') === 'row' ? 'flex-row' : 'flex-col',
       )}
     >
       {(users.length > max ? users.slice(0, max) : users).map((user) => (

@@ -7,6 +7,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
+
 import {
   LodamNominationFile,
   LodamNominationFileEntity,
@@ -15,10 +16,7 @@ import {
   UpdatableNominationFile,
   UpdatableNominationFileState,
 } from './nomination-file';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from './nomination-file-outcome';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 
 export class NominationSessionFileReportersAffected {
   constructor(
@@ -183,9 +181,7 @@ type NominationSessionAffectationVersion = {
 
 export class NonFormationMemberDefinedAsReporter extends Error {
   constructor() {
-    super(
-      `Impossible d'affecter un membre d'une formation incompatible avec cette session`,
-    );
+    super(`Impossible d'affecter un membre d'une formation incompatible avec cette session`);
   }
 }
 
@@ -202,9 +198,7 @@ export class NominationSessionAffectationHasUnknownReporter extends Error {
 
 export class UnknownNominationFiles extends Error {
   constructor(readonly unknownFileNumbers: number[]) {
-    super(
-      unknownFileNumbers.length > 1 ? `Dossiers inconnus` : 'Dossier inconnu',
-    );
+    super(unknownFileNumbers.length > 1 ? `Dossiers inconnus` : 'Dossier inconnu');
   }
 }
 
@@ -238,11 +232,7 @@ export class NominationSession {
       props.id,
       props.formation,
       props.version,
-      new Map(
-        props.nominationFiles.map(
-          (state) => [state.id, UpdatableNominationFile.from(state)] as const,
-        ),
-      ),
+      new Map(props.nominationFiles.map((state) => [state.id, UpdatableNominationFile.from(state)] as const)),
     );
   }
 
@@ -264,8 +254,7 @@ export class NominationSession {
     });
 
     const observationClosingDate =
-      command.observationClosingDate ??
-      DateOnly.fromDate(addWeeks(command.date.toDate(), 1));
+      command.observationClosingDate ?? DateOnly.fromDate(addWeeks(command.date.toDate(), 1));
 
     session.#messages.push(
       new NominationSessionCreated(
@@ -291,9 +280,7 @@ export class NominationSession {
     session.validate({ userId: command.userId });
 
     const memberPerFullName = new Map(
-      command.formationMembers.map(
-        (member) => [member.fullName.toLowerCase(), member] as const,
-      ),
+      command.formationMembers.map((member) => [member.fullName.toLowerCase(), member] as const),
     );
     const nominationFileEntities: LodamNominationFileEntity[] = [];
     const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
@@ -332,9 +319,7 @@ export class NominationSession {
     }
 
     if (unknownReporters.length) {
-      throw new NominationSessionAffectationHasUnknownReporter(
-        unknownReporters,
-      );
+      throw new NominationSessionAffectationHasUnknownReporter(unknownReporters);
     }
 
     session.nominationFiles = new Map(
@@ -352,28 +337,19 @@ export class NominationSession {
       ]),
     );
 
-    session.#messages.push(
-      new LodamNominationSessionFilesCreated(
-        session.id,
-        nominationFileEntities,
-      ),
-    );
+    session.#messages.push(new LodamNominationSessionFilesCreated(session.id, nominationFileEntities));
 
     if (affectations.length > 0) {
       session.affectNominationFileReporters({
         affectations,
-        formationMemberIds: new Set(
-          command.formationMembers.map(({ id }) => id),
-        ),
+        formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
       });
     }
 
     return session;
   }
 
-  associateNominationFiles(command: {
-    files: readonly NominationFile[];
-  }): void {
+  associateNominationFiles(command: { files: readonly NominationFile[] }): void {
     this.#messages.push(
       new NominationFilesAssociated(
         this.id,
@@ -385,18 +361,11 @@ export class NominationSession {
     );
   }
 
-  setNominationFilePriority(props: {
-    nominationFileId: string;
-    priorities: PrioriteEnum[];
-  }) {
+  setNominationFilePriority(props: { nominationFileId: string; priorities: PrioriteEnum[] }) {
     this.assertsCanUpdateFiles(props.nominationFileId);
 
     this.#messages.push(
-      new NominationSessionFilePrioritiesUpdated(
-        this.id,
-        props.nominationFileId,
-        props.priorities,
-      ),
+      new NominationSessionFilePrioritiesUpdated(this.id, props.nominationFileId, props.priorities),
     );
   }
 
@@ -407,9 +376,7 @@ export class NominationSession {
       reporterIds: readonly string[];
     }[];
   }) {
-    this.assertsCanUpdateFiles(
-      ...command.affectations.map(({ nominationFileId }) => nominationFileId),
-    );
+    this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
 
     let versionId = this.version?.id;
 
@@ -436,11 +403,7 @@ export class NominationSession {
     }
 
     this.#messages.push(
-      new NominationSessionFileReportersAffected(
-        this.id,
-        versionId ?? null,
-        command.affectations,
-      ),
+      new NominationSessionFileReportersAffected(this.id, versionId ?? null, command.affectations),
     );
   }
 
@@ -448,11 +411,7 @@ export class NominationSession {
     if (this.version && !this.version.isDraft) return;
 
     this.#messages.push(
-      new NominationSessionAffectationVersionPublished(
-        this.id,
-        this.version?.id,
-        props.userId,
-      ),
+      new NominationSessionAffectationVersionPublished(this.id, this.version?.id, props.userId),
     );
   }
 
@@ -482,20 +441,15 @@ export class NominationSession {
 
     const [knownFiles, unknownFiles] = partition(
       files,
-      (file): file is { id: string; observers: string[] } =>
-        'id' in file && isDefined(file.id),
+      (file): file is { id: string; observers: string[] } => 'id' in file && isDefined(file.id),
     );
 
     if (unknownFiles.length > 0) {
-      throw new UnknownNominationFiles(
-        unknownFiles.map(({ fileNumber }) => fileNumber),
-      );
+      throw new UnknownNominationFiles(unknownFiles.map(({ fileNumber }) => fileNumber));
     }
 
     this.assertsCanUpdateFiles(...knownFiles.map(({ id }) => id));
-    this.#messages.push(
-      new NominationSessionFilesObserversUpdated(this.id, knownFiles),
-    );
+    this.#messages.push(new NominationSessionFilesObserversUpdated(this.id, knownFiles));
   }
 
   addAttachments(command: { files: { id: string }[] }) {
@@ -505,9 +459,7 @@ export class NominationSession {
   }
 
   removeAttachment(command: { fileId: string }) {
-    this.#messages.push(
-      new NominationSessionAttachmentRemoved(this.id, command.fileId),
-    );
+    this.#messages.push(new NominationSessionAttachmentRemoved(this.id, command.fileId));
   }
 
   update(command: {
@@ -520,10 +472,7 @@ export class NominationSession {
     this.#messages.push(new NominationSessionUpdated(this.id, command));
   }
 
-  defineNominationFileOutcome(command: {
-    nominationFileId: string;
-    outcome: NominationFileOutcome | null;
-  }) {
+  defineNominationFileOutcome(command: { nominationFileId: string; outcome: NominationFileOutcome | null }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     this.#messages.push(
@@ -535,45 +484,25 @@ export class NominationSession {
     );
   }
 
-  writeNominationFileMemberMemo(command: {
-    userId: string;
-    nominationFileId: string;
-    memo: string;
-  }) {
+  writeNominationFileMemberMemo(command: { userId: string; nominationFileId: string; memo: string }) {
     const trimmed = command.memo.trim();
     if (trimmed.length === 0) return;
 
     this.#messages.push(
-      new NominationFileMemberMemoWritten(
-        command.userId,
-        this.id,
-        command.nominationFileId,
-        trimmed,
-      ),
+      new NominationFileMemberMemoWritten(command.userId, this.id, command.nominationFileId, trimmed),
     );
   }
 
   hideAlert(command: { nominationFileId: string }) {
-    this.#messages.push(
-      new NominationFileAlertHidden(this.id, command.nominationFileId),
-    );
+    this.#messages.push(new NominationFileAlertHidden(this.id, command.nominationFileId));
   }
 
   validate(command: { userId: string | null }): void {
-    this.#messages.push(
-      new NominationSessionValidated(this.id, command.userId),
-    );
+    this.#messages.push(new NominationSessionValidated(this.id, command.userId));
   }
 
-  delete(command: {
-    userId: string;
-    attachmentsCount: number;
-    affectedReportersCount: number;
-  }): void {
-    if (
-      command.attachmentsCount !== 0 ||
-      command.affectedReportersCount !== 0
-    ) {
+  delete(command: { userId: string; attachmentsCount: number; affectedReportersCount: number }): void {
+    if (command.attachmentsCount !== 0 || command.affectedReportersCount !== 0) {
       throw new NominationSessionIsNotDeletable(this.id);
     }
 

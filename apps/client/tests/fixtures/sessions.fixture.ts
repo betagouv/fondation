@@ -12,14 +12,14 @@ type Payload<T> = {
 };
 
 function toPayload<const T extends Record<string, string | number | Date | null | undefined>>(
-  value: T
+  value: T,
 ): Payload<T> {
   return Object.fromEntries(
     Object.entries(value).map(([key, value]) => {
       if (value === undefined) return [key, null];
       if (value instanceof Date) return [key, toDateOnly(value)];
       return [key, value];
-    })
+    }),
   );
 }
 
@@ -44,8 +44,8 @@ export class SessionsHttpClient {
           positionStartDate: null,
           lolfiSessionId: null,
           typeDeSaisine: 'TRANSPARENCE_GDS',
-          ...data
-        })
+          ...data,
+        }),
       })
       .then((res) => res.json());
   }
@@ -87,10 +87,10 @@ export class SessionsHttpClient {
             detectedJurisdictionId: null,
             detectedTargetedFunctionId: null,
             detectedTargetedPositionId: null,
-            ...file
-          })
-        )
-      }
+            ...file,
+          }),
+        ),
+      },
     });
   }
 }

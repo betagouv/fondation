@@ -8,22 +8,17 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
-import { AppModule } from 'src/app.module';
 import { FILE_MIME_TYPES } from '../framework/files';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
+import { AppModule } from 'src/app.module';
+
 import { StatutAffectation } from './domain/statut-affectation.enum';
 import { NominationFileAffectationItem } from './infrastructure/queries/list-nomination-files.query';
 
 describe('Session E2E', () => {
-  const LODAM_FILES_FOLDER_PATH = path.join(
-    __dirname,
-    '../../../test/assets/lodam',
-  );
-  const LODAM_FILE_PATH = path.join(
-    LODAM_FILES_FOLDER_PATH,
-    'lodam_transparence.xlsx',
-  );
+  const LODAM_FILES_FOLDER_PATH = path.join(__dirname, '../../../test/assets/lodam');
+  const LODAM_FILE_PATH = path.join(LODAM_FILES_FOLDER_PATH, 'lodam_transparence.xlsx');
 
   let auth: SimpleAuthService;
   let app: INestApplication;

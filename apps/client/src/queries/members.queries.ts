@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { NominationFile } from 'shared-models';
+
 import type { PrioriteEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
   ListedMemberSessionsDto,
   ListMembersData,
-  PaginatedNominationFiles
+  PaginatedNominationFiles,
 } from '@api/types';
-import type { NominationFile } from 'shared-models';
+
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
@@ -27,7 +29,7 @@ export const memberKeys = {
   }) => {
     const { userId, sessionId, ...rest } = props;
     return ['detailMemberGdsSession', userId, sessionId, rest] as const;
-  }
+  },
 };
 
 export const useMemberListQuery = (
@@ -36,7 +38,7 @@ export const useMemberListQuery = (
     formations?: NonNullable<ListMembersData['query']>['formations'];
     sorting?: { id: string; desc: boolean }[];
     pagination?: { pageIndex: number; pageSize: number };
-  } = {}
+  } = {},
 ) =>
   useQuery({
     staleTime: 1_000,
@@ -51,7 +53,7 @@ export const useMemberListQuery = (
 
       let sortBy: 'firstName' | 'lastName' | undefined, sortDirection: 'desc' | undefined;
       if (options.sorting) {
-        const [{ id = undefined, desc = undefined } = {}] = options.sorting;
+        const [{ id, desc } = {}] = options.sorting;
         sortBy = id === 'lastName' ? 'lastName' : id === 'firstName' ? 'firstName' : undefined;
         sortDirection = desc ? 'desc' : undefined;
       }
@@ -64,11 +66,11 @@ export const useMemberListQuery = (
             sortBy,
             sortDirection,
             formations: options.formations ?? [],
-            search: options.search?.trim() || undefined
-          }
+            search: options.search?.trim() || undefined,
+          },
         })
         .then(({ data }) => data ?? null);
-    }
+    },
   });
 
 export const useDetailedMember = (options: { userId: string | undefined }) =>
@@ -76,7 +78,7 @@ export const useDetailedMember = (options: { userId: string | undefined }) =>
     enabled: !!options.userId,
     queryKey: memberKeys.detailsMember({ userId: options.userId }),
     queryFn: () =>
-      $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data)
+      $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data),
   });
 
 export function useUpdateTitleMutation(options: { userId: string }) {
@@ -86,7 +88,7 @@ export function useUpdateTitleMutation(options: { userId: string }) {
     mutationFn: (title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null) =>
       $api.members.updateTitle({
         path: { userId: options.userId },
-        body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' }
+        body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' },
       }),
 
     onSuccess: (_data, title) =>
@@ -97,10 +99,10 @@ export function useUpdateTitleMutation(options: { userId: string }) {
 
           return {
             ...data,
-            title
+            title,
           };
-        }
-      )
+        },
+      ),
   });
 }
 
@@ -109,8 +111,8 @@ export const useUpdateDisplayTitleMutation = (options: { userId: string }) =>
     mutationFn: (displayTitle: string | null) =>
       $api.members.updateDisplayTitle({
         path: { userId: options.userId },
-        body: { displayTitle }
-      })
+        body: { displayTitle },
+      }),
   });
 
 export function useExcludedJurisdictionsMutation(options: { userId: string }) {
@@ -119,11 +121,13 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
     mutationFn: async (jurisdictionIds: readonly string[]) => {
       await $api.members.excludeJurisdictions({
         path: { userId: options.userId },
-        body: { jurisdictionIds: jurisdictionIds as string[] }
+        body: { jurisdictionIds: jurisdictionIds as string[] },
       });
     },
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: memberKeys.detailsMember({ userId: options.userId }) })
+      queryClient.invalidateQueries({
+        queryKey: memberKeys.detailsMember({ userId: options.userId }),
+      }),
   });
 }
 
@@ -145,10 +149,10 @@ export function useListMemberGdsSessions(input: { userId: string | undefined }) 
       return {
         items: data.items.map<SessionOfTypeGardeDesSceaux>((item) => ({
           ...item,
-          createdAt: new Date(item.createdAt)
-        }))
+          createdAt: new Date(item.createdAt),
+        })),
       };
-    }
+    },
   });
 }
 
@@ -177,11 +181,11 @@ export function useDetailedMemberGdsSession(input: {
             page: input.pagination.pageIndex + 1,
             limit: input.pagination.pageSize,
             sortBy: input.sorting[0]?.id,
-            sortDesc: input.sorting[0]?.desc
-          }
+            sortDesc: input.sorting[0]?.desc,
+          },
         })
         .then(({ data = null }) => data);
-    }
+    },
   });
 }
 export function useUpdateNominationFileCommentMutation() {
@@ -191,7 +195,7 @@ export function useUpdateNominationFileCommentMutation() {
     mutationFn: async (mutation: { sessionId: string; nominationFileId: string; comment: string | null }) => {
       await $api.sessions.updateNominationFileComment({
         path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        body: { comment: mutation.comment }
+        body: { comment: mutation.comment },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, comment }) => {
@@ -202,11 +206,11 @@ export function useUpdateNominationFileCommentMutation() {
 
           return {
             ...old,
-            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file))
+            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file)),
           };
-        }
+        },
       );
-    }
+    },
   });
 }
 
@@ -218,9 +222,9 @@ export function useWriteNominationFileMemberMemoMutation() {
         path: {
           userId: mutation.userId,
           sessionId: mutation.sessionId,
-          nominationFileId: mutation.nominationFileId
+          nominationFileId: mutation.nominationFileId,
         },
-        body: { memo: mutation.memo }
+        body: { memo: mutation.memo },
       }),
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
       queryClient.setQueriesData(
@@ -230,9 +234,9 @@ export function useWriteNominationFileMemberMemoMutation() {
 
           return {
             ...old,
-            items: old.items.map((item) => (item.id === nominationFileId ? { ...item, memo } : item))
+            items: old.items.map((item) => (item.id === nominationFileId ? { ...item, memo } : item)),
           };
-        }
-      )
+        },
+      ),
   });
 }

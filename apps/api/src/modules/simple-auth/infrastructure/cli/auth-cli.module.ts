@@ -1,8 +1,10 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { Command, CommandRunner } from 'nest-commander';
+
+import { SimpleAuthModule } from '../../simple-auth.module';
 import { AdministrationModule } from 'src/modules/administration/administration.module';
 import { UpdateDisplayTitlesCliCommand } from 'src/modules/administration/infrastructure/cli/update-display-titles.cli';
-import { SimpleAuthModule } from '../../simple-auth.module';
+
 import { RegisterUserCliCommand } from './register-user.cli';
 
 @Command({
@@ -14,14 +16,7 @@ export class AuthUserCliCommand extends CommandRunner {
 }
 
 @Module({
-  imports: [
-    forwardRef(() => SimpleAuthModule),
-    forwardRef(() => AdministrationModule),
-  ],
-  providers: [
-    AuthUserCliCommand,
-    RegisterUserCliCommand,
-    UpdateDisplayTitlesCliCommand,
-  ],
+  imports: [forwardRef(() => SimpleAuthModule), forwardRef(() => AdministrationModule)],
+  providers: [AuthUserCliCommand, RegisterUserCliCommand, UpdateDisplayTitlesCliCommand],
 })
 export class AuthCliModule {}

@@ -14,7 +14,7 @@ import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@
 
 const summaryReadersModal = createModal({
   id: `summaryReadersModal`,
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 export function SummaryReaderSelector() {
@@ -52,7 +52,7 @@ function SummaryReaderModal() {
   const originalReaderIds = React.useMemo(() => summary.summary.readers.map(({ id }) => id), [summary]);
   const [state, setState] = React.useState<{ readers: string[]; isDirty: boolean }>({
     isDirty: false,
-    readers: originalReaderIds
+    readers: originalReaderIds,
   });
 
   const onChange = React.useCallback(
@@ -63,13 +63,13 @@ function SummaryReaderModal() {
 
       setState({ isDirty, readers });
     },
-    [originalReaderIds, setState]
+    [originalReaderIds, setState],
   );
 
   const {
     reset,
     mutate: updateSummaryReaders,
-    isPending: isUpdatingReaders
+    isPending: isUpdatingReaders,
   } = useUpdateSummaryReadersMutation();
   const onConfirmSummaryReaders = React.useCallback(() => {
     if (!state.isDirty) return;
@@ -81,8 +81,8 @@ function SummaryReaderModal() {
           reset();
           summaryReadersModal.close();
           setState({ isDirty: false, readers: [] });
-        }
-      }
+        },
+      },
     );
   }, [state, sessionId, nominationFileId, updateSummaryReaders, reset, setState]);
 
@@ -90,7 +90,7 @@ function SummaryReaderModal() {
     onConceal() {
       reset();
       setState({ isDirty: false, readers: [] });
-    }
+    },
   });
 
   return (
@@ -101,15 +101,15 @@ function SummaryReaderModal() {
           children: 'Annuler',
           priority: 'secondary',
           doClosesModal: true,
-          disabled: isUpdatingReaders
+          disabled: isUpdatingReaders,
         },
         {
           doClosesModal: !isUpdatingReaders && !state.isDirty,
           children: state.isDirty ? 'Partager' : 'Ok',
           priority: 'primary',
           disabled: isUpdatingReaders,
-          onClick: onConfirmSummaryReaders
-        }
+          onClick: onConfirmSummaryReaders,
+        },
       ]}
     >
       {isOpen ? <SummaryReaderAutocomplete readers={originalReaderIds} onChange={onChange} /> : null}
@@ -125,7 +125,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
   const [selectedReaderIds, setReaderIds] = React.useState(new Set<string>(props.readers));
 
   const [includeIds, setIncludeIds] = React.useState<string[] | undefined>(
-    selectedReaderIds.size ? [...selectedReaderIds] : undefined
+    selectedReaderIds.size ? [...selectedReaderIds] : undefined,
   );
 
   const toggleReader = React.useCallback(
@@ -141,14 +141,14 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
       setReaderIds(nextReaders);
       props.onChange([...nextReaders]);
     },
-    [selectedReaderIds, setReaderIds, props]
+    [selectedReaderIds, setReaderIds, props],
   );
 
   const { data: readers } = useSearchSummaryReadersQuery({
     sessionId,
     nominationFileId,
     includeIds,
-    search: debouncedSearch
+    search: debouncedSearch,
   });
 
   const checkboxOptions = React.useMemo(
@@ -163,10 +163,10 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
               search={search}
               value={`${capitalize(x.firstName)} ${x.lastName.toUpperCase()}`}
             />
-          )
+          ),
         };
       }),
-    [readers, selectedReaderIds, search]
+    [readers, selectedReaderIds, search],
   );
 
   return (
@@ -205,7 +205,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         className="mt-4 max-h-60 overflow-auto pb-24"
         options={checkboxOptions.map(({ label, value, checked }) => ({
           label,
-          nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) }
+          nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },
         }))}
       />
     </div>

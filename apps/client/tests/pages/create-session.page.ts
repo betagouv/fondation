@@ -1,4 +1,5 @@
 import type { Locator } from '@playwright/test';
+
 import type { TestApp } from './test-app';
 
 export class CreateSessionPage {
@@ -62,9 +63,11 @@ export class CreateSessionPage {
   }
 
   private async fillFile(file: File): Promise<void> {
-    return this.app.page
-      .getByLabel('Fichier')
-      .setInputFiles({ name: file.name, mimeType: file.type, buffer: Buffer.from(await file.arrayBuffer()) });
+    return this.app.page.getByLabel('Fichier').setInputFiles({
+      name: file.name,
+      mimeType: file.type,
+      buffer: Buffer.from(await file.arrayBuffer()),
+    });
   }
 
   private fillName(name: string): Promise<void> {
@@ -81,7 +84,7 @@ export class CreateSessionPage {
 
   private successfullyCreatedSessionAlert(name: string): Locator {
     return this.app.page.locator('.fr-alert.fr-alert--success', {
-      hasText: `Session «\u00A0${name}\u00A0» créée`
+      hasText: `Session «\u00A0${name}\u00A0» créée`,
     });
   }
 }

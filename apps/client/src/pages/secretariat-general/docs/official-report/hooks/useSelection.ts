@@ -5,7 +5,7 @@ export function useMonoSelection<T extends { id: string }>(options: {
   defaultValueId?: string | null;
   onSelect: (item: T | null) => unknown;
 }) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const onChange = React.useCallback((item: T | null) => options.onSelect(item), []);
 
   const [selection, setSelection] = React.useState<T | null>(null);
@@ -20,7 +20,7 @@ export function useMonoSelection<T extends { id: string }>(options: {
       setSelection(item);
       onChange(item);
     },
-    [options.items, setSelection, onChange]
+    [options.items, setSelection, onChange],
   );
 
   React.useEffect(() => {

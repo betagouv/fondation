@@ -1,11 +1,11 @@
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import React from 'react';
-import { useSelectedJob } from '../contexts/job.context';
 
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { formatJobDuration } from '../common/format-job-duration.utils';
 import { JOB_STATUS_ICONS } from '../common/job-status.utils';
 import type { Tree } from '../common/job.types';
+import { useSelectedJob } from '../contexts/job.context';
 
 export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
   const { icon, textColor } = React.useMemo(() => {
@@ -19,9 +19,9 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
     () =>
       formatJobDuration({
         startedAt: props.node.startedAt,
-        endedAt: props.node.endedAt ?? new Date().toISOString()
+        endedAt: props.node.endedAt ?? new Date().toISOString(),
       }),
-    [props.node]
+    [props.node],
   );
 
   const { selectedFileId, toggleFile } = useSelectedJob();
@@ -35,7 +35,7 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
         'cursor-pointer select-none rounded border border-solid bg-white p-4 text-sm transition-all duration-100 hover:border-opacity-85',
         isSelected
           ? 'border-blue-500 shadow hover:border-blue-600 hover:shadow-md'
-          : 'border-gray-300 hover:border-blue-400 hover:shadow'
+          : 'border-gray-300 hover:border-blue-400 hover:shadow',
       )}
     >
       <span className="flex items-center">
@@ -47,7 +47,7 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
             'before:content-[""]',
             'before:size-4',
             'before:align-middle',
-            'mr-1'
+            'mr-1',
           )}
         />
         <span>{props.node.name}</span>

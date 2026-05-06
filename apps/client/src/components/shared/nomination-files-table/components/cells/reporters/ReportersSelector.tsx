@@ -1,24 +1,29 @@
 import { useMemo } from 'react';
 
-import { UserAvatarList } from '@/components/shared/user-avatar';
-
-import { useAffectationRow } from '@/components/shared/nomination-files-table/contexts/files-affectations.context';
-import { RapporteursDropdownBase } from './RapporteursDropdownBase';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { ReportersAlert } from './ReportersAlert';
-import { useMemberListQuery } from '@queries/members.queries';
 import { useNominationFilesTable } from '../../../contexts/files-table.context';
+import { useAffectationRow } from '@/components/shared/nomination-files-table/contexts/files-affectations.context';
+import { UserAvatarList } from '@/components/shared/user-avatar';
+import { useMemberListQuery } from '@queries/members.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
+import { RapporteursDropdownBase } from './RapporteursDropdownBase';
+import { ReportersAlert } from './ReportersAlert';
 
 export function ReportersSelector(props: { file: SessionNominationFile }) {
   const { formation } = useNominationFilesTable();
   const { data } = useMemberListQuery({
     formations: ['COMMUN', formation],
-    pagination: { pageIndex: 0, pageSize: 100 }
+    pagination: { pageIndex: 0, pageSize: 100 },
   });
 
   const reporters = useMemo(
-    () => (data?.items ?? []).map((r) => ({ userId: r.id, firstName: r.firstName, lastName: r.lastName })),
-    [data]
+    () =>
+      (data?.items ?? []).map((r) => ({
+        userId: r.id,
+        firstName: r.firstName,
+        lastName: r.lastName,
+      })),
+    [data],
   );
 
   const { reporterIds, affectReporters } = useAffectationRow(props.file.id);
@@ -26,7 +31,7 @@ export function ReportersSelector(props: { file: SessionNominationFile }) {
 
   const reporterMap = useMemo(
     () => new Map(reporters.map((reporter) => [reporter.userId, reporter] as const)),
-    [reporters]
+    [reporters],
   );
   const selectedUsers = useMemo(
     () =>
@@ -35,7 +40,7 @@ export function ReportersSelector(props: { file: SessionNominationFile }) {
             .map((id) => reporterMap.get(id))
             .filter((x): x is NonNullable<typeof x> => Boolean(x))
         : [],
-    [selectedReporters, reporterMap]
+    [selectedReporters, reporterMap],
   );
 
   const buttonLabel =

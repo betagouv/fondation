@@ -1,13 +1,15 @@
+import Select from '@codegouvfr/react-dsfr/Select';
+import React from 'react';
+
+import { useIsSg } from '@/hooks/roles.hook';
 import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumLabels,
-  type ObservationFollowupEnum
+  type ObservationFollowupEnum,
 } from '@/types/enums.types';
-import Select from '@codegouvfr/react-dsfr/Select';
-import React from 'react';
-import { useObservationFollowUpCommentDialog } from './useObservationFollowUpCommentDialog';
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
-import { useIsSg } from '@/hooks/roles.hook';
+
+import { useObservationFollowUpCommentDialog } from './useObservationFollowUpCommentDialog';
 
 export function ObservationFollowUpSelector(props: {
   sessionId: string;
@@ -48,7 +50,7 @@ export function ObservationFollowUpSelector(props: {
           nominationFileId,
           observationId,
           comment,
-          followUp
+          followUp,
         },
         {
           onSettled() {
@@ -56,11 +58,11 @@ export function ObservationFollowUpSelector(props: {
           },
           onSuccess() {
             props.onChange?.({ comment, followUp });
-          }
-        }
+          },
+        },
       );
     },
-    [props, select, waitForComment, mutateAsync, reset]
+    [props, select, waitForComment, mutateAsync, reset],
   );
 
   if (!isSg) return null;
@@ -73,7 +75,7 @@ export function ObservationFollowUpSelector(props: {
         nativeSelectProps={{
           onChange,
           value: selected,
-          disabled: isPending
+          disabled: isPending,
         }}
       >
         <option key="observation_followUp_null" value={'null'}>

@@ -1,5 +1,6 @@
-import { labels } from '@/constants/labels.constants';
 import { reportHtmlIds } from '../../dom/html-ids';
+import { labels } from '@/constants/labels.constants';
+
 import { Card } from './Card';
 
 export type BiographyProps = {

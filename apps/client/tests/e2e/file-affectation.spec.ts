@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+
 import { test } from '../fixtures';
 
 test.describe('Affectations', () => {
@@ -10,22 +11,22 @@ test.describe('Affectations', () => {
         name: sessionName,
         date: new Date('2026-03-01'),
         observationClosingDate: new Date('2026-03-10'),
-        formation: 'SIEGE'
+        formation: 'SIEGE',
       });
 
       await http.sessions.attachNominationFiles({
         sessionId,
-        // prettier-ignore
+        // oxfmt-ignore
         files: [
           { fileNumber: 1, name: 'Antoine DUPOND', currentPosition: 'Président TJ  LYON', grade: 'G2', targetedPosition: 'Président TJ  CAEN', targetedGrade: 'G2' },
           { fileNumber: 2, name: 'Sarah CLERC', currentPosition: 'Président TJ  ANNECY', grade: 'G2', targetedPosition: 'Président TJ  ROUEN', targetedGrade: 'G2' },
-        ]
+        ],
       });
     });
 
     test('quand je publie la transparence sans affectation, elle apparaît auprès des membres', async ({
       app,
-      newMemberApp
+      newMemberApp,
     }) => {
       // Et un membre du siège
       const firstName = faker.person.firstName() + ` ${crypto.randomUUID()}`;
@@ -48,7 +49,7 @@ test.describe('Affectations', () => {
 
     test("quand j'affecte la transparence au membre, elle apparait dans ses sessions", async ({
       app,
-      newMemberApp
+      newMemberApp,
     }) => {
       test.setTimeout(10_000);
 

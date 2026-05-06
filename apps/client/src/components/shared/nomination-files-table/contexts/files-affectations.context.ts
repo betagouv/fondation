@@ -15,7 +15,7 @@ class SingleFileAffectation {
     return {
       id: this.original.id,
       priorities: [...(this.#priorities ?? this.original.priorities)],
-      reporterIds: [...(this.#reporterIds ?? this.original.reporterIds)]
+      reporterIds: [...(this.#reporterIds ?? this.original.reporterIds)],
     };
   }
 
@@ -126,8 +126,8 @@ function stateInitializer(files: readonly SessionNominationFile[]): FilesAffecta
     files.map((file) => ({
       id: file.id,
       priorities: file.priorities,
-      reporterIds: new Set(file.reporters.map(({ id }) => id))
-    }))
+      reporterIds: new Set(file.reporters.map(({ id }) => id)),
+    })),
   );
 }
 
@@ -157,12 +157,12 @@ type InternalFilesAffectationsContextType = FilesAffectationsContextType & {
 };
 
 export const FilesAffectationsContext = React.createContext(
-  null as unknown as InternalFilesAffectationsContextType
+  null as unknown as InternalFilesAffectationsContextType,
 );
 
 /** @internal */
 export function useAffectationsModel(
-  files: readonly SessionNominationFile[]
+  files: readonly SessionNominationFile[],
 ): InternalFilesAffectationsContextType {
   const [state, dispatch] = React.useReducer(reducer, files, stateInitializer);
   React.useEffect(() => {
@@ -175,17 +175,24 @@ export function useAffectationsModel(
 
   const prioritize = React.useCallback(
     (priorities: Record<string, Set<PrioriteEnum>>) => dispatch({ type: 'prioritize', priorities }),
-    [dispatch]
+    [dispatch],
   );
 
   const affectReporters = React.useCallback(
     (affectations: Record<string, readonly string[]>) => dispatch({ type: 'affect', affectations }),
-    [dispatch]
+    [dispatch],
   );
 
   const resetAffectations = React.useCallback(() => dispatch({ type: 'reset' }), [dispatch]);
 
-  return { root: state, hasChanges, prioritize, affectReporters, getAffectations, resetAffectations };
+  return {
+    root: state,
+    hasChanges,
+    prioritize,
+    affectReporters,
+    getAffectations,
+    resetAffectations,
+  };
 }
 
 export function useAffectations(): FilesAffectationsContextType {
@@ -204,7 +211,7 @@ export function useAffectationRow(fileId: string): {
   const {
     root,
     prioritize: rootPrioritize,
-    affectReporters: rootAffectReporters
+    affectReporters: rootAffectReporters,
   } = useAffectations() as InternalFilesAffectationsContextType;
 
   const file = React.useMemo(() => root.affectations.get(fileId)?.toJSON(), [root, fileId]);
@@ -214,14 +221,14 @@ export function useAffectationRow(fileId: string): {
     (priorities: Set<PrioriteEnum>) => {
       rootPrioritize({ [fileId]: priorities });
     },
-    [fileId, rootPrioritize]
+    [fileId, rootPrioritize],
   );
 
   const affectReporters = React.useCallback(
     (reporterIds: readonly string[]) => {
       rootAffectReporters({ [fileId]: reporterIds });
     },
-    [fileId, rootAffectReporters]
+    [fileId, rootAffectReporters],
   );
 
   return { priorities: file?.priorities, reporterIds, prioritize, affectReporters };

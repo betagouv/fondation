@@ -1,20 +1,20 @@
+import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { DetailedNominationSessionDto } from '@api/types';
-
+import * as importAttachments from '../actions/ImportAttachmentModal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/components/shared/menu';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import type { DetailedNominationSessionDto } from '@api/types';
 import {
   useDeleteNominationSessionMutation,
-  useListNominationFilesAsExcelMutation
+  useListNominationFilesAsExcelMutation,
 } from '@queries/nomination-sessions.queries';
-import clsx from 'clsx';
-import * as importAttachments from '../actions/ImportAttachmentModal';
+
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
@@ -46,12 +46,14 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
             <FormattedMessage defaultMessage={'Êtes-vous sûr de vouloir continuer\u00A0?'} />
           </p>
         </>
-      )
+      ),
     });
 
     if (!isConfirmed) return;
 
-    deleteSessionMutation.mutate(undefined, { onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION) });
+    deleteSessionMutation.mutate(undefined, {
+      onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION),
+    });
   }, [confirmation, transparence, deleteSessionMutation, navigate]);
 
   return (
@@ -63,7 +65,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
             disabled={deleteSessionMutation.isPending}
             iconId={deleteSessionMutation.isPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
             className={clsx('flex-shrink-0 flex-grow-0 rounded-full', {
-              "before:animate-spin before:content-['']": deleteSessionMutation.isPending
+              "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
             })}
             priority="tertiary no outline"
             title={`Actions sur la transparence "${transparence.name}"`}
@@ -73,7 +75,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
             <MenuItem
               iconId="fr-icon-edit-fill"
               linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id })
+                to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
               }}
             >
               Éditer
@@ -97,7 +99,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
                 iconId={deleteSessionMutation.isPending ? `ri-loader-4-fill` : 'ri-delete-bin-fill'}
                 onClick={onDelete}
                 className={clsx('before text-red-600', {
-                  "before:animate-spin before:content-['']": deleteSessionMutation.isPending
+                  "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
                 })}
               >
                 Supprimer

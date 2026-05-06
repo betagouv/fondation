@@ -27,16 +27,13 @@ export function buildPosition(options: {
 }): string | null {
   const { civility, position } = options;
 
-  if (position.jurisdiction.id === 'SANS AFFECTATION')
-    return 'sans affectation';
+  if (position.jurisdiction.id === 'SANS AFFECTATION') return 'sans affectation';
 
   if (position.jurisdiction.id === 'DETACHEMENT') return 'en détachement';
 
   if (position.function === null) return null;
 
-  const codejur =
-    position.jurisdiction.label[0]!.toLowerCase() +
-    position.jurisdiction.label.slice(1);
+  const codejur = position.jurisdiction.label[0]!.toLowerCase() + position.jurisdiction.label.slice(1);
 
   if (
     (civility === 'M.' && !position.function.labelOneMale) ||
@@ -52,15 +49,10 @@ export function buildPosition(options: {
     label = position.function.labelOneFemale!;
   }
 
-  if (
-    position.function.id === 'JCP' ||
-    position.function.id === 'VPCP' ||
-    position.function.id === '1VPCP'
-  ) {
+  if (position.function.id === 'JCP' || position.function.id === 'VPCP' || position.function.id === '1VPCP') {
     if (position.arrondissement) {
       const arrondissement =
-        position.arrondissement!.label[0]!.toLowerCase() +
-        position.arrondissement!.label.slice(1);
+        position.arrondissement!.label[0]!.toLowerCase() + position.arrondissement!.label.slice(1);
       label += ` au ${arrondissement},`;
     } else {
       return label + ` au ${codejur}`;
@@ -71,10 +63,7 @@ export function buildPosition(options: {
     return label;
   }
 
-  if (
-    position.jurisdiction.id === 'CC  PARIS' &&
-    ['1AG', 'AG'].includes(position.function.id)
-  ) {
+  if (position.jurisdiction.id === 'CC  PARIS' && ['1AG', 'AG'].includes(position.function.id)) {
     return `${label} à la cour de cassation`;
   }
 

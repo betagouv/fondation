@@ -1,10 +1,11 @@
+import { Magistrat } from 'shared-models';
+
 import {
   PrioriteEnum,
   PrioriteEnumLabels,
   TypeDeSaisineEnum,
-  TypeDeSaisineEnumLabels
+  TypeDeSaisineEnumLabels,
 } from '@/types/enums.types';
-import { Magistrat } from 'shared-models';
 
 export type FilterType = 'formation' | 'rapporteurs';
 
@@ -15,12 +16,12 @@ type FormationOptions = {
 export const FORMATION_OPTIONS: FormationOptions[] = [
   {
     value: Magistrat.Formation.PARQUET,
-    label: 'Parquet'
+    label: 'Parquet',
   },
   {
     value: Magistrat.Formation.SIEGE,
-    label: 'Siège'
-  }
+    label: 'Siège',
+  },
 ];
 
 export const FILTER_RAPPORTEUR_NOBODY = { value: 'EMPTY', label: 'aucun' };
@@ -32,8 +33,8 @@ type SessionTypeOptions = {
 export const SAISINE_OPTIONS: SessionTypeOptions[] = [
   {
     value: TypeDeSaisineEnum.TRANSPARENCE_GDS,
-    label: TypeDeSaisineEnumLabels.TRANSPARENCE_GDS
-  }
+    label: TypeDeSaisineEnumLabels.TRANSPARENCE_GDS,
+  },
 ];
 
 type PrioriteOptions = {
@@ -43,16 +44,16 @@ type PrioriteOptions = {
 export const PRIORITE_OPTIONS: PrioriteOptions[] = [
   {
     value: PrioriteEnum.ETOILE,
-    label: PrioriteEnumLabels.ETOILE
+    label: PrioriteEnumLabels.ETOILE,
   },
   {
     value: PrioriteEnum.OUTRE_MER,
-    label: PrioriteEnumLabels.OUTRE_MER
+    label: PrioriteEnumLabels.OUTRE_MER,
   },
   {
     value: PrioriteEnum.PROFILE,
-    label: PrioriteEnumLabels.PROFILE
-  }
+    label: PrioriteEnumLabels.PROFILE,
+  },
 ];
 
 export type FilterConfigurations = {
@@ -73,16 +74,16 @@ export type FilterConfigurations = {
 export const filterConfigurations: FilterConfigurations = {
   formation: {
     tagName: 'Formation',
-    options: FORMATION_OPTIONS
+    options: FORMATION_OPTIONS,
   },
   sessionType: {
     tagName: 'Type de session',
-    options: SAISINE_OPTIONS
+    options: SAISINE_OPTIONS,
   },
   priorite: {
     tagName: 'Priorité',
-    options: PRIORITE_OPTIONS
-  }
+    options: PRIORITE_OPTIONS,
+  },
 } as const;
 
 export interface FiltersState {

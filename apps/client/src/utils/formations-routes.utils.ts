@@ -1,10 +1,11 @@
-import { Magistrat } from 'shared-models';
 import { z } from 'zod';
+
+import { Magistrat } from 'shared-models';
 
 export class FormationsRoutesMapper {
   static formationToPathSegmentMap: { [key in Magistrat.Formation]: string } = {
     [Magistrat.Formation.PARQUET]: 'parquet',
-    [Magistrat.Formation.SIEGE]: 'siege'
+    [Magistrat.Formation.SIEGE]: 'siege',
   };
 
   static toPathSegment(formation: Magistrat.Formation): string {

@@ -6,6 +6,7 @@ import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge'
 import { labels } from '@/constants/labels.constants';
 import { FormattedBirthDate } from '@/i18n/components';
 import type { DetailedReportDto } from '@api/types';
+
 import { Card } from './Card';
 
 export type MagistratIdentityProps = Pick<
@@ -32,7 +33,7 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   rank,
   priorities,
   sessionId,
-  nominationFileId
+  nominationFileId,
 }) => {
   return (
     <Card label="Identité du magistrat">

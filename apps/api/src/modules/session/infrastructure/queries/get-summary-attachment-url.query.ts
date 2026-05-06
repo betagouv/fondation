@@ -1,13 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import {
-  FILE_MIME_TYPES,
-  filenameToMimeType,
-} from 'src/modules/framework/files/mime-type';
+import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { isDefined } from 'src/utils/is-defined';
-import z from 'zod';
 
 @Injectable()
 export class GetSummaryAttachmentUrlQuery {

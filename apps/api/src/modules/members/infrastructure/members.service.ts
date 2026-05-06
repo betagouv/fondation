@@ -1,26 +1,20 @@
 import { Injectable } from '@nestjs/common';
+
 import { Magistrat } from 'shared-models';
-import { Pagination } from 'src/modules/framework/pagination';
+
 import { MemberTitleEnum } from '../domain/member-enums';
+import { Pagination } from 'src/modules/framework/pagination';
+
 import { MemberRepository } from './member-repository';
-import {
-  DetailedMemberDto,
-  DetailsMemberQuery,
-} from './queries/details-member.query';
+import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
 import {
   InternalFindMembersByIdsQuery,
   InternalMemberListDto,
 } from './queries/internal-find-members-by-ids.query';
 import { InternalFindMembersQuery } from './queries/internal-find-members.query';
-import {
-  InternalGetMemberQuery,
-  InternalMemberDto,
-} from './queries/internal-get-member.query';
-import {
-  ListMembersQuery,
-  PaginatedMemberListItemDto,
-} from './queries/list-members.query';
+import { InternalGetMemberQuery, InternalMemberDto } from './queries/internal-get-member.query';
+import { ListMembersQuery, PaginatedMemberListItemDto } from './queries/list-members.query';
 
 @Injectable()
 export class MembersService {
@@ -48,28 +42,19 @@ export class MembersService {
     return this.detailsMemberQuery.handle(query);
   }
 
-  async excludeJurisdictions(command: {
-    userId: string;
-    jurisdictionIds: readonly string[];
-  }) {
+  async excludeJurisdictions(command: { userId: string; jurisdictionIds: readonly string[] }) {
     const member = await this.memberRepository.findWithJurisdictions(command);
     member.excludeJurisdictions(command.jurisdictionIds);
     await this.memberRepository.persist(member);
   }
 
-  async updateDisplayTitle(command: {
-    userId: string;
-    displayTitle: string | null;
-  }): Promise<void> {
+  async updateDisplayTitle(command: { userId: string; displayTitle: string | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateDisplayTitle(command.displayTitle);
     await this.memberRepository.persist(member);
   }
 
-  async updateTitle(command: {
-    userId: string;
-    title: MemberTitleEnum | null;
-  }): Promise<void> {
+  async updateTitle(command: { userId: string; title: MemberTitleEnum | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateTitle(command.title);
     await this.memberRepository.persist(member);
@@ -87,9 +72,7 @@ export class MembersService {
   findMembersByFullName(query: {
     formation: Magistrat.Formation | undefined;
     fullNames: readonly string[];
-  }): Promise<
-    { fullName: string; id: string; firstName: string; lastName: string }[]
-  > {
+  }): Promise<{ fullName: string; id: string; firstName: string; lastName: string }[]> {
     return this.internalFindMembersByFullName.handle(query);
   }
 
@@ -99,9 +82,7 @@ export class MembersService {
   }
 
   /** @internal */
-  internalFindMembersByIds(query: {
-    ids: readonly string[];
-  }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByIds(query: { ids: readonly string[] }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByIdsQuery.handle(query);
   }
 }

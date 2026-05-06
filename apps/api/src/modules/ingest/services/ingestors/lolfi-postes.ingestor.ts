@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 
 @Injectable()
@@ -23,12 +24,11 @@ export class LolfiPostesIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: boolean }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
-    async function* mapper(
-      source: AsyncIterable<{ data: RawPosition; success: boolean }>,
-    ) {
+    // oxlint-disable-next-line require-yield
+    async function* mapper(source: AsyncIterable<{ data: RawPosition; success: boolean }>) {
       const accumulator: RawPosition[] = [];
       const ids = new Set<number>();
 
@@ -36,9 +36,7 @@ export class LolfiPostesIngestor {
         if (!success) continue;
 
         if (ids.has(data.num_emploi_cible)) {
-          self.logger.warn(
-            `Position "${data.num_emploi_cible}" is duplicated. Ignored`,
-          );
+          self.logger.warn(`Position "${data.num_emploi_cible}" is duplicated. Ignored`);
           continue;
         }
 
@@ -84,9 +82,7 @@ export class LolfiPostesIngestor {
   }) {
     return this.prisma
       .$transaction(async (tx) => {
-        const unknown = await tx.$queryRawTyped(
-          insertPositionsRawQuery(props.items),
-        );
+        const unknown = await tx.$queryRawTyped(insertPositionsRawQuery(props.items));
 
         if (unknown.length > 0) {
           for (const u of unknown) {

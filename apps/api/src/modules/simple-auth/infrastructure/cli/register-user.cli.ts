@@ -1,10 +1,5 @@
 import { type QuestionMap } from 'inquirer';
-import {
-  CommandRunner,
-  InquirerService,
-  Option,
-  SubCommand,
-} from 'nest-commander';
+import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import z from 'zod';
 
 import { Gender, Role } from 'shared-models';

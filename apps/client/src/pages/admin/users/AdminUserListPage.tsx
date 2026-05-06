@@ -1,16 +1,16 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
+import React from 'react';
+import { defineMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
-
-import type { PaginatedAdminUserListItemDto } from '@api/types';
-import { useAdminUsersQuery } from '@queries/administration.queries';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import React from 'react';
-import { defineMessage, useIntl } from 'react-intl';
+import type { PaginatedAdminUserListItemDto } from '@api/types';
+import { useAdminUsersQuery } from '@queries/administration.queries';
+
 import { ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
 import { AdminUserRole } from './AdminUserRole';
 
@@ -28,7 +28,7 @@ function useAdminUserColumns() {
         enableHiding: false,
         header: 'Nom',
         sortDescFirst: true,
-        cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>
+        cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>,
       }),
 
       h.accessor('firstName', {
@@ -36,13 +36,13 @@ function useAdminUserColumns() {
         enableSorting: false,
         enableHiding: false,
         header: 'Prénom',
-        cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>
+        cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>,
       }),
 
       h.accessor('email', {
         id: 'email',
         enableSorting: false,
-        header: 'Email'
+        header: 'Email',
       }),
 
       h.accessor('role', {
@@ -58,21 +58,21 @@ function useAdminUserColumns() {
             values: ROLE_OPTIONS.flatMap((group) =>
               group.options.map(({ id, label }) => ({
                 id,
-                label: formatMessage(label, { gender: undefined })
-              }))
-            )
-          }
-        }
+                label: formatMessage(label, { gender: undefined }),
+              })),
+            ),
+          },
+        },
       }),
 
       h.display({
         id: 'edit',
         enableSorting: false,
         enableHiding: false,
-        cell: ({ row }) => <EditButton row={row.original} />
-      })
+        cell: ({ row }) => <EditButton row={row.original} />,
+      }),
     ],
-    [formatMessage]
+    [formatMessage],
   );
 }
 
@@ -93,14 +93,14 @@ export function AdminUserListPage() {
     pagination: { pageIndex: 0, pageSize: 50 },
     columnFilters: [] as { id: 'role'; value: AdminUserRoleEnum[] }[],
     sorting: [] as [],
-    globalFilter: ''
+    globalFilter: '',
   });
 
   const { data, isLoading } = useAdminUsersQuery({
     search: tableState.globalFilter ?? '',
     pagination: tableState.pagination,
     sorting: tableState.sorting,
-    roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value
+    roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value,
   });
 
   const columns = useAdminUserColumns();
@@ -112,12 +112,12 @@ export function AdminUserListPage() {
     rowCount: data?.totalCount,
     meta: {
       paginationItemLabel: defineMessage({
-        defaultMessage: `{count, plural, one {utilisateur} other {utilisateurs}}`
-      })
+        defaultMessage: `{count, plural, one {utilisateur} other {utilisateurs}}`,
+      }),
     },
     state: tableState,
     onStateChange: setTableState,
-    enableGlobalFilter: true
+    enableGlobalFilter: true,
   });
 
   return (
@@ -127,7 +127,7 @@ export function AdminUserListPage() {
         ariaLabel="Fil d'Ariane pour l'Administration"
         breadcrumb={{
           currentPageLabel: 'Utilisateurs',
-          segments: [{ label: 'Administration', to: {} }]
+          segments: [{ label: 'Administration', to: {} }],
         }}
       />
 

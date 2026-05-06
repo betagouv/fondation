@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { dateOnlyJsonSchema } from 'shared-models';
 import z from 'zod';
 
+import { dateOnlyJsonSchema } from 'shared-models';
+
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -10,7 +12,6 @@ import { AffectationVersionFinder } from 'src/modules/session/infrastructure/fin
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 @Injectable()
 export class GetObservationDetailsQuery {
@@ -163,9 +164,7 @@ export class GetObservationDetailsQuery {
           ? {
               comment: observation.memberComments[0].comment,
               screenshots: await this.withUrls(
-                observation.memberComments[0].screenshots.map(
-                  ({ file }) => file,
-                ),
+                observation.memberComments[0].screenshots.map(({ file }) => file),
               ),
             }
           : null,
@@ -173,9 +172,7 @@ export class GetObservationDetailsQuery {
     });
   }
 
-  private async withUrls<T extends { id: string }>(
-    files: readonly T[],
-  ): Promise<(T & { url: string })[]> {
+  private async withUrls<T extends { id: string }>(files: readonly T[]): Promise<(T & { url: string })[]> {
     const byId = new Map(files.map((file) => [file.id, file] as const));
     const ids = Array.from(byId.keys());
 
@@ -286,9 +283,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     memberComment: z
       .object({
         comment: z.string(),
-        screenshots: z.array(
-          ObservationFileSchema.safeExtend({ url: z.url() }),
-        ),
+        screenshots: z.array(ObservationFileSchema.safeExtend({ url: z.url() })),
       })
       .nullable(),
   }),

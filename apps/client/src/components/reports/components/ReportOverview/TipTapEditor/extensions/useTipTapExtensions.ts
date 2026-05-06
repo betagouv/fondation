@@ -34,12 +34,12 @@ export function useTipTapExtensions(opts?: {
       Italic,
       Underline,
       Heading.configure({
-        levels: [...headingLevels]
+        levels: [...headingLevels],
       }),
       Highlight.extend({
         // Ordre important : le span doit être dans le mark
         // pour que la couleur soit visible
-        priority: 1000
+        priority: 1000,
       }).configure({ multicolor: false }),
       BulletList,
       ListItem,
@@ -47,7 +47,7 @@ export function useTipTapExtensions(opts?: {
       Color,
       OrderedList,
       UndoRedo.configure({
-        newGroupDelay: opts?.history?.newGroupDelay ?? 300
+        newGroupDelay: opts?.history?.newGroupDelay ?? 300,
       }),
       Dropcursor,
       Image.extend({
@@ -58,17 +58,17 @@ export function useTipTapExtensions(opts?: {
           width: null,
           height: null,
           [dataFileIdKey]: null,
-          [dataFileNameKey]: null
-        })
+          [dataFileNameKey]: null,
+        }),
       }).configure({
         resize: {
           enabled: true,
-          alwaysPreserveAspectRatio: true
-        }
+          alwaysPreserveAspectRatio: true,
+        },
       }),
-      ...(opts?.uploadFiles ? [ImageUploadPreview(opts.uploadFiles), FileHandler(opts.uploadFiles)] : [])
+      ...(opts?.uploadFiles ? [ImageUploadPreview(opts.uploadFiles), FileHandler(opts.uploadFiles)] : []),
     ],
-    [opts?.uploadFiles, opts?.history?.newGroupDelay]
+    [opts?.uploadFiles, opts?.history?.newGroupDelay],
   );
 
   return extensions as AnyExtension[];

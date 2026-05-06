@@ -15,6 +15,7 @@ import { ApiCookieAuth } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
 import { Role } from 'shared-models';
+
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 export const AuthedUserId = createParamDecorator((_, ctx: ExecutionContext) => {
@@ -38,9 +39,10 @@ class HasRoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext) {
-    const optionalRoles = this.reflector.getAllAndOverride<
-      readonly (Role | 'MACHINE')[] | undefined
-    >(META_ROLES, [context.getHandler(), context.getClass()]);
+    const optionalRoles = this.reflector.getAllAndOverride<readonly (Role | 'MACHINE')[] | undefined>(
+      META_ROLES,
+      [context.getHandler(), context.getClass()],
+    );
 
     const roles = assertIsDefined(
       optionalRoles,
@@ -57,8 +59,7 @@ class HasRoleGuard implements CanActivate {
     if (user.type === 'machine') return roles.includes('MACHINE');
     if (user.role === Role.ADMIN) return true;
 
-    const userMissesAnyRequiredRole =
-      roles.length > 0 && !roles.includes(user.role as Role);
+    const userMissesAnyRequiredRole = roles.length > 0 && !roles.includes(user.role as Role);
     if (userMissesAnyRequiredRole) {
       throw new ForbiddenException();
     }
@@ -67,9 +68,7 @@ class HasRoleGuard implements CanActivate {
   }
 }
 
-export function HasRole(
-  ...roles: readonly (Role | 'MACHINE')[]
-): MethodDecorator {
+export function HasRole(...roles: readonly (Role | 'MACHINE')[]): MethodDecorator {
   return applyDecorators(
     SetMetadata(META_ROLES, roles),
     UseGuards(mixin(HasRoleGuard)),

@@ -1,9 +1,7 @@
 import { Gender, Magistrat, Role } from 'shared-models';
+
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
-import {
-  UserDutyEnum,
-  UserTitleEnum,
-} from 'src/modules/administration/domain/user-enum';
+import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -71,10 +69,7 @@ export class OfficialReportUpdated {
   ) {}
 }
 
-export type OfficialReportEvent =
-  | OfficialReportCreated
-  | OfficialReportUpdated
-  | OfficialReportDeleted;
+export type OfficialReportEvent = OfficialReportCreated | OfficialReportUpdated | OfficialReportDeleted;
 
 export class OfficialReport {
   readonly #messages: OfficialReportEvent[] = [];
@@ -89,10 +84,7 @@ export class OfficialReport {
   }
 
   static from(props: { id: string; formation: Magistrat.Formation }) {
-    return new OfficialReport(
-      makeId('OfficialReportId', props.id),
-      props.formation,
-    );
+    return new OfficialReport(makeId('OfficialReportId', props.id), props.formation);
   }
 
   private buildState(props: {
@@ -110,33 +102,25 @@ export class OfficialReport {
       throw new InvalidChairmanDuty();
     }
 
-    if (
-      props.chairman.role === Role.ADMIN ||
-      props.chairman.role === Role.ADJOINT_SECRETAIRE_GENERAL
-    ) {
+    if (props.chairman.role === Role.ADMIN || props.chairman.role === Role.ADJOINT_SECRETAIRE_GENERAL) {
       throw new ChairmanIsNotMember();
     }
 
     if (
-      (props.chairman.role === Role.MEMBRE_DU_PARQUET &&
-        this.formation === Magistrat.Formation.SIEGE) ||
-      (props.chairman.role === Role.MEMBRE_DU_SIEGE &&
-        this.formation === Magistrat.Formation.PARQUET)
+      (props.chairman.role === Role.MEMBRE_DU_PARQUET && this.formation === Magistrat.Formation.SIEGE) ||
+      (props.chairman.role === Role.MEMBRE_DU_SIEGE && this.formation === Magistrat.Formation.PARQUET)
     ) {
       throw new InvalidChairmanFormation();
     }
 
     if (
       props.secretary.duty !== PrismaUserDutyEnum.SECRETARY ||
-      (props.secretary.role !== Role.ADJOINT_SECRETAIRE_GENERAL &&
-        props.secretary.role !== Role.ADMIN)
+      (props.secretary.role !== Role.ADJOINT_SECRETAIRE_GENERAL && props.secretary.role !== Role.ADMIN)
     ) {
       throw new InvalidSecretaryDuty();
     }
 
-    const allAgendaFormations = new Set(
-      props.agendas.map(({ formation }) => formation),
-    );
+    const allAgendaFormations = new Set(props.agendas.map(({ formation }) => formation));
 
     if (allAgendaFormations.size > 1) {
       throw new MixedFormationAgendas();
@@ -153,13 +137,10 @@ export class OfficialReport {
       chairman: props.chairman,
       secretary: props.secretary,
       authorId: props.authorId,
-      members: props.members.map(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
-          ...m,
-          title: displayTitle,
-        }),
-      ),
+      members: props.members.map(({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
+        ...m,
+        title: displayTitle,
+      })),
     };
   }
 
@@ -175,10 +156,7 @@ export class OfficialReport {
     authorId: string;
     formation: Magistrat.Formation;
   }): OfficialReport {
-    const report = new OfficialReport(
-      makeId('OfficialReportId'),
-      props.formation,
-    );
+    const report = new OfficialReport(makeId('OfficialReportId'), props.formation);
 
     const state = report.buildState(props);
 

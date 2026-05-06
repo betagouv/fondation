@@ -10,15 +10,16 @@ import {
   useMemo,
   useRef,
   useState,
-  type PropsWithChildren
+  type PropsWithChildren,
 } from 'react';
 
 import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { MagistratDetails } from './MagistratDetails';
 
 const modalMagistratDnDetails = createModal({
   id: `modal-magistrat-dn-details`,
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 type MagistratModalContextType = { setActive(id: string): void };
@@ -28,7 +29,7 @@ export function MagistratModaleProvider(
   props: PropsWithChildren<{
     sessionId: string;
     nominationFiles: SessionNominationFile[];
-  }>
+  }>,
 ) {
   const [activeNominationFileId, setActiveNominationFileId] = useState<string | null>(null);
   const modalRef = useRef<HTMLDialogElement | null>(null);
@@ -36,7 +37,7 @@ export function MagistratModaleProvider(
   const isOpen = useIsModalOpen(modalMagistratDnDetails, {
     onConceal() {
       setActiveNominationFileId(null);
-    }
+    },
   });
 
   const activeFileIndex = useMemo(
@@ -44,20 +45,20 @@ export function MagistratModaleProvider(
       activeNominationFileId
         ? props.nominationFiles.findIndex(({ id }) => id === activeNominationFileId)
         : -1,
-    [activeNominationFileId, props.nominationFiles]
+    [activeNominationFileId, props.nominationFiles],
   );
 
   const activeFile = useMemo(
     () => (activeFileIndex !== -1 ? props.nominationFiles[activeFileIndex] : null),
-    [activeFileIndex, props.nominationFiles]
+    [activeFileIndex, props.nominationFiles],
   );
 
   const modalExists = useCallback(
     () =>
       // Bug in @codegouvfr/react-dsfr implementation for the modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       Boolean(modalRef.current && (window as any).dsfr(modalRef.current)?.modal),
-    [modalRef]
+    [modalRef],
   );
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export function MagistratModaleProvider(
             iconId: 'fr-icon-arrow-left-s-line',
             iconPosition: 'left',
             onClick: onPreviousClicked,
-            doClosesModal: false
+            doClosesModal: false,
           },
           {
             priority: 'tertiary',
@@ -104,8 +105,8 @@ export function MagistratModaleProvider(
             iconId: 'fr-icon-arrow-right-s-line',
             iconPosition: 'right',
             onClick: onNextClicked,
-            doClosesModal: false
-          }
+            doClosesModal: false,
+          },
         ]}
       >
         {activeFile && <MagistratDetails sessionId={props.sessionId} nominationFile={activeFile} />}

@@ -4,7 +4,7 @@ export function Marked(props: { search: string; value: string }) {
   const trimmed = React.useMemo(() => props.search.trim(), [props.search]);
   const re = React.useMemo(
     () => new RegExp('^(?<pre>.*)(?<search>' + trimmed.replace(/\W/g, '.') + ')(?<post>.*)$', 'i'),
-    [trimmed]
+    [trimmed],
   );
 
   const result = React.useMemo(() => re.exec(props.value), [re, props.value]);

@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   ConflictException,
   Injectable,
@@ -5,23 +7,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
 
 import { Magistrat, PrioriteEnum } from 'shared-models';
-import {
-  deleteReportsAfterAffectationPublicationRawQuery,
-  insertLodamNominationFilesRawQuery,
-} from 'src/generated/prisma/sql';
+
 import {
   LodamNominationSessionFilesCreated,
   NominationFileAlertHidden,
@@ -43,6 +31,20 @@ import {
 } from '../../domain/nomination-session';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { NominationSessionFileFinder } from '../finders/nomination-session-file.finder';
+import { Prisma } from 'src/generated/prisma/client';
+import {
+  deleteReportsAfterAffectationPublicationRawQuery,
+  insertLodamNominationFilesRawQuery,
+} from 'src/generated/prisma/sql';
+import { Clock } from 'src/modules/framework/clock';
+import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
+
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
@@ -66,9 +68,7 @@ export class NominationSessionRepository {
     } = {},
   ): Promise<NominationSession> {
     if (!options.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.find(id, { ...options, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.find(id, { ...options, tx }));
     }
 
     const { tx } = options;
@@ -87,11 +87,10 @@ export class NominationSessionRepository {
 
     if (!session) throw new NotFoundException();
 
-    const nominationFiles =
-      await this.nominationSessionFileFinder.findUpdatable({
-        tx,
-        nominationFileIds: options.nominationFileIds,
-      });
+    const nominationFiles = await this.nominationSessionFileFinder.findUpdatable({
+      tx,
+      nominationFileIds: options.nominationFileIds,
+    });
 
     const optionalVersion = await this.affectationVersionFinder.last({
       tx,
@@ -120,9 +119,7 @@ export class NominationSessionRepository {
       });
 
       if (ids.length > 2) {
-        this.logger.error(
-          `More than 2 sessions found for lolfiSessionId: ${lolfiSessionId}`,
-        );
+        this.logger.error(`More than 2 sessions found for lolfiSessionId: ${lolfiSessionId}`);
 
         throw new InternalServerErrorException();
       }
@@ -130,11 +127,7 @@ export class NominationSessionRepository {
       if (ids.length === 0) return {};
 
       const entries = await Promise.all(
-        ids.map(({ id }) =>
-          this.find(id, { tx }).then((s) =>
-            s ? ([s.formation, s] as const) : undefined,
-          ),
-        ),
+        ids.map(({ id }) => this.find(id, { tx }).then((s) => (s ? ([s.formation, s] as const) : undefined))),
       );
 
       return Object.fromEntries(entries.filter(isDefined)) as Partial<
@@ -147,26 +140,13 @@ export class NominationSessionRepository {
     return this.prisma.$transaction(async (tx) => {
       for (const message of session.messages) {
         if (message instanceof NominationSessionFileReportersAffected) {
-          await this.persistAffectedReportersToNominationSessionFile(
-            tx,
-            message,
-          );
+          await this.persistAffectedReportersToNominationSessionFile(tx, message);
         } else if (message instanceof NominationSessionFilePrioritiesUpdated) {
           await this.persistNominationSessionFilesPriorityUpdated(tx, message);
-        } else if (
-          message instanceof NominationSessionAffectationVersionPublished
-        ) {
-          await this.persistNominationSessionAffectionVersionPublished(
-            tx,
-            message,
-          );
-        } else if (
-          message instanceof NominationSessionAffectationVersionCreated
-        ) {
-          await this.persistNominationSessionAffectationVersionCreated(
-            tx,
-            message,
-          );
+        } else if (message instanceof NominationSessionAffectationVersionPublished) {
+          await this.persistNominationSessionAffectionVersionPublished(tx, message);
+        } else if (message instanceof NominationSessionAffectationVersionCreated) {
+          await this.persistNominationSessionAffectationVersionCreated(tx, message);
         } else if (message instanceof NominationSessionCreated) {
           await this.persistNominationSessionCreated(tx, message);
         } else if (message instanceof LodamNominationSessionFilesCreated) {
@@ -205,9 +185,7 @@ export class NominationSessionRepository {
     const { versionId } = message;
     if (versionId) {
       const nominationFileIds = Array.from(
-        new Set(
-          message.affectations.map(({ nominationFileId }) => nominationFileId),
-        ),
+        new Set(message.affectations.map(({ nominationFileId }) => nominationFileId)),
       );
 
       await tx.nominationFileToReporter.deleteMany({
@@ -218,13 +196,12 @@ export class NominationSessionRepository {
       });
 
       await tx.nominationFileToReporter.createMany({
-        data: message.affectations.flatMap(
-          ({ reporterIds, nominationFileId }) =>
-            reporterIds.map((userId) => ({
-              userId,
-              versionId,
-              nominationFileId,
-            })),
+        data: message.affectations.flatMap(({ reporterIds, nominationFileId }) =>
+          reporterIds.map((userId) => ({
+            userId,
+            versionId,
+            nominationFileId,
+          })),
         ),
       });
     } else {
@@ -233,12 +210,11 @@ export class NominationSessionRepository {
           sessionId: message.sessionId,
           affectations: {
             createMany: {
-              data: message.affectations.flatMap(
-                ({ reporterIds, nominationFileId }) =>
-                  reporterIds.map((userId) => ({
-                    userId,
-                    nominationFileId,
-                  })),
+              data: message.affectations.flatMap(({ reporterIds, nominationFileId }) =>
+                reporterIds.map((userId) => ({
+                  userId,
+                  nominationFileId,
+                })),
               ),
             },
           },
@@ -280,9 +256,7 @@ export class NominationSessionRepository {
     });
 
     if (!session) {
-      this.logger.error(
-        `tried assigning reports to unknown session "${message.sessionId}"`,
-      );
+      this.logger.error(`tried assigning reports to unknown session "${message.sessionId}"`);
       throw new InternalServerErrorException();
     }
 
@@ -313,19 +287,18 @@ export class NominationSessionRepository {
       versionId = affectationVersion.id;
     }
 
-    const reportsToCreate = session.affectationVersions.flatMap(
-      ({ affectations }) =>
-        affectations.map(
-          ({ nominationFileId, userId }) =>
-            ({
-              id: makeId('ReportId'),
-              nominationFileId,
-              reporterId: userId,
-              sessionId: session.id,
-              /** @deprecated */
-              formation: session.formation,
-            }) satisfies Prisma.ReportCreateManyInput,
-        ),
+    const reportsToCreate = session.affectationVersions.flatMap(({ affectations }) =>
+      affectations.map(
+        ({ nominationFileId, userId }) =>
+          ({
+            id: makeId('ReportId'),
+            nominationFileId,
+            reporterId: userId,
+            sessionId: session.id,
+            /** @deprecated */
+            formation: session.formation,
+          }) satisfies Prisma.ReportCreateManyInput,
+      ),
     );
 
     for (const reportToCreate of reportsToCreate) {
@@ -352,12 +325,7 @@ export class NominationSessionRepository {
     }
 
     if (!versionId) return;
-    await tx.$queryRawTyped(
-      deleteReportsAfterAffectationPublicationRawQuery(
-        message.sessionId,
-        versionId,
-      ),
-    );
+    await tx.$queryRawTyped(deleteReportsAfterAffectationPublicationRawQuery(message.sessionId, versionId));
   }
 
   private async persistNominationSessionAffectationVersionCreated(
@@ -399,13 +367,11 @@ export class NominationSessionRepository {
 
     if (previousVersion) {
       await tx.nominationFileToReporter.createMany({
-        data: previousVersion.affectations.map(
-          ({ nominationFileId, userId }) => ({
-            versionId: message.version.id,
-            nominationFileId,
-            userId,
-          }),
-        ),
+        data: previousVersion.affectations.map(({ nominationFileId, userId }) => ({
+          versionId: message.version.id,
+          nominationFileId,
+          userId,
+        })),
       });
     }
   }
@@ -424,13 +390,11 @@ export class NominationSessionRepository {
 
     if (isDefined(existingSession)) {
       const date = message.date.toDate();
-      const [day, month, year] = (
-        [date.getDate(), date.getMonth() + 1, date.getFullYear()] as const
-      ).map((x) => x.toString().padStart(2, '0'));
-
-      throw new ConflictException(
-        `La session "T ${day}/${month}/${year} - ${message.name}" existe déjà`,
+      const [day, month, year] = ([date.getDate(), date.getMonth() + 1, date.getFullYear()] as const).map(
+        (x) => x.toString().padStart(2, '0'),
       );
+
+      throw new ConflictException(`La session "T ${day}/${month}/${year} - ${message.name}" existe déjà`);
     }
 
     await tx.session.create({
@@ -466,9 +430,7 @@ export class NominationSessionRepository {
           birthDate: file.birthDate?.toDate() ?? null,
           lastPositionDate: file.lastPositionDate?.toDate() ?? null,
           lastRankingDate: file.lastRankingDate?.toDate() ?? null,
-          sortableTargetedGrade: gradeEnumToSortableTargetedGrade(
-            file.targetedGrade,
-          ),
+          sortableTargetedGrade: gradeEnumToSortableTargetedGrade(file.targetedGrade),
         })),
         message.sessionId,
         session?.dueDate ?? null,
@@ -588,9 +550,7 @@ export class NominationSessionRepository {
     });
 
     if (!session) {
-      this.logger.error(
-        `Tried reading due date from unknown session: ${message.sessionId}`,
-      );
+      this.logger.error(`Tried reading due date from unknown session: ${message.sessionId}`);
       throw new InternalServerErrorException();
     }
 

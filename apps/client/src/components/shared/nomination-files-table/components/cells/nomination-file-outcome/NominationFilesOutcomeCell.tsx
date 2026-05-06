@@ -1,5 +1,6 @@
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useNominationFilesTable } from '../../../contexts/files-table.context';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { NominationFileDocStatusBadge } from './NominationFileDocStatusBadge';
 import { NominationFileOutcome } from './NominationFileOutcome';
 import { NominationFileOutcomeSelector } from './NominationFileOutcomeSelector';

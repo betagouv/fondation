@@ -51,7 +51,7 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
       'procureur national financier',
       'premier president de chambre',
       'avocat general cc  paris',
-      'premier avocat general cc  paris'
+      'premier avocat general cc  paris',
     ].some((position) => search.startsWith(position))
   );
 }
@@ -67,7 +67,7 @@ export function ReportersAlert(props: { dossier: SessionNominationFile; selected
         <i
           style={{
             color: colors.decisions.text.default.warning.default,
-            backgroundColor: colors.decisions.background.contrast.warning.default
+            backgroundColor: colors.decisions.background.contrast.warning.default,
           }}
           className={clsx(
             cx('fr-icon-warning-fill'),
@@ -78,7 +78,7 @@ export function ReportersAlert(props: { dossier: SessionNominationFile; selected
             'size-6',
             'before:block',
             'before:content-[""]',
-            'before:size-4'
+            'before:size-4',
           )}
         />
       </Tooltip>

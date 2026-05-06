@@ -1,4 +1,5 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useRef, useState, type FC } from 'react';
@@ -10,7 +11,6 @@ import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { IngestedLolfiArchiveDto } from '@api/types';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useIngestLolfiArchiveMutation } from '@queries/ingest.queries';
 
 const mandatoryField = 'Champ obligatoire.';
@@ -24,8 +24,8 @@ const ingestLolfiArchiveSchema = z.object({
         const validTypes = ['application/zip', 'application/x-zip-compressed'];
         return validTypes.includes(file.type);
       },
-      { message: 'Veuillez importer un fichier au bon format (.zip).' }
-    )
+      { message: 'Veuillez importer un fichier au bon format (.zip).' },
+    ),
 });
 
 type FormSchema = z.infer<typeof ingestLolfiArchiveSchema>;
@@ -38,15 +38,15 @@ export const IngestLolfiArchivePage: FC = () => {
   const {
     mutateAsync: ingestArchiveAsync,
     reset: resetMutation,
-    isPending
+    isPending,
   } = useIngestLolfiArchiveMutation();
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<FormSchema>({
-    resolver: zodResolver(ingestLolfiArchiveSchema)
+    resolver: zodResolver(ingestLolfiArchiveSchema),
   });
 
   const onSubmit: SubmitHandler<FormSchema> = useCallback(
@@ -74,11 +74,11 @@ export const IngestLolfiArchivePage: FC = () => {
               inputRef.current.value = '';
               inputRef.current.files = null;
             }
-          }
-        }
+          },
+        },
       );
     },
-    [resetMutation, ingestArchiveAsync, navigate]
+    [resetMutation, ingestArchiveAsync, navigate],
   );
 
   return (
@@ -117,7 +117,7 @@ export const IngestLolfiArchivePage: FC = () => {
                     resetMutation();
                     onChange(file);
                   }
-                }
+                },
               }}
               hint="Format supporté : .zip"
               label={

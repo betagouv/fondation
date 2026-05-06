@@ -35,7 +35,7 @@ export function MagistratCommentEdit(props: {
           rows: 6,
           value: comment,
           onChange: (e) => setComment(e.target.value),
-          placeholder: 'Saisissez un commentaire...'
+          placeholder: 'Saisissez un commentaire...',
         }}
       />
     </div>

@@ -6,10 +6,11 @@ import {
   Logger,
   OnApplicationShutdown,
 } from '@nestjs/common';
+import z, { ZodSafeParseResult } from 'zod';
 
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import z, { ZodSafeParseResult } from 'zod';
+
 import { FailedToCancelJob, FailedToStartJob } from './job-errors';
 import { ScalingoHttpContainer } from './scalingo-http';
 
@@ -24,20 +25,10 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
     return !!this.scalingo;
   }
 
-  constructor(
-    http: HttpService,
-    clock: Clock,
-    @Inject(API_CONFIG_TOKEN) config: ApiConfig,
-  ) {
+  constructor(http: HttpService, clock: Clock, @Inject(API_CONFIG_TOKEN) config: ApiConfig) {
     const { appName, apiKey } = config.scalingo;
     if (appName && apiKey) {
-      this.scalingo = new ScalingoHttpContainer(
-        http,
-        apiKey,
-        appName,
-        clock,
-        this.abortController,
-      );
+      this.scalingo = new ScalingoHttpContainer(http, apiKey, appName, clock, this.abortController);
     } else {
       this.logger.warn(`Won't use the scalingo runner`);
     }
@@ -46,34 +37,26 @@ export class ScalingoJobRunner implements OnApplicationShutdown {
   /** starts the command in a "worker" scope, without creating any tunnel between this process and the other one */
   async runDetached(jobId: number): Promise<ScalingoJobMetadata> {
     if (!this.scalingo) {
-      this.logger.error(
-        `Tried running job #${jobId} with scalingo, when this runner is not available`,
-      );
+      this.logger.error(`Tried running job #${jobId} with scalingo, when this runner is not available`);
       throw new FailedToStartJob(jobId);
     }
 
     const command = `node apps/api/dist/cli lolfi-job --jobId ${jobId}`;
     this.logger.debug(`Starting "${command}" with scalingo job runner`);
 
-    const result = await this.scalingo.withAuthentication((http) =>
-      http.runOneOffContainer({ command }),
-    );
+    const result = await this.scalingo.withAuthentication((http) => http.runOneOffContainer({ command }));
     return new ScalingoJobMetadata(result.container.id);
   }
 
   async cancel(metadata: unknown, jobId: number): Promise<void> {
     if (!this.scalingo) {
-      this.logger.error(
-        `Tried canceling job #${jobId} with scalingo, when this runner is not available`,
-      );
+      this.logger.error(`Tried canceling job #${jobId} with scalingo, when this runner is not available`);
       throw new FailedToCancelJob(jobId);
     }
 
     const meta = await ScalingoJobMetadata.from(metadata);
     if (!meta.success) {
-      this.logger.error(
-        `Could not read metadata: ${z.formatError(meta.error)}`,
-      );
+      this.logger.error(`Could not read metadata: ${z.prettifyError(meta.error)}`);
       return;
     }
 
@@ -113,9 +96,7 @@ class ScalingoJobMetadata {
     };
   }
 
-  static async from(
-    data: unknown,
-  ): Promise<ZodSafeParseResult<ScalingoJobMetadata>> {
+  static async from(data: unknown): Promise<ZodSafeParseResult<ScalingoJobMetadata>> {
     return ScalingoJobMetadata.SCHEMA.transform(
       ({ containerId }) => new ScalingoJobMetadata(containerId),
     ).safeParseAsync(data);

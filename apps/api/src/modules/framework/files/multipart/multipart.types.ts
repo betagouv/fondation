@@ -1,6 +1,7 @@
 import { type Request as ExpressRequest } from 'express';
 import { ZodDto } from 'nestjs-zod';
 import z from 'zod';
+
 import { FileMimeType } from '../mime-type';
 
 export type StoredFile = {
@@ -18,9 +19,7 @@ type ZodMultipart<T> = {
       : T[K];
 };
 
-export type Multipart<T extends ZodDto<z.ZodType>> = ZodMultipart<
-  z.infer<T['schema']>
->;
+export type Multipart<T extends ZodDto<z.ZodType>> = ZodMultipart<z.infer<T['schema']>>;
 
 export type MultipartDestinationFactory = (file: {
   id: string;
@@ -34,8 +33,6 @@ export const MulterFileSchema = z.object({
   fieldname: z.string(),
   mimetype: z.string(),
   /** @see https://github.com/expressjs/multer/issues/1104 */
-  originalname: z
-    .string()
-    .transform((x) => Buffer.from(x, 'latin1').toString('utf-8')),
+  originalname: z.string().transform((x) => Buffer.from(x, 'latin1').toString('utf-8')),
 });
 export type MulterFile = z.infer<typeof MulterFileSchema>;

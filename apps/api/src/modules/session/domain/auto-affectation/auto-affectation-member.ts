@@ -1,6 +1,9 @@
 import { Logger } from '@nestjs/common';
+
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
+
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
 import { AutoAffectationNominationFile } from './auto-affectation-nomination-file';
 
@@ -23,13 +26,7 @@ export class AutoAffectationMember {
         _take += 1;
       },
 
-      build: () =>
-        new AffectableMember(
-          _take,
-          this.id,
-          this.formation,
-          this.excludedJurisdictions,
-        ),
+      build: () => new AffectableMember(_take, this.id, this.formation, this.excludedJurisdictions),
     };
   }
 
@@ -39,9 +36,7 @@ export class AutoAffectationMember {
     affectationCountPerGrade: Map<Magistrat.Grade, number>;
     excludedJurisdictions: Set<string> | null;
   }): AutoAffectationMember {
-    const pastWorkload = Array.from(
-      props.affectationCountPerGrade.entries(),
-    ).reduce(
+    const pastWorkload = Array.from(props.affectationCountPerGrade.entries()).reduce(
       (workload, [grade, count]) =>
         workload.add(
           AutoAffectationWorkload.fromMultiple({
@@ -61,10 +56,7 @@ export class AutoAffectationMember {
     );
   }
 
-  static fromLeastToMostWorkload(
-    a: AutoAffectationMember,
-    b: AutoAffectationMember,
-  ): number {
+  static fromLeastToMostWorkload(this: void, a: AutoAffectationMember, b: AutoAffectationMember): number {
     return a.pastWorkload.toNumber() - b.pastWorkload.toNumber();
   }
 }
@@ -108,9 +100,7 @@ export class AffectableMember {
     return true;
   }
 
-  canReportOn(
-    candidate: AutoAffectationNominationFile | AutoAffectationNominationFile[],
-  ): boolean {
+  canReportOn(candidate: AutoAffectationNominationFile | AutoAffectationNominationFile[]): boolean {
     if (Array.isArray(candidate)) {
       return candidate.every((c) => this.canReportOn(c));
     }

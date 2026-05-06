@@ -10,7 +10,7 @@ export class TestApp {
     createSession: new CreateSessionPage(this),
     manageSessions: new ManageSessionsPage(this),
     session: new ManageSingleSessionPage(this),
-    members: new MembersPage(this)
+    members: new MembersPage(this),
   };
 
   constructor(readonly page: Page) {}

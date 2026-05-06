@@ -11,6 +11,6 @@ export const reportHtmlIds = {
     managementSection: 'management-rule-section',
     statutorySection: 'statutory-rule-section',
     qualitativeSection: 'qualitative-rule-section',
-    attachedFilesSection: 'attached-files-section'
-  }
+    attachedFilesSection: 'attached-files-section',
+  },
 };

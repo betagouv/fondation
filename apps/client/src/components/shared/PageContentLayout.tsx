@@ -9,7 +9,7 @@ export type PageContentLayoutProps = PropsWithChildren & {
 export const PageContentLayout: FC<PageContentLayoutProps> = ({
   fullBackgroundOrange = false,
   fullBackgroundGreen = false,
-  children
+  children,
 }) => {
   const backgroundClass = fullBackgroundOrange
     ? 'bg-light-orange'

@@ -24,21 +24,21 @@ test.describe('observations', () => {
         name: sessionName,
         date: new Date('2026-03-01'),
         observationClosingDate: new Date('2026-03-10'),
-        formation: 'SIEGE'
+        formation: 'SIEGE',
       });
 
       await http.sessions.attachNominationFiles({
         sessionId,
-        // prettier-ignore
+        // oxfmt-ignore
         files: [
           { fileNumber: 1, name: 'Antoine DUPOND', currentPosition: 'Président TJ  LYON', grade: 'G2', targetedPosition: 'Président TJ  CAEN', targetedGrade: 'G2' },
           { fileNumber: 2, name: 'Sarah CLERC', currentPosition: 'Président TJ  ANNECY', grade: 'G2', targetedPosition: 'Président TJ  ROUEN', targetedGrade: 'G2' },
-        ]
+        ],
       });
 
       magistrats = {
         michelFoucault: { firstName: `Michel ${crypto.randomUUID()}`, lastName: 'FOUCAULT' },
-        marieCurie: { firstName: `Marie ${crypto.randomUUID()}`, lastName: 'CURIE' }
+        marieCurie: { firstName: `Marie ${crypto.randomUUID()}`, lastName: 'CURIE' },
       };
 
       await http.data.createMagistrats([
@@ -46,14 +46,14 @@ test.describe('observations', () => {
           civilite: 'M.',
           usedName: null,
           marriedName: null,
-          ...magistrats.michelFoucault
+          ...magistrats.michelFoucault,
         },
         {
           civilite: 'MME',
           usedName: null,
           marriedName: null,
-          ...magistrats.marieCurie
-        }
+          ...magistrats.marieCurie,
+        },
       ]);
 
       await app.pages.manageSessions.goto();

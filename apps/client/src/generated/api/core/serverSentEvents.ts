@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 // this file is auto-generated
 //
 // Licensed under the Apache License, Version 2.0
@@ -76,11 +76,7 @@ export interface StreamEvent<TData = unknown> {
 }
 
 export type ServerSentEventsResult<TData = unknown, TReturn = void, TNext = unknown> = {
-  stream: AsyncGenerator<
-    TData extends Record<string, unknown> ? TData[keyof TData] : TData,
-    TReturn,
-    TNext
-  >;
+  stream: AsyncGenerator<TData extends Record<string, unknown> ? TData[keyof TData] : TData, TReturn, TNext>;
 };
 
 export const createSseClient = <TData = unknown>({

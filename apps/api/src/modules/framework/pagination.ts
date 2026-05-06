@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  createParamDecorator,
-  ExecutionContext,
-} from '@nestjs/common';
+import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 import { createZodDto } from 'nestjs-zod';
@@ -38,11 +34,7 @@ export const QueryPagination = createParamDecorator(
 
     const [queryPage] = ([] as unknown[]).concat(req.query.page);
     const pageNumber = Number(queryPage) || 1;
-    if (
-      !Number.isInteger(pageNumber) ||
-      !Number.isFinite(pageNumber) ||
-      pageNumber < 1
-    )
+    if (!Number.isInteger(pageNumber) || !Number.isFinite(pageNumber) || pageNumber < 1)
       throw new BadRequestException(`invalid ?page URL parameter`);
 
     const limitMax = options.maxLimit ?? DEFAULT_PAGINATION_LIMIT_MAX;
@@ -71,10 +63,7 @@ type Paginated<T> = {
   links: { next?: string; previous?: string };
 };
 
-export function createPaginatedZodDto(
-  schema: z.ZodObject,
-  extension?: z.ZodObject,
-) {
+export function createPaginatedZodDto(schema: z.ZodObject, extension?: z.ZodObject) {
   return createZodDto(
     z
       .object({

@@ -1,13 +1,15 @@
-import { useIsSg } from '@/hooks/roles.hook';
+import Button from '@codegouvfr/react-dsfr/Button';
+
 import './MemberMemo.css';
 
-import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import { useUser } from '@queries/auth.queries';
-import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { useIsSg } from '@/hooks/roles.hook';
+import { useUser } from '@queries/auth.queries';
+import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 
 function DebouncedTextarea(props: { value: string; onChange: (value: string) => unknown }) {
   const [value, setValue] = React.useState(props.value);
@@ -28,7 +30,7 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
           const value = String(target.value);
           setValue(value);
           notify(value);
-        }
+        },
       }}
     />
   );
@@ -62,10 +64,10 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
         userId: user.id,
         sessionId: props.sessionId,
         nominationFileId: props.nominationFileId,
-        memo: value
+        memo: value,
       });
     },
-    [props, mutate, user]
+    [props, mutate, user],
   );
 
   const [mode, setMode] = React.useState<'read' | 'edit'>('read');

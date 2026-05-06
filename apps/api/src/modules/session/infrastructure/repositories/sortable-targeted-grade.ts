@@ -3,9 +3,7 @@ import { Magistrat } from 'shared-models';
 /**
  * @warning this is only used in the database to sort on the grade
  */
-export function gradeEnumToSortableTargetedGrade(
-  grade: Magistrat.Grade,
-): number {
+export function gradeEnumToSortableTargetedGrade(grade: Magistrat.Grade): number {
   switch (grade) {
     case Magistrat.Grade.G3SUP:
       return 29;

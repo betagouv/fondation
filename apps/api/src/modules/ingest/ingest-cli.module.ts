@@ -1,11 +1,7 @@
-import {
-  ConflictException,
-  Logger,
-  Module,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Logger, Module, NotFoundException } from '@nestjs/common';
 import { Command, CommandRunner, Option } from 'nest-commander';
 import z from 'zod';
+
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';
 
@@ -28,10 +24,7 @@ export class IngestLolfiCommand extends CommandRunner {
     return IngestLolfiCommand.cancelable(async (signal) => {
       let success = true;
       try {
-        const result = await this.ingestor.ingestLolfiFiles(
-          options.jobId,
-          signal,
-        );
+        const result = await this.ingestor.ingestLolfiFiles(options.jobId, signal);
         success = result.success;
       } catch (error) {
         if (error instanceof NotFoundException) {

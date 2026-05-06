@@ -7,8 +7,9 @@ import { useSummary } from '@/pages/summary/SummaryContext';
 import {
   useAttachSummaryFilesMutation,
   useDetachSummaryFilesMutation,
-  useGenerateSummaryAttachmentPublicUrlMutation
+  useGenerateSummaryAttachmentPublicUrlMutation,
 } from '@queries/summary.queries';
+
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionAttachments() {
@@ -54,11 +55,11 @@ function SummaryAttachmentInput() {
         {
           onSettled() {
             if (ref.current) ref.current.value = null as unknown as string;
-          }
-        }
+          },
+        },
       );
     },
-    [mutate, sessionId, nominationFileId, ref]
+    [mutate, sessionId, nominationFileId, ref],
   );
 
   if (!canWriteSummary) return null;
@@ -90,8 +91,8 @@ function SummaryAttachment(props: { fileId: string; name: string; type: string }
       content: `Une fois supprimé, il sera impossible de le récupérer.`,
       i18n: {
         cancel: 'Annuler',
-        confirm: 'Supprimer le fichier'
-      }
+        confirm: 'Supprimer le fichier',
+      },
     });
 
     if (!confirmed) return;

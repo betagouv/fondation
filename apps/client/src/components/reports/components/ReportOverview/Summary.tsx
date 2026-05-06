@@ -1,9 +1,11 @@
 import { SideMenu, type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
 import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
+
 import { SUMMARY_SECTIONS } from '../../../../constants/summary-sections.constants';
 import { reportHtmlIds } from '../../dom/html-ids';
 import { scrollToSummarySection } from '../../dom/scroll-to-summary-section';
 import { summaryScrollListenersFactory } from '../../dom/summary-scroll-listeners';
+
 import { useObservedSections } from './hooks/useObservedSections';
 
 export type SummaryProps = {
@@ -58,10 +60,10 @@ export const Summary: FC<SummaryProps> = ({ observers, summary, fileComment }) =
   const sideMenuItems: SideMenuProps.Item[] = summarySections.map(({ anchorId, label }) => ({
     linkProps: {
       href: `#${anchorId}`,
-      onClick: () => onAnchorClick(anchorId)
+      onClick: () => onAnchorClick(anchorId),
     },
     isActive: currentSection === anchorId,
-    text: label
+    text: label,
   }));
 
   return (

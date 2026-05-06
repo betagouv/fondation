@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import React from 'react';
+
 import { ImpersonationBanner } from './ImpersonationBanner';
 import { StagingBanner } from './StagingBanner';
 
 export function Banners(
-  props: React.PropsWithChildren<{ hidden: boolean; ref: React.RefObject<HTMLDivElement | null> }>
+  props: React.PropsWithChildren<{ hidden: boolean; ref: React.RefObject<HTMLDivElement | null> }>,
 ) {
   return (
     <div

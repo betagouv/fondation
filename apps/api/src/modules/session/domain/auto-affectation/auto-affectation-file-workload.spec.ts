@@ -1,5 +1,7 @@
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
+
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
 
 describe(`auto affectation workload`, () => {
@@ -46,16 +48,13 @@ describe(`auto affectation workload`, () => {
     ${Magistrat.Grade.G1}  | ${'2025-01-01'} | ${1}
     ${Magistrat.Grade.G2}  | ${'2025-01-01'} | ${2}
     ${Magistrat.Grade.G3}  | ${'2025-01-01'} | ${3}
-  `(
-    'workload for incoherent $grade for $date should be $expected',
-    ({ grade, sessionDate, expected }) => {
-      const workload = AutoAffectationWorkload.from({
-        grade,
-        sessionDate: DateOnly.fromDate(new Date(sessionDate)),
-      });
-      expect(workload.toNumber()).toBe(expected);
-    },
-  );
+  `('workload for incoherent $grade for $date should be $expected', ({ grade, sessionDate, expected }) => {
+    const workload = AutoAffectationWorkload.from({
+      grade,
+      sessionDate: DateOnly.fromDate(new Date(sessionDate)),
+    });
+    expect(workload.toNumber()).toBe(expected);
+  });
 
   it('should init from multiple', () => {
     const workload = AutoAffectationWorkload.fromMultiple({

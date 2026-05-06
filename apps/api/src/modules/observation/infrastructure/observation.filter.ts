@@ -7,6 +7,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
+
 import { ObservationAlreadyExist } from '../domain/observation';
 
 @Injectable()

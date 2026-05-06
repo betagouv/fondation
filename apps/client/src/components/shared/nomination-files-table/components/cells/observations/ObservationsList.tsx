@@ -6,7 +6,7 @@ import { toFullName } from '@/utils/user.utils';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
-  type Observation
+  type Observation,
 } from '@queries/observations.queries';
 
 const formatDate = (dateString: string) => {
@@ -14,7 +14,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   });
 };
 
@@ -30,7 +30,7 @@ const ObservationCard: FC<{
   const handleFileClick = (fileId: string) => {
     getFileUrl(
       { sessionId, nominationFileId, observationId: observation.id, fileId },
-      { onSuccess: (url) => window.open(url, '_blank') }
+      { onSuccess: (url) => window.open(url, '_blank') },
     );
   };
 
@@ -61,8 +61,8 @@ const ObservationCard: FC<{
                 sessionId,
                 nominationFileId,
                 observationId: observation.id,
-                context: 'sg'
-              })
+                context: 'sg',
+              }),
             }}
           />
           <Button

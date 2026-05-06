@@ -1,4 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
+
 import { AuthHttpClient } from './auth.fixture';
 import { DataHttpClient } from './data.fixture';
 import { SessionsHttpClient } from './sessions.fixture';

@@ -1,10 +1,11 @@
-import type { RowData, Table } from '@tanstack/react-table';
-import React from 'react';
-
-import { ITEMS_PAR_PAGE } from '@/types/table.types';
 import Pagination from '@codegouvfr/react-dsfr/Pagination';
 import Select from '@codegouvfr/react-dsfr/Select';
+import type { RowData, Table } from '@tanstack/react-table';
+import React from 'react';
 import { FormattedMessage } from 'react-intl';
+
+import { ITEMS_PAR_PAGE } from '@/types/table.types';
+
 import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
 
 function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }) {
@@ -37,7 +38,7 @@ function ReactTablePaginationSizeSelector<Data>(props: { table: Table<Data> }) {
       const newPageSize = Number(event.target.value);
       props.table.setPageSize(newPageSize);
     },
-    [props.table]
+    [props.table],
   );
 
   return (
@@ -72,9 +73,9 @@ function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Da
           ?.parentElement?.querySelector('.table-content thead');
 
         $tableHead?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      },
     }),
-    [props.table]
+    [props.table],
   );
 
   if (pageCount <= 1) return null;

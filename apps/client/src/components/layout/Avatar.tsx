@@ -1,13 +1,12 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
+import Button from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
-import Button from '@codegouvfr/react-dsfr/Button';
 
-import { useLogout, useUser } from '@queries/auth.queries';
-
+import { UserAvatar } from '@/components/shared/user-avatar';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { UserAvatar } from '@/components/shared/user-avatar';
+import { useLogout, useUser } from '@queries/auth.queries';
 
 export const Avatar: FC = () => {
   const { user, isError } = useUser();
@@ -17,7 +16,7 @@ export const Avatar: FC = () => {
 
   const onClickLogout = async () => {
     await mutateAsync(undefined, {
-      onSuccess: () => navigate(ROUTE_PATHS.LOGIN)
+      onSuccess: () => navigate(ROUTE_PATHS.LOGIN),
     });
   };
 

@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/modules/framework/database';
-
 import { createZodDto } from 'nestjs-zod';
-import { dateOnlyJsonSchema } from 'shared-models';
-import { DateOnly } from 'src/utils/date-only';
 import z from 'zod';
+
+import { dateOnlyJsonSchema } from 'shared-models';
+
+import { PrismaService } from 'src/modules/framework/database';
+import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class DetailsAgendaMetadataQuery {

@@ -1,15 +1,11 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
 import { catchError, Observable, throwError } from 'rxjs';
 
 import { Files } from '../files';
 import { Sanitizer } from '../sanitizers';
+
 import { MultipartFile } from './multipart.file';
 import { StoredFile } from './multipart.types';
 
@@ -20,10 +16,7 @@ export class StoreFileInterceptor implements NestInterceptor {
     private readonly sanitizer: Sanitizer,
   ) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Promise<Observable<any>> {
+  async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<Observable<any>> {
     if (context.getType() !== 'http') return next.handle();
 
     const multipartFiles: MultipartFile[] = [];

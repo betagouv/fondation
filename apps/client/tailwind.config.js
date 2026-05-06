@@ -16,18 +16,18 @@ export default {
         'light-green': '#B8E6B566',
         'dark-blue': '#0063CB',
         'blue-france-sun-113': '#000091',
-        'fr-gray-bg': '#f6f6f6'
-      }
-    }
+        'fr-gray-bg': '#f6f6f6',
+      },
+    },
   },
   plugins: [],
   corePlugins: {
-    preflight: false
+    preflight: false,
   },
   screens: {
     sm: `${breakpointsPx.sm}px`,
     md: `${breakpointsPx.md}px`,
     lg: `${breakpointsPx.lg}px`,
-    xl: `${breakpointsPx.xl}px`
-  }
+    xl: `${breakpointsPx.xl}px`,
+  },
 };

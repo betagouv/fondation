@@ -1,6 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import type { FC } from 'react';
+
 import { headingLevels } from '../extensions/constant';
+
 import { EditorButton } from './EditorButton';
 
 export const BoldButton: FC = () => {
@@ -13,7 +15,7 @@ export const BoldButton: FC = () => {
 
       const isHeadingActive = !!headingLevels.find((level) => currentEditor.isActive('heading', { level }));
       return !currentEditor.can().toggleBold() || isHeadingActive;
-    }
+    },
   });
 
   const toggleBold = () => {

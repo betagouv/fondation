@@ -1,10 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+
+import { UpdatableNominationFileState } from '../../domain/nomination-file';
 import { Prisma } from 'src/generated/prisma/client';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
-import { UpdatableNominationFileState } from '../../domain/nomination-file';
 
 @Injectable()
 export class NominationSessionFileFinder {
@@ -21,9 +22,7 @@ export class NominationSessionFileFinder {
     tx?: Prisma.TransactionClient;
   }): Promise<{ id: string; fileNumber: number }[]> {
     if (!query.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.bySessionAndFileNumber({ ...query, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.bySessionAndFileNumber({ ...query, tx }));
     }
 
     const files = await query.tx.dossierDeNomination.findMany({
@@ -44,25 +43,21 @@ export class NominationSessionFileFinder {
     tx?: Prisma.TransactionClient;
   }): Promise<UpdatableNominationFileState[]> {
     if (!query.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.findUpdatable({ ...query, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.findUpdatable({ ...query, tx }));
     }
 
     if (!query.nominationFileIds?.size) return [];
 
     assertPgParams(query.nominationFileIds);
-    const updatableNominationFiles =
-      await query.tx.dossierDeNomination.findMany({
-        where: { id: { in: [...query.nominationFileIds] } },
-        select: { id: true, outcome: true },
-      });
+    const updatableNominationFiles = await query.tx.dossierDeNomination.findMany({
+      where: { id: { in: [...query.nominationFileIds] } },
+      select: { id: true, outcome: true },
+    });
 
-    const { items: withDocs } =
-      await this.docs.internalFindNominationFilesLinkedDocs({
-        tx: query.tx,
-        nominationFileIds: query.nominationFileIds,
-      });
+    const { items: withDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
+      tx: query.tx,
+      nominationFileIds: query.nominationFileIds,
+    });
 
     const nominationFiles: UpdatableNominationFileState[] = [];
     for (const file of updatableNominationFiles) {

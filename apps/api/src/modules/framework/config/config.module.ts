@@ -1,6 +1,6 @@
+import { loadConfig } from '.';
 import { Module } from '@nestjs/common';
 
-import { loadConfig } from '.';
 import { API_CONFIG_TOKEN } from './config.constants';
 
 @Module({

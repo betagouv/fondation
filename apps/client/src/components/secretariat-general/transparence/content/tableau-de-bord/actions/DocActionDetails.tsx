@@ -1,11 +1,12 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import React from 'react';
+
 import { useTab } from '@/hooks/useTab';
 import type { FoundSessionDocsDto } from '@api/types';
-import Button from '@codegouvfr/react-dsfr/Button';
 import {
   useDetailsSessionAgendaMutation,
-  useDetailsSessionOfficialReportsMutation
+  useDetailsSessionOfficialReportsMutation,
 } from '@queries/agenda.queries';
-import React from 'react';
 
 export function DocActionDetails(props: {
   sessionId: string;

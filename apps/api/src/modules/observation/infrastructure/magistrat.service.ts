@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
+
 import { Pagination } from 'src/modules/framework/pagination';
-import {
-  SearchMagistratsQuery,
-  SearchMagistratsResponseDto,
-} from './queries/search-magistrats.query';
+
+import { SearchMagistratsQuery, SearchMagistratsResponseDto } from './queries/search-magistrats.query';
 
 @Injectable()
 export class MagistratService {

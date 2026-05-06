@@ -1,4 +1,5 @@
 import { Role } from 'shared-models';
+
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import { ADMIN_USER_ROLES_ENUM, USER_DUTIES, USER_TITLES } from './user-enum';
@@ -42,13 +43,10 @@ describe('AdminUserRole', () => {
     ${Role.MEMBRE_DU_PARQUET}          | ${'DEPUTY_PRESIDENT_PARQUET'} | ${'DEPUTY_PRESIDENT'} | ${'DEPUTY_PRESIDENT_PARQUET'}
     ${Role.MEMBRE_DU_PARQUET}          | ${null}                       | ${null}               | ${'MEMBRE_PARQUET'}
     ${Role.MEMBRE_COMMUN}              | ${null}                       | ${null}               | ${'MEMBRE_COMMUN'}
-  `(
-    'role=$role, title=$title, duty=$duty -> $expected',
-    ({ role, title, duty, expected }) => {
-      const adminUserRole = AdminUserRole.from({ role, title, duty });
-      expect(adminUserRole.toString()).toBe(expected);
-    },
-  );
+  `('role=$role, title=$title, duty=$duty -> $expected', ({ role, title, duty, expected }) => {
+    const adminUserRole = AdminUserRole.from({ role, title, duty });
+    expect(adminUserRole.toString()).toBe(expected);
+  });
 
   it('should always retitle in the same way', () => {
     const snapshot = Object.values(Role).flatMap((role) =>

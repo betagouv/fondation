@@ -1,18 +1,10 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+
+import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
-import {
-  Agenda,
-  AgendaCreated,
-  AgendaDeleted,
-  AgendaUpdated,
-} from '../../domain/agenda';
 
 @Injectable()
 export class AgendaRepository {
@@ -48,10 +40,7 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaCreated(
-    tx: Prisma.TransactionClient,
-    message: AgendaCreated,
-  ) {
+  private async persistAgendaCreated(tx: Prisma.TransactionClient, message: AgendaCreated) {
     const session = await tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
       select: { formation: true, name: true },
@@ -95,10 +84,7 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaUpdated(
-    tx: Prisma.TransactionClient,
-    message: AgendaUpdated,
-  ) {
+  private async persistAgendaUpdated(tx: Prisma.TransactionClient, message: AgendaUpdated) {
     await tx.agendaNominationFile.deleteMany({
       where: { agendaId: message.agendaId },
     });
@@ -159,10 +145,7 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaDeleted(
-    tx: Prisma.TransactionClient,
-    message: AgendaDeleted,
-  ) {
+  private async persistAgendaDeleted(tx: Prisma.TransactionClient, message: AgendaDeleted) {
     await tx.agenda.update({
       where: { id: message.agendaId },
       data: { pdf: { delete: {} }, officialReport: { delete: {} } },

@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 
 import { ConfirmationProvider } from '../../hooks/useConfirmation.hook';
 import { BanneredLayout } from '../shared/layouts/BanneredLayout';
+
 import { AppFooter } from './AppFooter';
 import { AppHeader } from './Header';
 

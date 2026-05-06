@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import type { APIRequestContext, APIResponse } from '@playwright/test';
+
 import type { RegisteredUserDto, RegisterUserDto } from '../../src/generated/api/types';
 
 export type UserRole = NonNullable<RegisterUserDto['role']>;
@@ -13,7 +14,7 @@ export class AuthHttpClient {
 
   async login(dto: { email: string; password: string }): Promise<APIResponse> {
     return this.http.post('/api/auth/v2/login', {
-      headers: { authorization: `Basic ${btoa(`${dto.email}:${dto.password}`)}` }
+      headers: { authorization: `Basic ${btoa(`${dto.email}:${dto.password}`)}` },
     });
   }
 
@@ -27,11 +28,11 @@ export class AuthHttpClient {
       firstName: (defaultUser?.firstName || faker.person.firstName()).toLowerCase(),
       lastName: (defaultUser?.lastName || faker.person.lastName()).toLowerCase(),
       password: defaultUser?.password || faker.string.alphanumeric(20),
-      gender: defaultUser?.gender ?? ('FEMALE' as const)
+      gender: defaultUser?.gender ?? ('FEMALE' as const),
     };
 
     const response = await this.http.post('/api/auth/v2/register', {
-      data: { ...person, role }
+      data: { ...person, role },
     });
 
     const { id }: RegisteredUserDto = await response.json();

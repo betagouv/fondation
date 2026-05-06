@@ -51,13 +51,10 @@ export class ListUsersQuery {
           take: query.limit ? query.limit - union.length : undefined,
           where: {
             id: { notIn: [...excludeIds] },
-            role: query.roles
-              ? { in: query.roles.map(roleEnumToPrismaRoleEnum) }
-              : undefined,
+            role: query.roles ? { in: query.roles.map(roleEnumToPrismaRoleEnum) } : undefined,
             OR:
               query.search && query.search.length > 2
                 ? [
-                    // prettier-ignore
                     { email: { contains: query.search, mode: 'insensitive' } },
                     {
                       firstName: {

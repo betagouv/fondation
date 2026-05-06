@@ -3,17 +3,16 @@ import type { JobFile, Tree } from './job.types';
 export function tree(files: readonly JobFile[]): Tree[] {
   const nodes = new Map(
     files.map((file) => {
-      // eslint-disable-next-line
       const { requirements: _req, ...node } = file;
       return [file.id, { ...node, children: [] }] as const;
-    })
+    }),
   );
 
   const adjacency = files
     .flatMap((f) => f.requirements.map((r) => [r.requiredFileId, f.id] as const))
     .reduce(
       (map, [parentId, childId]) => map.set(parentId, (map.get(parentId) ?? []).concat(childId)),
-      new Map<string, string[]>()
+      new Map<string, string[]>(),
     );
 
   const visited = new Set<string>();

@@ -1,9 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import {
-  differenceInMonths,
-  differenceInYears,
-  formatDuration,
-} from 'date-fns';
+import { differenceInMonths, differenceInYears, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
@@ -20,10 +16,7 @@ import {
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import {
-  FILE_MIME_TYPES,
-  filenameToMimeType,
-} from 'src/modules/framework/files/mime-type';
+import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
@@ -39,14 +32,8 @@ export class DetailReportQuery {
     private readonly prisma: PrismaService,
   ) {}
 
-  async handle(query: {
-    user: { id: string; role: Role };
-    reportId: string;
-  }): Promise<DetailedReportDto> {
-    const reporterId =
-      query.user.role !== Role.ADJOINT_SECRETAIRE_GENERAL
-        ? query.user.id
-        : undefined;
+  async handle(query: { user: { id: string; role: Role }; reportId: string }): Promise<DetailedReportDto> {
+    const reporterId = query.user.role !== Role.ADJOINT_SECRETAIRE_GENERAL ? query.user.id : undefined;
 
     const report = await this.prisma.report.findUnique({
       where: { id: query.reportId, reporterId, isDeleted: false },
@@ -140,9 +127,7 @@ export class DetailReportQuery {
 
     if (!report) throw new NotFoundException();
 
-    const rulesByRuleName = new Map(
-      report.reportRules.map((r) => [r.ruleName, r]),
-    );
+    const rulesByRuleName = new Map(report.reportRules.map((r) => [r.ruleName, r]));
 
     const reportFiles = report.files.map(({ usage, file }) => ({
       id: file.id,
@@ -152,8 +137,7 @@ export class DetailReportQuery {
     }));
 
     const attachments = reportFiles.filter(
-      (x): x is typeof x & { usage: ReportFileUsage.ATTACHMENT } =>
-        x.usage === ReportFileUsage.ATTACHMENT,
+      (x): x is typeof x & { usage: ReportFileUsage.ATTACHMENT } => x.usage === ReportFileUsage.ATTACHMENT,
     );
 
     const screenshots = await this.withUrls(
@@ -164,11 +148,7 @@ export class DetailReportQuery {
     );
 
     let summary: DetailedReportDto['summary'] = null;
-    if (
-      report.nominationFile.summary?.readers.some(
-        (r) => r.userId === query.user.id,
-      )
-    ) {
+    if (report.nominationFile.summary?.readers.some((r) => r.userId === query.user.id)) {
       const summaryScreenshots = await this.withUrls(
         report.nominationFile.summary.screenshots.map(({ file }) => file),
       );
@@ -181,13 +161,11 @@ export class DetailReportQuery {
           type: filenameToMimeType(f.name) ?? FILE_MIME_TYPES.bin,
           url: f.url,
         })),
-        attachments: report.nominationFile.summary.attachments.map(
-          ({ file }) => ({
-            fileId: file.id,
-            name: file.name,
-            type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
-          }),
-        ),
+        attachments: report.nominationFile.summary.attachments.map(({ file }) => ({
+          fileId: file.id,
+          name: file.name,
+          type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
+        })),
       };
     }
 
@@ -213,36 +191,23 @@ export class DetailReportQuery {
       })),
 
       biography: report.nominationFile.biography,
-      birthDate:
-        DateOnly.fromOptionalDate(report.nominationFile.birthDate)?.toJson() ??
-        null,
+      birthDate: DateOnly.fromOptionalDate(report.nominationFile.birthDate)?.toJson() ?? null,
       currentPosition: report.nominationFile.currentPosition,
-      dureeDuPoste: this.lastPositionDuration(
-        report.nominationFile.lastPositionDate,
-      ),
+      dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
       folderNumber: report.nominationFile.number,
       grade: z.enum(Magistrat.Grade).parse(report.nominationFile.grade),
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
       targettedPosition: report.nominationFile.targetedPosition,
-      priorities: report.nominationFile.priorities.map(
-        prismaPrioriteEnumToPrioriteEnum,
-      ),
+      priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPrioriteEnum),
       priority: report.nominationFile.priorities[0]
         ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorities[0])
         : null,
 
-      dateTransparence: DateOnly.fromDate(
-        report.nominationFile.session.date,
-      ).toJson(),
-      dueDate:
-        DateOnly.fromOptionalDate(
-          report.nominationFile.session.dueDate,
-        )?.toJson() ?? null,
-      formation: prismaFormationEnumToFormationEnum(
-        report.nominationFile.session.formation,
-      ),
+      dateTransparence: DateOnly.fromDate(report.nominationFile.session.date).toJson(),
+      dueDate: DateOnly.fromOptionalDate(report.nominationFile.session.dueDate)?.toJson() ?? null,
+      formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
 
@@ -269,9 +234,7 @@ export class DetailReportQuery {
         dateReception: DateOnly.fromDate(obs.dateReception).toJson(),
         magistrat: obs.magistrat,
         hasDescription: !!obs.description.trim(),
-        hasUserComment: obs.memberComments.some(
-          ({ comment }) => !!comment.trim(),
-        ),
+        hasUserComment: obs.memberComments.some(({ comment }) => !!comment.trim()),
       })),
     };
   }
@@ -288,9 +251,9 @@ export class DetailReportQuery {
     return formatDuration({ months, years }, { locale: fr, delimiter: ' et ' });
   }
 
-  private async withUrls<
-    F extends { id: string; name: string; path: readonly string[] },
-  >(files: readonly F[]): Promise<(F & { url: string })[]> {
+  private async withUrls<F extends { id: string; name: string; path: readonly string[] }>(
+    files: readonly F[],
+  ): Promise<(F & { url: string })[]> {
     const byId = new Map(files.map((f) => [f.id, f]));
     const urls = await this.files.getPublicUrls(Array.from(byId.keys()));
 
@@ -327,10 +290,7 @@ export class DetailedReportDto extends createZodDto(
     observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
     priorities: z.array(z.enum(PrioriteEnum)),
-    priority: z
-      .enum(PrioriteEnum)
-      .nullable()
-      .meta({ deprecated: true, description: 'prefer priorities' }),
+    priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
     fileComment: z.string().nullable(),
 
     screenshots: z.array(
@@ -353,9 +313,7 @@ export class DetailedReportDto extends createZodDto(
     summary: z
       .object({
         content: z.string(),
-        attachments: z.array(
-          z.object({ fileId: z.string(), name: z.string(), type: z.string() }),
-        ),
+        attachments: z.array(z.object({ fileId: z.string(), name: z.string(), type: z.string() })),
         screenshots: z.array(
           z.object({
             fileId: z.string(),

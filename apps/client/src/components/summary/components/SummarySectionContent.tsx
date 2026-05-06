@@ -1,9 +1,9 @@
 import './SummarySectionContent.css';
-
 import clsx from 'clsx';
 import React from 'react';
 
 import { useSummary } from '@/pages/summary/SummaryContext';
+
 import { SummarySectionCard } from './SummarySectionCard';
 import { SummaryEditor } from './SummarySectionEditor';
 

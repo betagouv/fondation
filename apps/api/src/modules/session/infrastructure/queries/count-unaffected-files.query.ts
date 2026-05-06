@@ -21,6 +21,4 @@ export class CountUnaffectedFilesQuery {
   }
 }
 
-export class CountedUnaffectedFilesDto extends createZodDto(
-  z.object({ count: z.number() }),
-) {}
+export class CountedUnaffectedFilesDto extends createZodDto(z.object({ count: z.number() })) {}

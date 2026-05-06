@@ -1,12 +1,6 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Res,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Res, StreamableFile } from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
+
 import { Files } from './files';
 
 @Controller('/api/files/v1')

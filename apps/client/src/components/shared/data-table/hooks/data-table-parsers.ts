@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 
 import { createParser } from 'nuqs';
 
@@ -13,7 +13,7 @@ export const parseAsKeyValue = createParser({
     if (value === undefined || value === null) return '';
 
     return `${id}:${JSON.stringify(value)}`;
-  }
+  },
 });
 
 export const parseAsFilters = createParser({
@@ -26,5 +26,5 @@ export const parseAsFilters = createParser({
       .map(parseAsKeyValue.parse)
       .filter((x) => x !== null),
 
-  serialize: (values: { id: string; value: any }[]) => values.map(parseAsKeyValue.serialize).join(',')
+  serialize: (values: { id: string; value: any }[]) => values.map(parseAsKeyValue.serialize).join(','),
 });

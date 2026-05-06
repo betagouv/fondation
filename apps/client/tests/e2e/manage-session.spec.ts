@@ -10,7 +10,7 @@ test.describe('Gérer les sessions', () => {
     `;
 
     const file = new File([lodamExcel], `transparence_${new Date().toISOString().split('T')[0]}.xlsx`, {
-      type: lodamExcel.type
+      type: lodamExcel.type,
     });
 
     const today = new Date();
@@ -25,7 +25,7 @@ test.describe('Gérer les sessions', () => {
       date: today,
       formation: 'PARQUET',
       observationClosingDate: inAWeek,
-      file
+      file,
     });
 
     // Alors la session importée est visible sur la page dédiée
@@ -57,7 +57,7 @@ test.describe('Gérer les sessions', () => {
         name,
         date: today,
         formation: 'PARQUET',
-        observationClosingDate: inAWeek
+        observationClosingDate: inAWeek,
       });
 
       await http.sessions.attachNominationFiles({
@@ -72,7 +72,7 @@ test.describe('Gérer les sessions', () => {
             targetedPosition: 'Procureur CA  LYON',
             targetedGrade: 'G3',
             lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15')
+            lastRankingDate: new Date('2020-07-15'),
           },
           {
             fileNumber: 2,
@@ -83,7 +83,7 @@ test.describe('Gérer les sessions', () => {
             targetedPosition: 'Président CA  STRASBOURG',
             targetedGrade: 'G3',
             lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15')
+            lastRankingDate: new Date('2020-07-15'),
           },
           {
             fileNumber: 3,
@@ -94,12 +94,12 @@ test.describe('Gérer les sessions', () => {
             targetedPosition: 'Président CA  METZ - G3',
             targetedGrade: 'G3',
             lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15')
-          }
-        ]
+            lastRankingDate: new Date('2020-07-15'),
+          },
+        ],
       });
 
-      // prettier-ignore
+      // oxfmt-ignore
       await registerUser({ firstName: 'Antonio', lastName: 'GRAMSCI', email: `antonio.gramsci+${crypto.randomUUID()}@justice.fr`, gender: 'MALE', role: 'MEMBRE_COMMUN' });
 
       await app.pages.manageSessions.goto();

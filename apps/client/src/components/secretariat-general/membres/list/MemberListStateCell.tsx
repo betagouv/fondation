@@ -1,6 +1,6 @@
-import { GradeEnum } from '@/types/enums.types';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
+import { GradeEnum } from '@/types/enums.types';
 import type { PaginatedMemberListItemDto } from '@api/types';
 
 const GRADES = Object.values(GradeEnum);
@@ -8,7 +8,7 @@ type StatArray = PaginatedMemberListItemDto['items'][number]['stats'];
 
 export function MemberListStatCell({ stats }: { stats: StatArray }) {
   const sortedStats = [...stats].sort(
-    (a, b) => GRADES.indexOf(b.targetedGrade) - GRADES.indexOf(a.targetedGrade) /* desc by grade */
+    (a, b) => GRADES.indexOf(b.targetedGrade) - GRADES.indexOf(a.targetedGrade) /* desc by grade */,
   );
 
   return (stats?.length ?? 0) > 0 ? (

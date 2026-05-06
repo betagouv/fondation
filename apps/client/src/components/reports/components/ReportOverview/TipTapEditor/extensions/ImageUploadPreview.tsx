@@ -1,5 +1,7 @@
-import { Pulse } from '@/components/shared/loaders/pulse';
 import { Node, NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from '@tiptap/react';
+
+import { Pulse } from '@/components/shared/loaders/pulse';
+
 import { makeEditorImageUploader, type FilesUploader } from './editor-file-uploader';
 
 declare module '@tiptap/core' {
@@ -23,7 +25,7 @@ function ImageUploadNodeView(props: ReactNodeViewProps<HTMLImageElement>) {
           margin: '8px 0',
           display: 'flex',
           justifyContent: 'center',
-          position: 'relative'
+          position: 'relative',
         }}
       >
         <div
@@ -38,7 +40,7 @@ function ImageUploadNodeView(props: ReactNodeViewProps<HTMLImageElement>) {
             zIndex: 0,
             filter: 'blur(1px)',
             width,
-            height
+            height,
           }}
         />
         <div
@@ -49,7 +51,7 @@ function ImageUploadNodeView(props: ReactNodeViewProps<HTMLImageElement>) {
             zIndex: 5,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <Pulse />
@@ -95,7 +97,7 @@ export const ImageUploadPreview = (filesUploader: FilesUploader) =>
             }
 
             return true;
-          }
+          },
       };
-    }
+    },
   });

@@ -4,9 +4,8 @@ export enum PrioriteEnum {
   PROFILE = 'PROFILE',
 }
 
-
 export const PrioriteLabels: Record<PrioriteEnum, string> = {
   ETOILE: 'Étoilé',
   OUTRE_MER: 'Outre-mer',
   PROFILE: 'Profilé',
-}
+};

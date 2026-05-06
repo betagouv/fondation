@@ -1,4 +1,5 @@
 import { Role } from 'shared-models';
+
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { assertNever } from 'src/utils/assert-never';
 

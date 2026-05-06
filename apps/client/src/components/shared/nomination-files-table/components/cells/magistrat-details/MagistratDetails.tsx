@@ -1,25 +1,21 @@
+import clsx from 'clsx';
 import { type FC } from 'react';
 
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-
-import { reportHtmlIds } from '@/components/reports/dom/html-ids';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
-
 import { formatBiography, formatObservers } from '@/components/reports/components/ReportOverview/formatters';
-
+import { reportHtmlIds } from '@/components/reports/dom/html-ids';
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { TextValue } from '@/components/shared/TextValue';
 import { ObservationCard } from '@/components/shared/observations';
-import { UserAvatarList } from '@/components/shared/user-avatar';
-
-import clsx from 'clsx';
-
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { TextValue } from '@/components/shared/TextValue';
+import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
+import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { FormattedBirthDate } from '@/i18n/components';
 import { useIntlPositionDuration } from '@/i18n/hooks';
-import { MagistratSummaryButton } from './MagistratSummaryButton';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
 import { MagistratComment } from './magistrat-comment/MagistratComment';
+import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MemberMemo } from './member-memo/MemberMemo';
 
 export type MagistratDetailsProps = {
@@ -38,7 +34,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
     posteActuel,
     posteCible,
     rang,
-    datePriseDeFonctionPosteActuel
+    datePriseDeFonctionPosteActuel,
   } = nominationFile.content;
 
   const formattedObservers = observants ? formatObservers(observants) : null;

@@ -98,17 +98,13 @@ describe('magistrat helpers', () => {
             addition: null,
             id: 'MACJ',
             label: "Substitut à l'Administration Centrale de la Justice",
-            labelOneMale:
-              "substitut à l'administration centrale du ministère de la justice",
-            labelOneFemale:
-              "substitute à l'administration centrale du ministère de la justice",
+            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
+            labelOneFemale: "substitute à l'administration centrale du ministère de la justice",
           },
         },
       });
 
-      expect(got).toBe(
-        `substitute à l'administration centrale du ministère de la justice`,
-      );
+      expect(got).toBe(`substitute à l'administration centrale du ministère de la justice`);
     });
 
     it.each`
@@ -162,17 +158,13 @@ describe('magistrat helpers', () => {
             addition: null,
             id: 'MACJ',
             label: "Substitut à l'Administration Centrale de la Justice",
-            labelOneMale:
-              "substitut à l'administration centrale du ministère de la justice",
-            labelOneFemale:
-              "substitute à l'administration centrale du ministère de la justice",
+            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
+            labelOneFemale: "substitute à l'administration centrale du ministère de la justice",
           },
         },
       });
 
-      expect(got).toBe(
-        `substitute à l'administration centrale du ministère de la justice`,
-      );
+      expect(got).toBe(`substitute à l'administration centrale du ministère de la justice`);
     });
 
     it('should build a male JCP position', () => {
@@ -244,12 +236,9 @@ describe('magistrat helpers', () => {
           function: {
             id: 'VPCP',
             addition: 'affecté au {codejur}',
-            label:
-              'Vice-Président chargé des fonctions de juge des contentieux de la protection',
-            labelOneMale:
-              'vice-président chargé des fonctions de juge des contentieux de la protection',
-            labelOneFemale:
-              'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
           },
         },
       });
@@ -274,12 +263,9 @@ describe('magistrat helpers', () => {
           function: {
             id: 'VPCP',
             addition: 'affecté au {codejur}',
-            label:
-              'Vice-Président chargé des fonctions de juge des contentieux de la protection',
-            labelOneMale:
-              'vice-président chargé des fonctions de juge des contentieux de la protection',
-            labelOneFemale:
-              'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
           },
         },
       });
@@ -308,9 +294,7 @@ describe('magistrat helpers', () => {
         },
       });
 
-      expect(got).toBe(
-        `juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand`,
-      );
+      expect(got).toBe(`juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand`);
     });
   });
 });

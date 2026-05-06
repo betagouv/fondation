@@ -1,10 +1,12 @@
-import * as $api from '@api/sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { Gender } from 'shared-models';
+
 import { HttpException } from '../utils/http-exception';
+import * as $api from '@api/sdk';
 
 export const authKeys = {
-  introspectSession: () => ['introspectSession']
+  introspectSession: () => ['introspectSession'],
 };
 
 export const useUser = () => {
@@ -24,14 +26,14 @@ export const useUser = () => {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 isImpersonated: data.isImpersonated,
-                civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`
+                civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
               }
-            : null
+            : null,
         )
         .catch((err) => {
           if (err instanceof HttpException && err.statusCode === 401) return null;
           throw err;
-        })
+        }),
   });
 
   return { ...query, user: data };
@@ -42,7 +44,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => $api.auth.logout(),
-    onSuccess: () => queryClient.removeQueries({ queryKey: authKeys.introspectSession() })
+    onSuccess: () => queryClient.removeQueries({ queryKey: authKeys.introspectSession() }),
   });
 }
 
@@ -54,12 +56,12 @@ export function useLogin() {
       const authorization = btoa(`${body.email}:${body.password}`);
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
   });
 }
 
 export function useImpersonateMutation(props: { userId: string }) {
   return useMutation({
-    mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } })
+    mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } }),
   });
 }

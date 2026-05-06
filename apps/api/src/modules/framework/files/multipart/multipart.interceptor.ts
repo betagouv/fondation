@@ -1,24 +1,15 @@
-import {
-  BadRequestException,
-  CallHandler,
-  ExecutionContext,
-  Logger,
-  NestInterceptor,
-} from '@nestjs/common';
+import { BadRequestException, CallHandler, ExecutionContext, Logger, NestInterceptor } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { Observable } from 'rxjs';
 import z from 'zod';
 import type { $ZodType } from 'zod/v4/core';
 
+import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
-import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
+
 import { MultipartFile } from './multipart.file';
-import {
-  MulterFile,
-  MulterFileSchema,
-  MultipartDestinationFactory,
-} from './multipart.types';
+import { MulterFile, MulterFileSchema, MultipartDestinationFactory } from './multipart.types';
 
 export class MultipartBodyInterceptor implements NestInterceptor {
   private readonly logger = new Logger(MultipartBodyInterceptor.name);
@@ -46,10 +37,7 @@ export class MultipartBodyInterceptor implements NestInterceptor {
     };
   }
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler<any>,
-  ): Promise<Observable<any>> {
+  async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<Observable<any>> {
     if (context.getType() !== 'http') return next.handle();
 
     const request = context.switchToHttp().getRequest<ExpressRequest>();
@@ -57,12 +45,7 @@ export class MultipartBodyInterceptor implements NestInterceptor {
     if (!Array.isArray(files)) throw new BadRequestException();
 
     try {
-      const body = await parseMultipartBody(
-        request,
-        files,
-        this.schema,
-        this.options,
-      );
+      const body = await parseMultipartBody(request, files, this.schema, this.options);
 
       request.body = body;
     } catch (e) {
@@ -121,9 +104,7 @@ export async function parseMultipartBody(
         schema: keySchema,
       });
     } else {
-      output[key] = await keySchema.parseAsync(
-        isMulterFile(value) ? parseTextualData(value) : value,
-      );
+      output[key] = await keySchema.parseAsync(isMulterFile(value) ? parseTextualData(value) : value);
     }
   }
 
@@ -142,10 +123,7 @@ function unwrap(schema: z.ZodType): z.ZodType | $ZodType {
 
   const instances = [z.ZodOptional, z.ZodNullable, z.ZodPipe];
   while (instances.some((ctor) => innerSchema instanceof ctor)) {
-    if (
-      innerSchema instanceof z.ZodOptional ||
-      innerSchema instanceof z.ZodNullable
-    ) {
+    if (innerSchema instanceof z.ZodOptional || innerSchema instanceof z.ZodNullable) {
       innerSchema = innerSchema.unwrap();
     } else if (innerSchema instanceof z.ZodPipe) {
       innerSchema = innerSchema.out;
@@ -163,18 +141,13 @@ function isFileSchema(schema: z.ZodType): schema is FileSchema {
 type FileListSchema = ZodOptionalSchema<z.ZodArray<z.ZodFile>>;
 function isFileArraySchema(schema: z.ZodType): schema is FileListSchema {
   const unwrapped = unwrap(schema);
-  return (
-    unwrapped instanceof z.ZodArray && unwrapped.element instanceof z.ZodFile
-  );
+  return unwrapped instanceof z.ZodArray && unwrapped.element instanceof z.ZodFile;
 }
 
 function isMulterFile(file: unknown): file is MulterFile | MulterFile[] {
-  const isSingleFile = (x: unknown): x is MulterFile =>
-    typeof x === 'object' && x !== null && 'buffer' in x;
+  const isSingleFile = (x: unknown): x is MulterFile => typeof x === 'object' && x !== null && 'buffer' in x;
 
-  return Array.isArray(file)
-    ? file.length === 0 || isSingleFile(file[0])
-    : isSingleFile(file);
+  return Array.isArray(file) ? file.length === 0 || isSingleFile(file[0]) : isSingleFile(file);
 }
 
 function parseTextualData(file: MulterFile | MulterFile[]): unknown {
@@ -214,9 +187,7 @@ async function toMultipartFile(props: {
   if (Array.isArray(props.file)) throw new BadRequestException();
 
   const id = makeId('FileId');
-  const mimeType = isMimeType(props.file.mimetype)
-    ? props.file.mimetype
-    : FILE_MIME_TYPES.bin;
+  const mimeType = isMimeType(props.file.mimetype) ? props.file.mimetype : FILE_MIME_TYPES.bin;
 
   const path = props.destination({
     id,

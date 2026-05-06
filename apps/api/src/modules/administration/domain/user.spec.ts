@@ -1,13 +1,8 @@
 import { Role } from 'shared-models';
+
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import {
-  User,
-  UserDisplayTitleUpdated,
-  UserEmailUpdated,
-  UserRoleUpdated,
-  UsersUntitled,
-} from './user';
+import { User, UserDisplayTitleUpdated, UserEmailUpdated, UserRoleUpdated, UsersUntitled } from './user';
 
 describe('User', () => {
   const baseProps = {
@@ -23,17 +18,13 @@ describe('User', () => {
     const user = User.from(baseProps);
     user.updateEmail('new@email.com');
 
-    expect(user.messages).toContainEqual(
-      new UserEmailUpdated(user.id, 'new@email.com'),
-    );
+    expect(user.messages).toContainEqual(new UserEmailUpdated(user.id, 'new@email.com'));
   });
 
   it('should update the display title', () => {
     const user = User.from(baseProps);
     user.updateDisplayTitle('Conseiller référendaire');
-    expect(user.messages).toContainEqual(
-      new UserDisplayTitleUpdated(user.id, 'Conseiller référendaire'),
-    );
+    expect(user.messages).toContainEqual(new UserDisplayTitleUpdated(user.id, 'Conseiller référendaire'));
   });
 
   it('should update the title of a non titled user', () => {
@@ -49,11 +40,7 @@ describe('User', () => {
     user.updateRole('FIRST_SECRETARY');
 
     expect(user.messages).toContainEqual(
-      new UsersUntitled(
-        user.id,
-        'FIRST_SECRETARY',
-        AdminUserTitle.from('SECRETARY'),
-      ),
+      new UsersUntitled(user.id, 'FIRST_SECRETARY', AdminUserTitle.from('SECRETARY')),
     );
 
     expect(user.messages).toContainEqual(

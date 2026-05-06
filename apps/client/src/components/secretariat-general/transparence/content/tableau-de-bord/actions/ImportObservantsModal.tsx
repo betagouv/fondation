@@ -5,14 +5,14 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { type FC, useRef, useState } from 'react';
 
-import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
 import { UploadExcelFailedAlert } from '../../../nouvelle-transparence/UploadExcelFailedAlert';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 
 export const modal = createModal({
   id: 'modal-import-observations-transparence',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) => {
@@ -24,7 +24,7 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
     reset,
     mutate: importObservants,
     isError: importObservantsFailed,
-    error: importObservantsError
+    error: importObservantsError,
   } = useUpdateNominationSessionObserversFromLodamMutation();
 
   useIsModalOpen(modal, {
@@ -36,7 +36,7 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    }
+    },
   });
 
   const onImportObservations = () => {
@@ -46,13 +46,13 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
     importObservants(
       {
         sessionId,
-        file: observantsFile
+        file: observantsFile,
       },
       {
         onSuccess: () => {
           modal.close();
-        }
-      }
+        },
+      },
     );
   };
 
@@ -66,14 +66,16 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
           nativeButtonProps: {
             onClick: () => {
               onImportObservations();
-            }
-          }
-        }
+            },
+          },
+        },
       ]}
     >
       {importObservantsFailed && (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <UploadExcelFailedAlert validationErrors={(importObservantsError as any).validationErrors} />
+        <UploadExcelFailedAlert
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          validationErrors={(importObservantsError as any).validationErrors}
+        />
       )}
       <div className={clsx('gap-8', cx('fr-grid-row'))}>
         <Upload
@@ -88,7 +90,7 @@ export const ImportObservantsModal: FC<{ sessionId: string }> = ({ sessionId }) 
                 setObservantsFile(e.target.files[0]!);
               }
             },
-            accept: ACCEPT_XLSX_FILE
+            accept: ACCEPT_XLSX_FILE,
           }}
           hint={<HintImportXlsxFile />}
           label={null}

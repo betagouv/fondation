@@ -1,6 +1,8 @@
-import { useSummary } from '@/pages/summary/SummaryContext';
 import { ScrollToTop } from '../shared/ScrollToTop';
+import { useSummary } from '@/pages/summary/SummaryContext';
+
 import { SummaryAutoSaveAlert } from './components/SummaryAutoSaveNotice';
+import { SummaryBreadcrumb } from './components/SummaryBreadcrumb';
 import { SummaryOutcomeNotice } from './components/SummaryOutcomeNotice';
 import { SummaryReaderSelector } from './components/SummaryReaderSelector';
 import { SummarySectionAttachments } from './components/SummarySectionAttachments';
@@ -9,7 +11,6 @@ import { SummarySectionContent } from './components/SummarySectionContent';
 import { SummarySectionMagistrat } from './components/SummarySectionMagistrat';
 import { SummarySectionObservations } from './components/SummarySectionObservations';
 import { SummarySideNav } from './components/SummarySideNav';
-import { SummaryBreadcrumb } from './components/SummaryBreadcrumb';
 
 export function Summary() {
   const { canWriteSummary } = useSummary();

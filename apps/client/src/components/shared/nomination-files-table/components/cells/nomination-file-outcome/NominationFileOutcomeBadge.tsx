@@ -2,6 +2,7 @@ import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import React from 'react';
 
 import { FormationEnum, type NominationFileOutcomeEnum } from '@/types/enums.types';
+
 import { useNominationFileOutcome } from './nomination-file-outcome-badge.utils';
 
 function InnerNominationFileOutcomeBadge(props: {
@@ -29,6 +30,6 @@ function InnerNominationFileOutcomeBadge(props: {
 
 export const NominationFileOutcomeBadge = React.memo(InnerNominationFileOutcomeBadge, (prev, props) =>
   (['formation', 'outcome', 'short'] as const).every((prop) =>
-    prop === 'short' ? !!prev.short === !!props.short : Object.is(prev[prop], props[prop])
-  )
+    prop === 'short' ? !!prev.short === !!props.short : Object.is(prev[prop], props[prop]),
+  ),
 );

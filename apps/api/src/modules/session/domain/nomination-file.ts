@@ -1,5 +1,7 @@
 import { Magistrat } from 'shared-models';
+
 import { DateOnly } from 'src/utils/date-only';
+
 import { NominationFileOutcomeEnum } from './nomination-file-outcome';
 
 type InternalNominationFile = {
@@ -34,14 +36,9 @@ export type NominationFile = InternalNominationFile & {
 
 export type NominationFileEntity = NominationFile & { id: string };
 
-export const NOMINATION_SESSION_FILE_STATUSES = [
-  'TO_REPORT',
-  'DSJ_PLANNED',
-  'DSJ_REPORTED',
-] as const;
+export const NOMINATION_SESSION_FILE_STATUSES = ['TO_REPORT', 'DSJ_PLANNED', 'DSJ_REPORTED'] as const;
 
-export type NominationSessionFileStatusEnum =
-  (typeof NOMINATION_SESSION_FILE_STATUSES)[number];
+export type NominationSessionFileStatusEnum = (typeof NOMINATION_SESSION_FILE_STATUSES)[number];
 
 export type UpdatableNominationFileState = {
   id: string;
@@ -82,8 +79,7 @@ export class UpdatableNominationFile {
       this.docs.isLinkedToOfficialReport ||
       this.docs.isLinkedToPresentationPlan;
 
-    const canUpdateNominationFile =
-      this.isOutcomeIgnored || !isLinkedToAnyDocument;
+    const canUpdateNominationFile = this.isOutcomeIgnored || !isLinkedToAnyDocument;
 
     return canUpdateNominationFile;
   }
@@ -100,8 +96,6 @@ export class UpdatableNominationFile {
   }
 
   private get isOutcomeIgnored(): boolean {
-    return UpdatableNominationFile.IGNORED_OUTCOMES.includes(
-      this.outcome as any,
-    );
+    return UpdatableNominationFile.IGNORED_OUTCOMES.includes(this.outcome as any);
   }
 }

@@ -1,20 +1,14 @@
 import { Logger } from '@nestjs/common';
 
-export function isFulfilled<T>(
-  result: PromiseSettledResult<T>,
-): result is PromiseFulfilledResult<T> {
+export function isFulfilled<T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> {
   return result.status === 'fulfilled';
 }
 
-export function isRejected(
-  result: PromiseSettledResult<unknown>,
-): result is PromiseRejectedResult {
+export function isRejected(result: PromiseSettledResult<unknown>): result is PromiseRejectedResult {
   return result.status === 'rejected';
 }
 
-export function partitionSettled<T>(
-  result: readonly PromiseSettledResult<T>[],
-): {
+export function partitionSettled<T>(result: readonly PromiseSettledResult<T>[]): {
   fulfilled: PromiseFulfilledResult<T>[];
   rejected: PromiseRejectedResult[];
 } {

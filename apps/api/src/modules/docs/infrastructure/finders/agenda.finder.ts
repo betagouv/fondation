@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -32,13 +28,8 @@ export class AgendaFinder {
       {
         sessionId: query.sessionId,
         id: { in: query.ids ? Array.from(query.ids) : undefined },
-        OR: [
-          { officialReport: null },
-          { officialReportId: query.ignoreOfficialReportId },
-        ],
-        formation: query.formation
-          ? formationEnumToPrismaFormationEnum(query.formation)
-          : undefined,
+        OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }],
+        formation: query.formation ? formationEnumToPrismaFormationEnum(query.formation) : undefined,
       },
       query.ids,
     );
@@ -51,19 +42,13 @@ export class AgendaFinder {
     return this.find(
       {
         id: { in: query.ids ? Array.from(query.ids) : undefined },
-        OR: [
-          { justicePresentationPlanId: null },
-          { justicePresentationPlanId: query.ignorePlanId },
-        ],
+        OR: [{ justicePresentationPlanId: null }, { justicePresentationPlanId: query.ignorePlanId }],
       },
       query.ids,
     );
   }
 
-  private async find(
-    where: Prisma.AgendaWhereInput,
-    ids?: Set<string>,
-  ): Promise<FoundAgendasDto> {
+  private async find(where: Prisma.AgendaWhereInput, ids?: Set<string>): Promise<FoundAgendasDto> {
     const size = ids?.size ?? 0;
     if (size > 32_000) {
       this.logger.error(`${size} params provided, max 32,000`);

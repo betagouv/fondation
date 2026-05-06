@@ -1,12 +1,13 @@
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import React, { type FormEvent } from 'react';
 
+import type { ObservationFollowupEnum } from '@/types/enums.types';
+
 export const observationFollowUpCommentModal = createModal({
   isOpenedByDefault: false,
-  id: `observation-follow-up-comment-modal`
+  id: `observation-follow-up-comment-modal`,
 });
 
 export function ObservationFollowUpCommentModal(props: {
@@ -63,7 +64,7 @@ export function ObservationFollowUpCommentModal(props: {
           onClick: onCancel,
           disabled: isCommentRequired,
           title: isCommentRequired ? hint : undefined,
-          doClosesModal: false
+          doClosesModal: false,
         },
         {
           children: 'Sauvegarder',
@@ -71,8 +72,8 @@ export function ObservationFollowUpCommentModal(props: {
           onClick: onSave,
           disabled: isCommentRequired && !comment?.trim(),
           title: isCommentRequired && !comment?.trim() ? hint : undefined,
-          doClosesModal: false
-        }
+          doClosesModal: false,
+        },
       ]}
     >
       <form onSubmit={preventSubmit}>
@@ -94,7 +95,7 @@ export function ObservationFollowUpCommentModal(props: {
             required: isCommentRequired,
             onChange(event) {
               setComment(event.target.value);
-            }
+            },
           }}
         />
       </form>

@@ -1,20 +1,21 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import clsx from 'clsx';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { DateOnly } from '@/models/date-only.model';
-import clsx from 'clsx';
 import type { DateOnlyJson } from 'shared-models';
+
 import { AgendaChairmanSelect } from '../components/AgendaChairmanSelect';
 import { useAgenda } from '../context/AgendaContext';
+import { DateOnly } from '@/models/date-only.model';
 
 const AgendaMetadataSchema = z.object({
   date: DateOnly.codec(),
   sessionMeetingDate: DateOnly.codec(),
-  chairmanId: z.uuid('Veuillez sélectionner un président')
+  chairmanId: z.uuid('Veuillez sélectionner un président'),
 });
 
 function dateOnlyString(json: DateOnlyJson): string {
@@ -27,19 +28,19 @@ export function AgendaMetadataStep(props: { className?: string }) {
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
       date: metadata?.date ? dateOnlyString(metadata.date) : new Date().toISOString().split('T')[0]!,
-      sessionMeetingDate: metadata?.sessionMeetingDate ? dateOnlyString(metadata.sessionMeetingDate) : ''
+      sessionMeetingDate: metadata?.sessionMeetingDate ? dateOnlyString(metadata.sessionMeetingDate) : '',
     }),
-    [metadata]
+    [metadata],
   );
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm({
     mode: 'all',
     resolver: zodResolver(AgendaMetadataSchema),
-    defaultValues: defaultValues
+    defaultValues: defaultValues,
   });
 
   return (
@@ -86,7 +87,7 @@ export function AgendaMetadataStep(props: { className?: string }) {
         inlineLayoutWhen="md and up"
         buttons={[
           { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
-          { children: 'Sélectionner les propositions', type: 'submit', disabled: !isValid }
+          { children: 'Sélectionner les propositions', type: 'submit', disabled: !isValid },
         ]}
       />
     </form>

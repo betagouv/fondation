@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Gender, Role } from 'shared-models';
-import { AppModule } from 'src/app.module';
 import { agent } from 'supertest';
+
+import { Gender, Role } from 'shared-models';
+
+import { AppModule } from 'src/app.module';
+
 import { SimpleAuthService } from './simple-auth.service';
 
 describe('Simple Auth E2E', () => {
@@ -44,17 +47,11 @@ describe('Simple Auth E2E', () => {
 
   describe('Given an existing user', () => {
     it('should login', async () => {
-      const response = await http
-        .post(`/api/auth/v2/login`)
-        .send(user)
-        .expect(HttpStatus.NO_CONTENT);
+      const response = await http.post(`/api/auth/v2/login`).send(user).expect(HttpStatus.NO_CONTENT);
 
       cookie = response.header['set-cookie']!;
 
-      await http
-        .get(`/api/auth/v2/introspect`)
-        .set({ cookie })
-        .expect(HttpStatus.OK);
+      await http.get(`/api/auth/v2/introspect`).set({ cookie }).expect(HttpStatus.OK);
     });
   });
 
@@ -65,14 +62,9 @@ describe('Simple Auth E2E', () => {
     });
 
     it('should logout', async () => {
-      const response = await http
-        .set({ cookie })
-        .post(`/api/auth/v2/logout`)
-        .expect(HttpStatus.NO_CONTENT);
+      const response = await http.set({ cookie }).post(`/api/auth/v2/logout`).expect(HttpStatus.NO_CONTENT);
 
-      const [setCookie] = ([] as (string | undefined)[]).concat(
-        response.headers['set-cookie'],
-      );
+      const [setCookie] = ([] as (string | undefined)[]).concat(response.headers['set-cookie']);
       expect(setCookie).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00/);
     });
   });

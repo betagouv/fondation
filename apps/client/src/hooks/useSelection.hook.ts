@@ -7,7 +7,7 @@ export function useSelection<T, Key extends string>(props: {
   toString: (item: T) => Key | Falsy;
 }) {
   const [selection, setSelection] = React.useState(new Set(props.defaultSelection));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const selectItem = React.useCallback((item: T) => props.toString(item), []);
 
   React.useEffect(() => {
@@ -31,7 +31,7 @@ export function useSelection<T, Key extends string>(props: {
       if (!key) return false;
       return !!selection?.has(key);
     },
-    [selectItem, selection]
+    [selectItem, selection],
   );
 
   const toggle = React.useCallback(
@@ -56,7 +56,7 @@ export function useSelection<T, Key extends string>(props: {
         return new Set(s);
       });
     },
-    [setSelection]
+    [setSelection],
   );
 
   const apiProps = React.useMemo(
@@ -64,9 +64,9 @@ export function useSelection<T, Key extends string>(props: {
       size: selection?.size ?? 0,
       hasAll: (selection?.size ?? 0) > 0 && (props.items?.length ?? 0) === selection?.size,
       hasSome: (selection?.size ?? 0) > 0,
-      hasNone: (selection?.size ?? 0) === 0
+      hasNone: (selection?.size ?? 0) === 0,
     }),
-    [props.items, selection]
+    [props.items, selection],
   );
 
   const toggleAll = React.useCallback(() => {

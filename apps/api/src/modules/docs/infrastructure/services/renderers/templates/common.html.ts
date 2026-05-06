@@ -1,4 +1,5 @@
 import type { Pretty, UnionToIntersection } from 'src/utils/types';
+
 import { html } from './agenda.html';
 import { Template, TemplateFunction } from './templates.types';
 
@@ -514,11 +515,7 @@ type LayoutContext = Record<
 
 type MergedCtx<Fns> = Pretty<
   UnionToIntersection<
-    Fns extends TemplateFunction<infer Ctx>
-      ? Parameters<Fns> extends never[]
-        ? never
-        : Ctx
-      : never
+    Fns extends TemplateFunction<infer Ctx> ? (Parameters<Fns> extends never[] ? never : Ctx) : never
   >
 >;
 

@@ -4,14 +4,16 @@
   "version": "1.0.0",
   "description": "Shared models between the API and the Web App",
   "main": "./dist/models/index.js",
-  "types": "./models/index.ts",
+  "types": "./dist/models/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "rimraf dist/ && tsc",
     "build:watch": "tsc --watch",
-    "dev": "pnpm build:watch"
+    "dev": "pnpm build:watch",
+    "lint:check": "oxlint",
+    "lint": "oxlint --fix"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",

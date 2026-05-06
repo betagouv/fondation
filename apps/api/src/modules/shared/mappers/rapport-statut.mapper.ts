@@ -1,10 +1,9 @@
 import { NominationFile } from 'shared-models';
+
 import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
 import { assertNever } from 'src/utils/assert-never';
 
-export function reportStateToPrismaReportStateEnum(
-  value: NominationFile.ReportState,
-): PrismaReportStateEnum {
+export function reportStateToPrismaReportStateEnum(value: NominationFile.ReportState): PrismaReportStateEnum {
   switch (value) {
     case NominationFile.ReportState.IN_PROGRESS:
       return 'IN_PROGRESS';
@@ -19,9 +18,7 @@ export function reportStateToPrismaReportStateEnum(
   }
 }
 
-export function prismaReportStateEnumToReportState(
-  value: PrismaReportStateEnum,
-): NominationFile.ReportState {
+export function prismaReportStateEnumToReportState(value: PrismaReportStateEnum): NominationFile.ReportState {
   switch (value) {
     case 'IN_PROGRESS':
       return NominationFile.ReportState.IN_PROGRESS;

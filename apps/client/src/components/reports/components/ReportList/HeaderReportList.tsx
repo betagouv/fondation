@@ -1,14 +1,15 @@
-import type { DateOnlyJson } from '@/types/date-only.types';
-import type { FormationEnum } from '@/types/enums.types';
 import { colors } from '@codegouvfr/react-dsfr';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
+
 import { DateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,
-  TransparencesCurrentPage
+  TransparencesCurrentPage,
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
+import type { DateOnlyJson } from '@/types/date-only.types';
+import type { FormationEnum } from '@/types/enums.types';
 
 export type HeaderReportListProps = {
   dateTransparence: DateOnlyJson;
@@ -21,15 +22,15 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
   dateTransparence,
   transparency,
   formation,
-  dueDate
+  dueDate,
 }) => {
   const navigate = useNavigate();
   const breadcrumb = getTransparencesBreadCrumb(
     {
       formation,
-      name: TransparencesCurrentPage.perGdsTransparencyReports
+      name: TransparencesCurrentPage.perGdsTransparencyReports,
     },
-    navigate
+    navigate,
   );
 
   return (

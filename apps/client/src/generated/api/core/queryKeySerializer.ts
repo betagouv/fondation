@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 // this file is auto-generated
 //
 // Licensed under the Apache License, Version 2.0
@@ -7,13 +7,7 @@
 /**
  * JSON-friendly union that mirrors what Pinia Colada can hash.
  */
-export type JsonValue =
-  | null
-  | string
-  | number
-  | boolean
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+export type JsonValue = null | string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
 
 /**
  * Replacer that converts non-JSON values (bigint, Date, etc.) to safe substitutes.

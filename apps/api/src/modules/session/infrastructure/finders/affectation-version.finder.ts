@@ -1,6 +1,7 @@
+import assert from 'node:assert';
+
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import assert from 'node:assert';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
@@ -30,10 +31,7 @@ export class AffectationVersionFinder {
   }
 
   /** @warning does not check that the session exists */
-  async lastPublished(query: {
-    sessionId: string;
-    tx: Prisma.TransactionClient;
-  }) {
+  async lastPublished(query: { sessionId: string; tx: Prisma.TransactionClient }) {
     const { _max } = await query.tx.affectationVersion.aggregate({
       where: { sessionId: query.sessionId, statut: 'PUBLIEE' },
       _max: { version: true },
@@ -72,9 +70,7 @@ export class AffectationVersionFinder {
       version: version.version,
       author: version.user ?? null,
       publicationDate: version.datePublication?.toISOString() ?? null,
-      status: prismaStatutAffectationEnumToStatutAffectationEnum(
-        version.statut,
-      ),
+      status: prismaStatutAffectationEnumToStatutAffectationEnum(version.statut),
     });
   }
 
@@ -84,9 +80,7 @@ export class AffectationVersionFinder {
     tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
     if (!query.tx) {
-      return this.prisma.$transaction((tx) =>
-        this.findReporterIds({ ...query, tx }),
-      );
+      return this.prisma.$transaction((tx) => this.findReporterIds({ ...query, tx }));
     }
 
     const version = await this.lastPublished({
@@ -122,24 +116,16 @@ export class SomeAffectationVersion extends createZodDto(
     status: z.enum(StatutAffectation),
     version: z.number().int().gte(1),
     publicationDate: z.iso.datetime().nullable(),
-    author: z
-      .object({ id: z.string(), firstName: z.string(), lastName: z.string() })
-      .nullable(),
+    author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
   }),
 ) {}
 
-export type FoundAffectationVersion =
-  | SomeAffectationVersion
-  | NoneAffectationVersion;
+export type FoundAffectationVersion = SomeAffectationVersion | NoneAffectationVersion;
 
-export class OptionalAffectationVersion<
-  V extends FoundAffectationVersion = FoundAffectationVersion,
-> {
+export class OptionalAffectationVersion<V extends FoundAffectationVersion = FoundAffectationVersion> {
   private constructor(private readonly value: V) {}
 
-  static some(
-    someVersion: SomeAffectationVersion,
-  ): OptionalAffectationVersion<SomeAffectationVersion> {
+  static some(someVersion: SomeAffectationVersion): OptionalAffectationVersion<SomeAffectationVersion> {
     return new OptionalAffectationVersion(someVersion);
   }
 
@@ -169,10 +155,7 @@ export class OptionalAffectationVersion<
   /** @throws */
   get id(): SomeAffectationVersion['id'] {
     const id = this.optionalId;
-    assert.ok(
-      id !== undefined,
-      `OptionalAffectationVersion did not receive any version`,
-    );
+    assert.ok(id !== undefined, `OptionalAffectationVersion did not receive any version`);
 
     return id;
   }

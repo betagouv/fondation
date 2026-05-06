@@ -2,19 +2,19 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
-  useRemoveNominationSessionAttachmentMutation
+  useRemoveNominationSessionAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
-import { useIsSg } from '@/hooks/roles.hook';
 import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
 export function NominationSessionAttachmentList(props: { sessionId: string; placeholder?: ReactNode }) {
   const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
-    sessionId: props.sessionId
+    sessionId: props.sessionId,
   });
 
   const { mutate: createUrl, isPending: isUrlPending } = useCreateNominationSessionAttachmentUrlMutation();
@@ -36,11 +36,11 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
 
             a.click();
             a.remove();
-          }
-        }
+          },
+        },
       );
     },
-    [createUrl, props.sessionId]
+    [createUrl, props.sessionId],
   );
 
   const { mutate: deleteAttachment, isPending: isDeletionPending } =

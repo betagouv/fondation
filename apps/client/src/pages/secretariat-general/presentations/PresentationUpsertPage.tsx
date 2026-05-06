@@ -10,6 +10,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import z from 'zod';
 
+import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
@@ -19,9 +20,9 @@ import { toFullName } from '@/utils/user.utils';
 import {
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
-  useSearchChairmenQuery
+  useSearchChairmenQuery,
 } from '@queries/agenda.queries';
-import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
+
 import { usePresentationPlan } from './contexts/presentation-plan.context';
 
 const MetadataSchema = z.object({
@@ -29,7 +30,7 @@ const MetadataSchema = z.object({
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Format HH:MM requis'),
   chairmanId: z.uuid('Veuillez sélectionner un président'),
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
-  justiceContactId: z.string().min(1, 'Veuillez sélectionner un contact DSJ')
+  justiceContactId: z.string().min(1, 'Veuillez sélectionner un contact DSJ'),
 });
 
 function MetadataStep(props: { className?: string }) {
@@ -37,7 +38,7 @@ function MetadataStep(props: { className?: string }) {
   const navigate = useNavigate();
 
   const { data: chairmenData, isFetching: isFetchingChairmen } = useSearchChairmenQuery({
-    formation: state.formation ?? undefined
+    formation: state.formation ?? undefined,
   });
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
@@ -56,7 +57,7 @@ function MetadataStep(props: { className?: string }) {
     handleSubmit,
     getValues,
     setValue,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm({
     mode: 'all',
     resolver: zodResolver(MetadataSchema),
@@ -65,8 +66,8 @@ function MetadataStep(props: { className?: string }) {
       time: defaultTime,
       chairmanId: state.chairmanId ?? '',
       secretaryId: state.secretaryId ?? '',
-      justiceContactId: state.justiceContactId ?? ''
-    }
+      justiceContactId: state.justiceContactId ?? '',
+    },
   });
 
   React.useEffect(() => {
@@ -76,7 +77,7 @@ function MetadataStep(props: { className?: string }) {
     setValue('chairmanId', chairmenData.items[0].id, {
       shouldDirty: true,
       shouldTouch: true,
-      shouldValidate: true
+      shouldValidate: true,
     });
   }, [chairmenData, getValues, setValue]);
 
@@ -87,7 +88,7 @@ function MetadataStep(props: { className?: string }) {
     setValue('secretaryId', secretariesData.items[0].id, {
       shouldDirty: true,
       shouldTouch: true,
-      shouldValidate: true
+      shouldValidate: true,
     });
   }, [secretariesData, getValues, setValue]);
 
@@ -106,7 +107,7 @@ function MetadataStep(props: { className?: string }) {
       secretaryId: values.secretaryId,
       justiceContactId: values.justiceContactId,
       date: { year, month, day },
-      time: { hours, minutes }
+      time: { hours, minutes },
     });
   });
 
@@ -147,7 +148,10 @@ function MetadataStep(props: { className?: string }) {
           <Select
             disabled={isDisabled || isFetchingChairmen}
             label={<Mandatory>Président de séance</Mandatory>}
-            nativeSelectProps={{ value: field.value, onChange: (e) => field.onChange(e.target.value) }}
+            nativeSelectProps={{
+              value: field.value,
+              onChange: (e) => field.onChange(e.target.value),
+            }}
             state={errors.chairmanId ? 'error' : 'default'}
             stateRelatedMessage={errors.chairmanId?.message}
           >
@@ -170,7 +174,10 @@ function MetadataStep(props: { className?: string }) {
           <Select
             disabled={isDisabled || isFetchingSecretaries}
             label={<Mandatory>Secrétaire Général</Mandatory>}
-            nativeSelectProps={{ value: field.value, onChange: (e) => field.onChange(e.target.value) }}
+            nativeSelectProps={{
+              value: field.value,
+              onChange: (e) => field.onChange(e.target.value),
+            }}
             state={errors.secretaryId ? 'error' : 'default'}
             stateRelatedMessage={errors.secretaryId?.message}
           >
@@ -207,13 +214,13 @@ function MetadataStep(props: { className?: string }) {
             children: 'Annuler',
             priority: 'secondary',
             onClick: () => navigate(ROUTE_PATHS.SG.PRESENTATIONS_READY),
-            type: 'button'
+            type: 'button',
           },
           {
             type: 'submit',
             children: 'Suivant',
-            disabled: !isValid || isDisabled
-          }
+            disabled: !isValid || isDisabled,
+          },
         ]}
       />
     </form>
@@ -223,16 +230,18 @@ function MetadataStep(props: { className?: string }) {
 function AgendaCommentsStep(props: { className?: string }) {
   const { state, createPlan, isDisabled, planId, goToMetadata } = usePresentationPlan();
 
-  const { data: agendasData } = useListPresentationPlansAgendasQuery({ ignorePlanId: planId ?? undefined });
+  const { data: agendasData } = useListPresentationPlansAgendasQuery({
+    ignorePlanId: planId ?? undefined,
+  });
 
   const agendaIds = Object.keys(state.agendas);
   const agendas = React.useMemo(
     () => (agendasData?.items ?? []).filter(({ id }) => agendaIds.includes(id)),
-    [agendasData, agendaIds]
+    [agendasData, agendaIds],
   );
 
   const [comments, setComments] = React.useState<Record<string, string>>(() =>
-    Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? '']))
+    Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? ''])),
   );
 
   const onCommentChange = React.useCallback((id: string, value: string) => {
@@ -242,8 +251,8 @@ function AgendaCommentsStep(props: { className?: string }) {
   const onSubmit = React.useCallback(() => {
     createPlan({
       agendas: Object.fromEntries(
-        Object.entries(comments).map(([id, comment]) => [id, comment.trim() || null])
-      )
+        Object.entries(comments).map(([id, comment]) => [id, comment.trim() || null]),
+      ),
     });
   }, [comments, createPlan]);
 
@@ -255,7 +264,7 @@ function AgendaCommentsStep(props: { className?: string }) {
           defaultExpanded={i === 0}
           label={[
             `Ordre du jour du ${DateOnly.fromStoreModel(agenda.date).toFormattedString('dd/MM/yyyy')}`,
-            capitalize(FormationEnumLabel[agenda.formation])
+            capitalize(FormationEnumLabel[agenda.formation]),
           ].join(' — ')}
         >
           <Input
@@ -265,7 +274,7 @@ function AgendaCommentsStep(props: { className?: string }) {
               rows: 4,
               value: comments[agenda.id] ?? '',
               style: { fieldSizing: 'content' },
-              onChange: (e) => onCommentChange(agenda.id, e.target.value)
+              onChange: (e) => onCommentChange(agenda.id, e.target.value),
             }}
           />
         </Accordion>
@@ -281,8 +290,8 @@ function AgendaCommentsStep(props: { className?: string }) {
             children: 'Créer la notice',
             type: 'button',
             onClick: onSubmit,
-            disabled: isDisabled
-          }
+            disabled: isDisabled,
+          },
         ]}
       />
     </div>
@@ -291,7 +300,7 @@ function AgendaCommentsStep(props: { className?: string }) {
 
 const STEPS = {
   METADATA: { title: 'Métadonnées de la notice' },
-  AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' }
+  AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' },
 } as const;
 
 export function PresentationUpsertPage() {

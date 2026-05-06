@@ -1,5 +1,4 @@
 import './IndeterminateCheckbox.css';
-
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import React from 'react';
 
@@ -9,7 +8,7 @@ export function IndeterminateCheckbox(
     indeterminate: boolean;
     small: boolean;
     onChange: React.ChangeEventHandler<HTMLInputElement>;
-  }>
+  }>,
 ) {
   const checkboxRef = React.useRef<HTMLInputElement | null>(null);
   React.useEffect(() => {
@@ -27,9 +26,9 @@ export function IndeterminateCheckbox(
           nativeInputProps: {
             checked: props.checked,
             onChange: props.onChange,
-            ref: checkboxRef
-          }
-        }
+            ref: checkboxRef,
+          },
+        },
       ]}
     ></Checkbox>
   );

@@ -1,8 +1,8 @@
+import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { DetailsMemberStats } from './DetailsMemberStats';
 import { JurisdictionSelector } from './JurisdictionSelector';
 import { MemberDisplayTitle } from './MemberDisplayTitle';
@@ -10,7 +10,7 @@ import { MemberTitle } from './MemberTitle';
 
 export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({
-    userId: props.member.id
+    userId: props.member.id,
   });
   return (
     <div className="mx-auto max-w-2xl pb-12 pt-4">

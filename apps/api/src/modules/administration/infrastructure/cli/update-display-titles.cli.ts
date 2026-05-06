@@ -2,8 +2,9 @@ import { readFile } from 'node:fs/promises';
 
 import { Logger } from '@nestjs/common';
 import { CommandRunner, Option, SubCommand } from 'nest-commander';
-import { isDefined } from 'src/utils/is-defined';
+
 import { AdministrationService } from '../../administration.service';
+import { isDefined } from 'src/utils/is-defined';
 
 @SubCommand({ name: 'titles' })
 export class UpdateDisplayTitlesCliCommand extends CommandRunner {
@@ -29,8 +30,7 @@ export class UpdateDisplayTitlesCliCommand extends CommandRunner {
       })
       .filter(isDefined);
 
-    const { notFound, updatedCount } =
-      await this.administration.batchUpdateDisplayTitles(entries);
+    const { notFound, updatedCount } = await this.administration.batchUpdateDisplayTitles(entries);
 
     for (const lastName of notFound) {
       this.logger.warn(`User not found: ${lastName}`);

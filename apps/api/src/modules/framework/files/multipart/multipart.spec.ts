@@ -5,6 +5,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { FILE_MIME_TYPES, type FileMimeType } from '../mime-type';
+
 import { MultipartFile } from './multipart.file';
 import { parseMultipartBody } from './multipart.interceptor';
 import type { Multipart, StoredFile } from './multipart.types';
@@ -35,25 +36,18 @@ describe('parseMultipartBody', () => {
     const multipart = body.files[0] as MultipartFile;
     expect(multipart.name).toBe('image.jpg');
     expect(multipart.mimeType).toBe(FILE_MIME_TYPES.jpg);
-    expect(multipart.id).toMatch(
-      /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i,
-    );
+    expect(multipart.id).toMatch(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
     expect(multipart.deleteOnFail).toBe(false);
     expect(multipart.overrideFiles).toBe(false);
     expect(multipart.path).toBeNull();
   });
 
   it('should parse a body with optional files', async () => {
-    const body = await parseMultipartBody(
-      request(),
-      [],
-      z.object({ files: z.array(z.file()).optional() }),
-      {
-        deleteOnFail: false,
-        destination: () => null,
-        overrideFiles: false,
-      },
-    );
+    const body = await parseMultipartBody(request(), [], z.object({ files: z.array(z.file()).optional() }), {
+      deleteOnFail: false,
+      destination: () => null,
+      overrideFiles: false,
+    });
 
     expect(body).toEqual({ files: undefined });
   });
@@ -110,26 +104,21 @@ describe('parseMultipartBody', () => {
   });
 });
 
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment */
+/* oxlint-disable @typescript-eslint/ban-ts-comment */
 describe('Multipart Type', () => {
   it('should convert a z.core.File into StoredFile', () => {
-    const dtoSchema = createZodDto(
-      z.object({ files: z.array(z.file()).nullish() }),
-    );
+    const dtoSchema = createZodDto(z.object({ files: z.array(z.file()).nullish() }));
     type Dto = Multipart<typeof dtoSchema>;
 
-    type Assertion =
-      NonNullable<Dto['files']> extends StoredFile[] ? 'pass' : 'fail';
+    type Assertion = NonNullable<Dto['files']> extends StoredFile[] ? 'pass' : 'fail';
 
     // @ts-expect-error
-    const assertion: Assertion = 'fail';
+    const _assertion: Assertion = 'fail';
   });
 });
 /* eslint-enable */
 
-function request<T>(
-  props: { body: T | undefined } = { body: undefined },
-): ExpressRequest {
+function request<T>(props: { body: T | undefined } = { body: undefined }): ExpressRequest {
   return { ...props } as ExpressRequest;
 }
 

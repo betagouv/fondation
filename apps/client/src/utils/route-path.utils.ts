@@ -9,7 +9,7 @@ export const ROUTE_PATHS = {
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     OBSERVATION_DETAILS:
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId'
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',
   },
   SG: {
     DASHBOARD: '/secretariat-general',
@@ -32,7 +32,7 @@ export const ROUTE_PATHS = {
     PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees',
     PRESENTATIONS_NEW: '/secretariat-general/restitutions/nouvelle-notice',
     PRESENTATIONS_UPDATE: '/secretariat-general/restitutions/:planId',
-    PRESENTATIONS_PREVIEW: '/secretariat-general/restitutions/:planId/validation'
+    PRESENTATIONS_PREVIEW: '/secretariat-general/restitutions/:planId/validation',
   },
 
   ADMIN: {
@@ -41,11 +41,11 @@ export const ROUTE_PATHS = {
     DETAILS_JOB: '/admin/jobs/:jobId',
     INGEST_LOLFI: '/admin/lolfi',
     USERS: '/admin/users',
-    USER_DETAIL: '/admin/users/:userId'
+    USER_DETAIL: '/admin/users/:userId',
   },
 
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
-  REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat'
+  REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat',
 } as const;
 
 export type RoutePath = typeof ROUTE_PATHS;
@@ -61,7 +61,9 @@ export function getDetailSessionGdsPath(props: {
   sessionId: string;
   focus?: 'affectations' | 'general';
 }): string {
-  const path = generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, { sessionId: props.sessionId });
+  const path = generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, {
+    sessionId: props.sessionId,
+  });
   return path + (props.focus ? `?focus=${props.focus}` : '');
 }
 
@@ -80,13 +82,13 @@ export const getObservationDetailsPath = (props: {
     return generatePath(ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS, {
       sessionId,
       nominationFileId,
-      observationId
+      observationId,
     });
   }
 
   return generatePath(ROUTE_PATHS.SG.OBSERVATION_DETAILS, {
     sessionId,
     nominationFileId,
-    observationId
+    observationId,
   });
 };

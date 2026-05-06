@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { Prisma } from 'src/generated/prisma/client';
 import z from 'zod';
-import { AffectationVersionFinder } from './affectation-version.finder';
+
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+
+import { AffectationVersionFinder } from './affectation-version.finder';
 
 @Injectable()
 export class UnaffectedFilesFinder {

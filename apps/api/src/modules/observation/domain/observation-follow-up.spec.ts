@@ -6,15 +6,15 @@ import {
 
 describe('ObservationFollowUp', () => {
   it('should throw if follow-up status requires comment and none is provided', () => {
-    expect(() =>
-      ObservationFollowUp.from({ followUp: 'INTERESTING', comment: null }),
-    ).toThrow(ObservationFollowUpRequiresComment);
+    expect(() => ObservationFollowUp.from({ followUp: 'INTERESTING', comment: null })).toThrow(
+      ObservationFollowUpRequiresComment,
+    );
   });
 
   it('should throw if follow-up status is unknown', () => {
-    expect(() =>
-      ObservationFollowUp.from({ followUp: 'UNKNOWN', comment: null }),
-    ).toThrow(UnknownObservationFollowUp);
+    expect(() => ObservationFollowUp.from({ followUp: 'UNKNOWN', comment: null })).toThrow(
+      UnknownObservationFollowUp,
+    );
   });
 
   it('should store a follow-up status and comment', () => {

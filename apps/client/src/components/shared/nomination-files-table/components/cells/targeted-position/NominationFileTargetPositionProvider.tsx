@@ -2,17 +2,19 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import React from 'react';
+
 import {
   useAddNominationSessionAttachmentMutation,
   useNominationFilesAlertMutation,
-  type SessionNominationFile
+  type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
-import React from 'react';
+
 import { NominationFileTargetPositionContext } from './NominationFileTargetPositionContext';
 
 export const nominationFileTargetPositionModal = createModal({
   id: 'nomination-file-target-position-modal',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 export function NominationFileTargetPositionProvider(props: React.PropsWithChildren<{ sessionId: string }>) {
@@ -28,14 +30,14 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
   const {
     mutateAsync: addAttachment,
     isPending: isAddingAttachment,
-    reset: resetAttachments
+    reset: resetAttachments,
   } = useAddNominationSessionAttachmentMutation();
   const {
     mutateAsync: deleteAlert,
     isPending: isDeletingAlert,
-    reset: resetAlert
+    reset: resetAlert,
   } = useNominationFilesAlertMutation({
-    sessionId: props.sessionId
+    sessionId: props.sessionId,
   });
 
   const isPending = isAddingAttachment || isDeletingAlert;
@@ -52,7 +54,7 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
         inputRef.current.files = null;
         inputRef.current.value = '';
       }
-    }
+    },
   });
 
   const onUploadChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +79,7 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
                 </p>
                 <p>Merci de réessayer.</p>
               </>
-            )
+            ),
           });
 
           setFiles([]);
@@ -88,8 +90,8 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
         },
         onSettled(_data, error) {
           if (error) throw new Error(`Error while uploading`);
-        }
-      }
+        },
+      },
     );
 
     await deleteAlert({ nominationFileId: nominationFile.id });
@@ -114,15 +116,15 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
             priority: 'secondary',
             doClosesModal: false,
             onClick: onCancel,
-            disabled: isPending
+            disabled: isPending,
           },
           {
             children: 'Sauvegarder',
             priority: 'primary',
             doClosesModal: false,
             disabled: files.length === 0 || isPending,
-            onClick: onSave
-          }
+            onClick: onSave,
+          },
         ]}
       >
         {nominationFile !== null ? (

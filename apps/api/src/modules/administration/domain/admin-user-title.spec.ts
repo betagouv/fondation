@@ -20,13 +20,7 @@ describe('AdminUserTitle', () => {
     ${'FIRST_SECRETARY' satisfies AdminUserRoleEnum}          | ${'SECRETARY' satisfies AdminUserRoleEnum}
   `(
     `should un-title $source -> $expected`,
-    ({
-      source,
-      expected,
-    }: {
-      source: AdminUserRoleEnum;
-      expected: AdminUserRoleEnum;
-    }) => {
+    ({ source, expected }: { source: AdminUserRoleEnum; expected: AdminUserRoleEnum }) => {
       expect(AdminUserTitle.from(source).unTitle().toString()).toBe(expected);
     },
   );

@@ -1,7 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 
-import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
 import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesAffectationsStatus() {
   const { sessionId, isEditable } = useNominationFilesTable();

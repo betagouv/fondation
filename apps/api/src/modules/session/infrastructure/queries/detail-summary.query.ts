@@ -3,19 +3,16 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, PrioriteEnum } from 'shared-models';
+
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import {
-  FILE_MIME_TYPES,
-  filenameToMimeType,
-} from 'src/modules/framework/files/mime-type';
+import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-
-import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
 @Injectable()
 export class DetailSummaryQuery {
@@ -106,11 +103,7 @@ export class DetailSummaryQuery {
       },
     });
 
-    if (
-      !session ||
-      !session.dossierDeNominations ||
-      !session.dossierDeNominations.length
-    ) {
+    if (!session || !session.dossierDeNominations || !session.dossierDeNominations.length) {
       throw new NotFoundException();
     }
 
@@ -121,10 +114,7 @@ export class DetailSummaryQuery {
     if (!summary) throw new NotFoundException();
 
     const allAllowedReaders = new Set(
-      [
-        summary.author?.id,
-        ...summary.readers.map(({ user }) => user.id),
-      ].filter(isDefined),
+      [summary.author?.id, ...summary.readers.map(({ user }) => user.id)].filter(isDefined),
     );
 
     if (!allAllowedReaders.has(query.userId)) {
@@ -146,20 +136,11 @@ export class DetailSummaryQuery {
       biography: nominationFile.biography ?? '',
       formation: prismaFormationEnumToFormationEnum(session.formation),
       grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
-      targetedGrade: isGrade(nominationFile.targetedGrade)
-        ? nominationFile.targetedGrade
-        : null,
-      birthDate:
-        DateOnly.fromOptionalDate(nominationFile.birthDate)?.toJson() ?? null,
-      lastRankingDate:
-        DateOnly.fromOptionalDate(nominationFile.lastRankingDate)?.toJson() ??
-        null,
-      lastPositionDate:
-        DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ??
-        null,
-      priorities: nominationFile.priorities.map(
-        prismaPrioriteEnumToPrioriteEnum,
-      ),
+      targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
+      birthDate: DateOnly.fromOptionalDate(nominationFile.birthDate)?.toJson() ?? null,
+      lastRankingDate: DateOnly.fromOptionalDate(nominationFile.lastRankingDate)?.toJson() ?? null,
+      lastPositionDate: DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ?? null,
+      priorities: nominationFile.priorities.map(prismaPrioriteEnumToPrioriteEnum),
       priority: nominationFile.priorities[0]
         ? prismaPrioriteEnumToPrioriteEnum(nominationFile.priorities[0])
         : null,
@@ -207,9 +188,7 @@ export class DetailSummaryQuery {
         screenshots: await this.files
           .getPublicUrls(summary.screenshots.map(({ file }) => file.id))
           .then((urls) => {
-            const byId = new Map(
-              summary.screenshots.map(({ file }) => [file.id, file]),
-            );
+            const byId = new Map(summary.screenshots.map(({ file }) => [file.id, file]));
 
             return Object.entries(urls)
               .map(([id, url]) => {
@@ -243,10 +222,7 @@ export class DetailedSummaryDto extends createZodDto(
     targetedGrade: z.enum(Magistrat.Grade).nullable(),
     targetedPosition: z.string().nullable(),
     priorities: z.array(z.enum(PrioriteEnum)),
-    priority: z
-      .enum(PrioriteEnum)
-      .nullable()
-      .meta({ deprecated: true, description: 'prefer priorities' }),
+    priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
     biography: z.string(),
     lastRankingDate: dateOnlyJsonSchema.nullable(),
     lastPositionDate: dateOnlyJsonSchema.nullable(),
@@ -274,9 +250,7 @@ export class DetailedSummaryDto extends createZodDto(
     summary: z.object({
       content: z.string(),
       updatedAt: z.iso.datetime(),
-      author: z
-        .object({ id: z.string(), firstName: z.string(), lastName: z.string() })
-        .nullable(),
+      author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
       attachments: z.array(
         z.object({
           id: z.string(),

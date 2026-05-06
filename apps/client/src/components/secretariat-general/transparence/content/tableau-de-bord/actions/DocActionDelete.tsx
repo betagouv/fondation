@@ -1,8 +1,9 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import React from 'react';
+
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import type { FoundSessionDocsDto } from '@api/types';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useDeleteAgenda, useDeleteOfficialReportMutation } from '@queries/agenda.queries';
-import React from 'react';
 
 export function DocActionDelete(props: {
   disabled: boolean;
@@ -26,7 +27,7 @@ export function DocActionDelete(props: {
             <p className="font-bold">Cela entraînera la suppression du PV lié.</p>
           )}
         </>
-      )
+      ),
     });
 
     if (!isConfirmed) {

@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { Gender } from 'shared-models';
+
+import { AdminUserRole } from '../../domain/admin-user-role';
+import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import z from 'zod';
-import { AdminUserRole } from '../../domain/admin-user-role';
-import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 
 @Injectable()
 export class DetailsUserQuery {

@@ -1,17 +1,17 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import React from 'react';
-
-import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import { FormattedMessage } from 'react-intl';
+
 import { useSelection } from '../../../../../hooks/useSelection.hook';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
 import { useAgenda } from '../context/AgendaContext';
 import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
+import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
+import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
   const { session, isSubmitting: isPending, submit, goToMetadata, agendaId } = useAgenda();
@@ -23,14 +23,14 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
 
   const { data } = useFindAgendaNominationFilesQuery({
     sessionId: session.id,
-    ignoreAgendaId: agendaId ?? null
+    ignoreAgendaId: agendaId ?? null,
   });
 
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 
   const selection = useSelection({
     items: nominationFiles,
-    toString: ({ id }) => id
+    toString: ({ id }) => id,
   });
 
   const filtered = React.useMemo(() => {
@@ -49,7 +49,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       selection.toggle(e.target.value, e.target.checked);
     },
-    [selection]
+    [selection],
   );
 
   const onSelectAll = React.useCallback(() => {
@@ -60,7 +60,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     count: filtered.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 72,
-    overscan: 5
+    overscan: 5,
   });
 
   return (
@@ -130,7 +130,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
         className={clsx(
           cx('ri-arrow-down-s-line'),
           'h-[32.5px] w-full pt-2 text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8 before:content-[""]',
-          down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_#fff]'
+          down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_#fff]',
         )}
       />
 
@@ -162,8 +162,8 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
                   one {Générer l'ODJ avec la proposition sélectionnée}
                   other {Générer l'ODJ avec les {count} propositions sélectionnées}}`}
               />
-            )
-          }
+            ),
+          },
         ]}
       />
     </div>

@@ -2,15 +2,13 @@ import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
 import { outcomeLabel, PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { toFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import {
   getListCurrentlyAffectedReportersQueryOptions,
-  type SessionNominationFile
+  type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
-import { useNominationFilesTable } from './contexts/files-table.context';
-
-import { toFullName } from '@/utils/user.utils';
 import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
 import { useSortedNominationFileOutcomes } from './components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
 import { NominationFilesOutcomeCell } from './components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
@@ -18,6 +16,7 @@ import { NominationFilesPriorityCell } from './components/cells/NominationFilesP
 import { ObservantsCell } from './components/cells/observations/ObservantsCell';
 import { ReportersCell } from './components/cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './components/cells/targeted-position/NominationFileTargetPositionCell';
+import { useNominationFilesTable } from './contexts/files-table.context';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
@@ -32,26 +31,26 @@ export const useNominationFilesTableColumns = () => {
         header: 'N°',
         sortDescFirst: true,
         cell: ({ cell }) => cell.getValue(),
-        meta: { size: '10%' }
+        meta: { size: '10%' },
       }),
 
       h.accessor('content.nomMagistrat', {
         id: 'name',
         enableSorting: true,
         header: 'Magistrat',
-        cell: ({ row }) => <MagistratDnModalLink nominationFile={row.original} />
+        cell: ({ row }) => <MagistratDnModalLink nominationFile={row.original} />,
       }),
 
       h.accessor('content.grade', {
         enableSorting: false,
         header: 'Grade actuel',
-        cell: ({ cell }) => cell.getValue()
+        cell: ({ cell }) => cell.getValue(),
       }),
 
       h.accessor('content.posteCible', {
         enableSorting: false,
         header: 'Poste cible',
-        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />
+        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
       }),
 
       h.accessor('content.gradeCible', {
@@ -59,13 +58,13 @@ export const useNominationFilesTableColumns = () => {
         id: 'targetedGrade',
         header: 'Grade cible',
         sortDescFirst: true,
-        cell: ({ cell }) => cell.getValue()
+        cell: ({ cell }) => cell.getValue(),
       }),
 
       h.accessor('content.observants', {
         enableSorting: false,
         header: 'Observant(s)',
-        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />
+        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
       }),
 
       h.accessor('priorities', {
@@ -81,10 +80,10 @@ export const useNominationFilesTableColumns = () => {
             emptyValue: { id: 'null', label: 'Aucune' },
             values: Object.values(PrioriteEnum).map((priorite) => ({
               id: priorite,
-              label: PrioriteEnumLabels[priorite]
-            }))
-          }
-        }
+              label: PrioriteEnumLabels[priorite],
+            })),
+          },
+        },
       }),
 
       h.accessor('reporters', {
@@ -100,10 +99,10 @@ export const useNominationFilesTableColumns = () => {
             emptyValue: { label: 'Aucun', id: 'null' },
             query: {
               ...getListCurrentlyAffectedReportersQueryOptions({ sessionId }),
-              select: toListItems
-            }
-          }
-        }
+              select: toListItems,
+            },
+          },
+        },
       }),
 
       h.accessor('content.outcome', {
@@ -121,19 +120,19 @@ export const useNominationFilesTableColumns = () => {
                 label = label[0].toUpperCase() + label.slice(1);
 
                 return { id: value, label };
-              })
-            )
-          }
-        }
-      })
+              }),
+            ),
+          },
+        },
+      }),
     ],
-    [sessionId, formation, outcomes]
+    [sessionId, formation, outcomes],
   );
 };
 
 function toListItems(data: ListedCurrentlyAffectedReportersDto) {
   return data.items.map(({ id, firstName, lastName }) => ({
     id,
-    label: toFullName({ firstName, lastName })
+    label: toFullName({ firstName, lastName }),
   }));
 }

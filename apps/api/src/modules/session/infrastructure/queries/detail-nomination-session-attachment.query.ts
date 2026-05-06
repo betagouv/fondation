@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import z from 'zod';
 
 @Injectable()
 export class DetailNominationSessionAttachmentQuery {
@@ -32,9 +33,7 @@ export class DetailNominationSessionAttachmentQuery {
     const attachment = session?.attachments[0]?.file;
     if (!attachment) throw new NotFoundException();
 
-    const { [attachment.id]: url } = await this.files.getPublicUrls([
-      attachment.id,
-    ]);
+    const { [attachment.id]: url } = await this.files.getPublicUrls([attachment.id]);
     if (!url) throw new NotFoundException();
 
     return {

@@ -1,7 +1,5 @@
 import './index.css';
-
 import './instrument.ts';
-
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import * as Sentry from '@sentry/react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,6 +10,7 @@ import { IntlProvider } from 'react-intl';
 import { Link } from 'react-router';
 
 import { authKeys } from '@queries/auth.queries.ts';
+
 import { frFormat } from './i18n/formats.ts';
 import { AppRouter } from './router/AppRouter.tsx';
 import { HttpException } from './utils/http-exception.ts';
@@ -23,22 +22,24 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({ onError: clearQueryClient }),
   defaultOptions: {
     mutations: { retry: false },
-    queries: { retry: false }
-  }
+    queries: { retry: false },
+  },
 });
 
 async function clearQueryClient(error: Error): Promise<void> {
   console.error(error);
   if (error instanceof HttpException && error.statusCode === 401) {
     queryClient.clear();
-    await queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
+    await queryClient.invalidateQueries({
+      queryKey: authKeys.introspectSession(),
+    });
   }
 }
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: Sentry.reactErrorHandler(),
   onCaughtError: Sentry.reactErrorHandler(),
-  onRecoverableError: Sentry.reactErrorHandler()
+  onRecoverableError: Sentry.reactErrorHandler(),
 }).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -48,7 +49,7 @@ createRoot(document.getElementById('root')!, {
         </IntlProvider>
       </NuqsAdapter>
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );
 
 declare module '@codegouvfr/react-dsfr/spa' {
@@ -58,6 +59,6 @@ declare module '@codegouvfr/react-dsfr/spa' {
 }
 
 if (import.meta.env.DEV) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__TANSTACK_QUERY_CLIENT__ = queryClient;
 }

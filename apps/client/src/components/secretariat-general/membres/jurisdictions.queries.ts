@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import * as $api from '@api/sdk';
 
 export type JurisdictionItem = {
@@ -11,15 +12,15 @@ export type JurisdictionItem = {
 export const jurisdictionKeys = {
   searchJurisdiction: (props: { search?: string; includIds?: readonly string[] }) => [
     'searchJurisdictions',
-    props
-  ]
+    props,
+  ],
 };
 
 export const useFoundJurisdictionsQuery = (
   options: {
     includeIds?: string[];
     search?: string;
-  } = {}
+  } = {},
 ) =>
   useQuery({
     placeholderData: (prev) => prev,
@@ -27,7 +28,7 @@ export const useFoundJurisdictionsQuery = (
     queryFn: () =>
       $api.jurisdictions
         .search({
-          query: { search: options.search, includeIds: options.includeIds?.join(',') }
+          query: { search: options.search, includeIds: options.includeIds?.join(',') },
         })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });

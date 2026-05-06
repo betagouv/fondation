@@ -1,4 +1,5 @@
 import type { ReportStatusEnum } from '@/types/enums.types';
+import { assertNever } from '@/utils/types.util';
 
 export const stateToLabel = (state: ReportStatusEnum) => {
   switch (state) {
@@ -10,10 +11,7 @@ export const stateToLabel = (state: ReportStatusEnum) => {
       return 'Prêt à soutenir';
     case 'SUPPORTED':
       return 'Soutenu';
-    default: {
-      const _exhaustiveCheck: never = state;
-      console.info(_exhaustiveCheck);
-      throw new Error(`Unhandled state: ${JSON.stringify(state)}`);
-    }
+    default:
+      return assertNever(state);
   }
 };

@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { PassThrough, Readable, Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
 
 import {
@@ -11,6 +13,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { HttpService } from '@nestjs/axios';
 import {
   Inject,
   Injectable,
@@ -23,30 +26,23 @@ import {
 import * as Sentry from '@sentry/node';
 import { lastValueFrom } from 'rxjs';
 
-import { HttpService } from '@nestjs/axios';
+import { Clock } from '../clock';
+import { Prisma } from 'src/generated/prisma/client';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
-
 import { makeId } from 'src/utils/id';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
-import { PassThrough, Readable, Writable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { Prisma } from 'src/generated/prisma/client';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { Clock } from '../clock';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 
 /** @internal */
 class RollbackFilePathOperationError {
   constructor(
-    readonly filesToDelete: readonly (
-      | { id: string; path: readonly string[] }
-      | string
-    )[],
+    readonly filesToDelete: readonly ({ id: string; path: readonly string[] } | string)[],
     readonly cause: Error,
   ) {}
 }
@@ -119,9 +115,7 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
-  async getPublicUrls(
-    fileIds: readonly string[],
-  ): Promise<{ [fileId: string]: URL }> {
+  async getPublicUrls(fileIds: readonly string[]): Promise<{ [fileId: string]: URL }> {
     if (fileIds.length === 0) return {};
 
     return this.prisma.$transaction(async (tx) => {
@@ -144,14 +138,12 @@ export class Files implements OnApplicationBootstrap {
         files.map((file) => {
           const publicUrl = file.filePublicUrls[0];
           if (publicUrl) {
-            return {
+            return Promise.resolve({
               ...publicUrl,
               fileId: file.id,
-              publicUrl: new URL(
-                `${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`,
-              ),
+              publicUrl: new URL(`${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`),
               existing: true,
-            };
+            });
           }
 
           return this.generatePublicUrl(file);
@@ -174,9 +166,7 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async openBatchStreamSession(
-    factory: (helper: {
-      streamTo(file: Omit<FondationFile, 'buffer'>): Writable;
-    }) => Promise<unknown>,
+    factory: (helper: { streamTo(file: Omit<FondationFile, 'buffer'>): Writable }) => Promise<unknown>,
   ): Promise<string[]> {
     const fileStoragePromises: {
       file: Omit<FondationFile, 'buffer'>;
@@ -199,9 +189,7 @@ export class Files implements OnApplicationBootstrap {
             Body: passthrough,
             ContentType: file.mimeType,
             Metadata: Object.fromEntries(
-              Object.entries(file.meta ?? {}).filter(
-                (entry): entry is [string, string] => !!entry[1],
-              ),
+              Object.entries(file.meta ?? {}).filter((entry): entry is [string, string] => !!entry[1]),
             ),
           },
         });
@@ -233,9 +221,7 @@ export class Files implements OnApplicationBootstrap {
       factory(helper).catch((error) => {
         span.setAttribute('error', error);
         span.recordException(error);
-        this.logger.warn(
-          `file batch stream session factory failed with error: ${error}`,
-        );
+        this.logger.warn(`file batch stream session factory failed with error: ${error}`);
       }),
     );
 
@@ -264,9 +250,7 @@ export class Files implements OnApplicationBootstrap {
 
     if (rejected.length > 0) {
       await this._delete(fulfilled.map((file) => file.path));
-      throw new InternalServerErrorException(
-        `Failed uploading ${rejected.length} files`,
-      );
+      throw new InternalServerErrorException(`Failed uploading ${rejected.length} files`);
     }
 
     try {
@@ -284,9 +268,7 @@ export class Files implements OnApplicationBootstrap {
       this.logger.warn(`SQL error, while creating files`, { error });
 
       ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
-      throw new InternalServerErrorException(
-        `Failed uploading ${fulfilled.length} files`,
-      );
+      throw new InternalServerErrorException(`Failed uploading ${fulfilled.length} files`);
     }
   }
 
@@ -311,9 +293,7 @@ export class Files implements OnApplicationBootstrap {
     );
   }
 
-  private async _delete(
-    files: readonly ({ id: string; path: readonly string[] } | string)[],
-  ): Promise<void> {
+  private async _delete(files: readonly ({ id: string; path: readonly string[] } | string)[]): Promise<void> {
     if (files.length === 0) return;
     try {
       const response = await this.client.send(
@@ -321,10 +301,7 @@ export class Files implements OnApplicationBootstrap {
           Bucket: this.bucketName,
           Delete: {
             Objects: files.map((file) => ({
-              Key:
-                typeof file === 'string'
-                  ? encodeURI(file)
-                  : encodeURI(file.path.join('/')),
+              Key: typeof file === 'string' ? encodeURI(file) : encodeURI(file.path.join('/')),
             })),
           },
         }),
@@ -335,15 +312,11 @@ export class Files implements OnApplicationBootstrap {
           .filter((d) => d.DeleteMarker)
           .map((d) => ({ Key: d.Key, VersionId: d.DeleteMarkerVersionId }));
 
-        this.logger.warn(
-          `Failed deleting ${response.Errors?.length ?? 0} files ${inspect(response.Errors)}`,
-        );
+        this.logger.warn(`Failed deleting ${response.Errors?.length ?? 0} files ${inspect(response.Errors)}`);
 
         throw new RollbackDeleteFilesCommandError(
           deletedPaths,
-          new InternalServerErrorException(
-            `failed deleting ${response.Errors?.length ?? 0} files`,
-          ),
+          new InternalServerErrorException(`failed deleting ${response.Errors?.length ?? 0} files`),
         );
       }
 
@@ -363,10 +336,7 @@ export class Files implements OnApplicationBootstrap {
         .catch((err) => {
           throw new RollbackFilePathOperationError(
             files,
-            new InternalServerErrorException(
-              `failed deleting ${files.length} files`,
-              err,
-            ),
+            new InternalServerErrorException(`failed deleting ${files.length} files`, err),
           );
         });
     } catch (err) {
@@ -392,15 +362,10 @@ export class Files implements OnApplicationBootstrap {
               const objectVersion = await this.client.send(
                 new ListObjectVersionsCommand({
                   Bucket: this.bucketName,
-                  Prefix:
-                    typeof file === 'string'
-                      ? encodeURI(file)
-                      : encodeURI(file.path.join('/')),
+                  Prefix: typeof file === 'string' ? encodeURI(file) : encodeURI(file.path.join('/')),
                 }),
               );
-              const lastDeleted = objectVersion.DeleteMarkers?.find(
-                (v) => v.IsLatest,
-              );
+              const lastDeleted = objectVersion.DeleteMarkers?.find((v) => v.IsLatest);
 
               if (!lastDeleted) continue;
 
@@ -431,9 +396,7 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async getFileContent(
-    fileUrlId: string,
-  ): Promise<{ file: StreamableFile; expiresAt: Date }> {
+  async getFileContent(fileUrlId: string): Promise<{ file: StreamableFile; expiresAt: Date }> {
     const file = await this.prisma.filePublicUrl.findUnique({
       where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
       select: { url: true, expiresAt: true, file: { select: { name: true } } },
@@ -443,8 +406,7 @@ export class Files implements OnApplicationBootstrap {
 
     let headers: Record<string, string> = {};
     if (this.hasSse) {
-      const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } =
-        this.sseHeaders;
+      const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } = this.sseHeaders;
 
       headers = {
         'x-amz-server-side-encryption-customer-key': SSECustomerKey,
@@ -469,10 +431,7 @@ export class Files implements OnApplicationBootstrap {
     };
   }
 
-  async getFile(props: {
-    fileId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<Readable | null> {
+  async getFile(props: { fileId: string; tx?: Prisma.TransactionClient }): Promise<Readable | null> {
     if (!props.tx) {
       return this.prisma.$transaction((tx) => this.getFile({ ...props, tx }));
     }
@@ -493,16 +452,10 @@ export class Files implements OnApplicationBootstrap {
     const response = await this.client.send(command);
     if (!response.Body) throw new Error('Not Found');
 
-    return assertIsDefined(
-      response.Body as Readable | undefined,
-      `file ${props.fileId} not found`,
-    );
+    return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);
   }
 
-  private async generatePublicUrl(file: {
-    id: string;
-    path: readonly string[];
-  }): Promise<{
+  private async generatePublicUrl(file: { id: string; path: readonly string[] }): Promise<{
     publicUrl: URL;
     url: URL;
     id: string;
@@ -511,9 +464,7 @@ export class Files implements OnApplicationBootstrap {
   }> {
     const id = makeId('FilePublicUrlId');
     const publicUrl = new URL(`${process.env.ORIGIN_URL}/api/files/v1/${id}`);
-    const expiresAt = new Date(
-      this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS,
-    );
+    const expiresAt = new Date(this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS);
     const url = new URL(
       await getSignedUrl(
         this.client,

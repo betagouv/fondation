@@ -4,6 +4,7 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { useState } from 'react';
+
 import { JuridictionAutocomplete } from './JurisdictionAutocomplete';
 
 function JurisdictionSelectorSelected(props: { selected: readonly { id: string; label: string | null }[] }) {
@@ -32,7 +33,7 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
               <Tag
                 small
                 nativeButtonProps={{
-                  className: 'flex-shrink-0 cursor-help whitespace-nowrap'
+                  className: 'flex-shrink-0 cursor-help whitespace-nowrap',
                 }}
               >
                 {`(+${props.selected.length - 4})`}
@@ -74,8 +75,8 @@ function JurisdictionSelectorModal(props: {
               } finally {
                 setIsChanging(false);
               }
-            }
-          }
+            },
+          },
         ]}
       >
         {isOpen ? (

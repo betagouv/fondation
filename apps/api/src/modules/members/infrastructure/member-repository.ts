@@ -1,25 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
+
 import {
   ExcludedMemberJurisdictions,
   Member,
   MemberDisplayTitleUpdated,
   MemberTitleUpdated,
 } from '../domain/member';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { makeId } from 'src/utils/id';
+
 import { MEMBER_ROLES } from './member.utils';
 
 @Injectable()
 export class MemberRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async find(
-    userId: string,
-    options: { tx?: Prisma.TransactionClient } = {},
-  ): Promise<Member> {
+  async find(userId: string, options: { tx?: Prisma.TransactionClient } = {}): Promise<Member> {
     if (!options?.tx) {
       return this.prisma.$transaction((tx) => this.find(userId, { tx }));
     }
@@ -56,9 +55,7 @@ export class MemberRepository {
       return Member.from({
         id: member.id,
         role: member.role,
-        jurisdictionIds: new Set(
-          jurisdictions.map(({ codejur }) => makeId('JurisdictionId', codejur)),
-        ),
+        jurisdictionIds: new Set(jurisdictions.map(({ codejur }) => makeId('JurisdictionId', codejur))),
       });
     });
   }
@@ -72,17 +69,14 @@ export class MemberRepository {
         if (message instanceof MemberDisplayTitleUpdated)
           return this.persistMemberDisplayTitleUpdated(message);
 
-        if (message instanceof MemberTitleUpdated)
-          return this.persistMemberTitleUpdated(message);
+        if (message instanceof MemberTitleUpdated) return this.persistMemberTitleUpdated(message);
 
         return assertNever(message);
       }),
     );
   }
 
-  private persistExcludedMemberJurisdictions(
-    message: ExcludedMemberJurisdictions,
-  ) {
+  private persistExcludedMemberJurisdictions(message: ExcludedMemberJurisdictions) {
     return this.prisma.user.update({
       where: { id: message.userId },
       data: {

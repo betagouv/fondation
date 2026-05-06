@@ -1,9 +1,13 @@
-/* eslint-disable @typescript-eslint/no-namespace */
+/* oxlint-disable @typescript-eslint/no-namespace */
 
 export const frFormat = {
   date: {
-    dateOnlyShort: { day: '2-digit', month: '2-digit', year: 'numeric' } satisfies Intl.DateTimeFormatOptions
-  }
+    dateOnlyShort: {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    } satisfies Intl.DateTimeFormatOptions,
+  },
 } as const;
 
 type FondationFormat = typeof frFormat;

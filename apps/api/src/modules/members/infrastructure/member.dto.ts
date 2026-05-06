@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
-import { PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { z } from 'zod';
+
+import { PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 
 export class ExcludeJurisdictionsDto extends createZodDto(
   z.object({ jurisdictionIds: z.array(z.string()) }),
@@ -18,11 +19,6 @@ export class UpdateMemberDisplayTitleDto extends createZodDto(
 
 export class UpdateMemberTitleDto extends createZodDto(
   z.object({
-    title: z
-      .enum([
-        PrismaUserTitleEnum.PRESIDENT_PARQUET,
-        PrismaUserTitleEnum.PRESIDENT_SIEGE,
-      ])
-      .nullable(),
+    title: z.enum([PrismaUserTitleEnum.PRESIDENT_PARQUET, PrismaUserTitleEnum.PRESIDENT_SIEGE]).nullable(),
   }),
 ) {}

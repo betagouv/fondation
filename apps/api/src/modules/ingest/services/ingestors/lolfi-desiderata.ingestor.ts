@@ -1,9 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { LolfiJob } from '../lolfi-job.type';
 import { insertCandidateWishesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import { LolfiJob } from '../lolfi-job.type';
+
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
 
@@ -24,21 +25,18 @@ export class LolfiDesiderataIngestor {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
   }): Promise<{ success: boolean }> {
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
+    const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
-    async function* mapper(
-      source: AsyncIterable<{ data: RawCandidateWish; success: boolean }>,
-    ) {
+    // oxlint-disable-next-line require-yield
+    async function* mapper(source: AsyncIterable<{ data: RawCandidateWish; success: boolean }>) {
       const errors: { entityId: string; error: string }[] = [];
       const accumulator: RawCandidateWish[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.num_desiderata)) {
-          self.logger.warn(
-            `Wish "${data.num_desiderata}" is duplicated. Ignored`,
-          );
+          self.logger.warn(`Wish "${data.num_desiderata}" is duplicated. Ignored`);
           errors.push({
             entityId: String(data.num_desiderata),
             error: `Desiderata "${data.num_desiderata}" dupliqué. La première occurrence est la seule sauvegardée`,
@@ -94,9 +92,7 @@ export class LolfiDesiderataIngestor {
     return this.prisma
       .$transaction(async (tx) => {
         if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(
-            insertCandidateWishesRawQuery(props.items),
-          );
+          const unknown = await tx.$queryRawTyped(insertCandidateWishesRawQuery(props.items));
 
           if (unknown.length > 0) {
             for (const u of unknown) {

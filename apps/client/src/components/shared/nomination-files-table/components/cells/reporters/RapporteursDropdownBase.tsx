@@ -1,5 +1,5 @@
-import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Button } from '@codegouvfr/react-dsfr/Button';
+import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
 import { useState, type FC, type ReactNode } from 'react';
 
@@ -16,7 +16,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
   availableRapporteurs,
   selectedRapporteurs,
   onSelectionChange,
-  buttonLabel
+  buttonLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +54,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
             placeholder: 'Rechercher un rapporteur...',
             value: searchTerm,
             onChange: (e) => setSearchTerm(e.target.value),
-            type: 'text'
+            type: 'text',
           }}
         />
       </div>
@@ -69,9 +69,9 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
                   label: `${rapporteur.lastName.toUpperCase()} ${rapporteur.firstName.toUpperCase()}`,
                   nativeInputProps: {
                     checked: selectedRapporteurs.includes(rapporteur.userId),
-                    onChange: () => toggleRapporteur(rapporteur.userId)
-                  }
-                }
+                    onChange: () => toggleRapporteur(rapporteur.userId),
+                  },
+                },
               ]}
             />
           ))

@@ -35,7 +35,10 @@ function useCountdown(time = 5_000) {
 function LolfiRedirectMagistratInner() {
   const { sessionId, fileId } = useParams();
   const [searchParams] = useSearchParams();
-  const { data, error } = useLolfiMagistratUrlQuery({ sessionId: sessionId!, nominationFileId: fileId! });
+  const { data, error } = useLolfiMagistratUrlQuery({
+    sessionId: sessionId!,
+    nominationFileId: fileId!,
+  });
 
   const magistratName = React.useMemo(() => searchParams.get('name') ?? null, [searchParams]);
   const closeWindow = React.useCallback(() => {
@@ -58,7 +61,7 @@ function LolfiRedirectMagistratInner() {
           'fr-grid-row',
           'fr-grid-row--gutters',
           'fr-grid-row--middle',
-          'fr-grid-row--center'
+          'fr-grid-row--center',
         )}
       >
         <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
@@ -92,7 +95,7 @@ function LolfiRedirectMagistratInner() {
             'fr-col-offset-md-1',
             'fr-px-6w',
             'fr-px-md-0',
-            'fr-py-0'
+            'fr-py-0',
           )}
         >
           <div className="relative h-[200px] w-40">

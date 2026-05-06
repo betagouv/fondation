@@ -1,13 +1,15 @@
-import type { FormationEnum } from '@/types/enums.types';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import React from 'react';
+
+import type { FormationEnum } from '@/types/enums.types';
+
 import { OutcomeCommentModalContext } from './OutcomeCommentModalContext';
 
 export const nominationFileOutcomeCommentModal = createModal({
   id: 'nominationFileOutcomeCommentModal',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 export function NominationFileOutcomeCommentModal(props: {
@@ -36,7 +38,7 @@ export function NominationFileOutcomeCommentModal(props: {
       setError(false);
       setComment(null);
       setClosedByUser(true);
-    }
+    },
   });
 
   const onCancelClick = React.useCallback(() => {
@@ -71,15 +73,15 @@ export function NominationFileOutcomeCommentModal(props: {
           children: 'Sans commentaire',
           onClick: onCancelClick,
           disabled: isCommentRequired,
-          title: isCommentRequired ? hint : undefined
+          title: isCommentRequired ? hint : undefined,
         },
         {
           doClosesModal: false,
           priority: 'primary',
           children: 'Sauvegarder',
           onClick: onConfirmClick,
-          disabled: isCommentRequired && !isCommentValid
-        }
+          disabled: isCommentRequired && !isCommentValid,
+        },
       ]}
     >
       <form>
@@ -102,7 +104,7 @@ export function NominationFileOutcomeCommentModal(props: {
               setComment(event.target.value || null);
 
               if (hasError) setError(false);
-            }
+            },
           }}
         />
       </form>

@@ -45,9 +45,7 @@ export class ListObservationsResponseDto extends createZodDto(
 export class ListObservationsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    nominationFileId: string;
-  }): Promise<ListObservationsResponseDto> {
+  async handle(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
     const observations = await this.prisma.observation.findMany({
       where: { nominationFileId: query.nominationFileId },
       orderBy: { createdAt: 'desc' },

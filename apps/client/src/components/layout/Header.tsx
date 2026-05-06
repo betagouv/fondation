@@ -1,12 +1,13 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
 import { useIsAdmin, useIsSg } from '@/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/help/HelpPage';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
-import { useIntl } from 'react-intl';
+
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
@@ -16,10 +17,10 @@ function useRouteMatcher() {
   return React.useCallback(
     (patterns: readonly FondationPath[], options?: { end: boolean }) => {
       return patterns.some(
-        (pattern) => matchPath({ path: pattern, end: false, ...options }, pathname) !== null
+        (pattern) => matchPath({ path: pattern, end: false, ...options }, pathname) !== null,
       );
     },
-    [pathname]
+    [pathname],
   );
 }
 
@@ -36,28 +37,28 @@ export const AppHeader = () => {
     {
       text: 'Accueil',
       linkProps: { href: '/' },
-      isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true })
+      isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true }),
     },
     {
       text: 'Créer une session',
       linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE },
-      isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE])
+      isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE]),
     },
     {
       text: <ManageSessionsLink />,
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
-      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID])
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]),
     },
     {
       text: $t({ defaultMessage: `Restitutions` }),
       linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_READY },
-      isActive: routeMatches([ROUTE_PATHS.SG.PRESENTATIONS_PAST, ROUTE_PATHS.SG.PRESENTATIONS_READY])
+      isActive: routeMatches([ROUTE_PATHS.SG.PRESENTATIONS_PAST, ROUTE_PATHS.SG.PRESENTATIONS_READY]),
     },
     {
       text: 'Gérer les membres',
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
-      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER])
-    }
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER]),
+    },
   ];
 
   if (isUserAdmin) {
@@ -72,7 +73,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
-        ROUTE_PATHS.ADMIN.USER_DETAIL
+        ROUTE_PATHS.ADMIN.USER_DETAIL,
       ]),
       menuLinks: [
         {
@@ -82,7 +83,7 @@ export const AppHeader = () => {
               Import LOLFI manuel
             </span>
           ),
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI])
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
         },
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
@@ -91,7 +92,7 @@ export const AppHeader = () => {
               Ingestions
             </span>
           ),
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB])
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
         },
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
@@ -100,9 +101,9 @@ export const AppHeader = () => {
               Gestion des utilisateurs
             </span>
           ),
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL])
-        }
-      ]
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
+        },
+      ],
     });
   }
 
@@ -113,10 +114,14 @@ export const AppHeader = () => {
       operatorLogo={{
         orientation: 'horizontal',
         imgUrl: '/logo.png',
-        alt: 'Conseil Supérieur de la Magistrature'
+        alt: 'Conseil Supérieur de la Magistrature',
       }}
       homeLinkProps={{ to: '/', title: 'Accueil' }}
-      quickAccessItems={[<HelpPageButton />, <LolfiCsm />, <Avatar />]}
+      quickAccessItems={[
+        <HelpPageButton key="header help link" />,
+        <LolfiCsm key="header lolfi link" />,
+        <Avatar key="header avatar" />,
+      ]}
       navigation={shouldShowNavBar ? navigation : []}
     />
   );

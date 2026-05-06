@@ -9,9 +9,9 @@ export const summaryLabels = {
   rules: {
     [NominationFile.RuleGroup.MANAGEMENT]: 'Lignes directrices de gestion',
     [NominationFile.RuleGroup.STATUTORY]: 'Règles statutaires',
-    [NominationFile.RuleGroup.QUALITATIVE]: 'Éléments qualitatifs'
+    [NominationFile.RuleGroup.QUALITATIVE]: 'Éléments qualitatifs',
   },
-  attachedFiles: 'Pièce(s) jointe(s)'
+  attachedFiles: 'Pièce(s) jointe(s)',
 };
 
 export type SummarySection = { anchorId: string; label: string };

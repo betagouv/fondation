@@ -1,3 +1,5 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
@@ -8,9 +10,9 @@ import type {
   ListObservationsResponseDto,
   PaginatedNominationFiles,
   SearchMagistratsResponseDto,
-  UpdateObservationDto
+  UpdateObservationDto,
 } from '@api/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
@@ -24,7 +26,7 @@ export const observationKeys = {
   searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
     ['searchMagistrats', props?.search, props?.ignoreIds] as const,
   observationAttachments: (props?: { magistratId?: string }) =>
-    ['observation', 'attachments', props?.magistratId] as const
+    ['observation', 'attachments', props?.magistratId] as const,
 };
 
 export function useObservationDetailsQuery(props: {
@@ -40,17 +42,17 @@ export function useObservationDetailsQuery(props: {
         path: {
           sessionId: props.sessionId,
           nominationFileId: props.nominationFileId,
-          observationId: props.observationId
-        }
+          observationId: props.observationId,
+        },
       });
 
       return updateMemberCommentImages(data);
-    }
+    },
   });
 }
 
 function updateMemberCommentImages(
-  response: GetObservationDetailsResponseDto | null | undefined
+  response: GetObservationDetailsResponseDto | null | undefined,
 ): GetObservationDetailsResponseDto | null {
   if (!response || !response.memberComment) return response ?? null;
 
@@ -87,11 +89,14 @@ export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly st
     queryKey: observationKeys.searchMagistrats({ search: search.length > 2 ? search : undefined }),
     queryFn: async () => {
       const { data } = await $api.magistrats.searchMagistrats({
-        query: { search: search.length > 2 ? search : undefined, ignore: ignoreIds?.join(',') || undefined }
+        query: {
+          search: search.length > 2 ? search : undefined,
+          ignore: ignoreIds?.join(',') || undefined,
+        },
       });
 
       return data?.items ?? [];
-    }
+    },
   });
 }
 
@@ -102,10 +107,10 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
     queryFn: async () => {
       if (!props.nominationFileId) return { observations: [] as Observation[] };
       const { data } = await $api.observations.listObservations({
-        path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId }
+        path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId },
       });
       return data ?? { observations: [] as Observation[] };
-    }
+    },
   });
 }
 
@@ -127,9 +132,9 @@ export function useCreateObservationMutation() {
         .createObservation({
           body: {
             files,
-            form: multipartJson(form satisfies CreateObservationDto['form'])
+            form: multipartJson(form satisfies CreateObservationDto['form']),
           },
-          path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId }
+          path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         })
         .catch((err) => {
           if (err instanceof HttpException && err.statusCode === 409) {
@@ -143,10 +148,12 @@ export function useCreateObservationMutation() {
     onSuccess: (_, { sessionId, nominationFileId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({
-          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+          queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
-        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        }),
+      ]),
   });
 }
 
@@ -163,17 +170,19 @@ export function useDeleteObservationMutation() {
         path: {
           sessionId: mutation.nominationFileId,
           nominationFileId: mutation.nominationFileId,
-          observationId: mutation.observationId
-        }
+          observationId: mutation.observationId,
+        },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({
-          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+          queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
-        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        }),
+      ]),
   });
 }
 
@@ -190,12 +199,12 @@ export function useGetObservationFileUrlMutation() {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
           observationId: params.observationId,
-          fileId: params.fileId
-        }
+          fileId: params.fileId,
+        },
       });
       if (!data?.url) throw new Error('URL not found');
       return data.url;
-    }
+    },
   });
 }
 
@@ -220,8 +229,8 @@ export function useUpdateObservationMutation() {
           path: { sessionId, nominationFileId, observationId },
           body: {
             files,
-            form: multipartJson(form satisfies UpdateObservationDto['form'])
-          }
+            form: multipartJson(form satisfies UpdateObservationDto['form']),
+          },
         })
         .catch((err) => {
           if (err instanceof HttpException && err.statusCode === 409) {
@@ -234,13 +243,19 @@ export function useUpdateObservationMutation() {
     onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({
-          queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
+          queryKey: observationKeys.observationDetails({
+            sessionId,
+            nominationFileId,
+            observationId,
+          }),
         }),
         queryClient.invalidateQueries({
-          queryKey: observationKeys.observations({ sessionId, nominationFileId })
+          queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
-        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) })
-      ])
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        }),
+      ]),
   });
 }
 
@@ -256,14 +271,14 @@ export function useAttachObservationMemberCommentScreenshotsMutation() {
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
-          observationId: params.observationId
+          observationId: params.observationId,
         },
         body: {
-          files: params.files
-        }
+          files: params.files,
+        },
       });
       return data ?? { items: [] };
-    }
+    },
   });
 }
 
@@ -279,13 +294,13 @@ export function useWriteObservationMemberCommentMutation() {
         path: {
           sessionId: params.sessionId,
           nominationFileId: params.nominationFileId,
-          observationId: params.observationId
+          observationId: params.observationId,
         },
         body: {
-          comment: params.comment
-        }
+          comment: params.comment,
+        },
       });
-    }
+    },
   });
 }
 
@@ -308,7 +323,7 @@ export function useFollowUpOnObservationMutation() {
 
       await $api.observations.followUpOnObservation({
         body,
-        path: { sessionId, nominationFileId, observationId }
+        path: { sessionId, nominationFileId, observationId },
       });
     },
     onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
@@ -326,19 +341,23 @@ export function useFollowUpOnObservationMutation() {
                     observations: item.observations.map((observation) =>
                       observation.id === observationId
                         ? { ...observation, followUp, followUpComment: comment }
-                        : observation
-                    )
+                        : observation,
+                    ),
                   }
-                : item
-            )
+                : item,
+            ),
           };
-        }
+        },
       );
 
       return queryClient.invalidateQueries({
-        queryKey: observationKeys.observationDetails({ sessionId, nominationFileId, observationId })
+        queryKey: observationKeys.observationDetails({
+          sessionId,
+          nominationFileId,
+          observationId,
+        }),
       });
-    }
+    },
   });
 }
 
@@ -348,16 +367,18 @@ export const useListObservationsAttachments = (query: {
   sessionId: string;
 }) =>
   useQuery({
-    queryKey: observationKeys.observationAttachments({ magistratId: query.magistratId ?? undefined }),
+    queryKey: observationKeys.observationAttachments({
+      magistratId: query.magistratId ?? undefined,
+    }),
     queryFn: () =>
       $api.observations
         .listObservationsAttachments({
           priority: 'low',
           query: {
             magistratId: query.magistratId ?? undefined,
-            excludeObservationId: query.excludeObservationId ?? undefined
+            excludeObservationId: query.excludeObservationId ?? undefined,
           },
-          path: { sessionId: query.sessionId }
+          path: { sessionId: query.sessionId },
         })
-        .then(({ data = null }) => data)
+        .then(({ data = null }) => data),
   });

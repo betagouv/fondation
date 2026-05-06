@@ -1,19 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
+
 import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { unaccent } from 'src/utils/unaccent';
-import z from 'zod';
 
 @Injectable()
 export class GetLolfiMagistratUrlQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: {
-    sessionId: string;
-    nominationFileId: string;
-  }): Promise<LolfiMagistratUrlDto> {
+  async handle(query: { sessionId: string; nominationFileId: string }): Promise<LolfiMagistratUrlDto> {
     const id = await this.prisma.$transaction(async (tx) => {
       const nominationFile = await tx.dossierDeNomination.findUnique({
         where: { id: query.nominationFileId, sessionId: query.sessionId },
@@ -36,9 +34,7 @@ export class GetLolfiMagistratUrlQuery {
           .trim(),
       );
 
-      const [{ externalId } = {}] = await tx.$queryRawTyped(
-        findMagistratExternalIdByFullName(search),
-      );
+      const [{ externalId } = {}] = await tx.$queryRawTyped(findMagistratExternalIdByFullName(search));
 
       return externalId;
     });

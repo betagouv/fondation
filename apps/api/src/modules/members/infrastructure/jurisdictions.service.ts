@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ListedJurisdictions,
-  SearchJurisdictionsQuery,
-} from './queries/search-jurisdictions.query';
+
+import { ListedJurisdictions, SearchJurisdictionsQuery } from './queries/search-jurisdictions.query';
 
 @Injectable()
 export class JurisdictionsService {
-  constructor(
-    private readonly searchJurisdictionsQuery: SearchJurisdictionsQuery,
-  ) {}
+  constructor(private readonly searchJurisdictionsQuery: SearchJurisdictionsQuery) {}
 
   search(query: {
     search: string | undefined;

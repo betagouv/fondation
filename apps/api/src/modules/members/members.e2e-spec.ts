@@ -1,11 +1,15 @@
+import { randomUUID } from 'node:crypto';
+
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { Gender, Role } from 'shared-models';
-import { AppModule } from 'src/app.module';
 import request from 'supertest';
+
+import { Gender, Role } from 'shared-models';
+
 import { PrismaService } from '../framework/database';
 import { SimpleAuthService } from '../simple-auth';
+import { AppModule } from 'src/app.module';
+
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 
 describe('Members E2E', () => {
@@ -102,13 +106,9 @@ describe('Members E2E', () => {
     });
 
     it('should update a member excluded jurisdictions', async () => {
-      const { body: detailedMemberBefore } = await http
-        .set({ cookie })
-        .get(`/api/members/v1/${member.id}`);
+      const { body: detailedMemberBefore } = await http.set({ cookie }).get(`/api/members/v1/${member.id}`);
 
-      expect(
-        (detailedMemberBefore as DetailedMemberDto).excludedJurisdictions,
-      ).toEqual([]);
+      expect((detailedMemberBefore as DetailedMemberDto).excludedJurisdictions).toEqual([]);
 
       await http
         .set({ cookie })
@@ -116,13 +116,9 @@ describe('Members E2E', () => {
         .send({ jurisdictionIds: jurisdictions })
         .expect(HttpStatus.NO_CONTENT);
 
-      const { body: detailedMemberAfter } = await http
-        .set({ cookie })
-        .get(`/api/members/v1/${member.id}`);
+      const { body: detailedMemberAfter } = await http.set({ cookie }).get(`/api/members/v1/${member.id}`);
 
-      expect(
-        (detailedMemberAfter as DetailedMemberDto).excludedJurisdictions,
-      ).toEqual([
+      expect((detailedMemberAfter as DetailedMemberDto).excludedJurisdictions).toEqual([
         expect.objectContaining({ id: expect.stringMatching(/^TGI LYON/) }),
       ]);
     });
@@ -151,10 +147,7 @@ describe('Members E2E', () => {
     });
 
     it('should throw', async () => {
-      await http
-        .set({ cookie })
-        .get(`/api/members/v1`)
-        .expect(HttpStatus.FORBIDDEN);
+      await http.set({ cookie }).get(`/api/members/v1`).expect(HttpStatus.FORBIDDEN);
     });
   });
 

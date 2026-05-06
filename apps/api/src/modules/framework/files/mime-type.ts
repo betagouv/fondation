@@ -24,13 +24,10 @@ export const FILE_MIME_TYPES = {
   smime: 'application/pkcs7-mime',
 } as const;
 
-export type FileMimeType =
-  (typeof FILE_MIME_TYPES)[keyof typeof FILE_MIME_TYPES];
+export type FileMimeType = (typeof FILE_MIME_TYPES)[keyof typeof FILE_MIME_TYPES];
 
 export const FILE_EXTENSIONS = Object.fromEntries(
-  Object.entries(FILE_MIME_TYPES).map(
-    ([key, value]) => [value as FileMimeType, key] as const,
-  ),
+  Object.entries(FILE_MIME_TYPES).map(([key, value]) => [value as FileMimeType, key] as const),
 ) as Record<FileMimeType, string>;
 
 const MIME_TYPES = new Set(Object.values(FILE_MIME_TYPES));
@@ -55,9 +52,7 @@ export function filenameToMimeType(filename: string): FileMimeType | undefined {
  * ```
  */
 export function hasMimeType<const K extends string>(key: K) {
-  return <T extends Record<K, string>>(
-    value: T,
-  ): value is T & Record<K, FileMimeType> => {
+  return <T extends Record<K, string>>(value: T): value is T & Record<K, FileMimeType> => {
     return isMimeType(value[key]);
   };
 }

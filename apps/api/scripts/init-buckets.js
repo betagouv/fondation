@@ -1,9 +1,5 @@
 #!/usr/bin/env node
-const {
-  S3Client,
-  CreateBucketCommand,
-  PutBucketVersioningCommand,
-} = require('@aws-sdk/client-s3');
+const { S3Client, CreateBucketCommand, PutBucketVersioningCommand } = require('@aws-sdk/client-s3');
 
 main().catch(console.error);
 async function main() {
@@ -17,10 +13,7 @@ async function main() {
     },
   });
 
-  const BUCKETS = [
-    'sandbox-csm-fondation-reports-context',
-    'sandbox-csm-fondation-transparences-context',
-  ];
+  const BUCKETS = ['sandbox-csm-fondation-reports-context', 'sandbox-csm-fondation-transparences-context'];
 
   for (const bucketName of BUCKETS) {
     try {

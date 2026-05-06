@@ -1,13 +1,14 @@
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 import clsx from 'clsx';
 import { useCallback, useRef, useState } from 'react';
 
+import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
+
 export const modal = createModal({
   id: 'modal-import-attachment-transparence',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 export const ImportAttachmentModal = (props: { sessionId: string }) => {
@@ -24,7 +25,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
         setAttachmentFiles(e.target.files);
       }
     },
-    [setAttachmentFiles]
+    [setAttachmentFiles],
   );
 
   const handleImportAttachment = useCallback(() => {
@@ -33,7 +34,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
     importAttachments(
       {
         files: attachmentFiles,
-        sessionId: props.sessionId
+        sessionId: props.sessionId,
       },
       {
         onSettled() {
@@ -50,8 +51,8 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
         },
         onError: (error: Error) => {
           console.error("Erreur lors de l'import de la pièce jointe:", error);
-        }
-      }
+        },
+      },
     );
   }, [attachmentFiles, setAttachmentFiles, props, importAttachments, alerts, inputRef]);
 
@@ -64,9 +65,9 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
           children: isPending ? 'Import en cours...' : 'Importer',
           nativeButtonProps: {
             onClick: handleImportAttachment,
-            disabled: !attachmentFiles || isPending
-          }
-        }
+            disabled: !attachmentFiles || isPending,
+          },
+        },
       ]}
     >
       <div className={clsx('gap-8', 'fr-grid-row')}>
@@ -76,7 +77,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
           nativeInputProps={{
             ref: inputRef,
             onChange: onChangeAttachmentFile,
-            disabled: isPending
+            disabled: isPending,
           }}
           hint={null}
           label={null}

@@ -61,19 +61,10 @@ export class Summary {
     return new Summary(makeId('SummaryId', props.id), props.authorId);
   }
 
-  static create(props: {
-    authorId: string;
-    sessionId: string;
-    nominationFileId: string;
-  }): Summary {
-    const summary = new Summary(
-      makeId('SummaryId', props.nominationFileId),
-      props.authorId,
-    );
+  static create(props: { authorId: string; sessionId: string; nominationFileId: string }): Summary {
+    const summary = new Summary(makeId('SummaryId', props.nominationFileId), props.authorId);
 
-    summary.#messages.push(
-      new SummaryCreated(props.authorId, props.sessionId, summary.id),
-    );
+    summary.#messages.push(new SummaryCreated(props.authorId, props.sessionId, summary.id));
 
     return summary;
   }
@@ -93,15 +84,10 @@ export class Summary {
   includeFilesIntoContent(command: { fileIds: readonly string[] }): void {
     if (command.fileIds.length === 0) return;
 
-    this.#messages.push(
-      new IncludedFilesInSummaryContent(this.id, command.fileIds),
-    );
+    this.#messages.push(new IncludedFilesInSummaryContent(this.id, command.fileIds));
   }
 
-  updateReadersList(command: {
-    availableUserIds: Set<string>;
-    readerIds: readonly string[];
-  }): void {
+  updateReadersList(command: { availableUserIds: Set<string>; readerIds: readonly string[] }): void {
     for (const readerId of command.readerIds) {
       if (!command.availableUserIds.has(readerId)) {
         throw new UnknownReader(readerId);
@@ -111,9 +97,7 @@ export class Summary {
     this.#messages.push(
       new UpdatedSummaryReaderList(
         this.id,
-        this.authorId
-          ? command.readerIds.filter((id) => id !== this.authorId)
-          : command.readerIds,
+        this.authorId ? command.readerIds.filter((id) => id !== this.authorId) : command.readerIds,
       ),
     );
   }
@@ -122,11 +106,7 @@ export class Summary {
     if (!this.authorId) throw new NoAuthorAvailable(this.id);
 
     if (command.userId !== this.authorId) {
-      throw new OnlyAuthorCanWriteSummary(
-        this.id,
-        this.authorId,
-        command.userId,
-      );
+      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.userId);
     }
 
     this.#messages.push(new SummaryContentWritten(this.id, command.content));

@@ -1,14 +1,13 @@
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
+import { nominationFileOutcomeLabel } from '../../domain/nomination-file-outcome';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PrioriteEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { capitalize } from 'src/utils/capitalize';
-
-import { nominationFileOutcomeLabel } from '../../domain/nomination-file-outcome';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class ListNominationFilesAsExcelQuery {
@@ -78,10 +77,7 @@ export class ListNominationFilesAsExcelQuery {
       nf.targetedPosition || '',
       nf.targetedGrade || '',
       nf.reporterIds
-        .map(
-          ({ user }) =>
-            `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`,
-        )
+        .map(({ user }) => `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`)
         .join(', '),
       nf.observations
         .map(({ magistrat }) =>

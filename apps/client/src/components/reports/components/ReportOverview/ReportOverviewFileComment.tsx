@@ -1,5 +1,6 @@
-import type { DetailedReportDto } from '@api/types';
 import { reportHtmlIds } from '../../dom/html-ids';
+import type { DetailedReportDto } from '@api/types';
+
 import { Card } from './Card';
 
 export function ReportOverviewFileComment(props: { report: DetailedReportDto }) {

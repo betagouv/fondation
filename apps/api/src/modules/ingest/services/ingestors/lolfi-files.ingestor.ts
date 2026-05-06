@@ -1,22 +1,17 @@
-import {
-  ConflictException,
-  forwardRef,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
 import { inspect } from 'node:util';
 
+import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+
+import { dag } from '../../domain/requirements';
+import { LolfiJob } from '../lolfi-job.type';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { noop } from 'src/utils/noop';
 
-import { dag } from '../../domain/requirements';
-import { LolfiJob } from '../lolfi-job.type';
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
 import { LolfiDesiderataIngestor } from './lolfi-desiderata.ingestor';
 import { LolfiFonctionsIngestor } from './lolfi-fonctions.ingestor';
@@ -51,17 +46,14 @@ export class LolfiFilesIngestor {
     private readonly sessions: SessionService,
   ) {}
 
-  async ingest(
-    jobId: number,
-    signal: AbortSignal,
-  ): Promise<{ success: boolean; values?: RawSession[] }> {
+  async ingest(jobId: number, signal: AbortSignal): Promise<{ success: boolean; values?: RawSession[] }> {
     try {
       const { success, values } = await this.ingestInternal(jobId, signal);
 
       if (signal.aborted) return { success: true };
 
       if (!success) {
-        this.failJob(jobId);
+        this.failJob(jobId).catch(noop);
         return { success };
       }
 
@@ -169,10 +161,7 @@ export class LolfiFilesIngestor {
         return [lastSucceededJob, currentJob] as const;
       })
       .catch((e): never => {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === 'P2025'
-        ) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
           throw new NotFoundException(undefined, { cause: e });
         }
 
@@ -180,10 +169,7 @@ export class LolfiFilesIngestor {
       });
 
     const lastHashByName = new Map<string, string>(
-      (lastSucceededJob?.files ?? []).map(({ file, fileSha256 }) => [
-        file.name,
-        fileSha256,
-      ]),
+      (lastSucceededJob?.files ?? []).map(({ file, fileSha256 }) => [file.name, fileSha256]),
     );
 
     const files = dag(currentJob.files);

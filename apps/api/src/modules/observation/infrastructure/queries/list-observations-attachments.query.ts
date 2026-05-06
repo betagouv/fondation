@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { PrismaService } from 'src/modules/framework/database';
 import z from 'zod';
+
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class ListObservationsAttachmentsQuery {

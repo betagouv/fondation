@@ -17,11 +17,7 @@ import {
   internalDetailsMemberSessionRawQuery,
 } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-import {
-  createPaginatedZodDto,
-  paginate,
-  Pagination,
-} from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
@@ -42,57 +38,53 @@ export class InternalDetailMemberSessionQuery {
     pagination: Pagination;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
   }): Promise<DetailedMemberSessionDto> {
-    const [session, totalCount, files] = await this.prisma.$transaction(
-      async (tx) => {
-        const formation = roleToFormation(query.user.role);
+    const [session, totalCount, files] = await this.prisma.$transaction(async (tx) => {
+      const formation = roleToFormation(query.user.role);
 
-        const [total] = await tx.$queryRawTyped(
-          internalCountTotalDetailsMemberSessionRawQuery(
-            formation ?? null,
-            query.sessionId,
-            'TRANSPARENCE_GDS',
-            query.user.id,
-            query.status ?? null,
-          ),
-        );
+      const [total] = await tx.$queryRawTyped(
+        internalCountTotalDetailsMemberSessionRawQuery(
+          formation ?? null,
+          query.sessionId,
+          'TRANSPARENCE_GDS',
+          query.user.id,
+          query.status ?? null,
+        ),
+      );
 
-        const session = await tx.session.findFirst({
-          select: {
-            id: true,
-            name: true,
-            sessionImportId: true,
-            formation: true,
-            date: true,
-            dueDate: true,
-          },
-          where: {
-            deletedAt: null,
-            typeDeSaisine: 'TRANSPARENCE_GDS',
-            id: query.sessionId,
-            formation,
-          },
-        });
+      const session = await tx.session.findFirst({
+        select: {
+          id: true,
+          name: true,
+          sessionImportId: true,
+          formation: true,
+          date: true,
+          dueDate: true,
+        },
+        where: {
+          deletedAt: null,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
+          id: query.sessionId,
+          formation,
+        },
+      });
 
-        const files = await tx.$queryRawTyped(
-          internalDetailsMemberSessionRawQuery(
-            formation ?? null,
-            query.sessionId,
-            'TRANSPARENCE_GDS',
-            query.user.id,
-            query.status ?? null,
-            query.sorting.sortDesc ? 'desc' : 'asc',
-            query.sorting.sortBy ?? null,
-            query.pagination.limit,
-            (query.pagination.page - 1) * query.pagination.limit,
-            (query.priorities ?? []).length > 0
-              ? (query.priorities as string[])
-              : null,
-          ),
-        );
+      const files = await tx.$queryRawTyped(
+        internalDetailsMemberSessionRawQuery(
+          formation ?? null,
+          query.sessionId,
+          'TRANSPARENCE_GDS',
+          query.user.id,
+          query.status ?? null,
+          query.sorting.sortDesc ? 'desc' : 'asc',
+          query.sorting.sortBy ?? null,
+          query.pagination.limit,
+          (query.pagination.page - 1) * query.pagination.limit,
+          (query.priorities ?? []).length > 0 ? (query.priorities as string[]) : null,
+        ),
+      );
 
-        return [session, Number(total?.count ?? 0), files];
-      },
-    );
+      return [session, Number(total?.count ?? 0), files];
+    });
 
     if (!session) throw new NotFoundException();
 
@@ -113,9 +105,7 @@ export class InternalDetailMemberSessionQuery {
                     id: z.string(),
                     description: z.string().trim(),
                     userComments: z
-                      .array(
-                        z.object({ userId: z.string(), comment: z.string() }),
-                      )
+                      .array(z.object({ userId: z.string(), comment: z.string() }))
                       .nullable()
                       .default([]),
                     magistrat: z.preprocess(
@@ -202,8 +192,7 @@ export class InternalDetailMemberSessionQuery {
         formation: session.formation,
         transparency: session.name,
         dateTransparence: DateOnly.fromDate(session.date).toJson(),
-        dateSeance:
-          DateOnly.fromOptionalDate(session.dueDate)?.toJson() ?? null,
+        dateSeance: DateOnly.fromOptionalDate(session.dueDate)?.toJson() ?? null,
       },
     };
   }

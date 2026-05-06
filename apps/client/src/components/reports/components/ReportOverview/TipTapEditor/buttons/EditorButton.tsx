@@ -1,5 +1,6 @@
 import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
+
 import type { HeadingLevel } from '../extensions/constant';
 import { useIsBlurred } from '../hooks/useIsBlurred';
 import { useMarkPriority } from '../hooks/useMarkPriority';
