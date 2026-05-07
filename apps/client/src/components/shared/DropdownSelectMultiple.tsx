@@ -77,7 +77,7 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
           small
           classes={{
             content: 'm-0',
-            inputGroup: 'hover:bg-gray-100 pr-2 pl-4 py-0 first-of-type:!mt-0',
+            inputGroup: 'hover:bg-gray-100 pr-2 pl-4 py-0 first-of-type:mt-0!',
             root: 'border border-gray-50 overflow-y-auto m-0',
           }}
           options={props.items.map((item, i) => {

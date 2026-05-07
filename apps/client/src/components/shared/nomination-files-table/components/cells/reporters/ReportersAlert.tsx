@@ -78,7 +78,7 @@ export function ReportersAlert(props: { dossier: SessionNominationFile; selected
             'size-6',
             'before:block',
             'before:content-[""]',
-            'before:size-4',
+            'before:size-4!',
           )}
         />
       </Tooltip>

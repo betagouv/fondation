@@ -30,9 +30,9 @@ export function DocumentPreviewLayout(props: {
 
   return (
     <PageContentLayout>
-      <div className="mx-auto max-w-3xl pb-12 pt-4">
+      <div className="mx-auto max-w-3xl pt-4 pb-12">
         <h1>{title}</h1>
-        <div className="mx-auto mb-0 mt-6 flex aspect-[1/4.414] max-h-screen w-[calc(21cm+1rem)] flex-col">
+        <div className="mx-auto mt-6 mb-0 flex aspect-[1/4.414] max-h-screen w-[calc(793.7007874015748px+1rem)] flex-col">
           {isPending || !html ? (
             <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
           ) : (

@@ -1,7 +1,8 @@
-import './AgendaNominationFile.css';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
+
+import './AgendaNominationFile.css';
 
 import { Marked } from '@/components/shared/Marked';
 import { NominationFileOutcomeBadge } from '@/components/shared/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
@@ -28,12 +29,12 @@ export function AgendaNominationFile(props: {
           },
           label: (
             <div className="flex w-full items-start gap-1 py-4">
-              <div className="w-[3ch] flex-shrink-0">{props.file.number}</div>
+              <div className="w-[3ch] shrink-0">{props.file.number}</div>
               <div className="w-[10%]">
                 <NominationFileOutcomeBadge formation={props.formation} outcome={props.file.outcome.value} />
               </div>
               <div
-                className="w-1/3 flex-shrink-0 cursor-help pl-2"
+                className="w-1/3 shrink-0 cursor-help pl-2"
                 title={[props.file.magistrat.position.grade, props.file.magistrat.position.label].join(' - ')}
               >
                 <div className="truncate">
@@ -50,11 +51,9 @@ export function AgendaNominationFile(props: {
                     .join(' - ') || '-'}
                 </div>
               </div>
-              <i
-                className={clsx(cx('ri-arrow-right-line'), 'flex-shrink-0 before:size-5 before:content-[""]')}
-              />
+              <i className={clsx(cx('ri-arrow-right-line'), 'shrink-0 before:size-5! before:content-[""]')} />
               <div
-                className="cursor-help text-wrap px-2 pt-1 text-sm"
+                className="cursor-help px-2 pt-1 text-sm text-wrap"
                 title={
                   [props.file.magistrat.position.grade, props.file.targetPosition.label]
                     .filter((x) => !!x)

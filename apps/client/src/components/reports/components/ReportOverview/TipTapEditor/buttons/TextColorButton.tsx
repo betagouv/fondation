@@ -49,7 +49,7 @@ export const TextColorButton = () => {
         ref={inputRef}
         // L'input est positionné de façon absolue, relativement au div parent,
         // afin que ses dimensions n'interfèrent pas avec la disposition des boutons.
-        className="invisible absolute left-0 top-1 h-full w-full"
+        className="invisible absolute top-1 left-0 h-full w-full"
         type="color"
         list="presetColors"
         onChange={setColor}

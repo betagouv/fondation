@@ -1,9 +1,94 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) important;
+
+@theme {
+  --breakpoint-sm: 36rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 62rem;
+  --breakpoint-xl: 78rem;
+  --breakpoint-2xl: 94rem;
+
+  --color-blue-france-main-525: #6a6af4;
+  --color-blue-france-sun-113: #000091;
+  --color-blue-france-975: #f5f5fe;
+  --color-blue-france-950: #ececfe;
+  --color-blue-france-925: #e3e3fd;
+  --color-blue-france-850: #cacafb;
+  --color-blue-france-625: #8585f6;
+  --color-blue-france-200: #313178;
+  --color-blue-france-125: #272747;
+  --color-blue-france-100: #21213f;
+  --color-blue-france-75: #1b1b35;
+
+  --color-red-marianne-main-472: #e1000f;
+  --color-red-marianne-425: #c9191e;
+  --color-red-marianne-975: #fef4f4;
+  --color-red-marianne-950: #fee9e9;
+  --color-red-marianne-925: #fddede;
+  --color-red-marianne-850: #fcbfbf;
+  --color-red-marianne-625: #f95c5e;
+  --color-red-marianne-200: #5e2a2b;
+  --color-red-marianne-125: #3b2424;
+  --color-red-marianne-100: #331f1f;
+  --color-red-marianne-75: #2b1919;
+
+  --color-grey-975: #f6f6f6;
+
+  --color-info-75: #171d2e;
+  --color-info-100: #1d2437;
+  --color-info-125: #222a3f;
+  --color-info-200: #273961;
+  --color-info-main-525: #0078f3;
+  --color-info-625: #518fff;
+  --color-info-825: #bccdff;
+  --color-info-925: #dde5ff;
+  --color-info-950: #e8edff;
+  --color-info-975: #f4f6ff;
+
+  --color-warning-main-525: #d64d00;
+  --color-warning-425: #b34000;
+  --color-warning-975: #fff4f3;
+  --color-warning-950: #ffe9e6;
+  --color-warning-925: #ffded9;
+  --color-warning-850: #ffbeb4;
+
+  /* FIXME: remove these, only used in PageContentLayout */
+  --color-light-orange: #d2bc8966;
+  --color-light-blue: var(--color-info-950);
+  --color-light-green: #b8e6b566;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 html {
   scroll-behavior: smooth;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  padding: 0;
 }
 
 :root {

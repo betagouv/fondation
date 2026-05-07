@@ -31,7 +31,7 @@ export const ScrollToTop = () => {
   return (
     <div
       className={clsx(
-        'fixed bottom-6 right-6 z-50 transition-all duration-300 ease-in-out',
+        'fixed right-6 bottom-6 z-50 transition-all duration-300 ease-in-out',
         isVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0',
       )}
     >

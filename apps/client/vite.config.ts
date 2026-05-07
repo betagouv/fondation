@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 
 import formatjs from '@formatjs/unplugin/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -11,6 +12,7 @@ process.env.VITE_FAVICON = process.env.VITE_DEPLOY_ENV === 'production' ? 'favic
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     sentryVitePlugin({
       org: 'betagouv',
       project: 'fondation-client',

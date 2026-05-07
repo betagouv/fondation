@@ -294,7 +294,7 @@ export function OfficialReportForm() {
                 values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
               />
             }
-            classes={{ content: 'grid grid-cols-3 gap-x-4 items-start', inputGroup: `first:!mt-0` }}
+            classes={{ content: 'grid grid-cols-3 gap-x-4 items-start', inputGroup: `first:mt-0!` }}
             options={members.map((member) => ({
               label: toFullName(member),
               nativeInputProps: {

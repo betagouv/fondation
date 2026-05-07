@@ -20,7 +20,7 @@
     ]
   },
   "sortTailwindcss": {
-    "config": "./tailwind.config.js",
+    "stylesheet": "./src/index.css",
     "functions": ["clsx", "cn"],
     "preserveWhitespace": false
   }

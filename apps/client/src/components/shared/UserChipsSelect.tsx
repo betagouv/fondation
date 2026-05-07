@@ -153,7 +153,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fixed z-[9999] mt-1 rounded border border-gray-300 bg-white shadow-lg"
+              className="fixed z-9999 mt-1 rounded-sm border border-gray-300 bg-white shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -188,7 +188,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fixed z-[9999] mt-1 rounded border border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 shadow-lg"
+              className="fixed z-9999 mt-1 rounded-sm border border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,

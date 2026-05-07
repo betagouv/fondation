@@ -250,7 +250,7 @@ export const ObservationForm: FC<{
             }
             state={errors.dateReception || updateError || createError ? 'error' : 'default'}
             stateRelatedMessage={errors.dateReception?.message}
-            classes={{ root: '!mb-0' }}
+            classes={{ root: 'mb-0!' }}
             nativeInputProps={{
               type: 'date',
               value: field.value,
@@ -268,7 +268,7 @@ export const ObservationForm: FC<{
               <FormattedMessage defaultMessage="Magistrat observant" />
             </Mandatory>
           }
-          classes={{ root: '!mb-0' }}
+          classes={{ root: 'mb-0!' }}
           iconId="fr-icon-search-line"
           hintText="Nom, Prénom ou Adresse email pro"
           state={errors.magistratId || updateError || createError ? 'error' : 'default'}
@@ -296,7 +296,7 @@ export const ObservationForm: FC<{
           <div
             id="magistrat-listbox"
             role="listbox"
-            className="absolute mt-1 max-h-60 w-full overflow-y-auto rounded border bg-white shadow-lg"
+            className="absolute mt-1 max-h-60 w-full overflow-y-auto rounded-sm border bg-white shadow-lg"
             style={{ zIndex: 9999 }}
           >
             {isSearching ? (
@@ -350,7 +350,7 @@ export const ObservationForm: FC<{
           </label>
           <div className="flex flex-wrap gap-2">
             {existingFiles.map((file) => (
-              <div key={file.id} className="flex items-center gap-2 rounded bg-gray-100 px-3 py-2">
+              <div key={file.id} className="flex items-center gap-2 rounded-sm bg-gray-100 px-3 py-2">
                 <i className="ri-file-line" />
                 <span className="text-sm">{file.name}</span>
                 <button
@@ -380,7 +380,7 @@ export const ObservationForm: FC<{
         render={({ field }) => (
           <Input
             textArea
-            classes={{ root: '!mb-0' }}
+            classes={{ root: 'mb-0!' }}
             label="Historique observant"
             nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
           />

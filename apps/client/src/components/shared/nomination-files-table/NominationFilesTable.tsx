@@ -84,20 +84,21 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                     <AlertsProvider>
                       <div className="fr-container mb-4 flex flex-col gap-y-4">
                         <div className="self-center">
-                          <AlertsProvider.Alerts small className="flex-shrink-0" />
+                          <AlertsProvider.Alerts small className="shrink-0" />
                         </div>
 
                         {isSg ? (
                           <div className="flex items-center">
                             <NominationFilesAffectationsStatus />
-                            <NominationFilesStatusBadges className="ml-4 border-y-0 border-l border-r-0 border-solid border-l-gray-200 pl-4" />
+                            <NominationFilesStatusBadges className="ml-4 border-y-0 border-r-0 border-l border-solid border-l-gray-200 pl-4" />
                           </div>
                         ) : null}
                       </div>
 
                       <DataTable
                         classNames={{
-                          content: 'max-w-screen-full xl:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto',
+                          content:
+                            'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
                         }}
                         table={table}
                         placeholder={

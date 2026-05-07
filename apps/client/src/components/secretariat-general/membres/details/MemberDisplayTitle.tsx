@@ -96,7 +96,7 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
           />
         </form>
       ) : (
-        <div id={id} className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
+        <div id={id} className="mt-2 rounded-sm border border-gray-300 bg-gray-50 p-4">
           {displayTitle || <span className="text-gray-400">Aucun titre</span>}
         </div>
       )}

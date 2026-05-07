@@ -12,7 +12,7 @@ export function ReportOverviewFileComment(props: { report: DetailedReportDto }) 
       <h2 id={reportHtmlIds.overview.biography}>Historique proposition</h2>
       <div
         aria-labelledby={reportHtmlIds.overview.biography}
-        className="rounde w-full whitespace-pre-line leading-10"
+        className="rounde w-full leading-10 whitespace-pre-line"
       >
         {comment}
       </div>

@@ -12,7 +12,7 @@ export function ReactTableWrapper<Data extends RowData>(props: PropsWithChildren
       <div className="fr-table__wrapper">
         <div className="fr-table__container">
           <div className="fr-table__content flex">
-            <table className="flex-grow table-fixed" style={{ width: 'initial' }}>
+            <table className="grow table-fixed" style={{ width: 'initial' }}>
               {props.children}
             </table>
           </div>

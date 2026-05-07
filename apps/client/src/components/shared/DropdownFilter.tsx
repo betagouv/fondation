@@ -95,8 +95,8 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       </Button>
 
       {isOpen && (
-        <div className="animate-in slide-in-from-top-2 absolute left-0 top-full z-50 mt-2 max-h-[250px] min-w-[230px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-lg duration-200">
-          <Checkbox options={checkboxOptions} state="default" className="mb-0 mt-2" small />
+        <div className="animate-in slide-in-from-top-2 absolute top-full left-0 z-50 mt-2 max-h-[250px] min-w-[230px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-lg duration-200">
+          <Checkbox options={checkboxOptions} state="default" className="mt-2! mb-0!" small />
         </div>
       )}
     </div>

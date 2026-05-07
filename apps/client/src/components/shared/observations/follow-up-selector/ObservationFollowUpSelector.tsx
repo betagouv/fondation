@@ -71,7 +71,7 @@ export function ObservationFollowUpSelector(props: {
     <div>
       <Select
         label="Suite"
-        className="!mb-0"
+        className="mb-0!"
         nativeSelectProps={{
           onChange,
           value: selected,
@@ -87,7 +87,7 @@ export function ObservationFollowUpSelector(props: {
           </option>
         ))}
       </Select>
-      {props.comment && <p className="mb-0 mt-2 p-0 text-sm font-normal italic">{props.comment}</p>}
+      {props.comment && <p className="mt-2 mb-0 p-0 text-sm font-normal italic">{props.comment}</p>}
     </div>
   );
 }

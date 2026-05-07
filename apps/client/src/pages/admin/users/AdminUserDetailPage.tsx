@@ -107,7 +107,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">{props.user.email}</dd>
+        <dd className="rounded-sm border border-gray-300 bg-gray-50 px-4! py-2!">{props.user.email}</dd>
       )}
     </div>
   );
@@ -267,7 +267,9 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4 text-gray-400">••••••••</dd>
+        <dd className="mt-2 rounded-sm border border-gray-300 bg-gray-50 px-4! py-2! text-gray-400">
+          ••••••••
+        </dd>
       )}
     </div>
   );
@@ -320,7 +322,7 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
 
   return (
     <ToggleSwitch
-      classes={{ label: 'before:!mr-1' }}
+      classes={{ label: 'before:mr-1!' }}
       className={props.className}
       checked={props.user.isAdmin}
       disabled={promote.isPending || demote.isPending}
@@ -404,11 +406,11 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           ))}
         </Select>
       ) : (
-        <dd className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
+        <dd className="mt-2 rounded-sm border border-gray-300 bg-gray-50 px-4! py-2!">
           <AdminUserRole value={props.user.role} gender={props.user.gender} />
         </dd>
       )}
-      <AdminUserPromotionToggle className="ml-4 mt-2" user={props.user} />
+      <AdminUserPromotionToggle className="mt-2 ml-4" user={props.user} />
     </div>
   );
 }
@@ -482,7 +484,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <div className="mt-2 rounded border border-gray-300 bg-gray-50 p-4">
+        <div className="mt-2 rounded-sm border border-gray-300 bg-gray-50 p-4">
           {props.user.displayTitle || <span className="text-gray-400">Aucun titre</span>}
         </div>
       )}

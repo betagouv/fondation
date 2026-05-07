@@ -15,12 +15,12 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
   const { data: docs } = useFindSessionDocsQuery({ sessionId });
 
   return (
-    <div className="flex w-[30rem] flex-col">
+    <div className="flex w-120 flex-col">
       <Accordion
         titleAs="h2"
         label={
           <>
-            Pièces jointes <Badge className="ml-1">{(attachments?.items ?? []).length}</Badge>
+            Pièces jointes <Badge className="ml-1!">{(attachments?.items ?? []).length}</Badge>
           </>
         }
       >
@@ -49,7 +49,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
           titleAs="h2"
           label={
             <>
-              Documents <Badge className="ml-1">{(docs?.items ?? []).length}</Badge>
+              Documents <Badge className="ml-1!">{(docs?.items ?? []).length}</Badge>
             </>
           }
         >
@@ -61,7 +61,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         </Accordion>
       )}
 
-      <TableauDeBordActionList className="mt-2" sessionId={sessionId} />
+      <TableauDeBordActionList className="mt-2!" sessionId={sessionId} />
     </div>
   );
 }

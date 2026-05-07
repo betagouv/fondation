@@ -44,7 +44,7 @@ export function ObservationCard({
         <span className="flex flex-row items-center">
           {magistratName}
           {shouldDisplayCommentIcon ? (
-            <i className={clsx(cx('ri-message-3-line'), 'ml-1 before:size-5 before:content-[""]')} />
+            <i className={clsx(cx('ri-message-3-line'), 'ml-1 before:size-5! before:content-[""]')} />
           ) : null}
         </span>
       }

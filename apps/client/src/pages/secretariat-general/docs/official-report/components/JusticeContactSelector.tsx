@@ -113,7 +113,7 @@ export function JusticeContactSelector(props: {
 
       <ComboboxContent>
         <ComboboxEmpty>
-          <span className="text-[0.925rem] italic text-gray-500">
+          <span className="text-[0.925rem] text-gray-500 italic">
             <FormattedMessage defaultMessage={`Pas de représentant existant (en attente d'une saisie)`} />
           </span>
         </ComboboxEmpty>
@@ -134,12 +134,12 @@ export function JusticeContactSelector(props: {
                     disabled={isFetching || isCreating}
                     className={clsx(
                       'w-full first:rounded-t-none last:rounded-b-md',
-                      `first:data-[highlighted]:rounded-t-none`,
-                      `data-[highlighted]:bg-[#f6f6f6] data-[highlighted]:hover:outline-0`,
-                      `data-[highlighted]:outline data-[highlighted]:outline-2`,
-                      `data-[highlighted]:outline-offset-2 data-[highlighted]:outline-blue-500`,
+                      `first:data-highlighted:rounded-t-none`,
+                      `data-highlighted:bg-[#f6f6f6] data-highlighted:hover:outline-0`,
+                      `data-highlighted:outline-2 data-highlighted:outline-solid`,
+                      `data-highlighted:outline-offset-2 data-highlighted:outline-blue-500`,
                       {
-                        'before:size-4 before:animate-spin before:content-[""]': isFetching || isCreating,
+                        'before:size-4! before:animate-spin before:content-[""]': isFetching || isCreating,
                       },
                     )}
                     title={addTitle}

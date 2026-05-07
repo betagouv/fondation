@@ -13,7 +13,7 @@ export function DetailsMemberHeader(props: { member: { firstName: string; lastNa
   }, [navigate]);
 
   return (
-    <div className="sticky top-0 flex flex-row items-start justify-between bg-white">
+    <div className="sticky top-0 z-10 flex flex-row items-start justify-between bg-white">
       <Breadcrumb
         currentPageLabel={capitalize(props.member.firstName) + ' ' + props.member.lastName.toUpperCase()}
         segments={[
@@ -31,7 +31,7 @@ export function DetailsMemberHeader(props: { member: { firstName: string; lastNa
       {window.history.length > 0 ? (
         <Button
           size="small"
-          className="mt-4 flex-grow-0"
+          className="mt-4 grow-0"
           priority="tertiary no outline"
           iconId="fr-icon-close-line"
           iconPosition="right"

@@ -14,7 +14,7 @@ function ReactTablePaginationDescriptionPart<Data>(props: { table: Table<Data> }
   const itemLabel = useDataTablePaginationItemLabel(props.table);
 
   return (
-    <div className="test-gray-600 text-nowrap text-xs">
+    <div className="test-gray-600 text-xs text-nowrap">
       <span className="md:hidden">
         <FormattedMessage
           defaultMessage={`{displayedItemsCount, number} / {totalItemsCount, number} {itemLabel}`}
@@ -86,7 +86,7 @@ function ReactTablePaginationPart<Data extends RowData>(props: { table: Table<Da
       showFirstLast
       count={pageCount}
       defaultPage={pageIndex + 1}
-      classes={{ list: 'flex-nowrap' }}
+      classes={{ list: 'flex-nowrap!' }}
       getPageLinkProps={getPageLinkProps}
     />
   );
@@ -96,7 +96,7 @@ export function ReactTablePagination<Data extends RowData>(props: { table: Table
   if (props.table.options.meta?.paginationEnabled === false) return null;
 
   return (
-    <div className="mt-6 flex items-end justify-between">
+    <div className="mt-6 flex flex-col items-start gap-x-4 gap-y-4 md:flex-row md:items-end md:justify-between">
       <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
         <ReactTablePaginationDescriptionPart table={props.table} />
         <ReactTablePaginationSizeSelector table={props.table} />

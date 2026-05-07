@@ -16,7 +16,7 @@ export function JobsListItem(props: { job: PaginatedJobsDto['items'][number] }) 
 
   return (
     <div>
-      <span className={clsx(icon, textColor, 'font-bold before:mr-2 before:size-5 before:content-[""]')}>
+      <span className={clsx(icon, textColor, 'font-bold before:mr-2 before:size-5! before:content-[""]')}>
         Job #{job.id}
       </span>
 
@@ -25,7 +25,7 @@ export function JobsListItem(props: { job: PaginatedJobsDto['items'][number] }) 
           <span
             className={clsx(
               cx('ri-calendar-line'),
-              'flex items-center text-xs tabular-nums before:mr-1 before:size-4 before:content-[""]',
+              'flex items-center text-xs tabular-nums before:mr-1 before:size-4! before:content-[""]',
             )}
           >
             {startedAtFormatted}
@@ -35,7 +35,7 @@ export function JobsListItem(props: { job: PaginatedJobsDto['items'][number] }) 
           <span
             className={clsx(
               cx('ri-time-line'),
-              'text-xs tabular-nums before:mr-1 before:size-4 before:align-middle before:content-[""]',
+              'text-xs tabular-nums before:mr-1 before:size-4! before:align-middle before:content-[""]',
             )}
           >
             {duration}

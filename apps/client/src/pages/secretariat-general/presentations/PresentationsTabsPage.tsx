@@ -60,14 +60,15 @@ export function PresentationsTabsPage() {
   );
 
   return (
-    <div className="fr-container pt-10">
+    <div className="fr-container py-10">
       <PresentationsBreadcrumb />
       <h1>
         <FormattedMessage defaultMessage="Restitutions" />
       </h1>
 
       <Tabs
-        className="shadow-none before:shadow-[inset_0_1px_0_var(--border-default-grey)] before:content-['']"
+        className="shadow-none! before:shadow-none!"
+        classes={{ panel: 'ring-gray-200 ring-1' }}
         selectedTabId={tabId}
         onTabChange={onTabChange}
         tabs={[

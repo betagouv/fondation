@@ -36,7 +36,7 @@ export function JuridictionAutocomplete(props: {
           />
         )}
       />
-      <p className="mb-0 mt-1 text-xs">
+      <p className="mt-1 mb-0 text-xs">
         {selected.length > 1
           ? `${selected.length} juridictions sélectionnées`
           : `${selected.length} juridiction sélectionnée`}

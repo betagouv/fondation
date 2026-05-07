@@ -48,7 +48,7 @@ function useReportListColumns(sessionId: string) {
         header: 'Magistrat',
         cell: ({ row }) => (
           <Button
-            className="flex flex-col items-start text-left font-normal normal-case"
+            className="flex flex-col! items-start! text-left! font-normal! normal-case!"
             style={{ color: colors.decisions.text.default.grey.default }}
             priority="tertiary no outline"
             size="small"

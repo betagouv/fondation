@@ -46,7 +46,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
   );
 
   const content = (
-    <div className="max-h-96 min-w-[300px] overflow-hidden rounded border border-gray-300 bg-white shadow-lg">
+    <div className="max-h-96 min-w-[300px] overflow-hidden rounded-sm border border-gray-300 bg-white shadow-lg">
       <div className="border-b border-gray-200 p-4">
         <Input
           label=""

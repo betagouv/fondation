@@ -16,14 +16,14 @@ export const MenuTrigger = React.memo((props: ButtonProps) => (
 
 export const MenuContent = React.memo((props: React.PropsWithChildren) => (
   <BaseMenu.Portal>
-    <BaseMenu.Positioner className="outline-none" sideOffset={8} align="end">
+    <BaseMenu.Positioner className="outline-hidden" sideOffset={8} align="end">
       <BaseMenu.Popup
         className={clsx(
-          'flex origin-[var(--transform-origin)] flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg',
+          'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg',
           'transition-[transform,scale,opacity]',
-          'data-[ending-style]:scale-90 data-[starting-style]:scale-90 data-[ending-style]:opacity-0',
-          'data-[starting-style]:opacity-0',
-          'min-w-[var(--anchor-width)]',
+          'data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90',
+          'data-starting-style:opacity-0',
+          'min-w-(--anchor-width)',
         )}
       >
         {props.children}
@@ -44,9 +44,9 @@ export const MenuItem = React.memo((props: ButtonProps) => (
         data-highlighted={state.highlighted}
         disabled={state.disabled}
         className={clsx(
-          'w-full',
-          'first:data-[highlighted]:rounded-t-md',
-          'last:data-[highlighted]:rounded-b-md',
+          'w-full!',
+          'first:data-highlighted:rounded-t-md',
+          'last:data-highlighted:rounded-b-md',
           props.className,
         )}
       >

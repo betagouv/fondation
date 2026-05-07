@@ -23,7 +23,7 @@ export const AppFooter = () => {
           <a
             href="https://www.apache.org/licenses/LICENSE-2.0"
             target="_blank"
-            className="underline hover:no-underline"
+            className="underline! hover:bg-none! hover:no-underline!"
           >
             licence Apache 2.0
           </a>
@@ -38,8 +38,8 @@ export const AppFooter = () => {
       ]}
       domains={isLogin ? undefined : []}
       classes={{
-        root: isLogin ? undefined : 'shadow-none',
-        body: isLogin ? undefined : 'hidden',
+        root: isLogin ? undefined : 'shadow-none!',
+        body: isLogin ? undefined : 'hidden!',
         bottomList: isLogin ? undefined : '',
       }}
       license={''}

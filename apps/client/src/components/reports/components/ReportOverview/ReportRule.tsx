@@ -97,7 +97,7 @@ function RuleCheckboxes(props: {
             {label}
             <Tooltip
               kind="hover"
-              className="max-w-[40rem] self-end"
+              className="max-w-160 self-end"
               id={`${ruleName}-hint`}
               title={
                 <div className="whitespace-pre-line">{typeof hint === 'string' ? <p>{hint}</p> : hint}</div>

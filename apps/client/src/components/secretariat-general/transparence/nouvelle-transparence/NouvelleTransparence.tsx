@@ -112,7 +112,7 @@ const NouvelleTransparence: FC = () => {
             <span
               className={clsx(
                 cx('ri-calendar-2-fill'),
-                'font-medium underline before:mb-1 before:mr-1 before:size-4 before:align-middle before:content-[""]',
+                'font-medium underline before:mr-1 before:mb-1 before:size-4! before:align-middle before:content-[""]',
               )}
             >
               1<sup>er</sup> avril

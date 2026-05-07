@@ -59,7 +59,7 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
         <li key={file.id} className="flex items-center gap-4 pb-0">
           <Button
             priority="tertiary no outline"
-            className={clsx('inline truncate', { 'flex-grow': !isSg })}
+            className={clsx('inline truncate', { grow: !isSg })}
             disabled={isUrlPending || isDeletionPending}
             onClick={() => onCreateUrl(file.id)}
           >

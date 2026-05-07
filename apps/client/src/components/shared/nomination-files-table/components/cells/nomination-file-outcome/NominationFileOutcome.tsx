@@ -23,7 +23,7 @@ export function NominationFileOutcome(props: { nominationFile: SessionNomination
         style={{ '--icon-size': '10px' } as React.CSSProperties}
       >
         <NominationFileOutcomeBadge short formation={formation} outcome={outcome.value} />
-        <i className="ri-message-3-line text-[color:var(--text-action-high-blue-france)] before:size-5 before:content-['']" />
+        <i className="ri-message-3-line text-(--text-action-high-blue-france) before:size-5! before:content-['']" />
       </div>
     </Tooltip>
   );

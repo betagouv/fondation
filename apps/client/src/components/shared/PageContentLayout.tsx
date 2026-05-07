@@ -6,6 +6,7 @@ export type PageContentLayoutProps = PropsWithChildren & {
   fullBackgroundGreen?: boolean;
 };
 
+// FIXME: remove this component and behavior
 export const PageContentLayout: FC<PageContentLayoutProps> = ({
   fullBackgroundOrange = false,
   fullBackgroundGreen = false,

@@ -10,7 +10,7 @@ export type BiographyProps = {
 export const Biography: React.FC<BiographyProps> = ({ biography }) => (
   <Card id={reportHtmlIds.overview.biographySection}>
     <h2 id={reportHtmlIds.overview.biography}>{labels.magistrat.biography}</h2>
-    <div aria-labelledby={reportHtmlIds.overview.biography} className="w-full whitespace-pre-line leading-10">
+    <div aria-labelledby={reportHtmlIds.overview.biography} className="w-full leading-10 whitespace-pre-line">
       {biography}
     </div>
   </Card>
