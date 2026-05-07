@@ -9,10 +9,10 @@ export function JobFileBranch(props: { tree: Tree; root?: boolean }) {
   return (
     <div
       className={clsx(
-        'flex flex-shrink flex-col items-center gap-2 2xl:flex-row',
+        'flex shrink flex-col items-center gap-2 2xl:flex-row',
         props.root &&
           props.tree.size > 1 &&
-          'rounded border border-dashed border-gray-300 p-2 xl:border-none xl:p-0',
+          'rounded-sm border border-dashed border-gray-300 p-2 xl:border-none xl:p-0',
       )}
     >
       <JobFileNode node={props.tree} />

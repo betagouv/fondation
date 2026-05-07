@@ -35,7 +35,7 @@ export function DocActionDetails(props: {
     <Button
       size="small"
       priority="tertiary no outline"
-      className="flex-grow truncate text-left"
+      className="grow truncate text-left"
       disabled={isOpeningAgenda || isOpeningOfficialReport || disabled}
       onClick={onClick}
     >

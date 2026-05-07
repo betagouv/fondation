@@ -14,14 +14,14 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
     <>
       <ul className="flex list-none flex-row flex-wrap items-center gap-x-2 p-0">
         {props.selected.slice(0, 4).map(({ id, label }) => (
-          <li key={`jurisdiction_${id}`} className="flex-shrink-0 flex-grow-0">
+          <li key={`jurisdiction_${id}`} className="shrink-0 grow-0">
             <Tag>{label ?? id}</Tag>
           </li>
         ))}
         {props.selected.length > 4 ? (
-          <li className="flex-shrink-0 whitespace-nowrap">
+          <li className="shrink-0 whitespace-nowrap">
             <Tooltip
-              className="flex-shrink-0"
+              className="shrink-0"
               title={
                 <ul>
                   {props.selected.map(({ label, id }) => (
@@ -33,7 +33,7 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
               <Tag
                 small
                 nativeButtonProps={{
-                  className: 'flex-shrink-0 cursor-help whitespace-nowrap',
+                  className: 'shrink-0 cursor-help whitespace-nowrap',
                 }}
               >
                 {`(+${props.selected.length - 4})`}

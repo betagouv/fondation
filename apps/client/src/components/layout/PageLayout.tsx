@@ -12,8 +12,8 @@ export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
       <BanneredLayout>
         <div className={`flex h-screen flex-col`}>
           <AppHeader />
-          <main className="flex flex-grow">
-            <div className="flex-grow">{children}</div>
+          <main className="flex grow">
+            <div className="grow">{children}</div>
           </main>
           <AppFooter />
         </div>

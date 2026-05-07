@@ -64,7 +64,7 @@ export const AppHeader = () => {
   if (isUserAdmin) {
     navigation.push({
       text: (
-        <span className="ri-admin-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+        <span className="ri-admin-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
           Administration
         </span>
       ),
@@ -79,7 +79,7 @@ export const AppHeader = () => {
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
-            <span className="fr-icon-file-add-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+            <span className="fr-icon-file-add-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
               Import LOLFI manuel
             </span>
           ),
@@ -88,7 +88,7 @@ export const AppHeader = () => {
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
-            <span className="ri-play-circle-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+            <span className="ri-play-circle-line before:mr-2 before:size-5! before:align-middle before:content-['']">
               Ingestions
             </span>
           ),
@@ -97,7 +97,7 @@ export const AppHeader = () => {
         {
           linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
           text: (
-            <span className="ri-user-settings-line before:mr-2 before:size-5 before:align-middle before:content-['']">
+            <span className="ri-user-settings-line before:mr-2 before:size-5! before:align-middle before:content-['']">
               Gestion des utilisateurs
             </span>
           ),

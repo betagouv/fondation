@@ -12,7 +12,7 @@ export function ManageSessionsLink() {
         <Badge
           severity="new"
           small
-          className="ml-1 before:m-0 before:content-['']"
+          className="ml-1! before:m-0! before:content-['']"
           // oxlint-disable-next-line react/no-children-prop
           children={undefined as unknown as NonNullable<React.ReactNode>}
         />

@@ -11,7 +11,7 @@ export const StagingAppLayout: React.FC<React.PropsWithChildren> = ({ children }
   return (
     <>
       <div
-        className="fixed left-0 right-0 top-0 z-[1000] flex h-10 items-center justify-center"
+        className="fixed top-0 right-0 left-0 z-1000 flex h-10 items-center justify-center"
         style={{ color: textColor, backgroundColor: bgColor }}
       >
         <p className="mb-0 text-sm">

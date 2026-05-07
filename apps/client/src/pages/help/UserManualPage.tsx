@@ -7,7 +7,7 @@ export function UserManualPage() {
 
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <section className="fr-container fr-py-5w w-5/12 min-w-[56rem]">
+      <section className="fr-container fr-py-5w w-5/12 min-w-4xl">
         {isSg ? <SGUserManual /> : <MemberUserManual />}
       </section>
     </AuthGuard>
@@ -19,7 +19,7 @@ function UserManualHeading(props: { children: string }) {
     <header className="mb-8">
       <h1 className="flex items-center justify-center">
         <span>Manuel utilisateur</span>
-        <span className="fr-h3 my-0 ml-2 border-y-0 border-l-2 border-r-0 border-solid pl-2">
+        <span className="fr-h3 my-0! ml-2! border-y-0 border-r-0 border-l-2 border-solid pl-2">
           {props.children}
         </span>
       </h1>

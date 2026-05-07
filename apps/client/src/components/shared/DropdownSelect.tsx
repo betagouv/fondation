@@ -55,7 +55,7 @@ export const DropdownSelect = <T extends string = string>({
 
   return (
     <DropdownMenu trigger={trigger} isOpen={isOpen} onOpenChange={setIsOpen}>
-      <div className="min-w-[200px] overflow-hidden rounded border border-gray-300 bg-[canvas] shadow-lg">
+      <div className="min-w-[200px] overflow-hidden rounded-sm border border-gray-300 bg-[canvas] shadow-lg">
         <div className="max-h-64 space-y-1 overflow-y-auto p-2">
           {options.map((option) => (
             <button

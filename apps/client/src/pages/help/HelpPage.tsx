@@ -8,7 +8,7 @@ import { useUser } from '@queries/auth.queries';
 export function HelpPage() {
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <article className="fr-container fr-py-5w mx-auto w-5/12 min-w-[56rem]">
+      <article className="fr-container fr-py-5w mx-auto w-5/12 min-w-4xl">
         <h1 className="flex justify-between">
           <span>Aide au traitement des dossiers</span>
           <Button
@@ -39,7 +39,11 @@ export function HelpPageButton() {
   if (!user) return null;
 
   return (
-    <Button linkProps={{ to: ROUTE_PATHS.HELP }} iconId="fr-icon-questionnaire-line" className="self-center">
+    <Button
+      linkProps={{ to: ROUTE_PATHS.HELP }}
+      iconId="fr-icon-questionnaire-line"
+      className="mb-0! self-center"
+    >
       Centre d'aide
     </Button>
   );

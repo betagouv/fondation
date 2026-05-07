@@ -83,13 +83,13 @@ export function JobsPage() {
         title={
           <>
             <h2>Ingestions</h2>
-            <div className="flex flex-nowrap gap-x-2 overflow-x-scroll pb-4 pt-2">
+            <div className="flex flex-nowrap gap-x-2 overflow-x-scroll pt-2 pb-4">
               {statuses.map((s) => (
                 <Tag
                   small
                   key={s}
                   pressed={statusFilter.includes(s)}
-                  className="flex-shrink-0 flex-grow-0 text-nowrap"
+                  className="shrink-0 grow-0 font-normal text-nowrap"
                   nativeButtonProps={{ onClick: () => toggleStatus(s) }}
                 >
                   {JobStatusEnumLabel[s]}

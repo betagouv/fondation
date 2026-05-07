@@ -12,7 +12,7 @@ export function MemberListStatCell({ stats }: { stats: StatArray }) {
   );
 
   return (stats?.length ?? 0) > 0 ? (
-    <ul className="content m-0 flex list-none flex-row items-center justify-start gap-2 p-0">
+    <ul className="content m-0! flex list-none flex-row items-center justify-start gap-2 p-0">
       {sortedStats.map((stat) => (
         <li key={`member_list_stats_${stat.targetedGrade}`}>
           <Tag small>

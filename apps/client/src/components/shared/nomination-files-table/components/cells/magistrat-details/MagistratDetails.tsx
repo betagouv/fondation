@@ -83,7 +83,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
         </label>
         <div
           aria-labelledby={reportHtmlIds.overview.biography}
-          className="w-full whitespace-pre-line leading-7"
+          className="w-full leading-7 whitespace-pre-line"
         >
           {formattedBiography}
         </div>
@@ -100,7 +100,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           Observant(s){observersCount > 0 ? ` (${observersCount})` : null}
         </label>
         {formattedObservers && (
-          <div className="w-full whitespace-pre-line leading-7">{formattedObservers}</div>
+          <div className="w-full leading-7 whitespace-pre-line">{formattedObservers}</div>
         )}
         {nominationFile.observations && nominationFile.observations.length > 0 && (
           <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'mt-2')}>
@@ -116,7 +116,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           </div>
         )}
         {!formattedObservers && !(nominationFile.observations || []).length && (
-          <div className="w-full whitespace-pre-line leading-7">Aucun</div>
+          <div className="w-full leading-7 whitespace-pre-line">Aucun</div>
         )}
       </div>
 

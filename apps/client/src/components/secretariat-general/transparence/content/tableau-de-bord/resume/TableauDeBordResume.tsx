@@ -64,7 +64,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
           <MenuTrigger
             disabled={deleteSessionMutation.isPending}
             iconId={deleteSessionMutation.isPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
-            className={clsx('flex-shrink-0 flex-grow-0 rounded-full', {
+            className={clsx('shrink-0 grow-0 rounded-full', {
               "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
             })}
             priority="tertiary no outline"
@@ -111,8 +111,8 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
 
       <div className="flex max-w-xl flex-col gap-y-2">
         <div className="flex items-center justify-between gap-6">
-          <p className="m-0 text-sm text-gray-600">Transparence du {date}</p>
-          <span className="rounded bg-gray-100 p-1 text-xs font-semibold uppercase text-gray-600">
+          <p className="m-0! text-sm text-gray-600">Transparence du {date}</p>
+          <span className="rounded-sm bg-gray-100 p-1 text-xs font-semibold text-gray-600 uppercase">
             {FormationEnumLabel[transparence.formation]}
           </span>
         </div>

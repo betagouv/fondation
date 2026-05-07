@@ -77,7 +77,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
 
             'before:block',
             'before:content-[""]',
-            'before:size-4',
+            'before:size-4!',
           )}
         />
         <span

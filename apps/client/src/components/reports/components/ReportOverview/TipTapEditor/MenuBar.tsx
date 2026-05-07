@@ -17,7 +17,7 @@ import { headingLevels } from './extensions/constant';
 
 export const MenuBar = () => {
   return (
-    <div className="sticky top-2 z-10 mb-1 bg-white px-4 pb-3 pt-4">
+    <div className="sticky top-2 z-10 mb-1 bg-white px-4 pt-4 pb-3">
       <div className={cx('fr-grid-row')}>
         <UndoButton />
         <RedoButton />

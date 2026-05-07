@@ -148,7 +148,7 @@ export function PresentationsTabReady() {
                     small
                     as="button"
                     title={$t({ defaultMessage: 'Marquer restitué' })}
-                    className="!bg-[var(--background-contrast-yellow-moutarde)] font-bold uppercase !text-[color:var(--text-action-high-yellow-moutarde)] hover:!bg-[var(--background-contrast-yellow-moutarde-hover)] active:!bg-[var(--background-contrast-yellow-moutarde-active)]"
+                    className="bg-(--background-contrast-yellow-moutarde)! font-bold text-(--text-action-high-yellow-moutarde)! uppercase hover:bg-(--background-contrast-yellow-moutarde-hover)! active:bg-(--background-contrast-yellow-moutarde-active)!"
                     nativeButtonProps={{ onClick: onClickPresent, 'data-plan-id': item.id }}
                   >
                     Restituer

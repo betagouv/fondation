@@ -19,7 +19,7 @@ export function ReportListViewToggle(props: { onChange?: (focus: 'general' | 'af
       labelPosition="right"
       className="nowrap"
       classes={{
-        label: 'flex-nowrap flex-grow whitespace-nowrap before:!mr-3',
+        label: 'flex-nowrap grow whitespace-nowrap before:mr-3!',
       }}
     />
   );

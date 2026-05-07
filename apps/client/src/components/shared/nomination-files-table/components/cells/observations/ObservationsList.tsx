@@ -35,7 +35,7 @@ const ObservationCard: FC<{
   };
 
   return (
-    <div className="rounded border bg-white p-4 shadow-sm">
+    <div className="rounded-sm border bg-white p-4 shadow-xs">
       <div className="mb-2 flex items-start justify-between">
         <div>
           <div className="text-sm text-gray-500">Reçue le {formatDate(observation.dateReception)}</div>
@@ -132,7 +132,7 @@ export const ObservationsList: FC<{
       {isLoading ? (
         <div className="text-gray-500">Chargement...</div>
       ) : observations.length === 0 ? (
-        <div className="rounded bg-gray-50 p-4 text-center text-gray-500">
+        <div className="rounded-sm bg-gray-50 p-4 text-center text-gray-500">
           Aucune observation pour ce dossier
         </div>
       ) : (

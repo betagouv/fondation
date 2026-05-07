@@ -32,10 +32,10 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
       role="button"
       onClick={() => toggleFile(props.node.id)}
       className={clsx(
-        'cursor-pointer select-none rounded border border-solid bg-white p-4 text-sm transition-all duration-100 hover:border-opacity-85',
+        'hover:border-opacity-85 cursor-pointer rounded-sm border border-solid bg-white p-4 text-sm transition-all duration-100 select-none',
         isSelected
-          ? 'border-blue-500 shadow hover:border-blue-600 hover:shadow-md'
-          : 'border-gray-300 hover:border-blue-400 hover:shadow',
+          ? 'border-blue-500 shadow-sm hover:border-blue-600 hover:shadow-md'
+          : 'border-gray-300 hover:border-blue-400 hover:shadow-sm',
       )}
     >
       <span className="flex items-center">
@@ -45,7 +45,7 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
               ? ['text-orange-500', cx('ri-error-warning-fill')]
               : [textColor, icon],
             'before:content-[""]',
-            'before:size-4',
+            'before:size-4!',
             'before:align-middle',
             'mr-1',
           )}

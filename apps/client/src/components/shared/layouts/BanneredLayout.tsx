@@ -10,7 +10,7 @@ export function Banners(
   return (
     <div
       ref={props.ref}
-      className={clsx('fixed left-0 right-0 top-0 z-[1000] flex flex-col', props.hidden && 'opacity-0')}
+      className={clsx('fixed top-0 right-0 left-0 z-1000 flex flex-col', props.hidden && 'opacity-0')}
     >
       {props.children}
     </div>

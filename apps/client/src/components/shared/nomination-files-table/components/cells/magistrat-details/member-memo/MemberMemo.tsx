@@ -39,12 +39,12 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
 function ReadOnlyMemo(props: { value: string | null }) {
   const value = props.value || '';
 
-  if (value.length === 0) return <div className="text-sm italic text-gray-500">N/A</div>;
+  if (value.length === 0) return <div className="text-sm text-gray-500 italic">N/A</div>;
 
   // we use a <pre /> to handle '\n'
   return (
     <pre
-      className="mb-0 mt-2 overflow-hidden text-wrap rounded-t-lg bg-[var(--background-contrast-grey)] px-4 py-2 leading-6"
+      className="mt-2 mb-0 overflow-hidden rounded-t-lg bg-(--background-contrast-grey) px-4 py-2 leading-6 text-wrap"
       style={{ fontFamily: 'inherit' }}
     >
       {value}

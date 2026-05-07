@@ -1,7 +1,8 @@
-import './ReportSummaryCard.css';
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import React from 'react';
+
+import './ReportSummaryCard.css';
 
 import { reportHtmlIds } from '../../dom/html-ids';
 import type { DetailedReportDto } from '@api/types';

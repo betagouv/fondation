@@ -108,7 +108,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
                     key={virtualItem.key}
                     data-index={virtualItem.index}
                     ref={virtualizer.measureElement}
-                    className="absolute left-0 top-0 w-full px-2 hover:bg-gray-50"
+                    className="absolute top-0 left-0 w-full px-2 hover:bg-gray-50"
                     style={{ transform: `translateY(${virtualItem.start}px)` }}
                   >
                     <AgendaNominationFile
@@ -129,7 +129,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
       <div
         className={clsx(
           cx('ri-arrow-down-s-line'),
-          'h-[32.5px] w-full pt-2 text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8 before:content-[""]',
+          'h-[32.5px] w-full pt-2 text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8! before:content-[""]',
           down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_#fff]',
         )}
       />

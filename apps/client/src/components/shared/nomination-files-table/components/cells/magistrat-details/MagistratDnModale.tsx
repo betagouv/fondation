@@ -131,7 +131,7 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
   return (
     <Button
       size="small"
-      className="flex flex-col items-start text-left font-normal normal-case"
+      className="flex! flex-col! items-start! text-left! font-normal! normal-case!"
       style={{ color: colors.decisions.text.default.grey.default }}
       priority="tertiary no outline"
       aria-controls={modalMagistratDnDetails.id}
@@ -141,7 +141,7 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {props.nominationFile.content.nomMagistrat}
         {hasComment && (
           <i
-            className="ri-message-3-line ml-1 cursor-pointer before:size-5 before:content-['']"
+            className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
             title="Commentaire présent"
             aria-label="Commentaire présent"
           />
