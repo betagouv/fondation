@@ -28,12 +28,9 @@ export default defineConfig({
     }),
     formatjs({ ast: true }),
   ],
-  optimizeDeps: {
-    include: ['shared-models'],
-  },
   build: {
     commonjsOptions: {
-      include: [/shared-models/, /node_modules/],
+      include: [/node_modules/],
     },
 
     sourcemap: true,

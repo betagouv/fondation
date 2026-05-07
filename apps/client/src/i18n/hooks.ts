@@ -3,11 +3,9 @@ import { fr as dateLocaleFr } from 'date-fns/locale/fr';
 import React from 'react';
 import { useIntl } from 'react-intl';
 
-import type { DateOnlyJson } from 'shared-models';
+import { DateOnly, type PlainDateOnly } from '@/models/date-only.model';
 
-import { DateOnly } from '@/models/date-only.model';
-
-function asDate(value: Date | DateOnly | DateOnlyJson): Date {
+function asDate(value: Date | DateOnly | PlainDateOnly): Date {
   return value instanceof DateOnly
     ? value.toDate()
     : value instanceof Date
@@ -16,7 +14,7 @@ function asDate(value: Date | DateOnly | DateOnlyJson): Date {
 }
 
 export function useIntlAge() {
-  return React.useCallback((birthDate: Date | DateOnly | DateOnlyJson | null | undefined) => {
+  return React.useCallback((birthDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
     if (birthDate === null || birthDate === undefined) return null;
 
     const now = new Date();
@@ -31,7 +29,7 @@ export function useIntlBirthDate() {
   const formatAge = useIntlAge();
 
   return React.useCallback(
-    (birthDate: Date | DateOnly | DateOnlyJson | null | undefined) => {
+    (birthDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
       if (birthDate === null || birthDate === undefined) return null;
       const age = formatAge(birthDate);
       if (age === null) return null;
@@ -50,7 +48,7 @@ export function useIntlPositionDuration() {
   const delimiter = $t({ defaultMessage: ' et ' });
 
   return React.useCallback(
-    (startDate: Date | DateOnly | DateOnlyJson | null | undefined) => {
+    (startDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
       if (startDate === null || startDate === undefined) return null;
 
       const now = new Date();

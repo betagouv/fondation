@@ -1,5 +1,4 @@
-import type { DateOnlyJson } from 'shared-models';
-
+import type { PlainDateOnly } from '@/models/date-only.model';
 import type { FormationEnum } from '@/types/enums.types';
 
 export type AgendaStep = {
@@ -9,15 +8,15 @@ export type AgendaStep = {
 };
 
 export type AgendaMetadata = {
-  sessionMeetingDate: DateOnlyJson;
-  date: DateOnlyJson;
+  sessionMeetingDate: PlainDateOnly;
+  date: PlainDateOnly;
   chairmanId: string;
 };
 
 export type AgendaContextType = {
   step: AgendaStep;
   agendaId: string | null;
-  session: { id: string; dueDate: DateOnlyJson | null; formation: FormationEnum };
+  session: { id: string; dueDate: PlainDateOnly | null; formation: FormationEnum };
   metadata: AgendaMetadata | null;
   isSubmitting: boolean;
   goToNominationFiles(values: AgendaMetadata): void;

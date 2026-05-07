@@ -5,10 +5,7 @@ import React, { type FC } from 'react';
 import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
-import { NominationFile } from 'shared-models';
-
 import { PageContentLayout } from '../../../shared/PageContentLayout';
-import { gradeToLabel } from '../../labels/labels-mappers';
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
@@ -16,7 +13,6 @@ import {
   PrioriteEnum,
   PrioriteEnumLabels,
   type FormationEnum,
-  type GradeEnum,
   type ReportStatusEnum,
 } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -67,7 +63,7 @@ function useReportListColumns(sessionId: string) {
       h.accessor('grade', {
         enableSorting: false,
         header: 'Grade actuel',
-        cell: ({ getValue }) => gradeToLabel(getValue() as GradeEnum),
+        cell: ({ getValue }) => getValue(),
         meta: { size: '10%' },
       }),
 
@@ -81,7 +77,7 @@ function useReportListColumns(sessionId: string) {
       h.accessor('targetedGrade', {
         enableSorting: true,
         header: 'Grade cible',
-        cell: ({ getValue }) => gradeToLabel(getValue()),
+        cell: ({ getValue }) => getValue(),
       }),
 
       h.accessor('observations', {
@@ -131,10 +127,10 @@ function useReportListColumns(sessionId: string) {
             filterId: 'status',
             label: 'Statut',
             values: [
-              { id: NominationFile.ReportState.NEW, label: 'Nouveau' },
-              { id: NominationFile.ReportState.IN_PROGRESS, label: 'En cours' },
-              { id: NominationFile.ReportState.READY_TO_SUPPORT, label: 'Prêt à soutenir' },
-              { id: NominationFile.ReportState.SUPPORTED, label: 'Soutenu' },
+              { id: 'NEW' satisfies ReportStatusEnum, label: 'Nouveau' },
+              { id: 'IN_PROGRESS' satisfies ReportStatusEnum, label: 'En cours' },
+              { id: 'READY_TO_SUPPORT' satisfies ReportStatusEnum, label: 'Prêt à soutenir' },
+              { id: 'SUPPORTED' satisfies ReportStatusEnum, label: 'Soutenu' },
             ],
           },
         },
@@ -162,7 +158,7 @@ export const ReportListPage: FC = () => {
   const { data: detailedGdsSession, isPending: isGdsSessionPending } = useDetailedMemberGdsSession({
     sorting: tableState.sorting,
     pagination: tableState.pagination,
-    status: tableState.columnFilters.find(({ id }) => id === 'status')?.value as NominationFile.ReportState[],
+    status: tableState.columnFilters.find(({ id }) => id === 'status')?.value as ReportStatusEnum[],
     priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')
       ?.value as (PrioriteEnum | null)[],
 

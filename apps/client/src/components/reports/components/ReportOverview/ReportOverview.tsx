@@ -2,17 +2,19 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { NominationFile } from 'shared-models';
-
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage,
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { ScrollToTop } from '../../../shared/ScrollToTop';
-import { useReportQuery } from '@queries/reports.queries';
-import { useAttachReportFilesMutation } from '@queries/reports.queries';
-import { useDetachReportFilesMutation, useUpdateReportMutation } from '@queries/reports.queries';
+import type { ReportStatusEnum } from '@/types/enums.types';
+import {
+  useAttachReportFilesMutation,
+  useDetachReportFilesMutation,
+  useReportQuery,
+  useUpdateReportMutation,
+} from '@queries/reports.queries';
 
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
@@ -54,8 +56,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
   const formattedBiography = formatBiography(retrievedReport.biography);
 
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
-  const onUpdateState = (status: NominationFile.ReportState) =>
-    updateReport({ reportId: id, data: { status } });
+  const onUpdateState = (status: ReportStatusEnum) => updateReport({ reportId: id, data: { status } });
 
   const onFilesAttached = (files: File[]) => {
     attachReportFiles({

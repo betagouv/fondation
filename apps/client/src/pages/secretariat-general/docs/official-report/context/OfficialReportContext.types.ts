@@ -1,9 +1,8 @@
-import type { DateOnlyJson } from 'shared-models';
-
+import type { PlainDateOnly } from '@/models/date-only.model';
 import type { FormationEnum } from '@/types/enums.types';
 
 export type OfficialReport = {
-  sessionMeetingDate: DateOnlyJson;
+  sessionMeetingDate: PlainDateOnly;
   sessionMeetingTime: string;
   hasRenunciation: boolean;
   justiceDepartmentContactId: string;

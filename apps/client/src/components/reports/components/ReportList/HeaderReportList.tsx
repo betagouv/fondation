@@ -2,20 +2,19 @@ import { colors } from '@codegouvfr/react-dsfr';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import { DateOnly } from '../../../../models/date-only.model';
+import { DateOnly, type PlainDateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage,
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
-import type { DateOnlyJson } from '@/types/date-only.types';
 import type { FormationEnum } from '@/types/enums.types';
 
 export type HeaderReportListProps = {
-  dateTransparence: DateOnlyJson;
+  dateTransparence: PlainDateOnly;
   transparency: string;
   formation: FormationEnum;
-  dueDate: DateOnlyJson | null;
+  dueDate: PlainDateOnly | null;
 };
 
 export const HeaderReportList: FC<HeaderReportListProps> = ({
@@ -74,7 +73,7 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
   );
 };
 
-function DisplayedDate(props: { dateOnly: DateOnlyJson | null | undefined }) {
+function DisplayedDate(props: { dateOnly: PlainDateOnly | null | undefined }) {
   if (!props.dateOnly) return null;
 
   const dateOnly = DateOnly.fromStoreModel(props.dateOnly);

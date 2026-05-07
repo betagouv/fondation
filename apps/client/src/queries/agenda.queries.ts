@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { DateOnlyJson } from 'shared-models';
-
 import { useTab } from '@/hooks/useTab';
+import type { PlainDateOnly } from '@/models/date-only.model';
 import type { FormationEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type { FoundJusticeContactsDto } from '@api/types';
@@ -33,8 +32,8 @@ export function useCreateAgendaMutation() {
   return useMutation({
     mutationFn: (command: {
       sessionId: string;
-      sessionMeetingDate: DateOnlyJson;
-      date: DateOnlyJson;
+      sessionMeetingDate: PlainDateOnly;
+      date: PlainDateOnly;
       nominationFileIds: string[];
       chairmanId: string;
     }) =>
@@ -78,8 +77,8 @@ export function useUpdateAgendaMutation(sessionId: string) {
   return useMutation({
     mutationFn: (command: {
       agendaId: string;
-      sessionMeetingDate: DateOnlyJson;
-      date: DateOnlyJson;
+      sessionMeetingDate: PlainDateOnly;
+      date: PlainDateOnly;
       nominationFileIds: string[];
       chairmanId: string;
     }) =>

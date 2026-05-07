@@ -2,8 +2,6 @@ import { format, isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { z } from 'zod';
 
-import type { DateOnlyJson } from 'shared-models';
-
 const dateOnlyJsonSchema = z.object({
   year: z.number(),
   month: z.number().min(1).max(12),
@@ -28,6 +26,8 @@ function assertIsValidDate(date: Date, message?: string): Date {
   if (!isValid(date)) throw new Error(message ?? `Invalid date`);
   return date;
 }
+
+export type PlainDateOnly = { day: number; month: number; year: number };
 
 export class DateOnly {
   static ZOD_JSON_SCHEMA = dateOnlyJsonSchema;
@@ -55,7 +55,7 @@ export class DateOnly {
   }
 
   // TODO: rename to `toJSON`
-  toStoreModel(): DateOnlyJson {
+  toStoreModel(): PlainDateOnly {
     const year = this.value.getFullYear();
     const month = this.value.getMonth() + 1;
     const day = this.value.getDate();
@@ -64,12 +64,12 @@ export class DateOnly {
   }
 
   // TODO: rename to `fromJSON`
-  static fromStoreModel(date: DateOnlyJson): DateOnly {
+  static fromStoreModel(date: PlainDateOnly): DateOnly {
     return new DateOnly(assertIsValidDate(new Date(Date.UTC(date.year, date.month - 1, date.day))));
   }
 
   // FIXME: remove, this method does too many things
-  static fromDateOnly(dateOnly: DateOnlyJson, format: 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
+  static fromDateOnly(dateOnly: PlainDateOnly, format: 'dd/MM/yyyy' | 'yyyy-MM-dd' = 'dd/MM/yyyy'): string {
     return this.fromStoreModel(dateOnly).toFormattedString(format);
   }
 

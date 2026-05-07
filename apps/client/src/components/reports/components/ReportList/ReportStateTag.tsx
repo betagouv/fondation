@@ -4,8 +4,7 @@ import Tag, { type TagProps } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import type { FC } from 'react';
 
-import { stateToLabel } from '../../labels/state-label.mapper';
-import type { ReportStatusEnum } from '@/types/enums.types';
+import { REPORT_STATUS_ENUM_LABEL, type ReportStatusEnum } from '@/types/enums.types';
 
 export type ReportStateTagProps = {
   state: ReportStatusEnum;
@@ -43,7 +42,7 @@ const statesSpec: Record<
 
 export const ReportStateTag: FC<ReportStateTagProps> = ({ state }) => {
   const activeSpec = statesSpec[state];
-  const label = stateToLabel(state);
+  const label = REPORT_STATUS_ENUM_LABEL[state];
 
   return (
     <Tag

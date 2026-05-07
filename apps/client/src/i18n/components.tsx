@@ -1,9 +1,7 @@
 import React from 'react';
 import { useIntl } from 'react-intl';
 
-import type { DateOnlyJson } from 'shared-models';
-
-import type { DateOnly } from '@/models/date-only.model';
+import type { DateOnly, PlainDateOnly } from '@/models/date-only.model';
 
 import { useIntlAge, useIntlBirthDate, useIntlPositionDuration } from './hooks';
 
@@ -20,7 +18,7 @@ export function FormattedAge(props: { value: Date | DateOnly }) {
 }
 
 export function FormattedPositionDuration(props: {
-  value: Date | DateOnly | DateOnlyJson | null | undefined;
+  value: Date | DateOnly | PlainDateOnly | null | undefined;
 }) {
   const formatDuration = useIntlPositionDuration();
   const formatted = formatDuration(props.value);
@@ -28,7 +26,7 @@ export function FormattedPositionDuration(props: {
   return <Formatted>{formatted}</Formatted>;
 }
 
-export function FormattedBirthDate(props: { value: Date | DateOnly | DateOnlyJson | null | undefined }) {
+export function FormattedBirthDate(props: { value: Date | DateOnly | PlainDateOnly | null | undefined }) {
   const formatBirthDate = useIntlBirthDate();
   const formatted = formatBirthDate(props.value);
 

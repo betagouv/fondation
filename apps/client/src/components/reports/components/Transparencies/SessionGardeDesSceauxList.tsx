@@ -3,9 +3,7 @@ import { Tabs, type TabsProps } from '@codegouvfr/react-dsfr/Tabs';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 
-import { Magistrat } from 'shared-models';
-
-import { formationToLabel } from '../../labels/labels-mappers';
+import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
 import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
 
@@ -24,12 +22,12 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
       return byFormation;
     },
     {
-      [Magistrat.Formation.PARQUET]: {
+      [FormationEnum.PARQUET]: {
         length: 0,
         affected: [] as SessionOfTypeGardeDesSceaux[],
         nonAffected: [] as SessionOfTypeGardeDesSceaux[],
       },
-      [Magistrat.Formation.SIEGE]: {
+      [FormationEnum.SIEGE]: {
         length: 0,
         affected: [] as SessionOfTypeGardeDesSceaux[],
         nonAffected: [] as SessionOfTypeGardeDesSceaux[],
@@ -37,10 +35,10 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
     },
   );
 
-  const tabs = [Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET]
+  const tabs = [FormationEnum.SIEGE, FormationEnum.PARQUET]
     .filter((formation) => sessionsByFormation[formation].length > 0)
     .map((formation): TabsProps.Uncontrolled['tabs'][number] => ({
-      label: formationToLabel(formation),
+      label: FormationEnumLabel[formation],
       content: (
         <div className="flex flex-col gap-6">
           <section>

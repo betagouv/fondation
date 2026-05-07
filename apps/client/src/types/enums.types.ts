@@ -19,6 +19,20 @@ export const RoleEnumLabels: Record<RoleEnum, string> = {
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
 export type ReportStatusEnum = NonNullable<DetailedReportDto['state']>;
+export const REPORT_STATUSES = [
+  'NEW',
+  'IN_PROGRESS',
+  'READY_TO_SUPPORT',
+  'SUPPORTED',
+] as const satisfies ReportStatusEnum[];
+
+export const REPORT_STATUS_ENUM_LABEL = {
+  NEW: 'Nouveau',
+  IN_PROGRESS: 'En cours',
+  READY_TO_SUPPORT: 'Prêt à soutenir',
+  SUPPORTED: 'Soutenu',
+} as const satisfies Record<ReportStatusEnum, string>;
+
 // TODO: remove?
 export type ReportFileUsageEnum = NonNullable<
   DetailedReportDto['attachments'][number]['usage'] | DetailedReportDto['screenshots'][number]['usage']
