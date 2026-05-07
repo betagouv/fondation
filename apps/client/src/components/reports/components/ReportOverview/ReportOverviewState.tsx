@@ -1,29 +1,26 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, FC } from 'react';
 
-import { NominationFile } from 'shared-models';
-
-import { stateToLabel } from '../../labels/state-label.mapper';
+import { REPORT_STATUS_ENUM_LABEL, type ReportStatusEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 
 import { Card } from './Card';
 
 export type ReportOverviewStateProps = {
   state: DetailedReportDto['state'];
-  onUpdateState: (state: NominationFile.ReportState) => void;
+  onUpdateState: (state: ReportStatusEnum) => void;
 };
 
 export const ReportOverviewState: FC<ReportOverviewStateProps> = ({ state, onUpdateState }) => {
-  const onChange = (e: ChangeEvent<HTMLSelectElement>) =>
-    onUpdateState(e.target.value as NominationFile.ReportState);
+  const onChange = (e: ChangeEvent<HTMLSelectElement>) => onUpdateState(e.target.value as ReportStatusEnum);
 
   return (
     <Card>
       <div className="flex">
         <Select label="Statut du rapport" nativeSelectProps={{ value: state, onChange }}>
-          {Object.values(NominationFile.ReportState).map((status) => (
+          {Object.entries(REPORT_STATUS_ENUM_LABEL).map(([status, label]) => (
             <option key={status} value={status}>
-              {stateToLabel(status)}
+              {label}
             </option>
           ))}
         </Select>

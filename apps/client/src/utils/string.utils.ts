@@ -25,9 +25,3 @@ export function capitalize(input: string): string {
 
   return output;
 }
-
-export function pluralize(count: number, key: { one: string; other: string }): string {
-  // TODO: use Intl.PluralRules?
-  if (count === 1 || count === 0) return key.one;
-  return key.other;
-}

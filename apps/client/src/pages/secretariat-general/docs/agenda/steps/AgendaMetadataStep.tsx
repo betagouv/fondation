@@ -6,11 +6,9 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
 
-import type { DateOnlyJson } from 'shared-models';
-
 import { AgendaChairmanSelect } from '../components/AgendaChairmanSelect';
 import { useAgenda } from '../context/AgendaContext';
-import { DateOnly } from '@/models/date-only.model';
+import { DateOnly, type PlainDateOnly } from '@/models/date-only.model';
 
 const AgendaMetadataSchema = z.object({
   date: DateOnly.codec(),
@@ -18,7 +16,7 @@ const AgendaMetadataSchema = z.object({
   chairmanId: z.uuid('Veuillez sélectionner un président'),
 });
 
-function dateOnlyString(json: DateOnlyJson): string {
+function dateOnlyString(json: PlainDateOnly): string {
   return DateOnly.fromStoreModel(json).toFormattedString('yyyy-MM-dd');
 }
 

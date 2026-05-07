@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { NominationFile } from 'shared-models';
-
-import type { PrioriteEnum } from '@/types/enums.types';
+import type { PrioriteEnum, ReportStatusEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
@@ -160,7 +158,7 @@ export function useDetailedMemberGdsSession(input: {
   userId: string | undefined;
   sessionId: string | undefined;
 
-  status: NominationFile.ReportState[] | undefined;
+  status: ReportStatusEnum[] | undefined;
   priorities: (PrioriteEnum | null)[] | undefined;
   pagination: { pageIndex: number; pageSize: number };
   sorting: { id: 'name' | 'fileNumber' | 'targetedPosition' | 'targetedGrade'; desc: boolean }[];

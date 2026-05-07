@@ -1,8 +1,8 @@
 import type { NavigateFunction } from 'react-router';
 
-import { formationToLabel, transparencyToLabel } from '../components/reports/labels/labels-mappers';
+import { transparencyToLabel } from '../components/reports/labels/labels-mappers';
 import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
-import type { FormationEnum } from '@/types/enums.types';
+import { FormationEnumLabel, type FormationEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
@@ -48,7 +48,7 @@ export const getTransparencesBreadCrumb = (
   switch (currentPage.name) {
     case TransparencesCurrentPage.perGdsTransparencyReports: {
       return {
-        currentPageLabel: `Formation ${formationToLabel(currentPage.formation)}`,
+        currentPageLabel: `Formation ${FormationEnumLabel[currentPage.formation]}`,
         segments: [transparenciesSegment, gdsTransparenciesSegment],
       };
     }

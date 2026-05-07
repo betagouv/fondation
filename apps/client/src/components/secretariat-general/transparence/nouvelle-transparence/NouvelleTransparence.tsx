@@ -11,13 +11,12 @@ import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
-import { formationToLabel } from '../../../reports/labels/labels-mappers';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { PageContentLayout } from '../../../shared/PageContentLayout';
+import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
+import { capitalize } from '@/utils/string.utils';
 import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
 
 import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
@@ -34,9 +33,7 @@ const nouvelleTransparenceDtoSchema = z.object({
     .trim()
     .min(1, mandatoryField),
   date: z.iso.date(invalidDateFormat),
-  formation: z.enum(Magistrat.Formation, {
-    message: mandatoryField,
-  }),
+  formation: z.enum(FormationEnum, { message: mandatoryField }),
   dueDate: optionalDate,
   positionStartDate: optionalDate,
   observationClosingDate: z.iso.date(invalidDateFormat),
@@ -193,10 +190,8 @@ const NouvelleTransparence: FC = () => {
               stateRelatedMessage={errors.formation?.message}
             >
               <option disabled></option>
-              <option value={Magistrat.Formation.SIEGE}>{formationToLabel(Magistrat.Formation.SIEGE)}</option>
-              <option value={Magistrat.Formation.PARQUET}>
-                {formationToLabel(Magistrat.Formation.PARQUET)}
-              </option>
+              <option value={FormationEnum.SIEGE}>{capitalize(FormationEnumLabel.SIEGE)}</option>
+              <option value={FormationEnum.PARQUET}>{capitalize(FormationEnumLabel.PARQUET)}</option>
             </Select>
           )}
         />

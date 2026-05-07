@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { Gender } from 'shared-models';
-
 import { HttpException } from '../utils/http-exception';
 import * as $api from '@api/sdk';
 
@@ -26,7 +24,7 @@ export const useUser = () => {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 isImpersonated: data.isImpersonated,
-                civility: `${data.gender === Gender.F ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
+                civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
               }
             : null,
         )

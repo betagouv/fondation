@@ -1,6 +1,5 @@
-import { Magistrat } from 'shared-models';
-
 import {
+  FormationEnum,
   PrioriteEnum,
   PrioriteEnumLabels,
   TypeDeSaisineEnum,
@@ -10,16 +9,16 @@ import {
 export type FilterType = 'formation' | 'rapporteurs';
 
 type FormationOptions = {
-  value: Magistrat.Formation;
+  value: FormationEnum;
   label: string;
 };
 export const FORMATION_OPTIONS: FormationOptions[] = [
   {
-    value: Magistrat.Formation.PARQUET,
+    value: 'PARQUET',
     label: 'Parquet',
   },
   {
-    value: Magistrat.Formation.SIEGE,
+    value: 'SIEGE',
     label: 'Siège',
   },
 ];
