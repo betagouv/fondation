@@ -1,11 +1,11 @@
-import { differenceInYears } from 'date-fns';
+import { differenceInYears, format } from 'date-fns';
 import React from 'react';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { FormattedPositionDuration } from '@/i18n/components';
-import { DateOnly } from '@/models/date-only.model';
 import { useSummary } from '@/pages/summary/SummaryContext';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 
 import { SummarySectionCard } from './SummarySectionCard';
 
@@ -60,9 +60,8 @@ function BirthDate(props: { date: { day: number; month: number; year: number } |
   if (!props.date) return null;
 
   const now = new Date();
-  const birthDateOnly = DateOnly.fromStoreModel(props.date);
-  const date = birthDateOnly.toDate();
-  const str = birthDateOnly.toFormattedString('dd/MM/yyyy');
+  const date = dateOnlyToDate(props.date);
+  const str = format(date, 'dd/MM/yyyy');
 
   const age = differenceInYears(now, date);
 

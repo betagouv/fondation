@@ -6,8 +6,8 @@ import { generatePath, useNavigate } from 'react-router';
 import * as importAttachments from '../actions/ImportAttachmentModal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/components/shared/menu';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import {
@@ -20,7 +20,6 @@ import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
   const navigate = useNavigate();
   const confirmation = useConfirmation();
-  const date = DateOnly.fromDateOnly(transparence.date, 'dd/MM/yyyy');
 
   const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
@@ -111,7 +110,12 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
 
       <div className="flex max-w-xl flex-col gap-y-2">
         <div className="flex items-center justify-between gap-6">
-          <p className="m-0! text-sm text-gray-600">Transparence du {date}</p>
+          <p className="m-0! text-sm text-gray-600">
+            <FormattedMessage
+              defaultMessage="Transparence du {date, date, dateOnlyShort}"
+              values={{ date: dateOnlyToDate(transparence.date) }}
+            />
+          </p>
           <span className="rounded-sm bg-gray-100 p-1 text-xs font-semibold text-gray-600 uppercase">
             {FormationEnumLabel[transparence.formation]}
           </span>

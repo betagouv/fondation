@@ -1,12 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
+import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
 import { useIsSg } from '@/hooks/roles.hook';
-import { DateOnly } from '@/models/date-only.model';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { LolfiMagistratLink } from './LolfiMagistratLink';
@@ -75,7 +76,12 @@ export function ObservationDetailsContent({
             <dl className="fr-mb-0">
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Date de réception :</dt>
-                <dd className="fr-col-8 fr-m-0">{DateOnly.fromDateOnly(observation.receptionDate)}</dd>
+                <dd className="fr-col-8 fr-m-0">
+                  <FormattedMessage
+                    defaultMessage="{date, date, dateOnlyShort}"
+                    values={{ date: dateOnlyToDate(observation.receptionDate) }}
+                  />
+                </dd>
               </div>
               <div className="fr-grid-row fr-mb-2w">
                 <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>

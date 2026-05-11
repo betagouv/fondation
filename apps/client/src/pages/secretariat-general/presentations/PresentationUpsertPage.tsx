@@ -5,15 +5,17 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
+import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 import z from 'zod';
 
 import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
 import { Mandatory } from '@/components/shared/Mandatory';
-import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import { toFullName } from '@/utils/user.utils';
@@ -45,9 +47,7 @@ function MetadataStep(props: { className?: string }) {
   const chairmen = chairmenData?.items ?? [];
   const secretaries = secretariesData?.items ?? [];
 
-  const defaultDate = state.date
-    ? DateOnly.fromStoreModel(state.date).toFormattedString('yyyy-MM-dd')
-    : new Date().toISOString().split('T')[0]!;
+  const defaultDate = format(dateOnlyToDate(state.date) ?? new Date(), 'yyyy-MM-dd');
   const defaultTime = state.time
     ? `${String(state.time.hours).padStart(2, '0')}:${String(state.time.minutes).padStart(2, '0')}`
     : '';
@@ -228,6 +228,7 @@ function MetadataStep(props: { className?: string }) {
 }
 
 function AgendaCommentsStep(props: { className?: string }) {
+  const { formatMessage } = useIntl();
   const { state, createPlan, isDisabled, planId, goToMetadata } = usePresentationPlan();
 
   const { data: agendasData } = useListPresentationPlansAgendasQuery({
@@ -262,10 +263,13 @@ function AgendaCommentsStep(props: { className?: string }) {
         <Accordion
           key={agenda.id}
           defaultExpanded={i === 0}
-          label={[
-            `Ordre du jour du ${DateOnly.fromStoreModel(agenda.date).toFormattedString('dd/MM/yyyy')}`,
-            capitalize(FormationEnumLabel[agenda.formation]),
-          ].join(' — ')}
+          label={formatMessage(
+            { defaultMessage: `Ordre du jour du {date, date, dateOnlyShort} - {formation}` },
+            {
+              date: dateOnlyToDate(agenda.date),
+              formation: capitalize(FormationEnumLabel[agenda.formation]),
+            },
+          )}
         >
           <Input
             label="Commentaire"

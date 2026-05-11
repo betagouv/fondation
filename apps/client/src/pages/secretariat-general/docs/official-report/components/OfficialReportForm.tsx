@@ -4,6 +4,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage } from 'react-intl';
@@ -11,7 +12,7 @@ import z from 'zod';
 
 import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
-import { DateOnly } from '@/models/date-only.model';
+import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
@@ -22,7 +23,7 @@ import {
 import { JusticeContactSelector } from './JusticeContactSelector';
 
 const OfficialReportMetadataSchema = z.object({
-  sessionMeetingDate: DateOnly.codec(),
+  sessionMeetingDate: dateOnlyCodec,
   sessionMeetingTime: z.string().regex(/^\d{2}:\d{2}$/, 'Format HH:MM requis'),
   hasRenunciation: z.boolean(),
   justiceDepartmentContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
@@ -57,9 +58,7 @@ export function OfficialReportForm() {
 
   const defaultValues = React.useMemo(
     () => ({
-      sessionMeetingDate: metadata?.sessionMeetingDate
-        ? DateOnly.fromStoreModel(metadata.sessionMeetingDate).toFormattedString('yyyy-MM-dd')
-        : new Date().toISOString().split('T')[0]!,
+      sessionMeetingDate: format(dateOnlyToDate(metadata?.sessionMeetingDate) ?? new Date(), 'yyyy-MM-dd'),
       sessionMeetingTime: metadata?.sessionMeetingTime ?? '',
       hasRenunciation: metadata?.hasRenunciation ?? true,
       justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? '',
@@ -175,9 +174,9 @@ export function OfficialReportForm() {
             {(agendas?.items ?? []).map((agenda) => (
               <option value={agenda.id} key={agenda.id}>
                 <FormattedMessage
-                  defaultMessage={`{name} - ODJ du {date, date, short}`}
+                  defaultMessage={`{name} - ODJ du {date, date, dateOnlyShort}`}
                   values={{
-                    date: DateOnly.fromStoreModel(agenda.date).toDate(),
+                    date: dateOnlyToDate(agenda.date),
                     name: agenda.session.name,
                   }}
                 />

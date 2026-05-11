@@ -7,8 +7,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { timeOnlyToDate } from '@/utils/time-only.util';
 import {
@@ -35,7 +35,7 @@ export function PresentationsTabReady() {
 
   const planItems = (plans?.items ?? []).map((item) => {
     const formation = FormationEnumLabel[item.formation];
-    const date = DateOnly.fromStoreModel(item.date).toDate();
+    const date = dateOnlyToDate(item.date);
     const time = timeOnlyToDate(item.time);
 
     return { id: item.id, formation, date, time };
@@ -139,7 +139,7 @@ export function PresentationsTabReady() {
                 >
                   <FormattedMessage
                     values={item}
-                    defaultMessage="Notice de restitution {formation} du {date, date, short}, {time, time, short}"
+                    defaultMessage="Notice de restitution {formation} du {date, date, dateOnlyShort}, {time, time, short}"
                   />
                 </Button>
 

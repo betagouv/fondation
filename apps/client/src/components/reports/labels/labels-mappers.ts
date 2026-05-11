@@ -1,5 +1,7 @@
-import { DateOnly, type PlainDateOnly } from '@/models/date-only.model';
+import { format } from 'date-fns';
+
+import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
 
 export const transparencyToLabel = (transparency: string, dateTransparence: PlainDateOnly) => {
-  return 'T ' + DateOnly.fromStoreModel(dateTransparence).toFormattedString() + ` (${transparency})`;
+  return 'T ' + format(dateOnlyToDate(dateTransparence), 'dd/MM/yyyy') + ` (${transparency})`;
 };

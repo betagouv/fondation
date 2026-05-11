@@ -2,12 +2,13 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '../../../contexts/files-table.context';
 import { observationFollowUpCommentModal } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialog';
 import { ObservationFollowUpSelector } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpSelector';
-import { DateOnly } from '@/models/date-only.model';
 import type { ObservationFollowupEnum } from '@/types/enums.types';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { capitalize } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -30,11 +31,6 @@ function SingleObservationWithFollowUpSelector(props: {
   observation: ObservationWithFollowUp;
   onChange: (observation: ObservationWithFollowUp) => unknown;
 }) {
-  const formattedDate = React.useMemo(
-    () => DateOnly.fromDateOnly(props.observation.date, 'dd/MM/yyyy'),
-    [props.observation],
-  );
-
   const onChange = React.useCallback(
     (data: { followUp: ObservationFollowupEnum | null; comment: string | null }) => {
       props.onChange({
@@ -53,7 +49,12 @@ function SingleObservationWithFollowUpSelector(props: {
           {capitalize(props.observation.magistrat.firstName)}{' '}
           {props.observation.magistrat.lastName.toUpperCase()}
         </h2>
-        <p className="mb-2 text-sm text-gray-600">{formattedDate}</p>
+        <p className="mb-2 text-sm text-gray-600">
+          <FormattedMessage
+            defaultMessage="{date, date, dateOnlyShort}"
+            values={{ date: dateOnlyToDate(props.observation.date) }}
+          />
+        </p>
       </div>
 
       <ObservationFollowUpSelector
@@ -94,10 +95,7 @@ export function ObservationFollowUpReminderModal(props: {
       .filter((o): o is typeof o & { magistrat: NonNullable<(typeof o)['magistrat']> } => !!o.magistrat)
       .toSorted((a, b) => {
         if ((a.followUp && b.followUp) || (!a.followUp && !b.followUp))
-          return (
-            DateOnly.fromStoreModel(a.date).toDate().getTime() -
-            DateOnly.fromStoreModel(b.date).toDate().getTime()
-          );
+          return dateOnlyToDate(a.date).getTime() - dateOnlyToDate(b.date).getTime();
 
         if (!a.followUp && b.followUp) return -1;
         if (!b.followUp && a.followUp) return 1;

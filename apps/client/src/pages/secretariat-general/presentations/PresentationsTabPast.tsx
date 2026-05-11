@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { DateOnly } from '@/models/date-only.model';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { timeOnlyToDate } from '@/utils/time-only.util';
 import {
   useListPresentedPlansQuery,
@@ -16,7 +16,7 @@ export function PresentationsTabPast() {
 
   const viewItems = (pastPresentations?.items ?? []).map((item) => ({
     id: item.id,
-    date: DateOnly.fromStoreModel(item.date).toDate(),
+    date: dateOnlyToDate(item.date),
     time: timeOnlyToDate(item.time),
     formation: item.formation === 'SIEGE' ? 'siège' : 'parquet',
   }));
@@ -55,7 +55,7 @@ export function PresentationsTabPast() {
               >
                 <FormattedMessage
                   values={item}
-                  defaultMessage={`Notice de restitution {formation} du {date, date, short}, {time, time, short}`}
+                  defaultMessage={`Notice de restitution {formation} du {date, date, dateOnlyShort}, {time, time, short}`}
                 />
               </Button>
             </li>
