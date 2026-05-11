@@ -5,8 +5,8 @@ import { FormattedMessage } from 'react-intl';
 
 import { usePresentationPlan } from '../contexts/presentation-plan.context';
 import { useSelection } from '@/hooks/useSelection.hook';
-import { DateOnly } from '@/models/date-only.model';
 import { FormationEnumLabel } from '@/types/enums.types';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 
 export function PresentationAgendaSelectionList(props: {
   formation: 'PARQUET' | 'SIEGE';
@@ -27,11 +27,7 @@ export function PresentationAgendaSelectionList(props: {
 
   const formationLabel = React.useMemo(() => FormationEnumLabel[formation], [formation]);
   const viewItems = React.useMemo(
-    () =>
-      formationItems.map((item) => {
-        const date = DateOnly.fromStoreModel(item.date).toDate();
-        return { id: item.id, date };
-      }),
+    () => formationItems.map(({ id, date }) => ({ id, date: dateOnlyToDate(date) })),
     [formationItems],
   );
 
@@ -88,7 +84,7 @@ export function PresentationAgendaSelectionList(props: {
           label: (
             <FormattedMessage
               values={{ ...item, formation: formationLabel }}
-              defaultMessage="Ordre du jour {formation} du {date, date, short}"
+              defaultMessage="Ordre du jour {formation} du {date, date, dateOnlyShort}"
             />
           ),
         }))}

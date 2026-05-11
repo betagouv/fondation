@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { useCallback, useRef, type FC } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
+import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
@@ -15,6 +16,7 @@ import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
 import { getSgBreadCrumb } from '../../../../utils/sg-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { PageContentLayout } from '../../../shared/PageContentLayout';
+import { Mandatory } from '@/components/shared/Mandatory';
 import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
 import { capitalize } from '@/utils/string.utils';
 import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
@@ -177,9 +179,9 @@ const NouvelleTransparence: FC = () => {
           render={({ field: { value, onChange } }) => (
             <Select
               label={
-                <>
-                  Formation<span className="text-red-500">*</span>
-                </>
+                <Mandatory>
+                  <FormattedMessage defaultMessage="Formation" />
+                </Mandatory>
               }
               nativeSelectProps={{
                 value,

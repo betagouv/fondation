@@ -2,31 +2,30 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
+import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
 
 import { AgendaChairmanSelect } from '../components/AgendaChairmanSelect';
 import { useAgenda } from '../context/AgendaContext';
-import { DateOnly, type PlainDateOnly } from '@/models/date-only.model';
+import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 
 const AgendaMetadataSchema = z.object({
-  date: DateOnly.codec(),
-  sessionMeetingDate: DateOnly.codec(),
+  date: dateOnlyCodec,
+  sessionMeetingDate: dateOnlyCodec,
   chairmanId: z.uuid('Veuillez sélectionner un président'),
 });
-
-function dateOnlyString(json: PlainDateOnly): string {
-  return DateOnly.fromStoreModel(json).toFormattedString('yyyy-MM-dd');
-}
 
 export function AgendaMetadataStep(props: { className?: string }) {
   const { metadata, goToNominationFiles, cancel } = useAgenda();
   const defaultValues = React.useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
-      date: metadata?.date ? dateOnlyString(metadata.date) : new Date().toISOString().split('T')[0]!,
-      sessionMeetingDate: metadata?.sessionMeetingDate ? dateOnlyString(metadata.sessionMeetingDate) : '',
+      date: format(dateOnlyToDate(metadata?.date) ?? new Date(), 'yyyy-MM-dd'),
+      sessionMeetingDate: metadata?.sessionMeetingDate
+        ? format(dateOnlyToDate(metadata.sessionMeetingDate), 'yyyy-MM-dd')
+        : '',
     }),
     [metadata],
   );

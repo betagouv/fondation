@@ -2,12 +2,13 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { generatePath, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
-import { DateOnly } from '@/models/date-only.model';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
@@ -43,13 +44,13 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
     ),
     defaultValues: {
       name: session?.name ?? '',
-      date: session?.date ? DateOnly.fromDateOnly(session.date, 'yyyy-MM-dd') : '',
+      date: session?.date ? format(dateOnlyToDate(session.date), 'yyyy-MM-dd') : '',
       observationsClosingDate: session?.observationsClosingDate
-        ? DateOnly.fromDateOnly(session.observationsClosingDate, 'yyyy-MM-dd')
+        ? format(dateOnlyToDate(session.observationsClosingDate), 'yyyy-MM-dd')
         : '',
-      dueDate: session?.dueDate ? DateOnly.fromDateOnly(session.dueDate, 'yyyy-MM-dd') : null,
+      dueDate: session?.dueDate ? format(dateOnlyToDate(session.dueDate), 'yyyy-MM-dd') : null,
       positionStartDate: session?.positionStartDate
-        ? DateOnly.fromDateOnly(session.positionStartDate, 'yyyy-MM-dd')
+        ? format(dateOnlyToDate(session.positionStartDate), 'yyyy-MM-dd')
         : null,
     },
   });

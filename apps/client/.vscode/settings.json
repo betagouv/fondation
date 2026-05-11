@@ -4,8 +4,7 @@
     "source.fixAll.oxc": "always"
   },
 
-  "prettier.requireConfig": true,
-  "prettier.configPath": ".prettierrc",
+  "oxc.requireConfig": true,
   "[typescript][javascript][json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }

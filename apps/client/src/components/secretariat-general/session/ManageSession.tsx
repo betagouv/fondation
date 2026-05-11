@@ -1,12 +1,13 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { createColumnHelper } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
-import { DateOnly } from '@/models/date-only.model';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedNominationSessionsDto } from '@api/types';
 import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
@@ -49,7 +50,7 @@ const columns = [
     enableSorting: true,
     sortDescFirst: false,
     header: 'Date de publication',
-    cell: ({ cell }) => DateOnly.fromDateOnly(cell.getValue()),
+    cell: ({ cell }) => format(dateOnlyToDate(cell.getValue()), 'dd/MM/yyyy'),
   }),
 
   h.accessor('dueDate', {
@@ -58,7 +59,7 @@ const columns = [
     header: "Date d'échéance",
     cell: ({ cell }) => {
       const val = cell.getValue();
-      return val ? DateOnly.fromDateOnly(val) : null;
+      return val ? format(dateOnlyToDate(val), 'dd/MM/yyyy') : null;
     },
   }),
 

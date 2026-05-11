@@ -1,14 +1,15 @@
 import { colors } from '@codegouvfr/react-dsfr';
+import { format } from 'date-fns';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import { DateOnly, type PlainDateOnly } from '../../../../models/date-only.model';
 import {
   getTransparencesBreadCrumb,
   TransparencesCurrentPage,
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import type { FormationEnum } from '@/types/enums.types';
+import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
 
 export type HeaderReportListProps = {
   dateTransparence: PlainDateOnly;
@@ -76,9 +77,9 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
 function DisplayedDate(props: { dateOnly: PlainDateOnly | null | undefined }) {
   if (!props.dateOnly) return null;
 
-  const dateOnly = DateOnly.fromStoreModel(props.dateOnly);
-  const iso = dateOnly.toFormattedString('yyyy-MM-dd');
-  const formatted = dateOnly.toFormattedString('dd/MM/yyyy');
+  const date = dateOnlyToDate(props.dateOnly);
+  const iso = format(date, 'yyyy-MM-dd');
+  const formatted = format(date, 'dd/MM/yyyy');
 
   return (
     <time dateTime={iso} title={iso}>

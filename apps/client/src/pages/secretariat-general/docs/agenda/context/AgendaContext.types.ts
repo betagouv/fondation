@@ -1,5 +1,5 @@
-import type { PlainDateOnly } from '@/models/date-only.model';
 import type { FormationEnum } from '@/types/enums.types';
+import type { PlainDateOnly } from '@/utils/date-only.util';
 
 export type AgendaStep = {
   index: 1 | 2;

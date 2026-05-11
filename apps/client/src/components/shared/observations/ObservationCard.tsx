@@ -1,10 +1,11 @@
 import Card from '@codegouvfr/react-dsfr/Card';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
+import { FormattedMessage } from 'react-intl';
 
 import type { DetailedReportDto } from '@/generated/api/types';
-import { DateOnly } from '@/models/date-only.model';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
+import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 
@@ -50,7 +51,10 @@ export function ObservationCard({
       }
       desc={
         <span className={clsx(cx('fr-mb-0', 'fr-text--light'), 'text-sm')}>
-          Observation du {DateOnly.fromDateOnly(dateObj)}
+          <FormattedMessage
+            defaultMessage="Observation du {date, date, dateOnlyShort}"
+            values={{ date: dateOnlyToDate(dateObj) }}
+          />
         </span>
       }
       linkProps={{ to: linkWithReport }}

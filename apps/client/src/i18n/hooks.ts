@@ -3,22 +3,14 @@ import { fr as dateLocaleFr } from 'date-fns/locale/fr';
 import React from 'react';
 import { useIntl } from 'react-intl';
 
-import { DateOnly, type PlainDateOnly } from '@/models/date-only.model';
-
-function asDate(value: Date | DateOnly | PlainDateOnly): Date {
-  return value instanceof DateOnly
-    ? value.toDate()
-    : value instanceof Date
-      ? value
-      : DateOnly.fromStoreModel(value).toDate();
-}
+import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
 
 export function useIntlAge() {
-  return React.useCallback((birthDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
+  return React.useCallback((birthDate: Date | PlainDateOnly | null | undefined) => {
     if (birthDate === null || birthDate === undefined) return null;
 
     const now = new Date();
-    const years = differenceInYears(now, asDate(birthDate));
+    const years = differenceInYears(now, birthDate instanceof Date ? birthDate : dateOnlyToDate(birthDate));
 
     return formatDuration({ years }, { locale: dateLocaleFr });
   }, []);
@@ -29,14 +21,14 @@ export function useIntlBirthDate() {
   const formatAge = useIntlAge();
 
   return React.useCallback(
-    (birthDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
+    (birthDate: Date | PlainDateOnly | null | undefined) => {
       if (birthDate === null || birthDate === undefined) return null;
       const age = formatAge(birthDate);
       if (age === null) return null;
 
       return $t(
         { defaultMessage: `{birthDate, date, dateOnlyShort} ({age})` },
-        { birthDate: asDate(birthDate), age },
+        { birthDate: birthDate instanceof Date ? birthDate : dateOnlyToDate(birthDate), age },
       );
     },
     [$t, formatAge],
@@ -44,15 +36,15 @@ export function useIntlBirthDate() {
 }
 
 export function useIntlPositionDuration() {
-  const { $t } = useIntl();
-  const delimiter = $t({ defaultMessage: ' et ' });
+  const { formatMessage } = useIntl();
+  const delimiter = formatMessage({ defaultMessage: ' et ' });
 
   return React.useCallback(
-    (startDate: Date | DateOnly | PlainDateOnly | null | undefined) => {
+    (startDate: Date | PlainDateOnly | null | undefined) => {
       if (startDate === null || startDate === undefined) return null;
 
       const now = new Date();
-      const earlierDate = asDate(startDate);
+      const earlierDate = startDate instanceof Date ? startDate : dateOnlyToDate(startDate);
       const difference = differenceInMonths(now, earlierDate);
 
       const years = Math.floor(difference / 12);
