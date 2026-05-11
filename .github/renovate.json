@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "pinAllExceptPeerDependencies",
+    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitScope(FON-000)"
+  ],
+  "dependencyDashboard": true,
+  "schedule": ["after 6am and before 8pm on Sunday"],
+  "pinDigests": true,
+  "minimumReleaseAge": "15 days",
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
+}
