@@ -5,9 +5,11 @@
 //
 
 import type { Auth } from '../core/auth.ts';
-import type { ServerSentEventsOptions, ServerSentEventsResult } from '../core/serverSentEvents.ts';
+import type {
+  ServerSentEventsOptions,
+  ServerSentEventsResult,
+} from '../core/serverSentEvents.ts';
 import type { Client as CoreClient, Config as CoreConfig } from '../core/types.ts';
-
 import type { Middleware } from './utils.ts';
 
 export type ResponseStyle = 'data' | 'fields';
@@ -209,5 +211,8 @@ export type Options<
   ThrowOnError extends boolean = boolean,
   TResponse = unknown,
   TResponseStyle extends ResponseStyle = 'fields',
-> = OmitKeys<RequestOptions<TResponse, TResponseStyle, ThrowOnError>, 'body' | 'path' | 'query' | 'url'> &
+> = OmitKeys<
+  RequestOptions<TResponse, TResponseStyle, ThrowOnError>,
+  'body' | 'path' | 'query' | 'url'
+> &
   ([TData] extends [never] ? unknown : Omit<TData, 'url'>);

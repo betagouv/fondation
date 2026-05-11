@@ -1,0 +1,72 @@
+-- @param {String} $1:versionId
+
+-- @param $2:priorities?
+-- @param {Boolean} $5:hasNoPriority?
+-- @param $6:reporterIds?
+-- @param {Boolean} $7:hasNoReporter?
+-- @param $8:outcomes?
+-- @param {Boolean} $9:hasNoOutcome
+-- @param {String} $10:search?
+
+SELECT COUNT(ddn.id)
+
+FROM
+  nominations_context.dossier_de_nomination AS ddn
+
+  LEFT JOIN LATERAL (
+    SELECT nfr.user_id
+    FROM nominations_context.nomination_file_to_reporter AS nfr
+    WHERE nfr.nomination_file_id = ddn.id AND nfr.version_id = /* versionId */$1::UUID
+  ) AS reporters ON TRUE,
+
+  TO_TSQUERY('unaccent_fr'::REGCONFIG, /* search */$10::TEXT) AS query
+
+-- see listNominationFilesRawQuery.sql
+WHERE (
+  1 = 1
+
+  /* -- PRIORITIES -- */
+  AND (
+    (/* priorities */$2::nominations_context.priorite_enum[] IS NULL AND /* hasNoPriority */$5 = FALSE)
+    OR (
+      ARRAY_LENGTH(/* priorities */$2::nominations_context.priorite_enum[], 1) IS NOT NULL
+      AND (ddn.priorities && /* priorities */$2::nominations_context.priorite_enum[])
+    ) OR (/* hasNoPriority */$5::BOOLEAN = TRUE AND ARRAY_LENGTH(ddn.priorities, 1) IS NULL)
+  )
+
+  /* -- REPORTERS -- */
+  AND (
+    (/* reporterIds */$6::UUID[] IS NULL AND $7::BOOLEAN = FALSE)
+    OR (
+      ARRAY_LENGTH(/* reporterIds */$6::UUID[], 1) IS NOT NULL
+      AND reporters.user_id = ANY(/* reporterIds */$6::UUID[])
+    ) OR (
+      /* hasNoReporter */$7::BOOLEAN
+      AND /* versionId */$1::UUID IS NOT NULL
+      AND NOT EXISTS (
+        SELECT user_id
+        FROM nominations_context.nomination_file_to_reporter AS sub_nfr
+        WHERE (
+          sub_nfr.version_id = /* versionId */$1::UUID
+          AND sub_nfr.nomination_file_id = ddn.id
+        )
+      )
+    )
+  )
+
+  /* -- OUTCOMES -- */
+  AND (
+    (/* outcomes */$8::nominations_context.nomination_file_outcome_enum[] IS NULL AND /* hasNoOutcome */$9::BOOLEAN = FALSE)
+    OR (
+      ARRAY_LENGTH(/* outcomes */$8::nominations_context.nomination_file_outcome_enum[], 1) IS NOT NULL
+      AND ddn.outcome = ANY(/* outcomes */$8::nominations_context.nomination_file_outcome_enum[])
+    ) OR (
+      /* hasNoOutcome */$9::BOOLEAN
+      AND ddn.outcome IS NULL
+    )
+  )
+
+  /* -- SEARCH -- */
+  AND ($10::TEXT IS NULL OR ddn."search" @@ query)
+)
+

@@ -1,6 +1,7 @@
-import './NominationFilesTable.css';
 import React from 'react';
 import { defineMessage } from 'react-intl';
+
+import './NominationFilesTable.css';
 
 import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
@@ -47,6 +48,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     sorting: tableState.sorting,
     pagination: tableState.pagination,
     filters: {
+      search: tableState.globalFilter,
       priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
       reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
       outcomes: tableState.columnFilters.find(({ id }) => id === 'outcomes')
@@ -63,6 +65,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     enableRowSelection: !!edition?.isEditing && ((row) => row.original.content.isUpdatable),
     state: tableState,
     onStateChange: setTableState,
+    enableGlobalFilter: true,
     meta: {
       paginationItemLabel: isSg
         ? defineMessage({
@@ -97,6 +100,8 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
 
                       <DataTable
                         classNames={{
+                          filters:
+                            'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
                           content:
                             'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
                         }}
