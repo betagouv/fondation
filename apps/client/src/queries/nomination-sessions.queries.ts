@@ -106,6 +106,7 @@ export const useSessionNominationFilesQuery = (options: {
         reporterIds?: string[];
         priorities?: (PrioriteEnum | 'null')[];
         outcomes?: (NominationFileOutcomeEnum | null)[];
+        search?: string | null;
       }
     | undefined;
   pagination: { pageIndex: number; pageSize: number } | undefined;
@@ -127,6 +128,7 @@ export const useSessionNominationFilesQuery = (options: {
             priorities: options.filters?.priorities,
             reporterIds: options.filters?.reporterIds,
             outcomes: options.filters?.outcomes?.join(','),
+            search: options.filters?.search?.trim() || undefined,
           },
         })
         .then(({ data = null }) => data);

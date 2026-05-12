@@ -8,7 +8,8 @@ import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../..
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
+import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
+import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -19,6 +20,7 @@ import {
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
 
 @Injectable()
@@ -37,33 +39,14 @@ export class ListNominationFilesQuery {
     pagination: Pagination;
     sorting: Sortable<ListNominationFilesQueryDto>;
     filters: {
+      search: string | null;
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(query.user.role);
-
-    const direction = query.sorting.sortDesc ? 'desc' : 'asc';
-    const orderBy = (() => {
-      switch (query.sorting.sortBy) {
-        case 'name':
-          return { name: direction } as const;
-        case 'targetedPosition':
-          return { targetedPosition: direction } as const;
-        case 'targetedGrade':
-          return [
-            { sortableTargetedGrade: direction },
-            { number: 'asc' },
-          ] as const satisfies Prisma.DossierDeNominationOrderByWithRelationInput[];
-
-        default:
-        case 'fileNumber':
-          return { number: direction } as const;
-      }
-    })();
-
     const [totalCount, files] = await this.prisma.$transaction(async (tx) => {
+      const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(query.user.role);
       const lastVersion = isSG
         ? await this.versionFinder.last({
             tx,
@@ -74,79 +57,42 @@ export class ListNominationFilesQuery {
             sessionId: query.sessionId,
           });
 
-      const where: Prisma.DossierDeNominationWhereInput = {
-        sessionId: query.sessionId,
-        ...ListNominationFilesQuery.filtersToPrismaWhere(query.filters, lastVersion),
-      };
+      const where = ListNominationFilesQuery.filtersToPrismaWhere(query.filters, lastVersion);
 
-      const txCount = await tx.dossierDeNomination.count({ where });
-      const txFiles = await tx.dossierDeNomination.findMany({
-        where,
-        orderBy,
-        take: query.pagination.limit,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
+      const [{ count: txCount } = { count: 0n }] = await tx.$queryRawTyped(
+        listNominationFilesCountRawQuery(
+          where.versionId ?? null,
+          where.priorities,
+          where.hasNoPriorities,
+          where.reporterIds,
+          where.hasNoReporters,
+          where.outcomes,
+          where.hasNoOutcome,
+          where.search,
+          query.sessionId,
+        ),
+      );
 
-        select: {
-          id: true,
-          priorities: true,
-          comment: true,
-          biography: true,
-          birthDate: true,
-          currentPosition: true,
-          grade: true,
-          lastPositionDate: true,
-          lastRankingDate: true,
-          name: true,
-          number: true,
-          observers: true,
-          rank: true,
-          targetedPosition: true,
-          targetedGrade: true,
-          dueDate: true,
-          outcome: true,
-          outcomeComment: true,
-          alertHidden: true,
-          detectedJurisdictionId: true,
-          detectedTargetedFunctionId: true,
-          reporterIds: {
-            where: { versionId: lastVersion.optionalId },
-            select: {
-              version: true,
-              createdAt: true,
-              user: {
-                select: { id: true, firstName: true, lastName: true },
-              },
-            },
-          },
-          observations: {
-            select: {
-              id: true,
-              followUp: true,
-              followUpComment: true,
-              description: true,
-              memberComments: {
-                where: { userId: query.user.id },
-                select: { comment: true },
-              },
-              dateReception: true,
-              magistrat: {
-                select: { id: true, firstName: true, lastName: true },
-              },
-            },
-          },
-          memberMemos: {
-            where: { userId: query.user.id },
-            select: { memo: true },
-          },
-          summary: {
-            select: {
-              nominationFileId: true,
-              authorId: true,
-              readers: { select: { userId: true } },
-            },
-          },
-        },
-      });
+      const txFiles = await tx
+        .$queryRawTyped(
+          listNominationFilesRawQuery(
+            where.versionId ?? null,
+            query.user.id,
+            query.pagination.limit,
+            (query.pagination.page - 1) * query.pagination.limit,
+            where.priorities,
+            where.hasNoPriorities,
+            where.reporterIds,
+            where.hasNoReporters,
+            where.outcomes,
+            where.hasNoOutcome,
+            where.search,
+            query.sorting.sortBy ?? null,
+            query.sorting.sortDesc ? 'desc' : 'asc',
+            query.sessionId,
+          ),
+        )
+        .then((list) => RawListedNominationFiles.parseAsync(list));
 
       const nominationFileIds = new Set(txFiles.map(({ id }) => id));
       const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
@@ -155,7 +101,7 @@ export class ListNominationFilesQuery {
       });
 
       return [
-        txCount,
+        Number(txCount ?? 0n),
         txFiles.map((file) => {
           const {
             isLinkedToAgenda = false,
@@ -247,14 +193,14 @@ export class ListNominationFilesQuery {
               : null,
           };
         }),
-        memo: x.memberMemos.at(0)?.memo || null,
+        memo: x.memberMemo || null,
         summary: x.summary
           ? {
-              id: x.summary.nominationFileId,
+              id: x.id,
               canWrite: x.summary.authorId === query.user.id,
               canRead:
                 x.summary.authorId === query.user.id ||
-                x.summary.readers.some(({ userId }) => userId === query.user.id),
+                x.summary.readers.some((userId) => userId === query.user.id),
             }
           : null,
       };
@@ -265,72 +211,27 @@ export class ListNominationFilesQuery {
 
   private static filtersToPrismaWhere(
     filters: {
+      search: string | null;
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     },
     lastVersion: OptionalAffectationVersion,
-  ): Prisma.DossierDeNominationWhereInput {
-    const where: Prisma.DossierDeNominationWhereInput[] = [];
+  ) {
+    const [hasNoReporters, reporterIds] = partition(filters.reporterIds, (x) => x === null);
+    const [hasNoPriorities, priorities] = partition(filters.priorities, (x) => x === null);
+    const [hasNoOutcome, outcomes] = partition(filters.outcomes, (x) => x === null);
 
-    if (filters.priorities.length > 0) {
-      const [hasNoPriority, priorities] = partition(filters.priorities, (x) => x === null);
-
-      // WHERE priorities = ARRAY[] OR priorities && ${priorities}::priorite_enum[]
-      where.push({
-        OR: [
-          { priorities: hasNoPriority.length > 0 ? { equals: [] } : undefined },
-          {
-            priorities:
-              priorities.length > 0
-                ? { hasSome: priorities.map(prioriteEnumToPrismaPrioriteEnum) }
-                : undefined,
-          },
-        ],
-      });
-    }
-
-    if (filters.reporterIds.length > 0) {
-      const [hasNoReporter, reporterIds] = partition(filters.reporterIds, (x) => x === null);
-
-      // WHERE (
-      //   NOT EXISTS (select id from nomination_file_to_reporter nfr WHERE nfr.version_id = ${lastVersion.optionalId})
-      //   OR (version_id = ${lastVersion.optionalId} AND nfr.user_id IN (${reporterIds}))
-      // )
-      where.push({
-        OR: [
-          {
-            reporterIds:
-              hasNoReporter.length > 0 ? { none: { versionId: lastVersion.optionalId } } : undefined,
-          },
-          {
-            reporterIds:
-              reporterIds.length > 0
-                ? {
-                    some: {
-                      userId: { in: reporterIds },
-                      versionId: lastVersion.optionalId,
-                    },
-                  }
-                : undefined,
-          },
-        ],
-      });
-    }
-
-    if (filters.outcomes.length > 0) {
-      const [hasNoOutcome, withOutcome] = partition(filters.outcomes, (x) => x === null);
-
-      // WHERE outcome IS NULL OR outcome IN (...${outcomes})
-      where.push({
-        OR: [
-          { outcome: hasNoOutcome.length > 0 ? null : undefined },
-          { outcome: withOutcome.length > 0 ? { in: withOutcome } : undefined },
-        ],
-      });
-    }
-
-    return { AND: where.length > 0 ? where : undefined };
+    return {
+      versionId: lastVersion.optionalId,
+      reporterIds: reporterIds.length > 0 ? reporterIds : null,
+      hasNoReporters: hasNoReporters.length > 0,
+      priorities: priorities.length > 0 ? priorities.map(prioriteEnumToPrismaPrioriteEnum) : null,
+      hasNoPriorities: hasNoPriorities.length > 0,
+      outcomes: outcomes.length > 0 ? outcomes : null,
+      hasNoOutcome: hasNoOutcome.length > 0,
+      search: filters.search?.trim() ? toFullTextQuery(filters.search) : null,
+    };
   }
 }
 
@@ -369,6 +270,77 @@ const NominationFileContentSchema = z.object({
     isLinkedToPresentationPlan: z.boolean(),
   }),
 });
+
+const RawListedNominationFiles = z.array(
+  z.object({
+    id: z.uuid(),
+    priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPrioriteEnum)),
+    comment: z.string().nullable(),
+    biography: z.string().nullable(),
+    birthDate: z.date().nullable(),
+    currentPosition: z.string().nullable(),
+    grade: z.enum(Magistrat.Grade),
+    lastPositionDate: z.date().nullable(),
+    lastRankingDate: z.date().nullable(),
+    name: z.string(),
+    number: z.number().int().gt(0),
+    observers: z.array(z.string()),
+    rank: z.string().nullable(),
+    targetedPosition: z.string().nullable(),
+    targetedGrade: z.enum(Magistrat.Grade).nullable(),
+    dueDate: z.date().nullable(),
+    outcome: z.enum(NominationFileOutcome.enum).nullable(),
+    outcomeComment: z.string().nullable(),
+    alertHidden: z.boolean(),
+    detectedJurisdictionId: z.string().nullable(),
+    detectedTargetedFunctionId: z.string().nullable(),
+    queryRank: z.number().nullable(),
+
+    memberMemo: z.string().nullable(),
+
+    reporterIds: z
+      .array(
+        z.object({
+          user: z.object({
+            id: z.uuid(),
+            firstName: z.string(),
+            lastName: z.string(),
+          }),
+        }),
+      )
+      .nullish()
+      .transform((x) => x ?? []),
+
+    observations: z
+      .array(
+        z.object({
+          id: z.string(),
+          followUp: z.enum(ObservationFollowUp.enum).nullable(),
+          followUpComment: z.string().nullable(),
+          description: z
+            .string()
+            .trim()
+            .nullish()
+            .transform((x) => x || ''),
+          dateReception: z.coerce.date(),
+          magistrat: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+          memberComments: z.array(z.object({ comment: z.string().nullable() })),
+        }),
+      )
+      .nullish()
+      .transform((x) => x ?? []),
+
+    summary: z
+      .object({
+        authorId: z.string(),
+        readers: z
+          .array(z.string())
+          .nullish()
+          .transform((x) => x ?? []),
+      })
+      .nullable(),
+  }),
+);
 
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),

@@ -68,12 +68,19 @@ export class ListNominationFilesQueryDto extends createSortableDto(
         z.array(z.enum(PrioriteEnum).nullable()).optional(),
       )
       .optional(),
+
     reporterIds: z
       .preprocess(
         (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
         z.array(z.uuid().nullable()).optional(),
       )
       .optional(),
+
+    search: z
+      .string()
+      .trim()
+      .optional()
+      .transform((x) => x || undefined),
   }),
 ) {}
 

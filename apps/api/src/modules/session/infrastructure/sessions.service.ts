@@ -165,6 +165,7 @@ export class SessionService {
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
+      search: string | null;
     };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);

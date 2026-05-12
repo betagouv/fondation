@@ -78,9 +78,9 @@ export const serializeArrayParam = ({
   value: unknown[];
 }) => {
   if (!explode) {
-    const joinedValues = (allowReserved ? value : value.map((v) => encodeURIComponent(v as string))).join(
-      separatorArrayNoExplode(style),
-    );
+    const joinedValues = (
+      allowReserved ? value : value.map((v) => encodeURIComponent(v as string))
+    ).join(separatorArrayNoExplode(style));
     switch (style) {
       case 'label':
         return `.${joinedValues}`;
@@ -110,7 +110,11 @@ export const serializeArrayParam = ({
   return style === 'label' || style === 'matrix' ? separator + joinedValues : joinedValues;
 };
 
-export const serializePrimitiveParam = ({ allowReserved, name, value }: SerializePrimitiveParam) => {
+export const serializePrimitiveParam = ({
+  allowReserved,
+  name,
+  value,
+}: SerializePrimitiveParam) => {
   if (value === undefined || value === null) {
     return '';
   }

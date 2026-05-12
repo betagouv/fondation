@@ -12,5 +12,5 @@ generator rotateRoles {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["nominations_context", "data_administration_context", "identity_and_access_context", "files_context", "reports_context", "shared_kernel_context", "jobs", "public", "docs"]
+  schemas  = ["data_administration_context", "docs", "files_context", "identity_and_access_context", "jobs", "nominations_context", "public", "reports_context", "shared_kernel_context"]
 }

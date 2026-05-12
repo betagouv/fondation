@@ -193,6 +193,7 @@ export class SessionController {
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
         outcomes: query.outcomes,
+        search: query.search || null,
       },
     });
   }

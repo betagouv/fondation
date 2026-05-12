@@ -81,7 +81,8 @@ model DossierDeNomination {
   /// might be temporary
   alertHidden Boolean @default(false) @map("alert_hidden")
 
-  sortableTargetedGrade Int @map("sortable_targeted_grade") @db.SmallInt
+  sortableTargetedGrade Int                      @map("sortable_targeted_grade") @db.SmallInt
+  search                Unsupported("tsvector")? @default(dbgenerated("to_tsvector('unaccent_fr'::regconfig, lower(name))"))
 
   detectedMagistratId        String? @map("detected_magistrat_id") @db.Uuid
   detectedJurisdictionId     String? @map("detected_jurisdiction_id")
@@ -104,6 +105,7 @@ model DossierDeNomination {
 
   @@unique([sessionId, number], name: "sessionFileNumber")
   @@index([sessionId, sortableTargetedGrade])
+  @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")
   @@schema("nominations_context")
 }
