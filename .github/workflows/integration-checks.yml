@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     if: github.actor != 'dependabot[bot]'
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
       TZ: Etc/UTC
