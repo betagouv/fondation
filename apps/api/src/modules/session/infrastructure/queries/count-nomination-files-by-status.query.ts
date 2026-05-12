@@ -27,20 +27,20 @@ export class CountNominationFilesByStatusQuery {
           },
         }),
 
-        version
-          ? await tx.dossierDeNomination.count({
-              where: {
-                outcome: null,
-                sessionId: query.sessionId,
-                reporterIds: { some: { versionId: version.id } },
-              },
-            })
-          : 0,
+        await tx.dossierDeNomination.count({
+          where: {
+            sessionId: query.sessionId,
+            OR: [
+              { outcome: { in: ['ASSESSING', 'WAITING_DSJ', 'SUSPENDED'] } },
+              version ? { reporterIds: { some: { versionId: version.id } } } : {},
+            ],
+          },
+        }),
 
         await tx.dossierDeNomination.count({
           where: {
             sessionId: query.sessionId,
-            outcome: { not: null },
+            outcome: { in: ['NON_VALIDATED', 'REMOVED', 'VALIDATED', 'WITHDRAWN'] },
           },
         }),
       ];
