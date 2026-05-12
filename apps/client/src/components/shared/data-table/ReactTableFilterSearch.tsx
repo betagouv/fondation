@@ -51,6 +51,7 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
           'mb-0 w-0 rounded-full opacity-0',
           'focus-within:z-10 focus-within:rounded focus-within:bg-white focus-within:p-6 focus-within:opacity-100 focus-within:shadow',
           'focus-within:absolute focus-within:w-[40%] focus-within:overflow-visible',
+          'focus:within:duration-200 transition-none duration-initial focus-within:transition-[opacity,width]',
 
           '2xl:mt-0 2xl:block 2xl:w-50 2xl:rounded-none 2xl:opacity-[initial] 2xl:focus-within:w-[30%]',
           '2xl:focus-within:z-[initial] 2xl:focus-within:rounded-none 2xl:focus-within:bg-none 2xl:focus-within:p-0 2xl:focus-within:shadow-none',
