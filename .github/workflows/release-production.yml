@@ -10,6 +10,11 @@ jobs:
   release:
     if: github.ref_type == 'branch' && github.ref_name == 'production'
     uses: ./.github/workflows/release.yml
-    secrets: inherit
+    secrets:
+      VITE_SENTRY_DSN: true
+      SCALINGO_API_TOKEN: true
+      SENTRY_API_AUTH_TOKEN: true
+      SENTRY_CLIENT_AUTH_TOKEN: true
+      SCALINGO_SSH_KEY: true
     with:
       environment: production

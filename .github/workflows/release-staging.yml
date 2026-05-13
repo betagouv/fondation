@@ -12,7 +12,12 @@ on:
 jobs:
   release:
     uses: ./.github/workflows/release.yml
-    secrets: inherit
+    secrets:
+      VITE_SENTRY_DSN: true
+      SCALINGO_API_TOKEN: true
+      SENTRY_API_AUTH_TOKEN: true
+      SENTRY_CLIENT_AUTH_TOKEN: true
+      SCALINGO_SSH_KEY: true
     with:
       environment: staging
 
@@ -24,23 +29,25 @@ jobs:
       tags_previous: ${{ needs.release.outputs.tags_previous }}
       MATTERMOST_WEBHOOK: ${{ secrets.MATTERMOST_WEBHOOK }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          persist-credentials: false
           fetch-tags: true
           fetch-depth: 200
 
       - name: Use Node.js
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: '24.12.0'
+          package-manager-cache: false
 
       - shell: bash
         id: changelog
         run: |
-          echo "${{ env.tags_current }}" ${{ env.tags_previous }}
+          echo "${tags_current}" ${tags_previous}
           {
             echo 'markdown<<EOF'
-            node scripts/changelog ${{ env.tags_current }} ${{ env.tags_previous }}
+            node scripts/changelog ${tags_current} ${tags_previous}
             echo EOF
           } >> "$GITHUB_OUTPUT"
 

@@ -1,4 +1,6 @@
 name: 'Release'
+permissions:
+  contents: read
 
 on:
   workflow_call:
@@ -41,7 +43,9 @@ jobs:
   build-client:
     needs: [tags]
     uses: ./.github/workflows/build-client.yml
-    secrets: inherit
+    secrets:
+      VITE_SENTRY_DSN: true
+      SENTRY_CLIENT_AUTH_TOKEN: true
     with:
       environment: ${{ inputs.environment }}
       tag: ${{ needs.tags.outputs.current }}
@@ -49,7 +53,9 @@ jobs:
   migrate:
     needs: [tags, build-api, build-client]
     uses: ./.github/workflows/migrate.yml
-    secrets: inherit
+    secrets:
+      SCALINGO_SSH_KEY: true
+      SCALINGO_API_TOKEN: true
     with:
       tags_current: ${{ needs.tags.outputs.current }}
       tags_previous: ${{ needs.tags.outputs.previous }}
@@ -59,7 +65,8 @@ jobs:
     name: Deploy scalingo
     needs: [tags, migrate]
     uses: ./.github/workflows/deploy-to-scalingo.yml
-    secrets: inherit
+    secrets:
+      SCALINGO_API_TOKEN: true
     with:
       environment: ${{ inputs.environment }}
       tags_current: ${{ needs.tags.outputs.current }}

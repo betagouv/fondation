@@ -1,4 +1,6 @@
 name: Deploy application on scalingo
+permissions:
+  contents: read
 
 on:
   workflow_call:
@@ -27,12 +29,12 @@ jobs:
 
     steps:
       - name: Download api artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: api-scalingo-${{ inputs.tags_current }}
 
       - name: Download client artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: client-scalingo-${{ inputs.tags_current }}
 
@@ -45,14 +47,24 @@ jobs:
         run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
 
       - name: Update remote version envvar
-        run: scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} env-set APP_VERSION=${{ inputs.tags_current }}
+        run: scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_API_APP_NAME} env-set APP_VERSION=${INPUTS_TAGS_CURRENT}
+        env:
+          VARS_SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
+          VARS_SCALINGO_API_APP_NAME: ${{ vars.SCALINGO_API_APP_NAME }}
+          INPUTS_TAGS_CURRENT: ${{ inputs.tags_current }}
 
       - name: Deploy api
         run: |
-          echo "Deploying api on app ${{ vars.SCALINGO_API_APP_NAME }}"
-          scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_API_APP_NAME }} deploy api-scalingo.tar.gz
+          echo "Deploying api on app ${VARS_SCALINGO_API_APP_NAME}"
+          scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_API_APP_NAME} deploy api-scalingo.tar.gz
+        env:
+          VARS_SCALINGO_API_APP_NAME: ${{ vars.SCALINGO_API_APP_NAME }}
+          VARS_SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
 
       - name: Deploy client
         run: |
-          echo "Deploying client on app ${{ vars.SCALINGO_CLIENT_APP_NAME }}"
-          scalingo --region ${{ vars.SCALINGO_APP_REGION }} --app ${{ vars.SCALINGO_CLIENT_APP_NAME }} deploy client-scalingo.tar.gz
+          echo "Deploying client on app ${VARS_SCALINGO_CLIENT_APP_NAME}"
+          scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_CLIENT_APP_NAME} deploy client-scalingo.tar.gz
+        env:
+          VARS_SCALINGO_CLIENT_APP_NAME: ${{ vars.SCALINGO_CLIENT_APP_NAME }}
+          VARS_SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
