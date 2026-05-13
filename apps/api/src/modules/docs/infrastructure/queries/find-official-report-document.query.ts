@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
-import {
-  type OfficialReportRenderContext,
-  OfficialReportRenderer,
-} from '../services/renderers/official-report.renderer';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import {
+  type OfficialReportRenderContext,
+  OfficialReportRenderer,
+} from '../services/renderers/official-report.renderer';
 
 @Injectable()
 export class FindOfficialReportDocumentQuery {
@@ -37,11 +37,13 @@ export class FindOfficialReportDocumentQuery {
           sessionMeetingStartingTime: true,
           hasRenunciation: true,
           justiceDepartmentContactName: true,
+          chairmanId: true,
           chairmanFirstName: true,
           chairmanLastName: true,
           chairmanTitle: true,
           chairmanDisplayTitle: true,
           chairmanGender: true,
+          secretaryId: true,
           secretaryFirstName: true,
           secretaryLastName: true,
           secretaryTitle: true,
@@ -49,6 +51,7 @@ export class FindOfficialReportDocumentQuery {
           secretaryGender: true,
           members: {
             select: {
+              memberId: true,
               firstName: true,
               lastName: true,
               gender: true,
@@ -106,6 +109,7 @@ export class FindOfficialReportDocumentQuery {
           minutes: ctx.sessionMeetingStartingTime.getMinutes(),
         },
         chairman: {
+          id: ctx.chairmanId,
           firstName: ctx.chairmanFirstName,
           lastName: ctx.chairmanLastName,
           gender: prismaGenderEnumToGenderEnum(ctx.chairmanGender),
@@ -113,6 +117,7 @@ export class FindOfficialReportDocumentQuery {
           displayTitle: ctx.chairmanDisplayTitle,
         },
         secretary: {
+          id: ctx.secretaryId,
           firstName: ctx.secretaryFirstName,
           lastName: ctx.secretaryLastName,
           gender: prismaGenderEnumToGenderEnum(ctx.secretaryGender),
@@ -120,6 +125,7 @@ export class FindOfficialReportDocumentQuery {
           displayTitle: ctx.secretaryDisplayTitle,
         },
         members: ctx.members.map((m) => ({
+          id: m.memberId,
           firstName: m.firstName,
           lastName: m.lastName,
           gender: prismaGenderEnumToGenderEnum(m.gender),

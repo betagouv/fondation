@@ -4,11 +4,11 @@ import z from 'zod';
 
 import { Gender, Magistrat } from 'shared-models';
 
+import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildName, buildPosition } from '../helpers/magistrat.helper';
-import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class InternalFindAgendaNominationFilesQuery {
@@ -116,14 +116,18 @@ const SqlNominationFilesSchema = z
       comment: item.outcomeComment,
     });
 
-    const reporters = item.reporters.map((u) =>
-      buildName({
+    const reporters = item.reporters.map((u) => ({
+      id: u.id,
+      gender: u.gender,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      fullTitledName: buildName({
         civility: u.gender === Gender.M ? 'M.' : 'MME',
         firstName: u.firstName,
         lastName: u.lastName,
         usedName: null,
       }),
-    );
+    }));
 
     const name = buildName(item.magistrat);
 
@@ -174,13 +178,6 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
   z.object({
     items: z.array(
       z.looseObject({
-        targetedGrade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        targetedPosition: z.string().nullable().meta({ deprecated: true }),
-        currentPosition: z.string().nullable().meta({ deprecated: true }),
-        grade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        magistratId: z.string().nullable().meta({ deprecated: true }),
-        name: z.string().meta({ deprecated: true }),
-
         id: z.string(),
         number: z.number(),
 
@@ -203,7 +200,14 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
           jurisdictionId: z.string().nullable(),
         }),
 
-        reporters: z.array(z.string()),
+        reporters: z.array(
+          z.object({
+            gender: z.enum(Gender),
+            firstName: z.string().trim().nonempty(),
+            lastName: z.string().trim().nonempty(),
+            fullTitledName: z.string().trim().nonempty(),
+          }),
+        ),
         outcome: z.object({
           value: z.enum(NominationFileOutcome.enum),
           comment: z.string().nullable(),

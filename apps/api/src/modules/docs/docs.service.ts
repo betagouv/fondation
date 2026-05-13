@@ -2,14 +2,14 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { DateOnly } from 'src/utils/date-only';
+import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
-import { Prisma } from 'src/generated/prisma/client';
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
@@ -148,7 +148,17 @@ export class DocsService {
 
     const agenda = Agenda.create({
       chairman,
-      nominationFiles,
+      nominationFiles: nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        outcome: f.outcome,
+        name: f.magistrat.name,
+        grade: f.magistrat.position.grade,
+        currentPosition: f.magistrat.position.label,
+        targetedGrade: f.targetPosition.grade,
+        targetedPosition: f.targetPosition.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
+      })),
       sessionId: command.sessionId,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
@@ -184,10 +194,20 @@ export class DocsService {
 
     agenda.update({
       chairman,
-      nominationFiles,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      nominationFiles: nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        outcome: f.outcome,
+        name: f.magistrat.name,
+        grade: f.magistrat.position.grade,
+        currentPosition: f.magistrat.position.label,
+        targetedGrade: f.targetPosition.grade,
+        targetedPosition: f.targetPosition.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
+      })),
     });
 
     await this.agendaRepository.persist(agenda);

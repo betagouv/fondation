@@ -11,10 +11,12 @@ export class IsSessionReadyForDocGenerationQuery {
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
     const { canCreateAgenda, canCreateOfficialReport, isReady } = await this.prisma.$transaction(
       async (tx) => {
-        const hasAnyAgendaWithoutOfficialReport = await tx.agenda.findFirst({
-          select: { id: true },
-          where: { officialReportId: null, sessionId: query.sessionId },
-        });
+        const hasAnyAgendaWithoutOfficialReport = Boolean(
+          await tx.agenda.findFirst({
+            select: { id: true },
+            where: { officialReportId: null, sessionId: query.sessionId },
+          }),
+        );
 
         const hasAnySuspendedFile = await tx.dossierDeNomination.findFirst({
           select: { id: true },
@@ -28,26 +30,25 @@ export class IsSessionReadyForDocGenerationQuery {
           return {
             isReady: true,
             canCreateAgenda: true,
-            canCreateOfficialReport: !!hasAnyAgendaWithoutOfficialReport,
+            canCreateOfficialReport: Boolean(hasAnyAgendaWithoutOfficialReport),
           };
         }
 
-        const hasAnyNonReportedWithOutcomeFile = await tx.dossierDeNomination.findFirst({
+        const hasAnyNonReportedFile = await tx.dossierDeNomination.findFirst({
           select: { id: true },
           where: {
             agendaInclusions: { none: {} },
             sessionId: query.sessionId,
-            outcome: {
-              not: null,
-              notIn: ['ASSESSING', 'SUSPENDED', 'WAITING_DSJ'],
-            },
           },
         });
 
+        const canCreateAgenda = Boolean(hasAnyNonReportedFile);
+        const canCreateOfficialReport = Boolean(hasAnyAgendaWithoutOfficialReport);
+
         return {
-          isReady: !!hasAnyAgendaWithoutOfficialReport || !!hasAnyNonReportedWithOutcomeFile,
-          canCreateAgenda: !!hasAnyNonReportedWithOutcomeFile,
-          canCreateOfficialReport: !!hasAnyAgendaWithoutOfficialReport,
+          canCreateAgenda,
+          canCreateOfficialReport,
+          isReady: canCreateAgenda || canCreateOfficialReport,
         };
       },
     );

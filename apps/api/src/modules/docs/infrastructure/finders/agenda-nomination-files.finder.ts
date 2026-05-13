@@ -3,15 +3,15 @@ import * as Sentry from '@sentry/node';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
+import { Gender, Magistrat } from 'shared-models';
 
+import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
+import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
-import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 
 @Injectable()
 export class AgendaNominationFilesFinder {
@@ -52,7 +52,6 @@ export class AgendaNominationFilesFinder {
 
       if (!ids.has(item.id) && outcomeValue !== 'SUSPENDED') return [];
 
-      item.agendaCount = 0;
       item.outcome.value = outcomeValue;
       return [item];
     });
@@ -67,7 +66,15 @@ export class FoundAgendaNominationFiles extends createZodDto(
       z.object({
         id: z.string(),
         number: z.number(),
-        reporters: z.array(z.string()),
+        reporters: z.array(
+          z.object({
+            id: z.string(),
+            gender: z.enum(Gender),
+            firstName: z.string(),
+            lastName: z.string(),
+            fullTitledName: z.string(),
+          }),
+        ),
         outcome: z.object({
           value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),
           comment: z.string().nullable(),
@@ -91,14 +98,6 @@ export class FoundAgendaNominationFiles extends createZodDto(
           functionId: z.string().nullable(),
           jurisdictionId: z.string().nullable(),
         }),
-
-        agendaCount: z.number().meta({ deprecated: true }),
-        currentPosition: z.string().nullable().meta({ deprecated: true }),
-        grade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        magistratId: z.string().nullable().meta({ deprecated: true }),
-        name: z.string().meta({ deprecated: true }),
-        targetedGrade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        targetedPosition: z.string().nullable().meta({ deprecated: true }),
       }),
     ),
   }),
