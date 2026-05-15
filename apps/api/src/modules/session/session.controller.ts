@@ -21,10 +21,10 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, UseMultipartBody, type Multipart } from '../framework/files';
-import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, UseMultipartBody, type Multipart } from '../framework/files';
+import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 
 import { LodamNominationFile } from './domain/nomination-file';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
@@ -79,6 +79,7 @@ export class SessionController {
   ): Promise<ListedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
       pagination,
+      search: query.search || null,
       formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
