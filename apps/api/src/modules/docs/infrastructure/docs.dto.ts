@@ -26,6 +26,7 @@ export class CreateOrUpdateOfficialReportDto extends createZodDto(
   z.object({
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingTime: timeOnlySchema,
+    sessionMeetingEndingTime: timeOnlySchema,
     hasRenunciation: z.boolean(),
     justiceDepartmentContactId: z.string(),
     chairmanId: z.uuid(),
@@ -64,6 +65,7 @@ export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
   z.object({
     date: dateOnlyJsonSchema,
     time: timeOnlySchema,
+    endingTime: timeOnlySchema.nullish(),
     chairmanId: z.string(),
     secretaryId: z.string(),
     justiceContactId: z.string(),
@@ -73,5 +75,11 @@ export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
         comment: z.string().trim().nonempty().nullable(),
       }),
     ),
+  }),
+) {}
+
+export class PresentPlanDto extends createZodDto(
+  z.object({
+    endTime: timeOnlySchema,
   }),
 ) {}

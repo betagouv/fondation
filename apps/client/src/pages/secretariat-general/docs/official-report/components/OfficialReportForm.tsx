@@ -1,5 +1,4 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
@@ -8,9 +7,7 @@ import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage } from 'react-intl';
-import z from 'zod';
 
-import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { toFullName } from '@/utils/user.utils';
@@ -19,19 +16,61 @@ import {
   useListMembersForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
+import { useOfficialReport } from '../context/OfficialReportContext';
 
+import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
+import z from 'zod';
+import { AbsentMemberSelector } from './AbsentMemberSelector';
 import { JusticeContactSelector } from './JusticeContactSelector';
 
-const OfficialReportMetadataSchema = z.object({
-  sessionMeetingDate: dateOnlyCodec,
-  sessionMeetingTime: z.string().regex(/^\d{2}:\d{2}$/, 'Format HH:MM requis'),
-  hasRenunciation: z.boolean(),
-  justiceDepartmentContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
-  chairmanId: z.uuid('Veuillez sélectionner un président'),
-  secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
-  memberIds: z.array(z.uuid()).nonempty('Veuillez sélectionner au moins un membre'),
-  agendaId: z.string().nonempty('Veuillez sélectionner un ordre du jour'),
-});
+const OfficialReportMetadataSchema = z
+  .object({
+    sessionMeetingDate: dateOnlyCodec,
+    sessionMeetingStartingTime: formTimeOnlyCodec,
+    sessionMeetingEndingTime: formTimeOnlyCodec,
+    hasRenunciation: z.boolean(),
+    justiceDepartmentContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
+    chairmanId: z.uuid('Veuillez sélectionner un président'),
+    secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
+    memberIds: z.array(z.uuid()),
+    agendaId: z.string().nonempty('Veuillez sélectionner un ordre du jour'),
+  })
+  .superRefine(({ sessionMeetingStartingTime, sessionMeetingEndingTime }, ctx) => {
+    const start = timeOnlyToDate(sessionMeetingStartingTime);
+    if (!start) {
+      ctx.issues.push({
+        path: ['sessionMeetingStartingTime'],
+        code: 'invalid_type',
+        expected: 'string',
+        input: sessionMeetingStartingTime,
+      });
+    }
+
+    const end = timeOnlyToDate(sessionMeetingEndingTime);
+    if (!end) {
+      ctx.issues.push({
+        path: ['sessionMeetingEndingTime'],
+        code: 'invalid_type',
+        expected: 'string',
+        input: sessionMeetingEndingTime,
+      });
+    }
+
+    if (start && end && start.getTime() > end.getTime()) {
+      ctx.issues.push({
+        path: ['sessionMeetingStartingTime'],
+        code: 'custom',
+        input: sessionMeetingStartingTime,
+        message: `L'heure de début doit être avant l'heure de fin`,
+      });
+      ctx.issues.push({
+        path: ['sessionMeetingEndingTime'],
+        code: 'custom',
+        input: sessionMeetingEndingTime,
+        message: `L'heure de fin doit être après l'heure de début`,
+      });
+    }
+  });
 
 export function OfficialReportForm() {
   const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
@@ -59,7 +98,12 @@ export function OfficialReportForm() {
   const defaultValues = React.useMemo(
     () => ({
       sessionMeetingDate: format(dateOnlyToDate(metadata?.sessionMeetingDate) ?? new Date(), 'yyyy-MM-dd'),
-      sessionMeetingTime: metadata?.sessionMeetingTime ?? '',
+      sessionMeetingStartingTime: metadata?.sessionMeetingStartingTime
+        ? (timeOnlyToString({ hours: 0, minutes: 0, ...metadata.sessionMeetingStartingTime }, 'HH:mm') ?? '')
+        : '',
+      sessionMeetingEndingTime: metadata?.sessionMeetingEndingTime
+        ? (timeOnlyToString({ hours: 0, minutes: 0, ...metadata.sessionMeetingEndingTime }, 'HH:mm') ?? '')
+        : '',
       hasRenunciation: metadata?.hasRenunciation ?? true,
       justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? '',
       chairmanId: metadata?.chairmanId ?? '',
@@ -73,14 +117,17 @@ export function OfficialReportForm() {
   const {
     control,
     setValue,
-    getValues,
     handleSubmit,
+    watch,
+    subscribe,
     formState: { errors, isValid },
   } = useForm({
     mode: 'all',
     defaultValues,
     resolver: zodResolver(OfficialReportMetadataSchema),
   });
+
+  const selectedChairmanId = watch('chairmanId');
 
   React.useEffect(() => {
     if (chairmen.length > 0 && !metadata?.chairmanId) {
@@ -98,18 +145,31 @@ export function OfficialReportForm() {
     }
   }, [secretaries, metadata, setValue]);
 
-  const memberIdsInitialized = React.useRef(false);
   React.useEffect(() => {
-    if (members.length > 0 && !memberIdsInitialized.current) {
-      memberIdsInitialized.current = true;
-      if (!metadata?.memberIds.length) {
-        setValue(
-          'memberIds',
-          members.map((m) => m.id),
-        );
-      }
-    }
-  }, [members, metadata, setValue]);
+    const unsubscribe = subscribe({
+      name: 'agendaId',
+      callback: (state) => {
+        const agenda = (agendas?.items ?? []).find((agenda) => agenda.id === state.values.agendaId);
+        if (!agenda) return;
+
+        if (!state.dirtyFields?.chairmanId && agenda.chairmanId) {
+          setValue('chairmanId', agenda.chairmanId);
+        }
+
+        if (!state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlanStartTime) {
+          const startTime = formTimeOnlyCodec.encode(agenda.presentationPlanStartTime);
+          if (startTime) setValue('sessionMeetingStartingTime', startTime);
+        }
+
+        if (!state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlanEndTime) {
+          const endTime = formTimeOnlyCodec.encode(agenda.presentationPlanEndTime);
+          if (endTime) setValue('sessionMeetingEndingTime', endTime);
+        }
+      },
+    });
+
+    return unsubscribe;
+  }, [subscribe, setValue, agendas]);
 
   const onAgendaSelected = React.useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -134,21 +194,6 @@ export function OfficialReportForm() {
       });
     },
     [agendas, chairmen, setValue],
-  );
-
-  const onMemberChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const currentMemberIds = getValues('memberIds');
-      if (event.target.checked) {
-        setValue('memberIds', currentMemberIds.concat(event.target.value));
-      } else {
-        setValue(
-          'memberIds',
-          currentMemberIds.filter((x) => x !== event.target.value),
-        );
-      }
-    },
-    [getValues, setValue],
   );
 
   return (
@@ -205,19 +250,35 @@ export function OfficialReportForm() {
       />
 
       <Controller
-        name="sessionMeetingTime"
+        name="sessionMeetingStartingTime"
         control={control}
         render={({ field }) => (
           <Input
             label={
-              <FormattedMessage
-                defaultMessage={`<mandatory>Heure de la séance</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
-              />
+              <Mandatory>
+                <FormattedMessage defaultMessage="Heure de début de la séance" />
+              </Mandatory>
             }
             nativeInputProps={{ type: 'time', ...field }}
-            state={errors.sessionMeetingTime ? 'error' : 'default'}
-            stateRelatedMessage={errors.sessionMeetingTime?.message}
+            state={errors.sessionMeetingStartingTime ? 'error' : 'default'}
+            stateRelatedMessage={errors.sessionMeetingStartingTime?.message}
+          />
+        )}
+      />
+
+      <Controller
+        name="sessionMeetingEndingTime"
+        control={control}
+        render={({ field }) => (
+          <Input
+            label={
+              <Mandatory>
+                <FormattedMessage defaultMessage="Heure de fin de la séance" />
+              </Mandatory>
+            }
+            nativeInputProps={{ type: 'time', ...field }}
+            state={errors.sessionMeetingEndingTime ? 'error' : 'default'}
+            stateRelatedMessage={errors.sessionMeetingEndingTime?.message}
           />
         )}
       />
@@ -282,31 +343,12 @@ export function OfficialReportForm() {
         )}
       />
 
-      <Controller
+      <AbsentMemberSelector
         name="memberIds"
-        control={control}
-        render={({ field }) => (
-          <Checkbox
-            legend={
-              <FormattedMessage
-                defaultMessage={`<mandatory>Membres présents</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
-              />
-            }
-            classes={{ content: 'grid grid-cols-3 gap-x-4 items-start', inputGroup: `first:mt-0!` }}
-            options={members.map((member) => ({
-              label: toFullName(member),
-              nativeInputProps: {
-                ...field,
-                value: member.id,
-                onChange: onMemberChange,
-                checked: field.value.includes(member.id),
-              },
-            }))}
-            state={errors.memberIds && 'error'}
-            stateRelatedMessage={errors.memberIds?.message}
-          />
-        )}
+        sessionId={session.id}
+        chairmanId={selectedChairmanId}
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
       />
 
       <Controller

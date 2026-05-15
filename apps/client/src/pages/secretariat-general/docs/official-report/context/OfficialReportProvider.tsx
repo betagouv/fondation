@@ -36,12 +36,12 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
   React.useEffect(() => {
     if (!officialReportMetadata) return;
 
-    const { hours, minutes } = officialReportMetadata.sessionMeetingStartingTime;
     setState((s) => ({
       ...s,
       agendaId: officialReportMetadata.agendas[0],
       sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
-      sessionMeetingTime: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+      sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime ?? {},
+      sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime ?? {},
       hasRenunciation: officialReportMetadata.hasRenunciation,
       justiceDepartmentContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
       chairmanId: officialReportMetadata.chairmanId ?? '',
@@ -65,11 +65,10 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
 
   const submit = React.useCallback(
     (metadata: OfficialReport) => {
-      const [hours, minutes] = metadata.sessionMeetingTime.split(':').map(Number);
-
       const payload = {
         sessionMeetingDate: metadata.sessionMeetingDate,
-        sessionMeetingTime: { hours, minutes },
+        sessionMeetingTime: { hours: 0, minutes: 0, ...metadata.sessionMeetingStartingTime },
+        sessionMeetingEndingTime: { hours: 0, minutes: 0, ...metadata.sessionMeetingEndingTime },
         hasRenunciation: metadata.hasRenunciation,
         justiceDepartmentContactId: metadata.justiceDepartmentContactId,
         chairmanId: metadata.chairmanId,

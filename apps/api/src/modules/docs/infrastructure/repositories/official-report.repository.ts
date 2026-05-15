@@ -1,17 +1,17 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
-import {
-  OfficialReport,
-  OfficialReportCreated,
-  OfficialReportDeleted,
-  OfficialReportUpdated,
-} from '../../domain/official-report';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { timeOnlyToDate } from 'src/utils/time-only';
+import {
+  OfficialReport,
+  OfficialReportCreated,
+  OfficialReportDeleted,
+  OfficialReportUpdated,
+} from '../../domain/official-report';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -77,6 +77,7 @@ export class OfficialReportRepository {
         id: message.id,
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
         sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
+        sessionMeetingEndingTime: timeOnlyToDate(message.sessionMeetingEndingTime),
         hasRenunciation: message.hasRenunciation,
         justiceDepartmentContactId: justiceContact.id,
         justiceDepartmentContactName: justiceContact.name,

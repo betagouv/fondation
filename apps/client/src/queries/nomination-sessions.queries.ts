@@ -354,6 +354,7 @@ export const useUpdateNominationSessionMutation = () => {
 
 export const useDetailedNominationSessionQuery = (input: { sessionId: string | undefined }) =>
   useQuery({
+    refetchOnMount: false,
     enabled: !!input.sessionId,
     queryKey: sessionKeys.detailSession({ sessionId: input.sessionId }),
     queryFn: () =>

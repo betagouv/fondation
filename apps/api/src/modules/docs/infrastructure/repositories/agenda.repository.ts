@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
-import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
+import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
 
 @Injectable()
 export class AgendaRepository {
@@ -74,8 +74,8 @@ export class AgendaRepository {
               targetedGrade: file.targetedGrade,
               targetedPosition: file.targetedPosition,
               nominationFileId: file.id,
-              outcome: file.outcome.value,
-              outcomeComment: file.outcome.comment,
+              outcome: file.outcome?.value,
+              outcomeComment: file.outcome?.comment,
               reporters: file.reporters as string[],
             })),
           },
@@ -135,8 +135,8 @@ export class AgendaRepository {
               targetedGrade: file.targetedGrade,
               targetedPosition: file.targetedPosition,
               nominationFileId: file.id,
-              outcome: file.outcome.value,
-              outcomeComment: file.outcome.comment,
+              outcome: file.outcome?.value,
+              outcomeComment: file.outcome?.comment,
               reporters: file.reporters as string[],
             })),
           },

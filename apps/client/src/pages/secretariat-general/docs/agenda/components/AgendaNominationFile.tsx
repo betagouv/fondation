@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import './AgendaNominationFile.css';
 
 import { Marked } from '@/components/shared/Marked';
-import { NominationFileOutcomeBadge } from '@/components/shared/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
+import { UserAvatarList } from '@/components/shared/user-avatar';
 import type { FormationEnum } from '@/types/enums.types';
 import type { FoundAgendaNominationFiles } from '@api/types';
 
@@ -31,7 +31,7 @@ export function AgendaNominationFile(props: {
             <div className="flex w-full items-start gap-1 py-4">
               <div className="w-[3ch] shrink-0">{props.file.number}</div>
               <div className="w-[10%]">
-                <NominationFileOutcomeBadge formation={props.formation} outcome={props.file.outcome.value} />
+                <UserAvatarList users={props.file.reporters} max={2} size="sm" />
               </div>
               <div
                 className="w-1/3 shrink-0 cursor-help pl-2"

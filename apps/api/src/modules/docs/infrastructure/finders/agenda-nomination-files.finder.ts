@@ -5,11 +5,15 @@ import z from 'zod';
 
 import { Gender, Magistrat } from 'shared-models';
 
-import { findNominationFilesNotInAgendaRawQuery } from 'src/generated/prisma/sql';
+import {
+  findAlreadyReportedNominationFilesRawQuery,
+  findNominationFilesNotInAgendaRawQuery,
+} from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
+  DocNominationFileOutcomeEnum,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
 
@@ -26,37 +30,74 @@ export class AgendaNominationFilesFinder {
     ids?: readonly string[];
     ignoreAgendaId?: string;
   }): Promise<FoundAgendaNominationFiles> {
-    const { items } = (await this.sessions.internalFindAgendaNominationFiles({
+    const { items: sessionNominationFiles } = (await this.sessions.internalFindAgendaNominationFiles({
       ids: query.ids,
       sessionId: query.sessionId,
     })) as FoundAgendaNominationFiles;
 
-    if (items.length === 0) return { items: [] };
+    if (sessionNominationFiles.length === 0) return { items: [] };
 
-    const rows = await Sentry.startSpan(
+    const sessionNominationFilesNotInAgenda = await Sentry.startSpan(
       {
         name: 'fr.csm.fondation:docs:findNominationFilesWithAgendaCountRawQuery',
       },
       () =>
         this.prisma.$queryRawTyped(
           findNominationFilesNotInAgendaRawQuery(
-            items.map(({ id }) => id),
+            sessionNominationFiles.map(({ id }) => id),
             query.ignoreAgendaId ?? null,
           ),
         ),
     );
 
-    const ids = new Set(rows.map(({ id }) => id));
-    const output = items.flatMap((item) => {
-      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(item.outcome.value);
+    const notReportedFileIds = new Set(sessionNominationFilesNotInAgenda.map(({ id }) => id));
+    const output = sessionNominationFiles.flatMap((file) => {
+      if (!file.outcome) return [file];
 
-      if (!ids.has(item.id) && outcomeValue !== 'SUSPENDED') return [];
+      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
 
-      item.outcome.value = outcomeValue;
-      return [item];
+      if (!notReportedFileIds.has(file.id) && outcomeValue !== 'SUSPENDED') return [];
+
+      file.outcome.value = outcomeValue;
+      return [file];
     });
 
     return { items: output };
+  }
+
+  async findAlreadyReportedIds(query: {
+    fileIds: Set<string>;
+    ignoreAgendaId?: string;
+  }): Promise<
+    Map<
+      string,
+      { id: string; reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[] }
+    >
+  > {
+    const files = await this.prisma.$queryRawTyped(
+      findAlreadyReportedNominationFilesRawQuery([...query.fileIds], query.ignoreAgendaId ?? null),
+    );
+
+    const map = new Map<
+      string,
+      { id: string; reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[] }
+    >();
+
+    for (const file of files) {
+      if (!file.nominationFileId) continue;
+
+      const previous = map.get(file.nominationFileId);
+      if (previous) {
+        previous.reportedIn.push({ agendaId: file.agendaId, outcome: file.outcome });
+      } else {
+        map.set(file.nominationFileId, {
+          id: file.nominationFileId,
+          reportedIn: [{ agendaId: file.agendaId, outcome: file.outcome }],
+        });
+      }
+    }
+
+    return map;
   }
 }
 
@@ -75,10 +116,12 @@ export class FoundAgendaNominationFiles extends createZodDto(
             fullTitledName: z.string(),
           }),
         ),
-        outcome: z.object({
-          value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),
-          comment: z.string().nullable(),
-        }),
+        outcome: z
+          .object({
+            value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),
+            comment: z.string().nullable(),
+          })
+          .nullable(),
 
         magistrat: z.object({
           id: z.string(),

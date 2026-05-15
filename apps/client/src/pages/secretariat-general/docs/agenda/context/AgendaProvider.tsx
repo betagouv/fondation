@@ -4,12 +4,14 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
+  agendaKeys,
   useCreateAgendaMutation,
   useDetailsAgendaMetadataQuery,
   useUpdateAgendaMutation,
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { AgendaContext } from './AgendaContext';
 import type { AgendaMetadata, AgendaStep } from './AgendaContext.types';
 
@@ -22,6 +24,7 @@ export function AgendaProvider(props: React.PropsWithChildren) {
   const { sessionId = '', agendaId = null } = useParams<{ sessionId: string; agendaId?: string }>();
   const navigate = useNavigate();
   const { waitForConfirmation } = useConfirmation();
+  const queryClient = useQueryClient();
 
   const createAgenda = useCreateAgendaMutation();
   const updateAgenda = useUpdateAgendaMutation(sessionId);
@@ -86,30 +89,30 @@ export function AgendaProvider(props: React.PropsWithChildren) {
         sessionMeetingDate: state.metadata.sessionMeetingDate,
       };
 
+      async function onSuccess() {
+        await queryClient.invalidateQueries({
+          queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
+        });
+        return navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId }));
+      }
+
       if (agendaId) {
-        updateAgenda.mutate(
-          {
-            ...payload,
-            agendaId,
-          },
-          {
-            onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId })),
-          },
-        );
+        updateAgenda.mutate({ ...payload, agendaId }, { onSuccess });
       } else {
-        createAgenda.mutate(
-          {
-            ...payload,
-            sessionId,
-          },
-          {
-            onSuccess: ({ id: agendaId }) =>
-              navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId })),
-          },
-        );
+        createAgenda.mutate({ ...payload, sessionId }, { onSuccess });
       }
     },
-    [state, goToMetadata, createAgenda, updateAgenda, agendaId, sessionId, navigate, waitForConfirmation],
+    [
+      state,
+      goToMetadata,
+      queryClient,
+      createAgenda,
+      updateAgenda,
+      agendaId,
+      sessionId,
+      navigate,
+      waitForConfirmation,
+    ],
   );
 
   return (

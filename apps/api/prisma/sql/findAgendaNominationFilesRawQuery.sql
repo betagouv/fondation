@@ -84,7 +84,6 @@ FROM nominations_context.dossier_de_nomination ddn
 WHERE (
   ddn.session_id = $1::UUID
   AND ($3::UUID[] IS NULL OR ddn.id = ANY($3::UUID[]))
-  AND outcome IS NOT NULL
 )
 
 ORDER BY ddn.number;

@@ -131,15 +131,21 @@ export class FindOfficialReportDocumentQuery {
           gender: prismaGenderEnumToGenderEnum(m.gender),
           displayTitle: m.title,
         })),
-        files: agenda.nominationFiles.map((f) => ({
-          name: f.name,
-          currentGrade: f.grade,
-          currentPosition: f.position,
-          targetedPosition: f.targetedPosition ?? '',
-          targetedGrade: f.targetedGrade,
-          reporters: f.reporters,
-          outcome: f.outcome,
-        })),
+        files: agenda.nominationFiles.flatMap((f) => {
+          if (!f.outcome) return [];
+
+          return [
+            {
+              name: f.name,
+              currentGrade: f.grade,
+              currentPosition: f.position,
+              targetedPosition: f.targetedPosition ?? '',
+              targetedGrade: f.targetedGrade,
+              reporters: f.reporters,
+              outcome: f.outcome,
+            },
+          ];
+        }),
       };
 
       const html = this.officialReportRenderer.html(renderContext);

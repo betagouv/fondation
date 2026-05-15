@@ -146,6 +146,10 @@ export class DocsService {
       ids: command.nominationFileIds,
     });
 
+    const alreadyReportedNominationFiles = await this.agendaNominationFilesFinder.findAlreadyReportedIds({
+      fileIds: new Set(nominationFiles.map(({ id }) => id)),
+    });
+
     const agenda = Agenda.create({
       chairman,
       nominationFiles: nominationFiles.map((f) => ({
@@ -163,6 +167,7 @@ export class DocsService {
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      alreadyReportedNominationFiles,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -192,8 +197,14 @@ export class DocsService {
       ignoreAgendaId: command.agendaId,
     });
 
+    const alreadyReportedNominationFiles = await this.agendaNominationFilesFinder.findAlreadyReportedIds({
+      ignoreAgendaId: command.agendaId,
+      fileIds: new Set(nominationFiles.map(({ id }) => id)),
+    });
+
     agenda.update({
       chairman,
+      alreadyReportedNominationFiles,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
@@ -285,6 +296,7 @@ export class DocsService {
     authorId: string;
     sessionMeetingDate: DateOnlyJson;
     sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    sessionMeetingEndingTime: { hours: number; minutes: number; seconds: number };
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairmanId: string;
@@ -327,6 +339,7 @@ export class DocsService {
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
       sessionMeetingStartingTime: command.sessionMeetingTime,
+      sessionMeetingEndingTime: command.sessionMeetingEndingTime,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       justiceDepartmentContactId: command.justiceDepartmentContactId,
     });
@@ -341,6 +354,7 @@ export class DocsService {
     authorId: string;
     sessionMeetingDate: DateOnlyJson;
     sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    sessionMeetingEndingTime: { hours: number; minutes: number; seconds: number };
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairmanId: string;
@@ -383,6 +397,7 @@ export class DocsService {
       authorId: command.authorId,
       hasRenunciation: command.hasRenunciation,
       sessionMeetingStartingTime: command.sessionMeetingTime,
+      sessionMeetingEndingTime: command.sessionMeetingEndingTime,
       justiceDepartmentContactId: command.justiceDepartmentContactId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
     });
@@ -467,6 +482,7 @@ export class DocsService {
     id: string;
     date: DateOnlyJson;
     time: TimeOnly;
+    endingTime: TimeOnly | null;
     authorId: string;
     chairmanId: string;
     secretaryId: string;
@@ -508,6 +524,7 @@ export class DocsService {
       justiceContactId: command.justiceContactId,
       authorId: command.authorId,
       time: command.time,
+      endingTime: command.endingTime,
       date: DateOnly.fromJson(command.date),
     });
 
@@ -540,11 +557,11 @@ export class DocsService {
     return this.listPresentedPlansQuery.handle(query);
   }
 
-  async presentPlan(command: { id: string }): Promise<void> {
+  async presentPlan(command: { id: string; endTime: TimeOnly }): Promise<void> {
     const plan = await this.justicePresentationPlanRepository.find({
       id: command.id,
     });
-    plan.present();
+    plan.present({ endTime: command.endTime });
     await this.justicePresentationPlanRepository.persist(plan);
   }
 

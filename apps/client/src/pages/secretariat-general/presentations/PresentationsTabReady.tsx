@@ -16,20 +16,30 @@ import {
   useListNonPresentedPlansQuery,
   useListPresentationPlansAgendasQuery,
   useOpenJusticePresentationPlanPdfDocumentMutation,
-  usePresentPlanMutation,
 } from '@queries/agenda.queries';
 
+import { usePresentPlanModal } from './contexts/present-plan-modal.context';
+
 import { PresentationAgendaSelectionList } from './components/PresentationAgendaSelecionList';
+import { PresentPlanModalProvider } from './contexts/PresentatPlanModalProvider';
 
 export function PresentationsTabReady() {
+  return (
+    <PresentPlanModalProvider>
+      <InnerPresentationsTabReady />
+    </PresentPlanModalProvider>
+  );
+}
+
+function InnerPresentationsTabReady() {
   const confirmation = useConfirmation();
   const { $t } = useIntl();
   const { data: plans, isFetching: isFetchingPlans } = useListNonPresentedPlansQuery();
   const { data: agendas, isFetching: isFetchingAgendas } = useListPresentationPlansAgendasQuery();
 
   const openPdf = useOpenJusticePresentationPlanPdfDocumentMutation();
-  const mutatePresentation = usePresentPlanMutation();
   const mutateDeletion = useDeleteJusticePresentationPlanMutation();
+  const presentPlanModal = usePresentPlanModal();
 
   const isFetching = isFetchingPlans || isFetchingAgendas;
 
@@ -38,7 +48,7 @@ export function PresentationsTabReady() {
     const date = dateOnlyToDate(item.date);
     const time = timeOnlyToDate(item.time);
 
-    return { id: item.id, formation, date, time };
+    return { id: item.id, formation, date, time, startTime: item.time };
   });
 
   const onClickOnPresentationPlan = React.useCallback(
@@ -53,28 +63,15 @@ export function PresentationsTabReady() {
 
   const onClickPresent = React.useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
-      const { planId: presentationPlanId } = e.currentTarget.dataset;
-      if (!presentationPlanId) return;
+      const { planId } = e.currentTarget.dataset;
+      if (!planId) return;
 
-      const { isConfirmed } = await confirmation.waitForConfirmation({
-        title: $t({ defaultMessage: `Confirmer la restitution` }),
-        content: (
-          <>
-            <p>
-              <FormattedMessage defaultMessage="Vous allez marquer cette notice comme restituée." />
-            </p>
-            <p>
-              <FormattedMessage defaultMessage="Voulez-vous continuer?" />
-            </p>
-          </>
-        ),
-      });
+      const plan = planItems.find((p) => p.id === planId);
+      if (!plan) return;
 
-      if (!isConfirmed) return;
-
-      mutatePresentation.mutate({ presentationPlanId });
+      presentPlanModal.presentPlan({ planId, startTime: plan.startTime });
     },
-    [confirmation, mutatePresentation, $t],
+    [planItems, presentPlanModal],
   );
 
   const onClickDelete = React.useCallback(
@@ -127,7 +124,7 @@ export function PresentationsTabReady() {
           </h2>
 
           <ul className="m-0 list-none p-0">
-            {planItems.map((item) => (
+            {planItems.map(({ startTime: _, ...item }) => (
               <li key={item.id} className="flex items-center">
                 <Button
                   size="small"

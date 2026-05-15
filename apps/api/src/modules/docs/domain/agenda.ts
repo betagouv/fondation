@@ -5,6 +5,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
+import { DocNominationFileOutcomeEnum } from './doc-nomination-file-outcome';
 
 export class AgendaCreated {
   constructor(
@@ -55,6 +56,13 @@ export class EmptyAgenda extends Error {
   }
 }
 
+export class NominationFilesAlreadyReported extends Error {}
+
+type AlreadyReportedNominationFile = {
+  id: string;
+  reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[];
+};
+
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
 
@@ -84,8 +92,24 @@ export class Agenda {
       title: UserTitleEnum | null;
       displayTitle: string | null;
     };
+    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>;
   }): void {
     if (command.nominationFiles.length === 0) throw new EmptyAgenda(this.id);
+
+    const alreadyReportedFileExists = command.nominationFiles.some((file) => {
+      const previous = command.alreadyReportedNominationFiles.get(file.id);
+      const wasAlreadyReported = (previous?.reportedIn ?? []).some(
+        (report) =>
+          /** @warning in the update case we discard any previous appearance in this agenda */
+          report.agendaId !== this.id && report.outcome !== null && report.outcome !== 'SUSPENDED',
+      );
+
+      return wasAlreadyReported;
+    });
+
+    if (alreadyReportedFileExists) {
+      throw new NominationFilesAlreadyReported();
+    }
 
     this.#messages.push(
       new AgendaUpdated(
@@ -117,9 +141,22 @@ export class Agenda {
     date: DateOnly;
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
+    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>;
   }): Agenda {
-    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
+    const alreadyReportedFileExists = props.nominationFiles.some((file) => {
+      const previous = props.alreadyReportedNominationFiles.get(file.id);
+      const wasAlreadyReported = (previous?.reportedIn ?? []).some(
+        (report) => report.outcome !== null && report.outcome !== 'SUSPENDED',
+      );
 
+      return wasAlreadyReported;
+    });
+
+    if (alreadyReportedFileExists) {
+      throw new NominationFilesAlreadyReported();
+    }
+
+    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
     agenda.#messages.push(
       new AgendaCreated(
         agenda.id,

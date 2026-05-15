@@ -2,15 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { TypeDeSaisine } from 'shared-models';
 
-import {
-  PresentationPlanRenderContext,
-  PresentationPlanRenderer,
-} from '../services/renderers/presentation-plan.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
+import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
+import {
+  PresentationPlanRenderContext,
+  PresentationPlanRenderer,
+} from '../services/renderers/presentation-plan.renderer';
 
 @Injectable()
 export class FindPresentationPlanDocumentQuery {
@@ -94,7 +95,10 @@ export class FindPresentationPlanDocumentQuery {
             lastName: a.agenda.chairmanLastName,
           },
           nominationFiles: a.agenda.nominationFiles.filter(
-            (file): file is typeof file & { targetedPosition: string } => isDefined(file.targetedPosition),
+            (
+              file,
+            ): file is typeof file & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>
+              isDefined(file.targetedPosition) && isDefined(file.outcome),
           ),
         })),
       } satisfies PresentationPlanRenderContext;

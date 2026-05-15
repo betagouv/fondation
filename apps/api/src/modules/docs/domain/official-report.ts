@@ -1,10 +1,11 @@
+import { isBefore } from 'date-fns';
 import { Gender, Magistrat, Role } from 'shared-models';
 
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
-import { TimeOnly } from 'src/utils/time-only';
+import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 export type OfficialReportUser = {
   id: string;
@@ -22,12 +23,14 @@ export class InvalidChairmanDuty extends Error {}
 export class InvalidChairmanFormation extends Error {}
 export class InvalidSecretaryDuty extends Error {}
 export class MixedFormationAgendas extends Error {}
+export class OfficialReportEndingTimeIsBeforeStatingTime extends Error {}
 
 export class OfficialReportCreated {
   constructor(
     readonly id: Id<'OfficialReportId'>,
     readonly sessionMeetingDate: DateOnly,
     readonly sessionMeetingStartingTime: TimeOnly,
+    readonly sessionMeetingEndingTime: TimeOnly,
     readonly hasRenunciation: boolean,
     readonly justiceDepartmentContactId: string,
     readonly chairman: OfficialReportUser,
@@ -53,6 +56,7 @@ export class OfficialReportUpdated {
     readonly id: Id<'OfficialReportId'>,
     readonly sessionMeetingDate: DateOnly,
     readonly sessionMeetingStartingTime: TimeOnly,
+    readonly sessionMeetingEndingTime: TimeOnly,
     readonly hasRenunciation: boolean,
     readonly justiceDepartmentContactId: string,
     readonly chairman: OfficialReportUser,
@@ -90,6 +94,7 @@ export class OfficialReport {
   private buildState(props: {
     sessionMeetingDate: DateOnly;
     sessionMeetingStartingTime: TimeOnly;
+    sessionMeetingEndingTime: TimeOnly;
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
@@ -98,6 +103,15 @@ export class OfficialReport {
     members: readonly OfficialReportUser[];
     authorId: string;
   }) {
+    if (
+      !isBefore(
+        timeOnlyToDate(props.sessionMeetingEndingTime),
+        timeOnlyToDate(props.sessionMeetingStartingTime),
+      )
+    ) {
+      throw new OfficialReportEndingTimeIsBeforeStatingTime();
+    }
+
     if (props.chairman.duty !== PrismaUserDutyEnum.PRESIDENT) {
       throw new InvalidChairmanDuty();
     }
@@ -132,6 +146,7 @@ export class OfficialReport {
       agendaIds,
       sessionMeetingDate: props.sessionMeetingDate,
       sessionMeetingStartingTime: props.sessionMeetingStartingTime,
+      sessionMeetingEndingTime: props.sessionMeetingEndingTime,
       hasRenunciation: props.hasRenunciation,
       justiceDepartmentContactId: props.justiceDepartmentContactId,
       chairman: props.chairman,
@@ -147,6 +162,7 @@ export class OfficialReport {
   static create(props: {
     sessionMeetingDate: DateOnly;
     sessionMeetingStartingTime: TimeOnly;
+    sessionMeetingEndingTime: TimeOnly;
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
@@ -165,6 +181,7 @@ export class OfficialReport {
         report.id,
         state.sessionMeetingDate,
         state.sessionMeetingStartingTime,
+        state.sessionMeetingEndingTime,
         state.hasRenunciation,
         state.justiceDepartmentContactId,
         state.chairman,
@@ -181,6 +198,7 @@ export class OfficialReport {
   update(props: {
     sessionMeetingDate: DateOnly;
     sessionMeetingStartingTime: TimeOnly;
+    sessionMeetingEndingTime: TimeOnly;
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
@@ -196,6 +214,7 @@ export class OfficialReport {
         this.id,
         state.sessionMeetingDate,
         state.sessionMeetingStartingTime,
+        state.sessionMeetingEndingTime,
         state.hasRenunciation,
         state.justiceDepartmentContactId,
         state.chairman,
