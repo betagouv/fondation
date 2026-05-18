@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 
-import { ignoreAsync } from 'src/utils/promises';
 import { LolfiFilesIngestor } from '../../services/ingestors/lolfi-files.ingestor';
+import { ignoreAsync } from 'src/utils/promises';
 
 /** @warning this is intended for tests */
 @Injectable()

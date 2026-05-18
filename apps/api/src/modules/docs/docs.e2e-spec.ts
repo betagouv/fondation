@@ -5,16 +5,16 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
-import { AppModule } from 'src/app.module';
 import { createSession } from '../../../test/utils/lolfi';
 import { AdministrationService } from '../administration/administration.service';
-import { RootModule } from '../root.module';
-import { SimpleAuthService } from '../simple-auth';
-import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
-
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
 import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
+import { RootModule } from '../root.module';
 import { DefineNominationFileOutcomeDto } from '../session/infrastructure/dtos/nomination-session.dto';
+import { SimpleAuthService } from '../simple-auth';
+import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
+import { AppModule } from 'src/app.module';
+
 import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/docs.dto';
 import { FoundAgendaNominationFiles } from './infrastructure/finders/agenda-nomination-files.finder';
 
@@ -66,7 +66,7 @@ describe('Docs Service', () => {
     });
 
     const admin = app.get(AdministrationService);
-    await admin.updateTole({ userId: chairman.id, role: 'PRESIDENT_PARQUET' });
+    await admin.updateRole({ userId: chairman.id, role: 'PRESIDENT_PARQUET' });
 
     const { id: userId } = await auth.registerUser({
       firstName: faker.person.firstName(),
@@ -149,7 +149,7 @@ describe('Docs Service', () => {
       .post(`/api/sessions/v2/${session.id}/files/reporters/versions`)
       .set({ cookie: user.cookie })
       .expect(HttpStatus.NO_CONTENT);
-  }, 120_000);
+  });
 
   beforeEach(async () => {
     const response = await http

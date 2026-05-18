@@ -1,5 +1,4 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import * as Sentry from '@sentry/node';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -10,10 +9,7 @@ import {
   DocNominationFileOutcomeEnum,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
-import {
-  findAlreadyReportedNominationFilesRawQuery,
-  findNominationFilesNotInAgendaRawQuery,
-} from 'src/generated/prisma/sql';
+import { findAlreadyReportedNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 
@@ -25,39 +21,17 @@ export class AgendaNominationFilesFinder {
     private readonly prisma: PrismaService,
   ) {}
 
-  async find(query: {
-    sessionId: string;
-    ids?: readonly string[];
-    ignoreAgendaId?: string;
-  }): Promise<FoundAgendaNominationFiles> {
+  async find(query: { sessionId: string; ids?: readonly string[] }): Promise<FoundAgendaNominationFiles> {
     const { items: sessionNominationFiles } = (await this.sessions.internalFindAgendaNominationFiles({
       ids: query.ids,
       sessionId: query.sessionId,
     })) as FoundAgendaNominationFiles;
-
     if (sessionNominationFiles.length === 0) return { items: [] };
 
-    const sessionNominationFilesNotInAgenda = await Sentry.startSpan(
-      {
-        name: 'fr.csm.fondation:docs:findNominationFilesWithAgendaCountRawQuery',
-      },
-      () =>
-        this.prisma.$queryRawTyped(
-          findNominationFilesNotInAgendaRawQuery(
-            sessionNominationFiles.map(({ id }) => id),
-            query.ignoreAgendaId ?? null,
-          ),
-        ),
-    );
-
-    const notReportedFileIds = new Set(sessionNominationFilesNotInAgenda.map(({ id }) => id));
     const output = sessionNominationFiles.flatMap((file) => {
       if (!file.outcome) return [file];
 
       const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
-
-      if (!notReportedFileIds.has(file.id) && outcomeValue !== 'SUSPENDED') return [];
-
       file.outcome.value = outcomeValue;
       return [file];
     });

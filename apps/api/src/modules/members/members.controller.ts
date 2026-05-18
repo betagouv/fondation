@@ -17,11 +17,11 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role, TypeDeSaisine } from 'shared-models';
 
+import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
+import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
-import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
-import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 
 import {
   DetailsMemberSessionQueryDto,

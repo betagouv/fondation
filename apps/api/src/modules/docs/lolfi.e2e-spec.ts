@@ -5,13 +5,13 @@ import supertest from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
-import { AppModule } from 'src/app.module';
 import { createSession } from '../../../test/utils/lolfi';
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
 import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
 import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
+import { AppModule } from 'src/app.module';
 
 let app: INestApplication;
 afterAll(() => app?.close());

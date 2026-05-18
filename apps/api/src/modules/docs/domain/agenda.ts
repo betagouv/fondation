@@ -96,16 +96,9 @@ export class Agenda {
   }): void {
     if (command.nominationFiles.length === 0) throw new EmptyAgenda(this.id);
 
-    const alreadyReportedFileExists = command.nominationFiles.some((file) => {
-      const previous = command.alreadyReportedNominationFiles.get(file.id);
-      const wasAlreadyReported = (previous?.reportedIn ?? []).some(
-        (report) =>
-          /** @warning in the update case we discard any previous appearance in this agenda */
-          report.agendaId !== this.id && report.outcome !== null && report.outcome !== 'SUSPENDED',
-      );
-
-      return wasAlreadyReported;
-    });
+    const alreadyReportedFileExists = command.nominationFiles.some(
+      Agenda.fileWasAlreadyReported(command.alreadyReportedNominationFiles, { ignore: this.id }),
+    );
 
     if (alreadyReportedFileExists) {
       throw new NominationFilesAlreadyReported();
@@ -143,20 +136,18 @@ export class Agenda {
     nominationFiles: readonly AgendaNominationFile[];
     alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>;
   }): Agenda {
-    const alreadyReportedFileExists = props.nominationFiles.some((file) => {
-      const previous = props.alreadyReportedNominationFiles.get(file.id);
-      const wasAlreadyReported = (previous?.reportedIn ?? []).some(
-        (report) => report.outcome !== null && report.outcome !== 'SUSPENDED',
-      );
+    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
 
-      return wasAlreadyReported;
-    });
+    if (props.nominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
+
+    const alreadyReportedFileExists = props.nominationFiles.some(
+      Agenda.fileWasAlreadyReported(props.alreadyReportedNominationFiles),
+    );
 
     if (alreadyReportedFileExists) {
       throw new NominationFilesAlreadyReported();
     }
 
-    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
     agenda.#messages.push(
       new AgendaCreated(
         agenda.id,
@@ -170,5 +161,19 @@ export class Agenda {
     );
 
     return agenda;
+  }
+
+  // TODO: the naming seems a bit confusing
+  static fileWasAlreadyReported(
+    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>,
+    { ignore: ignoreAgendaId }: { ignore?: string } = {},
+  ): (file: { id: string }) => boolean {
+    return function (file: { id: string }): boolean {
+      const previous = alreadyReportedNominationFiles.get(file.id);
+      return (previous?.reportedIn ?? []).some(
+        ({ outcome, agendaId }) =>
+          outcome !== null && outcome !== 'SUSPENDED' && (!ignoreAgendaId || agendaId !== ignoreAgendaId),
+      );
+    };
   }
 }

@@ -90,7 +90,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { role }: UpdateUserRoleDto,
   ): Promise<void> {
-    return this.administration.updateTole({ userId, role });
+    return this.administration.updateRole({ userId, role });
   }
 
   @HasRole(Role.ADMIN)

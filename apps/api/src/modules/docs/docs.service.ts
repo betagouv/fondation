@@ -2,14 +2,14 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
+import { Prisma } from 'src/generated/prisma/client';
+import { DateOnly } from 'src/utils/date-only';
+import { TimeOnly } from 'src/utils/time-only';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
@@ -43,6 +43,7 @@ import {
 } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
+import { FindAgendaNominationFilesQuery } from './infrastructure/queries/find-agenda-nomination-files.query';
 import { FindChairmenQuery, FoundChairmenDto } from './infrastructure/queries/find-chairmen.query';
 import {
   FindJusticeContactsQuery,
@@ -84,32 +85,36 @@ import { OfficialReportRepository } from './infrastructure/repositories/official
 @Injectable()
 export class DocsService {
   constructor(
-    private readonly findChairmenQuery: FindChairmenQuery,
-    private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
     private readonly officialReportRepository: OfficialReportRepository,
+
     private readonly agendaFinder: AgendaFinder,
-    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
-    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
-    private readonly findSessionDocsQuery: FindSessionDocsQuery,
-    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
-    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
-    private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
+
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
-    private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
-    private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
-    private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
-    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
-    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly detailsPresentationPlanMetadataQuery: DetailsPresentationPlanMetadataQuery,
-    private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
-    private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
+    private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
+    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
+    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
+    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
+    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly findAgendaNominationFilesQuery: FindAgendaNominationFilesQuery,
+    private readonly findChairmenQuery: FindChairmenQuery,
+    private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
+    private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
+    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
+    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
+    private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
+    private readonly findSessionDocsQuery: FindSessionDocsQuery,
+    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
+    private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
-    private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
-    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
+    private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
+
     private readonly auth: SimpleAuthService,
     private readonly prisma: PrismaService,
 
@@ -127,7 +132,7 @@ export class DocsService {
     sessionId: string;
     ignoreAgendaId?: string;
   }): Promise<FoundAgendaNominationFiles> {
-    return this.agendaNominationFilesFinder.find(query);
+    return this.findAgendaNominationFilesQuery.handle(query);
   }
 
   async createAgenda(command: {
@@ -195,7 +200,6 @@ export class DocsService {
     const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
       sessionId: agenda.sessionId,
       ids: command.nominationFileIds,
-      ignoreAgendaId: command.agendaId,
     });
 
     const alreadyReportedNominationFiles = await this.agendaNominationFilesFinder.findAlreadyReportedIds({

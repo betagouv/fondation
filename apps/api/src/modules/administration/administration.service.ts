@@ -43,7 +43,7 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updateTole(command: { userId: string; role: AdminUserRoleEnum }): Promise<void> {
+  async updateRole(command: { userId: string; role: AdminUserRoleEnum }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateRole(command.role);
     await this.userRepository.persist(user);
