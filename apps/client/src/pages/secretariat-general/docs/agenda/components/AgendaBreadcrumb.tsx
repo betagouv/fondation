@@ -1,9 +1,10 @@
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 import React from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, matchPath, useLocation, useParams } from 'react-router';
+
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function AgendaBreadCrumb() {
   const { formatMessage } = useIntl();

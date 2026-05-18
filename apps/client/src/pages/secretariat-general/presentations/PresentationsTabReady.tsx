@@ -18,9 +18,8 @@ import {
   useOpenJusticePresentationPlanPdfDocumentMutation,
 } from '@queries/agenda.queries';
 
-import { usePresentPlanModal } from './contexts/present-plan-modal.context';
-
 import { PresentationAgendaSelectionList } from './components/PresentationAgendaSelecionList';
+import { usePresentPlanModal } from './contexts/present-plan-modal.context';
 import { PresentPlanModalProvider } from './contexts/PresentatPlanModalProvider';
 
 export function PresentationsTabReady() {

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
@@ -11,7 +12,6 @@ import {
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { AgendaContext } from './AgendaContext';
 import type { AgendaMetadata, AgendaStep } from './AgendaContext.types';
 

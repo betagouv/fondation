@@ -1,3 +1,14 @@
+import Input from '@codegouvfr/react-dsfr/Input';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { zodResolver } from '@hookform/resolvers/zod';
+import clsx from 'clsx';
+import { add } from 'date-fns';
+import React, { type PropsWithChildren } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { FormattedMessage, useIntl } from 'react-intl';
+import z from 'zod';
+
 import {
   dateToTimeOnly,
   formTimeOnlyCodec,
@@ -5,17 +16,8 @@ import {
   timeOnlyToString,
   type TimeOnly,
 } from '@/utils/time-only.util';
-import Input from '@codegouvfr/react-dsfr/Input';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { usePresentPlanMutation } from '@queries/agenda.queries';
-import clsx from 'clsx';
-import { add } from 'date-fns';
-import React, { type PropsWithChildren } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { FormattedMessage, useIntl } from 'react-intl';
-import z from 'zod';
+
 import { PresentPlanModalContext } from './present-plan-modal.context';
 
 const presentPlanModal = createModal({ isOpenedByDefault: false, id: 'present_plan_modal' });

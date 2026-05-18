@@ -1,12 +1,13 @@
-import { toFullName } from '@/utils/user.utils';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
-import { useListMembersForNewOfficialReportQuery } from '@queries/agenda.queries';
 import clsx from 'clsx';
 import React from 'react';
 import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
+
+import { toFullName } from '@/utils/user.utils';
+import { useListMembersForNewOfficialReportQuery } from '@queries/agenda.queries';
 
 export function AbsentMemberSelector(
   props: UseControllerProps<{ memberIds: string[] }, 'memberIds'> & {
@@ -90,7 +91,7 @@ export function AbsentMemberSelector(
           'flex gap-x-1 transition-opacity duration-150',
           {
             'opacity-0': selectedIds.size === 0,
-            'opacity-100 mt-2': selectedIds.size > 0,
+            'mt-2 opacity-100': selectedIds.size > 0,
           },
         )}
       >

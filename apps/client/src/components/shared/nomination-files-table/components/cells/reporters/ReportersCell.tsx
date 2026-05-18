@@ -1,7 +1,7 @@
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { UserAvatarList } from '@/components/shared/user-avatar';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { UserAvatarList } from '@/components/shared/user-avatar';
 import { ReportersAlert } from './ReportersAlert';
 import { ReportersSelector } from './ReportersSelector';
 
