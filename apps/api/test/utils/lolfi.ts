@@ -1,15 +1,18 @@
+import { createHash, randomInt } from 'node:crypto';
+
 import { HttpStatus } from '@nestjs/common';
 import { stripIndent } from 'common-tags';
 import JSZip from 'jszip';
-import { createHash, randomInt } from 'node:crypto';
+import supertest from 'supertest';
+import waitForExpect from 'wait-for-expect';
+
 import { Magistrat } from 'shared-models';
+
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { IngestedLolfiArchiveDto } from 'src/modules/ingest/infrastructure/ingest.dto';
 import { DetailedJobDto } from 'src/modules/ingest/jobs/queries/details-job.query';
 import { assertIsDefined } from 'src/utils/is-defined';
-import supertest from 'supertest';
-import waitForExpect from 'wait-for-expect';
 
 // #region types
 type LolfiJurisdiction = {

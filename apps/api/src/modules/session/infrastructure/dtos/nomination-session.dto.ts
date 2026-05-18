@@ -3,11 +3,11 @@ import z from 'zod';
 
 import { Magistrat } from 'shared-models';
 
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 
 const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
   file: z

@@ -1,7 +1,8 @@
 import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { ignoreAsync } from 'src/utils/promises';
+
 import { IngestService } from '../../infrastructure/ingest.service';
+import { ignoreAsync } from 'src/utils/promises';
 
 /** @warning this is intended for tests */
 @Injectable()

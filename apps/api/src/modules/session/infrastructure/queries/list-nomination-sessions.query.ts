@@ -3,6 +3,7 @@ import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
+import { ListGdsNominationSessionsQueryDto } from '../dtos/nomination-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -10,7 +11,6 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { ListGdsNominationSessionsQueryDto } from '../dtos/nomination-session.dto';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];

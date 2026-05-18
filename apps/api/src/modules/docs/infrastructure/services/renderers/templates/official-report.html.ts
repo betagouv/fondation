@@ -2,10 +2,10 @@ import { stripIndent } from 'common-tags';
 
 import { Gender, Magistrat } from 'shared-models';
 
+import { conjunctionList, date, displayTitled, fullname } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
-import { conjunctionList, date, displayTitled, fullname } from '../helpers';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 

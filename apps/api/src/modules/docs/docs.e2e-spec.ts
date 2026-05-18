@@ -5,7 +5,6 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
-import { AppModule } from 'src/app.module';
 import { createSession } from '../../../test/utils/lolfi';
 import { AdministrationService } from '../administration/administration.service';
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
@@ -13,6 +12,7 @@ import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner'
 import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
+import { AppModule } from 'src/app.module';
 
 import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/docs.dto';
 import { FoundAgendaNominationFiles } from './infrastructure/finders/agenda-nomination-files.finder';

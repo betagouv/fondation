@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
+import {
+  type OfficialReportRenderContext,
+  OfficialReportRenderer,
+} from '../services/renderers/official-report.renderer';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import {
-  type OfficialReportRenderContext,
-  OfficialReportRenderer,
-} from '../services/renderers/official-report.renderer';
 
 @Injectable()
 export class FindOfficialReportDocumentQuery {

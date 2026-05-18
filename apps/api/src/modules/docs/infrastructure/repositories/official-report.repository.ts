@@ -1,17 +1,17 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { timeOnlyToDate } from 'src/utils/time-only';
 import {
   OfficialReport,
   OfficialReportCreated,
   OfficialReportDeleted,
   OfficialReportUpdated,
 } from '../../domain/official-report';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class OfficialReportRepository {

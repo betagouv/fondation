@@ -6,16 +6,16 @@ import z from 'zod';
 import { Gender, Magistrat } from 'shared-models';
 
 import {
+  DOC_NOMINATION_FILE_OUTCOME_ENUM,
+  DocNominationFileOutcomeEnum,
+  nominationFileOutcomeToDocNominationFileOutcome,
+} from '../../domain/doc-nomination-file-outcome';
+import {
   findAlreadyReportedNominationFilesRawQuery,
   findNominationFilesNotInAgendaRawQuery,
 } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
-import {
-  DOC_NOMINATION_FILE_OUTCOME_ENUM,
-  DocNominationFileOutcomeEnum,
-  nominationFileOutcomeToDocNominationFileOutcome,
-} from '../../domain/doc-nomination-file-outcome';
 
 @Injectable()
 export class AgendaNominationFilesFinder {
