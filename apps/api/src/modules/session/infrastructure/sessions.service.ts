@@ -1,11 +1,8 @@
-import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
 import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
 
-import { LodamNominationFile } from '../domain/nomination-file';
-import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
-import { NominationSession } from '../domain/nomination-session';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -13,6 +10,9 @@ import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { LodamNominationFile } from '../domain/nomination-file';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
+import { NominationSession } from '../domain/nomination-session';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
@@ -75,6 +75,7 @@ import { NominationSessionRepository } from './repositories/nomination-session.r
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);
   constructor(
+    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,

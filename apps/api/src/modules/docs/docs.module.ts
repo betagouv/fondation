@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { MembersModule } from 'src/modules/members';
 import { SessionModule } from 'src/modules/session/session.module';
@@ -38,7 +38,7 @@ import { PdfRenderer } from './infrastructure/services/renderers/pdf/pdf-rendere
 import { PresentationPlanRenderer } from './infrastructure/services/renderers/presentation-plan.renderer';
 
 @Module({
-  imports: [SessionModule, SimpleAuthModule, MembersModule],
+  imports: [SimpleAuthModule, forwardRef(() => SessionModule), forwardRef(() => MembersModule)],
   controllers: [DocsController],
   providers: [
     AgendaFinder,

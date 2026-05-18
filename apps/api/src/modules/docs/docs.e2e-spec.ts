@@ -5,15 +5,16 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
+import { AppModule } from 'src/app.module';
 import { createSession } from '../../../test/utils/lolfi';
 import { AdministrationService } from '../administration/administration.service';
-import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
-import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
 import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
-import { AppModule } from 'src/app.module';
 
+import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
+import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
+import { DefineNominationFileOutcomeDto } from '../session/infrastructure/dtos/nomination-session.dto';
 import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/docs.dto';
 import { FoundAgendaNominationFiles } from './infrastructure/finders/agenda-nomination-files.finder';
 
@@ -37,7 +38,7 @@ describe('Docs Service', () => {
       .compile();
 
     app = AppModule.configure(modules.createNestApplication());
-    app.useLogger(['error', 'fatal']);
+    app.useLogger(['verbose']);
 
     await app.init();
 
@@ -94,12 +95,20 @@ describe('Docs Service', () => {
             lastName: 'GRAMSCI',
             civilite: 'M.',
             position: {
-              function: { label: 'Procureur de la République', id: 'PR' },
+              function: {
+                id: 'PR',
+                label: 'Procureur de la République',
+                formation: Magistrat.Formation.PARQUET,
+              },
               jurisdiction: { id: 'CA  AMIENS' },
               grade: Magistrat.Grade.G3,
             },
             targetPosition: {
-              function: { label: 'Procureur de la République', id: 'PR' },
+              function: {
+                id: 'PR',
+                label: 'Procureur de la République',
+                formation: Magistrat.Formation.PARQUET,
+              },
               jurisdiction: { id: 'CA  REIMS' },
               grade: Magistrat.Grade.G3,
             },
@@ -109,12 +118,20 @@ describe('Docs Service', () => {
             lastName: 'ARENDT',
             civilite: 'MME',
             position: {
-              function: { label: 'Procureur de la République', id: 'PR' },
+              function: {
+                label: 'Procureur de la République',
+                id: 'PR',
+                formation: Magistrat.Formation.PARQUET,
+              },
               jurisdiction: { id: 'CA  GRENOBLE' },
               grade: Magistrat.Grade.G3,
             },
             targetPosition: {
-              function: { label: 'Procureur de la République', id: 'PR' },
+              function: {
+                label: 'Procureur de la République',
+                id: 'PR',
+                formation: Magistrat.Formation.PARQUET,
+              },
               jurisdiction: { id: 'CA  LYON' },
               grade: Magistrat.Grade.G3,
             },
@@ -132,7 +149,7 @@ describe('Docs Service', () => {
       .post(`/api/sessions/v2/${session.id}/files/reporters/versions`)
       .set({ cookie: user.cookie })
       .expect(HttpStatus.NO_CONTENT);
-  });
+  }, 120_000);
 
   beforeEach(async () => {
     const response = await http
@@ -150,7 +167,15 @@ describe('Docs Service', () => {
       .expect(HttpStatus.OK);
 
     const nominationFiles: FoundAgendaNominationFiles = foundAgendaNominationFiles.body;
-    expect((nominationFiles as FoundAgendaNominationFiles).items).toHaveLength(2);
+    expect(nominationFiles.items).toHaveLength(2);
+
+    for (const { id } of nominationFiles.items) {
+      await http
+        .put(`/api/sessions/v2/${session.id}/files/${id}/outcome`)
+        .set({ cookie: user.cookie })
+        .send({ comment: null, outcome: 'VALIDATED' } satisfies DefineNominationFileOutcomeDto)
+        .expect(HttpStatus.NO_CONTENT);
+    }
 
     const agenda1 = await http
       .post(`/api/docs/v1/sessions/${session.id}/agendas`)
@@ -164,6 +189,14 @@ describe('Docs Service', () => {
       .expect(HttpStatus.CREATED);
 
     expect(agenda1.body as CreatedAgendaDto).toEqual({ id: expect.any(String) });
+
+    const foundAgendaNominationFilesAfter = await http
+      .get(`/api/docs/v1/sessions/${session.id}/files`)
+      .set({ cookie: user.cookie })
+      .expect(HttpStatus.OK);
+
+    const nominationFilesAfter: FoundAgendaNominationFiles = foundAgendaNominationFilesAfter.body;
+    expect(nominationFilesAfter.items).toHaveLength(1);
 
     await http
       .post(`/api/docs/v1/sessions/${session.id}/agendas`)

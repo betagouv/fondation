@@ -1,14 +1,12 @@
-import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 
-import { IngestService } from '../../infrastructure/ingest.service';
 import { ignoreAsync } from 'src/utils/promises';
+import { LolfiFilesIngestor } from '../../services/ingestors/lolfi-files.ingestor';
 
 /** @warning this is intended for tests */
 @Injectable()
-export class InProcessJobRunner implements OnModuleInit, OnApplicationShutdown {
-  private ingestor: IngestService;
-
+export class InProcessJobRunner implements OnApplicationShutdown {
   private readonly logger = new Logger(InProcessJobRunner.name);
   private readonly controller = new AbortController();
 
@@ -20,7 +18,10 @@ export class InProcessJobRunner implements OnModuleInit, OnApplicationShutdown {
   }
 
   private async run(jobId: number): Promise<void> {
-    const { success } = await this.ingestor.ingestLolfiFiles(jobId, this.controller.signal).catch((e) => {
+    /** @warning this is to prevent circular dependencies crash in tests */
+    const ingestor = this.modules.get(LolfiFilesIngestor, { strict: false });
+
+    const { success } = await ingestor.ingest(jobId, this.controller.signal).catch((e) => {
       this.logger.error(`job failed`, e);
       return { success: false };
     });
@@ -28,10 +29,6 @@ export class InProcessJobRunner implements OnModuleInit, OnApplicationShutdown {
     if (!success) {
       this.logger.warn(`job #${jobId} failed`);
     }
-  }
-
-  onModuleInit() {
-    this.ingestor = this.modules.get(IngestService, { strict: false });
   }
 
   onApplicationShutdown() {

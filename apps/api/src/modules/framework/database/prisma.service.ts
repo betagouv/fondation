@@ -11,7 +11,7 @@ export class PrismaService extends PrismaClient implements OnApplicationShutdown
   constructor(@Inject(PG_POOL_TOKEN) pool: Pool) {
     super({
       adapter: new PrismaPg(pool),
-      log: ['query', 'error', 'info', 'warn'],
+      // log: ['query', 'error', 'info', 'warn'],
     });
   }
 

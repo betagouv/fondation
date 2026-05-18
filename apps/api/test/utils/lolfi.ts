@@ -8,12 +8,13 @@ import waitForExpect from 'wait-for-expect';
 
 import { Magistrat } from 'shared-models';
 
+import { faker } from '@faker-js/faker';
+import { format, sub } from 'date-fns';
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { IngestedLolfiArchiveDto } from 'src/modules/ingest/infrastructure/ingest.dto';
 import { DetailedJobDto } from 'src/modules/ingest/jobs/queries/details-job.query';
 import { assertIsDefined } from 'src/utils/is-defined';
-
 // #region types
 type LolfiJurisdiction = {
   id: string;
@@ -27,11 +28,11 @@ type LolfiJurisdiction = {
 };
 
 type LolfiFunction = {
+  id: string;
   label: string;
-  id?: string;
+  formation: Magistrat.Formation;
   labelOneMale?: string;
   labelOneFemale?: string;
-  formation?: Magistrat.Formation;
 };
 
 type LolfiData = {
@@ -189,12 +190,7 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
         fonction: fn.id ?? fn.label,
         libelle: fn.label,
         tri,
-        lieufc:
-          fn.formation === Magistrat.Formation.SIEGE
-            ? '1'
-            : fn.formation === Magistrat.Formation.PARQUET
-              ? '2'
-              : '0',
+        lieufc: fn.formation === Magistrat.Formation.SIEGE ? '1' : '2',
         fonction_m: fn.labelOneMale ?? null,
         fonction_mp: null,
         fonction_f: fn.labelOneFemale ?? null,
@@ -269,7 +265,7 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
               arrondissement: null,
               codepos: null,
               date_suppression: '01/01/2999',
-              libelle: null,
+              libelle: j.label ?? j.id,
               ressort: j.id,
               ville_jur: j.id.split('  ').slice(1).join('  '),
               ville: null,
@@ -284,7 +280,10 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
               arrondissement: null,
               codepos: null,
               date_suppression: '01/01/2999',
-              libelle: null,
+              libelle:
+                j.label?.replace(/tribunal [^\s]+/i, "cours d'appel") ||
+                j.id.split('  ').toSpliced(0, 1, 'CA').join('  ') ||
+                null,
               ressort: j.id.split('  ').toSpliced(0, 1, 'CA').join('  '),
               ville_jur: j.id.split('  ').slice(1).join('  '),
               ville: null,
@@ -297,7 +296,7 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
               arrondissement: j.arrondissement ?? null,
               codepos: null,
               date_suppression: '01/01/2999',
-              libelle: j.label ?? null,
+              libelle: j.label ?? j.id,
               ressort: j.ressort ?? j.id.split('  ').toSpliced(0, 1, 'CA').join('  '),
               ville_jur: j.id.split('  ').slice(1).join('  '),
               ville: null,
@@ -359,8 +358,8 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
       const id = magistratIds.get(candidate)!;
       if (magistratMap.has(id)) continue;
 
-      const targetPosEntry = candidate.targetPosition
-        ? positionMap.get(positionKey(candidate.targetPosition))
+      const targetPosEntry = candidate.position
+        ? positionMap.get(positionKey(candidate.position))
         : undefined;
 
       magistratMap.set(id, {
@@ -370,9 +369,19 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
         prenom: candidate.firstName,
         nom_marital: candidate.marriedName ?? null,
         nom_usage: candidate.usedName ?? null,
-        sit_fam: null,
-        email_pro: null,
-        date_naiss: null,
+        sit_fam: faker.helpers.arrayElement(['C', 'M', 'P']),
+        email_pro: faker.internet.email({
+          lastName: candidate.lastName.toLowerCase(),
+          firstName: candidate.firstName.toLowerCase(),
+          provider: 'justice.fr',
+        }),
+        date_naiss: format(
+          faker.date.between({
+            from: sub(new Date(), { years: 64 }),
+            to: sub(new Date(), { years: 30 }),
+          }),
+          'dd/MM/yyyy',
+        ),
         lieu_naiss: null,
         dep_naiss: null,
         grade: candidate.position?.grade ?? null,
@@ -407,9 +416,9 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
   const transparenceIds = new Map<Candidate, number>();
   const transparences: Record<string, unknown>[] = [];
 
+  let transparenceIdCounter = randomInt(100, 1e6);
   for (const session of data.sessions) {
     const sessionId = sessionIds.get(session)!;
-    let transparenceIdCounter = 1;
 
     for (const candidate of session.candidates) {
       if (!candidate.targetPosition || !candidate.position) continue;
@@ -453,14 +462,14 @@ async function* generateLolfiFiles(data: LolfiData): AsyncIterable<{ filename: s
 
   for (const session of data.sessions) {
     for (const candidate of session.candidates) {
-      const numTransparence = transparenceIds.get(candidate);
-      if (!numTransparence) continue;
+      const magistratId = candidatNums.get(candidate);
+      if (!magistratId) continue;
 
       const numCandidat = numCandidatCounter++;
       candidatNums.set(candidate, numCandidat);
 
       candidats.push({
-        id: numTransparence,
+        id: magistratId,
         num_candidat: numCandidat,
         demande_conjointe: '0',
         nom_ville_conjoint: null,
@@ -525,6 +534,8 @@ export async function generateLolfiArchive(data: LolfiData): Promise<Buffer> {
   const archive = new JSZip();
 
   for await (const file of generateLolfiFiles(data)) {
+    console.log(file.filename, file.buffer);
+
     const fileContent = Buffer.from(file.buffer, 'latin1');
     archive.file(file.filename, fileContent, { binary: true });
 

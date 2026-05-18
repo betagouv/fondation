@@ -2,14 +2,14 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { DateOnly } from 'src/utils/date-only';
+import { TimeOnly } from 'src/utils/time-only';
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
-import { Prisma } from 'src/generated/prisma/client';
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
@@ -88,7 +88,6 @@ export class DocsService {
     private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
     private readonly officialReportRepository: OfficialReportRepository,
-    private readonly members: MembersService,
     private readonly agendaFinder: AgendaFinder,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
@@ -114,6 +113,8 @@ export class DocsService {
     private readonly auth: SimpleAuthService,
     private readonly prisma: PrismaService,
 
+    @Inject(forwardRef(() => MembersService))
+    private readonly members: MembersService,
     @Inject(forwardRef(() => SessionService))
     private readonly sessions: SessionService,
   ) {}
