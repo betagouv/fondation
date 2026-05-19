@@ -4,13 +4,13 @@ export class ReportedNominationFilesCollection {
   private constructor(
     private readonly reports: Map<
       string,
-      { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[]
+      { reportedIn: string; outcome: DocNominationFileOutcomeEnum | null }[]
     >,
   ) {}
 
   static from(props: {
     reports: readonly {
-      agendaId: string;
+      reportedIn: string;
       nominationFileId: string;
       outcome: DocNominationFileOutcomeEnum | null;
     }[];
@@ -20,14 +20,12 @@ export class ReportedNominationFilesCollection {
     );
   }
 
-  wasFileReported(query: { fileId: string; ignoreAgendaId?: string }): boolean {
+  wasFileReported(query: { fileId: string; ignore?: string }): boolean {
     const previous = this.reports.get(query.fileId);
 
     return (previous ?? []).some(
-      ({ outcome, agendaId }) =>
-        (!query.ignoreAgendaId || query.ignoreAgendaId !== agendaId) &&
-        outcome !== null &&
-        outcome !== 'SUSPENDED',
+      ({ outcome, reportedIn }) =>
+        (!query.ignore || query.ignore !== reportedIn) && outcome !== null && outcome !== 'SUSPENDED',
     );
   }
 }

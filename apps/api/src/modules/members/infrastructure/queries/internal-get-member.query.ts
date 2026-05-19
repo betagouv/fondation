@@ -4,18 +4,21 @@ import z from 'zod';
 
 import { Gender, Role } from 'shared-models';
 
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
 export class InternalGetMemberQuery {
   constructor(private prisma: PrismaService) {}
 
-  async handle(query: { id: string }): Promise<InternalMemberDto> {
-    const member = await this.prisma.user.findUnique({
+  async handle(query: { id: string; tx?: Prisma.TransactionClient }): Promise<InternalMemberDto> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
+
+    const member = await query.tx.user.findUnique({
       where: { id: query.id, role: { in: MEMBER_ROLES } },
       select: {
         id: true,

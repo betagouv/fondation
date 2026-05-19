@@ -5,13 +5,13 @@ import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
+import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import { useSelection } from '../../../../../hooks/useSelection.hook';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
 import { useAgenda } from '../context/AgendaContext';
 import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
-import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
-import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
   const { session, isSubmitting: isPending, submit, goToMetadata, agendaId } = useAgenda();

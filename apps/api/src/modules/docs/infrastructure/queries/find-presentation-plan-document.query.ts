@@ -41,6 +41,17 @@ export class FindPresentationPlanDocumentQuery {
 
           justiceDepartmentContactName: true,
 
+          nominationFiles: {
+            select: {
+              number: true,
+              name: true,
+              targetedGrade: true,
+              targetedPosition: true,
+              outcome: true,
+              outcomeComment: true,
+            },
+          },
+
           agendas: {
             select: {
               comment: true,
@@ -52,16 +63,6 @@ export class FindPresentationPlanDocumentQuery {
                   sessionMeetingDate: true,
                   chairmanFirstName: true,
                   chairmanLastName: true,
-                  nominationFiles: {
-                    select: {
-                      number: true,
-                      name: true,
-                      targetedGrade: true,
-                      targetedPosition: true,
-                      outcome: true,
-                      outcomeComment: true,
-                    },
-                  },
                 },
               },
             },
@@ -94,7 +95,7 @@ export class FindPresentationPlanDocumentQuery {
             firstName: a.agenda.chairmanFirstName,
             lastName: a.agenda.chairmanLastName,
           },
-          nominationFiles: a.agenda.nominationFiles.filter(
+          nominationFiles: plan.nominationFiles.filter(
             (
               file,
             ): file is typeof file & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>

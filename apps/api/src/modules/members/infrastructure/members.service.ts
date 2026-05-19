@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { Magistrat } from 'shared-models';
 
-import { MemberTitleEnum } from '../domain/member-enums';
 import { Pagination } from 'src/modules/framework/pagination';
+import { MemberTitleEnum } from '../domain/member-enums';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { MemberRepository } from './member-repository';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
@@ -77,12 +78,15 @@ export class MembersService {
   }
 
   /** @internal */
-  internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
+  internalGetMember(query: { id: string; tx?: Prisma.TransactionClient }): Promise<InternalMemberDto> {
     return this.internalGetMemberQuery.handle(query);
   }
 
   /** @internal */
-  internalFindMembersByIds(query: { ids: readonly string[] }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByIds(query: {
+    ids: readonly string[];
+    tx?: Prisma.TransactionClient;
+  }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByIdsQuery.handle(query);
   }
 }

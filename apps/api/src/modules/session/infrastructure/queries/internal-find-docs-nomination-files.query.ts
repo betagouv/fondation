@@ -4,15 +4,16 @@ import z from 'zod';
 
 import { Gender, Magistrat } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildName, buildPosition } from '../helpers/magistrat.helper';
-import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
-export class InternalFindAgendaNominationFilesQuery {
-  private readonly logger = new Logger(InternalFindAgendaNominationFilesQuery.name);
+export class InternalFindDocsNominationFilesQuery {
+  private readonly logger = new Logger(InternalFindDocsNominationFilesQuery.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -22,31 +23,34 @@ export class InternalFindAgendaNominationFilesQuery {
   async handle(query: {
     sessionId: string;
     ids?: readonly string[];
+    tx?: Prisma.TransactionClient;
   }): Promise<InternalFoundAgendaNominationFiles> {
     if ('ids' in query && (query.ids ?? []).length > 32_000) {
       this.logger.error(`Received ${(query.ids ?? []).length} ids to search. Limited to 32000`);
       throw new BadRequestException();
     }
 
-    const rows = await this.prisma.$transaction(async (tx) => {
-      const maybeVersion = await this.version.lastPublished({
-        sessionId: query.sessionId,
-        tx,
-      });
+    if (!query.tx) {
+      return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
+    }
 
-      if (maybeVersion.isNone()) {
-        this.logger.warn(`There was no published version available for session ${query.sessionId}`);
-        throw new NotFoundException();
-      }
-
-      return tx.$queryRawTyped(
-        findAgendaNominationFilesRawQuery(
-          query.sessionId,
-          maybeVersion.id,
-          (query.ids as string[] | null) ?? null,
-        ),
-      );
+    const maybeVersion = await this.version.lastPublished({
+      sessionId: query.sessionId,
+      tx: query.tx,
     });
+
+    if (maybeVersion.isNone()) {
+      this.logger.warn(`There was no published version available for session ${query.sessionId}`);
+      throw new NotFoundException();
+    }
+
+    const rows = await query.tx.$queryRawTyped(
+      findAgendaNominationFilesRawQuery(
+        query.sessionId,
+        maybeVersion.id,
+        (query.ids as string[] | null) ?? null,
+      ),
+    );
 
     return { items: await z.array(SqlNominationFilesSchema).parseAsync(rows) };
   }

@@ -22,10 +22,10 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
 
-import { DocsService } from '../docs.service';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { DocsService } from '../docs.service';
 
 import {
   CreatedAgendaDto,
@@ -42,8 +42,8 @@ import {
   SearchJusticeContactsQueryDto,
 } from './docs.dto';
 import { DocsFilter } from './docs.filter';
-import { FoundAgendaNominationFiles } from './finders/agenda-nomination-files.finder';
 import { FoundAgendasDto } from './finders/agenda.finder';
+import { FoundDocsNominationFiles } from './finders/docs-nomination-files.finder';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
 import { DetailedPresentationPlanMetadataDto } from './queries/details-presentation-plan-metadata.query';
@@ -124,11 +124,11 @@ export class DocsController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/files')
-  @ZodResponse({ type: FoundAgendaNominationFiles, status: HttpStatus.OK })
+  @ZodResponse({ type: FoundDocsNominationFiles, status: HttpStatus.OK })
   findAgendaNominationFiles(
     @Param('sessionId') sessionId: string,
     @Query() { ignoreAgendaId }: FindAgendaNominationFilesQueryDto,
-  ): Promise<FoundAgendaNominationFiles> {
+  ): Promise<FoundDocsNominationFiles> {
     return this.docs.findAgendaNominationFiles({ sessionId, ignoreAgendaId });
   }
 

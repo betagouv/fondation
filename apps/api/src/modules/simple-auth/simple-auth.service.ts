@@ -13,6 +13,7 @@ import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/quer
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListedUsersDto, ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class SimpleAuthService {
@@ -52,6 +53,7 @@ export class SimpleAuthService {
   }
 
   detailsUser(query: {
+    tx?: Prisma.TransactionClient;
     userId: string;
     impersonationId: string | undefined;
   }): Promise<DetailedUserResponseDto> {

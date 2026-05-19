@@ -1,33 +1,35 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
-import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
+import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
 
 @Injectable()
 export class AgendaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  persist(agenda: Agenda): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of agenda.messages) {
-        if (message instanceof AgendaCreated) {
-          await this.persistAgendaCreated(tx, message);
-        } else if (message instanceof AgendaUpdated) {
-          await this.persistAgendaUpdated(tx, message);
-        } else if (message instanceof AgendaDeleted) {
-          await this.persistAgendaDeleted(tx, message);
-        } else {
-          assertNever(message);
-        }
+  async persist(agenda: Agenda, tx?: Prisma.TransactionClient): Promise<void> {
+    if (!tx) return this.prisma.$transaction((tx) => this.persist(agenda, tx));
+
+    for (const message of agenda.messages) {
+      if (message instanceof AgendaCreated) {
+        await this.persistAgendaCreated(tx, message);
+      } else if (message instanceof AgendaUpdated) {
+        await this.persistAgendaUpdated(tx, message);
+      } else if (message instanceof AgendaDeleted) {
+        await this.persistAgendaDeleted(tx, message);
+      } else {
+        assertNever(message);
       }
-    });
+    }
   }
 
-  async find(query: { agendaId: string }): Promise<Agenda> {
-    const foundAgenda = await this.prisma.agenda.findUnique({
+  async find(query: { agendaId: string; tx?: Prisma.TransactionClient }): Promise<Agenda> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
+
+    const foundAgenda = await query.tx.agenda.findUnique({
       select: { id: true, sessionId: true },
       where: { id: query.agendaId },
     });
@@ -146,13 +148,22 @@ export class AgendaRepository {
   }
 
   private async persistAgendaDeleted(tx: Prisma.TransactionClient, message: AgendaDeleted) {
-    await tx.agenda.update({
+    const found = await tx.agenda.findUnique({
       where: { id: message.agendaId },
-      data: { pdf: { delete: {} }, officialReport: { delete: {} } },
+      select: { pdfFileId: true, justicePresentationPlanId: true, officialReportId: true },
     });
+    if (!found) return;
 
-    await tx.agenda.delete({
-      where: { id: message.agendaId },
-    });
+    if (found.pdfFileId) await tx.file.delete({ where: { id: found.pdfFileId } });
+    if (found.officialReportId) await tx.officialReport.delete({ where: { id: found.officialReportId } });
+    if (found.justicePresentationPlanId) {
+      await tx.justicePresentationPlanToAgenda.delete({
+        where: { agendaId: message.agendaId, planId: found.justicePresentationPlanId },
+      });
+
+      await tx.justicePresentationPlan.delete({ where: { id: found.justicePresentationPlanId } });
+    }
+
+    await tx.agenda.delete({ where: { id: message.agendaId } });
   }
 }

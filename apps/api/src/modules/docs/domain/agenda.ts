@@ -93,7 +93,7 @@ export class Agenda {
     if (nominationFiles.length === 0) throw new EmptyAgenda(this.id);
     if (
       nominationFiles.some((file) =>
-        reportedNominationFiles.wasFileReported({ fileId: file.id, ignoreAgendaId: this.id }),
+        reportedNominationFiles.wasFileReported({ fileId: file.id, ignore: this.id }),
       )
     ) {
       throw new NominationFilesAlreadyReported();

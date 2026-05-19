@@ -19,7 +19,7 @@ import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
-import { InternalFindAgendaNominationFilesQuery } from './infrastructure/queries/internal-find-agenda-nomination-files.query';
+import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
@@ -53,7 +53,7 @@ import { SummaryModule } from './summary.module';
     DetailNominationSessionQuery,
     GetLolfiMagistratUrlQuery,
     InternalDetailMemberSessionQuery,
-    InternalFindAgendaNominationFilesQuery,
+    InternalFindDocsNominationFilesQuery,
     InternalListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,
     ListNominationFilesAsExcelQuery,

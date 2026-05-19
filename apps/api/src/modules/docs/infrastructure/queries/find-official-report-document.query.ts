@@ -58,22 +58,22 @@ export class FindOfficialReportDocumentQuery {
               title: true,
             },
           },
+          nominationFiles: {
+            select: {
+              name: true,
+              grade: true,
+              position: true,
+              targetedPosition: true,
+              targetedGrade: true,
+              outcome: true,
+              reporters: true,
+            },
+          },
           agendas: {
             select: {
               sessionId: true,
               formation: true,
               date: true,
-              nominationFiles: {
-                select: {
-                  name: true,
-                  grade: true,
-                  position: true,
-                  targetedPosition: true,
-                  targetedGrade: true,
-                  outcome: true,
-                  reporters: true,
-                },
-              },
             },
           },
         },
@@ -131,7 +131,7 @@ export class FindOfficialReportDocumentQuery {
           gender: prismaGenderEnumToGenderEnum(m.gender),
           displayTitle: m.title,
         })),
-        files: agenda.nominationFiles.flatMap((f) => {
+        files: ctx.nominationFiles.flatMap((f) => {
           if (!f.outcome) return [];
 
           return [

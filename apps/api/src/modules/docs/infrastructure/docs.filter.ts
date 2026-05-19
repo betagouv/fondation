@@ -13,6 +13,7 @@ import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
   JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
+  PresentationPlanAgendaAlreadyReported,
   UnknownPresentationPlanChairman,
   UnknownPresentationPlanSecretary,
 } from '../domain/justice-presentation-plan';
@@ -22,6 +23,8 @@ import {
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
   MixedFormationAgendas,
+  MixedSessionAgendas,
+  OfficialReportAgendaAlreadyReported,
   OfficialReportEndingTimeIsBeforeStatingTime,
 } from '../domain/official-report';
 
@@ -58,6 +61,12 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof ChairmanIsNotMember) {
             return new BadRequestException({
               validationError: `Le président n'est pas un membre`,
+            });
+          }
+
+          if (err instanceof MixedSessionAgendas) {
+            return new BadRequestException({
+              validationError: `Tous les ordre du jours doivent concerner la même session`,
             });
           }
 
@@ -103,6 +112,18 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof NominationFilesAlreadyReported) {
             return new ConflictException({
               validationError: `Certains dossiers sont déjà intégrés à un ordre du jour`,
+            });
+          }
+
+          if (err instanceof OfficialReportAgendaAlreadyReported) {
+            return new BadRequestException({
+              validationError: `Un des ordre du jour sélectionnés fait déjà partie d'un PV de restitution`,
+            });
+          }
+
+          if (err instanceof PresentationPlanAgendaAlreadyReported) {
+            return new BadRequestException({
+              validationError: `Un des ordre du jour sélectionnés fait déjà partie d'une notice de restitution`,
             });
           }
 

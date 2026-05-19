@@ -5,6 +5,7 @@ import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
+import { AppModule } from 'src/app.module';
 import { createSession } from '../../../test/utils/lolfi';
 import { AdministrationService } from '../administration/administration.service';
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
@@ -13,10 +14,9 @@ import { RootModule } from '../root.module';
 import { DefineNominationFileOutcomeDto } from '../session/infrastructure/dtos/nomination-session.dto';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
-import { AppModule } from 'src/app.module';
 
-import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/docs.dto';
-import { FoundAgendaNominationFiles } from './infrastructure/finders/agenda-nomination-files.finder';
+import { CreateOrUpdateAgendaDto, CreatedAgendaDto } from './infrastructure/docs.dto';
+import { FoundDocsNominationFiles } from './infrastructure/finders/docs-nomination-files.finder';
 
 describe('Docs Service', () => {
   let app: INestApplication;
@@ -166,7 +166,7 @@ describe('Docs Service', () => {
       .set({ cookie: user.cookie })
       .expect(HttpStatus.OK);
 
-    const nominationFiles: FoundAgendaNominationFiles = foundAgendaNominationFiles.body;
+    const nominationFiles: FoundDocsNominationFiles = foundAgendaNominationFiles.body;
     expect(nominationFiles.items).toHaveLength(2);
 
     for (const { id } of nominationFiles.items) {
@@ -195,7 +195,7 @@ describe('Docs Service', () => {
       .set({ cookie: user.cookie })
       .expect(HttpStatus.OK);
 
-    const nominationFilesAfter: FoundAgendaNominationFiles = foundAgendaNominationFilesAfter.body;
+    const nominationFilesAfter: FoundDocsNominationFiles = foundAgendaNominationFilesAfter.body;
     expect(nominationFilesAfter.items).toHaveLength(1);
 
     await http

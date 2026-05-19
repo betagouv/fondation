@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { Gender, Role } from 'shared-models';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
@@ -15,10 +16,13 @@ export class DetailsUserQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
+    tx?: Prisma.TransactionClient;
     userId: string;
     impersonationId: string | undefined;
   }): Promise<DetailedUserResponseDto> {
-    const maybeUser = await this.prisma.user.findUnique({
+    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
+
+    const maybeUser = await query.tx.user.findUnique({
       where: { id: query.userId },
       select: {
         id: true,

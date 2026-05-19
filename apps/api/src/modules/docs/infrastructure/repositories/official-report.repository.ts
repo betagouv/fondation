@@ -1,25 +1,31 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
-import {
-  OfficialReport,
-  OfficialReportCreated,
-  OfficialReportDeleted,
-  OfficialReportUpdated,
-} from '../../domain/official-report';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { timeOnlyToDate } from 'src/utils/time-only';
+import {
+  OfficialReport,
+  OfficialReportCreated,
+  OfficialReportDeleted,
+  OfficialReportUpdated,
+} from '../../domain/official-report';
+import { DocsNominationFilesFinder } from '../finders/docs-nomination-files.finder';
 
 @Injectable()
 export class OfficialReportRepository {
   private readonly logger = new Logger(OfficialReportRepository.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nominationFilesFinder: DocsNominationFilesFinder,
+  ) {}
 
-  async find(query: { id: string }): Promise<OfficialReport> {
-    const report = await this.prisma.officialReport.findUnique({
+  async find(query: { id: string; tx?: Prisma.TransactionClient }): Promise<OfficialReport> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
+
+    const report = await query.tx.officialReport.findUnique({
       where: { id: query.id },
       select: { id: true, agendas: { select: { formation: true }, take: 1 } },
     });
@@ -37,18 +43,18 @@ export class OfficialReportRepository {
     });
   }
 
-  persist(report: OfficialReport): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of report.messages) {
-        if (message instanceof OfficialReportCreated || message instanceof OfficialReportUpdated) {
-          await this.persistOfficialReportCreatedOrUpdated(tx, message);
-        } else if (message instanceof OfficialReportDeleted) {
-          await this.persistOfficialReportDeleted(tx, message);
-        } else {
-          assertNever(message);
-        }
+  async persist(report: OfficialReport, tx?: Prisma.TransactionClient): Promise<void> {
+    if (!tx) return this.prisma.$transaction((tx) => this.persist(report, tx));
+
+    for (const message of report.messages) {
+      if (message instanceof OfficialReportCreated || message instanceof OfficialReportUpdated) {
+        await this.persistOfficialReportCreatedOrUpdated(tx, message);
+      } else if (message instanceof OfficialReportDeleted) {
+        await this.persistOfficialReportDeleted(tx, message);
+      } else {
+        assertNever(message);
       }
-    });
+    }
   }
 
   private async persistOfficialReportCreatedOrUpdated(
@@ -71,10 +77,53 @@ export class OfficialReportRepository {
       throw new InternalServerErrorException();
     }
 
-    return this.prisma.officialReport.upsert({
+    const agendas = await tx.agenda.findMany({
+      where: { id: { in: message.agendaIds as string[] } },
+      select: {
+        sessionId: true,
+        nominationFiles: {
+          select: { nominationFileId: true },
+          where: { nominationFileId: { not: null } },
+        },
+      },
+    });
+
+    const nominationFiles = await Promise.all(
+      agendas.map((agenda) =>
+        this.nominationFilesFinder.find({
+          tx,
+          sessionId: agenda.sessionId,
+          ids: agenda.nominationFiles.flatMap((nf) => (nf.nominationFileId ? [nf.nominationFileId] : [])),
+        }),
+      ),
+    ).then((result) => result.flatMap(({ items }) => items));
+
+    const nominationFilesCreateMany = nominationFiles.map(
+      (f) =>
+        ({
+          nominationFileId: f.id,
+          number: f.number,
+          name: f.magistrat.name,
+          grade: f.magistrat.position.grade,
+          position: f.magistrat.position.label,
+          targetedPosition: f.targetPosition.label,
+          targetedGrade: f.targetPosition.grade,
+          outcome: f.outcome?.value ?? 'SUSPENDED',
+          outcomeComment: f.outcome?.comment,
+          reporters: f.reporters.map((r) => r.fullTitledName),
+        }) satisfies Prisma.OfficialReportNominationFileUncheckedCreateWithoutOfficialReportInput,
+    );
+
+    // Supprimer l'ancien snapshot avant mise à jour
+    await tx.officialReportNominationFile.deleteMany({
+      where: { officialReportId: message.id },
+    });
+
+    return tx.officialReport.upsert({
       where: { id: message.id },
       create: {
         id: message.id,
+        html: null,
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
         sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
         sessionMeetingEndingTime: timeOnlyToDate(message.sessionMeetingEndingTime),
@@ -106,8 +155,12 @@ export class OfficialReportRepository {
             })),
           },
         },
+        nominationFiles: {
+          createMany: { data: nominationFilesCreateMany },
+        },
       },
       update: {
+        html: null,
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
         sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
         hasRenunciation: message.hasRenunciation,
@@ -129,7 +182,6 @@ export class OfficialReportRepository {
         agendas: { connect: message.agendaIds.map((id) => ({ id })) },
         members: {
           deleteMany: {},
-
           createMany: {
             data: message.members.map((m) => ({
               memberId: m.id,
@@ -139,6 +191,9 @@ export class OfficialReportRepository {
               title: m.title,
             })),
           },
+        },
+        nominationFiles: {
+          createMany: { data: nominationFilesCreateMany },
         },
       },
     });
