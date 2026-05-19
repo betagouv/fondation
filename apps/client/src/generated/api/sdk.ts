@@ -636,7 +636,14 @@ export class docs {
     }
     
     public static presentPlan<ThrowOnError extends boolean = false>(options: Options<PresentPlanData, ThrowOnError>) {
-        return (options.client ?? client).put<PresentPlanResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/presentation-plans/{planId}/presentation', ...options });
+        return (options.client ?? client).put<PresentPlanResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/presentation-plans/{planId}/presentation',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
     }
 }
 

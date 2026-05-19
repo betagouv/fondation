@@ -10,6 +10,6 @@ export type AgendaNominationFile = {
   targetedGrade: Magistrat.Grade;
   currentPosition: string | null;
   targetedPosition: string | null;
-  outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
+  outcome: { value: DocNominationFileOutcomeEnum; comment: string | null } | null;
   reporters: readonly string[];
 };

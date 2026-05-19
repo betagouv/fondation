@@ -37,11 +37,13 @@ export class FindOfficialReportDocumentQuery {
           sessionMeetingStartingTime: true,
           hasRenunciation: true,
           justiceDepartmentContactName: true,
+          chairmanId: true,
           chairmanFirstName: true,
           chairmanLastName: true,
           chairmanTitle: true,
           chairmanDisplayTitle: true,
           chairmanGender: true,
+          secretaryId: true,
           secretaryFirstName: true,
           secretaryLastName: true,
           secretaryTitle: true,
@@ -49,6 +51,7 @@ export class FindOfficialReportDocumentQuery {
           secretaryGender: true,
           members: {
             select: {
+              memberId: true,
               firstName: true,
               lastName: true,
               gender: true,
@@ -106,6 +109,7 @@ export class FindOfficialReportDocumentQuery {
           minutes: ctx.sessionMeetingStartingTime.getMinutes(),
         },
         chairman: {
+          id: ctx.chairmanId,
           firstName: ctx.chairmanFirstName,
           lastName: ctx.chairmanLastName,
           gender: prismaGenderEnumToGenderEnum(ctx.chairmanGender),
@@ -113,6 +117,7 @@ export class FindOfficialReportDocumentQuery {
           displayTitle: ctx.chairmanDisplayTitle,
         },
         secretary: {
+          id: ctx.secretaryId,
           firstName: ctx.secretaryFirstName,
           lastName: ctx.secretaryLastName,
           gender: prismaGenderEnumToGenderEnum(ctx.secretaryGender),
@@ -120,20 +125,27 @@ export class FindOfficialReportDocumentQuery {
           displayTitle: ctx.secretaryDisplayTitle,
         },
         members: ctx.members.map((m) => ({
+          id: m.memberId,
           firstName: m.firstName,
           lastName: m.lastName,
           gender: prismaGenderEnumToGenderEnum(m.gender),
           displayTitle: m.title,
         })),
-        files: agenda.nominationFiles.map((f) => ({
-          name: f.name,
-          currentGrade: f.grade,
-          currentPosition: f.position,
-          targetedPosition: f.targetedPosition ?? '',
-          targetedGrade: f.targetedGrade,
-          reporters: f.reporters,
-          outcome: f.outcome,
-        })),
+        files: agenda.nominationFiles.flatMap((f) => {
+          if (!f.outcome) return [];
+
+          return [
+            {
+              name: f.name,
+              currentGrade: f.grade,
+              currentPosition: f.position,
+              targetedPosition: f.targetedPosition ?? '',
+              targetedGrade: f.targetedGrade,
+              reporters: f.reporters,
+              outcome: f.outcome,
+            },
+          ];
+        }),
       };
 
       const html = this.officialReportRenderer.html(renderContext);

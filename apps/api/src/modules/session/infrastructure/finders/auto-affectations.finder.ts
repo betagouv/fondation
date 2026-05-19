@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { Magistrat } from 'shared-models';
 
@@ -24,6 +24,7 @@ export class AutoAffectationsFinder {
 
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => MembersService))
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
   ) {}

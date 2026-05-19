@@ -26,6 +26,7 @@ export class DetailsOfficialReportQuery {
         chairmanId: true,
         sessionMeetingDate: true,
         sessionMeetingStartingTime: true,
+        sessionMeetingEndingTime: true,
       },
     });
 
@@ -41,6 +42,7 @@ export class DetailsOfficialReportQuery {
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       sessionMeetingDate: DateOnly.fromDate(report.sessionMeetingDate).toJson(),
       sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
+      sessionMeetingEndingTime: dateToTimeOnly(report.sessionMeetingEndingTime),
     };
   }
 }
@@ -53,6 +55,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     agendas: z.array(z.uuid()),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,
+    sessionMeetingEndingTime: timeOnlySchema,
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

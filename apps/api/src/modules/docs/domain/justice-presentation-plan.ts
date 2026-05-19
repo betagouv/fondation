@@ -27,7 +27,10 @@ export class JusticePresentationPlanDeleted {
 }
 
 export class JusticePresentationPlanPresented {
-  constructor(readonly id: Id<'JusticePresentationPlanId'>) {}
+  constructor(
+    readonly id: Id<'JusticePresentationPlanId'>,
+    readonly endTime: TimeOnly,
+  ) {}
 }
 
 export class JusticePresentationPlanUnPresented {
@@ -45,6 +48,7 @@ export class UnknownPresentationPlanSecretary extends Error {}
 export class UnknownPresentationPlanChairman extends Error {}
 export class AgendaIsNotCompatibleWithPresentationPlan extends Error {}
 export class EmptyAgendaList extends Error {}
+export class JusticePresentationPlanEndTimeShouldBeBeforeStartTime extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
@@ -55,15 +59,24 @@ export class JusticePresentationPlan {
   private constructor(
     readonly id: Id<'JusticePresentationPlanId'>,
     readonly formation: Magistrat.Formation,
+    readonly startTime: TimeOnly,
   ) {}
 
-  static from(props: { id: string; formation: Magistrat.Formation }): JusticePresentationPlan {
-    return new JusticePresentationPlan(makeId('JusticePresentationPlanId', props.id), props.formation);
+  static from(props: {
+    id: string;
+    formation: Magistrat.Formation;
+    startTime: TimeOnly;
+  }): JusticePresentationPlan {
+    return new JusticePresentationPlan(
+      makeId('JusticePresentationPlanId', props.id),
+      props.formation,
+      props.startTime,
+    );
   }
 
   static create(command: CreateJusticePresentationPlanCommand): JusticePresentationPlan {
     const formation = this.extractFormation(command.agendas);
-    const plan = new JusticePresentationPlan(makeId('JusticePresentationPlanId'), formation);
+    const plan = new JusticePresentationPlan(makeId('JusticePresentationPlanId'), formation, command.time);
 
     plan.#messages.push(
       new JusticePresentationPlanCreated(plan.id, command.authorId, plan.formation, plan.buildState(command)),
@@ -82,15 +95,17 @@ export class JusticePresentationPlan {
     this.#messages.push(new JusticePresentationPlanDeleted(this.id));
   }
 
-  present(): void {
-    this.#messages.push(new JusticePresentationPlanPresented(this.id));
+  present(command: { endTime: TimeOnly }): void {
+    this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime));
   }
 
   unPresent(): void {
     this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
   }
 
-  private buildState(props: UpdateJusticePresentationPlanCommand): JusticePresentationPlanState {
+  private buildState(
+    props: CreateJusticePresentationPlanCommand | UpdateJusticePresentationPlanCommand,
+  ): JusticePresentationPlanState {
     const { chairman, secretary, agendas, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
@@ -103,6 +118,7 @@ export class JusticePresentationPlan {
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
+      endingTime: 'endingTime' in props ? props.endingTime : null,
 
       ...state,
     };
@@ -179,6 +195,7 @@ export type JusticePresentationPlanState = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
+  endingTime: TimeOnly | null;
   authorId: string;
   agendas: readonly {
     id: string;
@@ -208,6 +225,7 @@ export type UpdateJusticePresentationPlanCommand = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
+  endingTime: TimeOnly | null;
   agendas: readonly {
     id: string;
     formation: Magistrat.Formation;

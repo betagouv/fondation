@@ -79,6 +79,7 @@ export class SessionController {
   ): Promise<ListedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
       pagination,
+      search: query.search || null,
       formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,

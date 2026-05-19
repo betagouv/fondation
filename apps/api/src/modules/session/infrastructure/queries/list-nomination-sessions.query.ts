@@ -20,6 +20,7 @@ export class ListNominationSessionsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
+    search: string | null;
     typeDeSaisine: TypeDeSaisine;
     formations: readonly Magistrat.Formation[] | undefined;
     sorting: Sortable<ListGdsNominationSessionsQueryDto>;
@@ -30,6 +31,9 @@ export class ListNominationSessionsQuery {
       typeDeSaisine: query.typeDeSaisine,
       ...(query.formations?.length && {
         formation: { in: [...query.formations] },
+      }),
+      ...(query.search && {
+        name: { contains: query.search, mode: 'insensitive' },
       }),
     };
 

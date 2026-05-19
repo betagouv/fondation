@@ -15,7 +15,6 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
   switch (value) {
     case 'ASSESSING':
     case 'WAITING_DSJ':
-    case 'REMOVED':
     case 'SUSPENDED':
       return 'SUSPENDED';
 
@@ -25,6 +24,7 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
     case 'VALIDATED':
       return 'VALIDATED';
 
+    case 'REMOVED':
     case 'WITHDRAWN':
       return 'WITHDRAWN';
 

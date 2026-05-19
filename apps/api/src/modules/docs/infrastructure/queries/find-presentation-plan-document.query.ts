@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { TypeDeSaisine } from 'shared-models';
 
+import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import {
   PresentationPlanRenderContext,
   PresentationPlanRenderer,
@@ -94,7 +95,10 @@ export class FindPresentationPlanDocumentQuery {
             lastName: a.agenda.chairmanLastName,
           },
           nominationFiles: a.agenda.nominationFiles.filter(
-            (file): file is typeof file & { targetedPosition: string } => isDefined(file.targetedPosition),
+            (
+              file,
+            ): file is typeof file & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>
+              isDefined(file.targetedPosition) && isDefined(file.outcome),
           ),
         })),
       } satisfies PresentationPlanRenderContext;

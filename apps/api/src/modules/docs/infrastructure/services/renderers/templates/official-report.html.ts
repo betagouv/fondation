@@ -63,6 +63,7 @@ function content(ctx: {
   sessionDate: DateOnly;
   sessionMeetingTime: { hours: number; minutes: number };
   secretary: {
+    id: string | null;
     firstName: string;
     lastName: string;
     gender: Gender;
@@ -70,12 +71,14 @@ function content(ctx: {
     title: 'FIRST_SECRETARY' | null;
   };
   members: readonly {
+    id: string | null;
     firstName: string;
     lastName: string;
     gender: Gender;
     displayTitle: string | null;
   }[];
   chairman: {
+    id: string | null;
     firstName: string;
     lastName: string;
     gender: Gender;
@@ -84,10 +87,15 @@ function content(ctx: {
   };
   files: readonly OfficialReportNominationFile[];
 }): string {
+  const formationLabel = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
   const presidentTitle =
     ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-      ? `président suppléant de la formation`
-      : `président de la formation`;
+      ? ctx.chairman.gender === Gender.M
+        ? `président suppléant de la formation ${formationLabel}`
+        : `présidente suppléante de la formation ${formationLabel}`
+      : ctx.chairman.gender === Gender.M
+        ? `président de la formation ${formationLabel}`
+        : `présidente de la formation ${formationLabel}`;
 
   const intro =
     `<p>Sous la présidence de ${fullname(ctx.chairman)}` +
@@ -97,7 +105,10 @@ function content(ctx: {
 
   const membersList = html`
     <ul class="members-list">
-      ${ctx.members.map((member) => `<li>${displayTitled(member)}</li>`).join('')}
+      ${ctx.members
+        .filter((member) => ctx.chairman.id === null || member.id === null || member.id !== ctx.chairman.id)
+        .map((member) => `<li>${displayTitled(member)}</li>`)
+        .join('')}
     </ul>
   `;
 
@@ -120,7 +131,11 @@ function content(ctx: {
     .entries()
     .map(([outcome, files]) => ({
       outcome,
-      html: html`<h2>${displayOutcomeTitle({ formation: ctx.formation, outcome })}</h2>
+      html: html`<h2>${displayOutcomeTitle({ formation: ctx.formation, outcome, count: files.length })}</h2>
+        <p>
+          ${outcomeSectionIntro({ formation: ctx.formation, outcome })} sur
+          ${files.length > 1 ? 'les propositions suivantes' : 'la proposition suivante'}&nbsp;:
+        </p>
         ${files
           .map((file) =>
             officialReportNominationParagraph({
@@ -141,7 +156,7 @@ function content(ctx: {
     <p><strong>En présence de&nbsp;:</strong></p>
     <ul class="secretaries">
       <li>
-        ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`} ${fullname(ctx.secretary)},
+        ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`}${fullname(ctx.secretary)},
         ${ctx.secretary.title === 'FIRST_SECRETARY'
           ? ctx.secretary.gender === Gender.M
             ? `secrétaire général`
@@ -155,7 +170,7 @@ function content(ctx: {
 
     ${ctx.hasRenouncement
       ? html`<p>
-          ${ctx.justiceDepartmentContact} indique renoncer au délai de convocation de huit jours prévus par
+          ${ctx.justiceDepartmentContact}, indique renoncer au délai de convocation de huit jours prévus par
           l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
           magistrature.
         </p>`
@@ -163,8 +178,8 @@ function content(ctx: {
     <p>
       À ${sessionMeetingTime}, ${fullname(ctx.chairman)}, ${presidentTitle}, déclare la séance ouverte.
       ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis émis par le Conseil sur les
-      propositions figurant à l'ordre du jour arrêté le ${date(ctx.agendaDate)} sur la circulaire de
-      transparence du ${date(ctx.sessionDate)}&nbsp;:
+      propositions figurant à l'ordre du jour arrêté le ${date(ctx.agendaDate, 'do MMMM yyyy')} sur la
+      circulaire de transparence du ${date(ctx.sessionDate, 'do MMMM yyyy')}&nbsp;:
     </p>
     ${outcomes}
   `;
@@ -172,6 +187,7 @@ function content(ctx: {
 
 function footer(ctx: {
   secretary: {
+    id: string | null;
     firstName: string;
     lastName: string;
     gender: Gender;
@@ -179,6 +195,7 @@ function footer(ctx: {
     title: 'FIRST_SECRETARY' | null;
   };
   chairman: {
+    id: string | null;
     firstName: string;
     lastName: string;
     gender: Gender;
@@ -189,25 +206,31 @@ function footer(ctx: {
   const secretary =
     ctx.secretary.title === 'FIRST_SECRETARY'
       ? ctx.secretary.gender === Gender.M
-        ? `le secrétaire général, ${fullname(ctx.secretary)}`
-        : `la secrétaire générale, ${fullname(ctx.secretary)}`
+        ? `le secrétaire général,`
+        : `la secrétaire générale,`
       : ctx.secretary.gender === Gender.M
-        ? `le secrétaire général adjoint, ${fullname(ctx.secretary)}`
-        : `la secrétaire générale adjointe, ${fullname(ctx.secretary)}`;
+        ? `le secrétaire général adjoint,`
+        : `la secrétaire générale adjointe,`;
 
   const president =
     ctx.chairman.title === 'PRESIDENT_PARQUET' || ctx.chairman.title === 'PRESIDENT_SIEGE'
       ? ctx.chairman.gender === Gender.M
-        ? `le président, ${fullname(ctx.chairman)}`
-        : `la présidente, ${fullname(ctx.chairman)}`
+        ? `le président,`
+        : `la présidente,`
       : ctx.chairman.gender === Gender.M
-        ? `le président suppléant, ${fullname(ctx.chairman)}`
-        : `la présidente suppléante, ${fullname(ctx.chairman)}`;
+        ? `le président suppléant,`
+        : `la présidente suppléante,`;
 
   return html`
     <section class="signatures">
-      <p class="secretary-general">${secretary}</p>
-      <p class="president">${president}</p>
+      <div>
+        <p class="secretary-general">${secretary}</p>
+        <p class="secretary-general">${fullname(ctx.secretary)}</p>
+      </div>
+      <div>
+        <p class="president">${president}</p>
+        <p class="president">${fullname(ctx.chairman)}</p>
+      </div>
     </section>
   `;
 }
@@ -225,14 +248,9 @@ function css() {
         font-size: 1.1rem;
         margin-top: 2rem;
         break-after: avoid;
-        counter-increment: outcome;
         font-weight: bold;
         font-family: Montserrat, sans-serif;
         color: var(--gold);
-
-        &::before {
-          content: counter(outcome) ".";
-        }
       }
 
       ul {
@@ -266,12 +284,17 @@ function css() {
         justify-content: space-between;
         row-gap: 10rem;
 
-        p {
-          text-indent: 0;
-          text-align: left;
-          text-wrap: pretty;
+        div {
           max-width: 33%;
+
+          p {
+            margin: 0;
+            text-indent: 0;
+            text-align: left;
+            text-wrap: pretty;
+          }
         }
+
       }
     }
   `;
@@ -285,6 +308,7 @@ export const officialReportTemplate = documentLayout({
 });
 
 function displayOutcomeTitle(ctx: {
+  count: number;
   formation: Magistrat.Formation;
   outcome: DocNominationFileOutcomeEnum;
 }): string {
@@ -292,23 +316,40 @@ function displayOutcomeTitle(ctx: {
     case 'NON_VALIDATED':
       switch (ctx.formation) {
         case Magistrat.Formation.PARQUET:
-          return 'Avis défavorable(s)';
+          return ctx.count > 1 ? 'Avis défavorables' : 'Avis défavorable';
         default:
-          return 'Avis non conforme(s)';
+          return ctx.count > 1 ? 'Avis non conformes' : 'Avis non conforme';
       }
 
     case 'VALIDATED':
       switch (ctx.formation) {
         case Magistrat.Formation.PARQUET:
-          return 'Avis favorable(s)';
+          return ctx.count > 1 ? 'Avis favorables' : 'Avis favorable';
         default:
-          return 'Avis conforme(s)';
+          return ctx.count > 1 ? 'Avis conformes' : 'Avis conforme';
       }
 
     case 'WITHDRAWN':
-      return 'Retrait(s)';
+      return ctx.count > 1 ? 'Retraits' : 'Retrait';
 
     case 'SUSPENDED':
       return 'Sursis';
+  }
+}
+
+function outcomeSectionIntro(ctx: {
+  outcome: DocNominationFileOutcomeEnum;
+  formation: Magistrat.Formation;
+}): string {
+  switch (ctx.outcome) {
+    case 'VALIDATED':
+    case 'NON_VALIDATED':
+      return `Le Conseil a émis un ${displayOutcomeTitle({ ...ctx, count: 1 }).toLowerCase()}`;
+
+    case 'SUSPENDED':
+      return `Le Conseil ne s’est pas encore prononcé`;
+
+    case 'WITHDRAWN':
+      return `Le Conseil constate le retrait`;
   }
 }

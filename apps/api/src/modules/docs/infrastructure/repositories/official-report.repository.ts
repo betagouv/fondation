@@ -77,6 +77,7 @@ export class OfficialReportRepository {
         id: message.id,
         sessionMeetingDate: message.sessionMeetingDate.toDate(),
         sessionMeetingStartingTime: timeOnlyToDate(message.sessionMeetingStartingTime),
+        sessionMeetingEndingTime: timeOnlyToDate(message.sessionMeetingEndingTime),
         hasRenunciation: message.hasRenunciation,
         justiceDepartmentContactId: justiceContact.id,
         justiceDepartmentContactName: justiceContact.name,

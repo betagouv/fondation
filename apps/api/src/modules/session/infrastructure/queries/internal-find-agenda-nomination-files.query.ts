@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -34,6 +34,11 @@ export class InternalFindAgendaNominationFilesQuery {
         tx,
       });
 
+      if (maybeVersion.isNone()) {
+        this.logger.warn(`There was no published version available for session ${query.sessionId}`);
+        throw new NotFoundException();
+      }
+
       return tx.$queryRawTyped(
         findAgendaNominationFilesRawQuery(
           query.sessionId,
@@ -64,7 +69,7 @@ const SqlNominationFilesSchema = z
   .object({
     id: z.uuid(),
     number: z.number().int(),
-    outcome: z.enum(NominationFileOutcome.enum),
+    outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().trim().nullable(),
     targetPosition: z.object({
       grade: z.enum(Magistrat.Grade),
@@ -111,19 +116,26 @@ const SqlNominationFilesSchema = z
       position: item.targetPosition,
     });
 
-    const nominationFileOutcome = NominationFileOutcome.from({
-      outcome: item.outcome,
-      comment: item.outcomeComment,
-    });
+    const nominationFileOutcome =
+      item.outcome === null
+        ? null
+        : NominationFileOutcome.from({
+            outcome: item.outcome,
+            comment: item.outcomeComment,
+          });
 
-    const reporters = item.reporters.map((u) =>
-      buildName({
+    const reporters = item.reporters.map((u) => ({
+      id: u.id,
+      gender: u.gender,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      fullTitledName: buildName({
         civility: u.gender === Gender.M ? 'M.' : 'MME',
         firstName: u.firstName,
         lastName: u.lastName,
         usedName: null,
       }),
-    );
+    }));
 
     const name = buildName(item.magistrat);
 
@@ -131,10 +143,12 @@ const SqlNominationFilesSchema = z
       reporters,
       id: item.id,
       number: item.number,
-      outcome: {
-        value: nominationFileOutcome.outcome,
-        comment: nominationFileOutcome.comment,
-      },
+      outcome: nominationFileOutcome
+        ? {
+            value: nominationFileOutcome.outcome,
+            comment: nominationFileOutcome.comment,
+          }
+        : null,
 
       magistrat: {
         name,
@@ -174,13 +188,6 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
   z.object({
     items: z.array(
       z.looseObject({
-        targetedGrade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        targetedPosition: z.string().nullable().meta({ deprecated: true }),
-        currentPosition: z.string().nullable().meta({ deprecated: true }),
-        grade: z.enum(Magistrat.Grade).meta({ deprecated: true }),
-        magistratId: z.string().nullable().meta({ deprecated: true }),
-        name: z.string().meta({ deprecated: true }),
-
         id: z.string(),
         number: z.number(),
 
@@ -203,11 +210,20 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
           jurisdictionId: z.string().nullable(),
         }),
 
-        reporters: z.array(z.string()),
-        outcome: z.object({
-          value: z.enum(NominationFileOutcome.enum),
-          comment: z.string().nullable(),
-        }),
+        reporters: z.array(
+          z.object({
+            gender: z.enum(Gender),
+            firstName: z.string().trim().nonempty(),
+            lastName: z.string().trim().nonempty(),
+            fullTitledName: z.string().trim().nonempty(),
+          }),
+        ),
+        outcome: z
+          .object({
+            value: z.enum(NominationFileOutcome.enum),
+            comment: z.string().nullable(),
+          })
+          .nullable(),
       }),
     ),
   }),

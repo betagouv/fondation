@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  forwardRef,
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Param,
   ParseUUIDPipe,
   Put,
@@ -39,6 +41,7 @@ import { PaginatedMemberListItemDto } from './infrastructure/queries/list-member
 export class MembersController {
   constructor(
     private readonly members: MembersService,
+    @Inject(forwardRef(() => SessionService))
     private readonly sessions: SessionService,
   ) {}
 

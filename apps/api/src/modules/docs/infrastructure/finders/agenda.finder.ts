@@ -11,6 +11,7 @@ import {
   prismaFormationEnumToFormationEnum,
 } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class AgendaFinder {
@@ -66,6 +67,16 @@ export class AgendaFinder {
         chairmanId: true,
         sessionName: true,
         sessionMeetingDate: true,
+        justicePresentationPlan: {
+          select: {
+            plan: {
+              select: {
+                time: true,
+                endTime: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -84,6 +95,12 @@ export class AgendaFinder {
         session: { id: item.sessionId, name: item.sessionName },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromDate(item.sessionMeetingDate).toJson(),
+        presentationPlanEndTime: item.justicePresentationPlan?.plan.time
+          ? dateToTimeOnly(item.justicePresentationPlan.plan.time)
+          : null,
+        presentationPlanStartTime: item.justicePresentationPlan?.plan.endTime
+          ? dateToTimeOnly(item.justicePresentationPlan?.plan.endTime)
+          : null,
       })),
     };
   }
@@ -99,6 +116,8 @@ export class FoundAgendasDto extends createZodDto(
         formation: z.enum(Magistrat.Formation),
         chairmanId: z.string().nullable(),
         session: z.object({ id: z.string().nullable(), name: z.string() }),
+        presentationPlanStartTime: timeOnlySchema.nullable(),
+        presentationPlanEndTime: timeOnlySchema.nullable(),
       }),
     ),
   }),

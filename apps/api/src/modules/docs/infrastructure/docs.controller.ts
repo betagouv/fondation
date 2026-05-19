@@ -38,6 +38,7 @@ import {
   CreateOrUpdateOfficialReportDto,
   FindAgendaNominationFilesQueryDto,
   ListAgendasForNewOfficialReportQueryDto,
+  PresentPlanDto,
   SearchJusticeContactsQueryDto,
 } from './docs.dto';
 import { DocsFilter } from './docs.filter';
@@ -239,6 +240,7 @@ export class DocsController {
       authorId: authUser.id,
       sessionMeetingDate: body.sessionMeetingDate,
       sessionMeetingTime: body.sessionMeetingTime,
+      sessionMeetingEndingTime: body.sessionMeetingEndingTime,
       hasRenunciation: body.hasRenunciation,
       justiceDepartmentContactId: body.justiceDepartmentContactId,
       chairmanId: body.chairmanId,
@@ -372,6 +374,7 @@ export class DocsController {
       authorId: authUser.id,
       sessionMeetingDate: body.sessionMeetingDate,
       sessionMeetingTime: body.sessionMeetingTime,
+      sessionMeetingEndingTime: body.sessionMeetingEndingTime,
       hasRenunciation: body.hasRenunciation,
       justiceDepartmentContactId: body.justiceDepartmentContactId,
       chairmanId: body.chairmanId,
@@ -476,6 +479,7 @@ export class DocsController {
       ...body,
       id: planId,
       authorId: user.id,
+      endingTime: body.endingTime ?? null,
     });
   }
 
@@ -507,9 +511,10 @@ export class DocsController {
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Put('/presentation-plans/:planId/presentation')
+  @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  presentPlan(@Param('planId') planId: string): Promise<void> {
-    return this.docs.presentPlan({ id: planId });
+  presentPlan(@Param('planId') planId: string, @Body() body: PresentPlanDto): Promise<void> {
+    return this.docs.presentPlan({ id: planId, endTime: body.endTime });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

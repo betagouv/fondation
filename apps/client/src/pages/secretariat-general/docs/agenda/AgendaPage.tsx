@@ -1,6 +1,7 @@
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import clsx from 'clsx';
 
+import { AgendaBreadCrumb } from './components/AgendaBreadcrumb';
 import { useAgenda } from './context/AgendaContext';
 import { AgendaProvider } from './context/AgendaProvider';
 import { AgendaMetadataStep } from './steps/AgendaMetadataStep';
@@ -11,6 +12,7 @@ function AgendaContent() {
 
   return (
     <div className="fr-container fr-py-2w">
+      <AgendaBreadCrumb />
       <Stepper currentStep={step.index} stepCount={2} title={step.title} nextTitle={step.nextTitle} />
       <AgendaMetadataStep className={clsx({ hidden: step.index !== 1 })} />
       <AgendaNominationFilesStep className={clsx({ hidden: step.index !== 2 })} />

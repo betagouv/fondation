@@ -13,7 +13,7 @@ import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined } from 'src/utils/is-defined';
-import { timeOnlyToDate } from 'src/utils/time-only';
+import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class JusticePresentationPlanRepository {
@@ -26,6 +26,7 @@ export class JusticePresentationPlanRepository {
       where: { id: query.id },
       select: {
         id: true,
+        time: true,
         agendas: {
           take: 1,
           select: { agenda: { select: { formation: true } } },
@@ -37,6 +38,7 @@ export class JusticePresentationPlanRepository {
     return JusticePresentationPlan.from({
       id: found.id,
       formation: prismaFormationEnumToFormationEnum(assertIsDefined(found.agendas[0]).agenda.formation),
+      startTime: dateToTimeOnly(found.time),
     });
   }
 
@@ -84,6 +86,7 @@ export class JusticePresentationPlanRepository {
     const data = {
       date: message.state.date.toDate(),
       time: timeOnlyToDate(message.state.time),
+      endTime: message.state.endingTime ? timeOnlyToDate(message.state.endingTime) : null,
       authorId: message.authorId,
 
       chairmanId: message.state.chairman.id,
@@ -169,7 +172,7 @@ export class JusticePresentationPlanRepository {
   ) {
     await tx.justicePresentationPlan.update({
       where: { id: message.id },
-      data: { isPresented: true },
+      data: { isPresented: true, endTime: timeOnlyToDate(message.endTime) },
     });
   }
 

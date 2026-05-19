@@ -1,0 +1,55 @@
+import { ReportedNominationFilesCollection } from './reported-nomination-files-collection';
+
+describe('ReportedNominationFilesCollection', () => {
+  it('should find an already reported nomination file', () => {
+    const reports = ReportedNominationFilesCollection.from({
+      reports: [
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-1' },
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-2' },
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-3' },
+      ],
+    });
+
+    expect(reports.wasFileReported({ fileId: 'nf-2' })).toBe(true);
+  });
+
+  it('should ignore a null outcome', () => {
+    const reports = ReportedNominationFilesCollection.from({
+      reports: [{ agendaId: 'agenda-1', outcome: null, nominationFileId: 'nf-1' }],
+    });
+
+    expect(reports.wasFileReported({ fileId: 'nf-1' })).toBe(false);
+  });
+
+  it('should ignore a SUSPENDED outcome', () => {
+    const reports = ReportedNominationFilesCollection.from({
+      reports: [{ agendaId: 'agenda-1', outcome: 'SUSPENDED', nominationFileId: 'nf-1' }],
+    });
+
+    expect(reports.wasFileReported({ fileId: 'nf-1' })).toBe(false);
+  });
+
+  it('should ignore an agenda', () => {
+    const reports = ReportedNominationFilesCollection.from({
+      reports: [
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-1' },
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-2' },
+        { agendaId: 'agenda-1', outcome: 'VALIDATED', nominationFileId: 'nf-3' },
+      ],
+    });
+
+    expect(reports.wasFileReported({ fileId: 'nf-2', ignoreAgendaId: 'agenda-1' })).toBe(false);
+  });
+
+  it('should allow multiple agendas', () => {
+    const reports = ReportedNominationFilesCollection.from({
+      reports: [
+        { agendaId: 'agenda-1', outcome: null, nominationFileId: 'nf-1' },
+        { agendaId: 'agenda-2', outcome: 'SUSPENDED', nominationFileId: 'nf-1' },
+        { agendaId: 'agenda-3', outcome: 'VALIDATED', nominationFileId: 'nf-1' },
+      ],
+    });
+
+    expect(reports.wasFileReported({ fileId: 'nf-1' }));
+  });
+});

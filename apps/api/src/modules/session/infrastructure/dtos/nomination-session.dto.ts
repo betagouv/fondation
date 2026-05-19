@@ -73,6 +73,11 @@ export class DefineNominationFileOutcomeDto extends createZodDto(
 
 export class ListGdsNominationSessionsQueryDto extends createSortableDto(
   z.object({
+    search: z
+      .string()
+      .trim()
+      .optional()
+      .transform((x) => (x?.length === 0 ? undefined : x)),
     sortBy: z.enum(['date', 'dueDate']).optional(),
     formations: z
       .preprocess(

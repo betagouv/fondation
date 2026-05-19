@@ -1,4 +1,4 @@
-import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
 import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
@@ -75,6 +75,7 @@ import { NominationSessionRepository } from './repositories/nomination-session.r
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);
   constructor(
+    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
@@ -326,6 +327,7 @@ export class SessionService {
   }
 
   listNominationSessions(query: {
+    search: string | null;
     pagination: Pagination;
     typeDeSaisine: TypeDeSaisine;
     formations: readonly Magistrat.Formation[] | undefined;

@@ -10,8 +10,10 @@ import { RootModule } from './modules/root.module';
 @Module({ imports: [RootModule] })
 export class AppModule {
   static async create(): Promise<INestApplication> {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    return this.configure(await NestFactory.create<NestExpressApplication>(AppModule));
+  }
 
+  static configure(app: NestExpressApplication): NestExpressApplication {
     const config = app.get<ApiConfig>(API_CONFIG_TOKEN);
 
     app.disable('x-powered-by');

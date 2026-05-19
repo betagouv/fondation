@@ -1,16 +1,18 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { EmptyAgenda } from '../domain/agenda';
+import { EmptyAgenda, NominationFilesAlreadyReported } from '../domain/agenda';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
+  JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
   UnknownPresentationPlanChairman,
   UnknownPresentationPlanSecretary,
 } from '../domain/justice-presentation-plan';
@@ -20,6 +22,7 @@ import {
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
   MixedFormationAgendas,
+  OfficialReportEndingTimeIsBeforeStatingTime,
 } from '../domain/official-report';
 
 @Injectable()
@@ -85,6 +88,21 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof AgendaIsNotCompatibleWithPresentationPlan) {
             return new BadRequestException({
               validationError: `Tous les ordre du jour doivent concerner la même formation`,
+            });
+          }
+
+          if (
+            err instanceof JusticePresentationPlanEndTimeShouldBeBeforeStartTime ||
+            err instanceof OfficialReportEndingTimeIsBeforeStatingTime
+          ) {
+            return new BadRequestException({
+              validationError: `L'heure de fin de séance, doit être après l'heure de début de séance`,
+            });
+          }
+
+          if (err instanceof NominationFilesAlreadyReported) {
+            return new ConflictException({
+              validationError: `Certains dossiers sont déjà intégrés à un ordre du jour`,
             });
           }
 

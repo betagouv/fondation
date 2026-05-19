@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 /** See https://playwright.dev/docs/test-configuration. */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -16,11 +16,13 @@ export default defineConfig({
   },
 
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts$/ },
+    { name: 'unit', testDir: './tests/unit' },
+    { name: 'setup', testDir: './tests/e2e', testMatch: /.*\.setup\.ts$/ },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
+      testDir: './tests/e2e',
       dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
     },
   ],
 

@@ -304,6 +304,7 @@ export function useCreateOfficialReportMutation() {
       sessionId: string;
       sessionMeetingDate: { year: number; month: number; day: number };
       sessionMeetingTime: { hours: number; minutes?: number };
+      sessionMeetingEndingTime: { hours: number; minutes: number };
       hasRenunciation: boolean;
       justiceDepartmentContactId: string;
       chairmanId: string;
@@ -317,6 +318,7 @@ export function useCreateOfficialReportMutation() {
           body: {
             sessionMeetingDate: command.sessionMeetingDate,
             sessionMeetingTime: command.sessionMeetingTime,
+            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
             hasRenunciation: command.hasRenunciation,
             justiceDepartmentContactId: command.justiceDepartmentContactId,
             chairmanId: command.chairmanId,
@@ -398,6 +400,7 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
       officialReportId: string;
       sessionMeetingDate: { year: number; month: number; day: number };
       sessionMeetingTime: { hours: number; minutes?: number };
+      sessionMeetingEndingTime: { hours: number; minutes?: number };
       hasRenunciation: boolean;
       justiceDepartmentContactId: string;
       chairmanId: string;
@@ -411,6 +414,7 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
           body: {
             sessionMeetingDate: command.sessionMeetingDate,
             sessionMeetingTime: command.sessionMeetingTime,
+            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
             hasRenunciation: command.hasRenunciation,
             justiceDepartmentContactId: command.justiceDepartmentContactId,
             chairmanId: command.chairmanId,
@@ -573,8 +577,11 @@ export function useDeleteJusticePresentationPlanMutation() {
 export function usePresentPlanMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (mutation: { presentationPlanId: string }) =>
-      $api.docs.presentPlan({ path: { planId: mutation.presentationPlanId } }),
+    mutationFn: (mutation: { presentationPlanId: string; endTime: { hours: number; minutes: number } }) =>
+      $api.docs.presentPlan({
+        path: { planId: mutation.presentationPlanId },
+        body: { endTime: mutation.endTime },
+      }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),

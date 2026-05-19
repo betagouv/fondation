@@ -1,4 +1,5 @@
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { UserAvatarList } from '@/components/shared/user-avatar';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { ReportersAlert } from './ReportersAlert';
@@ -10,13 +11,7 @@ function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
   return (
     <div className="flex items-center">
       <ReportersAlert dossier={props.dossier} />
-      <ul className="m-0 flex list-none flex-col gap-x-1 p-0">
-        {props.dossier.reporters.map(({ id, firstName, lastName }) => (
-          <li className="p-0" key={id}>
-            {`${firstName} ${lastName}`.toUpperCase()}
-          </li>
-        ))}
-      </ul>
+      <UserAvatarList users={props.dossier.reporters} size="sm" />
     </div>
   );
 }

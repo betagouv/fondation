@@ -43,6 +43,7 @@ import {
 } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
+import { FindAgendaNominationFilesQuery } from './infrastructure/queries/find-agenda-nomination-files.query';
 import { FindChairmenQuery, FoundChairmenDto } from './infrastructure/queries/find-chairmen.query';
 import {
   FindJusticeContactsQuery,
@@ -84,36 +85,41 @@ import { OfficialReportRepository } from './infrastructure/repositories/official
 @Injectable()
 export class DocsService {
   constructor(
-    private readonly findChairmenQuery: FindChairmenQuery,
-    private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
     private readonly agendaRepository: AgendaRepository,
     private readonly officialReportRepository: OfficialReportRepository,
-    private readonly members: MembersService,
+
     private readonly agendaFinder: AgendaFinder,
-    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
-    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
-    private readonly findSessionDocsQuery: FindSessionDocsQuery,
-    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
-    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
-    private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly agendaNominationFilesFinder: AgendaNominationFilesFinder,
+
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
-    private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
-    private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
-    private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
-    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
-    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly detailsPresentationPlanMetadataQuery: DetailsPresentationPlanMetadataQuery,
-    private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
-    private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
+    private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
+    private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
+    private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
+    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
+    private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly findAgendaNominationFilesQuery: FindAgendaNominationFilesQuery,
+    private readonly findChairmenQuery: FindChairmenQuery,
+    private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
+    private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
+    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
+    private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
+    private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
+    private readonly findSessionDocsQuery: FindSessionDocsQuery,
+    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
+    private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
-    private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
-    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
+    private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
+
     private readonly auth: SimpleAuthService,
     private readonly prisma: PrismaService,
 
+    @Inject(forwardRef(() => MembersService))
+    private readonly members: MembersService,
     @Inject(forwardRef(() => SessionService))
     private readonly sessions: SessionService,
   ) {}
@@ -126,7 +132,7 @@ export class DocsService {
     sessionId: string;
     ignoreAgendaId?: string;
   }): Promise<FoundAgendaNominationFiles> {
-    return this.agendaNominationFilesFinder.find(query);
+    return this.findAgendaNominationFilesQuery.handle(query);
   }
 
   async createAgenda(command: {
@@ -146,13 +152,29 @@ export class DocsService {
       ids: command.nominationFileIds,
     });
 
+    const reportedNominationFiles =
+      await this.agendaNominationFilesFinder.findReportedNominationFilesCollection({
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+      });
+
     const agenda = Agenda.create({
       chairman,
-      nominationFiles,
+      nominationFiles: nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        outcome: f.outcome,
+        name: f.magistrat.name,
+        grade: f.magistrat.position.grade,
+        currentPosition: f.magistrat.position.label,
+        targetedGrade: f.targetPosition.grade,
+        targetedPosition: f.targetPosition.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
+      })),
       sessionId: command.sessionId,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      reportedNominationFiles,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -179,15 +201,31 @@ export class DocsService {
     const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
       sessionId: agenda.sessionId,
       ids: command.nominationFileIds,
-      ignoreAgendaId: command.agendaId,
     });
+
+    const alreadyReportedNominationFiles =
+      await this.agendaNominationFilesFinder.findReportedNominationFilesCollection({
+        ignoreAgendaId: command.agendaId,
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+      });
 
     agenda.update({
       chairman,
-      nominationFiles,
+      reportedNominationFiles: alreadyReportedNominationFiles,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      nominationFiles: nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        outcome: f.outcome,
+        name: f.magistrat.name,
+        grade: f.magistrat.position.grade,
+        currentPosition: f.magistrat.position.label,
+        targetedGrade: f.targetPosition.grade,
+        targetedPosition: f.targetPosition.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
+      })),
     });
 
     await this.agendaRepository.persist(agenda);
@@ -265,6 +303,7 @@ export class DocsService {
     authorId: string;
     sessionMeetingDate: DateOnlyJson;
     sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    sessionMeetingEndingTime: { hours: number; minutes: number; seconds: number };
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairmanId: string;
@@ -307,6 +346,7 @@ export class DocsService {
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
       sessionMeetingStartingTime: command.sessionMeetingTime,
+      sessionMeetingEndingTime: command.sessionMeetingEndingTime,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       justiceDepartmentContactId: command.justiceDepartmentContactId,
     });
@@ -321,6 +361,7 @@ export class DocsService {
     authorId: string;
     sessionMeetingDate: DateOnlyJson;
     sessionMeetingTime: { hours: number; minutes: number; seconds: number };
+    sessionMeetingEndingTime: { hours: number; minutes: number; seconds: number };
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairmanId: string;
@@ -363,6 +404,7 @@ export class DocsService {
       authorId: command.authorId,
       hasRenunciation: command.hasRenunciation,
       sessionMeetingStartingTime: command.sessionMeetingTime,
+      sessionMeetingEndingTime: command.sessionMeetingEndingTime,
       justiceDepartmentContactId: command.justiceDepartmentContactId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
     });
@@ -447,6 +489,7 @@ export class DocsService {
     id: string;
     date: DateOnlyJson;
     time: TimeOnly;
+    endingTime: TimeOnly | null;
     authorId: string;
     chairmanId: string;
     secretaryId: string;
@@ -488,6 +531,7 @@ export class DocsService {
       justiceContactId: command.justiceContactId,
       authorId: command.authorId,
       time: command.time,
+      endingTime: command.endingTime,
       date: DateOnly.fromJson(command.date),
     });
 
@@ -520,11 +564,11 @@ export class DocsService {
     return this.listPresentedPlansQuery.handle(query);
   }
 
-  async presentPlan(command: { id: string }): Promise<void> {
+  async presentPlan(command: { id: string; endTime: TimeOnly }): Promise<void> {
     const plan = await this.justicePresentationPlanRepository.find({
       id: command.id,
     });
-    plan.present();
+    plan.present({ endTime: command.endTime });
     await this.justicePresentationPlanRepository.persist(plan);
   }
 

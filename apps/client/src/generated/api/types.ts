@@ -834,11 +834,17 @@ export type FoundAgendaNominationFiles = {
     items: Array<{
         id: string;
         number: number;
-        reporters: Array<string>;
+        reporters: Array<{
+            id: string;
+            gender: 'MALE' | 'FEMALE';
+            firstName: string;
+            lastName: string;
+            fullTitledName: string;
+        }>;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
             comment: string | null;
-        };
+        } | null;
         magistrat: {
             id: string;
             externalId: number;
@@ -856,34 +862,6 @@ export type FoundAgendaNominationFiles = {
             functionId: string | null;
             jurisdictionId: string | null;
         };
-        /**
-         * @deprecated
-         */
-        agendaCount: number;
-        /**
-         * @deprecated
-         */
-        currentPosition: string | unknown;
-        /**
-         * @deprecated
-         */
-        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        /**
-         * @deprecated
-         */
-        magistratId: string | unknown;
-        /**
-         * @deprecated
-         */
-        name: string;
-        /**
-         * @deprecated
-         */
-        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        /**
-         * @deprecated
-         */
-        targetedPosition: string | unknown;
     }>;
 };
 
@@ -947,6 +925,11 @@ export type CreateOrUpdateOfficialReportDto = {
         minutes?: number;
         seconds?: number;
     };
+    sessionMeetingEndingTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    };
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairmanId: string;
@@ -994,6 +977,16 @@ export type FoundAgendasDto = {
             id: string | null;
             name: string;
         };
+        presentationPlanStartTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        presentationPlanEndTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
     }>;
 };
 
@@ -1020,6 +1013,11 @@ export type DetailedOfficialReportMetadataDto = {
         day: number;
     };
     sessionMeetingStartingTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    };
+    sessionMeetingEndingTime: {
         hours: number;
         minutes: number;
         seconds: number;
@@ -1088,6 +1086,11 @@ export type CreateOrUpdateJusticePresentationPlanDto = {
         minutes?: number;
         seconds?: number;
     };
+    endingTime?: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    } | null;
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
@@ -1121,6 +1124,14 @@ export type ListedNonPresentedPlansDto = {
         };
         formation: 'PARQUET' | 'SIEGE';
     }>;
+};
+
+export type PresentPlanDto = {
+    endTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    };
 };
 
 export type SearchMagistratsResponseDto = {
@@ -2811,7 +2822,7 @@ export type UnPresentPlanResponses = {
 export type UnPresentPlanResponse = UnPresentPlanResponses[keyof UnPresentPlanResponses];
 
 export type PresentPlanData = {
-    body?: never;
+    body: PresentPlanDto;
     path: {
         planId: string;
     };
