@@ -127,7 +127,7 @@ test.describe('Gérer les sessions', () => {
       await page.saveAffectationsButton.click();
 
       // Alors "ANTONIO GRAMSCI" est désigné rapporteur de "Pierre BOURDIEU"
-      await row.locator(app.page.getByRole('cell', { name: 'ANTONIO GRAMSCI' })).waitFor({ timeout: 800 });
+      await row.locator(app.page.getByRole('cell', { name: 'AG' })).waitFor({ timeout: 800 });
     });
 
     test(`je définis des priorités à un dossier`, async ({ app }) => {

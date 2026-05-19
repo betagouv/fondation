@@ -82,7 +82,9 @@ test.describe('Affectations', () => {
 
       await page
         .sessionRow({ number: 1 })
-        .locator(app.page.getByRole('cell', { name: `${firstName} ${lastName}` }))
+        .locator(
+          app.page.getByRole('cell', { name: `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}` }),
+        )
         .waitFor({ timeout: 800 });
 
       // Et que je publie les affectations
