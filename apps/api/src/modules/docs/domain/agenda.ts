@@ -5,7 +5,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
-import { DocNominationFileOutcomeEnum } from './doc-nomination-file-outcome';
+import { ReportedNominationFilesCollection } from './reported-nomination-files-collection';
 
 export class AgendaCreated {
   constructor(
@@ -58,11 +58,6 @@ export class EmptyAgenda extends Error {
 
 export class NominationFilesAlreadyReported extends Error {}
 
-type AlreadyReportedNominationFile = {
-  id: string;
-  reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[];
-};
-
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
 
@@ -92,15 +87,15 @@ export class Agenda {
       title: UserTitleEnum | null;
       displayTitle: string | null;
     };
-    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>;
+    reportedNominationFiles: ReportedNominationFilesCollection;
   }): void {
-    if (command.nominationFiles.length === 0) throw new EmptyAgenda(this.id);
-
-    const alreadyReportedFileExists = command.nominationFiles.some(
-      Agenda.fileWasAlreadyReported(command.alreadyReportedNominationFiles, { ignore: this.id }),
-    );
-
-    if (alreadyReportedFileExists) {
+    const { reportedNominationFiles, nominationFiles } = command;
+    if (nominationFiles.length === 0) throw new EmptyAgenda(this.id);
+    if (
+      nominationFiles.some((file) =>
+        reportedNominationFiles.wasFileReported({ fileId: file.id, ignoreAgendaId: this.id }),
+      )
+    ) {
       throw new NominationFilesAlreadyReported();
     }
 
@@ -111,7 +106,7 @@ export class Agenda {
         { ...command.chairman, id: makeId('ChairmanId', command.chairman.id) },
         command.date.toDate(),
         command.sessionMeetingDate.toDate(),
-        command.nominationFiles,
+        nominationFiles,
       ),
     );
   }
@@ -134,17 +129,13 @@ export class Agenda {
     date: DateOnly;
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
-    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>;
+    reportedNominationFiles: ReportedNominationFilesCollection;
   }): Agenda {
     const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
 
-    if (props.nominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
-
-    const alreadyReportedFileExists = props.nominationFiles.some(
-      Agenda.fileWasAlreadyReported(props.alreadyReportedNominationFiles),
-    );
-
-    if (alreadyReportedFileExists) {
+    const { nominationFiles, reportedNominationFiles } = props;
+    if (nominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
+    if (nominationFiles.some((file) => reportedNominationFiles.wasFileReported({ fileId: file.id }))) {
       throw new NominationFilesAlreadyReported();
     }
 
@@ -156,24 +147,10 @@ export class Agenda {
         { ...props.chairman, id: makeId('ChairmanId', props.chairman.id) },
         props.date.toDate(),
         props.sessionMeetingDate.toDate(),
-        props.nominationFiles,
+        nominationFiles,
       ),
     );
 
     return agenda;
-  }
-
-  // TODO: the naming seems a bit confusing
-  static fileWasAlreadyReported(
-    alreadyReportedNominationFiles: Map<string, AlreadyReportedNominationFile>,
-    { ignore: ignoreAgendaId }: { ignore?: string } = {},
-  ): (file: { id: string }) => boolean {
-    return function (file: { id: string }): boolean {
-      const previous = alreadyReportedNominationFiles.get(file.id);
-      return (previous?.reportedIn ?? []).some(
-        ({ outcome, agendaId }) =>
-          outcome !== null && outcome !== 'SUSPENDED' && (!ignoreAgendaId || agendaId !== ignoreAgendaId),
-      );
-    };
   }
 }

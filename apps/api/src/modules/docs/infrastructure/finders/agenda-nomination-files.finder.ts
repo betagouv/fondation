@@ -6,12 +6,13 @@ import { Gender, Magistrat } from 'shared-models';
 
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
-  DocNominationFileOutcomeEnum,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
+import { ReportedNominationFilesCollection } from '../../domain/reported-nomination-files-collection';
 import { findAlreadyReportedNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class AgendaNominationFilesFinder {
@@ -28,50 +29,29 @@ export class AgendaNominationFilesFinder {
     })) as FoundAgendaNominationFiles;
     if (sessionNominationFiles.length === 0) return { items: [] };
 
-    const output = sessionNominationFiles.flatMap((file) => {
-      if (!file.outcome) return [file];
+    const output = sessionNominationFiles.map((file) => {
+      if (!file.outcome) return file;
 
-      const outcomeValue = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
-      file.outcome.value = outcomeValue;
-      return [file];
+      file.outcome.value = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
+      return file;
     });
 
     return { items: output };
   }
 
-  async findAlreadyReportedIds(query: {
+  async findReportedNominationFilesCollection(query: {
     fileIds: Set<string>;
     ignoreAgendaId?: string;
-  }): Promise<
-    Map<
-      string,
-      { id: string; reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[] }
-    >
-  > {
+  }): Promise<ReportedNominationFilesCollection> {
     const files = await this.prisma.$queryRawTyped(
       findAlreadyReportedNominationFilesRawQuery([...query.fileIds], query.ignoreAgendaId ?? null),
     );
 
-    const map = new Map<
-      string,
-      { id: string; reportedIn: { agendaId: string; outcome: DocNominationFileOutcomeEnum | null }[] }
-    >();
-
-    for (const file of files) {
-      if (!file.nominationFileId) continue;
-
-      const previous = map.get(file.nominationFileId);
-      if (previous) {
-        previous.reportedIn.push({ agendaId: file.agendaId, outcome: file.outcome });
-      } else {
-        map.set(file.nominationFileId, {
-          id: file.nominationFileId,
-          reportedIn: [{ agendaId: file.agendaId, outcome: file.outcome }],
-        });
-      }
-    }
-
-    return map;
+    return ReportedNominationFilesCollection.from({
+      reports: files.filter((file): file is typeof file & { nominationFileId: string } =>
+        isDefined(file.nominationFileId),
+      ),
+    });
   }
 }
 

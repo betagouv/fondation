@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { Agenda } from '../../domain/agenda';
 import {
   AgendaNominationFilesFinder,
   FoundAgendaNominationFiles,
@@ -12,14 +11,15 @@ export class FindAgendaNominationFilesQuery {
 
   async handle(query: { sessionId: string; ignoreAgendaId?: string }): Promise<FoundAgendaNominationFiles> {
     const { items: files } = await this.agendaNominationFilesFinder.find({ sessionId: query.sessionId });
-    const reported = await this.agendaNominationFilesFinder.findAlreadyReportedIds({
+    const reported = await this.agendaNominationFilesFinder.findReportedNominationFilesCollection({
       fileIds: new Set(files.map(({ id }) => id)),
       ignoreAgendaId: query.ignoreAgendaId,
     });
 
-    const wasAlreadyReported = Agenda.fileWasAlreadyReported(reported);
     return {
-      items: files.filter((file) => !wasAlreadyReported(file)),
+      items: files.filter(
+        (file) => !reported.wasFileReported({ ignoreAgendaId: query.ignoreAgendaId, fileId: file.id }),
+      ),
     };
   }
 }

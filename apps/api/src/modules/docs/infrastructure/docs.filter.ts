@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -100,7 +101,7 @@ export class DocsFilter implements NestInterceptor {
           }
 
           if (err instanceof NominationFilesAlreadyReported) {
-            return new BadRequestException({
+            return new ConflictException({
               validationError: `Certains dossiers sont déjà intégrés à un ordre du jour`,
             });
           }

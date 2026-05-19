@@ -152,9 +152,10 @@ export class DocsService {
       ids: command.nominationFileIds,
     });
 
-    const alreadyReportedNominationFiles = await this.agendaNominationFilesFinder.findAlreadyReportedIds({
-      fileIds: new Set(nominationFiles.map(({ id }) => id)),
-    });
+    const reportedNominationFiles =
+      await this.agendaNominationFilesFinder.findReportedNominationFilesCollection({
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+      });
 
     const agenda = Agenda.create({
       chairman,
@@ -173,7 +174,7 @@ export class DocsService {
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-      alreadyReportedNominationFiles,
+      reportedNominationFiles,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -202,14 +203,15 @@ export class DocsService {
       ids: command.nominationFileIds,
     });
 
-    const alreadyReportedNominationFiles = await this.agendaNominationFilesFinder.findAlreadyReportedIds({
-      ignoreAgendaId: command.agendaId,
-      fileIds: new Set(nominationFiles.map(({ id }) => id)),
-    });
+    const alreadyReportedNominationFiles =
+      await this.agendaNominationFilesFinder.findReportedNominationFilesCollection({
+        ignoreAgendaId: command.agendaId,
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+      });
 
     agenda.update({
       chairman,
-      alreadyReportedNominationFiles,
+      reportedNominationFiles: alreadyReportedNominationFiles,
       authorId: command.authorId,
       date: DateOnly.fromJson(command.date),
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
