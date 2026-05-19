@@ -207,6 +207,6 @@ describe('Docs Service', () => {
         sessionMeetingDate: { day: 11, month: 2, year: 2026 },
         nominationFileIds: [nominationFiles.items[0]!.id],
       } satisfies CreateOrUpdateAgendaDto)
-      .expect(HttpStatus.BAD_REQUEST);
+      .expect(HttpStatus.CONFLICT);
   });
 });

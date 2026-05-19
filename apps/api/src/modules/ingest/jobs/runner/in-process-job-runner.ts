@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 
-import { LolfiFilesIngestor } from '../../services/ingestors/lolfi-files.ingestor';
 import { ignoreAsync } from 'src/utils/promises';
 
 /** @warning this is intended for tests */
@@ -18,7 +17,8 @@ export class InProcessJobRunner implements OnApplicationShutdown {
   }
 
   private async run(jobId: number): Promise<void> {
-    /** @warning this is to prevent circular dependencies crash in tests */
+    /** @warning both lines are to prevent circular dependencies crash in tests */
+    const { LolfiFilesIngestor } = await import('../../services/ingestors/lolfi-files.ingestor');
     const ingestor = this.modules.get(LolfiFilesIngestor, { strict: false });
 
     const { success } = await ingestor.ingest(jobId, this.controller.signal).catch((e) => {
