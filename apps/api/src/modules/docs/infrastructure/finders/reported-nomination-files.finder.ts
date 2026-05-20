@@ -24,7 +24,7 @@ export class ReportedNominationFilesFinder {
 
     return ReportedNominationFilesCollection.from({
       reports: reports
-        .filter(ReportedNominationFilesFinder.hasNominationFileId)
+        .filter((file) => ReportedNominationFilesFinder.hasNominationFileId(file))
         .map(({ agendaId, ...file }) => ({ reportedIn: agendaId, ...file })),
     });
   }

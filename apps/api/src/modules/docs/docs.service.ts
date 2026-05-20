@@ -196,7 +196,7 @@ export class DocsService {
     sessionMeetingDate: DateOnlyJson;
     nominationFileIds: readonly string[];
   }): Promise<void> {
-    this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const agenda = await this.agendaRepository.find({
         tx,
         agendaId: command.agendaId,
