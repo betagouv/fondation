@@ -8,6 +8,7 @@ import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
+import { Files } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import { TimeOnly } from 'src/utils/time-only';
 
@@ -86,6 +87,7 @@ import { OfficialReportRepository } from './infrastructure/repositories/official
 @Injectable()
 export class DocsService {
   constructor(
+    private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
     private readonly officialReportRepository: OfficialReportRepository,
 
@@ -278,6 +280,72 @@ export class DocsService {
 
   detailsAgendaMetadata(query: { agendaId: string }): Promise<DetailedAgendaMetadata> {
     return this.detailsAgendaMetadataQuery.handle(query);
+  }
+
+  async resetAgendaDocument(command: { id: string }): Promise<void> {
+    const agenda = await this.prisma.agenda.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!agenda) throw new NotFoundException();
+
+    await this.prisma.agenda.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfFileId: null },
+    });
+
+    if (agenda.pdf) this.files.delete([agenda.pdf]);
+  }
+
+  async resetOfficialReportDocument(command: { id: string }): Promise<void> {
+    const report = await this.prisma.officialReport.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!report) throw new NotFoundException();
+
+    await this.prisma.officialReport.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfId: null },
+    });
+
+    if (report.pdf) this.files.delete([report.pdf]);
+  }
+
+  async resetPresentationPlanDocument(command: { id: string }): Promise<void> {
+    const plan = await this.prisma.justicePresentationPlan.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!plan) throw new NotFoundException();
+
+    await this.prisma.justicePresentationPlan.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfId: null },
+    });
+
+    if (plan.pdf) this.files.delete([plan.pdf]);
+  }
+
+  async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.agenda.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
+  }
+
+  async updateOfficialReportHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.officialReport.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
+  }
+
+  async updatePresentationPlanHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.justicePresentationPlan.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
   }
 
   searchJusticeContacts(query: { search: string }): Promise<FoundJusticeContactsDto> {

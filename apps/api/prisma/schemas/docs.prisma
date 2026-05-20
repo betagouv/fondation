@@ -18,8 +18,9 @@ model Agenda {
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
 
-  html      String?
-  pdfFileId String? @map("pdf_file_id") @db.Uuid
+  html              String?
+  isManuallyEdited  Boolean  @default(false) @map("is_manually_edited")
+  pdfFileId         String?  @map("pdf_file_id") @db.Uuid
 
   nominationFiles                        AgendaNominationFile[]
   chairman                               User?                                   @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -75,8 +76,9 @@ model OfficialReport {
   sessionMeetingStartingTime DateTime @map("session_meeting_starting_time") @db.Time
   sessionMeetingEndingTime   DateTime @map("session_meeting_ending_time") @db.Time
   hasRenunciation            Boolean  @map("has_renunciation")
-  html                       String?
-  pdfId                      String?  @map("pdf_id") @db.Uuid
+  html             String?
+  isManuallyEdited Boolean  @default(false) @map("is_manually_edited")
+  pdfId            String?  @map("pdf_id") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   authorId  String?  @map("author_id") @db.Uuid
@@ -204,9 +206,10 @@ model JusticePresentationPlan {
   date        DateTime  @db.Date
   time        DateTime  @db.Time
   endTime     DateTime? @map("end_time") @db.Time
-  html        String?
-  pdfId       String?   @map("pdf_id") @db.Uuid
-  isPresented Boolean   @default(false) @map("is_presented")
+  html             String?
+  isManuallyEdited Boolean  @default(false) @map("is_manually_edited")
+  pdfId            String?  @map("pdf_id") @db.Uuid
+  isPresented      Boolean  @default(false) @map("is_presented")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

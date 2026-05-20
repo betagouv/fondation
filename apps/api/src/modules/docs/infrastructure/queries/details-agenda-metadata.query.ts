@@ -19,6 +19,7 @@ export class DetailsAgendaMetadataQuery {
         chairmanId: true,
         date: true,
         sessionMeetingDate: true,
+        isManuallyEdited: true,
       },
     });
 
@@ -27,6 +28,7 @@ export class DetailsAgendaMetadataQuery {
     return {
       id: agenda.id,
       chairmanId: agenda.chairmanId,
+      isManuallyEdited: agenda.isManuallyEdited,
       date: DateOnly.fromDate(agenda.date).toJson(),
       sessionMeetingDate: DateOnly.fromDate(agenda.sessionMeetingDate).toJson(),
     };
@@ -37,6 +39,7 @@ export class DetailedAgendaMetadata extends createZodDto(
   z.object({
     id: z.string(),
     chairmanId: z.string().nullable(),
+    isManuallyEdited: z.boolean(),
     date: dateOnlyJsonSchema,
     sessionMeetingDate: dateOnlyJsonSchema,
   }),

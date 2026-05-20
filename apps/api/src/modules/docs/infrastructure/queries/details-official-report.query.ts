@@ -27,6 +27,7 @@ export class DetailsOfficialReportQuery {
         sessionMeetingDate: true,
         sessionMeetingStartingTime: true,
         sessionMeetingEndingTime: true,
+        isManuallyEdited: true,
       },
     });
 
@@ -40,6 +41,7 @@ export class DetailsOfficialReportQuery {
       chairmanId: report.chairmanId,
       secretaryId: report.secretaryId,
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
+      isManuallyEdited: report.isManuallyEdited,
       sessionMeetingDate: DateOnly.fromDate(report.sessionMeetingDate).toJson(),
       sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
       sessionMeetingEndingTime: dateToTimeOnly(report.sessionMeetingEndingTime),
@@ -56,6 +58,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,
     sessionMeetingEndingTime: timeOnlySchema,
+    isManuallyEdited: z.boolean(),
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

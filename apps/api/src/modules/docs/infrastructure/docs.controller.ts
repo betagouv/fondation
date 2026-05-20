@@ -10,14 +10,24 @@ import {
   Param,
   ParseBoolPipe,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
   StreamableFile,
+  UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
@@ -220,6 +230,41 @@ export class DocsController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Patch('/agendas/:agendaId/html')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          encoding: { html: { contentType: 'text/html' } },
+          schema: { type: 'object', properties: { html: { type: 'string', format: 'binary' } } },
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('html', {
+      limits: { fileSize: 5_242_880 /* 5Mo */ },
+      fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'text/html'),
+    }),
+  )
+  updateAgendaHtml(
+    @Param('agendaId') agendaId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    console.debug('received file', file.size, file.mimetype);
+    return this.docs.updateAgendaHtml({ id: agendaId, html: file.buffer });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/agendas/:agendaId/document')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetAgendaDocument(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.docs.resetAgendaDocument({ id: agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Delete('/agendas/:agendaId')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAgenda(@Param('agendaId') agendaId: string): Promise<void> {
@@ -385,6 +430,40 @@ export class DocsController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Patch('/official-reports/:officialReportId/html')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          encoding: { html: { contentType: 'text/html' } },
+          schema: { type: 'object', properties: { html: { type: 'string', format: 'binary' } } },
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('html', {
+      limits: { fileSize: 5_242_880 /* 5Mo */ },
+      fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'text/html'),
+    }),
+  )
+  updateOfficialReportHtml(
+    @Param('officialReportId') officialReportId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    return this.docs.updateOfficialReportHtml({ id: officialReportId, html: file.buffer });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/official-reports/:officialReportId/document')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetOfficialReportDocument(@Param('officialReportId') officialReportId: string): Promise<void> {
+    return this.docs.resetOfficialReportDocument({ id: officialReportId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Delete('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
@@ -493,6 +572,40 @@ export class DocsController {
     @Param('planId') planId: string,
   ): Promise<DetailedPresentationPlanPdfDocumentDto> {
     return this.docs.detailsPresentationPlanPdfDocument({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Patch('/presentation-plans/:planId/html')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          encoding: { html: { contentType: 'text/html' } },
+          schema: { type: 'object', properties: { html: { type: 'string', format: 'binary' } } },
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('html', {
+      limits: { fileSize: 5_242_880 /* 5Mo */ },
+      fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'text/html'),
+    }),
+  )
+  updatePresentationPlanHtml(
+    @Param('planId') planId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<void> {
+    return this.docs.updatePresentationPlanHtml({ id: planId, html: file.buffer });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/presentation-plans/:planId/document')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetPresentationPlanDocument(@Param('planId') planId: string): Promise<void> {
+    return this.docs.resetPresentationPlanDocument({ id: planId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

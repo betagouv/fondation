@@ -117,22 +117,53 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
         .then(({ data }) => (data ?? null) as string | null),
   });
 
-export function useGenerateAgendaPdfMutation() {
+export const htmlMutationKeys = {
+  agendaHtml: ['docs', 'updateAgendaHtml'] as const,
+  officialReportHtml: ['docs', 'updateOfficialReportHtml'] as const,
+  presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
+};
+
+export function useUpdateAgendaHtmlMutation(agendaId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (command: { agendaId: string; sessionId: string; force?: boolean }) =>
+    mutationKey: htmlMutationKeys.agendaHtml,
+    mutationFn: ({ html }: { html: string }) =>
+      $api.docs.updateAgendaHtml({
+        path: { agendaId },
+        body: { html: new Blob([html], { type: 'text/html' }) },
+      }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
+      queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
+    },
+  });
+}
+
+export function useGenerateAgendaPdfMutation(mutation: {
+  sessionId: string;
+  agendaId: string;
+  force: boolean;
+  onSuccess?: () => unknown;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
       $api.docs
         .generateAgendaPdf({
-          path: { agendaId: command.agendaId },
-          query: { force: command.force },
+          path: { agendaId: mutation.agendaId },
+          query: { force: mutation.force },
           parseAs: 'stream',
         })
         .then(({ response }) => response.body?.cancel()),
 
-    onSuccess: (_, { sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(sessionId),
-      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: agendaKeys.findSessionDocs(mutation.sessionId),
+      });
+
+      mutation.onSuccess?.();
+    },
   });
 }
 
@@ -193,6 +224,17 @@ export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: strin
         .isSessionReadyForDocGeneration({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data),
   });
+
+export function useResetAgendaDocumentMutation(agendaId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.resetAgendaDocument({ path: { agendaId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
+      queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
+    },
+  });
+}
 
 export function useDeleteAgenda(sessionId: string) {
   const queryClient = useQueryClient();
@@ -345,22 +387,56 @@ export const useOfficialReportHtmlQuery = (query: { id: string | undefined; forc
         .then(({ data }) => (data ?? null) as string | null),
   });
 
-export function useGenerateOfficialReportPdfMutation() {
+export function useUpdateOfficialReportHtmlMutation(officialReportId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (command: { officialReportId: string; sessionId: string; force?: boolean }) =>
+    mutationKey: htmlMutationKeys.officialReportHtml,
+    mutationFn: ({ html }: { html: string }) =>
+      $api.docs.updateOfficialReportHtml({
+        path: { officialReportId },
+        body: { html: new Blob([html], { type: 'text/html' }) },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(officialReportId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
+    },
+  });
+}
+
+export function useGenerateOfficialReportPdfMutation(mutation: {
+  sessionId: string;
+  force: boolean;
+  officialReportId: string;
+  onSuccess?: () => unknown;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
       $api.docs
         .generateOfficialReportPdf({
-          path: { officialReportId: command.officialReportId },
-          query: { force: command.force },
+          path: { officialReportId: mutation.officialReportId },
+          query: { force: mutation.force },
           parseAs: 'stream',
         })
         .then(({ response }) => response.body?.cancel()),
 
-    onSuccess: (_, { sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(sessionId),
-      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: agendaKeys.findSessionDocs(mutation.sessionId),
+      });
+      mutation.onSuccess?.();
+    },
+  });
+}
+
+export function useResetOfficialReportDocumentMutation(officialReportId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.resetOfficialReportDocument({ path: { officialReportId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(officialReportId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
+    },
   });
 }
 
@@ -546,15 +622,49 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
     },
   });
 
-export function useJusticePresentationPlanPdfMutation() {
+export function useUpdatePresentationPlanHtmlMutation(planId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (options: { presentationPlanId: string }) =>
+    mutationKey: htmlMutationKeys.presentationPlanHtml,
+    mutationFn: ({ html }: { html: string }) =>
+      $api.docs.updatePresentationPlanHtml({
+        path: { planId },
+        body: { html: new Blob([html], { type: 'text/html' }) },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
+    },
+  });
+}
+
+export function useJusticePresentationPlanPdfMutation(mutation: {
+  planId: string;
+  force: boolean;
+  onSuccess?: () => unknown;
+}) {
+  return useMutation({
+    mutationFn: async () =>
       $api.docs
         .generatePresentationPlanPdf({
-          path: { planId: options.presentationPlanId },
+          path: { planId: mutation.planId },
+          query: { force: mutation.force },
           parseAs: 'stream',
         })
         .then(({ response }) => response.body?.cancel()),
+
+    onSuccess: mutation.onSuccess,
+  });
+}
+
+export function useResetPresentationPlanDocumentMutation(planId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.resetPresentationPlanDocument({ path: { planId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
+    },
   });
 }
 

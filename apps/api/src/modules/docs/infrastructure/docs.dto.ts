@@ -83,3 +83,9 @@ export class PresentPlanDto extends createZodDto(
     endTime: timeOnlySchema,
   }),
 ) {}
+
+export class UpdateDocumentHtmlDto extends createZodDto(
+  z.object({
+    html: z.string().min(1),
+  }),
+) {}

@@ -1,10 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
+  officialReportKeys,
   useCreateOfficialReportMutation,
   useDetailsOfficialReportQuery,
+  useResetOfficialReportDocumentMutation,
   useUpdateOfficialReportMutation,
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
@@ -18,9 +23,13 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
     officialReportId?: string;
   }>();
   const navigate = useNavigate();
+  const { formatMessage } = useIntl();
+  const { waitForConfirmation } = useConfirmation();
+  const queryClient = useQueryClient();
 
   const createOfficialReport = useCreateOfficialReportMutation();
   const updateOfficialReport = useUpdateOfficialReportMutation(sessionId);
+  const resetOfficialReport = useResetOfficialReportDocumentMutation(officialReportId ?? '');
 
   const { data: session, isFetching: sessionFetching } = useDetailedNominationSessionQuery({
     sessionId,
@@ -64,7 +73,41 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
   );
 
   const submit = React.useCallback(
-    (metadata: OfficialReport) => {
+    async (metadata: OfficialReport) => {
+      if (officialReportId) {
+        const { isConfirmed } = await waitForConfirmation({
+          title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
+          i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser le procès-verbal` }) },
+          content: (
+            <>
+              <p>
+                {officialReportMetadata?.isManuallyEdited ? (
+                  <FormattedMessage
+                    values={{ bold: (x) => <strong>{x}</strong> }}
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version du procès-verbal,` +
+                      `<bold>y compris ses éditions manuelles</bold> sans pouvoir les récupérer`
+                    }
+                  />
+                ) : (
+                  <FormattedMessage
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version du procès-verbal` +
+                      `sans pouvoir la récupérer`
+                    }
+                  />
+                )}
+              </p>
+              <p>
+                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+              </p>
+            </>
+          ),
+        });
+
+        if (!isConfirmed) return;
+      }
+
       const payload = {
         sessionMeetingDate: metadata.sessionMeetingDate,
         sessionMeetingTime: { hours: 0, minutes: 0, ...metadata.sessionMeetingStartingTime },
@@ -77,35 +120,40 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
         members: metadata.memberIds,
       };
 
-      if (officialReportId) {
-        updateOfficialReport.mutate(
-          { ...payload, officialReportId },
-          {
-            onSuccess: () =>
-              navigate(
-                generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
-                  sessionId,
-                  officialReportId,
-                }),
-              ),
-          },
-        );
-      } else {
-        createOfficialReport.mutate(
-          { ...payload, sessionId },
-          {
-            onSuccess: ({ id: officialReportId }) =>
-              navigate(
-                generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
-                  sessionId,
-                  officialReportId,
-                }),
-              ),
-          },
+      async function onSuccess(result: { id: string } | undefined) {
+        const id = result?.id || officialReportId;
+        if (id) {
+          await queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(id) });
+        }
+
+        return navigate(
+          generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+            sessionId,
+            officialReportId: result?.id || officialReportId,
+          }),
         );
       }
+
+      if (officialReportId) {
+        resetOfficialReport.mutate(undefined, {
+          onSuccess: () => updateOfficialReport.mutate({ ...payload, officialReportId }, { onSuccess }),
+        });
+      } else {
+        createOfficialReport.mutate({ ...payload, sessionId }, { onSuccess });
+      }
     },
-    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate],
+    [
+      officialReportId,
+      createOfficialReport,
+      updateOfficialReport,
+      resetOfficialReport,
+      sessionId,
+      navigate,
+      queryClient,
+      waitForConfirmation,
+      formatMessage,
+      officialReportMetadata?.isManuallyEdited,
+    ],
   );
 
   return (

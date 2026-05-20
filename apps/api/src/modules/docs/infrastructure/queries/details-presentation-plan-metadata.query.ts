@@ -24,6 +24,7 @@ export class DetailsPresentationPlanMetadataQuery {
         date: true,
         time: true,
         isPresented: true,
+        isManuallyEdited: true,
         justiceDepartmentContactId: true,
         agendas: {
           select: {
@@ -42,6 +43,7 @@ export class DetailsPresentationPlanMetadataQuery {
       chairmanId: plan.chairmanId,
       secretaryId: plan.secretaryId,
       isPresented: plan.isPresented,
+      isManuallyEdited: plan.isManuallyEdited,
       date: DateOnly.fromDate(plan.date).toJson(),
       time: dateToTimeOnly(plan.time),
       formation: prismaFormationEnumToFormationEnum(assertIsDefined(plan.agendas[0]).agenda.formation),
@@ -60,6 +62,7 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     time: timeOnlySchema,
     date: dateOnlyJsonSchema,
     isPresented: z.boolean(),
+    isManuallyEdited: z.boolean(),
     formation: z.enum(Magistrat.Formation),
     agendas: z.array(z.object({ id: z.string(), comment: z.string().nullable() })),
     chairmanId: z.string().nullable(),

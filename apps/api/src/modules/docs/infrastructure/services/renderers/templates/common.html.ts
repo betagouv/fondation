@@ -551,7 +551,7 @@ export function documentLayout<const T extends LayoutContext>({
               <div class="drapeau"></div>
             </footer>
 
-            ${content(ctx)}
+            <div class="content" data-editable-content>${content(ctx)}</div>
 
             <div class="footer">${footer(ctx)}</div>
           </main>
