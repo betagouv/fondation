@@ -10,7 +10,9 @@
   "schedule": ["after 6am and before 8pm on Sunday"],
   "pinDigests": true,
   "minimumReleaseAge": "15 days",
+  "prConcurrentLimit": 1,
   "vulnerabilityAlerts": {
-    "enabled": true
+    "enabled": true,
+    "prConcurrentLimit": 1
   }
 }
