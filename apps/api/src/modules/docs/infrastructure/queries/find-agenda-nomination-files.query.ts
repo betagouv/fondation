@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/framework/database';
 import { DocsNominationFilesFinder, FoundDocsNominationFiles } from '../finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../finders/reported-nomination-files.finder';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class FindAgendaNominationFilesQuery {

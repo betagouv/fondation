@@ -3,11 +3,11 @@ import { format } from 'date-fns';
 
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 
+import { date, fullname } from '../helpers';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
-import { date, fullname } from '../helpers';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 

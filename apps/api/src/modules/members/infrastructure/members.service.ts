@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { Magistrat } from 'shared-models';
 
-import { Pagination } from 'src/modules/framework/pagination';
 import { MemberTitleEnum } from '../domain/member-enums';
-
 import { Prisma } from 'src/generated/prisma/client';
+import { Pagination } from 'src/modules/framework/pagination';
+
 import { MemberRepository } from './member-repository';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';

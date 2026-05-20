@@ -4,12 +4,12 @@ import z from 'zod';
 
 import { Gender, Magistrat } from 'shared-models';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
+import { Prisma } from 'src/generated/prisma/client';
+import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 
 @Injectable()
 export class DocsNominationFilesFinder {

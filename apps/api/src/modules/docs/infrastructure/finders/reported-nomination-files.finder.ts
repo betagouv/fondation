@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+
+import { ReportedNominationFilesCollection } from '../../domain/reported-nomination-files-collection';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedInAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { isDefined } from 'src/utils/is-defined';
-import { ReportedNominationFilesCollection } from '../../domain/reported-nomination-files-collection';
 
 @Injectable()
 export class ReportedNominationFilesFinder {

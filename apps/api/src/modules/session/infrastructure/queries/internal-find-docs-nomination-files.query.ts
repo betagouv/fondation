@@ -4,12 +4,12 @@ import z from 'zod';
 
 import { Gender, Magistrat } from 'shared-models';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildName, buildPosition } from '../helpers/magistrat.helper';
+import { Prisma } from 'src/generated/prisma/client';
+import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
+import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {

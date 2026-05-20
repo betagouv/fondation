@@ -4,12 +4,12 @@ import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 @Injectable()
 export class DetailNominationSessionQuery {
