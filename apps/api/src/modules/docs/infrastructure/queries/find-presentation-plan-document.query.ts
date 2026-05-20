@@ -41,27 +41,34 @@ export class FindPresentationPlanDocumentQuery {
 
           justiceDepartmentContactName: true,
 
+          nominationFiles: {
+            select: {
+              agendaId: true,
+              number: true,
+              name: true,
+              targetedGrade: true,
+              targetedPosition: true,
+              outcome: true,
+              outcomeComment: true,
+              sessionId: true,
+              sessionName: true,
+            },
+          },
+
           agendas: {
             select: {
+              agendaId: true,
               comment: true,
               agenda: {
                 select: {
                   date: true,
                   formation: true,
+                  sessionId: true,
                   sessionName: true,
                   sessionMeetingDate: true,
+                  chairmanId: true,
                   chairmanFirstName: true,
                   chairmanLastName: true,
-                  nominationFiles: {
-                    select: {
-                      number: true,
-                      name: true,
-                      targetedGrade: true,
-                      targetedPosition: true,
-                      outcome: true,
-                      outcomeComment: true,
-                    },
-                  },
                 },
               },
             },
@@ -74,35 +81,64 @@ export class FindPresentationPlanDocumentQuery {
 
       if (!plan) throw new NotFoundException();
 
-      const ctx = {
-        // TODO: change when other are available
-        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      const sessions: PresentationPlanRenderContext['sessions'] = Map.groupBy(
+        plan.agendas,
+        ({ agenda }) => agenda.sessionId,
+      )
+        .values()
+        .map((sessionAgendas) => {
+          const { agenda } = assertIsDefined(
+            sessionAgendas.find(({ agenda }) => isDefined(agenda)),
+            `unknown agenda`,
+          );
+          const { sessionId, sessionName, formation } = agenda;
+
+          const agendas = Map.groupBy(
+            sessionAgendas,
+            ({ agenda }) => agenda.chairmanId || `${agenda.chairmanFirstName}|${agenda.chairmanLastName}`,
+          )
+            .values()
+            .map((group) => {
+              const agendaIds = new Set(group.map((a) => a.agendaId));
+              const nominationFiles = plan.nominationFiles.filter(
+                (f): f is typeof f & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>
+                  agendaIds.has(f.agendaId) && isDefined(f.targetedPosition) && isDefined(f.outcome),
+              );
+
+              const { agenda: firstAgenda } = assertIsDefined(
+                group.find(({ agenda }) => isDefined(agenda)),
+                `unknown agenda`,
+              );
+              const { chairmanFirstName, chairmanLastName } = assertIsDefined(firstAgenda, 'unknown agenda');
+
+              return {
+                nominationFiles,
+                chairman: { firstName: chairmanFirstName, lastName: chairmanLastName },
+                comments: group.map(({ comment }) => comment),
+              };
+            })
+            .toArray();
+
+          return {
+            agendas,
+            id: sessionId,
+            name: sessionName,
+            // TODO: change when other are available
+            typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+            formation: prismaFormationEnumToFormationEnum(formation),
+          };
+        })
+        .toArray();
+
+      const html = this.presentationPlanRenderer.html({
+        sessions,
         date: DateOnly.fromDate(plan.date),
         time: dateToTimeOnly(plan.time),
-        formation: prismaFormationEnumToFormationEnum(
-          assertIsDefined(plan.agendas[0]!.agenda.formation, 'unknown plan formation'),
-        ),
         justiceContactName: plan.justiceDepartmentContactName,
-        secretary: {
-          firstName: plan.secretaryFirstName,
-          lastName: plan.secretaryLastName,
-        },
-        agendas: plan.agendas.map((a) => ({
-          comment: a.comment,
-          sessionName: a.agenda.sessionName,
-          chairman: {
-            firstName: a.agenda.chairmanFirstName,
-            lastName: a.agenda.chairmanLastName,
-          },
-          nominationFiles: a.agenda.nominationFiles.filter(
-            (
-              file,
-            ): file is typeof file & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>
-              isDefined(file.targetedPosition) && isDefined(file.outcome),
-          ),
-        })),
-      } satisfies PresentationPlanRenderContext;
-      const html = this.presentationPlanRenderer.html(ctx);
+        typeDeSaisine: sessions[0]!.typeDeSaisine,
+        formation: sessions[0]!.formation,
+        secretary: { firstName: plan.secretaryFirstName, lastName: plan.secretaryLastName },
+      });
 
       await tx.justicePresentationPlan.update({
         where: { id: query.id },

@@ -89,11 +89,17 @@ export function AgendaProvider(props: React.PropsWithChildren) {
         sessionMeetingDate: state.metadata.sessionMeetingDate,
       };
 
-      async function onSuccess() {
+      async function onSuccess(result: { id: string } | undefined) {
         await queryClient.invalidateQueries({
           queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
         });
-        return navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId }));
+
+        const id = result?.id || agendaId;
+        if (id) await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(id) });
+
+        return navigate(
+          generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: result?.id || agendaId }),
+        );
       }
 
       if (agendaId) {

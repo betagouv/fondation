@@ -49,6 +49,7 @@ export class UnknownPresentationPlanChairman extends Error {}
 export class AgendaIsNotCompatibleWithPresentationPlan extends Error {}
 export class EmptyAgendaList extends Error {}
 export class JusticePresentationPlanEndTimeShouldBeBeforeStartTime extends Error {}
+export class PresentationPlanAgendaAlreadyReported extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
@@ -145,12 +146,18 @@ export class JusticePresentationPlan {
 
   private assertsAgendas(
     agendas: readonly {
+      presentationPlan: { id: string } | null;
       formation: Magistrat.Formation;
     }[],
   ): asserts agendas {
     if (agendas.length === 0) throw new EmptyAgendaList();
+
     if (agendas.some(({ formation }) => formation !== this.formation)) {
       throw new AgendaIsNotCompatibleWithPresentationPlan();
+    }
+
+    if (agendas.some(({ presentationPlan }) => presentationPlan?.id && presentationPlan.id !== this.id)) {
+      throw new PresentationPlanAgendaAlreadyReported();
     }
   }
 
@@ -215,6 +222,8 @@ export type CreateJusticePresentationPlanCommand = {
     id: string;
     formation: Magistrat.Formation;
     comment: string | null;
+    session: { id: string; name: string };
+    presentationPlan: { id: string } | null;
   }[];
 };
 
@@ -230,5 +239,7 @@ export type UpdateJusticePresentationPlanCommand = {
     id: string;
     formation: Magistrat.Formation;
     comment: string | null;
+    session: { id: string; name: string };
+    presentationPlan: { id: string } | null;
   }[];
 };

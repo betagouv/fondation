@@ -24,7 +24,9 @@ export class InvalidChairmanDuty extends Error {}
 export class InvalidChairmanFormation extends Error {}
 export class InvalidSecretaryDuty extends Error {}
 export class MixedFormationAgendas extends Error {}
+export class MixedSessionAgendas extends Error {}
 export class OfficialReportEndingTimeIsBeforeStatingTime extends Error {}
+export class OfficialReportAgendaAlreadyReported extends Error {}
 
 export class OfficialReportCreated {
   constructor(
@@ -100,7 +102,12 @@ export class OfficialReport {
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
     secretary: OfficialReportUser;
-    agendas: readonly { id: string; formation: Magistrat.Formation }[];
+    agendas: readonly {
+      id: string;
+      formation: Magistrat.Formation;
+      officialReportId: string | null;
+      session: { id: string };
+    }[];
     members: readonly OfficialReportUser[];
     authorId: string;
   }) {
@@ -135,10 +142,20 @@ export class OfficialReport {
       throw new InvalidSecretaryDuty();
     }
 
-    const allAgendaFormations = new Set(props.agendas.map(({ formation }) => formation));
+    const allAgendasSessionIds = new Set(props.agendas.map(({ session }) => session.id));
+    if (allAgendasSessionIds.size > 1) {
+      throw new MixedSessionAgendas();
+    }
 
+    const allAgendaFormations = new Set(props.agendas.map(({ formation }) => formation));
     if (allAgendaFormations.size > 1) {
       throw new MixedFormationAgendas();
+    }
+
+    if (
+      props.agendas.some((agenda) => agenda.officialReportId !== null && agenda.officialReportId !== this.id)
+    ) {
+      throw new OfficialReportAgendaAlreadyReported();
     }
 
     const agendaIds = Array.from(new Set(props.agendas.map(({ id }) => id)));
@@ -168,7 +185,12 @@ export class OfficialReport {
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
     secretary: OfficialReportUser;
-    agendas: readonly { id: string; formation: Magistrat.Formation }[];
+    agendas: readonly {
+      id: string;
+      formation: Magistrat.Formation;
+      session: { id: string };
+      officialReportId: string | null;
+    }[];
     members: readonly OfficialReportUser[];
     authorId: string;
     formation: Magistrat.Formation;
@@ -204,7 +226,12 @@ export class OfficialReport {
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
     secretary: OfficialReportUser;
-    agendas: readonly { id: string; formation: Magistrat.Formation }[];
+    agendas: readonly {
+      id: string;
+      formation: Magistrat.Formation;
+      session: { id: string };
+      officialReportId: string | null;
+    }[];
     members: readonly OfficialReportUser[];
     authorId: string;
   }): void {

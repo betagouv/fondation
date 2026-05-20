@@ -69,6 +69,7 @@ function header(ctx: {
 }
 
 export type AgendaNominationFile = {
+  agendaId: string | null;
   number: number;
   name: string;
   targetedGrade: string;
@@ -100,24 +101,49 @@ function displayOutcome(ctx: {
   }
 }
 
+function nominationFileParagraph(file: AgendaNominationFile): string {
+  return html`
+    <p>
+      <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
+      (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;:${file.outcomeComment}` : ''}.
+    </p>
+  `;
+}
+
+function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readonly AgendaNominationFile[] }) {
+  const paragraphs = ctx.nominationFiles
+    .filter(({ outcome }) => outcome === 'SUSPENDED')
+    .sort((a, b) => a.number - b.number)
+    .map(nominationFileParagraph)
+    .join('\n');
+
+  if (paragraphs.length === 0) return '';
+
+  const intro =
+    ctx.previousCount > 0
+      ? html`Par ailleurs, le Conseil ne s'est pas encore prononcé pour`
+      : html`Le Conseil supérieur de la magistrature ne s'est pas encore prononcé pour`;
+
+  return html`<p>
+      ${intro}
+      ${paragraphs.length > 1
+        ? html`les propositions suivantes&nbsp;:`
+        : html`la proposition suivante&nbsp;:`}
+    </p>
+    ${paragraphs}`;
+}
+
 function nonValidatedParagraph(ctx: {
   formation: Magistrat.Formation;
-  nominationFiles: AgendaNominationFile[];
+  nominationFiles: readonly AgendaNominationFile[];
 }): string {
   const paragraphs = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'NON_VALIDATED')
     .sort((a, b) => a.number - b.number)
-    .map(
-      (file) => html`
-        <p>
-          <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
-          (${file.targetedGrade})${file.outcomeComment
-            ? `, aux motifs que&nbsp;:${file.outcomeComment}`
-            : ''}.
-        </p>
-      `,
-    )
+    .map(nominationFileParagraph)
     .join('\n');
+
+  if (paragraphs.length === 0) return '';
 
   const intro = html`<p>
     Le conseil supérieur de la magistrature émet un
@@ -128,53 +154,102 @@ function nonValidatedParagraph(ctx: {
       })}</strong
     >
     ${paragraphs.length > 1
-      ? ` aux propositions de nominations suivantes&nbsp;:`
-      : ` à la proposition de nomination suivante&nbsp;:`}
+      ? html` aux propositions de nomination suivantes&nbsp;:`
+      : html` à la proposition de nomination suivante&nbsp;:`}
   </p>`;
-
-  if (paragraphs.length === 0) return '';
 
   return html`${intro}${paragraphs}`;
 }
 
-function presentationPlanSessionSection(ctx: {
+function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0 | 1 | 2 {
+  let count: 0 | 1 | 2 = 0;
+  for (const item of items) {
+    if (predicate(item)) count++;
+    if (count === 2) return count;
+  }
+
+  return count as 0 | 1 | 2;
+}
+
+function chairmanBlock(ctx: {
   formation: Magistrat.Formation;
-  sessionName: string;
-  comment: string | null;
   chairman: { firstName: string; lastName: string };
-  nominationFiles: AgendaNominationFile[];
-}) {
+  nominationFiles: readonly AgendaNominationFile[];
+}): string {
   const nonValidated = nonValidatedParagraph(ctx);
 
-  const nonValidatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'NON_VALIDATED').length;
-  const validatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'VALIDATED').length;
+  const nonValidatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'NON_VALIDATED');
+  const suspended = suspendedPagraphs({
+    nominationFiles: ctx.nominationFiles,
+    previousCount: nonValidatedCount,
+  });
 
+  const validatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'VALIDATED');
+  const otherCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome !== 'VALIDATED');
   const validatedParagraph =
     validatedCount > 0
       ? html`<p>
-          Le Conseil supérieur de la magistrature émet un
-          <strong
-            >${displayOutcome({
-              formation: ctx.formation,
-              outcome: 'VALIDATED',
-            })}</strong
-          >
-          ${nonValidatedCount === 0
+          ${nonValidated !== '' && suspended !== ''
+            ? `Enfin, le Conseil émet un`
+            : nonValidated !== '' || suspended !== ''
+              ? `Par ailleurs, le Conseil émet un`
+              : `Le Conseil supérieur de la magistrature émet un`}
+          <strong>${displayOutcome({ formation: ctx.formation, outcome: 'VALIDATED' })}</strong>
+          ${otherCount === 0
             ? validatedCount > 1
-              ? html` à toutes les propositions de nominations.`
+              ? html` à toutes les propositions de nomination.`
               : html` à la proposition de nomination.`
             : validatedCount > 1
-              ? html` aux autres propositions de nominations.`
-              : html` à l'autre proposition de nominations.`}
+              ? html` aux autres propositions de nomination.`
+              : html` à la proposition de nomination restante.`}
         </p> `
-      : '';
-
-  const commentParagraph = ctx.comment?.trim() ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>` : '';
+      : html`<p>
+          Le Conseil supérieur de la magistrature n'émet un
+          ${displayOutcome({ formation: ctx.formation, outcome: 'VALIDATED' })} pour
+          <strong>aucune proposition</strong>.
+        </p>`;
 
   return html`
-    <h3>${ctx.sessionName}</h3>
     <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
-    ${nonValidated} ${validatedParagraph} ${commentParagraph}
+    ${nonValidated} ${suspended} ${validatedParagraph}
+  `;
+}
+
+function presentationPlanSessionSection(ctx: {
+  id: string;
+  name: string;
+  formation: Magistrat.Formation;
+  agendas: readonly {
+    comments: readonly string[];
+    chairman: { firstName: string; lastName: string };
+    nominationFiles: readonly AgendaNominationFile[];
+  }[];
+}): string {
+  const allComments = ctx.agendas.flatMap(({ comments }) =>
+    comments.flatMap((x) => {
+      const trimmed = x.trim();
+      return trimmed ? [trimmed] : [];
+    }),
+  );
+
+  const commentParagraph =
+    allComments.length > 1
+      ? html`<p>Commentaires&nbsp;:</p>` +
+        html`<ul>
+          ${allComments.map((comment) => html`<li>${comment}</li>`)}
+        </ul>`
+      : allComments.length === 1
+        ? html`Commentaire&nbsp;: ${allComments[0]!}`
+        : '';
+
+  return html`
+    <h3>${ctx.name}</h3>
+    ${ctx.agendas
+      .map(({ chairman, nominationFiles }) =>
+        chairmanBlock({ formation: ctx.formation, chairman, nominationFiles }),
+      )
+      .join('\n')}
+    ${commentParagraph}
   `;
 }
 
@@ -182,21 +257,26 @@ function content(ctx: {
   time: TimeOnly;
   justiceContactName: string;
   secretary: { firstName: string; lastName: string };
-  agendas: {
-    sessionName: string;
-    comment: string | null;
-    chairman: { firstName: string; lastName: string };
-    nominationFiles: AgendaNominationFile[];
+  sessions: readonly {
+    id: string;
+    name: string;
+    typeDeSaisine: TypeDeSaisine;
+    formation: Magistrat.Formation;
+    agendas: readonly {
+      comments: readonly string[];
+      chairman: { firstName: string; lastName: string };
+      nominationFiles: AgendaNominationFile[];
+    }[];
   }[];
 }): string {
   return html`
     <h3>Introduction</h3>
     <p>
-      Faire confirmer par la DSJ qu’elle renonce au délai de huit jours prévus à l’article 35 du décret du 9
-      mars 1994 pour la fixation de l’ordre du jour.
+      Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret du 9
+      mars 1994 pour la fixation de l'ordre du jour.
     </p>
 
-    ${ctx.agendas.map(presentationPlanSessionSection).join('\n')}
+    ${ctx.sessions.map((session) => presentationPlanSessionSection(session)).join('\n')}
 
     <h3>Informations administratives</h3>
     <ul>

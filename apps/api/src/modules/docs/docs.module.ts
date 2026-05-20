@@ -6,8 +6,9 @@ import { SimpleAuthModule } from 'src/modules/simple-auth';
 
 import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
-import { AgendaNominationFilesFinder } from './infrastructure/finders/agenda-nomination-files.finder';
 import { AgendaFinder } from './infrastructure/finders/agenda.finder';
+import { DocsNominationFilesFinder } from './infrastructure/finders/docs-nomination-files.finder';
+import { ReportedNominationFilesFinder } from './infrastructure/finders/reported-nomination-files.finder';
 import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailsOfficialReportQuery } from './infrastructure/queries/details-official-report.query';
 import { DetailsPresentationPlanMetadataQuery } from './infrastructure/queries/details-presentation-plan-metadata.query';
@@ -43,7 +44,6 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
   controllers: [DocsController],
   providers: [
     AgendaFinder,
-    AgendaNominationFilesFinder,
     AgendaRenderer,
     AgendaRepository,
     DetailsAgendaMetadataQuery,
@@ -52,6 +52,7 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     DetailsPresentationPlanPdfDocumentQuery,
     DetailsSessionAgendaQuery,
     DetailsSessionOfficialReportQuery,
+    DocsNominationFilesFinder,
     DocsService,
     FindAgendaDocumentPdfQuery,
     FindAgendaDocumentQuery,
@@ -74,6 +75,7 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     OfficialReportRepository,
     PdfRenderer,
     PresentationPlanRenderer,
+    ReportedNominationFilesFinder,
   ],
   exports: [DocsService],
 })

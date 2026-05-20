@@ -7,10 +7,10 @@ import './AgendaNominationFile.css';
 import { Marked } from '@/components/shared/Marked';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import type { FormationEnum } from '@/types/enums.types';
-import type { FoundAgendaNominationFiles } from '@api/types';
+import type { FoundDocsNominationFiles } from '@api/types';
 
 export function AgendaNominationFile(props: {
-  file: FoundAgendaNominationFiles['items'][number];
+  file: FoundDocsNominationFiles['items'][number];
   formation: FormationEnum;
   search: string;
   checked: boolean;

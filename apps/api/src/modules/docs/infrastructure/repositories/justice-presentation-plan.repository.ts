@@ -8,6 +8,7 @@ import {
   JusticePresentationPlanUnPresented,
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
+import { DocsNominationFilesFinder } from '../finders/docs-nomination-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -19,10 +20,15 @@ import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 export class JusticePresentationPlanRepository {
   private readonly logger = new Logger(JusticePresentationPlanRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+  ) {}
 
-  async find(query: { id: string }): Promise<JusticePresentationPlan> {
-    const found = await this.prisma.justicePresentationPlan.findUnique({
+  async find(query: { id: string; tx?: Prisma.TransactionClient }): Promise<JusticePresentationPlan> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
+
+    const found = await query.tx.justicePresentationPlan.findUnique({
       where: { id: query.id },
       select: {
         id: true,
@@ -42,25 +48,25 @@ export class JusticePresentationPlanRepository {
     });
   }
 
-  async persist(plan: JusticePresentationPlan): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of plan.messages) {
-        if (
-          message instanceof JusticePresentationPlanCreated ||
-          message instanceof JusticePresentationPlanUpdated
-        ) {
-          await this.persistJusticePresentationPlanUpserted(tx, message);
-        } else if (message instanceof JusticePresentationPlanDeleted) {
-          await this.persistJusticePresentationPlanDeleted(tx, message);
-        } else if (message instanceof JusticePresentationPlanPresented) {
-          await this.persistJusticePresentationPlanPresented(tx, message);
-        } else if (message instanceof JusticePresentationPlanUnPresented) {
-          await this.persistJusticePresentationPlanUnPresented(tx, message);
-        } else {
-          assertNever(message);
-        }
+  async persist(plan: JusticePresentationPlan, tx?: Prisma.TransactionClient): Promise<void> {
+    if (!tx) return this.prisma.$transaction((tx) => this.persist(plan, tx));
+
+    for (const message of plan.messages) {
+      if (
+        message instanceof JusticePresentationPlanCreated ||
+        message instanceof JusticePresentationPlanUpdated
+      ) {
+        await this.persistJusticePresentationPlanUpserted(tx, message);
+      } else if (message instanceof JusticePresentationPlanDeleted) {
+        await this.persistJusticePresentationPlanDeleted(tx, message);
+      } else if (message instanceof JusticePresentationPlanPresented) {
+        await this.persistJusticePresentationPlanPresented(tx, message);
+      } else if (message instanceof JusticePresentationPlanUnPresented) {
+        await this.persistJusticePresentationPlanUnPresented(tx, message);
+      } else {
+        assertNever(message);
       }
-    });
+    }
   }
 
   private async persistJusticePresentationPlanUpserted(
@@ -77,11 +83,43 @@ export class JusticePresentationPlanRepository {
       throw new InternalServerErrorException();
     }
 
-    const agendasCreateMany: Prisma.JusticePresentationPlanToAgendaCreateManyPlanInput[] =
-      message.state.agendas.map((agenda) => ({
-        agendaId: agenda.id,
-        comment: agenda.comment || undefined,
-      }));
+    const agendas = await tx.agenda.findMany({
+      where: { id: { in: message.state.agendas.map(({ id }) => id) } },
+      select: {
+        id: true,
+        sessionId: true,
+        sessionName: true,
+        nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
+      },
+    });
+
+    const nominationFiles = await Promise.all(
+      agendas.map(async ({ id: agendaId, sessionId, sessionName, nominationFiles }) => {
+        const { items } = await this.docsNominationFilesFinder.find({
+          tx,
+          sessionId,
+          ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
+        });
+
+        return items.map((f) => ({ ...f, agendaId, sessionId, sessionName }));
+      }),
+    ).then((result) => result.flat());
+
+    const nominationFilesCreateMany = nominationFiles.map((f) => ({
+      agendaId: f.agendaId,
+      sessionId: f.sessionId,
+      sessionName: f.sessionName,
+      nominationFileId: f.id,
+      number: f.number,
+      name: f.magistrat.name,
+      grade: f.magistrat.position.grade,
+      position: f.magistrat.position.label,
+      targetedPosition: f.targetPosition.label,
+      targetedGrade: f.targetPosition.grade,
+      outcome: f.outcome?.value ?? 'SUSPENDED',
+      outcomeComment: f.outcome?.comment,
+      reporters: f.reporters.map(({ fullTitledName }) => fullTitledName),
+    }));
 
     const data = {
       date: message.state.date.toDate(),
@@ -121,19 +159,39 @@ export class JusticePresentationPlanRepository {
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
     });
 
+    await tx.justicePresentationPlanNominationFile.deleteMany({ where: { planId: message.id } });
+
     await tx.justicePresentationPlan.upsert({
       where: { id: message.id },
 
       create: {
         ...data,
+        html: null,
+        pdfId: null,
         id: message.id,
-        agendas: { createMany: { data: agendasCreateMany } },
+        nominationFiles: { createMany: { data: nominationFilesCreateMany } },
+        agendas: {
+          createMany: {
+            data: message.state.agendas.map(({ comment, id }) => ({
+              agendaId: id,
+              comment: comment || undefined,
+            })),
+          },
+        },
       },
 
       update: {
         ...data,
+        html: null,
+        pdfId: null,
+        nominationFiles: { createMany: { data: nominationFilesCreateMany } },
         agendas: {
-          createMany: { data: agendasCreateMany },
+          createMany: {
+            data: message.state.agendas.map(({ comment, id }) => ({
+              agendaId: id,
+              comment: comment || undefined,
+            })),
+          },
         },
       },
     });

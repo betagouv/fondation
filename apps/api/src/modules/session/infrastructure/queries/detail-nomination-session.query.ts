@@ -5,6 +5,7 @@ import z from 'zod';
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
@@ -17,36 +18,39 @@ export class DetailNominationSessionQuery {
     private readonly affectationVersionFinder: AffectationVersionFinder,
   ) {}
 
-  async handle(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
-    const session = await this.prisma.$transaction(async (tx) => {
-      const optionalVersion = await this.affectationVersionFinder.last({
-        sessionId: query.sessionId,
-        tx,
-      });
+  async handle(query: {
+    sessionId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<DetailedNominationSessionDto> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
 
-      return this.prisma.session.findUnique({
-        where: { id: query.sessionId, deletedAt: null },
-        select: {
-          id: true,
-          name: true,
-          date: true,
-          observationsClosingDate: true,
-          dueDate: true,
-          positionStartDate: true,
-          formation: true,
-          typeDeSaisine: true,
-          isValidated: true,
+    const optionalVersion = await this.affectationVersionFinder.last({
+      sessionId: query.sessionId,
+      tx: query.tx,
+    });
 
-          _count: { select: { attachments: true } },
+    const session = await query.tx.session.findUnique({
+      where: { id: query.sessionId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        observationsClosingDate: true,
+        dueDate: true,
+        positionStartDate: true,
+        formation: true,
+        typeDeSaisine: true,
+        isValidated: true,
 
-          affectationVersions: {
-            where: { id: optionalVersion.optionalId },
-            select: {
-              _count: { select: { affectations: true } },
-            },
+        _count: { select: { attachments: true } },
+
+        affectationVersions: {
+          where: { id: optionalVersion.optionalId },
+          select: {
+            _count: { select: { affectations: true } },
           },
         },
-      });
+      },
     });
 
     if (!session) throw new NotFoundException();

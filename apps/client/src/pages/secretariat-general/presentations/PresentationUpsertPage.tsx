@@ -9,15 +9,14 @@ import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router';
+import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
 import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
-import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListPresentationPlansAgendasQuery,
@@ -228,7 +227,6 @@ function MetadataStep(props: { className?: string }) {
 }
 
 function AgendaCommentsStep(props: { className?: string }) {
-  const { formatMessage } = useIntl();
   const { state, createPlan, isDisabled, planId, goToMetadata } = usePresentationPlan();
 
   const { data: agendasData } = useListPresentationPlansAgendasQuery({
@@ -241,12 +239,21 @@ function AgendaCommentsStep(props: { className?: string }) {
     [agendasData, agendaIds],
   );
 
+  const uniqueAgendas = React.useMemo(() => {
+    const seenSessions = new Set<string>();
+    return agendas.filter(({ session }) => {
+      if (seenSessions.has(session.id)) return false;
+      seenSessions.add(session.id);
+      return true;
+    });
+  }, [agendas]);
+
   const [comments, setComments] = React.useState<Record<string, string>>(() =>
     Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? ''])),
   );
 
-  const onCommentChange = React.useCallback((id: string, value: string) => {
-    setComments((prev) => ({ ...prev, [id]: value }));
+  const onCommentChange = React.useCallback((agendaId: string, value: string) => {
+    setComments((prev) => ({ ...prev, [agendaId]: value }));
   }, []);
 
   const onSubmit = React.useCallback(() => {
@@ -259,18 +266,8 @@ function AgendaCommentsStep(props: { className?: string }) {
 
   return (
     <div className={clsx('mx-auto max-w-2xl', props.className)}>
-      {agendas.map((agenda, i) => (
-        <Accordion
-          key={agenda.id}
-          defaultExpanded={i === 0}
-          label={formatMessage(
-            { defaultMessage: `Ordre du jour du {date, date, dateOnlyShort} - {formation}` },
-            {
-              date: dateOnlyToDate(agenda.date),
-              formation: capitalize(FormationEnumLabel[agenda.formation]),
-            },
-          )}
-        >
+      {uniqueAgendas.map((agenda, i) => (
+        <Accordion key={agenda.id} defaultExpanded={i === 0} label={agenda.session.name}>
           <Input
             label="Commentaire"
             textArea
@@ -302,6 +299,26 @@ function AgendaCommentsStep(props: { className?: string }) {
   );
 }
 
+function PresentationBreadcrumb() {
+  const { planId } = usePresentationPlan();
+  const { formatMessage } = useIntl();
+  return (
+    <Breadcrumb
+      ariaLabel="Fil d'Ariane"
+      id="restitutions_breadcrumb"
+      breadcrumb={{
+        currentPageLabel: planId
+          ? formatMessage({ defaultMessage: `Notice de restitution` })
+          : formatMessage({ defaultMessage: 'Nouvelle notice de restitution' }),
+        segments: [
+          { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
+          { label: 'Restitutions', to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY) },
+        ],
+      }}
+    />
+  );
+}
+
 const STEPS = {
   METADATA: { title: 'Métadonnées de la notice' },
   AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' },
@@ -316,6 +333,8 @@ export function PresentationUpsertPage() {
 
   return (
     <div className="fr-container fr-py-2w">
+      <PresentationBreadcrumb />
+
       <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
       <MetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
       <AgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />

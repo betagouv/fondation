@@ -24,6 +24,7 @@ export class AgendaFinder {
     sessionId?: string;
     formation?: Magistrat.Formation;
     ignoreOfficialReportId?: string;
+    tx?: Prisma.TransactionClient;
   }): Promise<FoundAgendasDto> {
     return this.find(
       {
@@ -33,12 +34,14 @@ export class AgendaFinder {
         formation: query.formation ? formationEnumToPrismaFormationEnum(query.formation) : undefined,
       },
       query.ids,
+      query.tx,
     );
   }
 
   async findNonIncludedInPresentationPlan(query: {
     ids?: Set<string>;
     ignorePlanId?: string;
+    tx?: Prisma.TransactionClient;
   }): Promise<FoundAgendasDto> {
     return this.find(
       {
@@ -46,10 +49,17 @@ export class AgendaFinder {
         OR: [{ justicePresentationPlanId: null }, { justicePresentationPlanId: query.ignorePlanId }],
       },
       query.ids,
+      query.tx,
     );
   }
 
-  private async find(where: Prisma.AgendaWhereInput, ids?: Set<string>): Promise<FoundAgendasDto> {
+  private async find(
+    where: Prisma.AgendaWhereInput,
+    ids?: Set<string>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<FoundAgendasDto> {
+    if (tx) return this.prisma.$transaction((tx) => this.find(where, ids, tx));
+
     const size = ids?.size ?? 0;
     if (size > 32_000) {
       this.logger.error(`${size} params provided, max 32,000`);
@@ -67,12 +77,16 @@ export class AgendaFinder {
         chairmanId: true,
         sessionName: true,
         sessionMeetingDate: true,
+        officialReportId: true,
         justicePresentationPlan: {
           select: {
             plan: {
               select: {
+                id: true,
                 time: true,
                 endTime: true,
+                secretaryId: true,
+                justiceDepartmentContactId: true,
               },
             },
           },
@@ -95,11 +109,18 @@ export class AgendaFinder {
         session: { id: item.sessionId, name: item.sessionName },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromDate(item.sessionMeetingDate).toJson(),
-        presentationPlanEndTime: item.justicePresentationPlan?.plan.time
-          ? dateToTimeOnly(item.justicePresentationPlan.plan.time)
-          : null,
-        presentationPlanStartTime: item.justicePresentationPlan?.plan.endTime
-          ? dateToTimeOnly(item.justicePresentationPlan?.plan.endTime)
+        officialReportId: item.officialReportId,
+        presentationPlan: item.justicePresentationPlan
+          ? {
+              id: item.justicePresentationPlan.plan.id,
+              startTime: dateToTimeOnly(item.justicePresentationPlan.plan.time),
+              endTime: item.justicePresentationPlan.plan.endTime
+                ? dateToTimeOnly(item.justicePresentationPlan.plan.endTime)
+                : null,
+              secretaryId: item.justicePresentationPlan.plan.secretaryId,
+              justiceContactId:
+                item.justicePresentationPlan.plan.justiceDepartmentContactId?.toString() ?? null,
+            }
           : null,
       })),
     };
@@ -115,9 +136,17 @@ export class FoundAgendasDto extends createZodDto(
         sessionMeetingDate: dateOnlyJsonSchema,
         formation: z.enum(Magistrat.Formation),
         chairmanId: z.string().nullable(),
-        session: z.object({ id: z.string().nullable(), name: z.string() }),
-        presentationPlanStartTime: timeOnlySchema.nullable(),
-        presentationPlanEndTime: timeOnlySchema.nullable(),
+        officialReportId: z.string().nullable(),
+        session: z.object({ id: z.string(), name: z.string() }),
+        presentationPlan: z
+          .object({
+            id: z.string(),
+            startTime: timeOnlySchema,
+            endTime: timeOnlySchema.nullable(),
+            secretaryId: z.string().nullable(),
+            justiceContactId: z.string().nullable(),
+          })
+          .nullable(),
       }),
     ),
   }),

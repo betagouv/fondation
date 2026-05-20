@@ -6,6 +6,7 @@ import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
 import { NominationSession } from '../domain/nomination-session';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -45,9 +46,9 @@ import {
   InternalDetailMemberSessionQuery,
 } from './queries/internal-detail-member-session.query';
 import {
-  InternalFindAgendaNominationFilesQuery,
+  InternalFindDocsNominationFilesQuery,
   InternalFoundAgendaNominationFiles,
-} from './queries/internal-find-agenda-nomination-files.query';
+} from './queries/internal-find-docs-nomination-files.query';
 import {
   InternalListMemberSessionsQuery,
   type ListedMemberSessionsDto,
@@ -84,7 +85,7 @@ export class SessionService {
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
-    private readonly internalFindAgendaNominationFilesQuery: InternalFindAgendaNominationFilesQuery,
+    private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
@@ -307,7 +308,10 @@ export class SessionService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+  details(query: {
+    sessionId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 
@@ -444,12 +448,14 @@ export class SessionService {
     }
   }
 
-  async internalFindAgendaNominationFiles(query: {
+  async internalFindNominationFiles(query: {
     sessionId: string;
     ids?: readonly string[] | undefined;
+    // TODO: use nest-cls
+    tx?: Prisma.TransactionClient;
   }): Promise<InternalFoundAgendaNominationFiles> {
     return Sentry.startSpan({ name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' }, () =>
-      this.internalFindAgendaNominationFilesQuery.handle(query),
+      this.internalFindNominationFilesQuery.handle(query),
     );
   }
 

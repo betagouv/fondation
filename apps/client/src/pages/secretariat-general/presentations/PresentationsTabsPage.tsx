@@ -60,7 +60,7 @@ export function PresentationsTabsPage() {
   );
 
   return (
-    <div className="fr-container py-10">
+    <div className="fr-container pt-4">
       <PresentationsBreadcrumb />
       <h1>
         <FormattedMessage defaultMessage="Restitutions" />

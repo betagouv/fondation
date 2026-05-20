@@ -52,7 +52,7 @@ describe('Agenda', () => {
       Agenda.create({
         ...props,
         reportedNominationFiles: ReportedNominationFilesCollection.from({
-          reports: [{ agendaId: 'agenda-1', nominationFileId: 'nf-1', outcome: 'VALIDATED' }],
+          reports: [{ reportedIn: 'agenda-1', nominationFileId: 'nf-1', outcome: 'VALIDATED' }],
         }),
         nominationFiles: [
           { ...props.nominationFiles[0], id: 'nf-1', outcome: { value: 'VALIDATED', comment: null } },

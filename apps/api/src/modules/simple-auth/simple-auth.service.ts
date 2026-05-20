@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Gender, Role } from 'shared-models';
 
 import { Clock } from '../framework/clock';
+import { Prisma } from 'src/generated/prisma/client';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
@@ -52,6 +53,7 @@ export class SimpleAuthService {
   }
 
   detailsUser(query: {
+    tx?: Prisma.TransactionClient;
     userId: string;
     impersonationId: string | undefined;
   }): Promise<DetailedUserResponseDto> {
