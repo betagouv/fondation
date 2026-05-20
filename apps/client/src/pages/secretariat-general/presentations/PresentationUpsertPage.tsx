@@ -9,22 +9,21 @@ import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router';
+import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
-import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
 import { Mandatory } from '@/components/shared/Mandatory';
-import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
 import { toFullName } from '@/utils/user.utils';
 import {
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
   useSearchChairmenQuery,
 } from '@queries/agenda.queries';
+import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
 
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { usePresentationPlan } from './contexts/presentation-plan.context';
 
 const MetadataSchema = z.object({
@@ -264,10 +263,10 @@ function AgendaCommentsStep(props: { className?: string }) {
           key={agenda.id}
           defaultExpanded={i === 0}
           label={formatMessage(
-            { defaultMessage: `Ordre du jour du {date, date, dateOnlyShort} - {formation}` },
+            { defaultMessage: `{sessionName} - ODJ du {date, date, dateOnlyShort}` },
             {
               date: dateOnlyToDate(agenda.date),
-              formation: capitalize(FormationEnumLabel[agenda.formation]),
+              sessionName: agenda.session.name,
             },
           )}
         >
@@ -302,6 +301,26 @@ function AgendaCommentsStep(props: { className?: string }) {
   );
 }
 
+function PresentationBreadcrumb() {
+  const { planId } = usePresentationPlan();
+  const { formatMessage } = useIntl();
+  return (
+    <Breadcrumb
+      ariaLabel="Fil d'Ariane"
+      id="restitutions_breadcrumb"
+      breadcrumb={{
+        currentPageLabel: planId
+          ? formatMessage({ defaultMessage: `Notice de restitution` })
+          : formatMessage({ defaultMessage: 'Nouvelle notice de restitution' }),
+        segments: [
+          { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
+          { label: 'Restitutions', to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY) },
+        ],
+      }}
+    />
+  );
+}
+
 const STEPS = {
   METADATA: { title: 'Métadonnées de la notice' },
   AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' },
@@ -316,6 +335,8 @@ export function PresentationUpsertPage() {
 
   return (
     <div className="fr-container fr-py-2w">
+      <PresentationBreadcrumb />
+
       <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
       <MetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
       <AgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />

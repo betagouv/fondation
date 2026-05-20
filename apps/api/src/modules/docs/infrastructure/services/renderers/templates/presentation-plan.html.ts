@@ -3,11 +3,11 @@ import { format } from 'date-fns';
 
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 
-import { date, fullname } from '../helpers';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
+import { date, fullname } from '../helpers';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 
@@ -100,6 +100,38 @@ function displayOutcome(ctx: {
   }
 }
 
+function nominationFileParagraph(file: AgendaNominationFile): string {
+  return html`
+    <p>
+      <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
+      (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;:${file.outcomeComment}` : ''}.
+    </p>
+  `;
+}
+
+function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: AgendaNominationFile[] }) {
+  const paragraphs = ctx.nominationFiles
+    .filter(({ outcome }) => outcome === 'SUSPENDED')
+    .sort((a, b) => a.number - b.number)
+    .map(nominationFileParagraph)
+    .join('\n');
+
+  if (paragraphs.length === 0) return '';
+
+  const intro =
+    ctx.previousCount > 0
+      ? html`Par ailleurs, le Conseil ne s'est pas encore prononcé pour`
+      : html`Le Conseil supérieur de la magistrature ne s'est pas encore prononcé pour`;
+
+  return html`<p>
+      ${intro}
+      ${paragraphs.length > 1
+        ? html`les propositions suivantes&nbsp;:`
+        : html`la proposition suivante&nbsp;:`}
+    </p>
+    ${paragraphs}`;
+}
+
 function nonValidatedParagraph(ctx: {
   formation: Magistrat.Formation;
   nominationFiles: AgendaNominationFile[];
@@ -107,16 +139,7 @@ function nonValidatedParagraph(ctx: {
   const paragraphs = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'NON_VALIDATED')
     .sort((a, b) => a.number - b.number)
-    .map(
-      (file) => html`
-        <p>
-          <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
-          (${file.targetedGrade})${file.outcomeComment
-            ? `, aux motifs que&nbsp;:${file.outcomeComment}`
-            : ''}.
-        </p>
-      `,
-    )
+    .map(nominationFileParagraph)
     .join('\n');
 
   const intro = html`<p>
@@ -128,13 +151,23 @@ function nonValidatedParagraph(ctx: {
       })}</strong
     >
     ${paragraphs.length > 1
-      ? ` aux propositions de nominations suivantes&nbsp;:`
+      ? ` aux propositions de nomination suivantes&nbsp;:`
       : ` à la proposition de nomination suivante&nbsp;:`}
   </p>`;
 
   if (paragraphs.length === 0) return '';
 
   return html`${intro}${paragraphs}`;
+}
+
+function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0 | 1 | 2 {
+  let count: 0 | 1 | 2 = 0;
+  for (const item of items) {
+    if (predicate(item)) count++;
+    if (count === 2) return count;
+  }
+
+  return count as 0 | 1 | 2;
 }
 
 function presentationPlanSessionSection(ctx: {
@@ -146,35 +179,43 @@ function presentationPlanSessionSection(ctx: {
 }) {
   const nonValidated = nonValidatedParagraph(ctx);
 
-  const nonValidatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'NON_VALIDATED').length;
-  const validatedCount = ctx.nominationFiles.filter((file) => file.outcome === 'VALIDATED').length;
+  const nonValidatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'NON_VALIDATED');
+  const suspended = suspendedPagraphs({
+    nominationFiles: ctx.nominationFiles,
+    previousCount: nonValidatedCount,
+  });
 
+  const validatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'VALIDATED');
+  const otherCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome !== 'VALIDATED');
   const validatedParagraph =
     validatedCount > 0
       ? html`<p>
-          Le Conseil supérieur de la magistrature émet un
-          <strong
-            >${displayOutcome({
-              formation: ctx.formation,
-              outcome: 'VALIDATED',
-            })}</strong
-          >
-          ${nonValidatedCount === 0
+          ${nonValidated !== '' && suspended !== ''
+            ? `Enfin, le Conseil émet un`
+            : nonValidated !== '' || suspended !== ''
+              ? `Par ailleurs, le Conseil émet un`
+              : `Le Conseil supérieur de la magistrature émet un`}
+          <strong>${displayOutcome({ formation: ctx.formation, outcome: 'VALIDATED' })}</strong>
+          ${otherCount === 0
             ? validatedCount > 1
-              ? html` à toutes les propositions de nominations.`
+              ? html` à toutes les propositions de nomination.`
               : html` à la proposition de nomination.`
             : validatedCount > 1
-              ? html` aux autres propositions de nominations.`
-              : html` à l'autre proposition de nominations.`}
+              ? html` aux autres propositions de nomination.`
+              : html` à la proposition de nomination restante.`}
         </p> `
-      : '';
+      : html`<p>
+          Le Conseil supérieur de la magistrature n'émet un
+          ${displayOutcome({ formation: ctx.formation, outcome: 'VALIDATED' })} pour
+          <strong>aucune proposition</strong>.
+        </p>`;
 
   const commentParagraph = ctx.comment?.trim() ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>` : '';
 
   return html`
     <h3>${ctx.sessionName}</h3>
     <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
-    ${nonValidated} ${validatedParagraph} ${commentParagraph}
+    ${nonValidated} ${suspended} ${validatedParagraph} ${commentParagraph}
   `;
 }
 

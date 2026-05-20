@@ -146,7 +146,7 @@ export class JusticePresentationPlan {
 
   private assertsAgendas(
     agendas: readonly {
-      presentationPlanId: string | null;
+      presentationPlan: { id: string } | null;
       formation: Magistrat.Formation;
     }[],
   ): asserts agendas {
@@ -156,9 +156,7 @@ export class JusticePresentationPlan {
       throw new AgendaIsNotCompatibleWithPresentationPlan();
     }
 
-    if (
-      agendas.some(({ presentationPlanId }) => presentationPlanId !== null && presentationPlanId !== this.id)
-    ) {
+    if (agendas.some(({ presentationPlan }) => presentationPlan?.id && presentationPlan.id !== this.id)) {
       throw new PresentationPlanAgendaAlreadyReported();
     }
   }
@@ -223,9 +221,9 @@ export type CreateJusticePresentationPlanCommand = {
   agendas: readonly {
     id: string;
     formation: Magistrat.Formation;
-    presentationPlanId: string | null;
     comment: string | null;
     session: { id: string; name: string };
+    presentationPlan: { id: string } | null;
   }[];
 };
 
@@ -239,9 +237,9 @@ export type UpdateJusticePresentationPlanCommand = {
   endingTime: TimeOnly | null;
   agendas: readonly {
     id: string;
-    presentationPlanId: string | null;
     formation: Magistrat.Formation;
     comment: string | null;
     session: { id: string; name: string };
+    presentationPlan: { id: string } | null;
   }[];
 };

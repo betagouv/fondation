@@ -830,7 +830,7 @@ export type CreatedAgendaDto = {
     id: string;
 };
 
-export type FoundAgendaNominationFiles = {
+export type FoundDocsNominationFiles = {
     items: Array<{
         id: string;
         number: number;
@@ -973,19 +973,25 @@ export type FoundAgendasDto = {
         };
         formation: 'PARQUET' | 'SIEGE';
         chairmanId: string | null;
+        officialReportId: string | null;
         session: {
-            id: string | null;
+            id: string;
             name: string;
         };
-        presentationPlanStartTime: {
-            hours: number;
-            minutes: number;
-            seconds: number;
-        } | null;
-        presentationPlanEndTime: {
-            hours: number;
-            minutes: number;
-            seconds: number;
+        presentationPlan: {
+            id: string;
+            startTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+            endTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+            secretaryId: string | null;
+            justiceContactId: string | null;
         } | null;
     }>;
 };
@@ -1577,6 +1583,7 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
     path?: never;
     query?: {
+        search?: string;
         sortBy?: 'date' | 'dueDate';
         formations?: Array<'PARQUET' | 'SIEGE'>;
         /**
@@ -2377,7 +2384,7 @@ export type FindAgendaNominationFilesData = {
 };
 
 export type FindAgendaNominationFilesResponses = {
-    200: FoundAgendaNominationFiles;
+    200: FoundDocsNominationFiles;
 };
 
 export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];

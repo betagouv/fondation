@@ -9,7 +9,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage } from 'react-intl';
 import z from 'zod';
 
-import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
@@ -19,6 +18,7 @@ import {
   useListMembersForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
+import { useOfficialReport } from '../context/OfficialReportContext';
 
 import { AbsentMemberSelector } from './AbsentMemberSelector';
 import { JusticeContactSelector } from './JusticeContactSelector';
@@ -156,13 +156,21 @@ export function OfficialReportForm() {
           setValue('chairmanId', agenda.chairmanId);
         }
 
-        if (!state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlanStartTime) {
-          const startTime = formTimeOnlyCodec.encode(agenda.presentationPlanStartTime);
+        if (!state.dirtyFields?.secretaryId && agenda.presentationPlan?.secretaryId) {
+          setValue('secretaryId', agenda.presentationPlan.secretaryId);
+        }
+
+        if (!state.dirtyFields?.justiceDepartmentContactId && agenda.presentationPlan?.justiceContactId) {
+          setValue('justiceDepartmentContactId', agenda.presentationPlan.justiceContactId);
+        }
+
+        if (!state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlan?.startTime) {
+          const startTime = formTimeOnlyCodec.encode(agenda.presentationPlan.startTime);
           if (startTime) setValue('sessionMeetingStartingTime', startTime);
         }
 
-        if (!state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlanEndTime) {
-          const endTime = formTimeOnlyCodec.encode(agenda.presentationPlanEndTime);
+        if (!state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlan?.endTime) {
+          const endTime = formTimeOnlyCodec.encode(agenda.presentationPlan.endTime);
           if (endTime) setValue('sessionMeetingEndingTime', endTime);
         }
       },
