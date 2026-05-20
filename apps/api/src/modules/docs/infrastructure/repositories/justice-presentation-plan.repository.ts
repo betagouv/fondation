@@ -86,6 +86,7 @@ export class JusticePresentationPlanRepository {
     const agendas = await tx.agenda.findMany({
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
       select: {
+        id: true,
         sessionId: true,
         sessionName: true,
         nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
@@ -93,18 +94,19 @@ export class JusticePresentationPlanRepository {
     });
 
     const nominationFiles = await Promise.all(
-      agendas.map(async ({ sessionId, sessionName, nominationFiles }) => {
+      agendas.map(async ({ id: agendaId, sessionId, sessionName, nominationFiles }) => {
         const { items } = await this.docsNominationFilesFinder.find({
           tx,
           sessionId,
           ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
         });
 
-        return items.map((f) => ({ ...f, sessionId, sessionName }));
+        return items.map((f) => ({ ...f, agendaId, sessionId, sessionName }));
       }),
     ).then((result) => result.flat());
 
     const nominationFilesCreateMany = nominationFiles.map((f) => ({
+      agendaId: f.agendaId,
       sessionId: f.sessionId,
       sessionName: f.sessionName,
       nominationFileId: f.id,

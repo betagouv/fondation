@@ -69,6 +69,7 @@ function header(ctx: {
 }
 
 export type AgendaNominationFile = {
+  agendaId: string | null;
   number: number;
   name: string;
   targetedGrade: string;
@@ -109,7 +110,7 @@ function nominationFileParagraph(file: AgendaNominationFile): string {
   `;
 }
 
-function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: AgendaNominationFile[] }) {
+function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readonly AgendaNominationFile[] }) {
   const paragraphs = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'SUSPENDED')
     .sort((a, b) => a.number - b.number)
@@ -134,13 +135,15 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: Agenda
 
 function nonValidatedParagraph(ctx: {
   formation: Magistrat.Formation;
-  nominationFiles: AgendaNominationFile[];
+  nominationFiles: readonly AgendaNominationFile[];
 }): string {
   const paragraphs = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'NON_VALIDATED')
     .sort((a, b) => a.number - b.number)
     .map(nominationFileParagraph)
     .join('\n');
+
+  if (paragraphs.length === 0) return '';
 
   const intro = html`<p>
     Le conseil supérieur de la magistrature émet un
@@ -151,11 +154,9 @@ function nonValidatedParagraph(ctx: {
       })}</strong
     >
     ${paragraphs.length > 1
-      ? ` aux propositions de nomination suivantes&nbsp;:`
-      : ` à la proposition de nomination suivante&nbsp;:`}
+      ? html` aux propositions de nomination suivantes&nbsp;:`
+      : html` à la proposition de nomination suivante&nbsp;:`}
   </p>`;
-
-  if (paragraphs.length === 0) return '';
 
   return html`${intro}${paragraphs}`;
 }
@@ -170,13 +171,11 @@ function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0
   return count as 0 | 1 | 2;
 }
 
-function presentationPlanSessionSection(ctx: {
+function chairmanBlock(ctx: {
   formation: Magistrat.Formation;
-  sessionName: string;
-  comment: string | null;
   chairman: { firstName: string; lastName: string };
-  nominationFiles: AgendaNominationFile[];
-}) {
+  nominationFiles: readonly AgendaNominationFile[];
+}): string {
   const nonValidated = nonValidatedParagraph(ctx);
 
   const nonValidatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'NON_VALIDATED');
@@ -210,12 +209,47 @@ function presentationPlanSessionSection(ctx: {
           <strong>aucune proposition</strong>.
         </p>`;
 
-  const commentParagraph = ctx.comment?.trim() ? html`<p>Commentaire&nbsp;: ${ctx.comment.trim()}</p>` : '';
+  return html`
+    <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
+    ${nonValidated} ${suspended} ${validatedParagraph}
+  `;
+}
+
+function presentationPlanSessionSection(ctx: {
+  id: string;
+  name: string;
+  formation: Magistrat.Formation;
+  agendas: readonly {
+    comments: readonly string[];
+    chairman: { firstName: string; lastName: string };
+    nominationFiles: readonly AgendaNominationFile[];
+  }[];
+}): string {
+  const allComments = ctx.agendas.flatMap(({ comments }) =>
+    comments.flatMap((x) => {
+      const trimmed = x.trim();
+      return trimmed ? [trimmed] : [];
+    }),
+  );
+
+  const commentParagraph =
+    allComments.length > 1
+      ? html`<p>Commentaires&nbsp;:</p>` +
+        html`<ul>
+          ${allComments.map((comment) => html`<li>${comment}</li>`)}
+        </ul>`
+      : allComments.length === 1
+        ? html`Commentaire&nbsp;: ${allComments[0]!}`
+        : '';
 
   return html`
-    <h3>${ctx.sessionName}</h3>
-    <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
-    ${nonValidated} ${suspended} ${validatedParagraph} ${commentParagraph}
+    <h3>${ctx.name}</h3>
+    ${ctx.agendas
+      .map(({ chairman, nominationFiles }) =>
+        chairmanBlock({ formation: ctx.formation, chairman, nominationFiles }),
+      )
+      .join('\n')}
+    ${commentParagraph}
   `;
 }
 
@@ -223,21 +257,26 @@ function content(ctx: {
   time: TimeOnly;
   justiceContactName: string;
   secretary: { firstName: string; lastName: string };
-  agendas: {
-    sessionName: string;
-    comment: string | null;
-    chairman: { firstName: string; lastName: string };
-    nominationFiles: AgendaNominationFile[];
+  sessions: readonly {
+    id: string;
+    name: string;
+    typeDeSaisine: TypeDeSaisine;
+    formation: Magistrat.Formation;
+    agendas: readonly {
+      comments: readonly string[];
+      chairman: { firstName: string; lastName: string };
+      nominationFiles: AgendaNominationFile[];
+    }[];
   }[];
 }): string {
   return html`
     <h3>Introduction</h3>
     <p>
-      Faire confirmer par la DSJ qu’elle renonce au délai de huit jours prévus à l’article 35 du décret du 9
-      mars 1994 pour la fixation de l’ordre du jour.
+      Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret du 9
+      mars 1994 pour la fixation de l'ordre du jour.
     </p>
 
-    ${ctx.agendas.map(presentationPlanSessionSection).join('\n')}
+    ${ctx.sessions.map((session) => presentationPlanSessionSection(session)).join('\n')}
 
     <h3>Informations administratives</h3>
     <ul>

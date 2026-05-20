@@ -227,7 +227,6 @@ function MetadataStep(props: { className?: string }) {
 }
 
 function AgendaCommentsStep(props: { className?: string }) {
-  const { formatMessage } = useIntl();
   const { state, createPlan, isDisabled, planId, goToMetadata } = usePresentationPlan();
 
   const { data: agendasData } = useListPresentationPlansAgendasQuery({
@@ -240,12 +239,21 @@ function AgendaCommentsStep(props: { className?: string }) {
     [agendasData, agendaIds],
   );
 
+  const uniqueAgendas = React.useMemo(() => {
+    const seenSessions = new Set<string>();
+    return agendas.filter(({ session }) => {
+      if (seenSessions.has(session.id)) return false;
+      seenSessions.add(session.id);
+      return true;
+    });
+  }, [agendas]);
+
   const [comments, setComments] = React.useState<Record<string, string>>(() =>
     Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? ''])),
   );
 
-  const onCommentChange = React.useCallback((id: string, value: string) => {
-    setComments((prev) => ({ ...prev, [id]: value }));
+  const onCommentChange = React.useCallback((agendaId: string, value: string) => {
+    setComments((prev) => ({ ...prev, [agendaId]: value }));
   }, []);
 
   const onSubmit = React.useCallback(() => {
@@ -258,18 +266,8 @@ function AgendaCommentsStep(props: { className?: string }) {
 
   return (
     <div className={clsx('mx-auto max-w-2xl', props.className)}>
-      {agendas.map((agenda, i) => (
-        <Accordion
-          key={agenda.id}
-          defaultExpanded={i === 0}
-          label={formatMessage(
-            { defaultMessage: `{sessionName} - ODJ du {date, date, dateOnlyShort}` },
-            {
-              date: dateOnlyToDate(agenda.date),
-              sessionName: agenda.session.name,
-            },
-          )}
-        >
+      {uniqueAgendas.map((agenda, i) => (
+        <Accordion key={agenda.id} defaultExpanded={i === 0} label={agenda.session.name}>
           <Input
             label="Commentaire"
             textArea
