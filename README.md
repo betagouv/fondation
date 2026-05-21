@@ -142,6 +142,10 @@ $ docker compose --file ./test/docker-compose-test.yaml up -d
 $ pnpm run prisma migrate deploy
 ```
 
+> [!WARNING]
+> Si le dossier sql/ est absent à la sortie il est nécessaire de forcer sa génération :
+> `pnpm run prisma generate --sql`
+
 pour la BDD de test:
 
 ```
@@ -164,18 +168,16 @@ On peut très facilement créer un utilisateur en base de données en utilisant 
 
 ```
 $ cd apps/api
-$ pnpm run cli user register \
+$ npx dotenvx run -f .env -- node dist/cli.js user register \
   --email jean@example.fr \
   --firstname Jean \
   --lastname Moulin \
   --gender MALE \
-  --role MEMBRE_PARQUET
-password: *****
-repeat password: *****
+  --role MEMBRE_DU_PARQUET
 ```
 
 Ce CLI est interactif et demandera les informations manquantes si nécessaires.
-Il est recommandé de créer un membre commun, et un agent du secrétariat général.
+Il est recommandé de créer un membre commun, et un agent du secrétariat général ([voir les rôles](https://github.com/betagouv/fondation/blob/develop/apps/api/prisma/schemas/identity.prisma#L79))
 
 ## Génération du SDK front
 
