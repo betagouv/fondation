@@ -38,21 +38,23 @@ export function OfficialReportPreviewPage() {
 
   return (
     <>
-      <Breadcrumb
-        id="breadcrumb"
-        ariaLabel="fil d'Ariane"
-        breadcrumb={{
-          currentPageLabel: 'Validation du PV',
-          segments: [
-            { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-            { label: 'Gérer une session', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
-            {
-              label: session?.name || 'Session',
-              to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
-            },
-          ],
-        }}
-      />
+      <div className="fr-container">
+        <Breadcrumb
+          id="breadcrumb"
+          ariaLabel="fil d'Ariane"
+          breadcrumb={{
+            currentPageLabel: 'Validation du PV',
+            segments: [
+              { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
+              { label: 'Gérer une session', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
+              {
+                label: session?.name || 'Session',
+                to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
+              },
+            ],
+          }}
+        />
+      </div>
       <DocumentPreviewLayout
         html={html}
         title={title}

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Magistrat } from 'shared-models';
 
 import { MEMBER_ROLES } from '../member.utils';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 
@@ -13,7 +14,10 @@ export class InternalFindMembersQuery {
   async handle(query: {
     ids: readonly string[] | undefined;
     formation: Magistrat.Formation | undefined;
+    tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
+    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
+
     let roles: PrismaRoleEnum[];
     switch (query.formation) {
       case Magistrat.Formation.PARQUET:
@@ -27,12 +31,12 @@ export class InternalFindMembersQuery {
         break;
     }
 
-    const users = await this.prisma.user.findMany({
+    const users = await query.tx.user.findMany({
+      select: { id: true },
       where: {
         role: { in: roles },
         id: { in: query.ids as string[] | undefined },
       },
-      select: { id: true },
     });
 
     return users.map(({ id }) => id);

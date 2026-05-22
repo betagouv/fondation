@@ -291,7 +291,7 @@ export class DocsController {
       chairmanId: body.chairmanId,
       secretaryId: body.secretaryId,
       agendaIds: body.agendas,
-      memberIds: body.members,
+      absentMemberIds: body.absentMemberIds,
     });
   }
 
@@ -425,7 +425,7 @@ export class DocsController {
       chairmanId: body.chairmanId,
       secretaryId: body.secretaryId,
       agendaIds: body.agendas,
-      memberIds: body.members,
+      absentMemberIds: body.absentMemberIds,
     });
   }
 

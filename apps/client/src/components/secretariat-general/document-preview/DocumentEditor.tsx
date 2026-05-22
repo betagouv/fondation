@@ -1,6 +1,8 @@
 import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
+import Heading from '@tiptap/extension-heading';
 import Italic from '@tiptap/extension-italic';
+import { BulletList, ListItem } from '@tiptap/extension-list';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
@@ -9,6 +11,7 @@ import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { BoldButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/BoldButton';
+import { BulletListButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/BulletListButton';
 import { ItalicButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/ItalicButton';
 import { RedoButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/RedoButton';
 import { UndoButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/UndoButton';
@@ -44,7 +47,7 @@ export function DocumentEditor(props: {
 
   const editor = useEditor({
     content: extractEditableContent(props.html),
-    extensions: [Document, Paragraph, Text, Bold, Italic, UndoRedo],
+    extensions: [Document, Paragraph, Text, Bold, Italic, UndoRedo, BulletList, ListItem, Heading],
     onUpdate: ({ editor }) => {
       debouncedOnChange(reinjectContent(editor.getHTML()));
     },
@@ -56,6 +59,7 @@ export function DocumentEditor(props: {
         <div className="sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-gray-200 bg-white p-2">
           <BoldButton />
           <ItalicButton />
+          <BulletListButton />
           <div className="mx-1 w-px self-stretch bg-gray-200" />
           <UndoButton />
           <RedoButton />

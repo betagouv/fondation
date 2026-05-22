@@ -15,7 +15,7 @@ function prepareForViewer(html: string): string {
       <style>
         html, body { height: 100%; }
         body { background: rgb(0 0 0 / 0.03); margin: 0; }
-        .pagedjs_pages { display: flex; flex-direction: column; align-items: center; padding: 50px 0; transform-origin: top center; }
+        .pagedjs_pages { display: flex; flex-direction: column; row-gap: 2rem; align-items: center; padding: 50px 0; transform-origin: top center; }
         .pagedjs_page { margin: 0; }
         .pagedjs_sheet { background: white; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
       </style>

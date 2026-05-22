@@ -32,7 +32,7 @@ export class CreateOrUpdateOfficialReportDto extends createZodDto(
     chairmanId: z.uuid(),
     secretaryId: z.uuid(),
     agendas: z.array(z.uuid()).nonempty(),
-    members: z.array(z.uuid()).nonempty(),
+    absentMemberIds: z.array(z.uuid()),
   }),
 ) {}
 

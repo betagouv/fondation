@@ -366,7 +366,7 @@ export function useCreateOfficialReportMutation() {
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
             agendas: command.agendas as [string, ...string[]],
-            members: command.members as [string, ...string[]],
+            absentMemberIds: command.members as [string, ...string[]],
           },
         })
         .then(({ data }) => data!),
@@ -496,7 +496,7 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
             agendas: command.agendas as [string, ...string[]],
-            members: command.members as [string, ...string[]],
+            absentMemberIds: command.members as [string, ...string[]],
           },
         })
         .then(({ data }) => data!),

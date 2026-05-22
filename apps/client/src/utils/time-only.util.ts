@@ -34,8 +34,10 @@ export const formTimeOnlyCodec = z.codec(
 export type TimeOnly = z.infer<typeof formTimeOnlyCodec>;
 
 export function timeOnlyToDate(timeOnly: TimeOnly): Date | null {
-  const date = new Date(2026, 0, 10, timeOnly.hours ?? 0, timeOnly.minutes ?? 0, timeOnly?.seconds ?? 0);
+  const { hours, minutes, seconds } = timeOnly;
+  if (hours === undefined && minutes === undefined && seconds === undefined) return null;
 
+  const date = new Date(2026, 0, 10, hours ?? 0, minutes ?? 0, seconds ?? 0);
   return Number.isFinite(date.getTime()) ? date : null;
 }
 

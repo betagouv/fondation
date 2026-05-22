@@ -936,7 +936,7 @@ export type CreateOrUpdateOfficialReportDto = {
     chairmanId: string;
     secretaryId: string;
     agendas: Array<string>;
-    members: Array<string>;
+    absentMemberIds: Array<string>;
 };
 
 export type CreatedOfficialReportDto = {

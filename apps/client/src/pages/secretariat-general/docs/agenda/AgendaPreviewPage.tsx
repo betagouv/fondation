@@ -24,7 +24,7 @@ export function AgendaPreviewPage() {
   const generatePdf = useGenerateAgendaPdfMutation({
     sessionId: sessionId!,
     agendaId: agendaId!,
-    force: true,
+    force: false,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
   });
 

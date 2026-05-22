@@ -45,6 +45,7 @@ export class OfficialReportCreated {
       lastName: string;
       gender: Gender;
       title: string | null;
+      isAbsent: boolean;
     }[],
     readonly authorId: string,
   ) {}
@@ -71,6 +72,7 @@ export class OfficialReportUpdated {
       lastName: string;
       gender: Gender;
       title: string | null;
+      isAbsent: boolean;
     }[],
     readonly authorId: string,
   ) {}
@@ -113,8 +115,8 @@ export class OfficialReport {
   }) {
     if (
       !isBefore(
-        timeOnlyToDate(props.sessionMeetingEndingTime),
         timeOnlyToDate(props.sessionMeetingStartingTime),
+        timeOnlyToDate(props.sessionMeetingEndingTime),
       )
     ) {
       throw new OfficialReportEndingTimeIsBeforeStatingTime();
@@ -192,6 +194,7 @@ export class OfficialReport {
       officialReportId: string | null;
     }[];
     members: readonly OfficialReportUser[];
+    absentMembers: Set<string>;
     authorId: string;
     formation: Magistrat.Formation;
   }): OfficialReport {
@@ -210,7 +213,7 @@ export class OfficialReport {
         state.chairman,
         state.secretary,
         state.agendaIds,
-        state.members,
+        state.members.map((member) => ({ ...member, isAbsent: props.absentMembers.has(member.id) })),
         state.authorId,
       ),
     );
@@ -234,6 +237,7 @@ export class OfficialReport {
     }[];
     members: readonly OfficialReportUser[];
     authorId: string;
+    absentMembers: Set<string>;
   }): void {
     const state = this.buildState(props);
 
@@ -248,7 +252,7 @@ export class OfficialReport {
         state.chairman,
         state.secretary,
         state.agendaIds,
-        state.members,
+        state.members.map((member) => ({ ...member, isAbsent: props.absentMembers.has(member.id) })),
         state.authorId,
       ),
     );

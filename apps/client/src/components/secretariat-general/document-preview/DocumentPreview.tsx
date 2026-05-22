@@ -15,7 +15,7 @@ export function DocumentPreviewLayout(props: {
   validateMutation: UseMutationResult<unknown, Error, void>;
 }) {
   const iframeRef = React.useRef<DocumentIframeHandle>(null);
-  const [iframeKey, setIframeKey] = React.useState(crypto.randomUUID());
+  const [iframeKey, setIframeKey] = React.useState('iframe_key_' + crypto.randomUUID());
 
   const [isEditing, setEditing] = React.useState(false);
   const [editorHtml, setEditorHtml] = React.useState<string | null>(null);

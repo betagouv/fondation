@@ -136,46 +136,46 @@ export class NominationSessionRepository {
     });
   }
 
-  persist(session: NominationSession) {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of session.messages) {
-        if (message instanceof NominationSessionFileReportersAffected) {
-          await this.persistAffectedReportersToNominationSessionFile(tx, message);
-        } else if (message instanceof NominationSessionFilePrioritiesUpdated) {
-          await this.persistNominationSessionFilesPriorityUpdated(tx, message);
-        } else if (message instanceof NominationSessionAffectationVersionPublished) {
-          await this.persistNominationSessionAffectionVersionPublished(tx, message);
-        } else if (message instanceof NominationSessionAffectationVersionCreated) {
-          await this.persistNominationSessionAffectationVersionCreated(tx, message);
-        } else if (message instanceof NominationSessionCreated) {
-          await this.persistNominationSessionCreated(tx, message);
-        } else if (message instanceof LodamNominationSessionFilesCreated) {
-          await this.persistNominationSessionFilesCreated(tx, message);
-        } else if (message instanceof NominationSessionFilesObserversUpdated) {
-          await this.persistNominationSessionFilesObserversUpdated(tx, message);
-        } else if (message instanceof NominationSessionAttachmentAdded) {
-          await this.persistNominationSessionAttachmentAdded(tx, message);
-        } else if (message instanceof NominationSessionAttachmentRemoved) {
-          await this.persistNominationSessionAttachmentRemoved(tx, message);
-        } else if (message instanceof NominationSessionUpdated) {
-          await this.persistNominationSessionUpdated(tx, message);
-        } else if (message instanceof NominationFileOutcomeDefined) {
-          await this.persistNominationFileOutcomeDefined(tx, message);
-        } else if (message instanceof NominationFileMemberMemoWritten) {
-          await this.persistNominationFileMemberMemoWritten(tx, message);
-        } else if (message instanceof NominationFileAlertHidden) {
-          await this.persistNominationFileAlertHidden(tx, message);
-        } else if (message instanceof NominationFilesAssociated) {
-          await this.persistNominationFilesAssociated(tx, message);
-        } else if (message instanceof NominationSessionValidated) {
-          await this.persistNominationSessionValidated(tx, message);
-        } else if (message instanceof NominationSessionDeleted) {
-          await this.persistNominationSessionDeleted(tx, message);
-        } else {
-          assertNever(message);
-        }
+  async persist(session: NominationSession, tx?: Prisma.TransactionClient): Promise<void> {
+    if (!tx) return this.prisma.$transaction((tx) => this.persist(session, tx));
+
+    for (const message of session.messages) {
+      if (message instanceof NominationSessionFileReportersAffected) {
+        await this.persistAffectedReportersToNominationSessionFile(tx, message);
+      } else if (message instanceof NominationSessionFilePrioritiesUpdated) {
+        await this.persistNominationSessionFilesPriorityUpdated(tx, message);
+      } else if (message instanceof NominationSessionAffectationVersionPublished) {
+        await this.persistNominationSessionAffectionVersionPublished(tx, message);
+      } else if (message instanceof NominationSessionAffectationVersionCreated) {
+        await this.persistNominationSessionAffectationVersionCreated(tx, message);
+      } else if (message instanceof NominationSessionCreated) {
+        await this.persistNominationSessionCreated(tx, message);
+      } else if (message instanceof LodamNominationSessionFilesCreated) {
+        await this.persistNominationSessionFilesCreated(tx, message);
+      } else if (message instanceof NominationSessionFilesObserversUpdated) {
+        await this.persistNominationSessionFilesObserversUpdated(tx, message);
+      } else if (message instanceof NominationSessionAttachmentAdded) {
+        await this.persistNominationSessionAttachmentAdded(tx, message);
+      } else if (message instanceof NominationSessionAttachmentRemoved) {
+        await this.persistNominationSessionAttachmentRemoved(tx, message);
+      } else if (message instanceof NominationSessionUpdated) {
+        await this.persistNominationSessionUpdated(tx, message);
+      } else if (message instanceof NominationFileOutcomeDefined) {
+        await this.persistNominationFileOutcomeDefined(tx, message);
+      } else if (message instanceof NominationFileMemberMemoWritten) {
+        await this.persistNominationFileMemberMemoWritten(tx, message);
+      } else if (message instanceof NominationFileAlertHidden) {
+        await this.persistNominationFileAlertHidden(tx, message);
+      } else if (message instanceof NominationFilesAssociated) {
+        await this.persistNominationFilesAssociated(tx, message);
+      } else if (message instanceof NominationSessionValidated) {
+        await this.persistNominationSessionValidated(tx, message);
+      } else if (message instanceof NominationSessionDeleted) {
+        await this.persistNominationSessionDeleted(tx, message);
+      } else {
+        assertNever(message);
       }
-    });
+    }
   }
 
   private async persistAffectedReportersToNominationSessionFile(

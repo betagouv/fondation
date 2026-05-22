@@ -1,28 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import z from 'zod';
 
-import { Gender, Role } from 'shared-models';
+import { Gender, Magistrat, Role } from 'shared-models';
 
 import { isMember } from '../member.utils';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import {
+  prismaRoleEnumToRoleEnum,
+  roleEnumToPrismaRoleEnum,
+} from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
-export class InternalFindMembersByIdsQuery {
+export class InternalFindMembersByFormationQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    ids: readonly string[];
+    formation: Magistrat.Formation;
     tx?: Prisma.TransactionClient;
   }): Promise<InternalMemberListDto[]> {
     if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
 
+    const roles = formationToMemberRole(query.formation);
     const users = await query.tx.user.findMany({
-      where: { id: { in: query.ids as string[] } },
+      where: { role: { in: roles.map(roleEnumToPrismaRoleEnum) } },
       select: {
         id: true,
         firstName: true,

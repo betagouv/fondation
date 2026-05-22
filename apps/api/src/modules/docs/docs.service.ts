@@ -390,8 +390,8 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     agendaIds: readonly string[];
-    memberIds: readonly string[];
     sessionId: string;
+    absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
     return this.prisma.$transaction(async (tx) => {
       const session = await this.sessions.details({
@@ -417,7 +417,7 @@ export class DocsService {
       }
 
       const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByIds({ ids: command.memberIds, tx });
+      const members = await this.members.internalFindMembersByFormation({ formation: session.formation, tx });
 
       const report = OfficialReport.create({
         agendas,
@@ -432,6 +432,7 @@ export class DocsService {
         sessionMeetingEndingTime: command.sessionMeetingEndingTime,
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
         justiceDepartmentContactId: command.justiceDepartmentContactId,
+        absentMembers: new Set(command.absentMemberIds),
       });
 
       await this.officialReportRepository.persist(report, tx);
@@ -451,7 +452,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     agendaIds: readonly string[];
-    memberIds: readonly string[];
+    absentMemberIds: readonly string[];
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const secretary = await this.auth.detailsUser({
@@ -460,9 +461,9 @@ export class DocsService {
         tx,
       });
 
-      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByIds({ ids: command.memberIds, tx });
       const report = await this.officialReportRepository.find({ tx, id: command.id });
+      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
+      const members = await this.members.internalFindMembersByFormation({ formation: report.formation, tx });
 
       const uniqueAgendaIds = new Set(command.agendaIds);
       const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
@@ -489,6 +490,7 @@ export class DocsService {
         sessionMeetingEndingTime: command.sessionMeetingEndingTime,
         justiceDepartmentContactId: command.justiceDepartmentContactId,
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+        absentMembers: new Set(command.absentMemberIds),
       });
 
       await this.officialReportRepository.persist(report, tx);

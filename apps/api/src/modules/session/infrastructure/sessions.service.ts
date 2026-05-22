@@ -131,31 +131,35 @@ export class SessionService {
       reporterIds: readonly string[];
     }[];
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(command.sessionId, {
-      nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
-    });
-
-    const memberIds = Array.from(
-      new Set(command.affectations.flatMap((affectation) => affectation.reporterIds)),
-    );
-
-    const formationMemberIds = await this.members
-      .findMembers({
-        ids: memberIds,
-        formation: session.formation,
-      })
-      .then((ids) => new Set(ids));
-
-    session.affectNominationFileReporters({ ...command, formationMemberIds });
-
-    for (const item of command.affectations) {
-      session.setNominationFilePriority({
-        nominationFileId: item.nominationFileId,
-        priorities: item.priorities,
+    await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, {
+        tx,
+        nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
       });
-    }
 
-    await this.nominationSessionRepository.persist(session);
+      const memberIds = Array.from(
+        new Set(command.affectations.flatMap((affectation) => affectation.reporterIds)),
+      );
+
+      const formationMemberIds = await this.members
+        .findMembers({
+          tx,
+          ids: memberIds,
+          formation: session.formation,
+        })
+        .then((ids) => new Set(ids));
+
+      session.affectNominationFileReporters({ ...command, formationMemberIds });
+
+      for (const item of command.affectations) {
+        session.setNominationFilePriority({
+          nominationFileId: item.nominationFileId,
+          priorities: item.priorities,
+        });
+      }
+
+      await this.nominationSessionRepository.persist(session, tx);
+    });
   }
 
   async listNominationFiles(query: {
@@ -191,27 +195,26 @@ export class SessionService {
     nominationFileIds: readonly string[] | undefined;
     excludedMemberIds: readonly string[] | undefined;
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(command.sessionId, {
-      nominationFileIds: new Set(command.nominationFileIds),
-    });
-    const autoAffectations = await this.autoAffectationsFinder.find({
-      sessionId: command.sessionId,
-      nominationFileIds: command.nominationFileIds,
-      excludedMemberIds: command.excludedMemberIds,
-    });
-    const formationMemberIds = await this.members
-      .findMembers({
-        formation: session.formation,
-        ids: undefined,
-      })
-      .then((ids) => new Set(ids));
+    await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, {
+        tx,
+        nominationFileIds: new Set(command.nominationFileIds),
+      });
 
-    session.autoAffectNominationFileReporters({
-      autoAffectations,
-      formationMemberIds,
-    });
+      const autoAffectations = await this.autoAffectationsFinder.find({
+        tx,
+        sessionId: command.sessionId,
+        nominationFileIds: command.nominationFileIds,
+        excludedMemberIds: command.excludedMemberIds,
+      });
 
-    await this.nominationSessionRepository.persist(session);
+      const formationMemberIds = await this.members
+        .findMembers({ tx, formation: session.formation, ids: undefined })
+        .then((ids) => new Set(ids));
+
+      session.autoAffectNominationFileReporters({ autoAffectations, formationMemberIds });
+      await this.nominationSessionRepository.persist(session, tx);
+    });
   }
 
   async updateNominationFileComment(command: {
