@@ -142,6 +142,12 @@ $ docker compose --file ./test/docker-compose-test.yaml up -d
 $ pnpm run prisma migrate deploy
 ```
 
+Il faut également générer le code prisma:
+
+```
+$ pnpm --filter api prisma generate --sql
+```
+
 pour la BDD de test:
 
 ```
@@ -155,7 +161,8 @@ $ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 4. Lancement de l'application
 
 ```bash
-pnpm dev
+$ pnpm --filter api dev
+$ pnpm --filter client dev
 ```
 
 5. Accès à l'application
@@ -164,7 +171,8 @@ On peut très facilement créer un utilisateur en base de données en utilisant 
 
 ```
 $ cd apps/api
-$ pnpm run cli user register \
+$ pnpm --filter api build
+$ node --env-file .env dist/cli user register \
   --email jean@example.fr \
   --firstname Jean \
   --lastname Moulin \
@@ -175,7 +183,29 @@ repeat password: *****
 ```
 
 Ce CLI est interactif et demandera les informations manquantes si nécessaires.
-Il est recommandé de créer un membre commun, et un agent du secrétariat général.
+Il est recommandé de créer un membre commun, et un agent du secrétariat général ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#90)).
+
+## Tests E2E playwright
+
+Les tests playwright exécutent l'application dans un mode particulier pour faciliter les tests, sans trop s'éloigner du comportement de production.
+
+Il faut déjà démarrer l'application back des tests. Playwright est capable de l'exécuter, mais s'il y a un bug les logs seront plus lisibles dans un processus séparé
+
+```
+$ pnpm --filter api start:e2e
+```
+
+Démarrer l'appli front
+
+```
+$ pnpm --filter client dev
+```
+
+Ensuite démarrer playwright
+
+```
+$ pnpm --filter client playwright test --ui
+```
 
 ## Génération du SDK front
 
