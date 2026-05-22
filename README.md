@@ -171,7 +171,8 @@ On peut très facilement créer un utilisateur en base de données en utilisant 
 
 ```
 $ cd apps/api
-$ pnpm run cli user register \
+$ pnpm --filter api build
+$ node --env-file .env dist/cli user register \
   --email jean@example.fr \
   --firstname Jean \
   --lastname Moulin \
@@ -182,7 +183,7 @@ repeat password: *****
 ```
 
 Ce CLI est interactif et demandera les informations manquantes si nécessaires.
-Il est recommandé de créer un membre commun, et un agent du secrétariat général.
+Il est recommandé de créer un membre commun, et un agent du secrétariat général ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#90)).
 
 ## Tests E2E playwright
 
