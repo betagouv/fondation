@@ -38,79 +38,87 @@ SELECT
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
 
-  (ARRAY_AGG(member_memo.memo))[1] AS "memberMemo",
-
   TS_RANK(ddn."search", query) AS "queryRank",
-  ARRAY_AGG(observations.observation) FILTER (WHERE observations.observation IS NOT NULL) AS observations,
-  (ARRAY_AGG(summaries."summary") FILTER (WHERE summaries.summary IS NOT NULL))[1] AS summary,
-  ARRAY_AGG(
-    JSON_BUILD_OBJECT(
-      'user',
-      JSON_BUILD_OBJECT(
-        'id', reporters.user_id,
-        'firstName', reporters.user_first_name,
-        'lastName', reporters.user_last_name
-      )
-    )
-  ) FILTER (WHERE reporters.user_id IS NOT NULL) AS "reporterIds"
+
+  summaries."summary" AS summary,
+  member_memo.memo AS "memberMemo",
+
+  COALESCE(observations.observations, ARRAY[]::JSON[]) AS observations,
+  COALESCE(reporters.reporters, ARRAY[]::JSON[]) AS reporters
 
 FROM
   nominations_context.dossier_de_nomination AS ddn
 
   LEFT JOIN LATERAL (
     SELECT
-      "user".id AS user_id,
-      "user".first_name AS user_first_name,
-      "user".last_name AS user_last_name
+      ARRAY_AGG(
+        JSON_BUILD_OBJECT(
+          'user',
+          JSON_BUILD_OBJECT(
+            'id', "user".id,
+            'firstName', "user".first_name,
+            'lastName', "user".last_name
+          )
+        )
+      ) FILTER (WHERE "user".id IS NOT NULL) AS reporters
     FROM nominations_context.nomination_file_to_reporter AS nfr
       LEFT JOIN identity_and_access_context."users" AS "user" ON "user".id = nfr.user_id
     WHERE nfr.nomination_file_id = ddn.id AND nfr.version_id = /* versionId */$1::UUID
   ) AS reporters ON TRUE
 
   LEFT JOIN LATERAL (
-    SELECT
-      JSON_BUILD_OBJECT(
-        'id', obs.id,
-        'followUp', obs.follow_up,
-        'followUpComment', obs.follow_up_comment,
-        'description', obs.description,
-        'dateReception', obs.date_reception,
+    SELECT ARRAY_AGG(sub_obs.observation) AS observations
+    FROM (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id', obs.id,
+          'followUp', obs.follow_up,
+          'followUpComment', obs.follow_up_comment,
+          'description', obs.description,
+          'dateReception', obs.date_reception,
 
-        'magistrat', JSON_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name),
-        'memberComments', JSON_AGG(
-          JSON_BUILD_OBJECT('comment', omc."comment")
+          'magistrat', JSON_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name),
+          'memberComments', JSON_AGG(
+            JSON_BUILD_OBJECT('comment', omc."comment")
+          )
+        ) AS observation
+
+      FROM nominations_context.observation AS obs
+        LEFT JOIN nominations_context.magistrat AS m ON m.id = obs.magistrat_id
+        LEFT JOIN nominations_context.observation_member_comment AS omc ON (
+          omc.observation_id = obs.id
+          AND omc.user_id = /* userId */$2::UUID
         )
-      ) AS observation
 
-    FROM nominations_context.observation AS obs
-      LEFT JOIN nominations_context.magistrat AS m ON m.id = obs.magistrat_id
-      LEFT JOIN nominations_context.observation_member_comment AS omc ON (
-        omc.observation_id = obs.id
-        AND omc.user_id = /* userId */$2::UUID
-      )
-
-    WHERE obs.nomination_file_id = ddn.id
-    GROUP BY obs.id, m.id
+      WHERE obs.nomination_file_id = ddn.id
+      GROUP BY obs.id, m.id
+    ) AS sub_obs
   ) AS observations ON TRUE
 
-  LEFT JOIN
-    nominations_context.member_memo
-    ON member_memo.nomination_file_id = ddn.id AND member_memo.user_id = /* userId */$2::UUID
+  LEFT JOIN LATERAL (
+    SELECT (ARRAY_AGG(member_memo))[1] AS "memo"
+    FROM nominations_context.member_memo
+    WHERE member_memo.nomination_file_id = ddn.id AND member_memo.user_id = /* userId */$2::UUID
+    GROUP BY member_memo.nomination_file_id
+  ) AS member_memo ON TRUE
 
   LEFT JOIN LATERAL (
-    SELECT
-      JSON_BUILD_OBJECT(
-        'authorId', summaries.author_id,
-        'readers', ARRAY_AGG(readers.user_id) FILTER (WHERE readers.user_id IS NOT NULL)
-      ) AS "summary"
+    SELECT (ARRAY_AGG(sub_summaries.summary))[1] AS summary
+    FROM (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'authorId', summaries.author_id,
+          'readers', ARRAY_AGG(readers.user_id) FILTER (WHERE readers.user_id IS NOT NULL)
+        ) AS "summary"
 
-    FROM nominations_context.summaries
-      LEFT JOIN
-        nominations_context.summary_readers AS readers
-        ON readers.summary_id = summaries.nomination_file_id
+      FROM nominations_context.summaries
+        LEFT JOIN
+          nominations_context.summary_readers AS readers
+          ON readers.summary_id = summaries.nomination_file_id
 
-    WHERE summaries.nomination_file_id = ddn.id
-    GROUP BY summaries.nomination_file_id
+      WHERE summaries.nomination_file_id = ddn.id
+      GROUP BY summaries.nomination_file_id
+    ) AS sub_summaries
   ) AS summaries ON TRUE,
 
   TO_TSQUERY('unaccent_fr'::REGCONFIG, /* search */$11::TEXT) AS query
@@ -132,7 +140,15 @@ WHERE (
     (/* reporterIds */$7::UUID[] IS NULL AND $8::BOOLEAN = FALSE)
     OR (
       ARRAY_LENGTH(/* reporterIds */$7::UUID[], 1) IS NOT NULL
-      AND reporters.user_id = ANY(/* reporterIds */$7::UUID[])
+      AND EXISTS (
+        SELECT user_id
+        FROM nominations_context.nomination_file_to_reporter AS sub_nfr
+        WHERE (
+          sub_nfr.version_id = /* versionId */$1::UUID
+          AND sub_nfr.nomination_file_id = ddn.id
+          AND sub_nfr.user_id = ANY(/* reporterIds */$7::UUID[])
+        )
+      )
     ) OR (
       /* hasNoReporter */$8::BOOLEAN
       AND /* versionId */$1::UUID IS NOT NULL
@@ -162,8 +178,6 @@ WHERE (
   /* -- SEARCH -- */
   AND ($11::TEXT IS NULL OR ddn."search" @@ query)
 )
-
-GROUP BY ddn.id, "queryRank", member_memo.user_id, member_memo.nomination_file_id
 
 ORDER BY 
   (CASE WHEN $11::TEXT IS NOT NULL THEN /* queryRank */ TS_RANK(ddn."search", query) END) DESC,

@@ -166,7 +166,7 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
-        reporters: x.reporterIds.map(({ user: { id, firstName, lastName } }) => ({
+        reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
           lastName,
@@ -298,7 +298,7 @@ const RawListedNominationFiles = z.array(
 
     memberMemo: z.string().nullable(),
 
-    reporterIds: z
+    reporters: z
       .array(
         z.object({
           user: z.object({
