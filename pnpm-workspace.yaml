@@ -15,3 +15,6 @@ catalog:
 preferFrozenLockfile: true
 ignoreDepScripts: true
 minimumReleaseAge: 10080 # 7 days
+minimumReleaseAgeExclude:
+  # Renovate security update: postcss@8.5.10
+  - postcss@8.5.10
