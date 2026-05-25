@@ -15,6 +15,3 @@ catalog:
 preferFrozenLockfile: true
 ignoreDepScripts: true
 minimumReleaseAge: 10080 # 7 days
-minimumReleaseAgeExclude:
-  # Renovate security update: axios@1.15.2
-  - axios@1.15.2
