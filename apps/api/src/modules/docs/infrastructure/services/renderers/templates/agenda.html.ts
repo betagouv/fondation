@@ -8,7 +8,7 @@ import type { Pretty } from 'src/utils/types';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 
-export const html = stripIndent;
+const html = stripIndent;
 
 function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Formation }): string {
   return html`

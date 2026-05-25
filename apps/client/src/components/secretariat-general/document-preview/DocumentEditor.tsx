@@ -10,6 +10,8 @@ import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import './DocumentEditor.css';
+
 import { BoldButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/BoldButton';
 import { BulletListButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/BulletListButton';
 import { ItalicButton } from '@/components/reports/components/ReportOverview/TipTapEditor/buttons/ItalicButton';
@@ -66,7 +68,7 @@ export function DocumentEditor(props: {
         </div>
       </EditorContext>
 
-      <EditorContent editor={editor} className="min-h-100 p-4 [&_.tiptap]:outline-none [&_.tiptap_p]:my-1" />
+      <EditorContent editor={editor} className="min-h-100 p-4 [&_.tiptap]:outline-none" />
     </div>
   );
 }

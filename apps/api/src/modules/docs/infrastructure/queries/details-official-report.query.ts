@@ -20,7 +20,7 @@ export class DetailsOfficialReportQuery {
         id: true,
         hasRenunciation: true,
         agendas: { select: { id: true } },
-        members: { select: { memberId: true } },
+        members: { select: { memberId: true, isAbsent: true } },
         justiceDepartmentContactId: true,
         secretaryId: true,
         chairmanId: true,
@@ -37,7 +37,9 @@ export class DetailsOfficialReportQuery {
       id: report.id,
       hasRenunciation: report.hasRenunciation,
       agendas: report.agendas.map(({ id }) => id).filter(isDefined),
-      members: report.members.map(({ memberId }) => memberId).filter(isDefined),
+      absentMembers: report.members.flatMap((member) =>
+        member.isAbsent && member.memberId ? [member.memberId] : [],
+      ),
       chairmanId: report.chairmanId,
       secretaryId: report.secretaryId,
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
@@ -53,7 +55,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
   z.object({
     id: z.string(),
     hasRenunciation: z.boolean(),
-    members: z.array(z.string()),
+    absentMembers: z.array(z.string()),
     agendas: z.array(z.uuid()),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,

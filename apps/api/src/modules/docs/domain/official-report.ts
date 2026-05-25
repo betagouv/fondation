@@ -27,6 +27,7 @@ export class MixedFormationAgendas extends Error {}
 export class MixedSessionAgendas extends Error {}
 export class OfficialReportEndingTimeIsBeforeStatingTime extends Error {}
 export class OfficialReportAgendaAlreadyReported extends Error {}
+export class EmptyMembersList extends Error {}
 
 export class OfficialReportCreated {
   constructor(
@@ -111,6 +112,7 @@ export class OfficialReport {
       session: { id: string };
     }[];
     members: readonly OfficialReportUser[];
+    absentMembers: Set<string>;
     authorId: string;
   }) {
     if (
@@ -162,6 +164,16 @@ export class OfficialReport {
 
     const agendaIds = Array.from(new Set(props.agendas.map(({ id }) => id)));
 
+    const members = props.members.map(({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
+      ...m,
+      title: displayTitle,
+      isAbsent: props.absentMembers.has(m.id),
+    }));
+
+    if (members.filter((m) => !m.isAbsent).length < 1) {
+      throw new EmptyMembersList();
+    }
+
     return {
       agendaIds,
       sessionMeetingDate: props.sessionMeetingDate,
@@ -172,10 +184,7 @@ export class OfficialReport {
       chairman: props.chairman,
       secretary: props.secretary,
       authorId: props.authorId,
-      members: props.members.map(({ title: _t, role: _r, duty: _d, displayTitle, ...m }) => ({
-        ...m,
-        title: displayTitle,
-      })),
+      members: members,
     };
   }
 
@@ -213,7 +222,7 @@ export class OfficialReport {
         state.chairman,
         state.secretary,
         state.agendaIds,
-        state.members.map((member) => ({ ...member, isAbsent: props.absentMembers.has(member.id) })),
+        state.members,
         state.authorId,
       ),
     );
@@ -252,7 +261,7 @@ export class OfficialReport {
         state.chairman,
         state.secretary,
         state.agendaIds,
-        state.members.map((member) => ({ ...member, isAbsent: props.absentMembers.has(member.id) })),
+        state.members,
         state.authorId,
       ),
     );

@@ -168,7 +168,7 @@ export class DocsController {
   detailsSessionOfficialReport(
     @Param('sessionId') _sessionId: string,
     @Param('officialReportId') officialReportId: string,
-  ): Promise<DetailedSessionAgenda> {
+  ): Promise<DetailedSessionOfficialReportDto> {
     return this.docs.detailsSessionOfficialReport({ officialReportId });
   }
 

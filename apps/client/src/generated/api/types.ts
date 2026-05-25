@@ -1012,7 +1012,7 @@ export type FoundMembersForNewOfficialReportDto = {
 export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
-    members: Array<string>;
+    absentMembers: Array<string>;
     agendas: Array<string>;
     sessionMeetingDate: {
         year: number;

@@ -17,7 +17,6 @@ export function AbsentMemberSelector(
 ) {
   const { formatMessage } = useIntl();
   const { field, fieldState } = useController(props);
-  const [selectedIds, setSelectedIds] = React.useState(new Set<string>());
 
   const { data: membersData } = useListMembersForNewOfficialReportQuery({ sessionId: props.sessionId });
   const members = React.useMemo(
@@ -30,13 +29,10 @@ export function AbsentMemberSelector(
       const id = e.currentTarget.value;
       if (!members.has(id) || props.chairmanId === id) return;
 
-      setSelectedIds((selected) => {
-        const next = new Set(selected.add(id));
-        field.onChange([...next]);
-        return next;
-      });
+      const next = [...new Set(field.value).add(id)];
+      field.onChange(next);
     },
-    [props.chairmanId, members, field, setSelectedIds],
+    [props.chairmanId, members, field],
   );
 
   const unSelect = React.useCallback(
@@ -44,23 +40,20 @@ export function AbsentMemberSelector(
       const id = e.currentTarget.dataset.id;
       if (!id) return;
 
-      setSelectedIds((selected) => {
-        selected.delete(id);
-        field.onChange([...selected]);
-        return new Set(selected);
-      });
+      const next = new Set(field.value);
+      next.delete(id);
+      field.onChange([...next]);
     },
     [field],
   );
 
   React.useEffect(() => {
+    const selectedIds = new Set(field.value);
     if (selectedIds.has(props.chairmanId)) {
-      setSelectedIds((selected) => {
-        selected.delete(props.chairmanId);
-        return new Set(selected);
-      });
+      selectedIds.delete(props.chairmanId);
+      field.onChange([...selectedIds]);
     }
-  }, [props.chairmanId, selectedIds, setSelectedIds]);
+  }, [props.chairmanId, field]);
 
   return (
     <div className="mb-6">
@@ -76,7 +69,7 @@ export function AbsentMemberSelector(
         </option>
 
         {[...members.values()]
-          .filter((member) => !selectedIds.has(member.id))
+          .filter((member) => !field.value.includes(member.id))
           .sort((a, b) => a.lastName.localeCompare(b.lastName))
           .map((member) => (
             <option key={member.id} value={member.id} disabled={props.chairmanId === member.id}>
@@ -90,12 +83,12 @@ export function AbsentMemberSelector(
           cx('fr-tags-group--sm', 'fr-tags-group'),
           'flex gap-x-1 transition-opacity duration-150',
           {
-            'opacity-0': selectedIds.size === 0,
-            'mt-2 opacity-100': selectedIds.size > 0,
+            'opacity-0': field.value.length === 0,
+            'mt-2 opacity-100': field.value.length > 0,
           },
         )}
       >
-        {[...selectedIds]
+        {field.value
           .flatMap((id) => {
             const member = members.get(id);
             return member ? [member] : [];

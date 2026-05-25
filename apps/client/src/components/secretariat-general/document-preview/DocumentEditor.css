@@ -1,0 +1,8 @@
+.tiptap ul {
+  list-style: '- ';
+  padding-left: 1rem;
+}
+
+.tiptap > p {
+  margin-bottom: 1rem;
+}

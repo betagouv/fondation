@@ -55,7 +55,7 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
       justiceDepartmentContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
       chairmanId: officialReportMetadata.chairmanId ?? '',
       secretaryId: officialReportMetadata.secretaryId ?? '',
-      memberIds: officialReportMetadata.members,
+      memberIds: officialReportMetadata.absentMembers,
     }));
   }, [officialReportMetadata]);
 
@@ -92,14 +92,14 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
                 ) : (
                   <FormattedMessage
                     defaultMessage={
-                      `En confirmant, vous allez écraser l'ancienne version du procès-verbal` +
+                      `En confirmant, vous allez écraser l'ancienne version du procès-verbal ` +
                       `sans pouvoir la récupérer`
                     }
                   />
                 )}
               </p>
               <p>
-                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+                <FormattedMessage defaultMessage={`Voulez-vous continuer\u00A0?`} />
               </p>
             </>
           ),

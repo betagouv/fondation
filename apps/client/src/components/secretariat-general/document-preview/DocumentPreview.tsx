@@ -42,13 +42,17 @@ export function DocumentPreviewLayout(props: {
     iframeRef.current?.updateContent(html);
   }, []);
 
-  const onValidate = React.useCallback(() => {
+  const saveEdition = React.useCallback(() => {
     if (isDirty && editorHtml) {
-      updateHtml({ html: editorHtml }, { onSuccess: () => validate() });
+      updateHtml({ html: editorHtml }, { onSuccess: onCancel });
     } else {
-      validate();
+      onCancel();
     }
-  }, [isDirty, editorHtml, updateHtml, validate]);
+  }, [isDirty, editorHtml, updateHtml, onCancel]);
+
+  const onValidate = React.useCallback(() => {
+    validate();
+  }, [validate]);
 
   return (
     <div
@@ -93,23 +97,30 @@ export function DocumentPreviewLayout(props: {
       </div>
 
       <div className="flex justify-center gap-4 bg-white px-4 py-6">
-        {isEditing && (
-          <Button priority="secondary" onClick={onCancel} disabled={isValidationPending}>
-            <FormattedMessage defaultMessage="Annuler" />
+        {isEditing ? (
+          <>
+            <Button priority="secondary" onClick={onCancel} disabled={isValidationPending}>
+              <FormattedMessage defaultMessage="Annuler" />
+            </Button>
+            <Button
+              disabled={isUpdatePending}
+              iconId={isUpdatePending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+              iconPosition="right"
+              onClick={saveEdition}
+            >
+              <FormattedMessage defaultMessage="Sauvegarder" />
+            </Button>
+          </>
+        ) : (
+          <Button
+            disabled={isValidationPending}
+            iconId={isValidationPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            iconPosition="right"
+            onClick={onValidate}
+          >
+            <FormattedMessage defaultMessage="Valider le document" />
           </Button>
         )}
-        <Button
-          disabled={isValidationPending}
-          iconId={isValidationPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-          iconPosition="right"
-          onClick={onValidate}
-        >
-          {isEditing ? (
-            <FormattedMessage defaultMessage="Sauvegarder" />
-          ) : (
-            <FormattedMessage defaultMessage="Valider le document" />
-          )}
-        </Button>
       </div>
     </div>
   );
