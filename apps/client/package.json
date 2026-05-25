@@ -63,16 +63,16 @@
   "devDependencies": {
     "@eslint/js": "^9.39.3",
     "@faker-js/faker": "catalog:",
-    "@formatjs/unplugin": "^1.1.6",
+    "@formatjs/unplugin": "1.1.10",
     "@hey-api/openapi-ts": "0.93.0",
     "@playwright/test": "^1.58.2",
-    "@sentry/vite-plugin": "^5.1.1",
-    "@tailwindcss/vite": "^4.2.4",
+    "@sentry/vite-plugin": "5.2.1",
+    "@tailwindcss/vite": "^4.3.0",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@types/node": "^24.10.15",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "6.0.1",
     "eslint": "^9.39.3",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -82,7 +82,7 @@
     "tailwindcss": "^4.2.4",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^6.4.1",
+    "vite": "8.0.11",
     "xlsx": "0.18.5"
   }
 }

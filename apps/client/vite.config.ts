@@ -17,6 +17,7 @@ export default defineConfig({
       org: 'betagouv',
       project: 'fondation-client',
       url: 'https://sentry.incubateur.net/',
+      disable: !process.env.CI,
       release: {
         name: [`fondation-client`, process.env.VITE_TAGGED_VERSION].filter((x) => !!x?.trim()).join('@'),
         inject: true,
@@ -28,6 +29,7 @@ export default defineConfig({
     }),
     formatjs({ ast: true }),
   ],
+  css: { lightningcss: { errorRecovery: true } },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
