@@ -79,14 +79,14 @@ const NouvelleTransparence: FC = () => {
     (dto) => {
       resetTransparencyMutation();
       return addTransparencyAsync(dto, {
-        onSuccess: (_, { name }) => navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } }),
-        onSettled() {
+        onSuccess: (_, { name }) => {
           resetTransparencyMutation();
-
           if (inputRef.current) {
             inputRef.current.value = '';
             inputRef.current.files = null;
           }
+
+          return navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } });
         },
       });
     },
