@@ -5,8 +5,8 @@ import {
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
-import { formatDate } from 'date-fns';
 
+import { officialReportFileName } from '../../domain/official-report-file-name';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
@@ -59,8 +59,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const [agenda] = file.agendas;
     if (!agenda) throw new NotFoundException();
 
-    const formation = agenda.formation === 'SIEGE' ? 'Siège' : 'Parquet';
-    const name = `PV - ${formation} ${formatDate(file.sessionMeetingDate, 'dd-MM-yyyy')}.pdf`;
+    const name = officialReportFileName({ formation: agenda.formation, date: file.sessionMeetingDate });
     const path = `sessions/${agenda.sessionId}/official-reports/${query.id}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
