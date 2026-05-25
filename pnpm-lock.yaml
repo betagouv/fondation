@@ -218,7 +218,7 @@ importers:
         version: 7.2.2
       ts-jest:
         specifier: ^29.4.6
-        version: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5)))(typescript@5.9.3)
+        version: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5))(ts-node@10.9.2(@swc/core@1.12.6(@swc/helpers@0.5.17))(@types/node@24.10.15)(typescript@5.9.3)))(typescript@5.9.3)
       ts-loader:
         specifier: ^9.5.4
         version: 9.5.4(typescript@5.9.3)(webpack@5.106.0(@swc/core@1.12.6(@swc/helpers@0.5.17))(esbuild@0.25.5))
@@ -370,9 +370,6 @@ importers:
       '@sentry/vite-plugin':
         specifier: ^5.1.1
         version: 5.1.1(rollup@4.44.0)
-      '@tailwindcss/postcss':
-        specifier: ^4.2.4
-        version: 4.2.4
       '@tailwindcss/vite':
         specifier: ^4.2.4
         version: 4.2.4(vite@6.4.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass-embedded@1.97.2)(sass@1.97.2)(terser@5.43.1)(yaml@2.8.0))
@@ -448,10 +445,6 @@ importers:
         version: 5.9.3
 
 packages:
-
-  '@alloc/quick-lru@5.2.0':
-    resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
-    engines: {node: '>=10'}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -3329,9 +3322,6 @@ packages:
   '@tailwindcss/oxide@4.2.4':
     resolution: {integrity: sha512-9El/iI069DKDSXwTvB9J4BwdO5JhRrOweGaK25taBAvBXyXqJAX+Jqdvs8r8gKpsI/1m0LeJLyQYTf/WLrBT1Q==}
     engines: {node: '>= 20'}
-
-  '@tailwindcss/postcss@4.2.4':
-    resolution: {integrity: sha512-wgAVj6nUWAolAu8YFvzT2cTBIElWHkjZwFYovF+xsqKsW2ADxM/X2opxj5NsF/qVccAOjRNe8X2IdPzMsWyHTg==}
 
   '@tailwindcss/vite@4.2.4':
     resolution: {integrity: sha512-pCvohwOCspk3ZFn6eJzrrX3g4n2JY73H6MmYC87XfGPyTty4YsCjYTMArRZm/zOI8dIt3+EcrLHAFPe5A4bgtw==}
@@ -7370,8 +7360,6 @@ packages:
 
 snapshots:
 
-  '@alloc/quick-lru@5.2.0': {}
-
   '@ampproject/remapping@2.3.0':
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
@@ -8456,7 +8444,7 @@ snapshots:
       json-stable-stringify: 1.3.0
       typescript: 5.9.3
     optionalDependencies:
-      ts-jest: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5)))(typescript@5.9.3)
+      ts-jest: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5))(ts-node@10.9.2(@swc/core@1.12.6(@swc/helpers@0.5.17))(@types/node@24.10.15)(typescript@5.9.3)))(typescript@5.9.3)
 
   '@formatjs/unplugin@1.1.6(@emnapi/core@1.7.0)(@emnapi/runtime@1.7.0)(esbuild@0.25.5)(rollup@4.44.0)(ts-jest@29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5)))(typescript@5.9.3))(vite@6.4.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass-embedded@1.97.2)(sass@1.97.2)(terser@5.43.1)(yaml@2.8.0))(webpack@5.106.0(esbuild@0.25.5)(lightningcss@1.32.0)(postcss@8.5.6))':
     dependencies:
@@ -10543,14 +10531,6 @@ snapshots:
       '@tailwindcss/oxide-wasm32-wasi': 4.2.4
       '@tailwindcss/oxide-win32-arm64-msvc': 4.2.4
       '@tailwindcss/oxide-win32-x64-msvc': 4.2.4
-
-  '@tailwindcss/postcss@4.2.4':
-    dependencies:
-      '@alloc/quick-lru': 5.2.0
-      '@tailwindcss/node': 4.2.4
-      '@tailwindcss/oxide': 4.2.4
-      postcss: 8.5.6
-      tailwindcss: 4.2.4
 
   '@tailwindcss/vite@4.2.4(vite@6.4.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass-embedded@1.97.2)(sass@1.97.2)(terser@5.43.1)(yaml@2.8.0))':
     dependencies:
@@ -14523,7 +14503,7 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  ts-jest@29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5)))(typescript@5.9.3):
+  ts-jest@29.4.6(@babel/core@7.29.0)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.29.0))(esbuild@0.25.5)(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.15)(esbuild-register@3.6.0(esbuild@0.25.5))(ts-node@10.9.2(@swc/core@1.12.6(@swc/helpers@0.5.17))(@types/node@24.10.15)(typescript@5.9.3)))(typescript@5.9.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
