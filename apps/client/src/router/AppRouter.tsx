@@ -1,42 +1,9 @@
 import * as Sentry from '@sentry/react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
-import ReportListPage from '../components/reports/components/ReportList/ReportListPage';
-import ReportOverviewPage from '../components/reports/components/ReportOverview/ReportOverviewPage';
 import { HomePage } from '../HomePage';
-import { LoginPage } from '../pages/LoginPage';
-import { CreateOrUpdateAgendaPage } from '../pages/secretariat-general/docs/agenda/AgendaPage';
-import { ManageSessionPage } from '../pages/secretariat-general/ManageSessionPage';
-import { MemberListPage } from '../pages/secretariat-general/MemberListPage';
-import { DetailsMemberPage } from '../pages/secretariat-general/membres/DetailsMemberPage';
-import { NouvelleTransparencePage } from '../pages/secretariat-general/NouvelleTransparencePage';
-import { ObservationDetailsPage } from '../pages/secretariat-general/observations/ObservationDetailsPage';
-import { SecretariatGeneralPage } from '../pages/secretariat-general/SecretariatGeneralPage';
-import { SecretariatGeneralLayout } from '../pages/secretariat-general/SecretariatLayout';
-import { TransparencePage } from '../pages/secretariat-general/TransparencePage';
-import { SessionsPage } from '../pages/transparence/SessionsPage';
-import { TransparencesLayout } from '../pages/transparence/TransparencesLayout';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
-import { TableauDeBordEditTransparencePage } from '@/components/secretariat-general/transparence/content/tableau-de-bord/resume/TableauDeBordEditTransparence';
-import { AdminLayout } from '@/pages/admin/AdminLayout';
-import { IngestLolfiArchivePage } from '@/pages/admin/ingest/IngestLolfiArchivePage';
-import { DetailsJobPage } from '@/pages/admin/jobs/DetailsJobPage';
-import { JobsPage } from '@/pages/admin/jobs/JobsPage';
-import { AdminUserDetailPage } from '@/pages/admin/users/AdminUserDetailPage';
-import { AdminUserListPage } from '@/pages/admin/users/AdminUserListPage';
-import { HelpPage } from '@/pages/help/HelpPage';
-import { UserManualPage } from '@/pages/help/UserManualPage';
-import { LolfiRedirectMagistrat } from '@/pages/LolfiRedirectMagistratPage';
-import { AgendaPreviewPage } from '@/pages/secretariat-general/docs/agenda/AgendaPreviewPage';
-import { CreateOrUpdateOfficialReportPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPage';
-import { OfficialReportPreviewPage } from '@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage';
-import { PresentationsLayout } from '@/pages/secretariat-general/presentations/PresentationsLayout';
-import { PresentationPreviewPage } from '@/pages/secretariat-general/presentations/PresentationsPreviewPage';
-import { PresentationsTabPast } from '@/pages/secretariat-general/presentations/PresentationsTabPast';
-import { PresentationsTabReady } from '@/pages/secretariat-general/presentations/PresentationsTabReady';
-import { PresentationsTabsPage } from '@/pages/secretariat-general/presentations/PresentationsTabsPage';
-import { PresentationUpsertPage } from '@/pages/secretariat-general/presentations/PresentationUpsertPage';
-import { SummaryPage } from '@/pages/summary/SummaryPage';
+import { LoginPage } from '@/pages/LoginPage';
 
 import { AppErrorBoundary } from './AppErrorBoundary';
 
@@ -58,143 +25,265 @@ const router = sentryCreateBrowserRouter([
       },
       {
         path: ROUTE_PATHS.HELP,
-        element: <HelpPage />,
+        lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
       },
       {
         path: ROUTE_PATHS.USER_MANUAL,
-        element: <UserManualPage />,
+        lazy: () =>
+          import('@/pages/help/UserManualPage').then(({ UserManualPage }) => ({ Component: UserManualPage })),
       },
       {
         path: ROUTE_PATHS.HELP,
-        element: <HelpPage />,
+        lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
       },
       {
         path: ROUTE_PATHS.SUMMARY,
-        element: <SummaryPage />,
+        lazy: () =>
+          import('@/pages/summary/SummaryPage').then(({ SummaryPage }) => ({ Component: SummaryPage })),
       },
       {
         path: ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI,
-        element: <LolfiRedirectMagistrat />,
+        lazy: () =>
+          import('@/pages/LolfiRedirectMagistratPage').then(({ LolfiRedirectMagistrat }) => ({
+            Component: LolfiRedirectMagistrat,
+          })),
       },
       {
         path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-        element: <TransparencesLayout />,
+        lazy: () =>
+          import('@/pages/transparence/TransparencesLayout').then(({ TransparencesLayout }) => ({
+            Component: TransparencesLayout,
+          })),
         children: [
           {
             index: true,
-            element: <SessionsPage />,
+            lazy: () =>
+              import('@/pages/transparence/SessionsPage').then(({ SessionsPage }) => ({
+                Component: SessionsPage,
+              })),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
-            element: <ReportListPage />,
+            lazy: () =>
+              import('@/components/reports/components/ReportList/ReportListPage').then(
+                ({ default: ReportListPage }) => ({ Component: ReportListPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
-            element: <ReportOverviewPage />,
+            lazy: () =>
+              import('@/components/reports/components/ReportOverview/ReportOverviewPage').then(
+                ({ default: ReportOverviewPage }) => ({ Component: ReportOverviewPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
-            element: <ObservationDetailsPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/observations/ObservationDetailsPage').then(
+                ({ ObservationDetailsPage }) => ({ Component: ObservationDetailsPage }),
+              ),
           },
         ],
       },
       {
         path: ROUTE_PATHS.SG.DASHBOARD,
-        element: <SecretariatGeneralLayout />,
+        lazy: () =>
+          import('@/pages/secretariat-general/SecretariatLayout').then(({ SecretariatGeneralLayout }) => ({
+            Component: SecretariatGeneralLayout,
+          })),
         children: [
           {
             index: true,
-            element: <SecretariatGeneralPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/SecretariatGeneralPage').then(
+                ({ SecretariatGeneralPage }) => ({ Component: SecretariatGeneralPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
-            element: <NouvelleTransparencePage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/NouvelleTransparencePage').then(
+                ({ NouvelleTransparencePage }) => ({ Component: NouvelleTransparencePage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID,
-            element: <TransparencePage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/TransparencePage').then(({ TransparencePage }) => ({
+                Component: TransparencePage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID_EDIT,
-            element: <TableauDeBordEditTransparencePage />,
+            lazy: () =>
+              import('@/components/secretariat-general/transparence/content/tableau-de-bord/resume/TableauDeBordEditTransparence').then(
+                ({ TableauDeBordEditTransparencePage }) => ({
+                  Component: TableauDeBordEditTransparencePage,
+                }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
-            element: <ObservationDetailsPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/observations/ObservationDetailsPage').then(
+                ({ ObservationDetailsPage }) => ({ Component: ObservationDetailsPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_SESSION,
-            element: <ManageSessionPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/ManageSessionPage').then(({ ManageSessionPage }) => ({
+                Component: ManageSessionPage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
-            element: <MemberListPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/MemberListPage').then(({ MemberListPage }) => ({
+                Component: MemberListPage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
-            element: <DetailsMemberPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/membres/DetailsMemberPage').then(
+                ({ DetailsMemberPage }) => ({ Component: DetailsMemberPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_NEW,
-            element: <CreateOrUpdateAgendaPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/agenda/AgendaPage').then(
+                ({ CreateOrUpdateAgendaPage }) => ({ Component: CreateOrUpdateAgendaPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_UPDATE,
-            element: <CreateOrUpdateAgendaPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/agenda/AgendaPage').then(
+                ({ CreateOrUpdateAgendaPage }) => ({ Component: CreateOrUpdateAgendaPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
-            element: <AgendaPreviewPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/agenda/AgendaPreviewPage').then(
+                ({ AgendaPreviewPage }) => ({ Component: AgendaPreviewPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
-            element: <CreateOrUpdateOfficialReportPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/official-report/OfficialReportPage').then(
+                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
-            element: <CreateOrUpdateOfficialReportPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/official-report/OfficialReportPage').then(
+                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
+              ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
-            element: <OfficialReportPreviewPage />,
+            lazy: () =>
+              import('@/pages/secretariat-general/docs/official-report/OfficialReportPreviewPage').then(
+                ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
+              ),
           },
           {
-            element: <PresentationsLayout />,
+            lazy: () =>
+              import('@/pages/secretariat-general/presentations/PresentationsLayout').then(
+                ({ PresentationsLayout }) => ({ Component: PresentationsLayout }),
+              ),
             children: [
               {
-                element: <PresentationsTabsPage />,
+                lazy: () =>
+                  import('@/pages/secretariat-general/presentations/PresentationsTabsPage').then(
+                    ({ PresentationsTabsPage }) => ({ Component: PresentationsTabsPage }),
+                  ),
                 children: [
-                  { path: ROUTE_PATHS.SG.PRESENTATIONS_PAST, element: <PresentationsTabPast /> },
-                  { path: ROUTE_PATHS.SG.PRESENTATIONS_READY, element: <PresentationsTabReady /> },
+                  {
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
+                    lazy: () =>
+                      import('@/pages/secretariat-general/presentations/PresentationsTabPast').then(
+                        ({ PresentationsTabPast }) => ({ Component: PresentationsTabPast }),
+                      ),
+                  },
+                  {
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_READY,
+                    lazy: () =>
+                      import('@/pages/secretariat-general/presentations/PresentationsTabReady').then(
+                        ({ PresentationsTabReady }) => ({ Component: PresentationsTabReady }),
+                      ),
+                  },
                 ],
               },
-              { path: ROUTE_PATHS.SG.PRESENTATIONS_NEW, element: <PresentationUpsertPage /> },
-              { path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, element: <PresentationUpsertPage /> },
-              { path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, element: <PresentationPreviewPage /> },
+              {
+                path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
+                lazy: () =>
+                  import('@/pages/secretariat-general/presentations/PresentationUpsertPage').then(
+                    ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
+                lazy: () =>
+                  import('@/pages/secretariat-general/presentations/PresentationUpsertPage').then(
+                    ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
+                lazy: () =>
+                  import('@/pages/secretariat-general/presentations/PresentationsPreviewPage').then(
+                    ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
+                  ),
+              },
             ],
           },
         ],
       },
       {
         path: ROUTE_PATHS.ADMIN.ROOT,
-        element: <AdminLayout />,
+        lazy: () =>
+          import('@/pages/admin/AdminLayout').then(({ AdminLayout }) => ({ Component: AdminLayout })),
         children: [
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
-            element: <IngestLolfiArchivePage />,
+            lazy: () =>
+              import('@/pages/admin/ingest/IngestLolfiArchivePage').then(({ IngestLolfiArchivePage }) => ({
+                Component: IngestLolfiArchivePage,
+              })),
           },
           {
             path: ROUTE_PATHS.ADMIN.LIST_JOBS,
-            element: <JobsPage />,
-            children: [{ path: ROUTE_PATHS.ADMIN.DETAILS_JOB, element: <DetailsJobPage /> }],
+            lazy: () =>
+              import('@/pages/admin/jobs/JobsPage').then(({ JobsPage }) => ({ Component: JobsPage })),
+            children: [
+              {
+                path: ROUTE_PATHS.ADMIN.DETAILS_JOB,
+                lazy: () =>
+                  import('@/pages/admin/jobs/DetailsJobPage').then(({ DetailsJobPage }) => ({
+                    Component: DetailsJobPage,
+                  })),
+              },
+            ],
           },
           {
             path: ROUTE_PATHS.ADMIN.USERS,
-            element: <AdminUserListPage />,
+            lazy: () =>
+              import('@/pages/admin/users/AdminUserListPage').then(({ AdminUserListPage }) => ({
+                Component: AdminUserListPage,
+              })),
           },
           {
             path: ROUTE_PATHS.ADMIN.USER_DETAIL,
-            element: <AdminUserDetailPage />,
+            lazy: () =>
+              import('@/pages/admin/users/AdminUserDetailPage').then(({ AdminUserDetailPage }) => ({
+                Component: AdminUserDetailPage,
+              })),
           },
         ],
       },

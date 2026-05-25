@@ -3,7 +3,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useUser } from '@queries/auth.queries';
 
 export function HelpPage() {
   return (
@@ -30,21 +29,5 @@ export function HelpPage() {
         />
       </article>
     </AuthGuard>
-  );
-}
-
-export function HelpPageButton() {
-  const { user } = useUser();
-
-  if (!user) return null;
-
-  return (
-    <Button
-      linkProps={{ to: ROUTE_PATHS.HELP }}
-      iconId="fr-icon-questionnaire-line"
-      className="mb-0! self-center"
-    >
-      Centre d'aide
-    </Button>
   );
 }
