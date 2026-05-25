@@ -27,16 +27,11 @@ function css(): string {
 
     h3 {
       color: var(--gold);
-      counter-increment: sections;
       break-after: avoid;
 
       &:first-of-type {
         margin-top: 3rem;
       }
-    }
-
-    h3::before {
-      content: counter(sections) ". ";
     }
 
     li {
@@ -103,10 +98,10 @@ function displayOutcome(ctx: {
 
 function nominationFileParagraph(file: AgendaNominationFile): string {
   return html`
-    <p>
+    <li>
       <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
-      (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;:${file.outcomeComment}` : ''}.
-    </p>
+      (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;: ${file.outcomeComment}` : ''}.
+    </li>
   `;
 }
 
@@ -130,7 +125,7 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readon
         ? html`les propositions suivantes&nbsp;:`
         : html`la proposition suivante&nbsp;:`}
     </p>
-    ${paragraphs}`;
+    ${paragraphs.length === 0 ? '' : `<ul>${paragraphs}</ul>`}`;
 }
 
 function nonValidatedParagraph(ctx: {
@@ -158,7 +153,11 @@ function nonValidatedParagraph(ctx: {
       : html` à la proposition de nomination suivante&nbsp;:`}
   </p>`;
 
-  return html`${intro}${paragraphs}`;
+  return html`${intro}${paragraphs.length === 0
+    ? ''
+    : html`<ul>
+        ${paragraphs}
+      </ul>`}`;
 }
 
 function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0 | 1 | 2 {
