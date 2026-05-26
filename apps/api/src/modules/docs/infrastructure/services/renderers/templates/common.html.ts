@@ -3,7 +3,6 @@ import { stripIndent } from 'common-tags';
 import type { Pretty, UnionToIntersection } from 'src/utils/types';
 
 import { Template, TemplateFunction } from './templates.types';
-
 const html = stripIndent;
 
 function documentLogo(): string {

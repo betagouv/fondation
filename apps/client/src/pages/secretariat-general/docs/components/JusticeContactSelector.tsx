@@ -1,9 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import React from 'react';
+import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useMonoSelection } from '../hooks/useSelection';
+import { useMonoSelection } from '../official-report/hooks/useSelection';
 import {
   ComboboxContent,
   ComboboxEmpty,
@@ -17,11 +18,13 @@ import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { unaccent } from '@/utils/string.utils';
 import { useCreateJusticeContactMutation, useFindJusticeContacts } from '@queries/agenda.queries';
 
-export function JusticeContactSelector(props: {
-  value: string | null;
-  onChange: (value: string | null) => unknown;
-  label: React.ReactNode;
-}) {
+export function JusticeContactSelector(
+  props: UseControllerProps<{ justiceContactId: string; [x: string]: unknown }, 'justiceContactId'> & {
+    label: React.ReactNode;
+    defaultValueId?: string | null;
+  },
+) {
+  const { field } = useController(props);
   const { $t } = useIntl();
   const confirmation = useConfirmation();
   const [search, setSearch] = React.useState('');
@@ -48,15 +51,15 @@ export function JusticeContactSelector(props: {
     (item: ViewItem | null) => {
       setSearch(item?.name ?? '');
 
-      props.onChange(item?.id ?? null);
+      field.onChange(item?.id ?? null);
     },
-    [setSearch, props],
+    [setSearch, field],
   );
 
   const { selection, select } = useMonoSelection({
     onSelect,
     items: viewItems,
-    defaultValueId: props.value,
+    defaultValueId: props.defaultValueId,
   });
 
   const onValueChange = React.useCallback(
@@ -135,7 +138,7 @@ export function JusticeContactSelector(props: {
                     className={clsx(
                       'w-full first:rounded-t-none last:rounded-b-md',
                       `first:data-highlighted:rounded-t-none`,
-                      `data-highlighted:bg-[#f6f6f6] data-highlighted:hover:outline-0`,
+                      `data-highlighted:bg-grey-975 data-highlighted:hover:outline-0`,
                       `data-highlighted:outline-2 data-highlighted:outline-solid`,
                       `data-highlighted:outline-offset-2 data-highlighted:outline-blue-500`,
                       {

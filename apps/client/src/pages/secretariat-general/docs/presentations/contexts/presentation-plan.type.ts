@@ -12,6 +12,7 @@ export type PresentationPlanContextType = {
     justiceContactId: string | null;
     date: { day: number; month: number; year: number } | null;
     time: { hours: number; minutes: number } | null;
+    absentMemberIds: string[];
   };
 
   goToMetadata(): void;
@@ -23,5 +24,6 @@ export type PresentationPlanContextType = {
     justiceContactId: string;
     date: { day: number; month: number; year: number };
     time: { hours: number; minutes: number };
+    absentMemberIds: readonly string[];
   }): void;
 };

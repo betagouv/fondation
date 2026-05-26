@@ -50,7 +50,7 @@ function officialReportNominationParagraph(ctx: {
   const reporters =
     ctx.file.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.file.reporters)}` : '';
 
-  return html`<p><strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.</p>`;
+  return html`<li><strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.</li>`;
 }
 
 function content(ctx: {
@@ -136,14 +136,16 @@ function content(ctx: {
           ${outcomeSectionIntro({ formation: ctx.formation, outcome })} sur
           ${files.length > 1 ? 'les propositions suivantes' : 'la proposition suivante'}&nbsp;:
         </p>
-        ${files
-          .map((file) =>
-            officialReportNominationParagraph({
-              formation: ctx.formation,
-              file,
-            }),
-          )
-          .join('\n')}`,
+        <ol>
+          ${files
+            .map((file) =>
+              officialReportNominationParagraph({
+                formation: ctx.formation,
+                file,
+              }),
+            )
+            .join('\n')}
+        </ol>`,
     }))
     .toArray()
     .sort((a, b) => (outcomesOrder.get(a.outcome) ?? 10) - (outcomesOrder.get(b.outcome) ?? 10))
@@ -151,8 +153,7 @@ function content(ctx: {
     .join('\n');
 
   return html`
-    <p>${intro}</p>
-    ${membersList}
+    ${intro} ${membersList}
     <p><strong>En présence de&nbsp;:</strong></p>
     <ul>
       <li>
@@ -217,9 +218,11 @@ function footer(ctx: {
       ? ctx.chairman.gender === Gender.M
         ? `le président,`
         : `la présidente,`
-      : ctx.chairman.gender === Gender.M
-        ? `le président suppléant,`
-        : `la présidente suppléante,`;
+      : ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
+        ? ctx.chairman.gender === Gender.M
+          ? `le président suppléant,`
+          : `la présidente suppléante,`
+        : '';
 
   return html`
     <section class="signatures">
@@ -255,32 +258,33 @@ function css() {
 
       ul {
         list-style-type: '-\u00A0';
+        padding-left: 1rem;
+      }
+
+      ol {
+        list-style: none;
+        padding-left: 1rem;
+        break-before: avoid;
       }
 
       p {
+        font-size: 0.8rem;
         line-height: 1.5rem;
         text-align: justify;
         text-wrap: pretty;
         break-inside: avoid;
-        text-indent: 2rem;
-      }
-
-      p:nth-of-type(1),
-      p:nth-of-type(2),
-      p:nth-of-type(3),
-      p:nth-of-type(4) {
         text-indent: 0;
       }
 
-      h2 + p { text-indent: 0; }
-
       li {
         font-size: 0.8rem;
+        break-inside: avoid;
+        line-height: 1.5rem;
       }
 
-      /* p.file {
-        text-indent: 2rem;
-      } */
+      li + li {
+        margin-top: 1rem;
+      }
 
       .signatures {
         break-before: avoid;

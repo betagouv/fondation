@@ -3,22 +3,26 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import React from 'react';
-import { useController, type UseControllerProps } from 'react-hook-form';
+import { useController, useWatch, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import type { FormationEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
-import { useListMembersForNewOfficialReportQuery } from '@queries/agenda.queries';
+import { useDocsMembersQuery } from '@queries/agenda.queries';
 
 export function AbsentMemberSelector(
-  props: UseControllerProps<{ memberIds: string[] }, 'memberIds'> & {
-    sessionId: string;
-    chairmanId: string;
+  props: UseControllerProps<{ memberIds: string[]; chairmanId: string }, 'memberIds'> & {
+    formation: FormationEnum | null;
   },
 ) {
   const { formatMessage } = useIntl();
+
+  const chairmanId = useWatch({ control: props.control, name: 'chairmanId' });
   const { field, fieldState } = useController(props);
 
-  const { data: membersData } = useListMembersForNewOfficialReportQuery({ sessionId: props.sessionId });
+  const { data: membersData, isPending: membersPending } = useDocsMembersQuery({
+    formation: props.formation ?? undefined,
+  });
   const members = React.useMemo(
     () => new Map((membersData?.items ?? []).map((member) => [member.id, member])),
     [membersData],
@@ -27,12 +31,12 @@ export function AbsentMemberSelector(
   const onChange = React.useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const id = e.currentTarget.value;
-      if (!members.has(id) || props.chairmanId === id) return;
+      if (!members.has(id) || chairmanId === id) return;
 
       const next = [...new Set(field.value).add(id)];
       field.onChange(next);
     },
-    [props.chairmanId, members, field],
+    [chairmanId, members, field],
   );
 
   const unSelect = React.useCallback(
@@ -49,11 +53,11 @@ export function AbsentMemberSelector(
 
   React.useEffect(() => {
     const selectedIds = new Set(field.value);
-    if (selectedIds.has(props.chairmanId)) {
-      selectedIds.delete(props.chairmanId);
+    if (selectedIds.has(chairmanId)) {
+      selectedIds.delete(chairmanId);
       field.onChange([...selectedIds]);
     }
-  }, [props.chairmanId, field]);
+  }, [chairmanId, field]);
 
   return (
     <div className="mb-6">
@@ -63,6 +67,7 @@ export function AbsentMemberSelector(
         label={<FormattedMessage defaultMessage="Membres absents" />}
         state={fieldState.error ? 'error' : undefined}
         stateRelatedMessage={fieldState.error?.message}
+        disabled={membersPending || !props.formation}
       >
         <option disabled value="">
           <FormattedMessage defaultMessage="Sélectionner les members absents" />
@@ -72,7 +77,7 @@ export function AbsentMemberSelector(
           .filter((member) => !field.value.includes(member.id))
           .sort((a, b) => a.lastName.localeCompare(b.lastName))
           .map((member) => (
-            <option key={member.id} value={member.id} disabled={props.chairmanId === member.id}>
+            <option key={member.id} value={member.id} disabled={chairmanId === member.id}>
               {toFullName(member)}
             </option>
           ))}

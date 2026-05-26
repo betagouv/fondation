@@ -9,6 +9,7 @@ import type {
   PaginatedNominationFiles,
 } from '@api/types';
 
+import { docsKeys } from './agenda.queries';
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const memberKeys = {
@@ -89,7 +90,7 @@ export function useUpdateTitleMutation(options: { userId: string }) {
         body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' },
       }),
 
-    onSuccess: (_data, title) =>
+    onSuccess: (_data, title) => {
       queryClient.setQueryData(
         memberKeys.detailsMember({ userId: options.userId }),
         (data: DetailedMemberDto | undefined) => {
@@ -100,18 +101,24 @@ export function useUpdateTitleMutation(options: { userId: string }) {
             title,
           };
         },
-      ),
+      );
+      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+    },
   });
 }
 
-export const useUpdateDisplayTitleMutation = (options: { userId: string }) =>
-  useMutation({
+export const useUpdateDisplayTitleMutation = (options: { userId: string }) => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: (displayTitle: string | null) =>
       $api.members.updateDisplayTitle({
         path: { userId: options.userId },
         body: { displayTitle },
       }),
+
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: docsKeys.members() }),
   });
+};
 
 export function useExcludedJurisdictionsMutation(options: { userId: string }) {
   const queryClient = useQueryClient();

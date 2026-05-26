@@ -8,20 +8,22 @@ import clsx from 'clsx';
 import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
-import { JusticeContactSelector } from '../docs/official-report/components/JusticeContactSelector';
+import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
+import { ChairmanSelector } from '../components/ChairmanSelector';
+import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
 import {
+  useDetailsAgendaMetadataQuery,
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
-  useSearchChairmenQuery,
 } from '@queries/agenda.queries';
 
 import { usePresentationPlan } from './contexts/presentation-plan.context';
@@ -32,18 +34,16 @@ const MetadataSchema = z.object({
   chairmanId: z.uuid('Veuillez sélectionner un président'),
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
   justiceContactId: z.string().min(1, 'Veuillez sélectionner un contact DSJ'),
+  memberIds: z.array(z.string()),
 });
 
 function MetadataStep(props: { className?: string }) {
   const { state, setMetadata, isDisabled } = usePresentationPlan();
   const navigate = useNavigate();
 
-  const { data: chairmenData, isFetching: isFetchingChairmen } = useSearchChairmenQuery({
-    formation: state.formation ?? undefined,
-  });
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
+  const { data: agenda } = useDetailsAgendaMetadataQuery({ agendaId: Object.keys(state.agendas)[0] });
 
-  const chairmen = chairmenData?.items ?? [];
   const secretaries = secretariesData?.items ?? [];
 
   const defaultDate = format(dateOnlyToDate(state.date) ?? new Date(), 'yyyy-MM-dd');
@@ -56,7 +56,7 @@ function MetadataStep(props: { className?: string }) {
     handleSubmit,
     getValues,
     setValue,
-    formState: { errors, isValid },
+    formState: { errors, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
     resolver: zodResolver(MetadataSchema),
@@ -66,19 +66,9 @@ function MetadataStep(props: { className?: string }) {
       chairmanId: state.chairmanId ?? '',
       secretaryId: state.secretaryId ?? '',
       justiceContactId: state.justiceContactId ?? '',
+      memberIds: state.absentMemberIds,
     },
   });
-
-  React.useEffect(() => {
-    const selectedChairman = getValues('chairmanId');
-    if (selectedChairman || !chairmenData?.items.length) return;
-
-    setValue('chairmanId', chairmenData.items[0].id, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  }, [chairmenData, getValues, setValue]);
 
   React.useEffect(() => {
     const selectedSecretary = getValues('secretaryId');
@@ -97,6 +87,24 @@ function MetadataStep(props: { className?: string }) {
     }
   }, [state, navigate]);
 
+  React.useEffect(() => {
+    if (!dirtyFields.date && agenda?.sessionMeetingDate) {
+      setValue('date', dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0], {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    }
+
+    if (!dirtyFields.chairmanId && agenda?.chairmanId) {
+      setValue('chairmanId', agenda.chairmanId, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    }
+  }, [dirtyFields, agenda, setValue]);
+
   const onSubmit = handleSubmit((values) => {
     const [year, month, day] = values.date.split('-').map(Number) as [number, number, number];
     const [hours, minutes] = values.time.split(':').map(Number) as [number, number];
@@ -107,6 +115,7 @@ function MetadataStep(props: { className?: string }) {
       justiceContactId: values.justiceContactId,
       date: { year, month, day },
       time: { hours, minutes },
+      absentMemberIds: values.memberIds,
     });
   });
 
@@ -125,7 +134,6 @@ function MetadataStep(props: { className?: string }) {
           />
         )}
       />
-
       <Controller
         name="time"
         control={control}
@@ -140,30 +148,11 @@ function MetadataStep(props: { className?: string }) {
         )}
       />
 
-      <Controller
+      <ChairmanSelector
+        formation={state.formation ?? undefined}
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
         name="chairmanId"
-        control={control}
-        render={({ field }) => (
-          <Select
-            disabled={isDisabled || isFetchingChairmen}
-            label={<Mandatory>Président de séance</Mandatory>}
-            nativeSelectProps={{
-              value: field.value,
-              onChange: (e) => field.onChange(e.target.value),
-            }}
-            state={errors.chairmanId ? 'error' : 'default'}
-            stateRelatedMessage={errors.chairmanId?.message}
-          >
-            <option value="" disabled>
-              Sélectionner le président
-            </option>
-            {chairmen.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.displayTitle ? [c.displayTitle, c.lastName.toUpperCase()].join(' ') : toFullName(c)}
-              </option>
-            ))}
-          </Select>
-        )}
       />
 
       <Controller
@@ -192,16 +181,22 @@ function MetadataStep(props: { className?: string }) {
         )}
       />
 
-      <Controller
+      <AbsentMemberSelector
+        formation={state.formation}
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
+        name="memberIds"
+      />
+
+      <JusticeContactSelector
+        label={
+          <Mandatory>
+            <FormattedMessage defaultMessage="Représentant DSJ" />
+          </Mandatory>
+        }
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
         name="justiceContactId"
-        control={control}
-        render={({ field }) => (
-          <JusticeContactSelector
-            label={<Mandatory>Représentant DSJ</Mandatory>}
-            value={field.value || null}
-            onChange={(value) => field.onChange(value ?? '')}
-          />
-        )}
       />
 
       <ButtonsGroup

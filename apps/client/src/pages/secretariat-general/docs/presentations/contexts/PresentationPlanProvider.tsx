@@ -40,6 +40,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     date: null,
     justiceContactId: null,
     time: null,
+    absentMemberIds: [],
   });
 
   React.useEffect(() => {
@@ -88,8 +89,14 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       justiceContactId: string;
       date: { day: number; month: number; year: number };
       time: { hours: number; minutes: number };
+      absentMemberIds: readonly string[];
     }) => {
-      setState((s) => ({ ...s, ...options, step: 'AGENDA_COMMENTS' }));
+      setState((s) => ({
+        ...s,
+        ...options,
+        step: 'AGENDA_COMMENTS',
+        absentMemberIds: [...options.absentMemberIds],
+      }));
     },
     [setState],
   );
@@ -127,7 +134,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
                 )}
               </p>
               <p>
-                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+                <FormattedMessage defaultMessage={'Êtes-vous sûr de vouloir continuer\u00A0?'} />
               </p>
             </>
           ),
@@ -146,6 +153,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
           id,
           comment: comment?.trim() || null,
         })),
+        absentMembers: [...state.absentMemberIds],
       };
 
       async function onSuccess(id: string) {

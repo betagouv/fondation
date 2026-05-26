@@ -239,7 +239,7 @@ function presentationPlanSessionSection(ctx: {
           ${allComments.map((comment) => html`<li>${comment}</li>`)}
         </ul>`
       : allComments.length === 1
-        ? html`Commentaire&nbsp;: ${allComments[0]!}`
+        ? html`<p>Commentaire&nbsp;: ${allComments[0]!}</p>`
         : '';
 
   return html`

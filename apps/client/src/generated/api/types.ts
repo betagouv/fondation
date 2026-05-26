@@ -959,6 +959,15 @@ export type CreatedOfficialReportJusticeContactDto = {
     name: string;
 };
 
+export type CreateJusticeContactDto = {
+    name: string;
+};
+
+export type CreatedJusticeContactDto = {
+    id: string;
+    name: string;
+};
+
 export type FoundAgendasDto = {
     items: Array<{
         id: string;
@@ -993,6 +1002,7 @@ export type FoundAgendasDto = {
             } | null;
             secretaryId: string | null;
             justiceContactId: string | null;
+            absentMembers: Array<string>;
         } | null;
     }>;
 };
@@ -1103,6 +1113,7 @@ export type CreateOrUpdateJusticePresentationPlanDto = {
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
+    absentMembers: Array<string>;
     agendas: Array<{
         id: string;
         comment: string | null;
@@ -1141,6 +1152,18 @@ export type PresentPlanDto = {
         minutes?: number;
         seconds?: number;
     };
+};
+
+export type FoundDocsMembersDto = {
+    items: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        gender: 'MALE' | 'FEMALE';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        displayTitle: string | null;
+        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
+    }>;
 };
 
 export type SearchMagistratsResponseDto = {
@@ -2577,6 +2600,34 @@ export type CreateOfficialReportJusticeContactResponses = {
 
 export type CreateOfficialReportJusticeContactResponse = CreateOfficialReportJusticeContactResponses[keyof CreateOfficialReportJusticeContactResponses];
 
+export type SearchJusticeContactData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+    };
+    url: '/api/docs/v1/justice-contacts';
+};
+
+export type SearchJusticeContactResponses = {
+    200: FoundJusticeContactsDto;
+};
+
+export type SearchJusticeContactResponse = SearchJusticeContactResponses[keyof SearchJusticeContactResponses];
+
+export type CreateJusticeContactData = {
+    body: CreateJusticeContactDto;
+    path?: never;
+    query?: never;
+    url: '/api/docs/v1/justice-contacts';
+};
+
+export type CreateJusticeContactResponses = {
+    201: CreatedJusticeContactDto;
+};
+
+export type CreateJusticeContactResponse = CreateJusticeContactResponses[keyof CreateJusticeContactResponses];
+
 export type ListAgendasForNewOfficialReportData = {
     body?: never;
     path: {
@@ -2608,21 +2659,6 @@ export type ListMembersForNewOfficialReportResponses = {
 };
 
 export type ListMembersForNewOfficialReportResponse = ListMembersForNewOfficialReportResponses[keyof ListMembersForNewOfficialReportResponses];
-
-export type ListSecretariesGeneralForNewOfficialReportData = {
-    body?: never;
-    path: {
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/secretaries-general';
-};
-
-export type ListSecretariesGeneralForNewOfficialReportResponses = {
-    200: FoundMembersForNewOfficialReportDto;
-};
-
-export type ListSecretariesGeneralForNewOfficialReportResponse = ListSecretariesGeneralForNewOfficialReportResponses[keyof ListSecretariesGeneralForNewOfficialReportResponses];
 
 export type GenerateOfficialReportHtmlData = {
     body?: never;
@@ -2941,6 +2977,21 @@ export type PresentPlanResponses = {
 };
 
 export type PresentPlanResponse = PresentPlanResponses[keyof PresentPlanResponses];
+
+export type FindDocsMembersData = {
+    body?: never;
+    path?: never;
+    query: {
+        formation: 'PARQUET' | 'SIEGE';
+    };
+    url: '/api/docs/v1/members';
+};
+
+export type FindDocsMembersResponses = {
+    200: FoundDocsMembersDto;
+};
+
+export type FindDocsMembersResponse = FindDocsMembersResponses[keyof FindDocsMembersResponses];
 
 export type SearchMagistratsData = {
     body?: never;

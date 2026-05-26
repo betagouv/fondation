@@ -119,7 +119,8 @@ model OfficialReportMember {
   officialReportId String @map("official_report_id") @db.Uuid
 
   isAbsent  Boolean          @map("is_absent")
-  memberId  String?          @map("member_id") @db.Uuid
+  /// see User.id
+  memberId  String           @map("member_id") @db.Uuid
   gender    PrismaGenderEnum
   firstName String           @map("first_name")
   lastName  String           @map("last_name")
@@ -240,6 +241,7 @@ model JusticePresentationPlan {
   author          User?                                   @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_author")
   justiceContact  JusticeDepartmentContact?               @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pdf             File?                                   @relation(fields: [pdfId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_pdf")
+  members         JusticePresentationPlanMember[]
 
   @@index([isPresented])
   @@map("justice_presentation_plan")
@@ -257,5 +259,18 @@ model JusticePresentationPlanToAgenda {
 
   @@id([planId, agendaId])
   @@map("justice_presentation_plan_to_agenda")
+  @@schema("docs")
+}
+
+model JusticePresentationPlanMember {
+  planId   String  @map("plan_id") @db.Uuid
+  /// see User.id
+  memberId String  @map("member_id") @db.Uuid
+  isAbsent Boolean @map("is_absent")
+
+  plan JusticePresentationPlan @relation(fields: [planId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([planId, memberId])
+  @@map("justice_presentation_plan_member")
   @@schema("docs")
 }

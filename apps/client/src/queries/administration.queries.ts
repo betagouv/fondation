@@ -4,6 +4,8 @@ import type { AdminUserRoleEnum } from '@/pages/admin/users/admin-user-enum';
 import * as $api from '@api/sdk';
 import type { DetailedAdminUserDto } from '@api/types';
 
+import { docsKeys } from './agenda.queries';
+
 export const adminKeys = {
   users: (params: { search?: string; page?: number; pageSize?: number }) =>
     ['admin', 'users', params] as const,
@@ -75,7 +77,10 @@ export function useUpdateUserRoleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { role: AdminUserRoleEnum }) =>
       $api.administration.updateRole({ path: { userId }, body }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
+      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+    },
   });
 }
 
@@ -93,7 +98,10 @@ export function usePromoteUserToAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.promoteToAdmin({ path: { userId } }),
-    onSuccess: () => updateUser(queryClient, userId, { isAdmin: true }),
+    onSuccess: () => {
+      updateUser(queryClient, userId, { isAdmin: true });
+      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+    },
   });
 }
 
@@ -102,6 +110,9 @@ export function useDemoteUserFromAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.demoteFromAdmin({ path: { userId } }),
-    onSuccess: () => updateUser(queryClient, userId, { isAdmin: false }),
+    onSuccess: () => {
+      updateUser(queryClient, userId, { isAdmin: false });
+      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+    },
   });
 }

@@ -39,14 +39,18 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreatedAgendaDto,
+  CreatedJusticeContactDto,
   CreatedJusticePresentationPlanDto,
   CreatedOfficialReportDto,
   CreatedOfficialReportJusticeContactDto,
+  CreateJusticeContactDto,
   CreateOfficialReportJusticeContactDto,
   CreateOrUpdateAgendaDto,
   CreateOrUpdateJusticePresentationPlanDto,
   CreateOrUpdateOfficialReportDto,
   FindAgendaNominationFilesQueryDto,
+  FindDocsMembersQueryDto,
+  FoundDocsMembersDto,
   ListAgendasForNewOfficialReportQueryDto,
   PresentPlanDto,
   SearchJusticeContactsQueryDto,
@@ -78,6 +82,7 @@ export class DocsController {
   @Get('/chairmen')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: FoundChairmenDto, status: HttpStatus.OK })
+  @ApiOperation({ description: 'prefer find members and use the title' })
   searchChairmen(@Query() query: SearchChairmenQueryDto): Promise<FoundChairmenDto> {
     return this.docs.searchChairmen({
       formation: query.formation,
@@ -294,6 +299,7 @@ export class DocsController {
     });
   }
 
+  @ApiOperation({ deprecated: true, description: 'prefer generic query searchJusticeContact' })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/official-reports/justice-contacts')
   @UsePipes(ZodValidationPipe)
@@ -304,6 +310,7 @@ export class DocsController {
     return this.docs.searchJusticeContacts({ search: query.search });
   }
 
+  @ApiOperation({ deprecated: true, description: 'prefer generic query createJusticeContact' })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Post('/official-reports/justice-contacts')
   @UsePipes(ZodValidationPipe)
@@ -315,6 +322,28 @@ export class DocsController {
     @AuthedUser() user: { id: string },
     @Body() { name }: CreateOfficialReportJusticeContactDto,
   ): Promise<CreatedOfficialReportJusticeContactDto> {
+    return this.docs.createJusticeContact({ name, authorId: user.id });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/justice-contacts')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: FoundJusticeContactsDto, status: HttpStatus.OK })
+  searchJusticeContact(@Query() query: SearchJusticeContactsQueryDto): Promise<FoundJusticeContactsDto> {
+    return this.docs.searchJusticeContacts({ search: query.search });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/justice-contacts')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({
+    status: HttpStatus.CREATED,
+    type: CreatedJusticeContactDto,
+  })
+  createJusticeContact(
+    @AuthedUser() user: { id: string },
+    @Body() { name }: CreateJusticeContactDto,
+  ): Promise<CreatedJusticeContactDto> {
     return this.docs.createJusticeContact({ name, authorId: user.id });
   }
 
@@ -334,6 +363,7 @@ export class DocsController {
     });
   }
 
+  @ApiOperation({ deprecated: true, description: 'prefer find members by formation' })
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/new-official-reports/members')
   @ZodResponse({
@@ -344,20 +374,6 @@ export class DocsController {
     @Param('sessionId') sessionId: string,
   ): Promise<FoundMembersForNewOfficialReportDto> {
     return this.docs.listMembersForNewOfficialReport({ sessionId });
-  }
-
-  /** @deprecated */
-  @ApiOperation({ deprecated: true })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Get('/sessions/:sessionId/new-official-reports/secretaries-general')
-  @ZodResponse({
-    status: HttpStatus.OK,
-    type: FoundMembersForNewOfficialReportDto,
-  })
-  listSecretariesGeneralForNewOfficialReport(
-    @Param('sessionId') _sessionId: string,
-  ): Promise<ListedSecretariesGeneralDto> {
-    return this.docs.listSecretariesGeneral();
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
@@ -634,5 +650,13 @@ export class DocsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   unPresentPlan(@Param('planId') planId: string): Promise<void> {
     return this.docs.unPresentPlan({ id: planId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/members')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: FoundDocsMembersDto })
+  findDocsMembers(@Query() query: FindDocsMembersQueryDto): Promise<FoundDocsMembersDto> {
+    return this.docs.findDocsMembers(query);
   }
 }

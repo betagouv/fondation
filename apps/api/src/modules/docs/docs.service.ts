@@ -18,12 +18,14 @@ import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { partition } from 'src/utils/iterables';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
 import { OfficialReport } from './domain/official-report';
-import { CreatedAgendaDto, CreatedOfficialReportDto } from './infrastructure/docs.dto';
+import { CreatedAgendaDto, CreatedOfficialReportDto, FoundDocsMembersDto } from './infrastructure/docs.dto';
 import { AgendaFinder, FoundAgendasDto } from './infrastructure/finders/agenda.finder';
 import {
   DocsNominationFilesFinder,
@@ -139,6 +141,7 @@ export class DocsService {
     private readonly sessions: SessionService,
   ) {}
 
+  /** @deprecated prefer {@link findDocsMembers} */
   searchChairmen(query: { formation: Magistrat.Formation | undefined }): Promise<FoundChairmenDto> {
     return this.findChairmenQuery.handle(query);
   }
@@ -381,10 +384,16 @@ export class DocsService {
     return this.agendaFinder.findNonIncludedInOfficialReport(query);
   }
 
+  /** @deprecated prefer {@link findDocsMembers} */
   listMembersForNewOfficialReport(query: {
     sessionId: string;
   }): Promise<FoundMembersForNewOfficialReportDto> {
     return this.findMembersForNewOfficialReportQuery.handle(query);
+  }
+
+  async findDocsMembers(query: { formation: Magistrat.Formation }): Promise<FoundDocsMembersDto> {
+    const items = await this.members.internalFindMembersByFormation(query);
+    return { items: items.map(({ role: _r, ...m }) => m) };
   }
 
   listSecretariesGeneral(): Promise<ListedSecretariesGeneralDto> {
@@ -546,23 +555,37 @@ export class DocsService {
     secretaryId: string;
     justiceContactId: string;
     agendas: { id: string; comment: string | null }[];
+    absentMembers: readonly string[];
   }): Promise<{ id: string }> {
     return this.prisma.$transaction(async (tx) => {
-      const agendasById = new Map(command.agendas.map((a) => [a.id, a] as const));
-      const agendaIds = new Set(agendasById.keys());
+      const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
+      const agendaIds = new Set(commentByAgendaId.keys());
       const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({ ids: agendaIds, tx });
 
       if (items.length !== agendaIds.size) throw new NotFoundException();
 
       const agendas = items.map((item) => {
-        const agenda = agendasById.get(item.id);
-        return { ...item, comment: agenda?.comment ?? null };
+        const found = commentByAgendaId.get(item.id);
+        return { ...item, comment: found?.comment?.trim() || null };
       });
 
-      const chairman = await this.members.internalGetMember({
-        id: command.chairmanId,
+      const { formation } = assertIsDefined(agendas[0]);
+      const members = await this.members.internalFindMembersByFormation({
+        formation,
         tx,
       });
+
+      const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+      if (!chairman) {
+        this.logger.error(`unknown chairman id ${command.chairmanId}`);
+        throw new NotFoundException();
+      }
+
+      const absentMembersSet = new Set(command.absentMembers);
+      const planMembers = allMembers.map((member) => ({
+        id: member.id,
+        isAbsent: absentMembersSet.has(member.id),
+      }));
 
       const secretary = await this.auth.detailsUser({
         userId: command.secretaryId,
@@ -579,6 +602,7 @@ export class DocsService {
         authorId: command.authorId,
         time: command.time,
         date: DateOnly.fromJson(command.date),
+        members: planMembers,
       });
 
       await this.justicePresentationPlanRepository.persist(plan, tx);
@@ -597,6 +621,7 @@ export class DocsService {
     secretaryId: string;
     justiceContactId: string;
     agendas: { id: string; comment: string | null }[];
+    absentMembers: readonly string[];
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const plan = await this.justicePresentationPlanRepository.find({
@@ -604,8 +629,8 @@ export class DocsService {
         id: command.id,
       });
 
-      const agendasById = new Map(command.agendas.map((a) => [a.id, a] as const));
-      const agendaIds = new Set(agendasById.keys());
+      const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
+      const agendaIds = new Set(commentByAgendaId.keys());
       const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({
         tx,
         ids: agendaIds,
@@ -615,14 +640,25 @@ export class DocsService {
       if (items.length !== agendaIds.size) throw new NotFoundException();
 
       const agendas = items.map((item) => {
-        const agenda = agendasById.get(item.id);
-        return { ...item, comment: agenda?.comment ?? null };
+        const found = commentByAgendaId.get(item.id);
+        return { ...item, comment: found?.comment || null };
       });
 
-      const chairman = await this.members.internalGetMember({
+      const { formation } = assertIsDefined(agendas[0]);
+      const members = await this.members.internalFindMembersByFormation({
+        formation,
         tx,
-        id: command.chairmanId,
       });
+
+      const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+
+      if (!chairman) {
+        this.logger.error(`unknown chairman id ${command.chairmanId}`);
+        throw new NotFoundException();
+      }
+
+      const absentMembersSet = new Set(command.absentMembers);
+      const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
 
       const secretary = await this.auth.detailsUser({
         tx,
@@ -640,6 +676,7 @@ export class DocsService {
         time: command.time,
         endingTime: command.endingTime,
         date: DateOnly.fromJson(command.date),
+        members: planMembers,
       });
 
       await this.justicePresentationPlanRepository.persist(plan, tx);
