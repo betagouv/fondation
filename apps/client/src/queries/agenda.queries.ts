@@ -15,6 +15,8 @@ export const agendaKeys = {
     ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const,
   detailsAgendaMetadata: (query: { agendaId: string | undefined | null }) =>
     ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const,
+  detailsAgendaFiles: (query: { agendaId: string | undefined | null }) =>
+    ['agenda', 'detailsAgendaFiles', query.agendaId ?? undefined] as const,
 };
 
 export function useCreateAgendaMutation() {
@@ -58,6 +60,18 @@ export const useDetailsAgendaMetadataQuery = (query: { agendaId: string | undefi
       const { data = null } = await $api.docs.detailsAgendaMetadata({
         path: { agendaId: query.agendaId },
       });
+      return data;
+    },
+  });
+
+export const useDetailsAgendaFilesQuery = (query: { agendaId: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.agendaId,
+    queryKey: agendaKeys.detailsAgendaFiles(query),
+    queryFn: async () => {
+      if (!query.agendaId) return null;
+
+      const { data = null } = await $api.docs.detailsAgendaFiles({ path: { agendaId: query.agendaId } });
       return data;
     },
   });

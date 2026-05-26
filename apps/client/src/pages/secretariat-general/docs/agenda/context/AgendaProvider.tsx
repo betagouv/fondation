@@ -8,6 +8,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   agendaKeys,
   useCreateAgendaMutation,
+  useDetailsAgendaFilesQuery,
   useDetailsAgendaMetadataQuery,
   useResetAgendaDocumentMutation,
   useUpdateAgendaMutation,
@@ -44,27 +45,39 @@ export function AgendaProvider(props: React.PropsWithChildren) {
     agendaId,
   });
 
-  const [state, setState] = React.useState<{ stepIndex: 1 | 2; metadata: AgendaMetadata | null }>({
+  const { data: agendaFiles, isFetching: agendaFilesFetching } = useDetailsAgendaFilesQuery({ agendaId });
+
+  const [state, setState] = React.useState<{
+    stepIndex: 1 | 2;
+    metadata: AgendaMetadata | null;
+    defaultFileIds: string[] | null;
+  }>({
     stepIndex: 1,
     metadata: null,
+    defaultFileIds: null,
   });
 
   React.useEffect(() => {
     setState((s) => ({ ...s, metadata: (agendaMetadata as AgendaMetadata | undefined) ?? null }));
   }, [agendaMetadata]);
 
+  React.useEffect(() => {
+    setState((s) => ({ ...s, defaultFileIds: agendaFiles?.items ?? null }));
+  }, [agendaFiles]);
+
   const isFetching = React.useMemo(
     () =>
       sessionFetching ||
       agendaMetadataFetching ||
+      agendaFilesFetching ||
       (metadataFetched && state.metadata?.chairmanId !== agendaMetadata?.chairmanId),
-    [sessionFetching, agendaMetadataFetching, state, metadataFetched, agendaMetadata],
+    [sessionFetching, agendaMetadataFetching, agendaFilesFetching, state, metadataFetched, agendaMetadata],
   );
 
   const goToMetadata = React.useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), [setState]);
   const goToNominationFiles = React.useCallback(
     (metadata: AgendaMetadata) => {
-      setState({ metadata, stepIndex: 2 });
+      setState((s) => ({ ...s, metadata, stepIndex: 2 }));
     },
     [setState],
   );
@@ -174,6 +187,7 @@ export function AgendaProvider(props: React.PropsWithChildren) {
           dueDate: session?.dueDate ?? null,
           formation: session?.formation ?? 'SIEGE',
         },
+        defaultFileIds: state.defaultFileIds,
         metadata: state.metadata,
         isSubmitting: createAgenda.isPending,
         goToNominationFiles,

@@ -33,6 +33,10 @@ import {
 } from './infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from './infrastructure/finders/reported-nomination-files.finder';
 import {
+  DetailedAgendaFilesDto,
+  DetailsAgendaFilesQuery,
+} from './infrastructure/queries/details-agenda-files.query';
+import {
   DetailedAgendaMetadata,
   DetailsAgendaMetadataQuery,
 } from './infrastructure/queries/details-agenda-metadata.query';
@@ -109,6 +113,7 @@ export class DocsService {
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
 
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
+    private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
     private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly detailsPresentationPlanMetadataQuery: DetailsPresentationPlanMetadataQuery,
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
@@ -765,5 +770,9 @@ export class DocsService {
     nominationFileIds: Set<string>;
   }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
     return this.internalFindNominationFileLinkedDocsQuery.handle(query);
+  }
+
+  detailsAgendaFiles(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {
+    return this.detailsAgendaFilesQuery.handle(query);
   }
 }

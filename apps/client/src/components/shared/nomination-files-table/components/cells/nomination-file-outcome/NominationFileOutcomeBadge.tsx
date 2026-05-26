@@ -19,7 +19,7 @@ function InnerNominationFileOutcomeBadge(props: {
   // ts hack to add the title
   const badgeProps = { title: props.short ? label : undefined };
   return (
-    <Badge {...badgeProps} small severity={severity} noIcon as="span">
+    <Badge {...badgeProps} small severity={severity} noIcon as="span" className="text-nowrap">
       {icon && (
         <i className={`mr-1 leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
       )}

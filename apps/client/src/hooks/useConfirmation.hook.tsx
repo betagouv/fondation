@@ -36,6 +36,8 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
 
   useIsModalOpen(confirmationModal, {
     onConceal() {
+      onClick?.(false);
+
       setState({});
       setOnClick(null);
     },

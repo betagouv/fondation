@@ -3,14 +3,19 @@ import React from 'react';
 type Falsy = '' | false | undefined | 0;
 export function useSelection<T, Key extends string>(props: {
   items: readonly T[] | undefined;
-  defaultSelection?: Key[];
+  defaultSelection?: readonly Key[];
   toString: (item: T) => Key | Falsy;
 }) {
+  const [isDirty, setDirty] = React.useState(false);
   const [selection, setSelection] = React.useState(new Set(props.defaultSelection));
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   const selectItem = React.useCallback((item: T) => props.toString(item), []);
 
   React.useEffect(() => {
+    if (!isDirty && props.defaultSelection?.length !== selection.size) {
+      setSelection(new Set(props.defaultSelection));
+    }
+
     if (props.defaultSelection) return;
 
     const init = new Set<Key>();
@@ -20,7 +25,7 @@ export function useSelection<T, Key extends string>(props: {
     }
 
     setSelection(init);
-  }, [props.items, props.defaultSelection, selectItem]);
+  }, [isDirty, selection, props.items, props.defaultSelection, selectItem]);
 
   const list = React.useCallback(() => Array.from(selection?.values() ?? []), [selection]);
 
@@ -45,16 +50,18 @@ export function useSelection<T, Key extends string>(props: {
 
           return new Set(s);
         });
+      } else {
+        setSelection((s) => {
+          if (!s) return s;
+
+          if (s.has(key)) s.delete(key);
+          else s.add(key);
+
+          return new Set(s);
+        });
       }
 
-      setSelection((s) => {
-        if (!s) return s;
-
-        if (s.has(key)) s.delete(key);
-        else s.add(key);
-
-        return new Set(s);
-      });
+      setDirty(true);
     },
     [setSelection],
   );
@@ -81,6 +88,8 @@ export function useSelection<T, Key extends string>(props: {
         return set;
       });
     }
+
+    setDirty(true);
   }, [props.items, selectItem, setSelection, apiProps]);
 
   return { ...apiProps, toggle, has, list, toggleAll };
