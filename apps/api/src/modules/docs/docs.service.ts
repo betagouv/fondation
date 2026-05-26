@@ -1,4 +1,12 @@
-import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -83,9 +91,12 @@ import {
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
+import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/templates/presentation-plan.html';
 
 @Injectable()
 export class DocsService {
+  private readonly logger = new Logger(DocsService.name);
+
   constructor(
     private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
@@ -672,7 +683,29 @@ export class DocsService {
       });
       plan.present({ endTime: command.endTime });
       await this.justicePresentationPlanRepository.persist(plan, tx);
+
+      const htmlPlan = await tx.justicePresentationPlan.findUnique({
+        where: { id: command.id },
+        select: { html: true },
+      });
+
+      if (!htmlPlan || !htmlPlan.html) {
+        this.logger.error(`tried updating the template of unknown plan`);
+        throw new InternalServerErrorException();
+      }
+
+      const updatedHtml = updatePresentationTimeDocMeetingSessionEndingTime({
+        html: htmlPlan.html,
+        meetingSessionEndingTime: command.endTime,
+      });
+
+      await tx.justicePresentationPlan.update({
+        where: { id: command.id },
+        data: { html: updatedHtml, pdfId: null },
+      });
     });
+
+    await this.findPresentationPlanDocumentPdf({ id: command.id });
   }
 
   async unPresentPlan(command: { id: string }): Promise<void> {

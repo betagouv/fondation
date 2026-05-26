@@ -1,3 +1,4 @@
+import { load } from 'cheerio';
 import { html } from 'common-tags';
 import { format } from 'date-fns';
 
@@ -252,8 +253,13 @@ function presentationPlanSessionSection(ctx: {
   `;
 }
 
+function endingTime(time: TimeOnly): string {
+  return html`Heure de fin de la séance de restitution&nbsp;: ${format(timeOnlyToDate(time), "HH'h'mm")}`;
+}
+
 function content(ctx: {
   time: TimeOnly;
+  endingTime?: TimeOnly;
   justiceContactName: string;
   secretary: { firstName: string; lastName: string };
   sessions: readonly {
@@ -284,6 +290,7 @@ function content(ctx: {
       <li>
         Heure de début de la séance de restitution&nbsp;: ${format(timeOnlyToDate(ctx.time), "HH'h'mm")}
       </li>
+      ${ctx.endingTime ? html`<li>${endingTime(ctx.endingTime)}</li>` : ''}
     </ul>
   `;
 }
@@ -298,3 +305,13 @@ export const presentationPlanTemplate = documentLayout({
   content,
   footer,
 });
+
+export function updatePresentationTimeDocMeetingSessionEndingTime(props: {
+  html: string;
+  meetingSessionEndingTime: TimeOnly;
+}): string {
+  const doc = load(props.html);
+  doc('.content ul:last-of-type').append(html`<li>${endingTime(props.meetingSessionEndingTime)}</li>`);
+
+  return doc.html();
+}

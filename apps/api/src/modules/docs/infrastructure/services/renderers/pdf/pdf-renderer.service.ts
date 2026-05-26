@@ -24,7 +24,10 @@ export class PdfRenderer implements OnModuleDestroy {
   }
 
   private async internalRender(html: string): Promise<Buffer> {
+    const start = performance.now();
     const buffer: Uint8Array = await this.pool.run(html);
+    this.logger.debug(`pdf generation: %dms`, (performance.now() - start).toFixed(3));
+
     Sentry.getActiveSpan()?.setAttribute('output_file.bytes_size', buffer.byteLength);
 
     return Buffer.from(buffer);
