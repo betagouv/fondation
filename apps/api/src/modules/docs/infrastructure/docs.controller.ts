@@ -253,7 +253,6 @@ export class DocsController {
     @Param('agendaId') agendaId: string,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<void> {
-    console.debug('received file', file.size, file.mimetype);
     return this.docs.updateAgendaHtml({ id: agendaId, html: file.buffer });
   }
 
