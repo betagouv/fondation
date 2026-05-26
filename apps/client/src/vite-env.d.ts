@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN: string | undefined;
   readonly VITE_DEPLOY_ENV: string;
   readonly VITE_TAGGED_VERSION: string | undefined;
+  readonly VITE_JDMA_URL: string | undefined;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }
