@@ -50,6 +50,7 @@ export class AgendaIsNotCompatibleWithPresentationPlan extends Error {}
 export class EmptyAgendaList extends Error {}
 export class JusticePresentationPlanEndTimeShouldBeBeforeStartTime extends Error {}
 export class PresentationPlanAgendaAlreadyReported extends Error {}
+export class EmptyPresentationPlanMemberList extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
@@ -107,14 +108,16 @@ export class JusticePresentationPlan {
   private buildState(
     props: CreateJusticePresentationPlanCommand | UpdateJusticePresentationPlanCommand,
   ): JusticePresentationPlanState {
-    const { chairman, secretary, agendas, ...state } = props;
+    const { chairman, secretary, agendas, members, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
     this.assertsAgendas(agendas);
+    const membersList = this.assertsMemberList(members, chairman);
 
     return {
       chairman,
       secretary,
+      members: membersList,
       agendas: agendas.map((agenda) => ({
         ...agenda,
         comment: agenda.comment?.trim() || null,
@@ -126,16 +129,15 @@ export class JusticePresentationPlan {
   }
 
   private assertsChairman(user: PlanUser): asserts user is Chairman {
-    if (user.duty !== 'DEPUTY_PRESIDENT' && user.duty !== 'PRESIDENT') {
+    if (user.role === Role.MEMBRE_COMMUN) return;
+
+    if (this.formation === Magistrat.Formation.PARQUET && user.role !== Role.MEMBRE_DU_PARQUET) {
       throw new UnknownPresentationPlanChairman();
     }
 
-    const titles = new Map<Magistrat.Formation, Set<UserTitleEnum | null>>([
-      [Magistrat.Formation.PARQUET, new Set(['DEPUTY_PRESIDENT_PARQUET', 'PRESIDENT_PARQUET'])],
-      [Magistrat.Formation.SIEGE, new Set(['DEPUTY_PRESIDENT_SIEGE', 'PRESIDENT_SIEGE'])],
-    ]);
-
-    if (!titles.get(this.formation)?.has(user.title)) throw new UnknownPresentationPlanChairman();
+    if (this.formation === Magistrat.Formation.SIEGE && user.role !== Role.MEMBRE_DU_SIEGE) {
+      throw new UnknownPresentationPlanChairman();
+    }
   }
 
   private assertsSecretary(user: PlanUser): asserts user is Secretary {
@@ -159,6 +161,18 @@ export class JusticePresentationPlan {
     if (agendas.some(({ presentationPlan }) => presentationPlan?.id && presentationPlan.id !== this.id)) {
       throw new PresentationPlanAgendaAlreadyReported();
     }
+  }
+
+  private assertsMemberList(
+    members: readonly { id: string; isAbsent: boolean }[],
+    chairman: { id: string },
+  ): { id: string; isAbsent: boolean }[] {
+    const allMembers = members.filter((m) => m.id !== chairman.id);
+
+    const presentMembers = allMembers.filter((m) => !m.isAbsent);
+    if (presentMembers.length < 1) throw new EmptyPresentationPlanMemberList();
+
+    return allMembers;
   }
 
   private static extractFormation(
@@ -209,6 +223,7 @@ export type JusticePresentationPlanState = {
     formation: Magistrat.Formation;
     comment: string | null;
   }[];
+  members: readonly { id: string; isAbsent: boolean }[];
 };
 
 export type CreateJusticePresentationPlanCommand = {
@@ -225,6 +240,7 @@ export type CreateJusticePresentationPlanCommand = {
     session: { id: string; name: string };
     presentationPlan: { id: string } | null;
   }[];
+  members: readonly { id: string; isAbsent: boolean }[];
 };
 
 export type UpdateJusticePresentationPlanCommand = {
@@ -242,4 +258,5 @@ export type UpdateJusticePresentationPlanCommand = {
     session: { id: string; name: string };
     presentationPlan: { id: string } | null;
   }[];
+  members: readonly { id: string; isAbsent: boolean }[];
 };

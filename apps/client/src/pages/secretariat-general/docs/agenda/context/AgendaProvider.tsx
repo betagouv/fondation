@@ -111,7 +111,7 @@ export function AgendaProvider(props: React.PropsWithChildren) {
                 )}
               </p>
               <p>
-                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+                <FormattedMessage defaultMessage={'Êtes-vous sûr de vouloir continuer\u00A0;?'} />
               </p>
             </>
           ),

@@ -20,7 +20,6 @@ import {
 import {
   ChairmanIsNotMember,
   EmptyMembersList,
-  InvalidChairmanDuty,
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
   MixedFormationAgendas,
@@ -38,12 +37,6 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof EmptyAgenda) {
             return new BadRequestException({
               validationError: `Au moins un dossier valide doit être sélectionné`,
-            });
-          }
-
-          if (err instanceof InvalidChairmanDuty) {
-            return new BadRequestException({
-              validationError: `Le président sélectionné n'existe pas`,
             });
           }
 

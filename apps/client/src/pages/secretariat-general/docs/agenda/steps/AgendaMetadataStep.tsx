@@ -7,7 +7,7 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { AgendaChairmanSelect } from '../components/AgendaChairmanSelect';
+import { ChairmanSelector } from '../../components/ChairmanSelector';
 import { useAgenda } from '../context/AgendaContext';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 
@@ -18,7 +18,7 @@ const AgendaMetadataSchema = z.object({
 });
 
 export function AgendaMetadataStep(props: { className?: string }) {
-  const { metadata, goToNominationFiles, cancel } = useAgenda();
+  const { metadata, goToNominationFiles, cancel, session } = useAgenda();
   const defaultValues = React.useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
@@ -74,11 +74,14 @@ export function AgendaMetadataStep(props: { className?: string }) {
           />
         )}
       />
-      <Controller
+
+      <ChairmanSelector
         name="chairmanId"
-        control={control}
-        render={({ field }) => <AgendaChairmanSelect {...field} error={errors.chairmanId?.message} />}
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
+        formation={session.formation}
       />
+
       <ButtonsGroup
         alignment="right"
         inlineLayoutWhen="md and up"

@@ -7,7 +7,7 @@ export type OfficialReport = {
   sessionMeetingStartingTime: TimeOnly;
   sessionMeetingEndingTime: TimeOnly;
   hasRenunciation: boolean;
-  justiceDepartmentContactId: string;
+  justiceContactId: string;
   chairmanId: string;
   secretaryId: string;
   memberIds: string[];

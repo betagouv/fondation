@@ -194,27 +194,27 @@ const router = sentryCreateBrowserRouter([
           },
           {
             lazy: () =>
-              import('@/pages/secretariat-general/presentations/PresentationsLayout').then(
+              import('@/pages/secretariat-general/docs/presentations/PresentationsLayout').then(
                 ({ PresentationsLayout }) => ({ Component: PresentationsLayout }),
               ),
             children: [
               {
                 lazy: () =>
-                  import('@/pages/secretariat-general/presentations/PresentationsTabsPage').then(
+                  import('@/pages/secretariat-general/docs/presentations/PresentationsTabsPage').then(
                     ({ PresentationsTabsPage }) => ({ Component: PresentationsTabsPage }),
                   ),
                 children: [
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
                     lazy: () =>
-                      import('@/pages/secretariat-general/presentations/PresentationsTabPast').then(
+                      import('@/pages/secretariat-general/docs/presentations/PresentationsTabPast').then(
                         ({ PresentationsTabPast }) => ({ Component: PresentationsTabPast }),
                       ),
                   },
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_READY,
                     lazy: () =>
-                      import('@/pages/secretariat-general/presentations/PresentationsTabReady').then(
+                      import('@/pages/secretariat-general/docs/presentations/PresentationsTabReady').then(
                         ({ PresentationsTabReady }) => ({ Component: PresentationsTabReady }),
                       ),
                   },
@@ -223,21 +223,21 @@ const router = sentryCreateBrowserRouter([
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
                 lazy: () =>
-                  import('@/pages/secretariat-general/presentations/PresentationUpsertPage').then(
+                  import('@/pages/secretariat-general/docs/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
                 lazy: () =>
-                  import('@/pages/secretariat-general/presentations/PresentationUpsertPage').then(
+                  import('@/pages/secretariat-general/docs/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
                 lazy: () =>
-                  import('@/pages/secretariat-general/presentations/PresentationsPreviewPage').then(
+                  import('@/pages/secretariat-general/docs/presentations/PresentationsPreviewPage').then(
                     ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
                   ),
               },

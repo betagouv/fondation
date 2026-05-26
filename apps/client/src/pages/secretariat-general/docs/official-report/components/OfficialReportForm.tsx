@@ -9,19 +9,17 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage } from 'react-intl';
 import z from 'zod';
 
+import { AbsentMemberSelector } from '../../components/AbsentMemberSelector';
+import { ChairmanSelector } from '../../components/ChairmanSelector';
+import { JusticeContactSelector } from '../../components/JusticeContactSelector';
 import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
-import { toFullName } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
-  useListMembersForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
-
-import { AbsentMemberSelector } from './AbsentMemberSelector';
-import { JusticeContactSelector } from './JusticeContactSelector';
 
 const OfficialReportMetadataSchema = z
   .object({
@@ -29,7 +27,7 @@ const OfficialReportMetadataSchema = z
     sessionMeetingStartingTime: formTimeOnlyCodec,
     sessionMeetingEndingTime: formTimeOnlyCodec,
     hasRenunciation: z.boolean(),
-    justiceDepartmentContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
+    justiceContactId: z.string().nonempty('Veuillez sélectionner un représentant DSJ'),
     chairmanId: z.uuid('Veuillez sélectionner un président'),
     secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
     memberIds: z.array(z.uuid()),
@@ -75,7 +73,6 @@ const OfficialReportMetadataSchema = z
 export function OfficialReportForm() {
   const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
 
-  const { data: membersData } = useListMembersForNewOfficialReportQuery({ sessionId: session.id });
   const { data: secretariesData } = useListSecretariesGeneralQuery();
 
   const { data: agendas } = useListAgendasForNewOfficialReportQuery({
@@ -84,16 +81,6 @@ export function OfficialReportForm() {
   });
 
   const secretaries = React.useMemo(() => secretariesData?.items ?? [], [secretariesData]);
-  const members = React.useMemo(() => membersData?.items ?? [], [membersData]);
-  const chairmen = React.useMemo(
-    () =>
-      members.filter((m) =>
-        m.duty === 'PRESIDENT' && session.formation === 'PARQUET'
-          ? m.title === 'DEPUTY_PRESIDENT_PARQUET' || m.title === 'PRESIDENT_PARQUET'
-          : m.title === 'DEPUTY_PRESIDENT_SIEGE' || m.title === 'PRESIDENT_SIEGE',
-      ),
-    [members, session],
-  );
 
   const defaultValues = React.useMemo(
     () => ({
@@ -105,7 +92,7 @@ export function OfficialReportForm() {
         ? (timeOnlyToString({ hours: 0, minutes: 0, ...metadata.sessionMeetingEndingTime }, 'HH:mm') ?? '')
         : '',
       hasRenunciation: metadata?.hasRenunciation ?? true,
-      justiceDepartmentContactId: metadata?.justiceDepartmentContactId ?? '',
+      justiceContactId: metadata?.justiceContactId ?? '',
       chairmanId: metadata?.chairmanId ?? '',
       secretaryId: metadata?.secretaryId ?? '',
       memberIds: metadata?.memberIds ?? ([] as string[]),
@@ -118,7 +105,6 @@ export function OfficialReportForm() {
     control,
     setValue,
     handleSubmit,
-    watch,
     subscribe,
     formState: { errors, isValid },
   } = useForm({
@@ -126,17 +112,6 @@ export function OfficialReportForm() {
     defaultValues,
     resolver: zodResolver(OfficialReportMetadataSchema),
   });
-
-  const selectedChairmanId = watch('chairmanId');
-
-  React.useEffect(() => {
-    if (chairmen.length > 0 && !metadata?.chairmanId) {
-      const president = chairmen.find((c) =>
-        session.formation === 'PARQUET' ? c.title === 'PRESIDENT_PARQUET' : c.title === 'PRESIDENT_SIEGE',
-      );
-      if (president) setValue('chairmanId', president.id);
-    }
-  }, [chairmen, session.formation, metadata, setValue]);
 
   React.useEffect(() => {
     if (secretaries.length > 0 && !metadata?.secretaryId) {
@@ -148,6 +123,7 @@ export function OfficialReportForm() {
   React.useEffect(() => {
     const unsubscribe = subscribe({
       name: 'agendaId',
+      formState: { values: true, dirtyFields: true },
       callback: (state) => {
         const agenda = (agendas?.items ?? []).find((agenda) => agenda.id === state.values.agendaId);
         if (!agenda) return;
@@ -160,8 +136,15 @@ export function OfficialReportForm() {
           setValue('secretaryId', agenda.presentationPlan.secretaryId);
         }
 
-        if (!state.dirtyFields?.justiceDepartmentContactId && agenda.presentationPlan?.justiceContactId) {
-          setValue('justiceDepartmentContactId', agenda.presentationPlan.justiceContactId);
+        if (!state.dirtyFields?.justiceContactId && agenda.presentationPlan?.justiceContactId) {
+          setValue('justiceContactId', agenda.presentationPlan.justiceContactId);
+        }
+
+        if (!state.dirtyFields?.sessionMeetingDate && agenda.sessionMeetingDate) {
+          setValue(
+            'sessionMeetingDate',
+            dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0],
+          );
         }
 
         if (!state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlan?.startTime) {
@@ -172,6 +155,10 @@ export function OfficialReportForm() {
         if (!state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlan?.endTime) {
           const endTime = formTimeOnlyCodec.encode(agenda.presentationPlan.endTime);
           if (endTime) setValue('sessionMeetingEndingTime', endTime);
+        }
+
+        if (!state?.dirtyFields?.memberIds && agenda.presentationPlan?.absentMembers) {
+          setValue('memberIds', [...agenda.presentationPlan.absentMembers]);
         }
       },
     });
@@ -193,15 +180,13 @@ export function OfficialReportForm() {
       const agenda = agendas?.items.find(({ id }) => id === agendaId);
       if (!agenda || !agenda.chairmanId) return;
 
-      if (!chairmen.length || !chairmen.some(({ id }) => id === agenda.chairmanId)) return;
-
       setValue('chairmanId', agenda.chairmanId, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
       });
     },
-    [agendas, chairmen, setValue],
+    [agendas, setValue],
   );
 
   return (
@@ -291,89 +276,29 @@ export function OfficialReportForm() {
         )}
       />
 
-      <Controller
+      <ChairmanSelector
+        formation={session.formation}
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
         name="chairmanId"
-        control={control}
-        render={({ field }) => (
-          <Select
-            label={
-              <FormattedMessage
-                defaultMessage={`<mandatory>Président de séance</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
-              />
-            }
-            nativeSelectProps={{
-              value: field.value,
-              onChange: (e) => field.onChange(e.target.value),
-            }}
-            state={errors.chairmanId ? 'error' : 'default'}
-            stateRelatedMessage={errors.chairmanId?.message}
-          >
-            <option value="" disabled>
-              Sélectionner le président de séance
-            </option>
-            {chairmen.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.displayTitle ? [c.displayTitle, c.lastName.toUpperCase()].join(' ') : toFullName(c)}
-              </option>
-            ))}
-          </Select>
-        )}
-      />
-
-      <Controller
-        name="secretaryId"
-        control={control}
-        render={({ field }) => (
-          <Select
-            label={
-              <FormattedMessage
-                defaultMessage={`<mandatory>Secrétaire Général</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
-              />
-            }
-            nativeSelectProps={{
-              value: field.value,
-              onChange: (e) => field.onChange(e.target.value),
-            }}
-            state={errors.secretaryId ? 'error' : 'default'}
-            stateRelatedMessage={errors.secretaryId?.message}
-          >
-            <option value="" disabled>
-              Sélectionner le secrétaire général
-            </option>
-            {secretaries.map((m) => (
-              <option key={m.id} value={m.id}>
-                {toFullName(m)}
-              </option>
-            ))}
-          </Select>
-        )}
       />
 
       <AbsentMemberSelector
         name="memberIds"
-        sessionId={session.id}
-        chairmanId={selectedChairmanId}
+        formation={session.formation}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
       />
 
-      <Controller
-        name="justiceDepartmentContactId"
-        control={control}
-        render={({ field }) => (
-          <JusticeContactSelector
-            label={
-              <FormattedMessage
-                defaultMessage={`<mandatory>Représentant DSJ</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
-              />
-            }
-            value={field.value}
-            onChange={field.onChange}
-          />
-        )}
+      <JusticeContactSelector
+        label={
+          <Mandatory>
+            <FormattedMessage defaultMessage={`Représentant DSJ`} />
+          </Mandatory>
+        }
+        // oxlint-disable-next-line typescript/no-explicit-any
+        control={control as any}
+        name="justiceContactId"
       />
 
       <Controller

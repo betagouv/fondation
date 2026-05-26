@@ -159,6 +159,7 @@ export class JusticePresentationPlanRepository {
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
     });
 
+    await tx.justicePresentationPlanMember.deleteMany({ where: { planId: message.id } });
     await tx.justicePresentationPlanNominationFile.deleteMany({ where: { planId: message.id } });
 
     await tx.justicePresentationPlan.upsert({
@@ -166,6 +167,9 @@ export class JusticePresentationPlanRepository {
 
       create: {
         ...data,
+        members: {
+          createMany: { data: message.state.members.map((m) => ({ memberId: m.id, isAbsent: m.isAbsent })) },
+        },
         html: null,
         pdfId: null,
         id: message.id,
@@ -184,6 +188,9 @@ export class JusticePresentationPlanRepository {
         ...data,
         html: null,
         pdfId: null,
+        members: {
+          createMany: { data: message.state.members.map((m) => ({ memberId: m.id, isAbsent: m.isAbsent })) },
+        },
         nominationFiles: { createMany: { data: nominationFilesCreateMany } },
         agendas: {
           createMany: {

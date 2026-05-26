@@ -2,7 +2,7 @@ import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
 import Heading from '@tiptap/extension-heading';
 import Italic from '@tiptap/extension-italic';
-import { BulletList, ListItem } from '@tiptap/extension-list';
+import { BulletList, ListItem, OrderedList } from '@tiptap/extension-list';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
@@ -49,7 +49,18 @@ export function DocumentEditor(props: {
 
   const editor = useEditor({
     content: extractEditableContent(props.html),
-    extensions: [Document, Paragraph, Text, Bold, Italic, UndoRedo, BulletList, ListItem, Heading],
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      Bold,
+      Italic,
+      UndoRedo,
+      BulletList,
+      ListItem,
+      Heading,
+      OrderedList,
+    ],
     onUpdate: ({ editor }) => {
       debouncedOnChange(reinjectContent(editor.getHTML()));
     },

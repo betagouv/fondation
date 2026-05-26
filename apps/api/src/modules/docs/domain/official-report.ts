@@ -20,7 +20,6 @@ export type OfficialReportUser = {
 };
 
 export class ChairmanIsNotMember extends Error {}
-export class InvalidChairmanDuty extends Error {}
 export class InvalidChairmanFormation extends Error {}
 export class InvalidSecretaryDuty extends Error {}
 export class MixedFormationAgendas extends Error {}
@@ -122,10 +121,6 @@ export class OfficialReport {
       )
     ) {
       throw new OfficialReportEndingTimeIsBeforeStatingTime();
-    }
-
-    if (props.chairman.duty !== PrismaUserDutyEnum.PRESIDENT) {
-      throw new InvalidChairmanDuty();
     }
 
     if (props.chairman.role === Role.ADMIN || props.chairman.role === Role.ADJOINT_SECRETAIRE_GENERAL) {
