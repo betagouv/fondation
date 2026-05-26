@@ -8,7 +8,7 @@ import type { Pretty } from 'src/utils/types';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 
-export const html = stripIndent;
+const html = stripIndent;
 
 function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Formation }): string {
   return html`
@@ -22,6 +22,7 @@ function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Form
       <p class="subtitle">Ordre du jour</p>
       <p class="date">Séance du ${date(ctx.sessionMeetingDate, 'do MMMM yyyy')}</p>
     </div>
+    <p class="introduction">Sur la proposition du garde des Sceaux de nommer&nbsp;:</p>
   `;
 }
 
@@ -53,10 +54,7 @@ function agendaNominationParagraph(
 
 type AgendaContentCtx = Pretty<Parameters<typeof agendaNominationParagraph>[0]>;
 function agendaContent(ctx: { nominationFiles: readonly AgendaContentCtx[] }): string {
-  return html`
-    <p class="introduction">Sur la proposition du garde des Sceaux de nommer&nbsp;:</p>
-    ${ctx.nominationFiles.map((n, i) => agendaNominationParagraph(n, i + 1)).join('\n')}
-  `;
+  return html` ${ctx.nominationFiles.map((n, i) => agendaNominationParagraph(n, i + 1)).join('\n')}`;
 }
 
 function agendaFooter(ctx: {
@@ -79,23 +77,15 @@ function agendaCss(): string {
     ${commonDocumentCss()}
 
     main {
-      p {
-        &.introduction {
-          margin-top: 3rem;
-          margin-bottom: 1.5rem;
-          font-weight: bold;
-        }
+      .content p {
+        text-indent: 2rem;
+        text-align: justify;
+        text-wrap: pretty;
+        line-height: 1.5rem;
+        break-inside: avoid;
 
-        &.article {
-          text-indent: 2rem;
-          text-align: justify;
-          text-wrap: pretty;
-          line-height: 1.5rem;
-          break-inside: avoid;
-  
-          strong {
-            font-weight: 600;
-          }
+        strong {
+          font-weight: 600;
         }
       }
 
@@ -105,6 +95,14 @@ function agendaCss(): string {
           display: flex;
           align-items: center;
           justify-content: space-between;
+        }
+
+        p.introduction {
+          text-indent: 0;
+          text-align: left;
+          margin-top: 3rem;
+          margin-bottom: 1.5rem;
+          font-weight: bold;
         }
 
         .subtitle {

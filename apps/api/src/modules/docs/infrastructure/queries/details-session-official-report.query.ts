@@ -5,26 +5,41 @@ import z from 'zod';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
+import { FindOfficialReportDocumentPdfQuery } from './find-official-report-document-pdf.query';
+
 @Injectable()
 export class DetailsSessionOfficialReportQuery {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly files: Files,
+    private readonly prisma: PrismaService,
+    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
   ) {}
 
-  async handle(query: { officialReportId: string }) {
-    const file = await this.prisma.officialReport.findUnique({
-      where: { id: query.officialReportId },
+  async handle(query: { officialReportId: string }): Promise<DetailedSessionOfficialReportDto> {
+    return this.innerHandle({ ...query, afterGeneration: false });
+  }
+
+  private async innerHandle(query: {
+    officialReportId: string;
+    afterGeneration: boolean;
+  }): Promise<DetailedSessionOfficialReportDto> {
+    const officialReport = await this.prisma.officialReport.findUnique({
+      where: { id: query.officialReportId, html: { not: null } },
       select: { id: true, pdf: { select: { id: true } } },
     });
 
-    if (!file || !file.pdf) throw new NotFoundException();
+    if (!officialReport) throw new NotFoundException();
+    if (!officialReport.pdf && query.afterGeneration) throw new NotFoundException();
 
-    const { [file.pdf.id]: url } = await this.files.getPublicUrls([file.pdf.id]);
+    if (!officialReport.pdf) {
+      await this.findOfficialReportDocumentPdfQuery.handle({ id: query.officialReportId, forceNew: false });
+      return this.innerHandle({ ...query, afterGeneration: true });
+    }
 
+    const { [officialReport.pdf.id]: url } = await this.files.getPublicUrls([officialReport.pdf.id]);
     if (!url) throw new NotFoundException();
 
-    return { id: file.id, url: url.toString() };
+    return { id: officialReport.id, url: url.toString() };
   }
 }
 

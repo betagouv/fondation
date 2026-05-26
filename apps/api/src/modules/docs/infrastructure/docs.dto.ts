@@ -32,7 +32,7 @@ export class CreateOrUpdateOfficialReportDto extends createZodDto(
     chairmanId: z.uuid(),
     secretaryId: z.uuid(),
     agendas: z.array(z.uuid()).nonempty(),
-    members: z.array(z.uuid()).nonempty(),
+    absentMemberIds: z.array(z.uuid()),
   }),
 ) {}
 
@@ -81,5 +81,11 @@ export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
 export class PresentPlanDto extends createZodDto(
   z.object({
     endTime: timeOnlySchema,
+  }),
+) {}
+
+export class UpdateDocumentHtmlDto extends createZodDto(
+  z.object({
+    html: z.string().min(1),
   }),
 ) {}

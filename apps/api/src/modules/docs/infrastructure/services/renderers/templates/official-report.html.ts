@@ -50,9 +50,7 @@ function officialReportNominationParagraph(ctx: {
   const reporters =
     ctx.file.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.file.reporters)}` : '';
 
-  return html`<p class="file">
-    <strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.
-  </p>`;
+  return html`<p><strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.</p>`;
 }
 
 function content(ctx: {
@@ -76,6 +74,7 @@ function content(ctx: {
     lastName: string;
     gender: Gender;
     displayTitle: string | null;
+    isAbsent: boolean;
   }[];
   chairman: {
     id: string | null;
@@ -104,9 +103,10 @@ function content(ctx: {
     `, en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:</p>`;
 
   const membersList = html`
-    <ul class="members-list">
+    <ul>
       ${ctx.members
         .filter((member) => ctx.chairman.id === null || member.id === null || member.id !== ctx.chairman.id)
+        .filter((member) => !member.isAbsent)
         .map((member) => `<li>${displayTitled(member)}</li>`)
         .join('')}
     </ul>
@@ -154,7 +154,7 @@ function content(ctx: {
     <p>${intro}</p>
     ${membersList}
     <p><strong>En présence de&nbsp;:</strong></p>
-    <ul class="secretaries">
+    <ul>
       <li>
         ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`}${fullname(ctx.secretary)},
         ${ctx.secretary.title === 'FIRST_SECRETARY'
@@ -262,16 +262,25 @@ function css() {
         text-align: justify;
         text-wrap: pretty;
         break-inside: avoid;
+        text-indent: 2rem;
       }
 
-      li,
-      p.file {
+      p:nth-of-type(1),
+      p:nth-of-type(2),
+      p:nth-of-type(3),
+      p:nth-of-type(4) {
+        text-indent: 0;
+      }
+
+      h2 + p { text-indent: 0; }
+
+      li {
         font-size: 0.8rem;
       }
 
-      p.file {
+      /* p.file {
         text-indent: 2rem;
-      }
+      } */
 
       .signatures {
         break-before: avoid;

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
@@ -8,6 +9,7 @@ import {
   agendaKeys,
   useCreateAgendaMutation,
   useDetailsAgendaMetadataQuery,
+  useResetAgendaDocumentMutation,
   useUpdateAgendaMutation,
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
@@ -21,12 +23,14 @@ const STEPS = {
 } as const satisfies Record<1 | 2, AgendaStep>;
 
 export function AgendaProvider(props: React.PropsWithChildren) {
+  const { formatMessage } = useIntl();
   const { sessionId = '', agendaId = null } = useParams<{ sessionId: string; agendaId?: string }>();
   const navigate = useNavigate();
   const { waitForConfirmation } = useConfirmation();
   const queryClient = useQueryClient();
 
   const createAgenda = useCreateAgendaMutation();
+  const resetAgenda = useResetAgendaDocumentMutation(agendaId ?? '');
   const updateAgenda = useUpdateAgendaMutation(sessionId);
 
   const { data: session, isFetching: sessionFetching } = useDetailedNominationSessionQuery({
@@ -82,6 +86,40 @@ export function AgendaProvider(props: React.PropsWithChildren) {
         return;
       }
 
+      if (agendaId) {
+        const { isConfirmed } = await waitForConfirmation({
+          title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
+          i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser l'ordre du jour` }) },
+          content: (
+            <>
+              <p>
+                {agendaMetadata?.isManuallyEdited ? (
+                  <FormattedMessage
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version de l'ordre du jour` +
+                      `sans pouvoir la récupérer`
+                    }
+                  />
+                ) : (
+                  <FormattedMessage
+                    values={{ bold: (x) => <strong>{x}</strong> }}
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version de l'ordre du jour,` +
+                      `<bold>y compris ses éditions manuelles</bold> sans pouvoir les récupérer`
+                    }
+                  />
+                )}
+              </p>
+              <p>
+                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+              </p>
+            </>
+          ),
+        });
+
+        if (!isConfirmed) return;
+      }
+
       const payload = {
         nominationFileIds,
         chairmanId: state.metadata.chairmanId,
@@ -103,7 +141,9 @@ export function AgendaProvider(props: React.PropsWithChildren) {
       }
 
       if (agendaId) {
-        updateAgenda.mutate({ ...payload, agendaId }, { onSuccess });
+        resetAgenda.mutate(undefined, {
+          onSuccess: () => updateAgenda.mutate({ ...payload, agendaId }, { onSuccess }),
+        });
       } else {
         createAgenda.mutate({ ...payload, sessionId }, { onSuccess });
       }
@@ -116,6 +156,9 @@ export function AgendaProvider(props: React.PropsWithChildren) {
       updateAgenda,
       agendaId,
       sessionId,
+      resetAgenda,
+      agendaMetadata?.isManuallyEdited,
+      formatMessage,
       navigate,
       waitForConfirmation,
     ],

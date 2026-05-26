@@ -1,4 +1,12 @@
-import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
@@ -8,6 +16,7 @@ import { MembersService } from '../members';
 import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
+import { Files } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import { TimeOnly } from 'src/utils/time-only';
 
@@ -82,10 +91,14 @@ import {
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
+import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/templates/presentation-plan.html';
 
 @Injectable()
 export class DocsService {
+  private readonly logger = new Logger(DocsService.name);
+
   constructor(
+    private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
     private readonly officialReportRepository: OfficialReportRepository,
 
@@ -280,6 +293,72 @@ export class DocsService {
     return this.detailsAgendaMetadataQuery.handle(query);
   }
 
+  async resetAgendaDocument(command: { id: string }): Promise<void> {
+    const agenda = await this.prisma.agenda.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!agenda) throw new NotFoundException();
+
+    await this.prisma.agenda.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfFileId: null },
+    });
+
+    if (agenda.pdf) this.files.delete([agenda.pdf]);
+  }
+
+  async resetOfficialReportDocument(command: { id: string }): Promise<void> {
+    const report = await this.prisma.officialReport.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!report) throw new NotFoundException();
+
+    await this.prisma.officialReport.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfId: null },
+    });
+
+    if (report.pdf) this.files.delete([report.pdf]);
+  }
+
+  async resetPresentationPlanDocument(command: { id: string }): Promise<void> {
+    const plan = await this.prisma.justicePresentationPlan.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!plan) throw new NotFoundException();
+
+    await this.prisma.justicePresentationPlan.update({
+      where: { id: command.id },
+      data: { html: null, isManuallyEdited: false, pdfId: null },
+    });
+
+    if (plan.pdf) this.files.delete([plan.pdf]);
+  }
+
+  async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.agenda.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
+  }
+
+  async updateOfficialReportHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.officialReport.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
+  }
+
+  async updatePresentationPlanHtml(command: { id: string; html: Buffer }): Promise<void> {
+    await this.prisma.justicePresentationPlan.update({
+      where: { id: command.id },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+    });
+  }
+
   searchJusticeContacts(query: { search: string }): Promise<FoundJusticeContactsDto> {
     return this.findJusticeContactsQuery.handle(query);
   }
@@ -322,8 +401,8 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     agendaIds: readonly string[];
-    memberIds: readonly string[];
     sessionId: string;
+    absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
     return this.prisma.$transaction(async (tx) => {
       const session = await this.sessions.details({
@@ -349,7 +428,7 @@ export class DocsService {
       }
 
       const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByIds({ ids: command.memberIds, tx });
+      const members = await this.members.internalFindMembersByFormation({ formation: session.formation, tx });
 
       const report = OfficialReport.create({
         agendas,
@@ -364,6 +443,7 @@ export class DocsService {
         sessionMeetingEndingTime: command.sessionMeetingEndingTime,
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
         justiceDepartmentContactId: command.justiceDepartmentContactId,
+        absentMembers: new Set(command.absentMemberIds),
       });
 
       await this.officialReportRepository.persist(report, tx);
@@ -383,7 +463,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     agendaIds: readonly string[];
-    memberIds: readonly string[];
+    absentMemberIds: readonly string[];
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const secretary = await this.auth.detailsUser({
@@ -392,9 +472,9 @@ export class DocsService {
         tx,
       });
 
-      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByIds({ ids: command.memberIds, tx });
       const report = await this.officialReportRepository.find({ tx, id: command.id });
+      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
+      const members = await this.members.internalFindMembersByFormation({ formation: report.formation, tx });
 
       const uniqueAgendaIds = new Set(command.agendaIds);
       const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
@@ -421,6 +501,7 @@ export class DocsService {
         sessionMeetingEndingTime: command.sessionMeetingEndingTime,
         justiceDepartmentContactId: command.justiceDepartmentContactId,
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+        absentMembers: new Set(command.absentMemberIds),
       });
 
       await this.officialReportRepository.persist(report, tx);
@@ -602,7 +683,29 @@ export class DocsService {
       });
       plan.present({ endTime: command.endTime });
       await this.justicePresentationPlanRepository.persist(plan, tx);
+
+      const htmlPlan = await tx.justicePresentationPlan.findUnique({
+        where: { id: command.id },
+        select: { html: true },
+      });
+
+      if (!htmlPlan || !htmlPlan.html) {
+        this.logger.error(`tried updating the template of unknown plan`);
+        throw new InternalServerErrorException();
+      }
+
+      const updatedHtml = updatePresentationTimeDocMeetingSessionEndingTime({
+        html: htmlPlan.html,
+        meetingSessionEndingTime: command.endTime,
+      });
+
+      await tx.justicePresentationPlan.update({
+        where: { id: command.id },
+        data: { html: updatedHtml, pdfId: null },
+      });
     });
+
+    await this.findPresentationPlanDocumentPdf({ id: command.id });
   }
 
   async unPresentPlan(command: { id: string }): Promise<void> {

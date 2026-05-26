@@ -5,8 +5,8 @@ import {
   NotFoundException,
   StreamableFile,
 } from '@nestjs/common';
-import { formatDate } from 'date-fns';
 
+import { agendaFileName } from '../../domain/agenda-file-name';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
@@ -57,7 +57,8 @@ export class FindAgendaDocumentPdfQuery {
     const html = await this.findAgendaDocumentQuery.handle(query);
     const buffer = await this.agendaRenderer.pdf(html);
 
-    const name = `Ordre du jour - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
+    const name = agendaFileName(file);
+
     const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);

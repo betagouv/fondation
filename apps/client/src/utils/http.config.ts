@@ -14,10 +14,12 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   credentials: 'include',
   throwOnError: true,
   fetch: async (init) => {
-    const timeout =
-      init instanceof URL || (typeof init !== 'string' && [undefined, 'GET'].includes(init.method))
-        ? 10_000
-        : 60_000;
+    const url = typeof init === 'string' ? init : init instanceof URL ? init.toString() : init.url;
+    const isPdfGenerationUrl = /\/api\/docs\/v1\/.+\.pdf/.test(url);
+
+    const isQuery =
+      init instanceof URL || (typeof init !== 'string' && [undefined, 'GET'].includes(init.method));
+    const timeout = isQuery && !isPdfGenerationUrl ? 10_000 : 60_000;
 
     const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeout) });
     return httpAssert(response);

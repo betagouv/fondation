@@ -19,6 +19,6 @@ export type OfficialReportContextType = {
   session: { id: string; formation: FormationEnum };
   report: OfficialReport | null;
   isSubmitting: boolean;
-  submit(form: OfficialReport): void;
+  submit(form: OfficialReport): Promise<void>;
   cancel(): void;
 };

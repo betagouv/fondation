@@ -1,10 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
+  presentationPlanKeys,
   useCreateJusticePresentationPlanMutation,
   useJusticePresentationPlanMetadataQuery,
+  useResetPresentationPlanDocumentMutation,
   useUpdateJusticePresentationPlanMutation,
 } from '@queries/agenda.queries';
 
@@ -20,8 +25,12 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
 
   const { mutate: create, isPending: isCreating } = useCreateJusticePresentationPlanMutation();
   const { mutate: update, isPending: isUpdating } = useUpdateJusticePresentationPlanMutation();
+  const { mutate: resetPlan } = useResetPresentationPlanDocumentMutation(planId ?? '');
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { formatMessage } = useIntl();
+  const { waitForConfirmation } = useConfirmation();
   const [state, setState] = React.useState<PresentationPlanContextType['state']>({
     step: 'METADATA',
     formation: null,
@@ -86,11 +95,45 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
   );
 
   const createPlan = React.useCallback(
-    (options: { agendas: Record<string, string | null> }) => {
+    async (options: { agendas: Record<string, string | null> }) => {
       setState((s) => ({ ...s, agendas: options.agendas }));
 
       if (!state.chairmanId || !state.secretaryId || !state.justiceContactId || !state.date || !state.time) {
         throw new Error(`Invalid value`);
+      }
+
+      if (planId) {
+        const { isConfirmed } = await waitForConfirmation({
+          title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
+          i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser le plan de présentation` }) },
+          content: (
+            <>
+              <p>
+                {metadata?.isManuallyEdited ? (
+                  <FormattedMessage
+                    values={{ bold: (x) => <strong>{x}</strong> }}
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version de la notice de restitution,` +
+                      `<bold>y compris ses éditions manuelles</bold>, sans pouvoir les récupérer`
+                    }
+                  />
+                ) : (
+                  <FormattedMessage
+                    defaultMessage={
+                      `En confirmant, vous allez écraser l'ancienne version de la notice de restitution` +
+                      `sans pouvoir la récupérer`
+                    }
+                  />
+                )}
+              </p>
+              <p>
+                <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer&nbsp;?" />
+              </p>
+            </>
+          ),
+        });
+
+        if (!isConfirmed) return;
       }
 
       const payload = {
@@ -105,12 +148,15 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         })),
       };
 
-      const onSuccess = (planId: string) => {
-        navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId }));
-      };
+      async function onSuccess(id: string) {
+        await queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
+        navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
+      }
 
       if (planId) {
-        update({ ...payload, id: planId }, { onSuccess: () => onSuccess(planId) });
+        resetPlan(undefined, {
+          onSuccess: () => update({ ...payload, id: planId }, { onSuccess: () => onSuccess(planId) }),
+        });
       } else {
         create(payload, {
           onSuccess: ({ data }) => {
@@ -119,7 +165,19 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         });
       }
     },
-    [state, setState, planId, update, create, navigate],
+    [
+      state,
+      setState,
+      planId,
+      update,
+      create,
+      resetPlan,
+      navigate,
+      queryClient,
+      waitForConfirmation,
+      formatMessage,
+      metadata?.isManuallyEdited,
+    ],
   );
 
   return (

@@ -1,7 +1,10 @@
+import { stripIndent } from 'common-tags';
+
 import type { Pretty, UnionToIntersection } from 'src/utils/types';
 
-import { html } from './agenda.html';
 import { Template, TemplateFunction } from './templates.types';
+
+const html = stripIndent;
 
 function documentLogo(): string {
   return html`
@@ -526,7 +529,7 @@ export function documentLayout<const T extends LayoutContext>({
   footer,
 }: T): Template<MergedCtx<T[keyof T]>> {
   return new Template(function (ctx: MergedCtx<T[keyof T]>) {
-    return html`
+    return /* html */ `
       <!doctype html>
       <html lang="fr">
         <head>
@@ -551,7 +554,7 @@ export function documentLayout<const T extends LayoutContext>({
               <div class="drapeau"></div>
             </footer>
 
-            ${content(ctx)}
+            <div class="content" data-editable-content>${content(ctx)}</div>
 
             <div class="footer">${footer(ctx)}</div>
           </main>

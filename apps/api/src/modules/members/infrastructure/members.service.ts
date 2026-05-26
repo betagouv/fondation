@@ -8,11 +8,11 @@ import { Pagination } from 'src/modules/framework/pagination';
 
 import { MemberRepository } from './member-repository';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
-import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
 import {
-  InternalFindMembersByIdsQuery,
+  InternalFindMembersByFormationQuery,
   InternalMemberListDto,
-} from './queries/internal-find-members-by-ids.query';
+} from './queries/internal-find-members-by-formation.query';
+import { InternalFindMembersByFullNameQuery } from './queries/internal-find-members-by-full-name.query';
 import { InternalFindMembersQuery } from './queries/internal-find-members.query';
 import { InternalGetMemberQuery, InternalMemberDto } from './queries/internal-get-member.query';
 import { ListMembersQuery, PaginatedMemberListItemDto } from './queries/list-members.query';
@@ -26,7 +26,7 @@ export class MembersService {
     private readonly internalFindMembersQuery: InternalFindMembersQuery,
     private readonly internalFindMembersByFullName: InternalFindMembersByFullNameQuery,
     private readonly internalGetMemberQuery: InternalGetMemberQuery,
-    private readonly internalFindMembersByIdsQuery: InternalFindMembersByIdsQuery,
+    private readonly internalFindMembersByFormationQuery: InternalFindMembersByFormationQuery,
   ) {}
 
   listMembers(query: {
@@ -65,6 +65,7 @@ export class MembersService {
   findMembers(query: {
     ids: readonly string[] | undefined;
     formation: Magistrat.Formation | undefined;
+    tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
     return this.internalFindMembersQuery.handle(query);
   }
@@ -83,10 +84,10 @@ export class MembersService {
   }
 
   /** @internal */
-  internalFindMembersByIds(query: {
-    ids: readonly string[];
+  internalFindMembersByFormation(query: {
+    formation: Magistrat.Formation;
     tx?: Prisma.TransactionClient;
   }): Promise<InternalMemberListDto[]> {
-    return this.internalFindMembersByIdsQuery.handle(query);
+    return this.internalFindMembersByFormationQuery.handle(query);
   }
 }

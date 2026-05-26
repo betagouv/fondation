@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { agendaFileName } from '../../domain/agenda-file-name';
+import { officialReportFileName } from '../../domain/official-report-file-name';
 import { PrismaService } from 'src/modules/framework/database';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -10,39 +12,41 @@ export class FindSessionDocsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
-    const [agendaFiles, officialReportFiles] = await this.prisma.$transaction([
+    const [session, agendaFiles, officialReportFiles] = await this.prisma.$transaction([
+      this.prisma.session.findUnique({ where: { id: query.sessionId }, select: { formation: true } }),
       this.prisma.agenda.findMany({
         orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
-        where: { sessionId: query.sessionId, pdf: { isNot: null } },
+        where: { sessionId: query.sessionId, html: { not: null } },
         select: {
           id: true,
+          date: true,
           officialReportId: true,
-          pdf: { select: { name: true } },
         },
       }),
       this.prisma.officialReport.findMany({
         orderBy: [{ sessionMeetingDate: 'asc' }, { createdAt: 'asc' }],
-        where: { agendas: { every: { sessionId: query.sessionId } } },
-        select: { id: true, pdf: { select: { name: true } } },
+        where: { html: { not: null }, agendas: { every: { sessionId: query.sessionId } } },
+        select: { id: true, sessionMeetingDate: true },
       }),
     ]);
 
+    if (!session) return { items: [] };
+
+    const { formation } = session;
     return {
       items: ([] as (FoundSessionDocsDto['items'][number] | undefined)[])
         .concat(
-          agendaFiles.map(({ id, officialReportId, pdf }) =>
-            pdf
-              ? {
-                  id,
-                  name: pdf.name,
-                  type: 'agenda' as const,
-                  isLinkedToOfficialReport: !!officialReportId,
-                }
-              : undefined,
-          ),
-          officialReportFiles.map(({ id, pdf }) =>
-            pdf ? { id, name: pdf.name, type: 'officialReport' as const } : undefined,
-          ),
+          agendaFiles.map(({ id, date, officialReportId }) => ({
+            id,
+            type: 'agenda' as const,
+            isLinkedToOfficialReport: !!officialReportId,
+            name: agendaFileName({ date, formation }),
+          })),
+          officialReportFiles.map(({ id, sessionMeetingDate: date }) => ({
+            id,
+            type: 'officialReport' as const,
+            name: officialReportFileName({ date, formation }),
+          })),
         )
         .filter(isDefined),
     };

@@ -58,7 +58,7 @@ export class AgendaFinder {
     ids?: Set<string>,
     tx?: Prisma.TransactionClient,
   ): Promise<FoundAgendasDto> {
-    if (tx) return this.prisma.$transaction((tx) => this.find(where, ids, tx));
+    if (!tx) return this.prisma.$transaction((tx) => this.find(where, ids, tx));
 
     const size = ids?.size ?? 0;
     if (size > 32_000) {
@@ -66,7 +66,7 @@ export class AgendaFinder {
       throw new InternalServerErrorException();
     }
 
-    const items = await this.prisma.agenda.findMany({
+    const items = await tx.agenda.findMany({
       where,
       orderBy: { date: 'asc' },
       select: {

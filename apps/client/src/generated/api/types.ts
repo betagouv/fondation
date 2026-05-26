@@ -902,6 +902,7 @@ export type DocGenerationSessionReadinessDto = {
 export type DetailedAgendaMetadata = {
     id: string;
     chairmanId: string | null;
+    isManuallyEdited: boolean;
     date: {
         year: number;
         month: number;
@@ -935,7 +936,7 @@ export type CreateOrUpdateOfficialReportDto = {
     chairmanId: string;
     secretaryId: string;
     agendas: Array<string>;
-    members: Array<string>;
+    absentMemberIds: Array<string>;
 };
 
 export type CreatedOfficialReportDto = {
@@ -1011,7 +1012,7 @@ export type FoundMembersForNewOfficialReportDto = {
 export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
-    members: Array<string>;
+    absentMembers: Array<string>;
     agendas: Array<string>;
     sessionMeetingDate: {
         year: number;
@@ -1028,6 +1029,7 @@ export type DetailedOfficialReportMetadataDto = {
         minutes: number;
         seconds: number;
     };
+    isManuallyEdited: boolean;
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
@@ -1071,6 +1073,7 @@ export type DetailedPresentationPlanMetadataDto = {
         day: number;
     };
     isPresented: boolean;
+    isManuallyEdited: boolean;
     formation: 'PARQUET' | 'SIEGE';
     agendas: Array<{
         id: string;
@@ -2499,6 +2502,38 @@ export type GenerateAgendaPdfResponses = {
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
 
+export type UpdateAgendaHtmlData = {
+    body?: {
+        html?: Blob | File;
+    };
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/html';
+};
+
+export type UpdateAgendaHtmlResponses = {
+    204: void;
+};
+
+export type UpdateAgendaHtmlResponse = UpdateAgendaHtmlResponses[keyof UpdateAgendaHtmlResponses];
+
+export type ResetAgendaDocumentData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/document';
+};
+
+export type ResetAgendaDocumentResponses = {
+    204: void;
+};
+
+export type ResetAgendaDocumentResponse = ResetAgendaDocumentResponses[keyof ResetAgendaDocumentResponses];
+
 export type CreateOfficialReportData = {
     body: CreateOrUpdateOfficialReportDto;
     path: {
@@ -2666,6 +2701,38 @@ export type UpdateOfficialReportResponses = {
 
 export type UpdateOfficialReportResponse = UpdateOfficialReportResponses[keyof UpdateOfficialReportResponses];
 
+export type UpdateOfficialReportHtmlData = {
+    body?: {
+        html?: Blob | File;
+    };
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/html';
+};
+
+export type UpdateOfficialReportHtmlResponses = {
+    204: void;
+};
+
+export type UpdateOfficialReportHtmlResponse = UpdateOfficialReportHtmlResponses[keyof UpdateOfficialReportHtmlResponses];
+
+export type ResetOfficialReportDocumentData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/document';
+};
+
+export type ResetOfficialReportDocumentResponses = {
+    204: void;
+};
+
+export type ResetOfficialReportDocumentResponse = ResetOfficialReportDocumentResponses[keyof ResetOfficialReportDocumentResponses];
+
 export type ListPresentationPlanAgendasData = {
     body?: never;
     path?: never;
@@ -2812,6 +2879,38 @@ export type DetailsJusticePresentationPlanPdfDocumentResponses = {
 };
 
 export type DetailsJusticePresentationPlanPdfDocumentResponse = DetailsJusticePresentationPlanPdfDocumentResponses[keyof DetailsJusticePresentationPlanPdfDocumentResponses];
+
+export type UpdatePresentationPlanHtmlData = {
+    body?: {
+        html?: Blob | File;
+    };
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/html';
+};
+
+export type UpdatePresentationPlanHtmlResponses = {
+    204: void;
+};
+
+export type UpdatePresentationPlanHtmlResponse = UpdatePresentationPlanHtmlResponses[keyof UpdatePresentationPlanHtmlResponses];
+
+export type ResetPresentationPlanDocumentData = {
+    body?: never;
+    path: {
+        planId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/document';
+};
+
+export type ResetPresentationPlanDocumentResponses = {
+    204: void;
+};
+
+export type ResetPresentationPlanDocumentResponse = ResetPresentationPlanDocumentResponses[keyof ResetPresentationPlanDocumentResponses];
 
 export type UnPresentPlanData = {
     body?: never;

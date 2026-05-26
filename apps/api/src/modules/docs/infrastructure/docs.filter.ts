@@ -19,6 +19,7 @@ import {
 } from '../domain/justice-presentation-plan';
 import {
   ChairmanIsNotMember,
+  EmptyMembersList,
   InvalidChairmanDuty,
   InvalidChairmanFormation,
   InvalidSecretaryDuty,
@@ -124,6 +125,12 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof PresentationPlanAgendaAlreadyReported) {
             return new BadRequestException({
               validationError: `Un des ordre du jour sélectionnés fait déjà partie d'une notice de restitution`,
+            });
+          }
+
+          if (err instanceof EmptyMembersList) {
+            return new BadRequestException({
+              validationError: `La liste des members présent est vide`,
             });
           }
 

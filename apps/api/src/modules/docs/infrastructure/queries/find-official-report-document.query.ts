@@ -56,6 +56,7 @@ export class FindOfficialReportDocumentQuery {
               lastName: true,
               gender: true,
               title: true,
+              isAbsent: true,
             },
           },
           nominationFiles: {
@@ -130,6 +131,7 @@ export class FindOfficialReportDocumentQuery {
           lastName: m.lastName,
           gender: prismaGenderEnumToGenderEnum(m.gender),
           displayTitle: m.title,
+          isAbsent: m.isAbsent,
         })),
         files: ctx.nominationFiles.flatMap((f) => {
           if (!f.outcome) return [];
