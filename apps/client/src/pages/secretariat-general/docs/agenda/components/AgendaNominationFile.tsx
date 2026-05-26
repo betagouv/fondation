@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import './AgendaNominationFile.css';
 
 import { Marked } from '@/components/shared/Marked';
+import { NominationFileOutcomeBadge } from '@/components/shared/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import type { FormationEnum } from '@/types/enums.types';
 import type { FoundDocsNominationFiles } from '@api/types';
@@ -30,7 +31,7 @@ export function AgendaNominationFile(props: {
           label: (
             <div className="flex w-full items-start gap-1 py-4">
               <div className="w-[3ch] shrink-0">{props.file.number}</div>
-              <div className="w-[10%]">
+              <div className="hidden w-[10%] md:block">
                 <UserAvatarList users={props.file.reporters} max={2} size="sm" />
               </div>
               <div
@@ -53,7 +54,7 @@ export function AgendaNominationFile(props: {
               </div>
               <i className={clsx(cx('ri-arrow-right-line'), 'shrink-0 before:size-5! before:content-[""]')} />
               <div
-                className="cursor-help px-2 pt-1 text-sm text-wrap"
+                className="cursor-help px-2 pt-1 text-sm text-wrap md:w-[30%]"
                 title={
                   [props.file.magistrat.position.grade, props.file.targetPosition.label]
                     .filter((x) => !!x)
@@ -68,6 +69,15 @@ export function AgendaNominationFile(props: {
                 ]
                   .filter((x) => !!x)
                   .join(' - ') || '-'}
+              </div>
+              <div className="hidden md:block">
+                {props.file.outcome && (
+                  <NominationFileOutcomeBadge
+                    short
+                    formation={props.formation}
+                    outcome={props.file.outcome.value}
+                  />
+                )}
               </div>
             </div>
           ),

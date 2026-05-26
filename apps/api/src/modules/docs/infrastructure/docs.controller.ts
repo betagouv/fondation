@@ -58,6 +58,7 @@ import {
 import { DocsFilter } from './docs.filter';
 import { FoundAgendasDto } from './finders/agenda.finder';
 import { FoundDocsNominationFiles } from './finders/docs-nomination-files.finder';
+import { DetailedAgendaFilesDto } from './queries/details-agenda-files.query';
 import { DetailedAgendaMetadata } from './queries/details-agenda-metadata.query';
 import { DetailedOfficialReportMetadataDto } from './queries/details-official-report.query';
 import { DetailedPresentationPlanMetadataDto } from './queries/details-presentation-plan-metadata.query';
@@ -232,6 +233,13 @@ export class DocsController {
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaMetadata })
   detailsAgendaMetadata(@Param('agendaId') agendaId: string): Promise<DetailedAgendaMetadata> {
     return this.docs.detailsAgendaMetadata({ agendaId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Get('/agendas/:agendaId/files')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaFilesDto })
+  detailsAgendaFiles(@Param('agendaId') agendaId: string): Promise<DetailedAgendaFilesDto> {
+    return this.docs.detailsAgendaFiles({ agendaId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)

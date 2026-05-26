@@ -18,6 +18,7 @@ export type AgendaContextType = {
   agendaId: string | null;
   session: { id: string; dueDate: PlainDateOnly | null; formation: FormationEnum };
   metadata: AgendaMetadata | null;
+  defaultFileIds: readonly string[] | null;
   isSubmitting: boolean;
   goToNominationFiles(values: AgendaMetadata): void;
   goToMetadata(): void;

@@ -14,7 +14,7 @@ import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbo
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
-  const { session, isSubmitting: isPending, submit, goToMetadata, agendaId } = useAgenda();
+  const { session, isSubmitting: isPending, submit, goToMetadata, agendaId, defaultFileIds } = useAgenda();
 
   const [search, setSearch] = React.useState('');
 
@@ -31,6 +31,11 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
   const selection = useSelection({
     items: nominationFiles,
     toString: ({ id }) => id,
+    defaultSelection:
+      defaultFileIds ??
+      nominationFiles.flatMap((f) =>
+        f.outcome?.value !== 'SUSPENDED' && f.reporters.length > 0 ? [f.id] : [],
+      ),
   });
 
   const filtered = React.useMemo(() => {

@@ -915,6 +915,10 @@ export type DetailedAgendaMetadata = {
     };
 };
 
+export type DetailedAgendaFilesDto = {
+    items: Array<string>;
+};
+
 export type CreateOrUpdateOfficialReportDto = {
     sessionMeetingDate: {
         year: number;
@@ -2524,6 +2528,21 @@ export type GenerateAgendaPdfResponses = {
 };
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
+
+export type DetailsAgendaFilesData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/files';
+};
+
+export type DetailsAgendaFilesResponses = {
+    200: DetailedAgendaFilesDto;
+};
+
+export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
 
 export type UpdateAgendaHtmlData = {
     body?: {
