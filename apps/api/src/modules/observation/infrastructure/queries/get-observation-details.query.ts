@@ -28,6 +28,11 @@ export class GetObservationDetailsQuery {
     observationId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.prisma.$transaction(async (tx) => {
+      const session = await tx.session.findUnique({
+        where: { id: query.sessionId },
+        select: { archivedAt: true },
+      });
+
       const observation = await tx.observation.findUnique({
         where: {
           id: query.observationId,
@@ -129,6 +134,7 @@ export class GetObservationDetailsQuery {
 
       return {
         id: observation.id,
+        isArchived: !!session?.archivedAt,
         receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
@@ -260,6 +266,7 @@ const RelatedPropositionSchema = z.object({
 export class GetObservationDetailsResponseDto extends createZodDto(
   z.object({
     id: z.string(),
+    isArchived: z.boolean(),
     receptionDate: dateOnlyJsonSchema,
     observant: z.object({
       id: z.string(),

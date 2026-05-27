@@ -257,13 +257,69 @@ Les ingestors purement référentiels (`magistrats`, `grades`, `fonctions`, `pos
 
 ---
 
-### 10. Client — régénération OpenAPI
+### 10. Enrichissement des queries — propagation de `isArchived`
 
-```bash
-pnpm run openapi:generate
+**Objectif :** Toute query qui remonte de l'information liée à une session doit comporter un booléen `isArchived` pour que le client affiche le bandeau d'avertissement et désactive les actions d'écriture.
+
+**Queries concernées :**
+
+1. **`detail-nomination-file.query.ts`** — Détail d'un dossier
+   - Join sur la session, sélectionner `session.archivedAt`
+   - Exposer `isArchived: boolean` dans `DetailedNominationFileDto`
+
+2. **`list-nomination-files.query.ts`** — Liste des dossiers d'une session
+   - Join sur la session, sélectionner `session.archivedAt`
+   - Exposer `isArchived: boolean` dans chaque item du `NominationFilesTableItemDto`
+
+3. **`list-reports-for-session.query.ts`** — Liste des rapports d'une session
+   - Join sur la session via le dossier, sélectionner `session.archivedAt`
+   - Exposer `isArchived: boolean` dans `ReportListItemDto`
+
+4. **`get-report-overview.query.ts`** — Détail d'un rapport
+   - Join sur la session via le dossier et la session, sélectionner `session.archivedAt`
+   - Exposer `isArchived: boolean` dans `ReportOverviewDto`
+
+5. **`list-summaries-for-file.query.ts`** — Synthèses d'un dossier
+   - Join sur la session et le dossier
+   - Exposer dans chaque synthèse : `isArchived: boolean`, `fileLabel: string`, `sessionId: string`
+
+6. **`get-summary-detail.query.ts`** — Détail d'une synthèse
+   - Join sur la session et le dossier
+   - Exposer : `isArchived: boolean`, `fileLabel: string`, `sessionId: string`
+
+7. **`list-observations-for-file.query.ts`** — Observations d'un dossier
+   - Join sur la session et le dossier
+   - Exposer dans chaque observation : `isArchived: boolean`, `fileLabel: string`, `sessionId: string`
+
+8. **`list-observations-for-user.query.ts`** (si existe) — Observations d'un utilisateur sur plusieurs sessions
+   - Join sur session/dossier pour chaque observation
+   - Exposer : `isArchived: boolean`, `fileLabel: string`, `sessionId: string`
+
+**Pattern à suivre :**
+
+Pour les synthèses et observations, enrichir le contexte pour qu'elles restent compréhensibles même hors du contexte direct d'un dossier ou d'une session :
+
+```ts
+// Synthèse
+export const SummaryDto = z.object({
+  id: z.string().uuid(),
+  content: z.string(),
+  // ... autres champs métier
+  fileLabel: z.string().describe('Le libellé du dossier pour contextualiser'),
+  sessionId: z.string().uuid(),
+  isArchived: z.boolean().describe('true si la session est archivée'),
+});
+
+// Observation
+export const ObservationDto = z.object({
+  id: z.string().uuid(),
+  content: z.string(),
+  // ... autres champs métier
+  fileLabel: z.string().describe('Le libellé du dossier pour contextualiser'),
+  sessionId: z.string().uuid(),
+  isArchived: z.boolean().describe('true si la session est archivée'),
+});
 ```
-
-À relancer après chaque changement de DTO.
 
 ---
 

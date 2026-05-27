@@ -2,8 +2,8 @@ import {
   BadRequestException,
   CallHandler,
   ExecutionContext,
+  ForbiddenException,
   NestInterceptor,
-  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
@@ -96,7 +96,7 @@ export class SessionExceptionFilter implements NestInterceptor {
           }
 
           if (err instanceof NominationSessionIsArchived) {
-            return new NotFoundException({
+            return new ForbiddenException({
               validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
             });
           }

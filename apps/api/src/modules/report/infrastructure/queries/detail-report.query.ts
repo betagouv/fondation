@@ -97,6 +97,7 @@ export class DetailReportQuery {
                 date: true,
                 formation: true,
                 dueDate: true,
+                archivedAt: true,
               },
             },
 
@@ -176,6 +177,7 @@ export class DetailReportQuery {
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
       summary,
+      isArchived: !!report.nominationFile.session.archivedAt,
 
       attachments: attachments.map((f) => ({
         fileId: f.id,
@@ -277,6 +279,7 @@ export class DetailedReportDto extends createZodDto(
     comment: z.string().nullable(),
     formation: z.enum(Magistrat.Formation),
     state: z.enum(NominationFile.ReportState),
+    isArchived: z.boolean(),
     folderNumber: z.number().nullable(),
     biography: z.string().nullable(),
     dueDate: dateOnlyJsonSchema.nullable(),

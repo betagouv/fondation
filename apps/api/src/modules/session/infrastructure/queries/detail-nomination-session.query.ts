@@ -41,6 +41,7 @@ export class DetailNominationSessionQuery {
         formation: true,
         typeDeSaisine: true,
         isValidated: true,
+        archivedAt: true,
 
         _count: { select: { attachments: true } },
 
@@ -71,6 +72,7 @@ export class DetailNominationSessionQuery {
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
       isValidated: session.isValidated,
       isDeletable,
+      isArchived: !!session.archivedAt,
     };
   }
 }
@@ -87,5 +89,6 @@ export class DetailedNominationSessionDto extends createZodDto(
     typeDeSaisine: z.enum(TypeDeSaisine),
     isValidated: z.boolean(),
     isDeletable: z.boolean(),
+    isArchived: z.boolean(),
   }),
 ) {}

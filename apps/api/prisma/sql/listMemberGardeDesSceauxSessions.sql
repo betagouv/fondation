@@ -41,6 +41,7 @@ FROM nominations_context."session" AS s
 
 WHERE (
   s.deleted_at IS NULL
+  AND s.archived_at IS NULL
   AND s.type_de_saisine = 'TRANSPARENCE_GDS'::nominations_context.TYPE_DE_SAISINE
   AND ($2::FORMATION IS NULL OR s.formation = $2::FORMATION)
 )

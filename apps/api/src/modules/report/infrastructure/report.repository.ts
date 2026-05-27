@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import {
   Report,
@@ -13,6 +13,8 @@ import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class ReportRepository {
+  private readonly logger = new Logger(ReportRepository.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: Files,
@@ -44,10 +46,19 @@ export class ReportRepository {
         lastName.toUpperCase() + ' ' + (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
       const session = await tx.session.findUnique({
-        select: { name: true },
-        where: { id: report?.sessionId, deletedAt: null },
+        select: { name: true, deletedAt: true, archivedAt: true },
+        where: { id: report?.sessionId },
       });
+
       if (!session) return null;
+      if (session.archivedAt) {
+        this.logger.warn(`session ${report.sessionId} is archived`);
+        throw new ForbiddenException();
+      }
+      if (session.deletedAt) {
+        this.logger.warn(`session ${report.sessionId} is deleted`);
+        throw new ForbiddenException();
+      }
 
       const dossier = await tx.dossierDeNomination.findUnique({
         where: { id: report.nominationFileId },
