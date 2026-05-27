@@ -1,4 +1,4 @@
-name: 'Deploy production'
+name: "Deploy production"
 permissions:
   contents: read
   packages: read
@@ -11,10 +11,10 @@ jobs:
     if: github.ref_type == 'branch' && github.ref_name == 'production'
     uses: ./.github/workflows/release.yml
     secrets:
-      VITE_SENTRY_DSN: true
-      SCALINGO_API_TOKEN: true
-      SENTRY_API_AUTH_TOKEN: true
-      SENTRY_CLIENT_AUTH_TOKEN: true
-      SCALINGO_SSH_KEY: true
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+      SENTRY_API_AUTH_TOKEN: ${{ secrets.SENTRY_API_AUTH_TOKEN }}
+      SENTRY_CLIENT_AUTH_TOKEN: ${{ secrets.SENTRY_CLIENT_AUTH_TOKEN }}
+      SCALINGO_SSH_KEY: ${{ secrets.SCALINGO_SSH_KEY }}
     with:
       environment: production
