@@ -58,6 +58,7 @@ function SingleObservationWithFollowUpSelector(props: {
       </div>
 
       <ObservationFollowUpSelector
+        isArchived={false}
         sessionId={props.sessionId}
         nominationFileId={props.nominationFileId}
         observationId={props.observation.id}
