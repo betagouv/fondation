@@ -323,7 +323,90 @@ export const ObservationDto = z.object({
 
 ---
 
-### 11. Client — page sessions archivées
+### 11. Backend — module `archived-sessions` avec queries dédiées
+
+**Objectif :** Exposer des queries pour lister et afficher les sessions archivées, réutilisant les mêmes contrats que les sessions actives. Seul le filtre change (inverse sur `archivedAt`).
+
+**Nouveau module :** `apps/api/src/modules/archived-sessions/`
+
+```
+- archived-sessions/
+  - archived-sessions.module.ts
+  - archived-sessions.service.ts
+  - infrastructure/
+    - queries/
+      - list-archived-nomination-sessions.query.ts
+```
+
+**1. Query `list-archived-nomination-sessions.query.ts`**
+
+Copier `list-nomination-sessions.query.ts` et modifier :
+
+- Ajouter `where: { archivedAt: { not: null } }` au lieu de `where: { archivedAt: null }`
+- Les DTOs et schémas restent **identiques** à `ListNominationSessionsResponseDto`
+- Exporter `ArchivedNominationSessionsListDto` (alias sur le type existant)
+
+```ts
+async handle(query: {
+  pagination: Pagination;
+  sorting: Sortable<ListNominationSessionsQueryDto>;
+}): Promise<PaginatedArchivedNominationSessions> {
+  const sessions = await this.prisma.session.findMany({
+    where: { archivedAt: { not: null }, deletedAt: null },
+    orderBy: { [query.sorting.sortBy ?? 'date']: query.sorting.sortDesc ? 'desc' : 'asc' },
+    select: {
+      id: true,
+      name: true,
+      formation: true,
+      date: true,
+      archivedAt: true, // pour affichage de la date d'archivage
+      dossierDeNominations: { select: { id: true } }, // count
+    },
+    take: query.pagination.limit,
+    skip: (query.pagination.page - 1) * query.pagination.limit,
+  });
+
+  // Même pattern de transformation que `list-nomination-sessions`
+  return paginate({
+    items: sessions.map((s) => ({...})),
+    totalCount: await this.countArchived(),
+    pagination: query.pagination,
+  });
+}
+```
+
+**2. Service `archived-sessions.service.ts`**
+
+```ts
+@Injectable()
+export class ArchivedSessionsService {
+  constructor(
+    private readonly listArchivedSessions: ListArchivedNominationSessionsQuery,
+    private readonly detailArchivedSession: DetailArchivedNominationSessionQuery,
+  ) {}
+
+  async list(query: {
+    pagination: Pagination;
+    sorting: Sortable<ListNominationSessionsQueryDto>;
+  }): Promise<PaginatedArchivedNominationSessions> {
+    return this.listArchivedSessions.handle(query);
+  }
+}
+```
+
+**4. Module `archived-sessions.module.ts`**
+
+```ts
+@Module({
+  providers: [ArchivedSessionsService, ListArchivedNominationSessionsQuery],
+  exports: [ArchivedSessionsService],
+})
+export class ArchivedSessionsModule {}
+```
+
+---
+
+### 12. Client — page sessions archivées
 
 **Fichier :** `apps/client/src/utils/route-path.utils.ts` — ajouter `ARCHIVED_SESSIONS: '/sg/sessions/archived'` dans `ROUTE_PATHS.SG`.
 
@@ -339,7 +422,7 @@ Réutilise le composant `ManageSession` (ou un composant identique) branché sur
 
 ---
 
-### 12. Client — bandeau d'avertissement (contrainte 7.1)
+### 13. Client — bandeau d'avertissement (contrainte 7.1)
 
 **Nouveau composant :** `apps/client/src/components/shared/ArchivedSessionBanner.tsx`
 
@@ -351,7 +434,7 @@ Composant `<Notice>` du DSFR, non fermable, affiché quand `isArchived === true`
 
 ---
 
-### 13. Client — désactivation des actions d'écriture
+### 14. Client — désactivation des actions d'écriture
 
 Quand `isArchived === true` (propagé via le DTO `DetailedNominationSessionDto`) :
 
@@ -359,26 +442,6 @@ Quand `isArchived === true` (propagé via le DTO `DetailedNominationSessionDto`)
 - Lien vers `SESSION_ID_EDIT` : masquer ou désactiver
 - `NominationFilesTable` : cellules priorité / rapporteurs / issue en lecture seule
 - Bouton « Archiver » : visible uniquement si `isValidated && !isArchived`
-
----
-
-### Ordre d'implémentation recommandé
-
-1. Migration Prisma + `prisma generate`
-2. Domain + tests unitaires
-3. Repository (`find` + `persist`)
-4. SQL `countUnreportedNominationFiles` + query injectable
-5. Service `archiveSession()`
-6. Endpoint `POST /:sessionId/archive` + filtre d'exception
-7. `list-nomination-sessions.query.ts` + SQL membre (`archivedAt: null`)
-8. Query + endpoint `GET /archived`
-9. `DetailedNominationSessionDto` : ajout `isArchived`
-10. Guards transverses (Report, Summary, Observation)
-11. Lolfi ingest guard
-12. `pnpm run openapi:generate`
-13. Client : page archivées + route + lien dashboard
-14. Client : `ArchivedSessionBanner` + intégration
-15. Client : désactivation des boutons de mutation
 
 ---
 
