@@ -19,6 +19,7 @@ import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
+import { UnreportedSessionFilesCountFinder } from './finders/count-unreported-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import { NominationSessionFinder } from './finders/nomination-session.finder';
@@ -100,6 +101,7 @@ export class SessionService {
     private readonly prisma: PrismaService,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
   ) {}
 
   /** @internal */
@@ -460,6 +462,19 @@ export class SessionService {
     return Sentry.startSpan({ name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' }, () =>
       this.internalFindNominationFilesQuery.handle(query),
     );
+  }
+
+  async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
+      const unreportedFileCount = await this.unreportedSessionFilesCountFinder.find({
+        tx,
+        sessionId: command.sessionId,
+      });
+
+      session.archive({ userId: command.userId, unreportedFileCount });
+      await this.nominationSessionRepository.persist(session, tx);
+    });
   }
 
   async deleteSession(command: { id: string; userId: string }): Promise<void> {

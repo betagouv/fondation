@@ -172,11 +172,11 @@ Injectable utilisant `$queryRawTyped(countSessionUnreportedFiles(sessionId))`.
 
 **Fichier :** `apps/api/src/modules/session/infrastructure/sessions.service.ts`
 
-Injecter `CountUnreportedFilesQuery` et ajouter :
+Injecter `CountUnreportedFilesFinder` et ajouter :
 
 ```ts
 async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
-  const unreportedFileCount = await this.countUnreportedFilesQuery.handle(command.sessionId);
+  const unreportedFileCount = await this.countUnreportedFilesFinder.find(command.sessionId);
   const session = await this.nominationSessionRepository.find(command.sessionId);
   session.archive({ userId: command.userId, unreportedFileCount });
   await this.nominationSessionRepository.persist(session);
@@ -198,24 +198,6 @@ archiveSession(
   @AuthedUserId() userId: string,
 ): Promise<void> {
   return this.sessions.archiveSession({ sessionId, userId });
-}
-```
-
-**Fichier :** `apps/api/src/modules/session/infrastructure/session.filter.ts`
-
-Ajouter les cas :
-
-```ts
-if (err instanceof NominationSessionAlreadyArchived) {
-  return new ConflictException({ message: 'La session est déjà archivée' });
-}
-if (err instanceof NominationSessionCannotBeArchived) {
-  return new BadRequestException({
-    message: `${err.unreportedFileCount} dossier(s) ne sont pas encore rapportés`,
-  });
-}
-if (err instanceof NominationSessionIsArchived) {
-  return new ForbiddenException({ message: 'La session est archivée' });
 }
 ```
 

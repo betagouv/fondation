@@ -1660,6 +1660,21 @@ export type ValidateSessionResponses = {
 
 export type ValidateSessionResponse = ValidateSessionResponses[keyof ValidateSessionResponses];
 
+export type ArchiveSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/archive';
+};
+
+export type ArchiveSessionResponses = {
+    204: void;
+};
+
+export type ArchiveSessionResponse = ArchiveSessionResponses[keyof ArchiveSessionResponses];
+
 export type CreateSessionFromLodamData = {
     body: ImportNominationSessionFromLodamXlsxDto;
     path?: never;
