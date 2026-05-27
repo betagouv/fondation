@@ -424,9 +424,10 @@ Réutilise le composant `ManageSession` (ou un composant identique) branché sur
 
 ### 13. Client — bandeau d'avertissement (contrainte 7.1)
 
-**Nouveau composant :** `apps/client/src/components/shared/ArchivedSessionBanner.tsx`
+**Nouveau composant :** `apps/client/src/components/shared/ArchivedSessionBanner.tsx`,
+inspiré de `apps/client/src/components/shared/layouts/ImpersonationBanner.tsx` à ajouter à `apps/client/src/components/shared/layouts/BanneredLayout.tsx`.
 
-Composant `<Notice>` du DSFR, non fermable, affiché quand `isArchived === true` dans :
+Affiché quand `isArchived === true` dans :
 
 - `TableauDeBordResume` (vue SG)
 - `ReportListPage` (vue membre d'une session)
