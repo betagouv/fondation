@@ -21,7 +21,7 @@ export class ArchivedSessionsController {
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({ type: ListedArchivedNominationSessionsDto, status: HttpStatus.OK })
-  listArchivedSessionsOfTypeGardeDesSceaux(
+  listArchivedSessions(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListArchivedNominationSessionsQueryDto,
   ): Promise<ListedArchivedNominationSessionsDto> {
