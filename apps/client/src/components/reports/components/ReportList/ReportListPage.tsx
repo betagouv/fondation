@@ -7,6 +7,7 @@ import { generatePath, useParams } from 'react-router';
 
 import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import {
@@ -196,27 +197,29 @@ export const ReportListPage: FC = () => {
   if (isGdsSessionPending || !detailedGdsSession) return null;
 
   return (
-    <PageContentLayout>
-      <HeaderReportList
-        formation={detailedGdsSession.session.formation as FormationEnum}
-        transparency={detailedGdsSession.session.transparency}
-        dateTransparence={detailedGdsSession.session.dateTransparence}
-        dueDate={detailedGdsSession.session.dateSeance}
-      />
-
-      {focus === 'general' ? (
-        <ReportsDnVueGenerale
-          sessionId={detailedGdsSession.session.id}
+    <ArchiveBannerPortal isArchived={detailedGdsSession.session.isArchived}>
+      <PageContentLayout>
+        <HeaderReportList
           formation={detailedGdsSession.session.formation as FormationEnum}
-        >
-          <ReportListViewToggle />
-        </ReportsDnVueGenerale>
-      ) : (
-        <ReportList sessionId={detailedGdsSession.session.id} table={table}>
-          <ReportListViewToggle onChange={onChange} />
-        </ReportList>
-      )}
-    </PageContentLayout>
+          transparency={detailedGdsSession.session.transparency}
+          dateTransparence={detailedGdsSession.session.dateTransparence}
+          dueDate={detailedGdsSession.session.dateSeance}
+        />
+
+        {focus === 'general' ? (
+          <ReportsDnVueGenerale
+            sessionId={detailedGdsSession.session.id}
+            formation={detailedGdsSession.session.formation as FormationEnum}
+          >
+            <ReportListViewToggle />
+          </ReportsDnVueGenerale>
+        ) : (
+          <ReportList sessionId={detailedGdsSession.session.id} table={table}>
+            <ReportListViewToggle onChange={onChange} />
+          </ReportList>
+        )}
+      </PageContentLayout>
+    </ArchiveBannerPortal>
   );
 };
 export default ReportListPage;

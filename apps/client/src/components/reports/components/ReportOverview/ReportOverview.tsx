@@ -8,6 +8,7 @@ import {
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { ScrollToTop } from '../../../shared/ScrollToTop';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
 import type { ReportStatusEnum } from '@/types/enums.types';
 import {
   useAttachReportFilesMutation,
@@ -82,60 +83,62 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     );
 
   return (
-    <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
-      <div className="w-full">
-        <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
-      </div>
-      <AutoSaveNotice />
-      <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
-        <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
-          <Summary
-            summary={retrievedReport.summary}
-            fileComment={retrievedReport.fileComment}
-            observers={retrievedReport.observers.concat(retrievedReport.observations.map(({ id }) => id))}
-          />
+    <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
+      <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
+        <div className="w-full">
+          <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
         </div>
-        <div
-          className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
-        >
-          <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
-          <MagistratIdentity
-            name={retrievedReport.name}
-            birthDate={retrievedReport.birthDate}
-            grade={retrievedReport.grade}
-            currentPosition={retrievedReport.currentPosition!}
-            targettedPosition={retrievedReport.targettedPosition!}
-            rank={retrievedReport.rank!}
-            dureeDuPoste={retrievedReport.dureeDuPoste}
-            priorities={retrievedReport.priorities}
-            sessionId={retrievedReport.sessionId}
-            nominationFileId={retrievedReport.nominationFileId}
-          />
-          <Biography biography={formattedBiography} />
-          <ReportOverviewFileComment report={retrievedReport} />
-          <ReportSummaryCard
-            summary={retrievedReport.summary}
-            sessionId={retrievedReport.sessionId}
-            nominationFileId={retrievedReport.nominationFileId}
-          />
-          <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-          <Observers
-            observers={formattedObservers}
-            observations={retrievedReport.observations}
-            sessionId={retrievedReport.sessionId}
-            nominationFileId={retrievedReport.nominationFileId}
-            reportId={id}
-          />
-          <AttachedFileUpload
-            reportId={id}
-            attachments={retrievedReport.attachments}
-            onFilesAttached={onFilesAttached}
-            onAttachedFileDeleted={onAttachedFileDeleted}
-          />
+        <AutoSaveNotice />
+        <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
+          <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
+            <Summary
+              summary={retrievedReport.summary}
+              fileComment={retrievedReport.fileComment}
+              observers={retrievedReport.observers.concat(retrievedReport.observations.map(({ id }) => id))}
+            />
+          </div>
+          <div
+            className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
+          >
+            <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
+            <MagistratIdentity
+              name={retrievedReport.name}
+              birthDate={retrievedReport.birthDate}
+              grade={retrievedReport.grade}
+              currentPosition={retrievedReport.currentPosition!}
+              targettedPosition={retrievedReport.targettedPosition!}
+              rank={retrievedReport.rank!}
+              dureeDuPoste={retrievedReport.dureeDuPoste}
+              priorities={retrievedReport.priorities}
+              sessionId={retrievedReport.sessionId}
+              nominationFileId={retrievedReport.nominationFileId}
+            />
+            <Biography biography={formattedBiography} />
+            <ReportOverviewFileComment report={retrievedReport} />
+            <ReportSummaryCard
+              summary={retrievedReport.summary}
+              sessionId={retrievedReport.sessionId}
+              nominationFileId={retrievedReport.nominationFileId}
+            />
+            <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
+            <Observers
+              observers={formattedObservers}
+              observations={retrievedReport.observations}
+              sessionId={retrievedReport.sessionId}
+              nominationFileId={retrievedReport.nominationFileId}
+              reportId={id}
+            />
+            <AttachedFileUpload
+              reportId={id}
+              attachments={retrievedReport.attachments}
+              onFilesAttached={onFilesAttached}
+              onAttachedFileDeleted={onAttachedFileDeleted}
+            />
+          </div>
         </div>
+        <ScrollToTop />
       </div>
-      <ScrollToTop />
-    </div>
+    </ArchiveBannerPortal>
   );
 };
 

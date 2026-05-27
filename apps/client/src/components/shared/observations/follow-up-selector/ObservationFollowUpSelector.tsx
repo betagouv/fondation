@@ -12,6 +12,7 @@ import { useFollowUpOnObservationMutation } from '@queries/observations.queries'
 import { useObservationFollowUpCommentDialog } from './useObservationFollowUpCommentDialog';
 
 export function ObservationFollowUpSelector(props: {
+  isArchived: boolean;
   sessionId: string;
   nominationFileId: string;
   observationId: string;
@@ -70,6 +71,7 @@ export function ObservationFollowUpSelector(props: {
   return (
     <div>
       <Select
+        disabled={props.isArchived}
         label="Suite"
         className="mb-0!"
         nativeSelectProps={{

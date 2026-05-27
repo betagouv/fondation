@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import React from 'react';
 
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 
 import { DocActionDelete } from './DocActionDelete';
@@ -8,6 +9,7 @@ import { DocActionDetails } from './DocActionDetails';
 import { DocActionUpdate } from './DocActionUpdate';
 
 export function NominationSessionDocsList(props: { sessionId: string }) {
+  const { isArchived } = useArchivedSession();
   const [currentlyActing, setCurrentlyActing] = React.useState<Record<string, boolean>>({});
 
   const isActing = React.useMemo(() => Object.values(currentlyActing).some((x) => x), [currentlyActing]);
@@ -31,19 +33,21 @@ export function NominationSessionDocsList(props: { sessionId: string }) {
             setIsActing={setIsActing('details')}
           />
 
-          <ul className="m-0 flex list-none items-center gap-2 p-0">
-            <li>
-              <DocActionUpdate
-                disabled={isActing}
-                doc={doc}
-                sessionId={props.sessionId}
-                setIsActing={setIsActing('update')}
-              />
-            </li>
-            <li>
-              <DocActionDelete doc={doc} disabled={isActing} sessionId={props.sessionId} />
-            </li>
-          </ul>
+          {!isArchived && (
+            <ul className="m-0 flex list-none items-center gap-2 p-0">
+              <li>
+                <DocActionUpdate
+                  disabled={isActing}
+                  doc={doc}
+                  sessionId={props.sessionId}
+                  setIsActing={setIsActing('update')}
+                />
+              </li>
+              <li>
+                <DocActionDelete doc={doc} disabled={isActing} sessionId={props.sessionId} />
+              </li>
+            </ul>
+          )}
         </li>
       ))}
     </ul>

@@ -764,6 +764,7 @@ export type DetailedMemberSessionDto = {
     };
     session: {
         id: string;
+        isArchived: boolean;
         sessionImportId: string;
         formation: string;
         transparency: string;

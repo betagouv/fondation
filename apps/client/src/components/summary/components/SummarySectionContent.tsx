@@ -1,6 +1,7 @@
-import './SummarySectionContent.css';
 import clsx from 'clsx';
 import React from 'react';
+
+import './SummarySectionContent.css';
 
 import { useSummary } from '@/pages/summary/SummaryContext';
 
@@ -15,7 +16,11 @@ export function SummarySectionContent() {
       <h2 className="px-6 pt-4">Synthèse</h2>
 
       <div className={clsx('rounded-b-lg px-6 pb-6', !canWriteSummary && 'bg-gray-50 pt-4')}>
-        {canWriteSummary ? <SummaryEditor /> : <SummaryContent content={summary.summary.content} />}
+        {canWriteSummary && !summary.isArchived ? (
+          <SummaryEditor />
+        ) : (
+          <SummaryContent content={summary.summary.content} />
+        )}
       </div>
     </SummarySectionCard>
   );

@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useIsSg } from '@/hooks/roles.hook';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
@@ -12,6 +13,7 @@ import {
 import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
 export function NominationSessionAttachmentList(props: { sessionId: string; placeholder?: ReactNode }) {
+  const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
     sessionId: props.sessionId,
@@ -66,7 +68,7 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
             {file.name}
           </Button>
 
-          {isSg && (
+          {isSg && !isArchived && (
             <DeleteAttachmentModal
               fileName={file.name}
               onDelete={() => deleteAttachment({ fileId: file.id, sessionId: props.sessionId })}

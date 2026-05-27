@@ -256,6 +256,7 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
   z.object({
     session: z.object({
       id: z.string(),
+      isArchived: z.boolean(),
       sessionImportId: z.string(),
       formation: z.string(),
       transparency: z.string(),

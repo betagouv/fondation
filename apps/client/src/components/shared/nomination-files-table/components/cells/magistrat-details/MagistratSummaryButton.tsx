@@ -2,12 +2,14 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { useNavigate } from 'react-router';
 
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useCreateSummaryMutation } from '@queries/summary.queries';
 
 export function MagistratSummaryButton(props: { sessionId: string; nominationFile: SessionNominationFile }) {
+  const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const navigate = useNavigate();
   const { mutate, reset, isPending: isCreating } = useCreateSummaryMutation();
@@ -21,7 +23,7 @@ export function MagistratSummaryButton(props: { sessionId: string; nominationFil
   const { summary } = props.nominationFile;
 
   const canReadSummary = React.useMemo(() => !!summary?.canRead, [summary]);
-  const canCreateSummary = React.useMemo(() => !summary && isSg, [summary, isSg]);
+  const canCreateSummary = React.useMemo(() => !isArchived && !summary && isSg, [isArchived, summary, isSg]);
 
   const createSummary = React.useCallback(() => {
     mutate(

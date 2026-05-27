@@ -3,6 +3,7 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 import { NominationSessionAttachmentList } from '@/components/shared/NominationSessionAttachmentList';
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
@@ -11,6 +12,7 @@ import { NominationSessionDocsList } from './NominationSessionDocsList';
 import { TableauDeBordActionList } from './TableauDeBordActionsList';
 
 export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
+  const { isArchived } = useArchivedSession();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId });
   const { data: docs } = useFindSessionDocsQuery({ sessionId });
 
@@ -30,18 +32,20 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
 
         <NominationSessionAttachmentList sessionId={sessionId} placeholder={null} />
 
-        <div className="mt-2 text-center">
-          <Button
-            nativeButtonProps={importAttachments.modal.buttonProps}
-            iconId="fr-icon-add-line"
-            priority="tertiary no outline"
-            className="mt-2"
-            title="Importer des pièces jointes"
-            size="small"
-          >
-            Ajouter
-          </Button>
-        </div>
+        {!isArchived && (
+          <div className="mt-2 text-center">
+            <Button
+              nativeButtonProps={importAttachments.modal.buttonProps}
+              iconId="fr-icon-add-line"
+              priority="tertiary no outline"
+              className="mt-2"
+              title="Importer des pièces jointes"
+              size="small"
+            >
+              Ajouter
+            </Button>
+          </div>
+        )}
       </Accordion>
 
       {(docs?.items ?? []).length > 0 && (
@@ -61,7 +65,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         </Accordion>
       )}
 
-      <TableauDeBordActionList className="mt-2!" sessionId={sessionId} />
+      {!isArchived && <TableauDeBordActionList className="mt-2!" sessionId={sessionId} />}
     </div>
   );
 }

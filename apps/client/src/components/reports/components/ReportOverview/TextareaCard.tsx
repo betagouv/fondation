@@ -1,3 +1,5 @@
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+
 import { Card } from './Card';
 import { TipTapEditor } from './TipTapEditor';
 import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
@@ -19,15 +21,22 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
   onContentChange,
   uploadFiles,
 }) => {
+  const { isArchived } = useArchivedSession();
+
   return (
     <Card id={cardId}>
       <h2 id={titleId}>{label}</h2>
-      <TipTapEditor
-        value={content ?? undefined}
-        onChange={onContentChange}
-        ariaLabelledby={titleId}
-        uploadFiles={uploadFiles}
-      />
+
+      {isArchived ? (
+        <div className="rounded bg-gray-50 p-4" dangerouslySetInnerHTML={{ __html: content ?? '' }} />
+      ) : (
+        <TipTapEditor
+          value={content ?? undefined}
+          onChange={onContentChange}
+          ariaLabelledby={titleId}
+          uploadFiles={uploadFiles}
+        />
+      )}
     </Card>
   );
 };
