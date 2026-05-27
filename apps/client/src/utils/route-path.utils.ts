@@ -19,6 +19,7 @@ export const ROUTE_PATHS = {
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     MANAGE_SESSION: '/secretariat-general/sessions',
+    ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
     AGENDA_NEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour',

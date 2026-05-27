@@ -137,6 +137,13 @@ const router = sentryCreateBrowserRouter([
               })),
           },
           {
+            path: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
+            lazy: () =>
+              import('@/pages/secretariat-general/ArchivedSessionsPage').then(({ ArchivedSessionsPage }) => ({
+                Component: ArchivedSessionsPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
             lazy: () =>
               import('@/pages/secretariat-general/MemberListPage').then(({ MemberListPage }) => ({

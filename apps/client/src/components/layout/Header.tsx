@@ -59,6 +59,11 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER]),
     },
+    {
+      text: $t({ defaultMessage: 'Archives' }),
+      linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS },
+      isActive: routeMatches([ROUTE_PATHS.SG.ARCHIVED_SESSIONS]),
+    },
   ];
 
   if (isUserAdmin) {
