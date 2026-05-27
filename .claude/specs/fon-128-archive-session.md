@@ -61,7 +61,9 @@ Créer la migration SQL correspondante dans `apps/api/prisma/migrations/`.
 ```ts
 export class NominationSessionAlreadyArchived extends Error {}
 export class NominationSessionCannotBeArchived extends Error {
-  constructor(readonly unreportedFileCount: number) { super(); }
+  constructor(readonly unreportedFileCount: number) {
+    super();
+  }
 }
 export class NominationSessionIsArchived extends Error {}
 ```
@@ -70,7 +72,10 @@ export class NominationSessionIsArchived extends Error {}
 
 ```ts
 export class NominationSessionArchived {
-  constructor(readonly sessionId: string, readonly userId: string) {}
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string,
+  ) {}
 }
 ```
 
@@ -89,11 +94,13 @@ archive(command: { userId: string; unreportedFileCount: number }): void {
 ```
 
 Ajouter une méthode `archive(userId: string)` dans `NominationSession` qui :
+
 1. Vérifie que la session n'est pas déjà archivée (lance `SessionIsArchived`)
 2. Vérifie que tous les dossiers sont "rapportés" (contrainte 2) — lance `SessionNotArchivable` avec la liste des dossiers non rapportés
 3. Retourne `{ isArchived: true, archivedAt: new Date(), archivedBy: userId }`
 
 La condition "dossier rapporté" se vérifie ainsi :
+
 - `dossier.reporterIds.length > 0` (au moins 1 rapporteur dans l'AffectationVersion courante)
 - `dossier.outcome === 'VALIDATED' || dossier.outcome === 'NON_VALIDATED'`
 - `dossier.officialReportId !== null` (lien via `OfficialReportNominationFile`)
@@ -129,7 +136,7 @@ private persistNominationSessionArchived(tx: Prisma.TransactionClient, message: 
 
 ### 4. Vérification de la précondition d'archivage
 
-**Nouveau fichier SQL :** `apps/api/prisma/sql/countUnreportedNominationFiles.sql`
+**Nouveau fichier SQL :** `apps/api/prisma/sql/countSessionUnreportedFiles.sql`
 
 ```sql
 -- @param {String} $1:sessionId
@@ -155,9 +162,9 @@ WHERE
   )
 ```
 
-**Nouveau fichier :** `apps/api/src/modules/session/infrastructure/queries/count-unreported-files.query.ts`
+**Nouveau fichier :** `apps/api/src/modules/session/infrastructure/queries/count-session-unreported-files.query.ts`
 
-Injectable utilisant `$queryRawTyped(countUnreportedNominationFiles(sessionId))`.
+Injectable utilisant `$queryRawTyped(countSessionUnreportedFiles(sessionId))`.
 
 ---
 
@@ -229,6 +236,7 @@ export async function assertSessionNotArchived(prisma: PrismaService, sessionId:
 ```
 
 À appeler en tête des méthodes de mutation dans :
+
 - `SummaryService` (écriture de synthèse, ajout de screenshot)
 - `ReportService` (mise à jour d'un rapport)
 - `ObservationService` (ajout/modification d'observation)
@@ -306,6 +314,7 @@ Réutilise le composant `ManageSession` (ou un composant identique) branché sur
 **Nouveau composant :** `apps/client/src/components/shared/ArchivedSessionBanner.tsx`
 
 Composant `<Notice>` du DSFR, non fermable, affiché quand `isArchived === true` dans :
+
 - `TableauDeBordResume` (vue SG)
 - `ReportListPage` (vue membre d'une session)
 - `ReportOverviewPage` (vue membre d'un rapport)
@@ -315,6 +324,7 @@ Composant `<Notice>` du DSFR, non fermable, affiché quand `isArchived === true`
 ### 13. Client — désactivation des actions d'écriture
 
 Quand `isArchived === true` (propagé via le DTO `DetailedNominationSessionDto`) :
+
 - `TableauDeBordActions` : désactiver les boutons de génération de documents
 - Lien vers `SESSION_ID_EDIT` : masquer ou désactiver
 - `NominationFilesTable` : cellules priorité / rapporteurs / issue en lecture seule
@@ -344,11 +354,11 @@ Quand `isArchived === true` (propagé via le DTO `DetailedNominationSessionDto`)
 
 ### Récapitulatif des pièges
 
-| Piège | Solution |
-|---|---|
-| `find()` du repository doit rester accessible pour les sessions archivées | Ne pas filtrer sur `archivedAt: null` dans `find()` |
-| Ordre de route NestJS | Déclarer `GET /archived` avant `GET /:sessionId` |
-| `NominationSessionIsArchived` utilisé par plusieurs modules | L'exporter depuis le module session, éviter la dépendance circulaire |
-| `LolfiSessionsIngestor` écrit dans `data_administration_context` | Ne pas modifier cet ingestor, seul `LolfiTransparencesIngestor` est concerné |
-| Nommage de la fonction SQL TypedSQL | `countUnreportedNominationFiles` (camelCase valide JS), avec `-- @param` Prisma |
-| Dossiers sans rapporteur dans la version publiée | La sous-requête doit joindre sur `statut = 'PUBLIEE'` pour ne pas compter les versions brouillon |
+| Piège                                                                     | Solution                                                                                         |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `find()` du repository doit rester accessible pour les sessions archivées | Ne pas filtrer sur `archivedAt: null` dans `find()`                                              |
+| Ordre de route NestJS                                                     | Déclarer `GET /archived` avant `GET /:sessionId`                                                 |
+| `NominationSessionIsArchived` utilisé par plusieurs modules               | L'exporter depuis le module session, éviter la dépendance circulaire                             |
+| `LolfiSessionsIngestor` écrit dans `data_administration_context`          | Ne pas modifier cet ingestor, seul `LolfiTransparencesIngestor` est concerné                     |
+| Nommage de la fonction SQL TypedSQL                                       | `countUnreportedNominationFiles` (camelCase valide JS), avec `-- @param` Prisma                  |
+| Dossiers sans rapporteur dans la version publiée                          | La sous-requête doit joindre sur `statut = 'PUBLIEE'` pour ne pas compter les versions brouillon |

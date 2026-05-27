@@ -6,6 +6,7 @@ import { MembersModule } from '../members';
 
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
+import { UnreportedSessionFilesCountFinder } from './infrastructure/finders/count-unreported-files.finder';
 import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
@@ -67,6 +68,7 @@ import { SummaryModule } from './summary.module';
     NominationSessionRepository,
     SessionService,
     UnaffectedFilesFinder,
+    UnreportedSessionFilesCountFinder,
 
     SessionsTestService,
   ],

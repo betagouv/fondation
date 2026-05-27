@@ -19,6 +19,7 @@ import {
   NominationSession,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
+  NominationSessionArchived,
   NominationSessionAttachmentAdded,
   NominationSessionAttachmentRemoved,
   NominationSessionCreated,
@@ -26,6 +27,7 @@ import {
   NominationSessionFilePrioritiesUpdated,
   NominationSessionFileReportersAffected,
   NominationSessionFilesObserversUpdated,
+  NominationSessionIsArchived,
   NominationSessionUpdated,
   NominationSessionValidated,
 } from '../../domain/nomination-session';
@@ -78,6 +80,7 @@ export class NominationSessionRepository {
       select: {
         id: true,
         formation: true,
+        archivedAt: true,
         dossierDeNominations: {
           select: { id: true },
           where: { outcome: { not: null } },
@@ -86,6 +89,7 @@ export class NominationSessionRepository {
     });
 
     if (!session) throw new NotFoundException();
+    if (session.archivedAt) throw new NominationSessionIsArchived(id);
 
     const nominationFiles = await this.nominationSessionFileFinder.findUpdatable({
       tx,
@@ -172,6 +176,8 @@ export class NominationSessionRepository {
         await this.persistNominationSessionValidated(tx, message);
       } else if (message instanceof NominationSessionDeleted) {
         await this.persistNominationSessionDeleted(tx, message);
+      } else if (message instanceof NominationSessionArchived) {
+        await this.persistNominationSessionArchived(tx, message);
       } else {
         assertNever(message);
       }
@@ -628,6 +634,16 @@ export class NominationSessionRepository {
     await tx.session.update({
       where: { id: message.id },
       data: { deletedAt: this.clock.now(), deletedBy: message.userId },
+    });
+  }
+
+  private async persistNominationSessionArchived(
+    tx: Prisma.TransactionClient,
+    message: NominationSessionArchived,
+  ) {
+    await tx.session.update({
+      where: { id: message.sessionId },
+      data: { archivedAt: this.clock.now(), archivedBy: message.userId },
     });
   }
 }

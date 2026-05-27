@@ -149,11 +149,15 @@ model Session {
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by") @db.Uuid
 
+  archivedAt DateTime? @map("archived_at")
+  archivedBy String?   @map("archived_by") @db.Uuid
+
   affectationVersions  AffectationVersion[]
   dossierDeNominations DossierDeNomination[]
   attachments          SessionAttachment[]
   validator            User?                 @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletionAuthor       User?                 @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
+  archiver             User?                 @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
 
   @@index([deletedAt])
   @@map("session")
