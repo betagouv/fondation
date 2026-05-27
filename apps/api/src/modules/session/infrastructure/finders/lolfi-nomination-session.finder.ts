@@ -25,8 +25,11 @@ export class LolfiNominationSessionFinder {
 
     const output: NominationSession[] = [];
     for (const formation of Object.values(Magistrat.Formation)) {
+      const existingSession = sessions[formation];
+      if (existingSession?.isArchived) continue;
+
       const session =
-        sessions[formation] ??
+        existingSession?.session ??
         NominationSession.create({
           formation,
           lolfiSessionId: props.id,

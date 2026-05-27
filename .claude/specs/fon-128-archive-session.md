@@ -255,14 +255,6 @@ Les ingestors purement référentiels (`magistrats`, `grades`, `fonctions`, `pos
 
 **`detail-nomination-session.query.ts`** : ajouter `archivedAt` au `select`, exposer `isArchived: boolean` dans `DetailedNominationSessionDto`.
 
-**Nouveau fichier :** `apps/api/src/modules/session/infrastructure/queries/list-archived-nomination-sessions.query.ts`
-
-Identique à `ListNominationSessionsQuery` avec `where: { archivedAt: { not: null }, deletedAt: null }`.
-
-**Nouveau endpoint :** `GET /api/sessions/v2/archived` dans `session.controller.ts`.
-
-> **Piège d'ordre de route :** placer `/archived` avant `/:sessionId` dans le contrôleur NestJS.
-
 ---
 
 ### 10. Client — régénération OpenAPI

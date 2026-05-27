@@ -113,12 +113,12 @@ export class NominationSessionRepository {
     });
   }
 
-  async findByLolfiSessionId(
-    lolfiSessionId: number,
-  ): Promise<Partial<Record<Magistrat.Formation, NominationSession>>> {
+  async findByLolfiSessionId(lolfiSessionId: number): Promise<{
+    [K in Magistrat.Formation]?: { isArchived: false; session: NominationSession } | { isArchived: true };
+  }> {
     return this.prisma.$transaction(async (tx) => {
       const ids = await tx.session.findMany({
-        select: { id: true },
+        select: { id: true, archivedAt: true, formation: true },
         where: { lolfiSessionId },
       });
 
@@ -131,12 +131,15 @@ export class NominationSessionRepository {
       if (ids.length === 0) return {};
 
       const entries = await Promise.all(
-        ids.map(({ id }) => this.find(id, { tx }).then((s) => (s ? ([s.formation, s] as const) : undefined))),
+        ids.map(async ({ id, archivedAt, formation }) => {
+          if (archivedAt) return [formation, { isArchived: true }] as const;
+
+          const session = await this.find(id, { tx });
+          return [formation, { session, isArchived: false }] as const;
+        }),
       );
 
-      return Object.fromEntries(entries.filter(isDefined)) as Partial<
-        Record<Magistrat.Formation, NominationSession>
-      >;
+      return Object.fromEntries(entries);
     });
   }
 
