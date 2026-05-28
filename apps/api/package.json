@@ -59,6 +59,7 @@
     "sax": "^1.4.4",
     "shared-models": "workspace:*",
     "unzipper": "^0.12.3",
+    "xlsx": "file:../../vendor/xlsx-0.20.3.tgz",
     "zod": "catalog:"
   },
   "devDependencies": {

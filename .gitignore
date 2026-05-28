@@ -15,3 +15,6 @@ coverage
 
 .DS_Store
 .pnpm-store
+
+/vendor/*.tgz
+.hash

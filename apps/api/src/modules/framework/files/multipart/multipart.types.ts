@@ -25,7 +25,7 @@ export type MultipartDestinationFactory = (file: {
   id: string;
   mimetype: FileMimeType;
   originalname: string;
-  request: ExpressRequest;
+  request: Omit<ExpressRequest, 'params'> & { params: Record<string, string> };
 }) => string | null;
 
 export const MulterFileSchema = z.object({

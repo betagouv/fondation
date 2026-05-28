@@ -8,6 +8,7 @@
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
     "build": "pnpm run -r build",
+    "preinstall": "./scripts/sheetjs.sh",
     "prepush": "pnpm --filter shared-models build; pnpm lint:check; pnpm format:check; pnpm types:check",
     "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
     "heroku-postbuild": "echo 'App already built'",
@@ -22,17 +23,6 @@
   },
   "engines": {
     "node": "24",
-    "pnpm": "10"
-  },
-  "pnpm": {
-    "overrides": {
-      "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
-    },
-    "onlyBuiltDependencies": [
-      "@nestjs/core",
-      "@prisma/client",
-      "@swc/core",
-      "bcrypt"
-    ]
+    "pnpm": "11"
   }
 }

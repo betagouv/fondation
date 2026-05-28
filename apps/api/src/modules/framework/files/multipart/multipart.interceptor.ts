@@ -192,7 +192,7 @@ async function toMultipartFile(props: {
   const path = props.destination({
     id,
     mimetype: mimeType,
-    request: props.request,
+    request: props.request as Omit<ExpressRequest, 'params'> & { params: Record<string, string> },
     originalname: props.file.originalname,
   });
   const multipartFile = new MultipartFile({
