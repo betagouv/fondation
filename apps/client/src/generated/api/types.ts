@@ -70,6 +70,7 @@ export type DetailedReportDto = {
     comment: string | null;
     formation: 'PARQUET' | 'SIEGE';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+    isArchived: boolean;
     folderNumber: number | null;
     biography: string | null;
     dueDate: {
@@ -312,6 +313,7 @@ export type AffectReportersDto = {
 export type PaginatedNominationFiles = {
     items: Array<{
         id: string;
+        isArchived: boolean;
         priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
         content: {
             /**
@@ -497,6 +499,7 @@ export type DetailedNominationSessionDto = {
     typeDeSaisine: 'TRANSPARENCE_GDS';
     isValidated: boolean;
     isDeletable: boolean;
+    isArchived: boolean;
 };
 
 export type UpdateNominationSessionDto = {
@@ -550,6 +553,7 @@ export type GeneratedSummaryAttachmentPublicUrlDto = {
 export type DetailedSummaryDto = {
     id: string;
     sessionId: string;
+    isArchived: boolean;
     name: string | null;
     rank: string | null;
     formation: 'PARQUET' | 'SIEGE';
@@ -700,6 +704,7 @@ export type ListedMemberSessionsDto = {
 export type DetailedMemberSessionDto = {
     items: Array<{
         id: string;
+        isArchived: boolean;
         nominationFileId: string;
         state: string;
         formation: string;
@@ -759,6 +764,7 @@ export type DetailedMemberSessionDto = {
     };
     session: {
         id: string;
+        isArchived: boolean;
         sessionImportId: string;
         formation: string;
         transparency: string;
@@ -1170,6 +1176,34 @@ export type FoundDocsMembersDto = {
     }>;
 };
 
+export type ListedArchivedNominationSessionsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        formation: 'PARQUET' | 'SIEGE';
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        dueDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+        status: 'TO_VALIDATE' | 'READY';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type SearchMagistratsResponseDto = {
     items: Array<{
         id: string;
@@ -1233,6 +1267,7 @@ export type ListObservationsResponseDto = {
 
 export type GetObservationDetailsResponseDto = {
     id: string;
+    isArchived: boolean;
     receptionDate: {
         year: number;
         month: number;
@@ -1659,6 +1694,21 @@ export type ValidateSessionResponses = {
 };
 
 export type ValidateSessionResponse = ValidateSessionResponses[keyof ValidateSessionResponses];
+
+export type ArchiveSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/archive';
+};
+
+export type ArchiveSessionResponses = {
+    204: void;
+};
+
+export type ArchiveSessionResponse = ArchiveSessionResponses[keyof ArchiveSessionResponses];
 
 export type CreateSessionFromLodamData = {
     body: ImportNominationSessionFromLodamXlsxDto;
@@ -3011,6 +3061,29 @@ export type FindDocsMembersResponses = {
 };
 
 export type FindDocsMembersResponse = FindDocsMembersResponses[keyof FindDocsMembersResponses];
+
+export type ListArchivedSessionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        sortBy?: 'date' | 'dueDate';
+        formations?: Array<'PARQUET' | 'SIEGE'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/archived-sessions/v1';
+};
+
+export type ListArchivedSessionsResponses = {
+    200: ListedArchivedNominationSessionsDto;
+};
+
+export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
 
 export type SearchMagistratsData = {
     body?: never;

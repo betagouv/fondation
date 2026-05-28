@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import React from 'react';
 
+import { ArchiveBanner } from './archived-banner/ArchivedSessionBanner';
 import { ImpersonationBanner } from './ImpersonationBanner';
 import { StagingBanner } from './StagingBanner';
 
@@ -38,6 +39,7 @@ export function BanneredLayout(props: React.PropsWithChildren) {
       <Banners ref={ref} hidden={state.hidden}>
         <StagingBanner />
         <ImpersonationBanner key={'ImpersonationBanner'} />
+        <ArchiveBanner key={'ArchivedSessionBanner'} />
       </Banners>
 
       <div style={{ marginTop: state.height }}>{props.children}</div>

@@ -39,7 +39,7 @@ export function SummarySectionAttachments() {
 }
 
 function SummaryAttachmentInput() {
-  const { sessionId, nominationFileId, canWriteSummary } = useSummary();
+  const { sessionId, nominationFileId, canWriteSummary, summary } = useSummary();
   const { mutate, isPending } = useAttachSummaryFilesMutation();
   const ref = React.useRef<HTMLInputElement | null>(null);
 
@@ -69,7 +69,7 @@ function SummaryAttachmentInput() {
       label={null}
       multiple
       hint="Tout type de fichier supporté"
-      disabled={isPending}
+      disabled={isPending || summary.isArchived}
       nativeInputProps={{ ref, onChange }}
     />
   );

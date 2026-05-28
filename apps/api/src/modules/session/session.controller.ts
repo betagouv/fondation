@@ -104,6 +104,16 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Post('/:sessionId/archive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  archiveSession(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @AuthedUserId() userId: string,
+  ): Promise<void> {
+    return this.sessions.archiveSession({ sessionId, userId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Post('/lodam')
   @UseMultipartBody({
     overrideFiles: false,

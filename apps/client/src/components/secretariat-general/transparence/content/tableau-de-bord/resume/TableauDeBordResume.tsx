@@ -5,6 +5,7 @@ import { generatePath, useNavigate } from 'react-router';
 
 import * as importAttachments from '../actions/ImportAttachmentModal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/components/shared/menu';
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
@@ -18,6 +19,7 @@ import {
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
+  const { isArchived } = useArchivedSession();
   const navigate = useNavigate();
   const confirmation = useConfirmation();
 
@@ -71,17 +73,24 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
           />
 
           <MenuContent>
-            <MenuItem
-              iconId="fr-icon-edit-fill"
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
-              }}
-            >
-              Éditer
-            </MenuItem>
-            <MenuItem iconId="fr-icon-file-add-line" nativeButtonProps={importAttachments.modal.buttonProps}>
-              Pièces jointes
-            </MenuItem>
+            {!isArchived && (
+              <>
+                <MenuItem
+                  iconId="fr-icon-edit-fill"
+                  linkProps={{
+                    to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
+                  }}
+                >
+                  Éditer
+                </MenuItem>
+                <MenuItem
+                  iconId="fr-icon-file-add-line"
+                  nativeButtonProps={importAttachments.modal.buttonProps}
+                >
+                  Pièces jointes
+                </MenuItem>
+              </>
+            )}
             <MenuItem
               iconId="ri-file-download-line"
               onClick={() => {

@@ -155,6 +155,13 @@ export class NominationSessionDeleted {
   ) {}
 }
 
+export class NominationSessionArchived {
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string,
+  ) {}
+}
+
 type NominationSessionEvent =
   | LodamNominationSessionFilesCreated
   | NominationFileAlertHidden
@@ -171,7 +178,8 @@ type NominationSessionEvent =
   | NominationSessionFilesObserversUpdated
   | NominationSessionUpdated
   | NominationSessionValidated
-  | NominationSessionDeleted;
+  | NominationSessionDeleted
+  | NominationSessionArchived;
 
 type NominationSessionAffectationVersion = {
   id: string;
@@ -209,6 +217,18 @@ export class CantUpdateNominationFiles extends Error {
 }
 
 export class NominationSessionIsNotDeletable extends Error {
+  constructor(readonly sessionId: string) {
+    super();
+  }
+}
+
+export class NominationSessionCannotBeArchived extends Error {
+  constructor(readonly unreportedFileCount: number) {
+    super();
+  }
+}
+
+export class NominationSessionIsArchived extends Error {
   constructor(readonly sessionId: string) {
     super();
   }
@@ -499,6 +519,14 @@ export class NominationSession {
 
   validate(command: { userId: string | null }): void {
     this.#messages.push(new NominationSessionValidated(this.id, command.userId));
+  }
+
+  archive(command: { userId: string; unreportedFileCount: number }): void {
+    if (command.unreportedFileCount > 0) {
+      throw new NominationSessionCannotBeArchived(command.unreportedFileCount);
+    }
+
+    this.#messages.push(new NominationSessionArchived(this.id, command.userId));
   }
 
   delete(command: { userId: string; attachmentsCount: number; affectedReportersCount: number }): void {

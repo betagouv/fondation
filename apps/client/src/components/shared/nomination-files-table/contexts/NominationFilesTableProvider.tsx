@@ -8,7 +8,7 @@ export function NominationFilesTableProvider(
   props: React.PropsWithChildren<{
     sessionId: string;
     formation: FormationEnum;
-    isEditable?: false;
+    isEditable?: boolean;
   }>,
 ) {
   const [isEditing, setEditing] = React.useState<boolean>(false);

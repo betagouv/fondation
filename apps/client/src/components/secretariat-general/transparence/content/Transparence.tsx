@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
 import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -45,30 +46,36 @@ export function Transparence() {
   };
 
   return (
-    <AlertsProvider>
-      <div className={cx('fr-container')}>
-        <Breadcrumb
-          id="transparence-details-breadcrumb"
-          ariaLabel="Fil d'Ariane d'une transparence détaillée"
-          breadcrumb={breadcrumb}
-        />
+    <ArchiveBannerPortal isArchived={transparence.isArchived}>
+      <AlertsProvider>
+        <div className={cx('fr-container')}>
+          <Breadcrumb
+            id="transparence-details-breadcrumb"
+            ariaLabel="Fil d'Ariane d'une transparence détaillée"
+            breadcrumb={breadcrumb}
+          />
 
-        <TableauDeBordValidationCallOut session={transparence} />
+          <TableauDeBordValidationCallOut session={transparence} />
 
-        <AlertsProvider.Alerts ref={alertRef} />
-      </div>
-
-      <div className={'flex flex-col gap-8'}>
-        <div className="fr-container flex justify-between gap-x-6">
-          <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
-
-          <TableauDeBordResume {...transparence} />
-          <TableauDeBordActions sessionId={sessionId!} />
+          <AlertsProvider.Alerts ref={alertRef} />
         </div>
-        <div className="mb-8">
-          <NominationFilesTable sessionId={sessionId!} formation={transparence.formation} />
+
+        <div className={'flex flex-col gap-8'}>
+          <div className="fr-container flex justify-between gap-x-6">
+            <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
+
+            <TableauDeBordResume {...transparence} />
+            <TableauDeBordActions sessionId={sessionId!} />
+          </div>
+          <div className="mb-8">
+            <NominationFilesTable
+              sessionId={sessionId!}
+              formation={transparence.formation}
+              isEditable={!transparence.isArchived}
+            />
+          </div>
         </div>
-      </div>
-    </AlertsProvider>
+      </AlertsProvider>
+    </ArchiveBannerPortal>
   );
 }

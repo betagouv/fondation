@@ -4,6 +4,7 @@ import type { FC } from 'react';
 
 import { reportHtmlIds } from '../../dom/html-ids';
 import { summaryLabels } from '../../labels/summary-labels';
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 
 import { AttachedFilesList } from './AttachedFilesList';
 import { Card } from './Card';
@@ -21,11 +22,13 @@ export const AttachedFileUpload: FC<AttachedFileUploadProps> = ({
   onFilesAttached,
   onAttachedFileDeleted,
 }) => {
+  const { isArchived } = useArchivedSession();
   return (
     <Card id={reportHtmlIds.overview.attachedFilesSection} label="Pièces jointes">
       <h2>{summaryLabels.attachedFiles}</h2>
       <div className={clsx('flex flex-col gap-6')}>
         <Upload
+          disabled={isArchived}
           id="report-attached-file-upload"
           nativeInputProps={{
             onChange: (e) => {

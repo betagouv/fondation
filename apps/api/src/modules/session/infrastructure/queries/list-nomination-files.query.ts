@@ -45,7 +45,7 @@ export class ListNominationFilesQuery {
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const [totalCount, files] = await this.prisma.$transaction(async (tx) => {
+    const [totalCount, files, sessionArchivedAt] = await this.prisma.$transaction(async (tx) => {
       const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(query.user.role);
       const lastVersion = isSG
         ? await this.versionFinder.last({
@@ -100,6 +100,11 @@ export class ListNominationFilesQuery {
         nominationFileIds,
       });
 
+      const session = await tx.session.findUnique({
+        where: { id: query.sessionId },
+        select: { archivedAt: true },
+      });
+
       return [
         Number(txCount ?? 0n),
         txFiles.map((file) => {
@@ -129,12 +134,15 @@ export class ListNominationFilesQuery {
             },
           };
         }),
+        session?.archivedAt,
       ];
     });
 
+    const isArchived = !!sessionArchivedAt;
     const items = files.map((x): NominationFileAffectationItem => {
       return {
         id: x.id,
+        isArchived,
         content: {
           version: 2,
           numeroDeDossier: x.number,
@@ -344,6 +352,7 @@ const RawListedNominationFiles = z.array(
 
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
+  isArchived: z.boolean(),
   priorities: z.array(z.enum(PrioriteEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),

@@ -132,6 +132,7 @@ describe('Session E2E', () => {
 
       expect(nominationFiles.body.items).toContainEqual({
         comment: null,
+        isArchived: false,
         content: {
           numeroDeDossier: 1,
           dateDeNaissance: {
@@ -190,6 +191,7 @@ describe('Session E2E', () => {
       expect(nominationFiles.body.items).toContainEqual({
         comment: null,
         id: expect.any(String),
+        isArchived: false,
         observations: [],
         content: {
           numeroDeDossier: 2,

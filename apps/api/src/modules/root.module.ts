@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AdministrationModule } from './administration/administration.module';
+import { ArchivedSessionsModule } from './archived-sessions/archived-sessions.module';
 import { DocsModule } from './docs/docs.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
@@ -17,6 +18,7 @@ import { SimpleAuthModule } from './simple-auth';
     ReportModule,
     IngestModule,
     SessionModule,
+    ArchivedSessionsModule,
     MembersModule,
     MaintenanceModule,
     ObservationModule,

@@ -59,6 +59,7 @@ export class InternalDetailMemberSessionQuery {
           formation: true,
           date: true,
           dueDate: true,
+          archivedAt: true,
         },
         where: {
           deletedAt: null,
@@ -188,6 +189,7 @@ export class InternalDetailMemberSessionQuery {
       ...paginated,
       session: {
         id: session.id,
+        isArchived: !!session.archivedAt,
         sessionImportId: session.sessionImportId,
         formation: session.formation,
         transparency: session.name,
@@ -201,6 +203,7 @@ export class InternalDetailMemberSessionQuery {
 export class DetailedMemberSessionDto extends createPaginatedZodDto(
   z.object({
     id: z.string(),
+    isArchived: z.boolean(),
     nominationFileId: z.string(),
     state: z.string(),
     formation: z.string(),
@@ -253,6 +256,7 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
   z.object({
     session: z.object({
       id: z.string(),
+      isArchived: z.boolean(),
       sessionImportId: z.string(),
       formation: z.string(),
       transparency: z.string(),

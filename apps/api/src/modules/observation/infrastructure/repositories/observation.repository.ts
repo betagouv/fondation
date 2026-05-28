@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   Observation,
@@ -32,19 +38,35 @@ export class ObservationRepository {
       where: { id },
       select: {
         id: true,
-        nominationFileId: true,
         magistratId: true,
         dateReception: true,
+
+        nominationFileId: true,
+        nominationFile: {
+          select: {
+            session: {
+              select: {
+                deletedAt: true,
+                archivedAt: true,
+              },
+            },
+          },
+        },
       },
     });
 
     if (!result) throw new NotFoundException();
 
+    if (result.nominationFile.session.archivedAt || result.nominationFile.session.deletedAt) {
+      this.logger.warn(`tried updating an observation of an archived session`);
+      throw new ForbiddenException();
+    }
+
     return Observation.from({
       id: result.id,
-      nominationFileId: result.nominationFileId,
       magistratId: result.magistratId,
       dateReception: result.dateReception,
+      nominationFileId: result.nominationFileId,
     });
   }
 

@@ -33,6 +33,7 @@ export class DetailSummaryQuery {
       select: {
         id: true,
         formation: true,
+        archivedAt: true,
         dossierDeNominations: {
           where: { id: query.nominationFileId },
           select: {
@@ -128,6 +129,7 @@ export class DetailSummaryQuery {
     return {
       id: nominationFile.id,
       sessionId: session.id,
+      isArchived: !!session.archivedAt,
       name: nominationFile.name,
       number: nominationFile.number,
       position: nominationFile.currentPosition,
@@ -212,6 +214,7 @@ export class DetailedSummaryDto extends createZodDto(
   z.object({
     id: z.string(),
     sessionId: z.string(),
+    isArchived: z.boolean(),
     name: z.string().nullable(),
     rank: z.string().nullable(),
     formation: z.enum(Magistrat.Formation),

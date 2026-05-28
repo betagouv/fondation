@@ -34,12 +34,22 @@ export function SummaryReaderSelector() {
             .map(({ firstName, lastName }) => `${capitalize(firstName)} ${lastName.toUpperCase()}`)
             .join(', ')}
         >
-          <Button {...summaryReadersModal.buttonProps} iconId="fr-icon-group-fill" className="rounded-full">
+          <Button
+            {...summaryReadersModal.buttonProps}
+            iconId="fr-icon-group-fill"
+            className="rounded-full"
+            disabled={summary.isArchived}
+          >
             Partager ({readersCount})
           </Button>
         </Tooltip>
       ) : (
-        <Button {...summaryReadersModal.buttonProps} iconId="fr-icon-admin-fill" className="rounded-full">
+        <Button
+          {...summaryReadersModal.buttonProps}
+          iconId="fr-icon-admin-fill"
+          className="rounded-full"
+          disabled={summary.isArchived}
+        >
           Partager
         </Button>
       )}

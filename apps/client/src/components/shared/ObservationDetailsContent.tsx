@@ -27,6 +27,7 @@ type ObservationDetailsContentProps = {
   context: 'sg' | 'membre';
   onUpdateMemberComment?: (comment: string) => void;
   uploadFiles?: FilesUploader;
+  isArchived: boolean;
 };
 
 export function ObservationDetailsContent({
@@ -38,6 +39,7 @@ export function ObservationDetailsContent({
   context,
   onUpdateMemberComment,
   uploadFiles,
+  isArchived,
 }: ObservationDetailsContentProps) {
   const isSg = useIsSg();
   const observant = observation.observant;
@@ -61,6 +63,7 @@ export function ObservationDetailsContent({
       <h1 className="fr-h2 fr-mb-4w flex items-center justify-between">
         <span>Fiche observation</span>
         <ObservationFollowUpSelector
+          isArchived={isArchived}
           sessionId={sessionId}
           nominationFileId={nominationFileId}
           observationId={observation.id}
@@ -151,26 +154,37 @@ export function ObservationDetailsContent({
             </dl>
           </section>
 
-          {context === 'membre' && observation.isMemberReporter && onUpdateMemberComment && (
-            <section className="fr-mb-4w">
-              <h2 className="fr-h4" id="member-comment-label">
-                Mon commentaire
-              </h2>
-              <TipTapEditor
-                value={observation.memberComment?.comment ?? ''}
-                onChange={onUpdateMemberComment}
-                ariaLabelledby="member-comment-label"
-                uploadFiles={uploadFiles}
-              />
-            </section>
-          )}
+          {context === 'membre' &&
+            observation.isMemberReporter &&
+            ((!isArchived && onUpdateMemberComment) ||
+              (isArchived && observation.memberComment?.comment)) && (
+              <section className="fr-mb-4w">
+                <h2 className="fr-h4" id="member-comment-label">
+                  Mon commentaire
+                </h2>
+                {isArchived ? (
+                  <div
+                    className="rounded bg-gray-100 p-2"
+                    dangerouslySetInnerHTML={{ __html: observation.memberComment?.comment ?? '' }}
+                  />
+                ) : (
+                  <TipTapEditor
+                    value={observation.memberComment?.comment ?? ''}
+                    onChange={onUpdateMemberComment!}
+                    ariaLabelledby="member-comment-label"
+                    uploadFiles={uploadFiles}
+                  />
+                )}
+              </section>
+            )}
 
-          {isSg || observation.description ? (
+          {observation.description || (!isArchived && isSg) ? (
             <section className="fr-mb-4w">
               <ObservationDescription
                 sessionId={sessionId}
                 nominationFileId={nominationFileId}
                 observation={observation}
+                isArchived={isArchived}
               />
             </section>
           ) : null}

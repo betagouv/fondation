@@ -1,4 +1,10 @@
-import { BadRequestException, CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import {
+  BadRequestException,
+  CallHandler,
+  ExecutionContext,
+  ForbiddenException,
+  NestInterceptor,
+} from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
@@ -8,6 +14,8 @@ import {
 import {
   CantUpdateNominationFiles,
   NominationSessionAffectationHasUnknownReporter,
+  NominationSessionCannotBeArchived,
+  NominationSessionIsArchived,
   NominationSessionIsNotDeletable,
   NonFormationMemberDefinedAsReporter,
   UnknownNominationFiles,
@@ -40,7 +48,7 @@ export class SessionExceptionFilter implements NestInterceptor {
           }
 
           if (err instanceof UnknownNominationFiles) {
-            throw new BadRequestException(
+            return new BadRequestException(
               {
                 validationErrors: err.unknownFileNumbers.map(
                   (fileNumber) => `dossier n°${fileNumber} inconnu`,
@@ -51,14 +59,14 @@ export class SessionExceptionFilter implements NestInterceptor {
           }
 
           if (err instanceof UnknownNominationFileOutcome) {
-            throw new BadRequestException(
+            return new BadRequestException(
               { validationErrors: [`l'issue fournie n'existe pas`] },
               { cause: err },
             );
           }
 
           if (err instanceof NominationFileOutcomeRequiresComment) {
-            throw new BadRequestException(
+            return new BadRequestException(
               {
                 validationErrors: [`l'issue définie doit obligatoirement être accompagnée d'un commentaire`],
               },
@@ -67,7 +75,7 @@ export class SessionExceptionFilter implements NestInterceptor {
           }
 
           if (err instanceof CantUpdateNominationFiles) {
-            throw new BadRequestException(
+            return new BadRequestException(
               {
                 validationErrors: [
                   err.fileIds.size === 1
@@ -80,10 +88,22 @@ export class SessionExceptionFilter implements NestInterceptor {
           }
 
           if (err instanceof NominationSessionIsNotDeletable) {
-            throw new BadRequestException({
+            return new BadRequestException({
               validationErrors: [
                 `La session ne doit plus avoir d'affectation et plus de pièces jointes avant d'être supprimé`,
               ],
+            });
+          }
+
+          if (err instanceof NominationSessionIsArchived) {
+            return new ForbiddenException({
+              validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
+            });
+          }
+
+          if (err instanceof NominationSessionCannotBeArchived) {
+            return new BadRequestException({
+              validationErrors: [`la session ne peut pas être archivée`],
             });
           }
 

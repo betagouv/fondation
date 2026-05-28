@@ -128,7 +128,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
 
 export function NominationFilesTable(
   props: React.PropsWithChildren<{
-    isEditable?: false;
+    isEditable?: boolean;
     sessionId: string;
     formation: FormationEnum;
   }>,

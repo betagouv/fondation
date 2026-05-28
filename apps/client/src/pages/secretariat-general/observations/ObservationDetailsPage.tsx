@@ -5,6 +5,7 @@ import { ObservationDetailsContent } from '../../../components/shared/Observatio
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 import {
@@ -100,20 +101,23 @@ export function ObservationDetailsPage() {
       : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
 
   return (
-    <PageContentLayout fullBackgroundGreen={true}>
-      <ObservationFollowUpCommentProvider>
-        <ObservationDetailsContent
-          sessionId={sessionId}
-          nominationFileId={nominationFileId}
-          observationId={observationId}
-          observation={observation}
-          onDownloadFile={handleDownloadFile}
-          backLink={backLink}
-          context={context}
-          onUpdateMemberComment={handleUpdateMemberComment}
-          uploadFiles={uploadFiles}
-        />
-      </ObservationFollowUpCommentProvider>
-    </PageContentLayout>
+    <ArchiveBannerPortal isArchived={observation.isArchived}>
+      <PageContentLayout fullBackgroundGreen={true}>
+        <ObservationFollowUpCommentProvider>
+          <ObservationDetailsContent
+            sessionId={sessionId}
+            nominationFileId={nominationFileId}
+            observationId={observationId}
+            observation={observation}
+            onDownloadFile={handleDownloadFile}
+            backLink={backLink}
+            context={context}
+            onUpdateMemberComment={handleUpdateMemberComment}
+            uploadFiles={uploadFiles}
+            isArchived={observation.isArchived}
+          />
+        </ObservationFollowUpCommentProvider>
+      </PageContentLayout>
+    </ArchiveBannerPortal>
   );
 }

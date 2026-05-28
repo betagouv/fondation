@@ -49,6 +49,7 @@ export function ObservationDescription(props: {
   sessionId: string;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
+  isArchived: boolean;
 }) {
   const isSg = useIsSg();
   const [isEditing, setEditing] = React.useState<boolean>(false);
@@ -61,7 +62,7 @@ export function ObservationDescription(props: {
     <>
       <h2 className="fr-h4 flex justify-between">
         <span>Historique observant</span>
-        {isSg ? (
+        {!props.isArchived && isSg ? (
           isEditing ? (
             <Button
               size="small"
