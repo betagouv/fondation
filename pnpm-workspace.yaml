@@ -1,10 +1,6 @@
 packages:
   - apps/*
   - packages/*
-onlyBuiltDependencies:
-  - '@nestjs/core'
-  - '@swc/core'
-  - bcrypt
 
 catalog:
   zod: 4.1.12
@@ -13,6 +9,17 @@ catalog:
   'oxlint-tsgolint': 0.22.0
 
 preferFrozenLockfile: true
-ignoreDepScripts: true
 minimumReleaseAge: 10080 # 7 days
-
+overrides:
+  node-xlsx>xlsx: '-'
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/client': false
+  '@swc/core': true
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  '@sentry/cli': false
+  bcrypt: true
+  prisma: false
+  puppeteer: false
+  unrs-resolver: false
