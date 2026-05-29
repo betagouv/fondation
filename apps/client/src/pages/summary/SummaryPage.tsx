@@ -1,7 +1,7 @@
 import { useParams } from 'react-router';
 
 import { AuthGuard } from '@/components/guards/AuthGuard';
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { SummaryContainer } from '@/components/summary/components/SummaryContainer';
 import { Summary } from '@/components/summary/Summary';
 import { useVisibleSummarySections } from '@/components/summary/useVisibleSummarySections';

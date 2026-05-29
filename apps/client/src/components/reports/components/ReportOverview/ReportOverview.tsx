@@ -8,7 +8,7 @@ import {
 } from '../../../../utils/transparences-breadcrumb.utils';
 import { Breadcrumb } from '../../../shared/Breadcrumb';
 import { ScrollToTop } from '../../../shared/ScrollToTop';
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import type { ReportStatusEnum } from '@/types/enums.types';
 import {
   useAttachReportFilesMutation,

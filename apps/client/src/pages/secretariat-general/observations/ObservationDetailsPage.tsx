@@ -5,7 +5,7 @@ import { ObservationDetailsContent } from '../../../components/shared/Observatio
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '../../../utils/route-path.utils';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 import {

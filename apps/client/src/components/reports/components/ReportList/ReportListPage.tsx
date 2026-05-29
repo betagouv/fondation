@@ -7,7 +7,7 @@ import { generatePath, useParams } from 'react-router';
 
 import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchivedSessionUpdater';
+import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import {
