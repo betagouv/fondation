@@ -37,7 +37,8 @@ ADMIN_DATABASE_URL=$(scalingo --app "$SCALINGO_API_APP_NAME" --region "$SCALINGO
 # ROLE_NAME="fon_user_$(openssl rand -base64 6 | tr '+/' '-_' | tr -d '=')"
 # ROLE_PASSWORD="$(openssl rand -base64 25 | tr '+/' '-_' | tr -d '=')"
 
-pnpm --filter api... install --frozen-lockfile --ignore-scripts
+./sheetjs.sh && \
+  pnpm --filter api... install --frozen-lockfile --ignore-scripts
 
 DB_URL_PARTS="${ADMIN_DATABASE_URL#*://}"
 DB_HOST_PATH="${DB_URL_PARTS#*@}"
