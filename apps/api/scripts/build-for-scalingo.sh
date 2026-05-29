@@ -22,7 +22,7 @@ temp=$(basename $(mktemp -d)) && \
     -iname '*.d.ts' -type f -delete \
     -or -iname '*.map' -type f -delete \
     -or -iname '*.tsbuildinfo' -type f -delete && \
-  mv bin pnpm-lock.yaml pnpm-workspace.yaml "$temp" && \
+  mv bin pnpm-lock.yaml pnpm-workspace.yaml vendor "$temp" && \
   mkdir -p "$temp/apps/api" && \
   mkdir -p "$temp/apps/api/scripts" && \
   mv apps/api/dist "$temp/apps/api" && \
