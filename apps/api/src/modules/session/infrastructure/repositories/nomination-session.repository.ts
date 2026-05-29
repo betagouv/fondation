@@ -81,10 +81,6 @@ export class NominationSessionRepository {
         id: true,
         formation: true,
         archivedAt: true,
-        dossierDeNominations: {
-          select: { id: true },
-          where: { outcome: { not: null } },
-        },
       },
     });
 
@@ -93,6 +89,7 @@ export class NominationSessionRepository {
 
     const nominationFiles = await this.nominationSessionFileFinder.findUpdatable({
       tx,
+      sessionId: session.id,
       nominationFileIds: options.nominationFileIds,
     });
 

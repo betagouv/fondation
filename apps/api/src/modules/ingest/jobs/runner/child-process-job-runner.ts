@@ -47,7 +47,7 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
   private spawnChildProcess(jobId: number): Promise<ChildProcessJobMetadata> {
     const commandParts = [
       'node',
-      ...(this.isProduction ? [] : ['--env-file', '../../.env']),
+      ...(this.isProduction ? [] : ['--env-file', '../.env']),
       'cli',
       'lolfi-job',
       '--jobId',

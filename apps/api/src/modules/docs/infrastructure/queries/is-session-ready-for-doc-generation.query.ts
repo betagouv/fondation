@@ -22,7 +22,7 @@ export class IsSessionReadyForDocGenerationQuery {
           select: { id: true },
           where: {
             sessionId: query.sessionId,
-            outcome: { in: ['SUSPENDED', 'WAITING_DSJ', 'ASSESSING'] },
+            OR: [{ outcome: { in: ['SUSPENDED', 'WAITING_DSJ', 'ASSESSING'] } }, { outcome: null }],
           },
         });
 
@@ -37,8 +37,8 @@ export class IsSessionReadyForDocGenerationQuery {
         const hasAnyNonReportedFile = await tx.dossierDeNomination.findFirst({
           select: { id: true },
           where: {
-            agendaInclusions: { none: {} },
             sessionId: query.sessionId,
+            agendaInclusions: { none: { outcome: { in: ['VALIDATED', 'NON_VALIDATED', 'WITHDRAWN'] } } },
           },
         });
 

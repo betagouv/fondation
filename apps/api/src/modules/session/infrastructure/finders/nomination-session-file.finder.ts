@@ -39,6 +39,7 @@ export class NominationSessionFileFinder {
   }
 
   async findUpdatable(query: {
+    sessionId: string;
     nominationFileIds: Set<string> | undefined;
     tx?: Prisma.TransactionClient;
   }): Promise<UpdatableNominationFileState[]> {
@@ -46,17 +47,18 @@ export class NominationSessionFileFinder {
       return this.prisma.$transaction((tx) => this.findUpdatable({ ...query, tx }));
     }
 
-    if (!query.nominationFileIds?.size) return [];
+    assertPgParams(query.nominationFileIds || []);
 
-    assertPgParams(query.nominationFileIds);
+    const inIds =
+      (query.nominationFileIds?.size ?? 0) > 0 ? { in: [...(query.nominationFileIds ?? [])] } : undefined;
     const updatableNominationFiles = await query.tx.dossierDeNomination.findMany({
-      where: { id: { in: [...query.nominationFileIds] } },
+      where: { id: inIds, sessionId: query.sessionId },
       select: { id: true, outcome: true },
     });
 
     const { items: withDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
       tx: query.tx,
-      nominationFileIds: query.nominationFileIds,
+      nominationFileIds: new Set(updatableNominationFiles.map(({ id }) => id)),
     });
 
     const nominationFiles: UpdatableNominationFileState[] = [];

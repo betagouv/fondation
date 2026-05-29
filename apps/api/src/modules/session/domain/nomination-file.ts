@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+
 import { Magistrat } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
@@ -52,6 +54,7 @@ export type UpdatableNominationFileState = {
 
 // FIXME: improve naming
 export class UpdatableNominationFile {
+  private readonly logger = new Logger(UpdatableNominationFile.name);
   private static readonly IGNORED_OUTCOMES = [
     null,
     'SUSPENDED',
@@ -69,7 +72,7 @@ export class UpdatableNominationFile {
     },
   ) {}
 
-  static from(props: UpdatableNominationFileState) {
+  static from(props: UpdatableNominationFileState): UpdatableNominationFile {
     return new UpdatableNominationFile(props.id, props.outcome, props.docs);
   }
 

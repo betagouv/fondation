@@ -3,6 +3,7 @@ import {
   CallHandler,
   ExecutionContext,
   ForbiddenException,
+  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
@@ -22,6 +23,7 @@ import {
 } from '../domain/nomination-session';
 
 export class SessionExceptionFilter implements NestInterceptor {
+  private readonly logger = new Logger(SessionExceptionFilter.name);
   intercept(_ctx: ExecutionContext, next: CallHandler<any>): Observable<any> {
     return next.handle().pipe(
       catchError((err) => {

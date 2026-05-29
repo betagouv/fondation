@@ -11,8 +11,6 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedArchivedNominationSessionsDto } from '@api/types';
 import { useListedArchivedGdsNominationSessionsQuery } from '@queries/archived-nomination-sessions.queries';
 
-import { SessionStatusBadge } from './SessionStatusBadge';
-
 const h = createColumnHelper<ListedArchivedNominationSessionsDto['items'][number]>();
 const columns = [
   h.accessor('name', {
@@ -54,19 +52,12 @@ const columns = [
 
   h.accessor('dueDate', {
     id: 'dueDate',
-    enableSorting: true,
+    enableSorting: false,
     header: "Date d'échéance",
     cell: ({ cell }) => {
       const val = cell.getValue();
       return val ? format(dateOnlyToDate(val), 'dd/MM/yyyy') : null;
     },
-  }),
-
-  h.accessor('status', {
-    id: 'status',
-    enableSorting: false,
-    header: 'Statut',
-    cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
   }),
 ];
 
