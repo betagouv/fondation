@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useId, useState } from 'react';
 import { useParams } from 'react-router';
 
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useIsSg } from '@/hooks/roles.hook';
 
 import { MagistratCommentEdit } from './MagistratCommentEdit';
@@ -14,6 +15,7 @@ export function MagistratComment(props: {
 }) {
   const { nominationFileId, initialComment } = props;
 
+  const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { sessionId } = useParams<{ sessionId: string }>();
   const [isEditing, setEditing] = useState<boolean>(false);
@@ -25,7 +27,7 @@ export function MagistratComment(props: {
     setEditing((editing) => !editing);
   }, [setEditing]);
 
-  const showComment = isSg || initialComment !== null;
+  const showComment = !isArchived && (isSg || initialComment !== null);
   if (!showComment) return null;
 
   return (
@@ -35,7 +37,7 @@ export function MagistratComment(props: {
           Historique proposition
         </label>
 
-        {isEditable ? (
+        {!isArchived && isEditable ? (
           isEditing ? (
             <Button
               size="small"
@@ -58,7 +60,7 @@ export function MagistratComment(props: {
         ) : null}
       </div>
 
-      {isEditable && isEditing ? (
+      {!isArchived && isEditable && isEditing ? (
         <MagistratCommentEdit
           key={
             // to unmount the component

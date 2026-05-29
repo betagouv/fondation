@@ -178,8 +178,6 @@ export const useFindAgendaNominationFilesQuery = (query: {
   ignoreAgendaId: string | null;
 }) =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
     queryKey: agendaKeys.findAgendaNominationFiles({
       sessionId: query.sessionId,
       ignoreAgendaId: query.ignoreAgendaId ?? undefined,
@@ -675,8 +673,6 @@ export function useUnPresentPlanMutation() {
 
 export const useListNonPresentedPlansQuery = () =>
   useQuery({
-    staleTime: Infinity,
-
     queryKey: presentationPlanKeys.nonPresented(),
     queryFn: async () => {
       const { data = null } = await $api.docs.listNonPresentedPlans();
@@ -686,8 +682,6 @@ export const useListNonPresentedPlansQuery = () =>
 
 export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
   useQuery({
-    staleTime: Infinity,
-
     queryKey: presentationPlanKeys.presented(query),
     queryFn: async () => {
       const { data = null } = await $api.docs.listPresentedPlans({

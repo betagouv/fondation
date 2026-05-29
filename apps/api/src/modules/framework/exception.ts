@@ -26,6 +26,8 @@ export class CatchEverythingFilter implements ExceptionFilter {
     if (status >= 500) {
       this.logger.error('Error', exception);
       this.sentryService?.captureException(exception, request, status);
+    } else {
+      this.logger.warn('cause' in (exception as any) ? (exception as any).cause : exception);
     }
 
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : {};

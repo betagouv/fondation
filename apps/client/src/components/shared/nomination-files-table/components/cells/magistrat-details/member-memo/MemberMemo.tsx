@@ -7,6 +7,7 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useIsSg } from '@/hooks/roles.hook';
 import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
@@ -53,6 +54,7 @@ function ReadOnlyMemo(props: { value: string | null }) {
 }
 
 export function MemberMemo(props: { sessionId: string; nominationFileId: string; memo: string | null }) {
+  const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { user } = useUser();
   const { mutate } = useWriteNominationFileMemberMemoMutation();
@@ -90,15 +92,17 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
             }
           />
         </h3>
-        <Button
-          size="small"
-          iconId={mode === 'read' ? 'fr-icon-edit-fill' : 'ri-check-line'}
-          priority="tertiary"
-          onClick={switchMode}
-          title={mode === 'edit' ? 'Passer en mode lecture' : 'Passer en mode édition'}
-        >
-          {mode === 'edit' ? 'Ok' : 'Éditer'}
-        </Button>
+        {!isArchived && (
+          <Button
+            size="small"
+            iconId={mode === 'read' ? 'fr-icon-edit-fill' : 'ri-check-line'}
+            priority="tertiary"
+            onClick={switchMode}
+            title={mode === 'edit' ? 'Passer en mode lecture' : 'Passer en mode édition'}
+          >
+            {mode === 'edit' ? 'Ok' : 'Éditer'}
+          </Button>
+        )}
       </div>
 
       <div>

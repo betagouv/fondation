@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindNominationFilesLinkedDocsQuery {
@@ -13,10 +14,7 @@ export class InternalFindNominationFilesLinkedDocsQuery {
     tx?: Prisma.TransactionClient;
     nominationFileIds: Set<string>;
   }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
-    if (query.nominationFileIds.size > 32_000) {
-      this.logger.warn(`Received ${query.nominationFileIds.size} ids, can't process more than 32,000`);
-      throw new BadRequestException();
-    }
+    assertPgParams(query.nominationFileIds);
 
     if (!query.tx) {
       return this.prisma.$transaction(async (tx) => this.handle({ ...query, tx }));

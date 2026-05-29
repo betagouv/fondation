@@ -212,14 +212,14 @@ export class OfficialReportRepository {
       select: { pdfId: true },
     });
 
-    if (report?.pdfId) {
-      await tx.file.delete({
-        where: { id: report.pdfId },
-      });
-    }
-
     await tx.officialReport.delete({
       where: { id: message.officialReportId },
     });
+
+    if (report?.pdfId) {
+      await tx.file.deleteMany({
+        where: { id: report.pdfId },
+      });
+    }
   }
 }

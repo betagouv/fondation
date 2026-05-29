@@ -104,7 +104,7 @@ export class MemberRepository {
   private persistMemberTitleUpdated(message: MemberTitleUpdated) {
     return [
       this.prisma.user.updateMany({
-        where: { title: { not: null } },
+        where: { title: message.title },
         data: { title: null, duty: null },
       }),
 

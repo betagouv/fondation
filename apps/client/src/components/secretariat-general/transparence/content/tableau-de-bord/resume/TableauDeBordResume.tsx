@@ -1,3 +1,4 @@
+import { colors } from '@codegouvfr/react-dsfr';
 import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -138,11 +139,12 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
                 nativeButtonProps={confirmation.buttonProps}
                 iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-fill'}
                 onClick={onArchive}
+                style={{ color: colors.decisions.text.actionHigh.yellowTournesol.default }}
                 className={clsx({
                   "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
                 })}
               >
-                Archiver
+                <FormattedMessage defaultMessage="Archiver" />
               </MenuItem>
             )}
 
