@@ -18,6 +18,7 @@ import type {
 } from '@api/types';
 
 import { agendaKeys } from './agenda.queries';
+import { archivedSessionKeys } from './archived-nomination-sessions.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
   ? Rest
@@ -567,6 +568,21 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
           };
         },
       ),
+  });
+}
+
+export function useArchiveNominationSessionMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.sessions.archiveSession({ path: { sessionId: input.sessionId } }),
+    onSuccess: () =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.detailSession({ sessionId: input.sessionId }),
+        }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listGdsSessions() }),
+        queryClient.invalidateQueries({ queryKey: archivedSessionKeys.listArchivedGdsSessions() }),
+      ]),
   });
 }
 

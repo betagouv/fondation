@@ -260,7 +260,7 @@ export type ListedNominationSessionsDto = {
             day: number;
         } | null;
         typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
+        status: 'TO_VALIDATE' | 'READY' | 'REPORTED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -500,6 +500,7 @@ export type DetailedNominationSessionDto = {
     isValidated: boolean;
     isDeletable: boolean;
     isArchived: boolean;
+    isArchivable: boolean;
 };
 
 export type UpdateNominationSessionDto = {

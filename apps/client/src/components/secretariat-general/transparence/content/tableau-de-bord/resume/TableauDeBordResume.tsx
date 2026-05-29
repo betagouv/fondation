@@ -12,6 +12,7 @@ import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import {
+  useArchiveNominationSessionMutation,
   useDeleteNominationSessionMutation,
   useListNominationFilesAsExcelMutation,
 } from '@queries/nomination-sessions.queries';
@@ -23,8 +24,34 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
   const navigate = useNavigate();
   const confirmation = useConfirmation();
 
-  const { mutate: exportAsExcel } = useListNominationFilesAsExcelMutation();
+  const exportAsExcelMutation = useListNominationFilesAsExcelMutation();
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
+  const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
+
+  const onArchive = React.useCallback(async () => {
+    const { isConfirmed } = await confirmation.waitForConfirmation({
+      title: `Confirmer l'archivage`,
+      content: (
+        <>
+          <p>
+            <FormattedMessage
+              defaultMessage={'Vous allez archiver la transparence «\u00A0{name}\u00A0».'}
+              values={{ name: transparence.name }}
+            />
+          </p>
+          <p>
+            <FormattedMessage defaultMessage={'Souhaitez-vous continuer\u00A0?'} />
+          </p>
+        </>
+      ),
+    });
+
+    if (!isConfirmed) return;
+
+    archiveSessionMutation.mutate(undefined, {
+      onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION),
+    });
+  }, [confirmation, transparence.name, archiveSessionMutation, navigate]);
 
   const onDelete = React.useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
@@ -55,18 +82,21 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     deleteSessionMutation.mutate(undefined, {
       onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION),
     });
-  }, [confirmation, transparence, deleteSessionMutation, navigate]);
+  }, [confirmation, transparence.name, deleteSessionMutation, navigate]);
+
+  const isMutationPending =
+    deleteSessionMutation.isPending || archiveSessionMutation.isPending || exportAsExcelMutation.isPending;
 
   return (
     <div className="flex max-w-[63%] flex-col gap-y-2 px-2">
       <h1 className="mb-0 flex items-center justify-between gap-2">
         <span className="hyphens-auto">{transparence.name}</span>
-        <MenuRoot>
+        <MenuRoot disabled={isMutationPending}>
           <MenuTrigger
-            disabled={deleteSessionMutation.isPending}
-            iconId={deleteSessionMutation.isPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
+            disabled={isMutationPending}
+            iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
             className={clsx('shrink-0 grow-0 rounded-full', {
-              "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
+              "before:animate-spin before:content-['']": isMutationPending,
             })}
             priority="tertiary no outline"
             title={`Actions sur la transparence "${transparence.name}"`}
@@ -84,6 +114,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
                   Éditer
                 </MenuItem>
                 <MenuItem
+                  disabled={isMutationPending}
                   iconId="fr-icon-file-add-line"
                   nativeButtonProps={importAttachments.modal.buttonProps}
                 >
@@ -92,17 +123,32 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
               </>
             )}
             <MenuItem
+              disabled={isMutationPending}
               iconId="ri-file-download-line"
               onClick={() => {
-                exportAsExcel({ sessionId: transparence.id });
+                exportAsExcelMutation.mutate({ sessionId: transparence.id });
               }}
             >
               Export .xlsx
             </MenuItem>
 
-            {transparence.isDeletable && (
+            {transparence.isArchivable && (
               <MenuItem
-                disabled={deleteSessionMutation.isPending}
+                disabled={isMutationPending}
+                nativeButtonProps={confirmation.buttonProps}
+                iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-fill'}
+                onClick={onArchive}
+                className={clsx({
+                  "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
+                })}
+              >
+                Archiver
+              </MenuItem>
+            )}
+
+            {!isArchived && transparence.isDeletable && (
+              <MenuItem
+                disabled={isMutationPending}
                 nativeButtonProps={confirmation.buttonProps}
                 iconId={deleteSessionMutation.isPending ? `ri-loader-4-fill` : 'ri-delete-bin-fill'}
                 onClick={onDelete}

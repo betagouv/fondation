@@ -5,6 +5,7 @@ import z from 'zod';
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { UnreportedSessionFilesCountFinder } from '../finders/count-unreported-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -16,6 +17,7 @@ export class DetailNominationSessionQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
   ) {}
 
   async handle(query: {
@@ -59,6 +61,12 @@ export class DetailNominationSessionQuery {
     const affectationsCount = session.affectationVersions[0]?._count.affectations ?? 0;
     const isDeletable = session._count.attachments === 0 && affectationsCount === 0;
 
+    const unreportedCount = await this.unreportedSessionFilesCountFinder.find({
+      sessionId: query.sessionId,
+      tx: query.tx,
+    });
+    const isArchivable = session.isValidated && !session.archivedAt && unreportedCount === 0;
+
     return {
       id: session.id,
       name: session.name,
@@ -73,6 +81,7 @@ export class DetailNominationSessionQuery {
       isValidated: session.isValidated,
       isDeletable,
       isArchived: !!session.archivedAt,
+      isArchivable,
     };
   }
 }
@@ -90,5 +99,6 @@ export class DetailedNominationSessionDto extends createZodDto(
     isValidated: z.boolean(),
     isDeletable: z.boolean(),
     isArchived: z.boolean(),
+    isArchivable: z.boolean(),
   }),
 ) {}

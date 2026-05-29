@@ -6,6 +6,8 @@ import type { PlainDateOnly } from '@/utils/date-only.util';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
 
+import { sessionKeys } from './nomination-sessions.queries';
+
 export const agendaKeys = {
   findAgendaNominationFiles: (query: { sessionId: string; ignoreAgendaId?: string }) =>
     ['agenda', 'findAgendaNominationFiles', query.sessionId, query.ignoreAgendaId] as const,
@@ -288,6 +290,7 @@ export const useListSecretariesGeneralQuery = () =>
   });
 
 export function useCreateOfficialReportMutation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (command: {
       sessionId: string;
@@ -317,6 +320,10 @@ export function useCreateOfficialReportMutation() {
           },
         })
         .then(({ data }) => data!),
+    onSuccess(_, { sessionId }) {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
+    },
   });
 }
 
@@ -450,6 +457,7 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
 
     onSuccess: (_, { officialReportId }) => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
       queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
     },
   });

@@ -16,10 +16,12 @@ export class UnreportedSessionFilesCountFinder {
   async find(props: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<number> {
     if (!props.tx) return this.prisma.$transaction((tx) => this.find({ ...props, tx }));
 
-    const { tx, sessionId } = props;
-    const version = await this.version.lastPublished({ sessionId, tx });
-    const [row] = await tx.$queryRawTyped(countUnreportedNominationFiles(sessionId, version.id));
+    /** @warning: we need the last published version */
+    const version = await this.version.lastPublished({ tx: props.tx, sessionId: props.sessionId });
+    const [{ count } = {}] = await props.tx.$queryRawTyped(
+      countUnreportedNominationFiles(props.sessionId, version.optionalId ?? null),
+    );
 
-    return row?.count ?? 0;
+    return count ?? 0;
   }
 }

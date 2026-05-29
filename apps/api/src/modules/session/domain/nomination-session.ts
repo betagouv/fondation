@@ -238,7 +238,7 @@ export class NominationSession {
   private constructor(
     readonly id: string,
     readonly formation: Magistrat.Formation,
-    private readonly version: NominationSessionAffectationVersion | null,
+    readonly version: NominationSessionAffectationVersion | null,
     private nominationFiles: Map<string, UpdatableNominationFile>,
   ) {}
 
