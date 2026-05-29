@@ -70,4 +70,6 @@ jobs:
           SCALINGO_API_APP_NAME: ${{ vars.SCALINGO_API_APP_NAME }}
           SCALINGO_SSH_KEY: ${{ secrets.SCALINGO_SSH_KEY }}
           SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
-        run: ./apps/api/scripts/migrate.sh
+        run: |
+          ./scripts/sheetjs.sh
+          ./apps/api/scripts/migrate.sh
