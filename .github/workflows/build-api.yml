@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:13.2
+        image: postgres:13.2@sha256:0eee5caa50478ef50b89062903a5b901eb818dfd577d2be6800a4735af75e53f
         env:
           POSTGRES_USER: fondation
           POSTGRES_PASSWORD: secret
@@ -34,7 +34,7 @@ jobs:
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 11
+          version: 11.5.0
           run_install: false
 
       - name: Use Node.js
