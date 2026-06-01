@@ -114,7 +114,7 @@ function content(ctx: {
 
   const sessionMeetingTime = `${ctx.sessionMeetingTime.hours
     .toString()
-    .padStart(2, '0')}h${ctx.sessionMeetingTime.minutes.toString().padStart(2, '0')}`;
+    .padStart(2, '0')}:${ctx.sessionMeetingTime.minutes.toString().padStart(2, '0')}`;
 
   const outcomesOrder = new Map(
     (
