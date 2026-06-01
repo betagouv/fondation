@@ -254,7 +254,7 @@ function presentationPlanSessionSection(ctx: {
 }
 
 function endingTime(time: TimeOnly): string {
-  return html`Heure de fin de la séance de restitution&nbsp;: ${format(timeOnlyToDate(time), "HH'h'mm")}`;
+  return html`Heure de fin de la séance de restitution&nbsp;: ${format(timeOnlyToDate(time), 'HH:mm')}`;
 }
 
 function content(ctx: {
@@ -287,9 +287,7 @@ function content(ctx: {
     <ul>
       <li>DSJ&nbsp;: ${ctx.justiceContactName}</li>
       <li>SG&nbsp;: ${fullname(ctx.secretary)}</li>
-      <li>
-        Heure de début de la séance de restitution&nbsp;: ${format(timeOnlyToDate(ctx.time), "HH'h'mm")}
-      </li>
+      <li>Heure de début de la séance de restitution&nbsp;: ${format(timeOnlyToDate(ctx.time), 'HH:mm')}</li>
       ${ctx.endingTime ? html`<li>${endingTime(ctx.endingTime)}</li>` : ''}
     </ul>
   `;
