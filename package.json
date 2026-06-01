@@ -15,11 +15,11 @@
     "lint": "oxlint"
   },
   "devDependencies": {
-    "husky": "^9.1.6",
-    "oxfmt": "^0.47.0",
+    "husky": "9.1.7",
+    "oxfmt": "0.47.0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
-    "type-fest": "^4.41.0"
+    "type-fest": "4.41.0"
   },
   "engines": {
     "node": "24",
