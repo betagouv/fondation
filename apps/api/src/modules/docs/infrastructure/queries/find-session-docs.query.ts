@@ -25,7 +25,7 @@ export class FindSessionDocsQuery {
       }),
       this.prisma.officialReport.findMany({
         orderBy: [{ sessionMeetingDate: 'asc' }, { createdAt: 'asc' }],
-        where: { html: { not: null }, agendas: { every: { sessionId: query.sessionId } } },
+        where: { html: { not: null }, agendas: { some: { sessionId: query.sessionId } } },
         select: { id: true, sessionMeetingDate: true },
       }),
     ]);
