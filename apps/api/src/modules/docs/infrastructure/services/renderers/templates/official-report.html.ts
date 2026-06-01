@@ -107,6 +107,7 @@ function content(ctx: {
       ${ctx.members
         .filter((member) => ctx.chairman.id === null || member.id === null || member.id !== ctx.chairman.id)
         .filter((member) => !member.isAbsent)
+        .sort((a, b) => a.lastName.localeCompare(b.lastName))
         .map((member) => `<li>${displayTitled(member)}</li>`)
         .join('')}
     </ul>
