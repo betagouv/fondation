@@ -16,6 +16,7 @@ import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
+import { toFullName } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
@@ -73,7 +74,7 @@ const OfficialReportMetadataSchema = z
 export function OfficialReportForm() {
   const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
 
-  const { data: secretariesData } = useListSecretariesGeneralQuery();
+  const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
   const { data: agendas } = useListAgendasForNewOfficialReportQuery({
     sessionId: session.id,
@@ -106,7 +107,7 @@ export function OfficialReportForm() {
     setValue,
     handleSubmit,
     subscribe,
-    formState: { errors, isValid },
+    formState: { errors, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
     defaultValues,
@@ -114,11 +115,13 @@ export function OfficialReportForm() {
   });
 
   React.useEffect(() => {
-    if (secretaries.length > 0 && !metadata?.secretaryId) {
-      const secretary = secretaries.find((m) => m.title === 'FIRST_SECRETARY');
-      if (secretary) setValue('secretaryId', secretary.id);
+    if (!secretaries.length || dirtyFields.secretaryId || metadata?.secretaryId) return;
+
+    const secretary = secretaries.find((m) => m.title === 'FIRST_SECRETARY');
+    if (secretary) {
+      setValue('secretaryId', secretary.id, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     }
-  }, [secretaries, metadata, setValue]);
+  }, [secretaries, metadata, dirtyFields, setValue]);
 
   React.useEffect(() => {
     const unsubscribe = subscribe({
@@ -288,6 +291,37 @@ export function OfficialReportForm() {
         formation={session.formation}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
+      />
+
+      <Controller
+        control={control}
+        name="secretaryId"
+        render={({ field }) => (
+          <Select
+            disabled={field.disabled || isFetchingSecretaries}
+            label={
+              <Mandatory>
+                <FormattedMessage defaultMessage={'Secrétaire général'} />
+              </Mandatory>
+            }
+            nativeSelectProps={{
+              value: field.value,
+              onChange: (e) => field.onChange(e.target.value),
+            }}
+            state={errors.secretaryId ? 'error' : undefined}
+            stateRelatedMessage={errors.secretaryId?.message}
+          >
+            <option value="" disabled>
+              <FormattedMessage defaultMessage={'Sélectionner le secrétaire général'} />
+            </option>
+
+            {secretaries.map((s) => (
+              <option key={s.id} value={s.id}>
+                {toFullName(s)}
+              </option>
+            ))}
+          </Select>
+        )}
       />
 
       <JusticeContactSelector
