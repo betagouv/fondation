@@ -15,9 +15,41 @@ const NOMINATION_FILE_OUTCOMES = [
 
 export type NominationFileOutcomeEnum = (typeof NOMINATION_FILE_OUTCOMES)[number];
 
+export type NonFinalNominationFileOutcomeEnum = Extract<
+  NominationFileOutcomeEnum,
+  'SUSPENDED' | 'WAITING_DSJ' | 'ASSESSING'
+>;
+
+export type FinalNominationFileOutcomeEnum = Exclude<
+  NominationFileOutcomeEnum,
+  NonFinalNominationFileOutcomeEnum
+>;
+
+const NON_FINAL_OUTCOMES = Object.freeze(
+  Object.values({
+    ASSESSING: 'ASSESSING',
+    SUSPENDED: 'SUSPENDED',
+    WAITING_DSJ: 'WAITING_DSJ',
+  } satisfies { [K in NonFinalNominationFileOutcomeEnum]: K }),
+);
+
+const FINAL_OUTCOMES = Object.freeze(
+  NOMINATION_FILE_OUTCOMES.filter(
+    (x): x is FinalNominationFileOutcomeEnum => !(NON_FINAL_OUTCOMES as unknown[]).includes(x),
+  ),
+);
+
 export class NominationFileOutcome {
   /** @internal exposed for DTOs definitions  */
   static readonly enum = NOMINATION_FILE_OUTCOMES;
+
+  static finalOutcomes(): FinalNominationFileOutcomeEnum[] {
+    return [...FINAL_OUTCOMES];
+  }
+
+  static nonFinalOutcomes(): NonFinalNominationFileOutcomeEnum[] {
+    return [...NON_FINAL_OUTCOMES];
+  }
 
   private constructor(
     readonly outcome: NominationFileOutcomeEnum,
@@ -71,48 +103,45 @@ export function nominationFileOutcomeLabel(props: {
   outcome: NominationFileOutcomeEnum;
   formation: Magistrat.Formation;
 }): string {
-  switch (props.formation) {
-    case Magistrat.Formation.PARQUET:
-      switch (props.outcome) {
-        case 'VALIDATED':
+  switch (props.outcome) {
+    case 'VALIDATED': {
+      switch (props.formation) {
+        case Magistrat.Formation.PARQUET:
           return 'avis favorable';
-        case 'NON_VALIDATED':
-          return 'avis défavorable';
-        case 'SUSPENDED':
-          return 'sursis à statuer';
-        case 'REMOVED':
-          return 'retrait';
-        case 'WITHDRAWN':
-          return 'retrait (désistement)';
-        case 'ASSESSING':
-          return 'En attente évaluation';
-        case 'WAITING_DSJ':
-          return 'En attente complément DSJ';
-        default:
-          return assertNever(props.outcome);
-      }
-
-    case Magistrat.Formation.SIEGE:
-      switch (props.outcome) {
-        case 'VALIDATED':
+        case Magistrat.Formation.SIEGE:
           return 'avis conforme';
-        case 'NON_VALIDATED':
-          return 'avis non conforme';
-        case 'SUSPENDED':
-          return 'sursis à statuer';
-        case 'REMOVED':
-          return 'retrait';
-        case 'WITHDRAWN':
-          return 'retrait (désistement)';
-        case 'ASSESSING':
-          return 'En attente évaluation';
-        case 'WAITING_DSJ':
-          return 'En attente complément DSJ';
         default:
-          return assertNever(props.outcome);
+          return assertNever(props.formation);
       }
+    }
+
+    case 'NON_VALIDATED': {
+      switch (props.formation) {
+        case Magistrat.Formation.PARQUET:
+          return 'avis défavorable';
+        case Magistrat.Formation.SIEGE:
+          return 'avis non conforme';
+        default:
+          return assertNever(props.formation);
+      }
+    }
+
+    case 'SUSPENDED':
+      return 'sursis à statuer';
+
+    case 'REMOVED':
+      return 'retrait';
+
+    case 'WITHDRAWN':
+      return 'retrait (désistement)';
+
+    case 'ASSESSING':
+      return 'en attente évaluation';
+
+    case 'WAITING_DSJ':
+      return 'en attente complément DSJ';
 
     default:
-      return assertNever(props.formation);
+      return assertNever(props.outcome);
   }
 }
