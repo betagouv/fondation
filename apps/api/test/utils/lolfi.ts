@@ -468,7 +468,14 @@ export async function createSession(options: {
       .set({ cookie: options.cookie })
       .expect(HttpStatus.OK);
 
-    expect((jobResponse.body as DetailedJobDto).status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
+    const status: PrismaJobStatusEnum = (jobResponse.body as DetailedJobDto).status;
+    if (status === 'FAILED') {
+      console.error((jobResponse.body as DetailedJobDto).errors);
+      console.error((jobResponse.body as DetailedJobDto).files.map((file) => file.errors));
+      expect(status).toBe('FAILED');
+    }
+
+    expect(status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
   }, /* timeout */ 2_000);
 
   const sessionResponse = await options.http

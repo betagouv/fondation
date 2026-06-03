@@ -28,14 +28,6 @@ WITH bronze_magistrat AS (
   FROM UNNEST($1::JSONB[]) AS m
 ),
 
-silver_magistrat AS (
-  SELECT bm.*
-  FROM bronze_magistrat AS bm
-    INNER JOIN data_administration_context.grade AS g ON g.grade = bm.grade
-    INNER JOIN data_administration_context."position" AS p ON p.id = bm.current_position_id::INT
-    INNER JOIN data_administration_context.administrative_position AS ap ON ap.id = bm.admin_position
-),
-
 gold_magistrats AS (
   INSERT INTO nominations_context.magistrat (
     birth_date,
@@ -67,34 +59,39 @@ gold_magistrats AS (
     updated_at
   )
   SELECT
-    birth_date,
-    grade_date,
-    installation_date,
-    nomination_date,
-    advancement_year,
-    admin_position_prev_start,
-    admin_position_prev_end,
-    admin_position_prev2_date,
-    lolfi_updated_at,
-    external_id,
-    civilite,
-    last_name,
-    first_name,
-    married_name,
-    used_name,
-    marital_status,
-    professional_email,
-    birth_place,
-    birth_department,
-    grade,
-    current_position_id,
-    career_history,
-    admin_position,
-    admin_position_prev,
-    admin_position_prev2,
+    bm.birth_date,
+    bm.grade_date,
+    bm.installation_date,
+    bm.nomination_date,
+    bm.advancement_year,
+    bm.admin_position_prev_start,
+    bm.admin_position_prev_end,
+    bm.admin_position_prev2_date,
+    bm.lolfi_updated_at,
+    bm.external_id,
+    bm.civilite,
+    bm.last_name,
+    bm.first_name,
+    bm.married_name,
+    bm.used_name,
+    bm.marital_status,
+    bm.professional_email,
+    bm.birth_place,
+    bm.birth_department,
+    COALESCE(g.mass_grade_id, g.grade) AS grade,
+    bm.current_position_id,
+    bm.career_history,
+    bm.admin_position,
+    bm.admin_position_prev,
+    bm.admin_position_prev2,
     CURRENT_TIMESTAMP AS created_at,
     CURRENT_TIMESTAMP AS updated_at
-  FROM silver_magistrat
+
+  FROM bronze_magistrat AS bm
+    INNER JOIN data_administration_context.grade AS g ON g.grade = bm.grade
+    INNER JOIN data_administration_context."position" AS p ON p.id = bm.current_position_id::INT
+    INNER JOIN data_administration_context.administrative_position AS ap ON ap.id = bm.admin_position
+
   ON CONFLICT (external_id) DO UPDATE SET
     -- noqa: disable=CP02
     birth_date = EXCLUDED.birth_date,
