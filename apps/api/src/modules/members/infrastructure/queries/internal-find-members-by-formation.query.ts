@@ -36,6 +36,7 @@ export class InternalFindMembersByFormationQuery {
         title: true,
         displayTitle: true,
         duty: true,
+        sort: true,
       },
     });
 
@@ -48,6 +49,7 @@ export class InternalFindMembersByFormationQuery {
       title: u.title ?? null,
       displayTitle: u.displayTitle ?? null,
       duty: u.duty ?? null,
+      sort: u.sort,
     }));
   }
 }
@@ -62,5 +64,6 @@ export class InternalMemberListDto extends createZodDto(
     title: z.enum(PrismaUserTitleEnum).nullable(),
     displayTitle: z.string().nullable(),
     duty: z.enum(PrismaUserDutyEnum).nullable(),
+    sort: z.number(),
   }),
 ) {}

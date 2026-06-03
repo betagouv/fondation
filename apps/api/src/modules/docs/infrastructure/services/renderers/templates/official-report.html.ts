@@ -6,6 +6,7 @@ import { conjunctionList, date, displayTitled, fullname } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
+import { unaccent } from 'src/utils/unaccent';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 
@@ -75,6 +76,7 @@ function content(ctx: {
     gender: Gender;
     displayTitle: string | null;
     isAbsent: boolean;
+    sort: number;
   }[];
   chairman: {
     id: string | null;
@@ -107,7 +109,7 @@ function content(ctx: {
       ${ctx.members
         .filter((member) => ctx.chairman.id === null || member.id === null || member.id !== ctx.chairman.id)
         .filter((member) => !member.isAbsent)
-        .sort((a, b) => a.lastName.localeCompare(b.lastName))
+        .sort((a, b) => a.sort - b.sort || unaccent(a.lastName).localeCompare(unaccent(b.lastName)))
         .map((member) => `<li>${displayTitled(member)}</li>`)
         .join('')}
     </ul>

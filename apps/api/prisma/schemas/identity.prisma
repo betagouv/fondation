@@ -35,6 +35,7 @@ model User {
   password  String
   gender    PrismaGenderEnum
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  sort      Int              @default(1000) @db.SmallInt
 
   title        PrismaUserTitleEnum? @unique()
   duty         PrismaUserDutyEnum?

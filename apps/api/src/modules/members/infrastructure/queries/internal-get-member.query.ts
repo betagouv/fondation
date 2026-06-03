@@ -29,6 +29,7 @@ export class InternalGetMemberQuery {
         displayTitle: true,
         title: true,
         duty: true,
+        sort: true,
       },
     });
 
@@ -53,5 +54,6 @@ export class InternalMemberDto extends createZodDto(
     displayTitle: z.string().nullable(),
     title: z.enum(PrismaUserTitleEnum).nullable(),
     duty: z.enum(PrismaUserDutyEnum).nullable(),
+    sort: z.number(),
   }),
 ) {}
