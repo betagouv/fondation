@@ -160,7 +160,13 @@ const RawMagistratSchema = z.object({
   date_naiss: RawLolfiDate.nullable(),
   lieu_naiss: z.string().trim().nonempty().nullable(),
   dep_naiss: z.string().trim().nonempty().nullable(),
-  grade: z.string().trim().nonempty().nullable(),
+  grade: z
+    .string()
+    .trim()
+    .nonempty()
+    .nullable()
+    // both presidents have this unknown grade...
+    .transform((x) => (x === 'G3cc' ? 'G3sup' : x)),
   date_grade: RawLolfiDate.nullable(),
   num_emploi_cible: z.string().trim().nonempty().nullable(),
   date_installation: RawLolfiDate.nullable(),
