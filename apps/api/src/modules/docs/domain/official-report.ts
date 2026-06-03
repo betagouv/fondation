@@ -17,6 +17,7 @@ export type OfficialReportUser = {
   displayTitle: string | null;
   title: UserTitleEnum | null;
   duty: UserDutyEnum | null;
+  sort: number;
 };
 
 export class ChairmanIsNotMember extends Error {}
@@ -37,7 +38,7 @@ export class OfficialReportCreated {
     readonly hasRenunciation: boolean,
     readonly justiceDepartmentContactId: string,
     readonly chairman: OfficialReportUser,
-    readonly secretary: OfficialReportUser,
+    readonly secretary: Omit<OfficialReportUser, 'sort'>,
     readonly agendaIds: readonly string[],
     readonly members: readonly {
       id: string;
@@ -46,6 +47,7 @@ export class OfficialReportCreated {
       gender: Gender;
       title: string | null;
       isAbsent: boolean;
+      sort: number;
     }[],
     readonly authorId: string,
   ) {}
@@ -64,7 +66,7 @@ export class OfficialReportUpdated {
     readonly hasRenunciation: boolean,
     readonly justiceDepartmentContactId: string,
     readonly chairman: OfficialReportUser,
-    readonly secretary: OfficialReportUser,
+    readonly secretary: Omit<OfficialReportUser, 'sort'>,
     readonly agendaIds: readonly string[],
     readonly members: readonly {
       id: string;
@@ -73,6 +75,7 @@ export class OfficialReportUpdated {
       gender: Gender;
       title: string | null;
       isAbsent: boolean;
+      sort: number;
     }[],
     readonly authorId: string,
   ) {}
@@ -103,7 +106,7 @@ export class OfficialReport {
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
-    secretary: OfficialReportUser;
+    secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
       formation: Magistrat.Formation;
@@ -190,7 +193,7 @@ export class OfficialReport {
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
-    secretary: OfficialReportUser;
+    secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
       formation: Magistrat.Formation;
@@ -232,7 +235,7 @@ export class OfficialReport {
     hasRenunciation: boolean;
     justiceDepartmentContactId: string;
     chairman: OfficialReportUser;
-    secretary: OfficialReportUser;
+    secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
       formation: Magistrat.Formation;
