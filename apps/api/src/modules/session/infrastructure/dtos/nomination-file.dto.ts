@@ -64,10 +64,11 @@ export class ListNominationFilesQueryDto extends createSortableDto(
 
     priorities: z
       .preprocess(
-        (x) => toNullableArray(x)?.map((val) => (val === 'null' ? null : val)),
-        z.array(z.enum(PrioriteEnum).nullable()).optional(),
+        (x) => (x === undefined ? x : ([] as unknown[]).concat(x)),
+        z.array(z.enum([...Object.values(PrioriteEnum), 'null'])).optional(),
       )
-      .optional(),
+      .optional()
+      .transform((x) => (x === undefined ? x : x.map((y) => (y === 'null' ? null : (y as PrioriteEnum))))),
 
     reporterIds: z
       .preprocess(

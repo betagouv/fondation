@@ -1787,7 +1787,7 @@ export type ListNominationFilesData = {
     query?: {
         sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
         outcomes?: string;
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null>;
+        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | 'null'>;
         reporterIds?: Array<string | null>;
         search?: string;
         /**
