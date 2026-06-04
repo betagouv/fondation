@@ -1,5 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 import {
   JusticePresentationPlan,
   JusticePresentationPlanCreated,
@@ -9,12 +15,6 @@ import {
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
 import { DocsNominationFilesFinder } from '../finders/docs-nomination-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class JusticePresentationPlanRepository {
@@ -126,6 +126,7 @@ export class JusticePresentationPlanRepository {
       time: timeOnlyToDate(message.state.time),
       endTime: message.state.endingTime ? timeOnlyToDate(message.state.endingTime) : null,
       authorId: message.authorId,
+      hasRenunciation: message.state.hasRenunciation,
 
       chairmanId: message.state.chairman.id,
       chairmanFirstName: message.state.chairman.firstName,

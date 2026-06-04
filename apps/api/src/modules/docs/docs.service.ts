@@ -10,17 +10,17 @@ import {
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
-import { PrismaService } from '../framework/database';
-import { Pagination } from '../framework/pagination';
-import { MembersService } from '../members';
-import { SessionService } from '../session/infrastructure/sessions.service';
-import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
 import { TimeOnly } from 'src/utils/time-only';
+import { PrismaService } from '../framework/database';
+import { Pagination } from '../framework/pagination';
+import { MembersService } from '../members';
+import { SessionService } from '../session/infrastructure/sessions.service';
+import { SimpleAuthService } from '../simple-auth';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
@@ -559,6 +559,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
+    hasRenunciation: boolean;
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<{ id: string }> {
@@ -606,6 +607,7 @@ export class DocsService {
         justiceContactId: command.justiceContactId,
         authorId: command.authorId,
         time: command.time,
+        hasRenunciation: command.hasRenunciation,
         date: DateOnly.fromJson(command.date),
         members: planMembers,
       });
@@ -625,6 +627,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
+    hasRenunciation: boolean;
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<void> {
@@ -674,6 +677,7 @@ export class DocsService {
       plan.update({
         agendas,
         chairman,
+        hasRenunciation: command.hasRenunciation,
         // oxlint-disable-next-line typescript/no-misused-spread
         secretary: { ...secretary, id: secretary.userId },
         justiceContactId: command.justiceContactId,

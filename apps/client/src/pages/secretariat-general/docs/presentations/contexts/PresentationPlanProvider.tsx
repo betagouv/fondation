@@ -49,6 +49,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     justiceContactId: null,
     time: null,
     absentMemberIds: [],
+    hasRenunciation: true,
   });
 
   React.useEffect(() => {
@@ -67,6 +68,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       date: s.date ?? metadata.date,
       justiceContactId: s.justiceContactId ?? metadata.justiceDepartmentContactId,
       time: s.time ?? metadata.time,
+      hasRenunciation: !metadata.hasRenunciation ? metadata.hasRenunciation : s.hasRenunciation,
     }));
   }, [metadata]);
 
@@ -162,6 +164,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
           comment: comment?.trim() || null,
         })),
         absentMembers: [...state.absentMemberIds],
+        hasRenunciation: state.hasRenunciation,
       };
 
       function onSuccess(id: string) {
@@ -181,6 +184,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
           justiceContactId: null,
           time: null,
           absentMemberIds: [],
+          hasRenunciation: true,
         });
       }
 
@@ -208,6 +212,9 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       waitForConfirmation,
       formatMessage,
       metadata?.isManuallyEdited,
+      resetCreation,
+      resetUpdate,
+      resetReset,
     ],
   );
 

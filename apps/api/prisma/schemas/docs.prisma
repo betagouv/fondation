@@ -212,6 +212,7 @@ model JusticePresentationPlan {
   html             String?
   isManuallyEdited Boolean   @default(false) @map("is_manually_edited")
   pdfId            String?   @map("pdf_id") @db.Uuid
+  hasRenunciation  Boolean   @map("has_renunciation")
   isPresented      Boolean   @default(false) @map("is_presented")
 
   createdAt DateTime @default(now()) @map("created_at")

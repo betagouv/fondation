@@ -497,6 +497,7 @@ export function useCreateJusticePresentationPlanMutation() {
       date: { year: number; month: number; day: number };
       time: { hours: number; minutes: number };
       absentMembers: string[];
+      hasRenunciation: boolean;
     }) =>
       $api.docs.createJusticePresentationPlan({
         body: body,
@@ -523,6 +524,7 @@ export function useUpdateJusticePresentationPlanMutation() {
       date: { year: number; month: number; day: number };
       time: { hours: number; minutes: number };
       absentMembers: string[];
+      hasRenunciation: boolean;
     }) =>
       $api.docs.updateJusticePresentationPlan({
         body,

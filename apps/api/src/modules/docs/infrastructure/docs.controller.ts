@@ -32,10 +32,10 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { Role } from 'shared-models';
 
-import { DocsService } from '../docs.service';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { DocsService } from '../docs.service';
 
 import {
   CreatedAgendaDto,

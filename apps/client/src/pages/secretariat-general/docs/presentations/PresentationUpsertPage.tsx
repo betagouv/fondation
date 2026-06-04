@@ -26,6 +26,7 @@ import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
 import { ChairmanSelector } from '../components/ChairmanSelector';
 import { JusticeContactSelector } from '../components/JusticeContactSelector';
 
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { usePresentationPlan } from './contexts/presentation-plan.context';
 
 const MetadataSchema = z.object({
@@ -35,6 +36,7 @@ const MetadataSchema = z.object({
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
   justiceContactId: z.string().min(1, 'Veuillez sélectionner un contact DSJ'),
   memberIds: z.array(z.string()),
+  hasRenunciation: z.boolean(),
 });
 
 function MetadataStep(props: { className?: string }) {
@@ -67,6 +69,7 @@ function MetadataStep(props: { className?: string }) {
       secretaryId: state.secretaryId ?? '',
       justiceContactId: state.justiceContactId ?? '',
       memberIds: state.absentMemberIds,
+      hasRenunciation: state.hasRenunciation,
     },
   });
 
@@ -118,6 +121,7 @@ function MetadataStep(props: { className?: string }) {
       date: { year, month, day },
       time: { hours, minutes },
       absentMemberIds: values.memberIds,
+      hasRenunciation: values.hasRenunciation,
     });
   });
 
@@ -199,6 +203,22 @@ function MetadataStep(props: { className?: string }) {
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
         name="justiceContactId"
+      />
+
+      <Controller
+        control={control}
+        name="hasRenunciation"
+        render={({ field }) => (
+          <ToggleSwitch
+            label={
+              <FormattedMessage defaultMessage="Renonciation du ministère au délai de convocation de huit jours" />
+            }
+            checked={field.value}
+            onChange={field.onChange}
+            name={field.name}
+            disabled={field.disabled}
+          />
+        )}
       />
 
       <ButtonsGroup

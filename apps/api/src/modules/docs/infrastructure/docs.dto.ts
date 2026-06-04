@@ -88,6 +88,7 @@ export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
     secretaryId: z.string(),
     justiceContactId: z.string(),
     absentMembers: z.array(z.string()),
+    hasRenunciation: z.boolean(),
     agendas: z.array(
       z.object({
         id: z.string(),
