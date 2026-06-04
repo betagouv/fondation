@@ -11,7 +11,10 @@ WHERE
   AND NOT EXISTS (
     SELECT 1
     FROM nominations_context.dossier_de_nomination 
-    WHERE session_id = s.id AND outcome != ALL('{VALIDATED,NON_VALIDATED,WITHDRAWN,REMOVED}'::nominations_context.nomination_file_outcome_enum[])
+    WHERE session_id = s.id AND (
+      outcome IS NULL
+      OR outcome != ALL('{VALIDATED,NON_VALIDATED,WITHDRAWN,REMOVED}'::nominations_context.nomination_file_outcome_enum[])
+    )
   )
 
   AND NOT EXISTS (

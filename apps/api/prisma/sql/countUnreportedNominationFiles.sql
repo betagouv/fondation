@@ -7,6 +7,7 @@ WHERE
   ddn.session_id = /* sessionId */$1::UUID
   AND (
     /* versionId */$2::UUID IS NULL
+    OR ddn.outcome IS NULL
     OR ddn.outcome != ALL('{VALIDATED,NON_VALIDATED,WITHDRAWN,REMOVED}'::nominations_context.nomination_file_outcome_enum[])
     OR NOT EXISTS (
       SELECT 1
