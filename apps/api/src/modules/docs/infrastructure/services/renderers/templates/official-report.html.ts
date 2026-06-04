@@ -54,6 +54,29 @@ function officialReportNominationParagraph(ctx: {
   return html`<li><strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.</li>`;
 }
 
+function displayPresidentTitle(ctx: {
+  formation: Magistrat.Formation;
+  chairman: {
+    firstName: string;
+    lastName: string;
+    gender: Gender;
+    title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'> | null;
+    displayTitle: string | null;
+  };
+}): string {
+  const formationLabel = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
+  const presidentTitle =
+    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
+      ? ctx.chairman.gender === Gender.M
+        ? `président suppléant de la formation ${formationLabel}`
+        : `présidente suppléante de la formation ${formationLabel}`
+      : ctx.chairman.gender === Gender.M
+        ? `président de la formation ${formationLabel}`
+        : `présidente de la formation ${formationLabel}`;
+
+  return presidentTitle;
+}
+
 function content(ctx: {
   hasRenouncement: boolean;
   formation: Magistrat.Formation;
@@ -88,15 +111,7 @@ function content(ctx: {
   };
   files: readonly OfficialReportNominationFile[];
 }): string {
-  const formationLabel = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
-  const presidentTitle =
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === Gender.M
-        ? `président suppléant de la formation ${formationLabel}`
-        : `présidente suppléante de la formation ${formationLabel}`
-      : ctx.chairman.gender === Gender.M
-        ? `président de la formation ${formationLabel}`
-        : `présidente de la formation ${formationLabel}`;
+  const presidentTitle = displayPresidentTitle(ctx);
 
   const intro =
     `<p>Sous la présidence de ${fullname(ctx.chairman)}` +
@@ -190,6 +205,8 @@ function content(ctx: {
 }
 
 function footer(ctx: {
+  formation: Magistrat.Formation;
+  sessionMeetingEndTime: { hours: number; minutes: number };
   secretary: {
     id: string | null;
     firstName: string;
@@ -207,6 +224,12 @@ function footer(ctx: {
     displayTitle: string | null;
   };
 }): string {
+  const endTime = [ctx.sessionMeetingEndTime.hours, ctx.sessionMeetingEndTime.minutes]
+    .map((x) => x.toString().padStart(2, '0'))
+    .join(':');
+
+  const presidentTitle = displayPresidentTitle(ctx);
+
   const secretary =
     ctx.secretary.title === 'FIRST_SECRETARY'
       ? ctx.secretary.gender === Gender.M
@@ -228,6 +251,9 @@ function footer(ctx: {
         : '';
 
   return html`
+    <p class="end-time">
+      <em>À ${endTime}, ${fullname(ctx.chairman)}, ${presidentTitle}, clôture la séance.</em>
+    </p>
     <section class="signatures">
       <div>
         <p class="secretary-general">${secretary}</p>
@@ -287,6 +313,16 @@ function css() {
 
       li + li {
         margin-top: 1rem;
+      }
+
+      .footer {
+        break-before: avoid;
+        break-inside: avoid;
+      }
+
+      .footer p.end-time {
+        margin: 3rem 0 1rem 0;
+        font-size: 0.8rem;
       }
 
       .signatures {

@@ -35,6 +35,7 @@ export class FindOfficialReportDocumentQuery {
         select: {
           sessionMeetingDate: true,
           sessionMeetingStartingTime: true,
+          sessionMeetingEndingTime: true,
           hasRenunciation: true,
           justiceDepartmentContactName: true,
           chairmanId: true,
@@ -109,6 +110,10 @@ export class FindOfficialReportDocumentQuery {
         sessionMeetingTime: {
           hours: ctx.sessionMeetingStartingTime.getHours(),
           minutes: ctx.sessionMeetingStartingTime.getMinutes(),
+        },
+        sessionMeetingEndTime: {
+          hours: ctx.sessionMeetingEndingTime.getHours(),
+          minutes: ctx.sessionMeetingEndingTime.getMinutes(),
         },
         chairman: {
           id: ctx.chairmanId,

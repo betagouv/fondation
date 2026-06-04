@@ -38,6 +38,10 @@ function css(): string {
     li {
       font-size: 0.8rem;
     }
+
+    li + li {
+      margin-top: 1rem;
+    }
   `;
 }
 
