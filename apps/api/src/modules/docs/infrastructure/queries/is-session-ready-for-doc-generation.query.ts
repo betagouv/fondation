@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -11,39 +11,36 @@ export class IsSessionReadyForDocGenerationQuery {
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
     const { canCreateAgenda, canCreateOfficialReport, isReady } = await this.prisma.$transaction(
       async (tx) => {
-        const hasAnyAgendaWithoutOfficialReport = Boolean(
-          await tx.agenda.findFirst({
-            select: { id: true },
-            where: { officialReportId: null, sessionId: query.sessionId },
-          }),
-        );
-
-        const hasAnySuspendedFile = await tx.dossierDeNomination.findFirst({
-          select: { id: true },
-          where: {
-            sessionId: query.sessionId,
-            OR: [{ outcome: { in: ['SUSPENDED', 'WAITING_DSJ', 'ASSESSING'] } }, { outcome: null }],
-          },
+        const session = await tx.session.findFirst({
+          where: { id: query.sessionId },
+          select: { deletedAt: true, archivedAt: true },
         });
 
-        if (hasAnySuspendedFile) {
+        if (!session) throw new NotFoundException();
+        if (session.archivedAt || session.deletedAt) {
           return {
-            isReady: true,
-            canCreateAgenda: true,
-            canCreateOfficialReport: Boolean(hasAnyAgendaWithoutOfficialReport),
+            isReady: false,
+            canCreateAgenda: false,
+            canCreateOfficialReport: false,
           };
         }
 
-        const hasAnyNonReportedFile = await tx.dossierDeNomination.findFirst({
+        const hasAnyNonReportedAgenda = await tx.agenda.findFirst({
+          where: { sessionId: query.sessionId, officialReportId: null },
+        });
+
+        const hasAnyNonOfficiallyReportedFile = await tx.dossierDeNomination.findFirst({
           select: { id: true },
           where: {
             sessionId: query.sessionId,
-            agendaInclusions: { none: { outcome: { in: ['VALIDATED', 'NON_VALIDATED', 'WITHDRAWN'] } } },
+            officialReportInclusions: {
+              none: { outcome: { in: ['VALIDATED', 'NON_VALIDATED', 'WITHDRAWN'] } },
+            },
           },
         });
 
-        const canCreateAgenda = Boolean(hasAnyNonReportedFile);
-        const canCreateOfficialReport = Boolean(hasAnyAgendaWithoutOfficialReport);
+        const canCreateAgenda = Boolean(hasAnyNonOfficiallyReportedFile);
+        const canCreateOfficialReport = Boolean(hasAnyNonReportedAgenda && hasAnyNonOfficiallyReportedFile);
 
         return {
           canCreateAgenda,
