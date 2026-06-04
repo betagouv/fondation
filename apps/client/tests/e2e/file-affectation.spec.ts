@@ -18,8 +18,22 @@ test.describe('Affectations', () => {
         sessionId,
         // oxfmt-ignore
         files: [
-          { fileNumber: 1, name: 'Antoine DUPOND', currentPosition: 'Président TJ  LYON', grade: 'G2', targetedPosition: 'Président TJ  CAEN', targetedGrade: 'G2' },
-          { fileNumber: 2, name: 'Sarah CLERC', currentPosition: 'Président TJ  ANNECY', grade: 'G2', targetedPosition: 'Président TJ  ROUEN', targetedGrade: 'G2' },
+          {
+            fileNumber: 1,
+            name: 'Antoine DUPOND',
+            currentPosition: 'Président TJ  LYON',
+            grade: 'G2',
+            targetedPosition: 'Président TJ  CAEN',
+            targetedGrade: 'G2',
+          },
+          {
+            fileNumber: 2,
+            name: 'Sarah CLERC',
+            currentPosition: 'Président TJ  ANNECY',
+            grade: 'G2',
+            targetedPosition: 'Président TJ  ROUEN',
+            targetedGrade: 'G2',
+          },
         ],
       });
     });
@@ -29,7 +43,7 @@ test.describe('Affectations', () => {
       newMemberApp,
     }) => {
       // Et un membre du siège
-      const firstName = faker.person.firstName() + ` ${crypto.randomUUID()}`;
+      const firstName = faker.person.firstName() + crypto.randomUUID().replaceAll('-', '');
       const lastName = faker.person.lastName();
       const memberApp = await newMemberApp({ role: 'MEMBRE_DU_SIEGE', firstName, lastName });
 
@@ -54,7 +68,7 @@ test.describe('Affectations', () => {
       test.setTimeout(10_000);
 
       // Et un membre du siège
-      const firstName = faker.person.firstName() + ` ${crypto.randomUUID()}`;
+      const firstName = faker.person.firstName() + crypto.randomUUID().replaceAll('-', '');
       const lastName = faker.person.lastName();
       const memberApp = await newMemberApp({ role: 'MEMBRE_DU_SIEGE', firstName, lastName });
 
@@ -75,6 +89,8 @@ test.describe('Affectations', () => {
         .getByRole('checkbox', { name: `${lastName} ${firstName}` })
         .first()
         .click({ force: true });
+
+      await app.page.getByRole('document').click();
 
       // Et que je sauvegarde l'affectation
       await page.saveAffectationsButton.click();

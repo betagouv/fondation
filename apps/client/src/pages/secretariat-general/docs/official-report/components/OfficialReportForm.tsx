@@ -14,9 +14,12 @@ import { ChairmanSelector } from '../../components/ChairmanSelector';
 import { JusticeContactSelector } from '../../components/JusticeContactSelector';
 import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
+import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
+import { normalizeSessionName } from '@/utils/session.utils';
+import { capitalize } from '@/utils/string.utils';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
-import { toFullName } from '@/utils/user.utils';
+import { toFullName, toInitials } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
@@ -136,7 +139,7 @@ export function OfficialReportForm() {
           (form) => ({
             ...form,
             chairmanId:
-              !state.dirtyFields?.chairmanId && agenda.chairmanId ? agenda.chairmanId : form.chairmanId,
+              !state.dirtyFields?.chairmanId && agenda.chairman.id ? agenda.chairman.id : form.chairmanId,
             secretaryId:
               !state.dirtyFields?.secretaryId && agenda.presentationPlan?.secretaryId
                 ? agenda.presentationPlan.secretaryId
@@ -189,9 +192,9 @@ export function OfficialReportForm() {
       });
 
       const agenda = agendas?.items.find(({ id }) => id === agendaId);
-      if (!agenda || !agenda.chairmanId) return;
+      if (!agenda || !agenda.chairman.id) return;
 
-      setValue('chairmanId', agenda.chairmanId, {
+      setValue('chairmanId', agenda.chairman.id, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
@@ -223,10 +226,12 @@ export function OfficialReportForm() {
             {(agendas?.items ?? []).map((agenda) => (
               <option value={agenda.id} key={agenda.id}>
                 <FormattedMessage
-                  defaultMessage={`{name} - ODJ du {date, date, dateOnlyShort}`}
+                  defaultMessage={`ODJ {date, date, dateOnlyShort} - {name} - {initials} - {formation}`}
                   values={{
                     date: dateOnlyToDate(agenda.date),
-                    name: agenda.session.name,
+                    initials: toInitials(agenda.chairman),
+                    name: normalizeSessionName(agenda.session),
+                    formation: capitalize(FormationEnumLabel[agenda.formation]),
                   }}
                 />
               </option>

@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { agendaFileName } from '../../domain/agenda-file-name';
-import { officialReportFileName } from '../../domain/official-report-file-name';
+import { docFileName } from '../../domain/doc-file-name';
 import { PrismaService } from 'src/modules/framework/database';
-import { isDefined } from 'src/utils/is-defined';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 
 @Injectable()
 export class FindSessionDocsQuery {
@@ -13,42 +12,70 @@ export class FindSessionDocsQuery {
 
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
     const [session, agendaFiles, officialReportFiles] = await this.prisma.$transaction([
-      this.prisma.session.findUnique({ where: { id: query.sessionId }, select: { formation: true } }),
+      this.prisma.session.findUnique({
+        where: { id: query.sessionId },
+        select: { typeDeSaisine: true },
+      }),
       this.prisma.agenda.findMany({
-        orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
         where: { sessionId: query.sessionId, html: { not: null } },
         select: {
           id: true,
           date: true,
           officialReportId: true,
+          sessionMeetingDate: true,
+          chairmanFirstName: true,
+          chairmanLastName: true,
         },
       }),
       this.prisma.officialReport.findMany({
-        orderBy: [{ sessionMeetingDate: 'asc' }, { createdAt: 'asc' }],
         where: { html: { not: null }, agendas: { some: { sessionId: query.sessionId } } },
-        select: { id: true, sessionMeetingDate: true },
+        select: {
+          id: true,
+          chairmanLastName: true,
+          chairmanFirstName: true,
+          sessionMeetingDate: true,
+        },
       }),
     ]);
 
     if (!session) return { items: [] };
 
-    const { formation } = session;
+    const { typeDeSaisine } = session;
     return {
-      items: ([] as (FoundSessionDocsDto['items'][number] | undefined)[])
-        .concat(
-          agendaFiles.map(({ id, date, officialReportId }) => ({
-            id,
-            type: 'agenda' as const,
-            isLinkedToOfficialReport: !!officialReportId,
-            name: agendaFileName({ date, formation }),
-          })),
-          officialReportFiles.map(({ id, sessionMeetingDate: date }) => ({
-            id,
-            type: 'officialReport' as const,
-            name: officialReportFileName({ date, formation }),
-          })),
+      items: [
+        ...agendaFiles.map((file) => ({
+          id: file.id,
+          type: 'agenda' as const,
+          date: file.sessionMeetingDate,
+          isLinkedToOfficialReport: !!file.officialReportId,
+          name: docFileName({
+            formation: null,
+            type: 'AGENDA',
+            sessionName: null,
+            date: file.sessionMeetingDate,
+            typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
+            chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+          }),
+        })),
+        ...officialReportFiles.map((file) => ({
+          id: file.id,
+          date: file.sessionMeetingDate,
+          type: 'officialReport' as const,
+          name: docFileName({
+            formation: null,
+            sessionName: null,
+            date: file.sessionMeetingDate,
+            type: 'OFFICIAL_REPORT',
+            typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
+            chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+          }),
+        })),
+      ]
+        .sort(
+          (a, b) =>
+            b.date.getTime() - a.date.getTime() || (a.type != b.type ? (a.type === 'agenda' ? -1 : 1) : 0),
         )
-        .filter(isDefined),
+        .map(({ date: _date, ...item }) => item),
     };
   }
 }

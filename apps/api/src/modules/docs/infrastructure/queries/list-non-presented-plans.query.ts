@@ -19,6 +19,8 @@ export class ListNonPresentedPlansQuery {
         id: true,
         date: true,
         time: true,
+        chairmanLastName: true,
+        chairmanFirstName: true,
         agendas: {
           take: 1,
           select: { agenda: { select: { formation: true } } },
@@ -41,6 +43,7 @@ export class ListNonPresentedPlansQuery {
             time: dateToTimeOnly(plan.time),
             date: DateOnly.fromDate(plan.date).toJson(),
             formation: prismaFormationEnumToFormationEnum(formation),
+            chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
           },
         ];
       }),
@@ -56,6 +59,7 @@ export class ListedNonPresentedPlansDto extends createZodDto(
         time: timeOnlySchema,
         date: dateOnlyJsonSchema,
         formation: z.enum(Magistrat.Formation),
+        chairman: z.object({ firstName: z.string(), lastName: z.string() }),
       }),
     ),
   }),

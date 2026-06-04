@@ -2,7 +2,7 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
-import { toFullName } from '@/utils/user.utils';
+import { toFullName, toInitials } from '@/utils/user.utils';
 
 import { userAvatarSizes } from './user-avatar.utils';
 
@@ -14,7 +14,7 @@ export function UserAvatar(props: {
   if (!props.user) return null;
 
   const fullName = toFullName(props.user);
-  const firstLetters = `${props.user.firstName[0]}${props.user.lastName[0]}`.toUpperCase();
+  const firstLetters = toInitials(props.user);
 
   const content = (
     <div

@@ -6,7 +6,9 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { agendaFileName } from '../../domain/agenda-file-name';
+import { TypeDeSaisine } from 'shared-models';
+
+import { docFileName } from '../../domain/doc-file-name';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
@@ -30,8 +32,11 @@ export class FindAgendaDocumentPdfQuery {
         where: { id: query.id },
         select: {
           sessionId: true,
+          sessionName: true,
           formation: true,
-          date: true,
+          sessionMeetingDate: true,
+          chairmanFirstName: true,
+          chairmanLastName: true,
           pdf: { select: { id: true, name: true } },
         },
       });
@@ -57,7 +62,14 @@ export class FindAgendaDocumentPdfQuery {
     const html = await this.findAgendaDocumentQuery.handle(query);
     const buffer = await this.agendaRenderer.pdf(html);
 
-    const name = agendaFileName(file);
+    const name = docFileName({
+      type: 'AGENDA',
+      formation: file.formation,
+      date: file.sessionMeetingDate,
+      sessionName: file.sessionName,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+    });
 
     const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
 

@@ -23,15 +23,15 @@ export class CatchEverythingFilter implements ExceptionFilter {
     const request = ctx.getRequest<ExpressRequest>();
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
 
-    if (status >= 500) {
-      this.logger.error('Error', exception);
-      this.sentryService?.captureException(exception, request, status);
-    } else {
-      this.logger.warn('cause' in (exception as any) ? (exception as any).cause : exception);
-    }
+    if (status >= 500) this.sentryService?.captureException(exception, request, status);
+
+    const level: 'warn' | 'error' = status >= 500 ? 'error' : 'warn';
+    this.logger[level](
+      `${request.path} - ${status}`,
+      'cause' in (exception as any) ? (exception as any).cause : exception,
+    );
 
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : {};
-
     ctx
       .getResponse<ExpressResponse>()
       .status(status)

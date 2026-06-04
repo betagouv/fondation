@@ -1002,11 +1002,16 @@ export type FoundAgendasDto = {
             day: number;
         };
         formation: 'PARQUET' | 'SIEGE';
-        chairmanId: string | null;
+        chairman: {
+            id: string | null;
+            firstName: string;
+            lastName: string;
+        };
         officialReportId: string | null;
         session: {
             id: string;
             name: string;
+            typeDeSaisine: 'TRANSPARENCE_GDS';
         };
         presentationPlan: {
             id: string;
@@ -1080,6 +1085,10 @@ export type ListedPresentedPlansDto = {
             day: number;
         };
         formation: 'PARQUET' | 'SIEGE';
+        chairman: {
+            firstName: string;
+            lastName: string;
+        };
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -1166,6 +1175,10 @@ export type ListedNonPresentedPlansDto = {
             day: number;
         };
         formation: 'PARQUET' | 'SIEGE';
+        chairman: {
+            firstName: string;
+            lastName: string;
+        };
     }>;
 };
 

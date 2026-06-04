@@ -6,7 +6,9 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { officialReportFileName } from '../../domain/official-report-file-name';
+import { TypeDeSaisine } from 'shared-models';
+
+import { docFileName } from '../../domain/doc-file-name';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
@@ -30,7 +32,9 @@ export class FindOfficialReportDocumentPdfQuery {
         where: { id: query.id },
         select: {
           sessionMeetingDate: true,
-          agendas: { select: { sessionId: true, formation: true }, take: 1 },
+          chairmanFirstName: true,
+          chairmanLastName: true,
+          agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
           pdf: { select: { id: true, name: true } },
         },
       });
@@ -59,7 +63,14 @@ export class FindOfficialReportDocumentPdfQuery {
     const [agenda] = file.agendas;
     if (!agenda) throw new NotFoundException();
 
-    const name = officialReportFileName({ formation: agenda.formation, date: file.sessionMeetingDate });
+    const name = docFileName({
+      type: 'OFFICIAL_REPORT',
+      formation: agenda.formation,
+      date: file.sessionMeetingDate,
+      sessionName: file.agendas[0]!.sessionName,
+      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+    });
     const path = `sessions/${agenda.sessionId}/official-reports/${query.id}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);

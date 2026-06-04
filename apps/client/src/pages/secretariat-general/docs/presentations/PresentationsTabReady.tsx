@@ -10,6 +10,7 @@ import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { timeOnlyToDate } from '@/utils/time-only.util';
+import { toInitials } from '@/utils/user.utils';
 import {
   useDeleteJusticePresentationPlanMutation,
   useListNonPresentedPlansQuery,
@@ -45,8 +46,9 @@ function InnerPresentationsTabReady() {
     const formation = FormationEnumLabel[item.formation];
     const date = dateOnlyToDate(item.date);
     const time = timeOnlyToDate(item.time);
+    const initials = toInitials(item.chairman);
 
-    return { id: item.id, formation, date, time, startTime: item.time };
+    return { id: item.id, formation, date, time, startTime: item.time, initials };
   });
 
   const onClickOnPresentationPlan = React.useCallback(
@@ -134,7 +136,7 @@ function InnerPresentationsTabReady() {
                 >
                   <FormattedMessage
                     values={item}
-                    defaultMessage="Notice de restitution {formation} du {date, date, dateOnlyShort}, {time, time, short}"
+                    defaultMessage="NDR {date, date, dateOnlyShort}, {time, time, short} - {initials} - {formation}"
                   />
                 </Button>
 

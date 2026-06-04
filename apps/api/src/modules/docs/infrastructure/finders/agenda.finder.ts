@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
@@ -75,6 +75,8 @@ export class AgendaFinder {
         formation: true,
         sessionId: true,
         chairmanId: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
         sessionName: true,
         sessionMeetingDate: true,
         officialReportId: true,
@@ -106,9 +108,21 @@ export class AgendaFinder {
     return {
       items: items.map((item) => ({
         id: item.id,
+        /** @deprecated */
         chairmanId: item.chairmanId,
+
+        chairman: {
+          id: item.chairmanId,
+          lastName: item.chairmanLastName,
+          firstName: item.chairmanFirstName,
+        },
+
         date: DateOnly.fromDate(item.date).toJson(),
-        session: { id: item.sessionId, name: item.sessionName },
+        session: {
+          id: item.sessionId,
+          name: item.sessionName,
+          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromDate(item.sessionMeetingDate).toJson(),
         officialReportId: item.officialReportId,
@@ -141,9 +155,9 @@ export class FoundAgendasDto extends createZodDto(
         date: dateOnlyJsonSchema,
         sessionMeetingDate: dateOnlyJsonSchema,
         formation: z.enum(Magistrat.Formation),
-        chairmanId: z.string().nullable(),
+        chairman: z.object({ id: z.string().nullable(), firstName: z.string(), lastName: z.string() }),
         officialReportId: z.string().nullable(),
-        session: z.object({ id: z.string(), name: z.string() }),
+        session: z.object({ id: z.string(), name: z.string(), typeDeSaisine: z.enum(TypeDeSaisine) }),
         presentationPlan: z
           .object({
             id: z.string(),
