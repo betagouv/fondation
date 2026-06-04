@@ -146,11 +146,10 @@ export function AgendaProvider(props: React.PropsWithChildren) {
         });
 
         const id = result?.id || agendaId;
-        if (id) await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(id) });
-
-        return navigate(
-          generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: result?.id || agendaId }),
-        );
+        if (id) {
+          await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(id) });
+          return navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: id }));
+        }
       }
 
       if (agendaId) {

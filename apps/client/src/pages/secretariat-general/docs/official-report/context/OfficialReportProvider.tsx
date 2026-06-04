@@ -124,14 +124,13 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
         const id = result?.id || officialReportId;
         if (id) {
           await queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(id) });
+          return navigate(
+            generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+              sessionId,
+              officialReportId: id,
+            }),
+          );
         }
-
-        return navigate(
-          generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
-            sessionId,
-            officialReportId: result?.id || officialReportId,
-          }),
-        );
       }
 
       if (officialReportId) {
