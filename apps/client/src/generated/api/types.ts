@@ -1020,6 +1020,7 @@ export type FoundAgendasDto = {
                 minutes: number;
                 seconds: number;
             } | null;
+            hasRenunciation: boolean;
             secretaryId: string | null;
             justiceContactId: string | null;
             absentMembers: Array<string>;

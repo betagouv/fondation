@@ -86,6 +86,7 @@ export class AgendaFinder {
                 time: true,
                 endTime: true,
                 secretaryId: true,
+                hasRenunciation: true,
                 justiceDepartmentContactId: true,
                 members: { select: { memberId: true, isAbsent: true } },
               },
@@ -124,6 +125,7 @@ export class AgendaFinder {
               absentMembers: item.justicePresentationPlan.plan.members.flatMap((m) =>
                 m.isAbsent ? [m.memberId] : [],
               ),
+              hasRenunciation: item.justicePresentationPlan.plan.hasRenunciation,
             }
           : null,
       })),
@@ -147,6 +149,7 @@ export class FoundAgendasDto extends createZodDto(
             id: z.string(),
             startTime: timeOnlySchema,
             endTime: timeOnlySchema.nullable(),
+            hasRenunciation: z.boolean(),
             secretaryId: z.string().nullable(),
             justiceContactId: z.string().nullable(),
             absentMembers: z.array(z.string()),
