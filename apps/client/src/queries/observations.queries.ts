@@ -367,6 +367,7 @@ export const useListObservationsAttachments = (query: {
   sessionId: string;
 }) =>
   useQuery({
+    enabled: !!query.magistratId,
     queryKey: observationKeys.observationAttachments({
       magistratId: query.magistratId ?? undefined,
     }),
