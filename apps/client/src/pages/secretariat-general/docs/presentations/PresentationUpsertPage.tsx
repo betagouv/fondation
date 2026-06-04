@@ -12,9 +12,6 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
-import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
-import { ChairmanSelector } from '../components/ChairmanSelector';
-import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyToDate } from '@/utils/date-only.util';
@@ -25,6 +22,9 @@ import {
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
+import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
+import { ChairmanSelector } from '../components/ChairmanSelector';
+import { JusticeContactSelector } from '../components/JusticeContactSelector';
 
 import { usePresentationPlan } from './contexts/presentation-plan.context';
 
@@ -55,7 +55,7 @@ function MetadataStep(props: { className?: string }) {
     control,
     handleSubmit,
     getValues,
-    setValue,
+    setValues,
     formState: { errors, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
@@ -74,36 +74,38 @@ function MetadataStep(props: { className?: string }) {
     const selectedSecretary = getValues('secretaryId');
     if (selectedSecretary || !secretariesData?.items.length) return;
 
-    setValue('secretaryId', secretariesData.items[0].id, {
+    setValues((form) => ({ ...form, secretaryId: secretariesData.items[0].id }), {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
     });
-  }, [secretariesData, getValues, setValue]);
+  }, [secretariesData, getValues, setValues]);
 
   React.useEffect(() => {
     if (!Object.keys(state.agendas).length) {
       navigate(ROUTE_PATHS.SG.PRESENTATIONS_READY);
     }
-  }, [state, navigate]);
+  }, [state.agendas, navigate]);
 
   React.useEffect(() => {
-    if (!dirtyFields.date && agenda?.sessionMeetingDate) {
-      setValue('date', dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
+    const shouldDefineDate = !dirtyFields.date && agenda?.sessionMeetingDate;
+    const shouldDefineChairman = !dirtyFields.chairmanId && agenda?.chairmanId;
+
+    if (!shouldDefineChairman && !shouldDefineDate) {
+      return;
     }
 
-    if (!dirtyFields.chairmanId && agenda?.chairmanId) {
-      setValue('chairmanId', agenda.chairmanId, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    }
-  }, [dirtyFields, agenda, setValue]);
+    setValues(
+      (form) => ({
+        ...form,
+        chairmanId: agenda?.chairmanId ?? form.chairmanId,
+        date: agenda?.sessionMeetingDate
+          ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
+          : form.date,
+      }),
+      { shouldDirty: true, shouldTouch: true, shouldValidate: true },
+    );
+  }, [dirtyFields, agenda, setValues]);
 
   const onSubmit = handleSubmit((values) => {
     const [year, month, day] = values.date.split('-').map(Number) as [number, number, number];
