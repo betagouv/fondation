@@ -12,7 +12,11 @@ WHERE
     OR NOT EXISTS (
       SELECT 1
       FROM docs.official_report_nomination_file AS orf
-      WHERE orf.nomination_file_id = ddn.id
+      WHERE (
+        orf.nomination_file_id = ddn.id
+        AND orf.outcome IS NOT NULL
+        AND orf.outcome = ANY('{VALIDATED,NON_VALIDATED,WITHDRAWN}'::docs.agenda_file_outcome_enum[])
+      )
     )
     OR NOT EXISTS (
       SELECT 1
