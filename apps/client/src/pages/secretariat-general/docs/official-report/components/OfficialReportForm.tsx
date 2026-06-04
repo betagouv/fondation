@@ -9,6 +9,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage } from 'react-intl';
 import z from 'zod';
 
+import { AbsentMemberSelector } from '../../components/AbsentMemberSelector';
+import { ChairmanSelector } from '../../components/ChairmanSelector';
+import { JusticeContactSelector } from '../../components/JusticeContactSelector';
+import { useOfficialReport } from '../context/OfficialReportContext';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
@@ -17,10 +21,6 @@ import {
   useListAgendasForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
-import { AbsentMemberSelector } from '../../components/AbsentMemberSelector';
-import { ChairmanSelector } from '../../components/ChairmanSelector';
-import { JusticeContactSelector } from '../../components/JusticeContactSelector';
-import { useOfficialReport } from '../context/OfficialReportContext';
 
 const OfficialReportMetadataSchema = z
   .object({

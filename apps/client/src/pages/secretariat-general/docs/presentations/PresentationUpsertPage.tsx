@@ -3,6 +3,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -12,6 +13,9 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
+import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
+import { ChairmanSelector } from '../components/ChairmanSelector';
+import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { dateOnlyToDate } from '@/utils/date-only.util';
@@ -22,11 +26,7 @@ import {
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
-import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
-import { ChairmanSelector } from '../components/ChairmanSelector';
-import { JusticeContactSelector } from '../components/JusticeContactSelector';
 
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { usePresentationPlan } from './contexts/presentation-plan.context';
 
 const MetadataSchema = z.object({

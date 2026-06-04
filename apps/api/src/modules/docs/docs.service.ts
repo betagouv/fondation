@@ -10,17 +10,17 @@ import {
 
 import { DateOnlyJson, Magistrat } from 'shared-models';
 
+import { PrismaService } from '../framework/database';
+import { Pagination } from '../framework/pagination';
+import { MembersService } from '../members';
+import { SessionService } from '../session/infrastructure/sessions.service';
+import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
 import { TimeOnly } from 'src/utils/time-only';
-import { PrismaService } from '../framework/database';
-import { Pagination } from '../framework/pagination';
-import { MembersService } from '../members';
-import { SessionService } from '../session/infrastructure/sessions.service';
-import { SimpleAuthService } from '../simple-auth';
 
 import { Agenda } from './domain/agenda';
 import { JusticePresentationPlan } from './domain/justice-presentation-plan';
