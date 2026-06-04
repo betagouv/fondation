@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { timeOnlyToDate } from '@/utils/time-only.util';
+import { toInitials } from '@/utils/user.utils';
 import {
   useListPresentedPlansQuery,
   useOpenJusticePresentationPlanPdfDocumentMutation,
@@ -19,6 +20,7 @@ export function PresentationsTabPast() {
     date: dateOnlyToDate(item.date),
     time: timeOnlyToDate(item.time),
     formation: item.formation === 'SIEGE' ? 'siège' : 'parquet',
+    initials: toInitials(item.chairman),
   }));
 
   const onOpenPdf = React.useCallback(
@@ -55,7 +57,7 @@ export function PresentationsTabPast() {
               >
                 <FormattedMessage
                   values={item}
-                  defaultMessage={`Notice de restitution {formation} du {date, date, dateOnlyShort}, {time, time, short}`}
+                  defaultMessage={`NDR {date, date, dateOnlyShort}, {time, time, short} - {initials} - {formation}`}
                 />
               </Button>
             </li>

@@ -1,12 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import React from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { usePresentationPlan } from '../contexts/presentation-plan.context';
 import { useSelection } from '@/hooks/useSelection.hook';
-import { FormationEnumLabel } from '@/types/enums.types';
+import { FormationEnumLabel, TypeDeSaisineEnum } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
+import { normalizeSessionName } from '@/utils/session.utils';
+import { toInitials } from '@/utils/user.utils';
 
 export function PresentationAgendaSelectionList(props: {
   formation: 'PARQUET' | 'SIEGE';
@@ -14,10 +16,13 @@ export function PresentationAgendaSelectionList(props: {
     | readonly {
         id: string;
         formation: 'SIEGE' | 'PARQUET';
+        session: { name: string; typeDeSaisine: TypeDeSaisineEnum };
+        chairman: { firstName: string; lastName: string };
         date: { day: number; month: number; year: number };
       }[]
     | undefined;
 }) {
+  const { formatMessage } = useIntl();
   const { formation, items } = props;
 
   const formationItems = React.useMemo(
@@ -27,8 +32,22 @@ export function PresentationAgendaSelectionList(props: {
 
   const formationLabel = React.useMemo(() => FormationEnumLabel[formation], [formation]);
   const viewItems = React.useMemo(
-    () => formationItems.map(({ id, date }) => ({ id, date: dateOnlyToDate(date) })),
-    [formationItems],
+    () =>
+      formationItems
+        .map(({ id, date, chairman, session }) => ({
+          id,
+          date: dateOnlyToDate(date),
+          label: formatMessage(
+            { defaultMessage: `ODJ {date, date, short} {sessionName} - {initials}` },
+            {
+              date: dateOnlyToDate(date),
+              initials: toInitials(chairman),
+              sessionName: normalizeSessionName(session),
+            },
+          ),
+        }))
+        .sort((a, b) => a.date.getTime() - b.date.getTime()),
+    [formationItems, formatMessage],
   );
 
   const selection = useSelection({
@@ -76,17 +95,12 @@ export function PresentationAgendaSelectionList(props: {
       <Checkbox
         small
         options={viewItems.map((item) => ({
+          label: item.label,
           nativeInputProps: {
             value: item.id,
             checked: selection.has(item),
             onChange: onCheckboxChange,
           },
-          label: (
-            <FormattedMessage
-              values={{ ...item, formation: formationLabel }}
-              defaultMessage="Ordre du jour {formation} du {date, date, dateOnlyShort}"
-            />
-          ),
         }))}
       />
     </>

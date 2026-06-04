@@ -26,6 +26,8 @@ export class ListPresentedPlansQuery {
           id: true,
           date: true,
           time: true,
+          chairmanLastName: true,
+          chairmanFirstName: true,
           agendas: {
             take: 1,
             select: { agenda: { select: { formation: true } } },
@@ -45,6 +47,7 @@ export class ListPresentedPlansQuery {
         ...item,
         time: dateToTimeOnly(item.time),
         date: DateOnly.fromDate(item.date).toJson(),
+        chairman: { firstName: item.chairmanFirstName, lastName: item.chairmanLastName },
       })),
     });
   }
@@ -56,5 +59,6 @@ export class ListedPresentedPlansDto extends createPaginatedZodDto(
     time: timeOnlySchema,
     date: dateOnlyJsonSchema,
     formation: z.enum(Magistrat.Formation),
+    chairman: z.object({ firstName: z.string(), lastName: z.string() }),
   }),
 ) {}
