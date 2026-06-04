@@ -3,10 +3,14 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
 
 @Injectable()
 export class IsSessionReadyForDocGenerationQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly versions: AffectationVersionFinder,
+  ) {}
 
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
     const { canCreateAgenda, canCreateOfficialReport, isReady } = await this.prisma.$transaction(
@@ -18,6 +22,15 @@ export class IsSessionReadyForDocGenerationQuery {
 
         if (!session) throw new NotFoundException();
         if (session.archivedAt || session.deletedAt) {
+          return {
+            isReady: false,
+            canCreateAgenda: false,
+            canCreateOfficialReport: false,
+          };
+        }
+
+        const publishedVersion = await this.versions.lastPublished({ sessionId: query.sessionId, tx });
+        if (publishedVersion.isNone()) {
           return {
             isReady: false,
             canCreateAgenda: false,
