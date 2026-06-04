@@ -23,3 +23,6 @@ allowBuilds:
   prisma: false
   puppeteer: false
   unrs-resolver: false
+minimumReleaseAgeExclude:
+  # Renovate security update: react-router@7.15.0
+  - react-router@7.15.0
