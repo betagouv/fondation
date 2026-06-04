@@ -104,6 +104,7 @@ export function DocumentPreviewLayout(props: {
             </Button>
             <Button
               disabled={isUpdatePending}
+              className={clsx({ 'before:animate-spin before:content-[""]': isUpdatePending })}
               iconId={isUpdatePending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
               iconPosition="right"
               onClick={saveEdition}
@@ -114,6 +115,7 @@ export function DocumentPreviewLayout(props: {
         ) : (
           <Button
             disabled={isValidationPending}
+            className={clsx({ 'after:animate-spin after:content-[""]': isValidationPending })}
             iconId={isValidationPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
             iconPosition="right"
             onClick={onValidate}

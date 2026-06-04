@@ -1,6 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -140,15 +139,14 @@ function InnerPresentationsTabReady() {
                 </Button>
 
                 <div className="actions ml-10 flex items-center gap-x-2">
-                  <Tag
-                    small
-                    as="button"
+                  <Button
+                    size="small"
                     title={$t({ defaultMessage: 'Marquer restitué' })}
                     className="bg-(--background-contrast-yellow-moutarde)! font-bold text-(--text-action-high-yellow-moutarde)! uppercase hover:bg-(--background-contrast-yellow-moutarde-hover)! active:bg-(--background-contrast-yellow-moutarde-active)!"
                     nativeButtonProps={{ onClick: onClickPresent, 'data-plan-id': item.id }}
                   >
-                    Restituer
-                  </Tag>
+                    <FormattedMessage defaultMessage="Restituer" />
+                  </Button>
 
                   <Button
                     title={$t({ defaultMessage: `Éditer` })}

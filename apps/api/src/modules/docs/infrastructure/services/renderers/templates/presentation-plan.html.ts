@@ -258,6 +258,7 @@ function endingTime(time: TimeOnly): string {
 }
 
 function content(ctx: {
+  hasRenunciation: boolean;
   time: TimeOnly;
   endingTime?: TimeOnly;
   justiceContactName: string;
@@ -275,12 +276,13 @@ function content(ctx: {
   }[];
 }): string {
   return html`
-    <h3>Introduction</h3>
-    <p>
-      Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret du 9
-      mars 1994 pour la fixation de l'ordre du jour.
-    </p>
-
+    ${ctx.hasRenunciation
+      ? html`<h3>Introduction</h3>
+          <p>
+            Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret
+            du 9 mars 1994 pour la fixation de l'ordre du jour.
+          </p>`
+      : ''}
     ${ctx.sessions.map((session) => presentationPlanSessionSection(session)).join('\n')}
 
     <h3>Informations administratives</h3>

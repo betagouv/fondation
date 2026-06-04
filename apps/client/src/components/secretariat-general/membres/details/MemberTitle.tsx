@@ -166,7 +166,9 @@ function MemberTitleAction(props: {
   );
 }
 
-export function MemberTitle(props: { member: { id: string; title: MemberTitleValue; role: MemberRole } }) {
+export function MemberTitle(props: {
+  member: { id: string; title: MemberTitleValue | null; role: MemberRole };
+}) {
   return (
     <div className="flex flex-row items-center justify-between">
       <dt className="font-bold">Distinction</dt>

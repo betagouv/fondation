@@ -3,6 +3,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -35,6 +36,7 @@ const MetadataSchema = z.object({
   secretaryId: z.uuid('Veuillez sélectionner un secrétaire'),
   justiceContactId: z.string().min(1, 'Veuillez sélectionner un contact DSJ'),
   memberIds: z.array(z.string()),
+  hasRenunciation: z.boolean(),
 });
 
 function MetadataStep(props: { className?: string }) {
@@ -55,7 +57,7 @@ function MetadataStep(props: { className?: string }) {
     control,
     handleSubmit,
     getValues,
-    setValue,
+    setValues,
     formState: { errors, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
@@ -67,6 +69,7 @@ function MetadataStep(props: { className?: string }) {
       secretaryId: state.secretaryId ?? '',
       justiceContactId: state.justiceContactId ?? '',
       memberIds: state.absentMemberIds,
+      hasRenunciation: state.hasRenunciation,
     },
   });
 
@@ -74,36 +77,38 @@ function MetadataStep(props: { className?: string }) {
     const selectedSecretary = getValues('secretaryId');
     if (selectedSecretary || !secretariesData?.items.length) return;
 
-    setValue('secretaryId', secretariesData.items[0].id, {
+    setValues((form) => ({ ...form, secretaryId: secretariesData.items[0].id }), {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
     });
-  }, [secretariesData, getValues, setValue]);
+  }, [secretariesData, getValues, setValues]);
 
   React.useEffect(() => {
     if (!Object.keys(state.agendas).length) {
       navigate(ROUTE_PATHS.SG.PRESENTATIONS_READY);
     }
-  }, [state, navigate]);
+  }, [state.agendas, navigate]);
 
   React.useEffect(() => {
-    if (!dirtyFields.date && agenda?.sessionMeetingDate) {
-      setValue('date', dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
+    const shouldDefineDate = !dirtyFields.date && agenda?.sessionMeetingDate;
+    const shouldDefineChairman = !dirtyFields.chairmanId && agenda?.chairmanId;
+
+    if (!shouldDefineChairman && !shouldDefineDate) {
+      return;
     }
 
-    if (!dirtyFields.chairmanId && agenda?.chairmanId) {
-      setValue('chairmanId', agenda.chairmanId, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    }
-  }, [dirtyFields, agenda, setValue]);
+    setValues(
+      (form) => ({
+        ...form,
+        chairmanId: agenda?.chairmanId ?? form.chairmanId,
+        date: agenda?.sessionMeetingDate
+          ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
+          : form.date,
+      }),
+      { shouldDirty: true, shouldTouch: true, shouldValidate: true },
+    );
+  }, [dirtyFields, agenda, setValues]);
 
   const onSubmit = handleSubmit((values) => {
     const [year, month, day] = values.date.split('-').map(Number) as [number, number, number];
@@ -116,6 +121,7 @@ function MetadataStep(props: { className?: string }) {
       date: { year, month, day },
       time: { hours, minutes },
       absentMemberIds: values.memberIds,
+      hasRenunciation: values.hasRenunciation,
     });
   });
 
@@ -197,6 +203,22 @@ function MetadataStep(props: { className?: string }) {
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
         name="justiceContactId"
+      />
+
+      <Controller
+        control={control}
+        name="hasRenunciation"
+        render={({ field }) => (
+          <ToggleSwitch
+            label={
+              <FormattedMessage defaultMessage="Renonciation du ministère au délai de convocation de huit jours" />
+            }
+            checked={field.value}
+            onChange={field.onChange}
+            name={field.name}
+            disabled={field.disabled}
+          />
+        )}
       />
 
       <ButtonsGroup

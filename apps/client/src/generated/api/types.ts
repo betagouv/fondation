@@ -14,7 +14,7 @@ export type RegisterUserDto = {
     gender: 'MALE' | 'FEMALE';
     email: string;
     password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | null;
 };
 
 export type RegisteredUserDto = {
@@ -34,8 +34,8 @@ export type DetailedUserResponseDto = {
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
     displayTitle: string | null;
-    duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
-    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY';
+    duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
 
 export type AttachReportFileDto = {
@@ -101,7 +101,7 @@ export type DetailedReportDto = {
      *
      * @deprecated
      */
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
     fileComment: string | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
@@ -305,7 +305,7 @@ export type AffectReportersDto = {
          *
          * @deprecated
          */
-        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
+        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         reporterIds: Array<string>;
     }>;
 };
@@ -327,7 +327,7 @@ export type PaginatedNominationFiles = {
                 month: number;
                 day: number;
             } | null;
-            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
             posteActuel: string | null;
             posteCible: string | null;
             gradeCible: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
@@ -378,7 +378,7 @@ export type PaginatedNominationFiles = {
                 month: number;
                 day: number;
             };
-            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
             followUpComment: string | null;
             hasDescription: boolean;
             hasUserComment: boolean;
@@ -420,7 +420,7 @@ export type SomeAffectationVersion = {
 
 export type NoneAffectationVersion = {
     '@type': 'fr.csm.fondation.affectations.version.none';
-    version: number;
+    version: 0;
 };
 
 export type CountedUnaffectedFilesDto = {
@@ -451,7 +451,7 @@ export type UpdateCommentDto = {
 };
 
 export type DefineNominationFileOutcomeDto = {
-    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ' | null;
     comment: string | null;
 };
 
@@ -564,9 +564,9 @@ export type DetailedSummaryDto = {
         month: number;
         day: number;
     } | null;
-    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     position: string | null;
-    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     targetedPosition: string | null;
     priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     /**
@@ -574,7 +574,7 @@ export type DetailedSummaryDto = {
      *
      * @deprecated
      */
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
+    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
     biography: string;
     lastRankingDate: {
         year: number;
@@ -666,7 +666,7 @@ export type DetailedMemberDto = {
     role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
     gender: string;
     displayTitle: string | null;
-    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET';
+    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | null;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -687,7 +687,7 @@ export type UpdateMemberDisplayTitleDto = {
 };
 
 export type UpdateMemberTitleDto = {
-    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
+    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null;
 };
 
 export type ListedMemberSessionsDto = {
@@ -716,7 +716,7 @@ export type DetailedMemberSessionDto = {
          *
          * @deprecated
          */
-        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown;
+        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         dueDate: {
             year: number;
             month: number;
@@ -801,7 +801,7 @@ export type FoundChairmenDto = {
         firstName: string;
         lastName: string;
         duty: 'PRESIDENT';
-        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | null;
         displayTitle: string | null;
     }>;
 };
@@ -812,7 +812,7 @@ export type ListedSecretariesGeneralDto = {
         firstName: string;
         lastName: string;
         displayTitle: string | null;
-        title: 'FIRST_SECRETARY';
+        title: 'FIRST_SECRETARY' | null;
         duty: 'SECRETARY';
         gender: 'MALE' | 'FEMALE';
     }>;
@@ -895,6 +895,9 @@ export type DetailedSessionOfficialReportDto = {
     url: string;
 };
 
+/**
+ * @deprecated
+ */
 export type AugmentedZodDto = {
     id: string;
     url: string;
@@ -961,10 +964,16 @@ export type FoundJusticeContactsDto = {
     }>;
 };
 
+/**
+ * @deprecated
+ */
 export type CreateOfficialReportJusticeContactDto = {
     name: string;
 };
 
+/**
+ * @deprecated
+ */
 export type CreatedOfficialReportJusticeContactDto = {
     id: string;
     name: string;
@@ -1011,6 +1020,7 @@ export type FoundAgendasDto = {
                 minutes: number;
                 seconds: number;
             } | null;
+            hasRenunciation: boolean;
             secretaryId: string | null;
             justiceContactId: string | null;
             absentMembers: Array<string>;
@@ -1024,9 +1034,9 @@ export type FoundMembersForNewOfficialReportDto = {
         firstName: string;
         lastName: string;
         gender: 'MALE' | 'FEMALE';
-        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | null;
         displayTitle: string | null;
-        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
+        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     }>;
 };
 
@@ -1103,6 +1113,7 @@ export type DetailedPresentationPlanMetadataDto = {
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
+    hasRenunciation: boolean;
 };
 
 export type CreateOrUpdateJusticePresentationPlanDto = {
@@ -1125,6 +1136,7 @@ export type CreateOrUpdateJusticePresentationPlanDto = {
     secretaryId: string;
     justiceContactId: string;
     absentMembers: Array<string>;
+    hasRenunciation: boolean;
     agendas: Array<{
         id: string;
         comment: string | null;
@@ -1171,9 +1183,9 @@ export type FoundDocsMembersDto = {
         firstName: string;
         lastName: string;
         gender: 'MALE' | 'FEMALE';
-        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET';
+        title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | null;
         displayTitle: string | null;
-        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER';
+        duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     }>;
 };
 
@@ -1292,7 +1304,7 @@ export type GetObservationDetailsResponseDto = {
         proposedPosition: string | null;
     };
     description: string;
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
     followUpComment: string | null;
     files: Array<{
         id: string;
@@ -1358,7 +1370,7 @@ export type WriteMemberCommentDto = {
 };
 
 export type FollowUpOnObservationDto = {
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING';
+    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
     comment: string | null;
 };
 
@@ -1775,8 +1787,8 @@ export type ListNominationFilesData = {
     query?: {
         sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
         outcomes?: string;
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | unknown>;
-        reporterIds?: Array<string | unknown>;
+        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | 'null'>;
+        reporterIds?: Array<string | null>;
         search?: string;
         /**
          * true
@@ -2315,7 +2327,7 @@ export type DetailsMemberSessionData = {
     query?: {
         sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
         priorities?: string;
-        status?: string | unknown;
+        status?: string | null;
         /**
          * true
          */

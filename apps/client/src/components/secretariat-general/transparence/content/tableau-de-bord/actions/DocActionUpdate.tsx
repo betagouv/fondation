@@ -61,7 +61,7 @@ export function DocActionUpdate(props: {
       iconId="fr-icon-edit-fill"
       priority="tertiary no outline"
       className="rounded-full"
-      title={`Modifier"{doc.name}"`}
+      title={`Modifier "${doc.name}"`}
       disabled={disabled}
       linkProps={linkProps as never}
       onClick={doc.type === 'agenda' && doc.isLinkedToOfficialReport ? confirmUpdate : undefined}

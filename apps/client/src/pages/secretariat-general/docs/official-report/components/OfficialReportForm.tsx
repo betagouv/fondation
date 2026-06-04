@@ -105,6 +105,7 @@ export function OfficialReportForm() {
   const {
     control,
     setValue,
+    setValues,
     handleSubmit,
     subscribe,
     formState: { errors, isValid, dirtyFields },
@@ -131,43 +132,50 @@ export function OfficialReportForm() {
         const agenda = (agendas?.items ?? []).find((agenda) => agenda.id === state.values.agendaId);
         if (!agenda) return;
 
-        if (!state.dirtyFields?.chairmanId && agenda.chairmanId) {
-          setValue('chairmanId', agenda.chairmanId);
-        }
-
-        if (!state.dirtyFields?.secretaryId && agenda.presentationPlan?.secretaryId) {
-          setValue('secretaryId', agenda.presentationPlan.secretaryId);
-        }
-
-        if (!state.dirtyFields?.justiceContactId && agenda.presentationPlan?.justiceContactId) {
-          setValue('justiceContactId', agenda.presentationPlan.justiceContactId);
-        }
-
-        if (!state.dirtyFields?.sessionMeetingDate && agenda.sessionMeetingDate) {
-          setValue(
-            'sessionMeetingDate',
-            dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0],
-          );
-        }
-
-        if (!state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlan?.startTime) {
-          const startTime = formTimeOnlyCodec.encode(agenda.presentationPlan.startTime);
-          if (startTime) setValue('sessionMeetingStartingTime', startTime);
-        }
-
-        if (!state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlan?.endTime) {
-          const endTime = formTimeOnlyCodec.encode(agenda.presentationPlan.endTime);
-          if (endTime) setValue('sessionMeetingEndingTime', endTime);
-        }
-
-        if (!state?.dirtyFields?.memberIds && agenda.presentationPlan?.absentMembers) {
-          setValue('memberIds', [...agenda.presentationPlan.absentMembers]);
-        }
+        setValues(
+          (form) => ({
+            ...form,
+            chairmanId:
+              !state.dirtyFields?.chairmanId && agenda.chairmanId ? agenda.chairmanId : form.chairmanId,
+            secretaryId:
+              !state.dirtyFields?.secretaryId && agenda.presentationPlan?.secretaryId
+                ? agenda.presentationPlan.secretaryId
+                : form.secretaryId,
+            justiceContactId:
+              !state.dirtyFields?.justiceContactId && agenda.presentationPlan?.justiceContactId
+                ? agenda.presentationPlan.justiceContactId
+                : form.justiceContactId,
+            sessionMeetingDate:
+              !state.dirtyFields?.sessionMeetingDate && agenda.sessionMeetingDate
+                ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
+                : form.sessionMeetingDate,
+            sessionMeetingStartingTime:
+              !state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlan?.startTime
+                ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) ||
+                  form.sessionMeetingStartingTime
+                : form.sessionMeetingStartingTime,
+            sessionMeetingEndingTime:
+              !state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlan?.endTime
+                ? formTimeOnlyCodec.encode(agenda.presentationPlan.endTime) || form.sessionMeetingEndingTime
+                : form.sessionMeetingEndingTime,
+            memberIds:
+              !state?.dirtyFields?.memberIds && agenda.presentationPlan?.absentMembers
+                ? [...agenda.presentationPlan.absentMembers]
+                : form.memberIds,
+            hasRenunciation:
+              !state?.dirtyFields?.hasRenunciation &&
+              agenda.presentationPlan &&
+              !agenda.presentationPlan.hasRenunciation
+                ? agenda.presentationPlan.hasRenunciation
+                : form.hasRenunciation,
+          }),
+          { shouldDirty: true, shouldTouch: true, shouldValidate: true },
+        );
       },
     });
 
     return unsubscribe;
-  }, [subscribe, setValue, agendas]);
+  }, [subscribe, setValues, agendas]);
 
   const onAgendaSelected = React.useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {

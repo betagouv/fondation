@@ -559,6 +559,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
+    hasRenunciation: boolean;
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<{ id: string }> {
@@ -606,6 +607,7 @@ export class DocsService {
         justiceContactId: command.justiceContactId,
         authorId: command.authorId,
         time: command.time,
+        hasRenunciation: command.hasRenunciation,
         date: DateOnly.fromJson(command.date),
         members: planMembers,
       });
@@ -625,6 +627,7 @@ export class DocsService {
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
+    hasRenunciation: boolean;
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<void> {
@@ -674,6 +677,7 @@ export class DocsService {
       plan.update({
         agendas,
         chairman,
+        hasRenunciation: command.hasRenunciation,
         // oxlint-disable-next-line typescript/no-misused-spread
         secretary: { ...secretary, id: secretary.userId },
         justiceContactId: command.justiceContactId,

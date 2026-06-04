@@ -23,9 +23,17 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     presentationPlanId: planId,
   });
 
-  const { mutate: create, isPending: isCreating } = useCreateJusticePresentationPlanMutation();
-  const { mutate: update, isPending: isUpdating } = useUpdateJusticePresentationPlanMutation();
-  const { mutate: resetPlan } = useResetPresentationPlanDocumentMutation(planId ?? '');
+  const {
+    mutate: create,
+    isPending: isCreating,
+    reset: resetCreation,
+  } = useCreateJusticePresentationPlanMutation();
+  const {
+    mutate: update,
+    isPending: isUpdating,
+    reset: resetUpdate,
+  } = useUpdateJusticePresentationPlanMutation();
+  const { mutate: resetPlan, reset: resetReset } = useResetPresentationPlanDocumentMutation(planId ?? '');
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,6 +49,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     justiceContactId: null,
     time: null,
     absentMemberIds: [],
+    hasRenunciation: true,
   });
 
   React.useEffect(() => {
@@ -59,6 +68,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       date: s.date ?? metadata.date,
       justiceContactId: s.justiceContactId ?? metadata.justiceDepartmentContactId,
       time: s.time ?? metadata.time,
+      hasRenunciation: !metadata.hasRenunciation ? metadata.hasRenunciation : s.hasRenunciation,
     }));
   }, [metadata]);
 
@@ -112,7 +122,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       if (planId) {
         const { isConfirmed } = await waitForConfirmation({
           title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
-          i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser le plan de présentation` }) },
+          i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser la notice` }) },
           content: (
             <>
               <p>
@@ -154,11 +164,28 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
           comment: comment?.trim() || null,
         })),
         absentMembers: [...state.absentMemberIds],
+        hasRenunciation: state.hasRenunciation,
       };
 
-      async function onSuccess(id: string) {
-        await queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
+      function onSuccess(id: string) {
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
+        resetCreation();
+        resetUpdate();
+        resetReset();
         navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
+
+        setState({
+          step: 'METADATA',
+          formation: null,
+          agendas: {},
+          chairmanId: null,
+          secretaryId: null,
+          date: null,
+          justiceContactId: null,
+          time: null,
+          absentMemberIds: [],
+          hasRenunciation: true,
+        });
       }
 
       if (planId) {
@@ -185,6 +212,9 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       waitForConfirmation,
       formatMessage,
       metadata?.isManuallyEdited,
+      resetCreation,
+      resetUpdate,
+      resetReset,
     ],
   );
 

@@ -13,6 +13,7 @@ export type PresentationPlanContextType = {
     date: { day: number; month: number; year: number } | null;
     time: { hours: number; minutes: number } | null;
     absentMemberIds: string[];
+    hasRenunciation: boolean;
   };
 
   goToMetadata(): void;
@@ -25,5 +26,6 @@ export type PresentationPlanContextType = {
     date: { day: number; month: number; year: number };
     time: { hours: number; minutes: number };
     absentMemberIds: readonly string[];
+    hasRenunciation: boolean;
   }): void;
 };

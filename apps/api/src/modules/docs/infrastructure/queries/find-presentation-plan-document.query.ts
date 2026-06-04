@@ -38,6 +38,7 @@ export class FindPresentationPlanDocumentQuery {
           id: true,
           date: true,
           time: true,
+          hasRenunciation: true,
 
           justiceDepartmentContactName: true,
 
@@ -134,6 +135,7 @@ export class FindPresentationPlanDocumentQuery {
         sessions,
         date: DateOnly.fromDate(plan.date),
         time: dateToTimeOnly(plan.time),
+        hasRenunciation: plan.hasRenunciation,
         justiceContactName: plan.justiceDepartmentContactName,
         typeDeSaisine: sessions[0]!.typeDeSaisine,
         formation: sessions[0]!.formation,

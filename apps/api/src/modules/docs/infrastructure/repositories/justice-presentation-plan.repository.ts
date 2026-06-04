@@ -126,6 +126,7 @@ export class JusticePresentationPlanRepository {
       time: timeOnlyToDate(message.state.time),
       endTime: message.state.endingTime ? timeOnlyToDate(message.state.endingTime) : null,
       authorId: message.authorId,
+      hasRenunciation: message.state.hasRenunciation,
 
       chairmanId: message.state.chairman.id,
       chairmanFirstName: message.state.chairman.firstName,

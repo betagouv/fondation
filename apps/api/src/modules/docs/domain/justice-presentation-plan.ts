@@ -218,6 +218,7 @@ export type JusticePresentationPlanState = {
   time: TimeOnly;
   endingTime: TimeOnly | null;
   authorId: string;
+  hasRenunciation: boolean;
   agendas: readonly {
     id: string;
     formation: Magistrat.Formation;
@@ -233,6 +234,7 @@ export type CreateJusticePresentationPlanCommand = {
   date: DateOnly;
   time: TimeOnly;
   authorId: string;
+  hasRenunciation: boolean;
   agendas: readonly {
     id: string;
     formation: Magistrat.Formation;
@@ -251,6 +253,7 @@ export type UpdateJusticePresentationPlanCommand = {
   date: DateOnly;
   time: TimeOnly;
   endingTime: TimeOnly | null;
+  hasRenunciation: boolean;
   agendas: readonly {
     id: string;
     formation: Magistrat.Formation;
