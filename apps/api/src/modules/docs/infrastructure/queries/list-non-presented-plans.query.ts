@@ -27,7 +27,7 @@ export class ListNonPresentedPlansQuery {
         },
       },
       where: {
-        pdfId: { not: null },
+        html: { not: null },
         isPresented: false,
       },
     });

@@ -2,6 +2,7 @@ import type { FormationEnum } from '@/types/enums.types';
 
 export type PresentationPlanContextType = {
   planId: string | null;
+  isFetching: boolean;
   isDisabled: boolean;
   state: {
     step: 'METADATA' | 'AGENDA_COMMENTS';

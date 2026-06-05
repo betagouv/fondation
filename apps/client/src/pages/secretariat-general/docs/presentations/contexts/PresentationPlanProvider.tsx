@@ -58,6 +58,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     setState((s) => ({
       ...s,
 
+      absentMemberIds: s.absentMemberIds.length != 0 ? [...s.absentMemberIds] : [...metadata.absentMemberIds],
       formation: s.formation ?? metadata.formation,
       secretaryId: s.secretaryId ?? metadata.secretaryId,
       agendas:
@@ -84,8 +85,16 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     (options: { agendaIds: string[]; formation: 'PARQUET' | 'SIEGE' }) => {
       setState((s) => ({
         ...s,
+        step: 'METADATA',
         formation: options.formation,
         agendas: Object.fromEntries(options.agendaIds.map((id) => [id, null])),
+        absentMemberIds: [],
+        chairmanId: null,
+        date: null,
+        hasRenunciation: true,
+        justiceContactId: null,
+        secretaryId: null,
+        time: null,
       }));
       navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_NEW));
     },
@@ -173,19 +182,6 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         resetUpdate();
         resetReset();
         navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
-
-        setState({
-          step: 'METADATA',
-          formation: null,
-          agendas: {},
-          chairmanId: null,
-          secretaryId: null,
-          date: null,
-          justiceContactId: null,
-          time: null,
-          absentMemberIds: [],
-          hasRenunciation: true,
-        });
       }
 
       if (planId) {
@@ -220,7 +216,16 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
 
   return (
     <PresentationPlanContext
-      value={{ planId, state, isDisabled, goToMetadata, initPlanCreation, setMetadata, createPlan }}
+      value={{
+        planId,
+        state,
+        isFetching: isFetchingMeta,
+        isDisabled,
+        goToMetadata,
+        initPlanCreation,
+        setMetadata,
+        createPlan,
+      }}
     >
       {planId ? state.formation && props.children : props.children}
     </PresentationPlanContext>

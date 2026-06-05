@@ -1,5 +1,6 @@
 import { Accordion } from '@codegouvfr/react-dsfr/Accordion';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
@@ -342,7 +343,7 @@ const STEPS = {
 } as const;
 
 export function PresentationUpsertPage() {
-  const { state } = usePresentationPlan();
+  const { state, isFetching } = usePresentationPlan();
 
   const step = STEPS[state.step];
   const stepIndex = state.step === 'METADATA' ? 1 : 2;
@@ -352,9 +353,22 @@ export function PresentationUpsertPage() {
     <div className="fr-container fr-py-2w">
       <PresentationBreadcrumb />
 
-      <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
-      <MetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
-      <AgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />
+      {isFetching ? (
+        <p
+          className={clsx(
+            cx('ri-loader-4-line'),
+            'text-center before:mr-1 before:animate-spin before:content-[""]',
+          )}
+        >
+          <FormattedMessage defaultMessage={'Chargement...'} />
+        </p>
+      ) : (
+        <>
+          <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
+          <MetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
+          <AgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />
+        </>
+      )}
     </div>
   );
 }
