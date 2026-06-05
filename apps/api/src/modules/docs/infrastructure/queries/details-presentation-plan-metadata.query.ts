@@ -27,6 +27,7 @@ export class DetailsPresentationPlanMetadataQuery {
         isManuallyEdited: true,
         justiceDepartmentContactId: true,
         hasRenunciation: true,
+        members: { select: { memberId: true, isAbsent: true } },
         agendas: {
           select: {
             agendaId: true,
@@ -54,6 +55,7 @@ export class DetailsPresentationPlanMetadataQuery {
         id: agendaId,
       })),
       justiceDepartmentContactId: plan.justiceDepartmentContactId?.toString() ?? null,
+      absentMemberIds: plan.members.filter((m) => m.isAbsent).map((m) => m.memberId),
     };
   }
 }
@@ -71,5 +73,6 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),
     hasRenunciation: z.boolean(),
+    absentMemberIds: z.array(z.string()),
   }),
 ) {}

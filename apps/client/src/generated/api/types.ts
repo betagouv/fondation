@@ -1118,6 +1118,7 @@ export type DetailedPresentationPlanMetadataDto = {
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
     hasRenunciation: boolean;
+    absentMemberIds: Array<string>;
 };
 
 export type CreateOrUpdateJusticePresentationPlanDto = {
