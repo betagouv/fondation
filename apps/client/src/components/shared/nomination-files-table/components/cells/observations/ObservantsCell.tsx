@@ -18,7 +18,7 @@ export function ObservantsCell({ nominationFile }: { nominationFile: SessionNomi
   const handleView = () =>
     open({ id: nominationFile.id, sessionId, name: nominationFile.content.nomMagistrat }, 'view');
 
-  if (edition?.isEditing) {
+  if (edition?.isEditing && nominationFile.content.isUpdatable) {
     return (
       <div className="flex flex-col gap-2">
         {nominationFile.content.observants?.length ? (

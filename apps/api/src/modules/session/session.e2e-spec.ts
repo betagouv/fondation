@@ -168,11 +168,6 @@ describe('Session E2E', () => {
           detectedTargetedFunctionId: null,
           isUpdatable: true,
           status: 'TO_REPORT',
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
         },
         id: expect.any(String),
         observations: [],
@@ -229,11 +224,6 @@ describe('Session E2E', () => {
           detectedTargetedFunctionId: null,
           isUpdatable: true,
           status: 'TO_REPORT',
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
         },
         priorities: [],
         memo: null,

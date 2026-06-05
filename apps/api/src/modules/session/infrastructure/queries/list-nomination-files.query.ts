@@ -108,30 +108,17 @@ export class ListNominationFilesQuery {
       return [
         Number(txCount ?? 0n),
         txFiles.map((file) => {
-          const {
-            isLinkedToAgenda = false,
-            isLinkedToOfficialReport = false,
-            isLinkedToPresentationPlan = false,
-          } = linkedDocs.get(file.id) ?? {};
+          const docs = linkedDocs.get(file.id) ?? [];
           const updatable = UpdatableNominationFile.from({
             id: file.id,
             outcome: file.outcome,
-            docs: {
-              isLinkedToAgenda,
-              isLinkedToOfficialReport,
-              isLinkedToPresentationPlan,
-            },
+            docs,
           });
 
           return {
             ...file,
             status: updatable.status(),
             isUpdatable: updatable.isUpdatable(),
-            docs: {
-              isLinkedToAgenda,
-              isLinkedToOfficialReport,
-              isLinkedToPresentationPlan,
-            },
           };
         }),
         session?.archivedAt,
@@ -170,7 +157,6 @@ export class ListNominationFilesQuery {
           isAlertHidden: x.alertHidden,
           isUpdatable: x.isUpdatable,
           status: x.status,
-          docs: x.docs,
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
@@ -272,11 +258,6 @@ const NominationFileContentSchema = z.object({
 
   isUpdatable: z.boolean(),
   status: z.enum(NOMINATION_SESSION_FILE_STATUSES),
-  docs: z.object({
-    isLinkedToAgenda: z.boolean(),
-    isLinkedToOfficialReport: z.boolean(),
-    isLinkedToPresentationPlan: z.boolean(),
-  }),
 });
 
 const RawListedNominationFiles = z.array(

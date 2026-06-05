@@ -16,7 +16,7 @@ describe('UpdatableNominationFile', () => {
       const isUpdatable = UpdatableNominationFile.from({
         outcome,
         id: `file-id-1`,
-        docs: { isLinkedToAgenda: false, isLinkedToOfficialReport: false, isLinkedToPresentationPlan: false },
+        docs: [],
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -29,7 +29,12 @@ describe('UpdatableNominationFile', () => {
       const isUpdatable = UpdatableNominationFile.from({
         outcome,
         id: `file-id-1`,
-        docs: { isLinkedToAgenda: true, isLinkedToOfficialReport: false, isLinkedToPresentationPlan: false },
+        docs: [
+          {
+            agenda: { id: 'agenda-1', outcome: 'SUSPENDED' },
+            officialReport: { id: 'or-1', outcome: 'SUSPENDED' },
+          },
+        ],
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -42,47 +47,15 @@ describe('UpdatableNominationFile', () => {
       const isUpdatable = UpdatableNominationFile.from({
         outcome,
         id: `file-id-1`,
-        docs: { isLinkedToAgenda: true, isLinkedToOfficialReport: false, isLinkedToPresentationPlan: false },
+        docs: [
+          {
+            agenda: { id: 'agenda-1', outcome: 'SUSPENDED' },
+            officialReport: { id: 'or-1', outcome: outcome === 'REMOVED' ? 'WITHDRAWN' : outcome },
+          },
+        ],
       }).isUpdatable();
 
       expect(isUpdatable).toBe(false);
-    },
-  );
-
-  it.each`
-    agenda   | officialReport | presentationPlan | expectedUpdatable
-    ${false} | ${false}       | ${false}         | ${true}
-    ${false} | ${false}       | ${true}          | ${false}
-    ${false} | ${true}        | ${false}         | ${false}
-    ${false} | ${true}        | ${true}          | ${false}
-    ${true}  | ${false}       | ${false}         | ${false}
-    ${true}  | ${false}       | ${true}          | ${false}
-    ${true}  | ${true}        | ${true}          | ${false}
-  `(
-    `(outcome=VALIDATED, isLinkedToAgenda=$agenda, isLinkedToOfficialReport=$officialReport, isLinkedToPresentationPlan=$presentationPlan) => isUpdatable=$expectedUpdatable`,
-    ({
-      agenda,
-      officialReport,
-      presentationPlan,
-      expectedUpdatable,
-    }: {
-      agenda: boolean;
-      officialReport: boolean;
-      presentationPlan: boolean;
-      expectedUpdatable: boolean;
-    }) => {
-      const outcome: NonIgnoredUpdatableOutcome = 'VALIDATED';
-      const isUpdatable = UpdatableNominationFile.from({
-        outcome,
-        id: `file-id-1`,
-        docs: {
-          isLinkedToAgenda: agenda,
-          isLinkedToOfficialReport: officialReport,
-          isLinkedToPresentationPlan: presentationPlan,
-        },
-      }).isUpdatable();
-
-      expect(isUpdatable).toBe(expectedUpdatable);
     },
   );
 });

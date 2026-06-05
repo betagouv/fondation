@@ -348,11 +348,7 @@ export class NominationSession {
         UpdatableNominationFile.from({
           id: x.id,
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         }),
       ]),
     );

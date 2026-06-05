@@ -1,10 +1,10 @@
-import { Logger } from '@nestjs/common';
-
 import { Magistrat } from 'shared-models';
 
+import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
-import { NominationFileOutcomeEnum } from './nomination-file-outcome';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 
 type InternalNominationFile = {
   fileNumber: number;
@@ -42,34 +42,27 @@ export const NOMINATION_SESSION_FILE_STATUSES = ['TO_REPORT', 'DSJ_PLANNED', 'DS
 
 export type NominationSessionFileStatusEnum = (typeof NOMINATION_SESSION_FILE_STATUSES)[number];
 
+type UpdatableNominationFileDoc = {
+  agenda: { id: string; outcome: DocNominationFileOutcomeEnum | null };
+  officialReport: { id: string; outcome: DocNominationFileOutcomeEnum } | null;
+};
+
 export type UpdatableNominationFileState = {
   id: string;
   outcome: NominationFileOutcomeEnum | null;
-  docs: {
-    isLinkedToAgenda: boolean;
-    isLinkedToOfficialReport: boolean;
-    isLinkedToPresentationPlan: boolean;
-  };
+  docs: readonly UpdatableNominationFileDoc[];
 };
 
 // FIXME: improve naming
 export class UpdatableNominationFile {
-  private readonly logger = new Logger(UpdatableNominationFile.name);
-  private static readonly IGNORED_OUTCOMES = [
-    null,
-    'SUSPENDED',
-    'WAITING_DSJ',
-    'ASSESSING',
-  ] satisfies (NominationFileOutcomeEnum | null)[];
+  private static readonly FINAL_OUTCOMES = new Set<NominationFileOutcomeEnum>(
+    NominationFileOutcome.finalOutcomes(),
+  );
 
   constructor(
     readonly id: string,
     private readonly outcome: NominationFileOutcomeEnum | null,
-    private readonly docs: {
-      isLinkedToAgenda: boolean;
-      isLinkedToOfficialReport: boolean;
-      isLinkedToPresentationPlan: boolean;
-    },
+    private readonly docs: readonly UpdatableNominationFileDoc[],
   ) {}
 
   static from(props: UpdatableNominationFileState): UpdatableNominationFile {
@@ -77,28 +70,32 @@ export class UpdatableNominationFile {
   }
 
   isUpdatable(): boolean {
-    const isLinkedToAnyDocument =
-      this.docs.isLinkedToAgenda ||
-      this.docs.isLinkedToOfficialReport ||
-      this.docs.isLinkedToPresentationPlan;
-
-    const canUpdateNominationFile = this.isOutcomeIgnored || !isLinkedToAnyDocument;
+    const canUpdateNominationFile =
+      this.isOutcomeIgnored() || !this.isLinkedToOfficialReportWithFinalOutcome();
 
     return canUpdateNominationFile;
   }
 
   status(): NominationSessionFileStatusEnum {
-    if (this.isOutcomeIgnored) return 'TO_REPORT';
+    const hasMissingOfficialReport = this.docs.some((doc) => !isDefined(doc.officialReport));
+    if (hasMissingOfficialReport) return 'DSJ_PLANNED';
 
-    if (this.docs.isLinkedToOfficialReport) return 'DSJ_REPORTED';
-    if (this.docs.isLinkedToPresentationPlan || this.docs.isLinkedToAgenda) {
-      return 'DSJ_PLANNED';
-    }
+    const hasNoMissingOfficialReport =
+      this.docs.length > 0 && this.docs.every((doc) => isDefined(doc.officialReport));
+    if (hasNoMissingOfficialReport) return 'DSJ_REPORTED';
 
     return 'TO_REPORT';
   }
 
-  private get isOutcomeIgnored(): boolean {
-    return UpdatableNominationFile.IGNORED_OUTCOMES.includes(this.outcome as any);
+  private isLinkedToOfficialReportWithFinalOutcome(): boolean {
+    return this.docs.some(
+      (doc) =>
+        isDefined(doc.officialReport) &&
+        UpdatableNominationFile.FINAL_OUTCOMES.has(doc.officialReport.outcome),
+    );
+  }
+
+  private isOutcomeIgnored(): boolean {
+    return this.outcome === null || !UpdatableNominationFile.FINAL_OUTCOMES.has(this.outcome);
   }
 }
