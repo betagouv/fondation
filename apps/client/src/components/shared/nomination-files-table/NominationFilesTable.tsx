@@ -1,14 +1,19 @@
+import type { Row } from '@tanstack/react-table';
 import React from 'react';
-import { defineMessage } from 'react-intl';
 
 import './NominationFilesTable.css';
+
+import { defineMessage } from 'react-intl';
 
 import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
-import { useSessionNominationFilesQuery } from '@queries/nomination-sessions.queries';
+import {
+  useSessionNominationFilesQuery,
+  type SessionNominationFile,
+} from '@queries/nomination-sessions.queries';
 
 import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
 import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
@@ -56,13 +61,17 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     },
   });
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
+  const enableRowSelection = React.useMemo(
+    () => !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable),
+    [edition],
+  );
 
   const table = useDataTable({
     columns,
     data: nominationFiles,
     rowCount: data?.totalCount,
     getRowId: (row) => row.id,
-    enableRowSelection: !!edition?.isEditing && ((row) => row.original.content.isUpdatable),
+    enableRowSelection,
     state: tableState,
     onStateChange: setTableState,
     enableGlobalFilter: true,
