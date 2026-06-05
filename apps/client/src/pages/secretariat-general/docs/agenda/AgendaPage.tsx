@@ -14,8 +14,8 @@ function AgendaContent() {
     <div className="fr-container fr-py-2w">
       <AgendaBreadCrumb />
       <Stepper currentStep={step.index} stepCount={2} title={step.title} nextTitle={step.nextTitle} />
-      <AgendaMetadataStep className={clsx({ hidden: step.index !== 1 })} />
-      <AgendaNominationFilesStep className={clsx({ hidden: step.index !== 2 })} />
+      <AgendaNominationFilesStep className={clsx({ hidden: step.index !== 1 })} />
+      <AgendaMetadataStep className={clsx({ hidden: step.index !== 2 })} />
     </div>
   );
 }

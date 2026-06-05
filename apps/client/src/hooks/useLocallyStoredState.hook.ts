@@ -1,12 +1,17 @@
 import React from 'react';
 
-type Jsonifiable = string | number | boolean | { [id: string]: string | number | boolean | null };
+type Jsonifiable =
+  | string
+  | number
+  | boolean
+  | null
+  | { [id: string]: string | number | boolean | null | (string | number | boolean | null)[] };
 
 /** synchronizes react state with local storage */
 export function useLocallyStoredState<T extends Jsonifiable>(options: {
   state: T;
   key: string;
-}): [T, React.Dispatch<React.SetStateAction<T>>] {
+}): [state: T, stateUpdater: React.Dispatch<React.SetStateAction<T>>, clear: () => void] {
   const [state, setReactState] = React.useState<T>(readLocalStorage(options.key) ?? options.state);
 
   const update = React.useCallback(
@@ -18,7 +23,11 @@ export function useLocallyStoredState<T extends Jsonifiable>(options: {
     [state, options.key, setReactState],
   );
 
-  return [state, update];
+  const clear = React.useCallback(() => {
+    clearLocalStorage(options.key);
+  }, [options.key]);
+
+  return [state, update, clear];
 }
 
 const NAMESPACE = 'fondation';
@@ -28,6 +37,10 @@ function readLocalStorage<T>(key: string): T | undefined {
   return value ? JSON.parse(value) : undefined;
 }
 
-function writeLocalStorage<T extends Jsonifiable>(key: string, value: T): undefined {
+function writeLocalStorage(key: string, value: Jsonifiable): undefined {
   localStorage.setItem(`${NAMESPACE}.${key}`, JSON.stringify(value));
+}
+
+function clearLocalStorage(key: string): void {
+  localStorage.removeItem(`${NAMESPACE}.${key}`);
 }
