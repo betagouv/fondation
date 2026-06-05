@@ -16,7 +16,7 @@ export const MenuTrigger = React.memo((props: ButtonProps) => (
 
 export const MenuContent = React.memo((props: React.PropsWithChildren) => (
   <BaseMenu.Portal>
-    <BaseMenu.Positioner className="outline-hidden" sideOffset={8} align="end">
+    <BaseMenu.Positioner className="z-10 outline-hidden" sideOffset={8} align="end">
       <BaseMenu.Popup
         className={clsx(
           'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg',
@@ -42,7 +42,6 @@ export const MenuItem = React.memo((props: ButtonProps) => (
         {...renderProps}
         {...props}
         data-highlighted={state.highlighted}
-        disabled={state.disabled}
         className={clsx(
           'w-full!',
           'first:data-highlighted:rounded-t-md',

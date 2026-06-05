@@ -1,5 +1,6 @@
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
+import { AgendaBasketButton } from './AgendaBasketButton';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
 import { NominationFilesBatchOperationsButton } from './NominationFilesBatchOperationsButton';
 import { NominationFilesSaveAffectationsButton } from './NominationFilesSaveAffectationsButton';
@@ -17,6 +18,7 @@ export function NominationFilesTableActionsBar() {
           <NominationFilesAutoAffectationButton />
           <NominationFilesBatchOperationsButton />
           <NominationFilesSaveAffectationsButton />
+          <AgendaBasketButton />
         </>
       ) : null}
 

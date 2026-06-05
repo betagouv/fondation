@@ -9,6 +9,7 @@ import z from 'zod';
 
 import { ChairmanSelector } from '../../components/ChairmanSelector';
 import { useAgenda } from '../context/AgendaContext';
+import type { AgendaMetadata } from '../context/AgendaContext.types';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 
 const AgendaMetadataSchema = z.object({
@@ -18,7 +19,7 @@ const AgendaMetadataSchema = z.object({
 });
 
 export function AgendaMetadataStep(props: { className?: string }) {
-  const { metadata, goToNominationFiles, cancel, session } = useAgenda();
+  const { metadata, submit, goToFiles, session, isSubmitting, agendaId } = useAgenda();
   const defaultValues = React.useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
@@ -41,7 +42,10 @@ export function AgendaMetadataStep(props: { className?: string }) {
   });
 
   return (
-    <form onSubmit={handleSubmit(goToNominationFiles)} className={clsx('mx-auto max-w-2xl', props.className)}>
+    <form
+      onSubmit={handleSubmit((values) => submit(values as AgendaMetadata))}
+      className={clsx('mx-auto max-w-2xl', props.className)}
+    >
       <Controller
         name="sessionMeetingDate"
         control={control}
@@ -86,8 +90,14 @@ export function AgendaMetadataStep(props: { className?: string }) {
         alignment="right"
         inlineLayoutWhen="md and up"
         buttons={[
-          { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
-          { children: 'Sélectionner les propositions', type: 'submit', disabled: !isValid },
+          { children: 'Retour', priority: 'secondary', onClick: goToFiles, type: 'button' },
+          {
+            type: 'submit',
+            disabled: !isValid || isSubmitting,
+            className: clsx({ 'before:animate-spin': isSubmitting }),
+            iconId: isSubmitting ? 'ri-loader-4-line' : 'ri-file-pdf-2-line',
+            children: agendaId ? "Modifier l'ordre du jour" : "Générer l'ordre du jour",
+          },
         ]}
       />
     </form>

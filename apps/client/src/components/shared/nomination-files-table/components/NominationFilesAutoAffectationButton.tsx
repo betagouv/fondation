@@ -115,7 +115,7 @@ export function NominationFilesAutoAffectationButton() {
       iconId={isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line'}
       title={unaffectedFilesCount ? undefined : 'Tous les dossiers ont des rapporteurs attribués'}
     >
-      {isAutoAffecting ? 'Affectation en cours...' : 'Attribuer les rapports'}
+      {isAutoAffecting ? 'En cours...' : 'Aff. auto'}
     </Button>
   );
 }

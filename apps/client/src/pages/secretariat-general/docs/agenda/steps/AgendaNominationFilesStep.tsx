@@ -9,12 +9,14 @@ import { useSelection } from '../../../../../hooks/useSelection.hook';
 import { AgendaFileSearch } from '../components/AgendaFileSearch';
 import { AgendaNominationFile } from '../components/AgendaNominationFile';
 import { useAgenda } from '../context/AgendaContext';
+import { useAgendaBasket } from '../hooks/useAgendaBasket.hook';
 import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
 import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
-  const { session, isSubmitting: isPending, submit, goToMetadata, agendaId, defaultFileIds } = useAgenda();
+  const { session, cancel, goToMetadata, agendaId, defaultFileIds } = useAgenda();
+  const basket = useAgendaBasket(session.id);
 
   const [search, setSearch] = React.useState('');
 
@@ -28,14 +30,19 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
 
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 
+  const initialSelection = React.useMemo(() => {
+    if (agendaId) return defaultFileIds ?? undefined;
+    if (basket.fileIds.length > 0) return basket.fileIds;
+    return nominationFiles.flatMap((f) =>
+      f.outcome?.value !== 'SUSPENDED' && f.reporters.length > 0 ? [f.id] : [],
+    );
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [agendaId, defaultFileIds, nominationFiles]);
+
   const selection = useSelection({
     items: nominationFiles,
     toString: ({ id }) => id,
-    defaultSelection:
-      defaultFileIds ??
-      nominationFiles.flatMap((f) =>
-        f.outcome?.value !== 'SUSPENDED' && f.reporters.length > 0 ? [f.id] : [],
-      ),
+    defaultSelection: initialSelection,
   });
 
   const filtered = React.useMemo(() => {
@@ -45,10 +52,10 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
     return nominationFiles.filter((item) => !term || term.test(item.magistrat.name));
   }, [nominationFiles, search]);
 
-  const onSubmit = React.useCallback(() => {
+  const onNext = React.useCallback(() => {
     if (selection.size === 0) return;
-    submit(selection.list());
-  }, [submit, selection]);
+    goToMetadata(selection.list());
+  }, [goToMetadata, selection]);
 
   const onChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +67,12 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
   const onSelectAll = React.useCallback(() => {
     selection.toggleAll();
   }, [selection]);
+
+  React.useEffect(() => {
+    if (agendaId) return;
+    basket.set(selection.list());
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [agendaId, selection.size, selection.list]);
 
   const virtualizer = useVirtualizer({
     count: filtered.length,
@@ -144,28 +157,17 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
         inlineLayoutWhen="md and up"
         alignment="center"
         buttons={[
-          { children: 'Retour', priority: 'secondary', onClick: goToMetadata, type: 'button' },
+          { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
           {
             type: 'button',
-            onClick: onSubmit,
-            disabled: selection.hasNone || isPending,
-            className: clsx({ 'before:animate-spin': isPending }),
-            iconId: selection.hasNone ? undefined : isPending ? 'ri-loader-4-line' : 'ri-file-pdf-2-line',
-            children: agendaId ? (
-              <FormattedMessage
-                values={{ count: selection.size }}
-                defaultMessage={`{count, plural,
-                    =0 {En attente de sélection}
-                    one {Modifier l'ODJ avec la proposition sélectionnée}
-                    other {Modifier l'ODJ avec les {count} propositions sélectionnées}}`}
-              />
-            ) : (
+            onClick: onNext,
+            disabled: selection.hasNone,
+            children: (
               <FormattedMessage
                 values={{ count: selection.size }}
                 defaultMessage={`{count, plural,
                   =0 {En attente de sélection}
-                  one {Générer l'ODJ avec la proposition sélectionnée}
-                  other {Générer l'ODJ avec les {count} propositions sélectionnées}}`}
+                  other {Définir les données de l'ODJ}}`}
               />
             ),
           },

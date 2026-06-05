@@ -109,11 +109,11 @@ export function NominationFilesBatchOperationsButton() {
       <Button
         size="small"
         priority="secondary"
-        iconId="fr-icon-menu-fill"
+        iconId="ri-settings-4-fill"
         disabled={!hasSelection}
         onClick={handleOpenModal}
       >
-        Actions groupées
+        Actions
       </Button>
 
       <actionsGroupeesModal.Component

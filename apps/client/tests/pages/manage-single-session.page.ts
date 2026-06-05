@@ -118,7 +118,7 @@ export class ManageSingleSessionPage {
   }
 
   get batchActionsButton(): Locator {
-    return this.app.page.getByRole('button', { name: 'Actions groupées' });
+    return this.app.page.getByRole('button', { name: 'Actions', exact: true });
   }
 
   get publishAffectationsButton(): Locator {
