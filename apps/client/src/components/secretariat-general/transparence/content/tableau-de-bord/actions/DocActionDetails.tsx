@@ -1,3 +1,4 @@
+import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
@@ -39,7 +40,14 @@ export function DocActionDetails(props: {
       disabled={isOpeningAgenda || isOpeningOfficialReport || disabled}
       onClick={onClick}
     >
-      {doc.name}
+      <>
+        {doc.type === 'agenda' && !doc.isLinkedToOfficialReport && (
+          <Badge as="span" small noIcon severity="error" className="mr-1 rounded-full">
+            PV
+          </Badge>
+        )}
+        {doc.name}
+      </>
     </Button>
   );
 }

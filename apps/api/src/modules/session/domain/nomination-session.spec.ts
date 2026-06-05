@@ -34,11 +34,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -73,11 +69,12 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: {
-            isLinkedToAgenda: true,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or1', outcome: 'VALIDATED' },
+            },
+          ],
         },
       ],
     });
@@ -104,11 +101,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -147,11 +140,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -178,11 +167,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -209,11 +194,12 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: {
-            isLinkedToAgenda: true,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
         },
       ],
     });
@@ -235,11 +221,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -404,11 +386,7 @@ describe('NominationSession', () => {
         {
           id: 'nf-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -451,11 +429,12 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: {
-            isLinkedToAgenda: true,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
         },
       ],
     });
@@ -477,11 +456,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -507,11 +482,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });
@@ -537,11 +508,7 @@ describe('NominationSession', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: {
-            isLinkedToAgenda: false,
-            isLinkedToOfficialReport: false,
-            isLinkedToPresentationPlan: false,
-          },
+          docs: [],
         },
       ],
     });

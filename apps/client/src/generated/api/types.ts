@@ -359,11 +359,6 @@ export type PaginatedNominationFiles = {
             isAlertHidden: boolean;
             isUpdatable: boolean;
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
-            docs: {
-                isLinkedToAgenda: boolean;
-                isLinkedToOfficialReport: boolean;
-                isLinkedToPresentationPlan: boolean;
-            };
         };
         comment: string | null;
         reporters: Array<{

@@ -1,13 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
+import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindNominationFilesLinkedDocsQuery {
-  private readonly logger = new Logger(InternalFindNominationFilesLinkedDocsQuery.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
@@ -20,42 +19,49 @@ export class InternalFindNominationFilesLinkedDocsQuery {
       return this.prisma.$transaction(async (tx) => this.handle({ ...query, tx }));
     }
 
-    const found = await query.tx.agendaNominationFile.findMany({
-      where: { nominationFileId: { in: Array.from(query.nominationFileIds) } },
+    const nominationFileIds = Array.from(query.nominationFileIds);
+
+    const nominationFiles = await query.tx.dossierDeNomination.findMany({
+      where: { id: { in: nominationFileIds } },
       select: {
-        nominationFileId: true,
-        agenda: {
-          select: {
-            id: true,
-            officialReportId: true,
-            justicePresentationPlanId: true,
-          },
+        id: true,
+        agendaInclusions: {
+          select: { outcome: true, agenda: { select: { id: true, officialReportId: true } } },
         },
+        officialReportInclusions: { select: { outcome: true, officialReportId: true } },
       },
     });
 
-    const items: InternalFoundNominationFilesLinkedDocsDto['items'] = new Map();
-    for (const { agenda, nominationFileId } of found) {
-      if (!nominationFileId) continue;
+    const items = new Map(
+      nominationFiles.map((file) => {
+        const byIds = new Map(file.officialReportInclusions.map((x) => [x.officialReportId, x] as const));
+        const docs = file.agendaInclusions.map(({ agenda, outcome }) => {
+          const officialReport = agenda.officialReportId
+            ? (byIds.get(agenda.officialReportId) ?? null)
+            : null;
 
-      items.set(nominationFileId, {
-        isLinkedToAgenda: !!agenda,
-        isLinkedToOfficialReport: !!agenda?.officialReportId,
-        isLinkedToPresentationPlan: !!agenda?.justicePresentationPlanId,
-      });
-    }
+          return {
+            agenda: { id: agenda.id, outcome: outcome },
+            officialReport: officialReport
+              ? { id: officialReport.officialReportId, outcome: officialReport.outcome }
+              : null,
+          };
+        });
+
+        return [file.id, docs];
+      }),
+    );
 
     return { items };
   }
 }
 
-export class InternalFoundNominationFilesLinkedDocsDto {
+export type InternalFoundNominationFilesLinkedDocsDto = {
   items: Map<
     string,
     {
-      isLinkedToAgenda: boolean;
-      isLinkedToOfficialReport: boolean;
-      isLinkedToPresentationPlan: boolean;
-    }
+      agenda: { id: string; outcome: DocNominationFileOutcomeEnum | null };
+      officialReport: { id: string; outcome: DocNominationFileOutcomeEnum } | null;
+    }[]
   >;
-}
+};

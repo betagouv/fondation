@@ -61,24 +61,9 @@ export class NominationSessionFileFinder {
       nominationFileIds: new Set(updatableNominationFiles.map(({ id }) => id)),
     });
 
-    const nominationFiles: UpdatableNominationFileState[] = [];
-    for (const file of updatableNominationFiles) {
-      const {
-        isLinkedToAgenda = false,
-        isLinkedToOfficialReport = false,
-        isLinkedToPresentationPlan = false,
-      } = withDocs.get(file.id) ?? {};
-
-      nominationFiles.push({
-        ...file,
-        docs: {
-          isLinkedToAgenda,
-          isLinkedToOfficialReport,
-          isLinkedToPresentationPlan,
-        },
-      });
-    }
-
-    return nominationFiles;
+    return updatableNominationFiles.map((file) => {
+      const docs = withDocs.get(file.id) ?? [];
+      return { ...file, docs };
+    });
   }
 }
