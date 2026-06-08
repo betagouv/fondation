@@ -1,6 +1,6 @@
 import { useNominationFilesTable } from '../contexts/files-table.context';
 
-import { AgendaBasketButton } from './AgendaBasketButton';
+import { AgendaBasketButtons } from './AgendaBasketButtons';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
 import { NominationFilesBatchOperationsButton } from './NominationFilesBatchOperationsButton';
 import { NominationFilesSaveAffectationsButton } from './NominationFilesSaveAffectationsButton';
@@ -12,17 +12,23 @@ export function NominationFilesTableActionsBar() {
   if (!isEditable) return null;
 
   return (
-    <div className="flex items-center gap-2">
-      {edition?.isEditing ? (
-        <>
-          <NominationFilesAutoAffectationButton />
-          <NominationFilesBatchOperationsButton />
-          <NominationFilesSaveAffectationsButton />
-          <AgendaBasketButton />
-        </>
-      ) : null}
+    <>
+      <div className="flex items-start gap-2">
+        {edition?.isEditing && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <NominationFilesAutoAffectationButton />
+              <NominationFilesBatchOperationsButton />
+              <NominationFilesSaveAffectationsButton />
+            </div>
+            <div className="flex items-center gap-2">
+              <AgendaBasketButtons />
+            </div>
+          </div>
+        )}
 
-      <NominationFilesToggleEditionModeButton />
-    </div>
+        <NominationFilesToggleEditionModeButton />
+      </div>
+    </>
   );
 }
