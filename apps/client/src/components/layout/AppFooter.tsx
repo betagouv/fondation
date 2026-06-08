@@ -1,15 +1,50 @@
 import Footer from '@codegouvfr/react-dsfr/Footer';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
+import React from 'react';
 import { useIntl } from 'react-intl';
 import { useMatch } from 'react-router';
 
+import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 const VERSION = import.meta.env.VITE_TAGGED_VERSION;
-const JDMA_URL = import.meta.env.VITE_JDMA_URL;
+
+function JdmaButton() {
+  const { formatMessage } = useIntl();
+  const isSg = useIsSg(true);
+  const url = React.useMemo(() => {
+    switch (isSg) {
+      case true:
+        return import.meta.env.VITE_JDMA_URL_AGENT;
+      case false:
+        return import.meta.env.VITE_JDMA_URL_MEMBER;
+      default:
+        return undefined;
+    }
+  }, [isSg]);
+
+  if (!url) return null;
+  return (
+    <div className="mb-1 text-center">
+      <a
+        key="jeDonneMonAvisLink"
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={formatMessage({ defaultMessage: 'Je donne mon avis - nouvelle fenêtre' })}
+        className="bg-none bg-auto bg-top-left after:hidden"
+      >
+        <img
+          className="w-24"
+          src="https://jedonnemonavis.numerique.gouv.fr/static/bouton-bleu-clair.svg"
+          alt={formatMessage({ defaultMessage: 'Je donne mon avis' })}
+        />
+      </a>
+    </div>
+  );
+}
 
 export function AppFooter() {
-  const { formatMessage } = useIntl();
   const path = useMatch(ROUTE_PATHS.LOGIN);
   const isLogin = path !== null;
 
@@ -49,24 +84,7 @@ export function AppFooter() {
         }}
         license={''}
       />
-      {!isLogin && JDMA_URL && (
-        <div className="mb-1 text-center">
-          <a
-            key="jeDonneMonAvisLink"
-            href={JDMA_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={formatMessage({ defaultMessage: 'Je donne mon avis - nouvelle fenêtre' })}
-            className="bg-none bg-auto bg-top-left after:hidden"
-          >
-            <img
-              className="w-24"
-              src="https://jedonnemonavis.numerique.gouv.fr/static/bouton-bleu-clair.svg"
-              alt={formatMessage({ defaultMessage: 'Je donne mon avis' })}
-            />
-          </a>
-        </div>
-      )}
+      {!isLogin && <JdmaButton />}
     </>
   );
 }
