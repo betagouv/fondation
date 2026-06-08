@@ -19,6 +19,7 @@ export function PresentationAgendaSelectionList(props: {
         session: { name: string; typeDeSaisine: TypeDeSaisineEnum };
         chairman: { firstName: string; lastName: string };
         date: { day: number; month: number; year: number };
+        sessionMeetingDate: { day: number; month: number; year: number };
       }[]
     | undefined;
 }) {
@@ -34,13 +35,13 @@ export function PresentationAgendaSelectionList(props: {
   const viewItems = React.useMemo(
     () =>
       formationItems
-        .map(({ id, date, chairman, session }) => ({
+        .map(({ id, sessionMeetingDate, chairman, session }) => ({
           id,
-          date: dateOnlyToDate(date),
+          date: dateOnlyToDate(sessionMeetingDate),
           label: formatMessage(
-            { defaultMessage: `ODJ {date, date, short} {sessionName} - {initials}` },
+            { defaultMessage: `ODJ {sessionMeetingDate, date, short} {sessionName} - {initials}` },
             {
-              date: dateOnlyToDate(date),
+              sessionMeetingDate: dateOnlyToDate(sessionMeetingDate),
               initials: toInitials(chairman),
               sessionName: normalizeSessionName(session),
             },
