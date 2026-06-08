@@ -1,6 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useTab } from '@/hooks/useTab';
 import type { FoundSessionDocsDto } from '@api/types';
@@ -43,7 +44,7 @@ export function DocActionDetails(props: {
       <>
         {doc.type === 'agenda' && !doc.isLinkedToOfficialReport && (
           <Badge as="span" small noIcon severity="error" className="mr-1 rounded-full">
-            PV
+            <FormattedMessage defaultMessage={'pv attendu'} />
           </Badge>
         )}
         {doc.name}
