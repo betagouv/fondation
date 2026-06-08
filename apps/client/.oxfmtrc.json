@@ -6,14 +6,10 @@
   "trailingComma": "all",
   "sortImports": {
     "sortSideEffects": false,
-    "customGroups": [
-      { "elementNamePattern": ["shared-models", "shared-models/*"], "groupName": "shared-models" }
-    ],
     "internalPattern": ["@/", "@api/", "@queries/"],
     "groups": [
       "value-builtin",
       ["value-external", "type-external", "value-import", "type-import"],
-      "shared-models",
       ["value-internal", "type-internal", "value-parent", "type-parent"],
       ["value-sibling", "type-sibling"],
       "unknown"

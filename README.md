@@ -93,19 +93,19 @@ allowBuilds: # liste blanche des paquets autorisés à exécuter un script d'ins
   puppeteer: false
 ```
 
-Depuis pnpm 10, les scripts d'installation des dépendances (`postinstall`, etc.) ne sont
-**pas exécutés par défaut** : chaque paquet qui en a besoin doit être ajouté explicitement à
-`allowBuilds`. Ces options visent à protéger l'installation de dépendances d'attaques par
-supply chain (cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)).
+Tout paquet absent de `allowBuilds` est empêché d'exécuter ses scripts d'installation
+(`postinstall`, etc.), pour se protéger des attaques par supply chain
+(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). On n'autorise
+que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur compilation native.
 
 > [!WARNING]
 > Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
 > Chaque installation de dépendance doit être justifiée.
 
 > [!NOTE]
-> `prisma` est volontairement à `false` : la génération du client (`prisma generate --sql`)
-> introspecte la base de données et doit donc être lancée **après** le démarrage de Postgres
-> et l'application des migrations. Elle est faite manuellement à l'étape d'installation.
+> `prisma` est volontairement à `false` : le client est généré manuellement avec
+> `prisma generate --sql`, qui doit se connecter à une base déjà lancée (voir l'étape
+> d'installation).
 
 ## Contribution
 
@@ -150,8 +150,9 @@ cp .env.example .env
 ```
 
 Le fichier `.env` (gitignoré) contient toutes les variables nécessaires pour démarrer
-l'application localement. `DATABASE_URL` pointe vers la base Postgres locale (`localhost:5435`),
-totalement isolée.
+l'application localement. `DATABASE_URL` pointe vers un Postgres local lancé dans Docker
+(étape 3), sur le port non-standard `5435` pour ne pas entrer en conflit avec un Postgres
+déjà présent sur la machine.
 
 3. Démarrer les services et la base de données
 
@@ -173,14 +174,14 @@ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 4. Générer le code
 
 ```bash
-pnpm --filter shared-models build         # types partagés (requis par le back ET le front)
+pnpm --filter shared-models build         # types partagés (requis par le back)
 pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
 ```
 
 > [!IMPORTANT]
-> `prisma generate --sql` introspecte la base : Postgres doit tourner et les migrations
-> doivent être appliquées (étape 3). Ce code généré n'est pas versionné, ces commandes
-> sont donc indispensables après chaque `pnpm install`.
+> `prisma generate --sql` se connecte à la base pour typer les requêtes de `prisma/sql/` :
+> Postgres doit donc tourner et les migrations être appliquées (étape 3). Ce code n'est pas
+> versionné, à relancer après chaque `pnpm install`.
 
 5. Initialiser les buckets S3 (une seule fois)
 
