@@ -1,11 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":pinAllExceptPeerDependencies",
-    ":semanticCommitTypeAll(chore)",
-    ":semanticCommitScope(FON-000)"
-  ],
+  "extends": ["config:recommended", ":pinAllExceptPeerDependencies"],
+  "commitMessagePrefix": "chore(FON-000):",
   "dependencyDashboard": true,
   "schedule": ["after 6am and before 8pm on Sunday"],
   "pinDigests": true,
