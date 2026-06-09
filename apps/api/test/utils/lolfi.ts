@@ -1,10 +1,9 @@
 import { randomInt } from 'node:crypto';
 
 import { HttpStatus } from '@nestjs/common';
+import { generateLolfiArchive, type LolfiData } from 'lolfi';
 import supertest from 'supertest';
 import waitForExpect from 'wait-for-expect';
-
-import { generateLolfiArchive, type LolfiData } from 'lolfi';
 
 import { PrismaJobStatusEnum } from '../../src/generated/prisma/enums';
 import { FILE_MIME_TYPES } from '../../src/modules/framework/files';
