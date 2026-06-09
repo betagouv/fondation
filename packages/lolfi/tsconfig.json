@@ -4,7 +4,7 @@
     "target": "ESNext",
     "lib": ["ESNext"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "declaration": true,
     "sourceMap": true,
     "esModuleInterop": true,
@@ -12,5 +12,5 @@
     "strict": true,
     "incremental": true
   },
-  "include": ["src/**/*"]
+  "include": ["./src/**/*", "./test/**/*"]
 }

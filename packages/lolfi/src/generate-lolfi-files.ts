@@ -1,7 +1,6 @@
 import assert from 'node:assert';
-import { randomInt } from 'node:crypto';
 
-import { faker } from '@faker-js/faker';
+import { faker as defaultFaker, type Faker } from '@faker-js/faker';
 import { format, sub } from 'date-fns';
 
 import { gradeToNumber } from './grade-to-number';
@@ -62,6 +61,7 @@ type MagistratPosition = { id: number; jurisdictionId: string; functionId: strin
 
 export async function* generateLolfiFiles(
   data: LolfiData,
+  faker: Faker = defaultFaker,
 ): AsyncIterable<{ filename: string; buffer: string }> {
   const jurisdictionTypes = new Map<string, JurisdictionType>();
   const jurisdictions = new Map<string, Jurisdiction>();
@@ -141,7 +141,7 @@ export async function* generateLolfiFiles(
       functionId: f.id,
       jurisdictionId: j.id,
       grade: position.grade ?? 'G3',
-      id: randomInt(100, 1e6),
+      id: faker.number.int({ min: 100, max: 1e6 }),
     } satisfies MagistratPosition;
     positions.set(positionId, fullPosition);
     return fullPosition;
@@ -149,11 +149,11 @@ export async function* generateLolfiFiles(
 
   const fullSessions = data.sessions.map((session) => ({
     ...session,
-    id: session.id ?? randomInt(100, 1e6),
+    id: session.id ?? faker.number.int({ min: 100, max: 1e6 }),
     candidates: session.candidates.map((candidate) => {
       return {
         ...candidate,
-        id: candidate.id ?? randomInt(100, 1e6),
+        id: candidate.id ?? faker.number.int({ min: 100, max: 1e6 }),
         position: getOrCreatePosition(candidate.position),
         targetPosition: getOrCreatePosition(candidate.targetPosition),
       };
@@ -352,7 +352,7 @@ export async function* generateLolfiFiles(
     ),
   };
 
-  let desiderataIdCounter = randomInt(100, 1e6);
+  let desiderataIdCounter = faker.number.int({ min: 100, max: 1e6 });
   yield {
     filename: 'DESIDERATA.xml',
     buffer: toXml(
