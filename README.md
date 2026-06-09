@@ -82,18 +82,30 @@ flowchart LR
 
 PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml):
 
-```
-preferFrozenLockfile: true  # N'installe que les dépendances du lockfile
-ignoreDepScripts: true     # N'exécute pas les scripts hooked des dépendances (postinstall)
-minimumReleaseAge: 10080   # Attends au moins 7 jours avant de proposer une dépendance à l'installation
+```yaml
+preferFrozenLockfile: true # n'installe que les dépendances du lockfile
+minimumReleaseAge: 10080 # attend au moins 7 jours avant de proposer une dépendance
+allowBuilds: # liste blanche des paquets autorisés à exécuter un script d'install
+  '@nestjs/core': true
+  bcrypt: true # compilation native nécessaire
+  prisma: false # généré manuellement (voir installation) car requiert une base lancée
+  '@prisma/client': false
+  puppeteer: false
 ```
 
-Ces options visent à protéger l'installation de dépendances d'attaques par supply chain
-(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/))
+Tout paquet absent de `allowBuilds` est empêché d'exécuter ses scripts d'installation
+(`postinstall`, etc.), pour se protéger des attaques par supply chain
+(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). On n'autorise
+que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur compilation native.
 
 > [!WARNING]
 > Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
 > Chaque installation de dépendance doit être justifiée.
+
+> [!NOTE]
+> `prisma` est volontairement à `false` : le client est généré manuellement avec
+> `prisma generate --sql`, qui doit se connecter à une base déjà lancée (voir l'étape
+> d'installation).
 
 ## Contribution
 
@@ -123,9 +135,9 @@ peut provoquer des conflits parfois.
 
 ## Procédure d'installation de l'application Back
 
-Toutes les instructions ci-dessous se déroulent dans le dossier `apps/api`.
+Sauf indication contraire, les commandes se lancent depuis le dossier `apps/api`.
 
-1. Installation des dépendances
+1. Installation des dépendances (depuis la racine)
 
 ```bash
 pnpm install
@@ -133,57 +145,77 @@ pnpm install
 
 2. Copier le fichier `.env.example` vers `.env`
 
-Le fichier .env.example contient toutes les variables nécessaires pour démarrer l'application localement.
-
-3. Installation des bases de données
-
-```
-$ docker compose --file ./test/docker-compose-test.yaml up -d
-$ pnpm run prisma migrate deploy
+```bash
+cp .env.example .env
 ```
 
-Il faut également générer le code prisma:
+Le fichier `.env` (gitignoré) contient toutes les variables nécessaires pour démarrer
+l'application localement. `DATABASE_URL` pointe vers un Postgres local lancé dans Docker
+(étape 3), sur le port non-standard `5435` pour ne pas entrer en conflit avec un Postgres
+déjà présent sur la machine.
 
-```
-$ pnpm --filter api prisma generate --sql
+3. Démarrer les services et la base de données
+
+```bash
+docker compose --file ./test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000
+pnpm run prisma migrate deploy
 ```
 
-pour la BDD de test:
+Pour la base de test:
 
-```
-$ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
+```bash
+npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 ```
 
 > [!WARNING]
 > Pour le moment, il est très facile de lancer les tests sur la base locale, le mieux
 > est d'utiliser le script dans le fichier package.json.
 
-4. Lancement de l'application
+4. Générer le code
 
 ```bash
-$ pnpm --filter api dev
-$ pnpm --filter client dev
+pnpm --filter shared-models build         # types partagés (requis par le back)
+pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
 ```
 
-5. Accès à l'application
+> [!IMPORTANT]
+> `prisma generate --sql` se connecte à la base pour typer les requêtes de `prisma/sql/` :
+> Postgres doit donc tourner et les migrations être appliquées (étape 3). Ce code n'est pas
+> versionné, à relancer après chaque `pnpm install`.
 
-On peut très facilement créer un utilisateur en base de données en utilisant la commande suivante:
+5. Initialiser les buckets S3 (une seule fois)
 
+```bash
+node scripts/init-buckets.js
 ```
-$ cd apps/api
-$ pnpm --filter api build
-$ node --env-file .env dist/cli user register \
+
+6. Lancement de l'application
+
+```bash
+pnpm --filter api dev       # back sur :3000, Swagger sur /openapi
+pnpm --filter client dev    # front sur :5173
+```
+
+7. Créer un utilisateur pour se connecter
+
+```bash
+pnpm --filter api build
+node --env-file .env dist/cli user register \
   --email jean@example.fr \
   --firstname Jean \
   --lastname Moulin \
   --gender MALE \
-  --role MEMBRE_PARQUET
+  --role MEMBRE_DU_PARQUET
 password: *****
 repeat password: *****
 ```
 
-Ce CLI est interactif et demandera les informations manquantes si nécessaires.
-Il est recommandé de créer un membre commun, et un agent du secrétariat général ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#90)).
+Le CLI est interactif et demandera les informations manquantes si nécessaires.
+Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
+`ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#L80)).
+Il est recommandé de créer un membre commun et un agent du secrétariat général.
+
+8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
 
 ## Tests E2E playwright
 
