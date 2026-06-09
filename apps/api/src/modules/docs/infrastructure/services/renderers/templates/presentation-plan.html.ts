@@ -146,7 +146,7 @@ function nonValidatedParagraph(ctx: {
   if (paragraphs.length === 0) return '';
 
   const intro = html`<p>
-    Le conseil supérieur de la magistrature émet un
+    Le Conseil supérieur de la magistrature émet un
     <strong
       >${displayOutcome({
         formation: ctx.formation,

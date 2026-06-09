@@ -12,7 +12,7 @@ const html = stripIndent;
 
 function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Formation }): string {
   return html`
-    <h1>Avis du conseil supérieur de la magistrature</h1>
+    <h1>Avis du Conseil supérieur de la magistrature</h1>
     <p class="formation">
       ${ctx.formation === Magistrat.Formation.SIEGE
         ? `Formation compétente à l'égard des magistrats du siège`
