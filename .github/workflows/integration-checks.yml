@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore:
-      - 'dependabot/*'
+      - "dependabot/*"
 
   workflow_call:
 
@@ -19,14 +19,14 @@ jobs:
     env:
       TZ: Etc/UTC
       DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
-      COOKIE_SECRET: 'secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e'
+      COOKIE_SECRET: "secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e"
       ORIGIN_URL: http://localhost:3000
       FRONTEND_ORIGIN_URL: http://localhost:5173
       S3_ACCESS_KEY: fondation
       S3_SECRET_KEY: fondation-secret
       S3_BUCKET: sandbox-csm-fondation-reports-context
       S3_REGION: eu-west-2
-      S3_FORCE_PATH_STYLE: 'true'
+      S3_FORCE_PATH_STYLE: "true"
       S3_ENDPOINT: http://localhost:9000
     services:
       postgres:
@@ -62,8 +62,8 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
-          node-version: '24.12.0'
-          cache: 'pnpm'
+          node-version: "24.12.0"
+          cache: "pnpm"
 
       - name: install sheetjs
         shell: bash
@@ -72,8 +72,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build the shared models
-        run: pnpm --filter shared-models build
+      - name: Build internal dependencies
+        run: pnpm --filter shared-models --filter lolfi build
 
       - name: Migrate Prisma
         run: pnpm --filter api exec prisma migrate deploy

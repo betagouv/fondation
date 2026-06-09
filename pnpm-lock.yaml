@@ -107,6 +107,9 @@ importers:
       exif-be-gone:
         specifier: 1.5.1
         version: 1.5.1
+      lolfi:
+        specifier: workspace:*
+        version: link:../../packages/lolfi
       nest-commander:
         specifier: 3.20.1
         version: 3.20.1(@nestjs/common@11.1.22(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.22)(@types/inquirer@8.2.12)(@types/node@24.12.4)(typescript@5.9.3)
@@ -421,6 +424,22 @@ importers:
       xlsx:
         specifier: file:../../vendor/xlsx-0.20.3.tgz
         version: file:vendor/xlsx-0.20.3.tgz
+
+  packages/lolfi:
+    dependencies:
+      '@faker-js/faker':
+        specifier: 'catalog:'
+        version: 9.9.0
+      date-fns:
+        specifier: 4.2.1
+        version: 4.2.1
+      jszip:
+        specifier: 3.10.1
+        version: 3.10.1
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
   packages/shared-models:
     dependencies:
