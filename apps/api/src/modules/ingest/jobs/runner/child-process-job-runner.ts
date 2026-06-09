@@ -42,27 +42,19 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
     });
   }
 
-  private static readonly CWD = path.resolve(__dirname, '..', '..', '..', '..');
+  private static readonly CWD = path.dirname(process.argv[1]!);
 
   private spawnChildProcess(jobId: number): Promise<ChildProcessJobMetadata> {
-    const commandParts = [
-      'node',
-      ...(this.isProduction ? [] : ['--env-file', '../.env']),
-      'cli',
-      'lolfi-job',
-      '--jobId',
-      `${jobId}`,
-    ] as const;
-
-    const command = commandParts.join(' ');
-    this.logger.debug(`Starting "${command}" with node:child_process"`);
+    const commandParts = ['cli', 'lolfi-job', '--jobId', `${jobId}`] as const;
+    this.logger.debug(`Starting "node ${commandParts.join(' ')}" with node:child_process"`);
 
     return new Promise<ChildProcessJobMetadata>((resolve, reject) => {
       this.logger.debug(`CWD: ${ChildProcessJobRunner.CWD}`);
       let exited = false;
 
-      const child = spawn(commandParts[0], commandParts.slice(1), {
+      const child = spawn(process.execPath, commandParts, {
         detached: true,
+        env: { ...process.env },
         stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
         signal: this.controller.signal,
         cwd: ChildProcessJobRunner.CWD,

@@ -1,17 +1,42 @@
+import { faker } from '@faker-js/faker/locale/fr';
+
 import { test } from '../fixtures';
 
 test.describe('Gérer les membres', () => {
-  test("j'exclus une juridiction", async ({ registerUser, app, http }) => {
-    /**
-     * @warning
-     *  these tests might conflict with back-end e2e tests, since they're running
-     *  on the same db
-     */
-
+  test("j'exclus une juridiction", async ({ registerUser, app }) => {
     // Soit une juridiction "Cour d'appel de Marseille"
-    await http.data.createJurisdiction([
-      { codejur: 'CA  MARSEILLE', typeJur: 'CA', ville: 'Marseille', libelle: "Cour d'appel de Marseille" },
-    ]);
+    const today = new Date();
+    today.setUTCHours(0);
+    const [day, month, year] = [today.getUTCDate(), today.getUTCMonth() + 1, today.getUTCFullYear()].map(
+      (x) => x.toString().padStart(2, '0'),
+    );
+
+    const jurisdictionId = `CA  MARSEILLE ${crypto.randomUUID()}`;
+
+    const ingestion = await app.pages.admin.goto('newIngestion');
+    await ingestion.upload({
+      sessions: [
+        {
+          createdAt: `${day}/${month}/${year}`,
+          candidates: [
+            {
+              firstName: faker.person.firstName(),
+              lastName: faker.person.lastName(),
+              position: {
+                function: { id: 'P', formation: 'PARQUET', label: 'président' },
+                jurisdiction: { id: jurisdictionId, label: "Cour d'appel de Marseille" },
+                grade: 'G2',
+              },
+              targetPosition: {
+                function: { id: 'P', formation: 'PARQUET', label: 'président' },
+                jurisdiction: { id: 'TGI  LYON' },
+                grade: 'G2',
+              },
+            },
+          ],
+        },
+      ],
+    });
 
     // Et un "Membre commun" "Michel Foucault"
     const member = { firstName: `michel ${crypto.randomUUID()}`, lastName: `foucault` };
@@ -26,10 +51,10 @@ test.describe('Gérer les membres', () => {
     const modal = await app.pages.members.openJurisdictionExclusionModal();
 
     // Et que je cherche "Marseille"
-    await modal.search.fill('Marseille');
-    await app.page.waitForResponse('**/api/jurisdictions/v1?search=Marseille');
+    await modal.search.fill(jurisdictionId);
+    await app.page.waitForResponse('**/api/jurisdictions/v1?search=*');
 
-    await modal.select("Cour d'appel de Marseille");
+    await modal.select(`Cour d'appel de Marseille (${jurisdictionId})`);
     // Et que je sélectionne "Cour d'appel de Marseille"
     await modal.saveButton.click();
     // Et que je sauvegarde mon choix
