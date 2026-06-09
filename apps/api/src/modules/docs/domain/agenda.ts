@@ -56,8 +56,6 @@ export class EmptyAgenda extends Error {
   }
 }
 
-export class NominationFilesAlreadyReported extends Error {}
-
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
 
@@ -90,14 +88,11 @@ export class Agenda {
     reportedNominationFiles: ReportedNominationFilesCollection;
   }): void {
     const { reportedNominationFiles, nominationFiles } = command;
-    if (nominationFiles.length === 0) throw new EmptyAgenda(this.id);
-    if (
-      nominationFiles.some((file) =>
-        reportedNominationFiles.wasFileReported({ fileId: file.id, ignore: this.id }),
-      )
-    ) {
-      throw new NominationFilesAlreadyReported();
-    }
+    const nonReportedNominationFiles = nominationFiles.filter(
+      (file) => !reportedNominationFiles.wasFileReported({ fileId: file.id, ignore: this.id }),
+    );
+
+    if (nonReportedNominationFiles.length === 0) throw new EmptyAgenda(this.id);
 
     this.#messages.push(
       new AgendaUpdated(
@@ -106,7 +101,7 @@ export class Agenda {
         { ...command.chairman, id: makeId('ChairmanId', command.chairman.id) },
         command.date.toDate(),
         command.sessionMeetingDate.toDate(),
-        nominationFiles,
+        nonReportedNominationFiles,
       ),
     );
   }
@@ -132,12 +127,12 @@ export class Agenda {
     reportedNominationFiles: ReportedNominationFilesCollection;
   }): Agenda {
     const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
-
     const { nominationFiles, reportedNominationFiles } = props;
-    if (nominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
-    if (nominationFiles.some((file) => reportedNominationFiles.wasFileReported({ fileId: file.id }))) {
-      throw new NominationFilesAlreadyReported();
-    }
+
+    const nonReportedNominationFiles = nominationFiles.filter(
+      (file) => !reportedNominationFiles.wasFileReported({ fileId: file.id }),
+    );
+    if (nonReportedNominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
 
     agenda.#messages.push(
       new AgendaCreated(
@@ -147,7 +142,7 @@ export class Agenda {
         { ...props.chairman, id: makeId('ChairmanId', props.chairman.id) },
         props.date.toDate(),
         props.sessionMeetingDate.toDate(),
-        nominationFiles,
+        nonReportedNominationFiles,
       ),
     );
 

@@ -4,7 +4,7 @@ import { Gender, Magistrat } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 
-import { Agenda, EmptyAgenda, NominationFilesAlreadyReported } from './agenda';
+import { Agenda, EmptyAgenda } from './agenda';
 import { ReportedNominationFilesCollection } from './reported-nomination-files-collection';
 
 describe('Agenda', () => {
@@ -59,6 +59,6 @@ describe('Agenda', () => {
         ],
       });
 
-    expect(act).toThrow(NominationFilesAlreadyReported);
+    expect(act).toThrow(EmptyAgenda);
   });
 });
