@@ -181,6 +181,7 @@ describe('Session E2E', () => {
             lastName: 'durand',
           }),
         ],
+        hasAttachment: false,
       } satisfies NominationFileAffectationItem);
 
       expect(nominationFiles.body.items).toContainEqual({
@@ -240,7 +241,56 @@ describe('Session E2E', () => {
             lastName: 'durand',
           }),
         ]),
+        hasAttachment: false,
       } satisfies NominationFileAffectationItem);
+    });
+
+    it('should attach a file to a nomination file and flag it in the list', async () => {
+      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
+      const importResponse = await http
+        .post('/api/sessions/v2/lodam')
+        .set({ cookie: user.cookie })
+        .attach('file', fileBuffer, {
+          filename: 'transparence.xslx',
+          contentType: FILE_MIME_TYPES.xlsx,
+        })
+        .attach(
+          'form',
+          Buffer.from(
+            JSON.stringify({
+              date: '2025-01-01',
+              observationClosingDate: '2025-03-01',
+              formation: Magistrat.Formation.PARQUET,
+              name: 'Transparence TEST ' + randomUUID(),
+            }),
+          ),
+          { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
+        );
+      const { id: sessionId } = importResponse.body;
+
+      const filesBefore = await http.get(`/api/sessions/v2/${sessionId}/files`).set({ cookie: user.cookie });
+      const nominationFileId: string = filesBefore.body.items[0].id;
+
+      await http
+        .put(`/api/sessions/v2/${sessionId}/files/${nominationFileId}/attachments`)
+        .set({ cookie: user.cookie })
+        .attach('files', Buffer.from('attachment content'), {
+          filename: 'note.pdf',
+          contentType: FILE_MIME_TYPES.pdf,
+        })
+        .expect(HttpStatus.NO_CONTENT);
+
+      const attachments = await http
+        .get(`/api/sessions/v2/${sessionId}/files/${nominationFileId}/attachments`)
+        .set({ cookie: user.cookie })
+        .expect(HttpStatus.OK);
+      expect(attachments.body.items).toEqual([{ id: expect.any(String), name: 'note.pdf' }]);
+
+      const filesAfter = await http.get(`/api/sessions/v2/${sessionId}/files`).set({ cookie: user.cookie });
+      const updatedFile = filesAfter.body.items.find(
+        (file: NominationFileAffectationItem) => file.id === nominationFileId,
+      );
+      expect(updatedFile.hasAttachment).toBe(true);
     });
   });
 });

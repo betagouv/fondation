@@ -197,6 +197,7 @@ export class ListNominationFilesQuery {
                 x.summary.readers.some((userId) => userId === query.user.id),
             }
           : null,
+        hasAttachment: x.hasAttachment,
       };
     });
 
@@ -283,6 +284,7 @@ const RawListedNominationFiles = z.array(
     alertHidden: z.boolean(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
+    hasAttachment: z.boolean(),
     queryRank: z.number().nullable(),
 
     memberMemo: z.string().nullable(),
@@ -357,6 +359,7 @@ const NominationFileAffectationItemSchema = z.object({
   ),
   memo: z.string().nullable(),
   summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
+  hasAttachment: z.boolean(),
 });
 
 export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;

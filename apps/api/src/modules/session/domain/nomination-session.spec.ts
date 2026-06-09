@@ -10,6 +10,8 @@ import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-f
 import {
   CantUpdateNominationFiles,
   LodamNominationSessionFilesCreated,
+  NominationFileAttachmentAdded,
+  NominationFileAttachmentRemoved,
   NominationFileOutcomeDefined,
   NominationSession,
   NominationSessionAffectationHasUnknownReporter,
@@ -520,5 +522,112 @@ describe('NominationSession', () => {
 
     const messages = session.messages;
     expect(messages).toEqual([new NominationFileOutcomeDefined('nomination-file-id-1', null, null)]);
+  });
+
+  it('should add attachments to a nomination file', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+    });
+
+    session.addNominationFileAttachments({
+      nominationFileId: 'nomination-file-id-1',
+      files: [{ id: 'file-1' }, { id: 'file-2' }],
+    });
+
+    expect(session.messages).toEqual([
+      new NominationFileAttachmentAdded('nomination-file-id-1', { id: 'file-1' }),
+      new NominationFileAttachmentAdded('nomination-file-id-1', { id: 'file-2' }),
+    ]);
+  });
+
+  it('should remove an attachment from a nomination file', () => {
+    const session = NominationSession.from({
+      id: makeId('NominationSessionId'),
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+    });
+
+    session.removeNominationFileAttachment({
+      nominationFileId: 'nomination-file-id-1',
+      fileId: 'file-1',
+    });
+
+    expect(session.messages).toEqual([
+      new NominationFileAttachmentRemoved('nomination-file-id-1', 'file-1'),
+    ]);
+  });
+
+  it('should throw when adding an attachment on a file linked to docs', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(() =>
+      session.addNominationFileAttachments({
+        nominationFileId: 'nomination-file-id-1',
+        files: [{ id: 'file-1' }],
+      }),
+    ).toThrow(CantUpdateNominationFiles);
+  });
+
+  it('should throw when removing an attachment on a file linked to docs', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(() =>
+      session.removeNominationFileAttachment({
+        nominationFileId: 'nomination-file-id-1',
+        fileId: 'file-1',
+      }),
+    ).toThrow(CantUpdateNominationFiles);
+  });
+
+  it('should throw when adding an attachment on a file outside the session', () => {
+    const session = NominationSession.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [],
+    });
+
+    expect(() =>
+      session.addNominationFileAttachments({
+        nominationFileId: 'unknown-nomination-file',
+        files: [{ id: 'file-1' }],
+      }),
+    ).toThrow(CantUpdateNominationFiles);
   });
 });
