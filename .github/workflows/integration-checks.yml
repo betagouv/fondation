@@ -72,8 +72,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build the shared models
-        run: pnpm --filter shared-models build
+      - name: Build internal dependencies
+        run: pnpm --filter shared-models --filter lolfi build
 
       - name: Migrate Prisma
         run: pnpm --filter api exec prisma migrate deploy
