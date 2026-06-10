@@ -27,7 +27,7 @@ type DataTableProps<Data extends RowData> = Omit<
   data?: Data[] | null;
   enablePagination?: false;
   enableAllRowsSelection?: boolean;
-  meta?: Pick<TableMeta<Data>, 'paginationItemLabel'>;
+  meta?: Pick<TableMeta<Data>, 'paginationItemLabel' | 'globalFilterPlaceholder'>;
 
   enableSorting?: false;
   enableColumnFilters?: false;
@@ -74,6 +74,7 @@ export function useDataTable<Data extends RowData>(props: DataTableProps<Data>):
       paginationEnabled: props.enablePagination !== false,
       paginationItemLabel: props.meta?.paginationItemLabel,
       allRowsSelectionEnabled: props.enableAllRowsSelection === true,
+      globalFilterPlaceholder: props.meta?.globalFilterPlaceholder,
 
       // TODO: add this feature once the DropdownMenu is able to handle the window collision
       /** @see ReactTableColumnVisibility */
