@@ -84,10 +84,10 @@ const ObservationCard: FC<{
 
       {observation.files.length > 0 && (
         <div className="mt-3 border-t pt-3">
-          <div className="fr-mb-1w fr-text--sm fr-text--bold">Pièces jointes:</div>
+          <div className="fr-mb-2v fr-text--sm fr-text--bold">Pièces jointes:</div>
           <ul className="fr-raw-list">
             {observation.files.map((file) => (
-              <li key={file.id} className="fr-mb-1w">
+              <li key={file.id} className="fr-mb-2v">
                 <Button
                   priority="tertiary no outline"
                   iconId="ri-file-download-line"

@@ -50,9 +50,9 @@ export function AppErrorBoundary() {
       <div className="fr-container">
         <div
           className={cx(
-            'fr-my-7w',
-            'fr-mt-md-12w',
-            'fr-mb-md-10w',
+            'fr-my-14v',
+            'fr-mt-md-24v',
+            'fr-mb-md-20v',
             'fr-grid-row',
             'fr-grid-row--gutters',
             'fr-grid-row--middle',
@@ -61,8 +61,8 @@ export function AppErrorBoundary() {
         >
           <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
             <h1>Erreur inattendue</h1>
-            <p className={cx('fr-text--sm', 'fr-mb-3w')}>Erreur 500</p>
-            <p className={cx('fr-text--lead', 'fr-mb-3w')}>
+            <p className={cx('fr-text--sm', 'fr-mb-6v')}>Erreur 500</p>
+            <p className={cx('fr-text--lead', 'fr-mb-6v')}>
               Désolé, le service rencontre un problème, nous travaillons pour le résoudre le plus rapidement
               possible.
             </p>
@@ -70,7 +70,7 @@ export function AppErrorBoundary() {
             <p className={cx('fr-text--sm', 'fr-m-0')}>
               Essayez de rafraîchir la page ou bien ressayez plus tard.
             </p>
-            <p className="fr-text--sm fr-mb-3w">
+            <p className="fr-text--sm fr-mb-6v">
               Si vous avez besoin d'une aide immédiate, merci de nous contacter.
             </p>
 
@@ -82,7 +82,7 @@ export function AppErrorBoundary() {
               'fr-col-12',
               'fr-col-md-3',
               'fr-col-offset-md-1',
-              'fr-px-6w',
+              'fr-px-12v',
               'fr-px-md-0',
               'fr-py-0',
             )}

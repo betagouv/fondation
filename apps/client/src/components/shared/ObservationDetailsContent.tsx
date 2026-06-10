@@ -54,13 +54,13 @@ export function ObservationDetailsContent({
 
   return (
     <div className="bg-white p-8">
-      <div className="fr-mb-4w">
+      <div className="fr-mb-8v">
         <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
           {backLink.label}
         </Link>
       </div>
 
-      <h1 className="fr-h2 fr-mb-4w flex items-center justify-between">
+      <h1 className="fr-h2 fr-mb-8v flex items-center justify-between">
         <span>Fiche observation</span>
         <ObservationFollowUpSelector
           isArchived={isArchived}
@@ -74,10 +74,10 @@ export function ObservationDetailsContent({
 
       <div className="fr-grid-row fr-grid-row--gutters">
         <div className="fr-col-12 fr-col-lg-8">
-          <section className="fr-mb-4w">
+          <section className="fr-mb-8v">
             <h2 className="fr-h4">Rappel</h2>
             <dl className="fr-mb-0">
-              <div className="fr-grid-row fr-mb-2w">
+              <div className="fr-grid-row fr-mb-4v">
                 <dt className="fr-col-4 fr-text--bold">Date de réception :</dt>
                 <dd className="fr-col-8 fr-m-0">
                   <FormattedMessage
@@ -86,7 +86,7 @@ export function ObservationDetailsContent({
                   />
                 </dd>
               </div>
-              <div className="fr-grid-row fr-mb-2w">
+              <div className="fr-grid-row fr-mb-4v">
                 <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   {observation.observedMagistrat?.name}
@@ -98,17 +98,17 @@ export function ObservationDetailsContent({
                   />
                 </dd>
               </div>
-              <div className="fr-grid-row fr-mb-2w">
+              <div className="fr-grid-row fr-mb-4v">
                 <dt className="fr-col-4 fr-text--bold">Poste observé :</dt>
                 <dd className="fr-col-8 fr-m-0">{observation.observedMagistrat?.proposedPosition ?? '-'}</dd>
               </div>
             </dl>
           </section>
 
-          <section className="fr-mb-4w">
+          <section className="fr-mb-8v">
             <h2 className="fr-h4">Magistrat observant</h2>
             <dl className="fr-mb-0">
-              <div className="fr-grid-row fr-mb-2w">
+              <div className="fr-grid-row fr-mb-4v">
                 <dt className="fr-col-4 fr-text--bold">NOM Prénom :</dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   <span>
@@ -130,13 +130,13 @@ export function ObservationDetailsContent({
               {candidacy && (
                 <>
                   {candidacy.desiredPosition && (
-                    <div className="fr-grid-row fr-mb-2w">
+                    <div className="fr-grid-row fr-mb-4v">
                       <dt className="fr-col-4 fr-text--bold">Poste souhaité :</dt>
                       <dd className="fr-col-8 fr-m-0">{candidacy.desiredPosition}</dd>
                     </div>
                   )}
                   {candidacy.rank && (
-                    <div className="fr-grid-row fr-mb-2w">
+                    <div className="fr-grid-row fr-mb-4v">
                       <dt className="fr-col-4 fr-text--bold">Rang :</dt>
                       <dd className="fr-col-8 fr-m-0">{candidacy.rank}</dd>
                     </div>
@@ -144,7 +144,7 @@ export function ObservationDetailsContent({
                 </>
               )}
               {observant.biography && (
-                <div className="fr-grid-row fr-mb-2w">
+                <div className="fr-grid-row fr-mb-4v">
                   <dt className="fr-col-4 fr-text--bold">Biographie :</dt>
                   <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">
                     <ul className="list-['-_'] p-0">{biographyItems}</ul>
@@ -158,7 +158,7 @@ export function ObservationDetailsContent({
             observation.isMemberReporter &&
             ((!isArchived && onUpdateMemberComment) ||
               (isArchived && observation.memberComment?.comment)) && (
-              <section className="fr-mb-4w">
+              <section className="fr-mb-8v">
                 <h2 className="fr-h4" id="member-comment-label">
                   Mon commentaire
                 </h2>
@@ -179,7 +179,7 @@ export function ObservationDetailsContent({
             )}
 
           {observation.description || (!isArchived && isSg) ? (
-            <section className="fr-mb-4w">
+            <section className="fr-mb-8v">
               <ObservationDescription
                 sessionId={sessionId}
                 nominationFileId={nominationFileId}
@@ -189,14 +189,14 @@ export function ObservationDetailsContent({
             </section>
           ) : null}
 
-          <section className="fr-mb-4w">
+          <section className="fr-mb-8v">
             <h2 className="fr-h4">Pièce(s) jointe(s)</h2>
             {observation.files.length === 0 ? (
               <p className="fr-text--sm text-gray-500">Aucune pièce jointe</p>
             ) : (
               <ul className="fr-raw-list">
                 {observation.files.map((file) => (
-                  <li key={file.id} className="fr-mb-1w">
+                  <li key={file.id} className="fr-mb-2v">
                     <Button
                       priority="tertiary no outline"
                       iconId="ri-file-download-line"
@@ -211,9 +211,9 @@ export function ObservationDetailsContent({
           </section>
 
           {relatedPropositions.length > 0 && (
-            <section className="fr-mb-4w">
+            <section className="fr-mb-8v">
               <h2 className="fr-h4">Propositions liées</h2>
-              <p className="fr-text--sm fr-mb-2w">
+              <p className="fr-text--sm fr-mb-4v">
                 Autres propositions sur lesquelles ce magistrat a formulé une observation
               </p>
               <div className="fr-grid-row fr-grid-row--gutters">

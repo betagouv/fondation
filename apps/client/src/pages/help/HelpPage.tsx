@@ -7,7 +7,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 export function HelpPage() {
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <article className="fr-container fr-py-5w mx-auto w-5/12 min-w-4xl">
+      <article className="fr-container fr-py-10v mx-auto w-5/12 min-w-4xl">
         <h1 className="flex justify-between">
           <span>Aide au traitement des dossiers</span>
           <Button

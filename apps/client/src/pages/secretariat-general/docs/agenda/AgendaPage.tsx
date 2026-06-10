@@ -11,7 +11,7 @@ function AgendaContent() {
   const { step } = useAgenda();
 
   return (
-    <div className="fr-container fr-py-2w">
+    <div className="fr-container fr-py-4v">
       <AgendaBreadCrumb />
       <Stepper currentStep={step.index} stepCount={2} title={step.title} nextTitle={step.nextTitle} />
       <AgendaNominationFilesStep className={clsx({ hidden: step.index !== 1 })} />

@@ -46,9 +46,9 @@ export function SummaryNotFound() {
     <div className="fr-container">
       <div
         className={cx(
-          'fr-my-7w',
-          'fr-mt-md-12w',
-          'fr-mb-md-10w',
+          'fr-my-14v',
+          'fr-mt-md-24v',
+          'fr-mb-md-20v',
           'fr-grid-row',
           'fr-grid-row--gutters',
           'fr-grid-row--middle',
@@ -57,8 +57,8 @@ export function SummaryNotFound() {
       >
         <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
           <h1>Pas de synthèse disponible</h1>
-          <p className={cx('fr-text--sm', 'fr-mb-3w')}>Erreur 404</p>
-          <p className={cx('fr-text--lead', 'fr-mb-3w')}>
+          <p className={cx('fr-text--sm', 'fr-mb-6v')}>Erreur 404</p>
+          <p className={cx('fr-text--lead', 'fr-mb-6v')}>
             La synthèse à laquelle vous tentez d'accéder n'existe probablement plus.
           </p>
 
@@ -70,7 +70,7 @@ export function SummaryNotFound() {
             'fr-col-12',
             'fr-col-md-3',
             'fr-col-offset-md-1',
-            'fr-px-6w',
+            'fr-px-12v',
             'fr-px-md-0',
             'fr-py-0',
           )}

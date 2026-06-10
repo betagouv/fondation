@@ -55,9 +55,9 @@ function LolfiRedirectMagistratInner() {
     <div className="fr-container">
       <div
         className={cx(
-          'fr-my-7w',
-          'fr-mt-md-12w',
-          'fr-mb-md-10w',
+          'fr-my-14v',
+          'fr-mt-md-24v',
+          'fr-mb-md-20v',
           'fr-grid-row',
           'fr-grid-row--gutters',
           'fr-grid-row--middle',
@@ -80,7 +80,7 @@ function LolfiRedirectMagistratInner() {
               />
             </>
           ) : (
-            <p className={cx('fr-text--lead', 'fr-mb-3w')}>
+            <p className={cx('fr-text--lead', 'fr-mb-6v')}>
               {magistratName
                 ? `Nous vous redirigerons vers la page LOLFI de ${magistratName} dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`
                 : `Nous vous redirigerons vers la page LOLFI du magistrat dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`}
@@ -93,7 +93,7 @@ function LolfiRedirectMagistratInner() {
             'fr-col-12',
             'fr-col-md-3',
             'fr-col-offset-md-1',
-            'fr-px-6w',
+            'fr-px-12v',
             'fr-px-md-0',
             'fr-py-0',
           )}
