@@ -151,82 +151,42 @@ test.describe('Générer un ordre du jour', () => {
       data: { role: 'FIRST_SECRETARY' },
     });
 
-    const page = app.pages.session;
-
     // Quand je bascule en mode édition
-    await page.switchToEditModeButton.click();
-    await page.switchToReadModeButton.waitFor();
+    await app.pages.session.switchToEditModeButton.click();
+    await app.pages.session.switchToReadModeButton.waitFor();
 
     // Et que je sélectionne les 3 dossiers
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      await page.sessionRow({ name }).getByRole('checkbox').first().click({ force: true });
+      await app.pages.session.sessionRow({ name }).getByRole('checkbox').first().click({ force: true });
     }
 
-    // Et que je clique sur "Ajouter à l'ODJ"
-    await app.page.getByRole('button', { name: "Ajouter à l'ODJ" }).click();
+    await app.pages.session.addToAgenda();
+    const agendaPage = await app.pages.session.startAgendaGeneration();
+    await agendaPage.goToNextStep();
 
-    // Et que je clique sur "Générer l'ODJ (3)"
-    await app.page.getByRole('button', { name: /Générer l'ODJ \(3\)/ }).click();
-
-    // Alors je suis redirigé vers la page de création de l'ordre du jour
-    await app.page.waitForURL(/\/docs\/ordre-du-jour$/);
-
-    // Quand je clique sur "Définir les données de l'ODJ"
-    await app.page.getByRole('button', { name: /Définir les données de l'ODJ/ }).click();
-
-    // Alors l'étape 2 (métadonnées) est affichée
-    const todayFormatted = new Date().toISOString().split('T')[0];
-
-    // Et que je renseigne la "Date de la séance" avec la date du jour
-    await app.page.getByLabel('Date de la séance').fill(todayFormatted);
-
-    // Et que je renseigne la "Date de l'ordre du jour" avec la date du jour
-    await app.page.getByLabel("Date de l'ordre du jour").fill(todayFormatted);
-
-    // Et que je sélectionne "Michel FOUCAULT" comme président de séance
-    await app.page.getByLabel('Président de séance').selectOption(chairman.id);
-
-    // Et que je génère l'ordre du jour
-    await app.page.getByRole('button', { name: /Générer l'ordre du jour/ }).click();
-
-    const agendaPattern = new URLPattern({
-      pathname: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
-    });
-    // Alors je suis redirigé vers la page de validation
-    await app.page.waitForURL((url) => agendaPattern.test(url));
-    const { agendaId } = agendaPattern.exec(app.page.url())!.pathname.groups;
+    const { agendaId } = await agendaPage.fill({ sessionMeetingDate: new Date(), chairman: chairman.id });
 
     await app.pages.manageSessions.goto();
     await app.pages.manageSessions.sessionRow(sessionName).click();
     await app.pages.session.waitFor(sessionName);
 
-    await app.page.getByRole('link', { name: 'Procès verbal' }).click();
-    await app.page.getByLabel('Ordre du jour').selectOption(agendaId!);
-
-    await test.expect(app.page.getByLabel('Président de séance').inputValue()).resolves.toBeDefined();
-    await test.expect(app.page.getByLabel('Secrétaire général').inputValue()).resolves.toBeDefined();
-
-    await app.page.getByLabel('Heure de début').fill('10:00');
-    await app.page.getByLabel('Heure de fin').fill('10:10');
+    const officialReportPage = await app.pages.session.startOfficialReportGeneration();
+    const justiceContact = await officialReportPage.fill({
+      agendaId,
+      startTime: '10:00',
+      endTime: '10:10',
+    });
 
     const contact = `Geoffroy de Lagasnerie (${crypto.randomUUID()}), représentant de la direction`;
-    await app.page.getByLabel('Représentant DSJ').fill(contact);
-    await app.page.getByRole('option', { name: `«\u00A0${contact}\u00A0»` }).click();
+    await justiceContact.fill(contact);
+    await justiceContact.button(contact).click();
+    await justiceContact.confirm();
+    await justiceContact.blur();
+    await justiceContact.fill(contact);
+    await justiceContact.option(contact).click({ force: true });
 
-    const justiceContactCreated = app.page.waitForResponse(/justice-contacts/);
-    await app.page
-      .getByRole('dialog')
-      .locator(app.page.getByRole('button', { name: 'Confirmer' }))
-      .click();
-    await justiceContactCreated;
+    await test.expect(justiceContact.input.inputValue()).resolves.toBeDefined();
 
-    await app.page.getByLabel('Représentant DSJ').blur();
-    await app.page.getByLabel('Représentant DSJ').fill(contact);
-    await app.page.getByRole('option', { name: contact }).first().click({ force: true });
-
-    await test.expect(app.page.getByLabel('Représentant DSJ').inputValue()).resolves.toBeDefined();
-
-    await app.page.getByRole('button', { name: 'Générer le PV' }).click();
-    await app.page.waitForURL(/pv\/.+\/validation/);
+    await officialReportPage.submit();
   });
 });
