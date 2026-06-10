@@ -51,12 +51,14 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 
 export function ReactTableFilterColumn<Data extends RowData>(props: { table: Table<Data> }) {
   const intl = useIntl();
-  const hasFilterActive = props.table
-    .getState()
-    .columnFilters.some(
-      ({ value }) =>
-        (Array.isArray(value) && value.length > 0) || (typeof value === 'string' && value.trim().length > 0),
-    );
+  const hasFilterActive =
+    props.table
+      .getState()
+      .columnFilters.some(
+        ({ value }) =>
+          (Array.isArray(value) && value.length > 0) ||
+          (typeof value === 'string' && value.trim().length > 0),
+      ) || props.table.getState().globalFilter?.trim();
 
   const rowsCount = props.table.getRowCount();
   const itemLabel = useDataTablePaginationItemLabel(props.table);
