@@ -109,10 +109,10 @@ describe('magistrat helpers', () => {
 
     it.each`
       positionFunction                                                                             | civility | expected
-      ${{ id: '1AG', labelOneMale: 'premier avocat général', addition: 'près la {codejur}' }}      | ${'M.'}  | ${'premier avocat général à la cour de cassation'}
-      ${{ id: '1AG', labelOneFemale: 'première avocate générale', addition: 'près la {codejur}' }} | ${'MME'} | ${'première avocate générale à la cour de cassation'}
-      ${{ id: 'AG', labelOneMale: 'avocat général', addition: 'près la {codejur}' }}               | ${'M.'}  | ${'avocat général à la cour de cassation'}
-      ${{ id: 'AG', labelOneFemale: 'avocate générale', addition: 'près la {codejur}' }}           | ${'MME'} | ${'avocate générale à la cour de cassation'}
+      ${{ id: '1AG', labelOneMale: 'premier avocat général', addition: 'près la {codejur}' }}      | ${'M.'}  | ${'premier avocat général à la Cour de cassation'}
+      ${{ id: '1AG', labelOneFemale: 'première avocate générale', addition: 'près la {codejur}' }} | ${'MME'} | ${'première avocate générale à la Cour de cassation'}
+      ${{ id: 'AG', labelOneMale: 'avocat général', addition: 'près la {codejur}' }}               | ${'M.'}  | ${'avocat général à la Cour de cassation'}
+      ${{ id: 'AG', labelOneFemale: 'avocate générale', addition: 'près la {codejur}' }}           | ${'MME'} | ${'avocate générale à la Cour de cassation'}
     `(
       'should handle the "$positionFunction.id" with civility "$civility" in jurisdiction "CC  PARIS"',
       ({ positionFunction, civility, expected }) => {
@@ -295,6 +295,44 @@ describe('magistrat helpers', () => {
       });
 
       expect(got).toBe(`juge des contentieux de la protection au tribunal judiciaire de Clermont-Ferrand`);
+    });
+
+    it('should keep casing for CC  PARIS with addition', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
+          function: {
+            id: 'C',
+            addition: 'à la {codejur}',
+            label: 'Conseiller',
+            labelOneMale: 'conseiller',
+            labelOneFemale: 'conseillère',
+          },
+        },
+      });
+
+      expect(got).toBe('conseiller à la Cour de Cassation');
+    });
+
+    it('should keep casing for CC  PARIS _WITHOUT_ addition', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
+          function: {
+            id: 'C',
+            addition: null,
+            label: 'Conseiller',
+            labelOneMale: 'conseiller',
+            labelOneFemale: 'conseillère',
+          },
+        },
+      });
+
+      expect(got).toBe('conseiller, Cour de Cassation');
     });
   });
 });

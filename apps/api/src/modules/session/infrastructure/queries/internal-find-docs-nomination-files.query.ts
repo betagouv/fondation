@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -10,6 +10,7 @@ import { buildName, buildPosition } from '../helpers/magistrat.helper';
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {
@@ -25,11 +26,7 @@ export class InternalFindDocsNominationFilesQuery {
     ids?: readonly string[];
     tx?: Prisma.TransactionClient;
   }): Promise<InternalFoundAgendaNominationFiles> {
-    if ('ids' in query && (query.ids ?? []).length > 32_000) {
-      this.logger.error(`Received ${(query.ids ?? []).length} ids to search. Limited to 32000`);
-      throw new BadRequestException();
-    }
-
+    if (query.ids) assertPgParams(query.ids);
     if (!query.tx) {
       return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
     }

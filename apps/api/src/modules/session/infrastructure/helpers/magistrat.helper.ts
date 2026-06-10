@@ -33,7 +33,10 @@ export function buildPosition(options: {
 
   if (position.function === null) return null;
 
-  const codejur = position.jurisdiction.label[0]!.toLowerCase() + position.jurisdiction.label.slice(1);
+  const codejur =
+    position.jurisdiction.id === 'CC  PARIS'
+      ? position.jurisdiction.label
+      : position.jurisdiction.label[0]!.toLowerCase() + position.jurisdiction.label.slice(1);
 
   if (
     (civility === 'M.' && !position.function.labelOneMale) ||
@@ -64,7 +67,7 @@ export function buildPosition(options: {
   }
 
   if (position.jurisdiction.id === 'CC  PARIS' && ['1AG', 'AG'].includes(position.function.id)) {
-    return `${label} à la cour de cassation`;
+    return `${label} à la Cour de cassation`;
   }
 
   if (!position.function.addition) {
