@@ -350,7 +350,7 @@ export function PresentationUpsertPage() {
   const nextTitle = state.step === 'METADATA' ? STEPS.AGENDA_COMMENTS.title : undefined;
 
   return (
-    <div className="fr-container fr-py-2w">
+    <div className="fr-container fr-py-4v">
       <PresentationBreadcrumb />
 
       {isFetching ? (
