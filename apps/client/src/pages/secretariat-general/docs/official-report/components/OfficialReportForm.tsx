@@ -228,7 +228,7 @@ export function OfficialReportForm() {
                 <FormattedMessage
                   defaultMessage={`ODJ {date, date, dateOnlyShort} - {name} - {initials} - {formation}`}
                   values={{
-                    date: dateOnlyToDate(agenda.date),
+                    date: dateOnlyToDate(agenda.sessionMeetingDate),
                     initials: toInitials(agenda.chairman),
                     name: normalizeSessionName(agenda.session),
                     formation: capitalize(FormationEnumLabel[agenda.formation]),
