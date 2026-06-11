@@ -509,7 +509,7 @@ export class NominationSessionRepository {
   ) {
     const attachment = await tx.nominationFileAttachment.findFirst({
       where: { fileId: message.fileId, nominationFileId: message.nominationFileId },
-      select: { file: { select: { path: true, name: true, id: true } } },
+      select: { file: { select: { path: true, id: true } } },
     });
 
     if (!attachment) return;

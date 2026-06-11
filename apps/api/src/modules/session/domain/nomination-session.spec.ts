@@ -556,9 +556,7 @@ describe('NominationSession', () => {
       fileId: 'file-1',
     });
 
-    expect(session.messages).toEqual([
-      new NominationFileAttachmentRemoved('nomination-file-id-1', 'file-1'),
-    ]);
+    expect(session.messages).toEqual([new NominationFileAttachmentRemoved('nomination-file-id-1', 'file-1')]);
   });
 
   it('should throw when adding an attachment on a file linked to docs', () => {
