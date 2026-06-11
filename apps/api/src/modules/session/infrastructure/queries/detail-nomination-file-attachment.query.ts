@@ -24,7 +24,7 @@ export class DetailNominationFileAttachmentQuery {
           where: { fileId: query.fileId },
           select: {
             file: {
-              select: { id: true, name: true, path: true },
+              select: { id: true, name: true },
             },
           },
         },
