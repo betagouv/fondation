@@ -242,5 +242,52 @@ describe('Session E2E', () => {
         ]),
       } satisfies NominationFileAffectationItem);
     });
+
+    it('should not report an empty summary as a present indicator', async () => {
+      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
+      const { body: session } = await http
+        .post('/api/sessions/v2/lodam')
+        .set({ cookie: user.cookie })
+        .attach('file', fileBuffer, { filename: 'transparence.xslx', contentType: FILE_MIME_TYPES.xlsx })
+        .attach(
+          'form',
+          Buffer.from(
+            JSON.stringify({
+              date: '2025-01-01',
+              observationClosingDate: '2025-03-01',
+              formation: Magistrat.Formation.PARQUET,
+              name: 'Transparence TEST ' + randomUUID(),
+            }),
+          ),
+          { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
+        )
+        .expect(HttpStatus.CREATED);
+
+      const summaryOf = async (nominationFileId: string) => {
+        const { body } = await http.get(`/api/sessions/v2/${session.id}/files`).set({ cookie: user.cookie });
+        return (body.items as NominationFileAffectationItem[]).find(({ id }) => id === nominationFileId)
+          ?.summary;
+      };
+
+      const { body: initial } = await http
+        .get(`/api/sessions/v2/${session.id}/files`)
+        .set({ cookie: user.cookie });
+      const { id: nominationFileId } = initial.items[0] as NominationFileAffectationItem;
+      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
+
+      await http.post(summaryPath).set({ cookie: user.cookie }).expect(HttpStatus.CREATED);
+      expect(await summaryOf(nominationFileId)).toBeNull();
+
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: user.cookie })
+        .send({ content: 'Une vraie synthèse' })
+        .expect(HttpStatus.NO_CONTENT);
+      expect(await summaryOf(nominationFileId)).toEqual({
+        id: nominationFileId,
+        canRead: true,
+        canWrite: true,
+      });
+    });
   });
 });
