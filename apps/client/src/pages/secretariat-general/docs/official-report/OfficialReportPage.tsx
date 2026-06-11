@@ -5,7 +5,7 @@ import { OfficialReportProvider } from './context/OfficialReportProvider';
 export function CreateOrUpdateOfficialReportPage() {
   return (
     <OfficialReportProvider>
-      <div className="fr-container fr-py-5w">
+      <div className="fr-container fr-py-10v">
         <OfficialReportBreadCrumb />
         <OfficialReportForm />
       </div>

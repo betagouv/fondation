@@ -44,5 +44,6 @@ declare module '@tanstack/react-table' {
     columnVisibilityEnabled?: boolean;
     paginationEnabled?: boolean;
     paginationItemLabel?: MessageDescriptor;
+    globalFilterPlaceholder?: MessageDescriptor;
   }
 }

@@ -30,15 +30,13 @@ import { ListNominationFilesQuery } from './infrastructure/queries/list-nominati
 import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
 import { NominationSessionRepository } from './infrastructure/repositories/nomination-session.repository';
-import { SessionTestController } from './infrastructure/session.test-controller';
 import { SessionService } from './infrastructure/sessions.service';
-import { SessionsTestService } from './infrastructure/sessions.test-service';
 import { SessionController } from './session.controller';
 import { SummaryModule } from './summary.module';
 
 @Module({
   exports: [SessionService, SummaryModule, AffectationVersionFinder],
-  controllers: [SessionController, SessionTestController],
+  controllers: [SessionController],
   imports: [
     SummaryModule,
     forwardRef(() => MembersModule),
@@ -73,8 +71,6 @@ import { SummaryModule } from './summary.module';
     SessionService,
     UnaffectedFilesFinder,
     UnreportedSessionFilesCountFinder,
-
-    SessionsTestService,
   ],
 })
 export class SessionModule {}

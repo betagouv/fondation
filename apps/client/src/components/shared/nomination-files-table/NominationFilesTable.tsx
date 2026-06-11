@@ -76,6 +76,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     onStateChange: setTableState,
     enableGlobalFilter: true,
     meta: {
+      globalFilterPlaceholder: defineMessage({ defaultMessage: `Filtrer par nom` }),
       paginationItemLabel: isSg
         ? defineMessage({
             defaultMessage: '{count, plural, one {proposition} other {propositions}}',

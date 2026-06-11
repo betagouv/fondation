@@ -5,34 +5,47 @@ import { test } from '../fixtures';
 test.describe('Affectations', () => {
   test.describe('soit une transparence', () => {
     let sessionName: string;
-    test.beforeEach(async ({ http }) => {
-      sessionName = `Transparence annuelle ${crypto.randomUUID()}`;
-      const { id: sessionId } = await http.sessions.createSession({
-        name: sessionName,
-        date: new Date('2026-03-01'),
-        observationClosingDate: new Date('2026-03-10'),
-        formation: 'SIEGE',
-      });
+    test.beforeEach(async ({ app }) => {
+      if (sessionName) return;
 
-      await http.sessions.attachNominationFiles({
-        sessionId,
-        // oxfmt-ignore
-        files: [
+      sessionName = `Transparence annuelle ${crypto.randomUUID()}`;
+
+      const lolfiIngestionsForm = await app.pages.admin.goto('newIngestion');
+      await lolfiIngestionsForm.upload({
+        sessions: [
           {
-            fileNumber: 1,
-            name: 'Antoine DUPOND',
-            currentPosition: 'Président TJ  LYON',
-            grade: 'G2',
-            targetedPosition: 'Président TJ  CAEN',
-            targetedGrade: 'G2',
-          },
-          {
-            fileNumber: 2,
-            name: 'Sarah CLERC',
-            currentPosition: 'Président TJ  ANNECY',
-            grade: 'G2',
-            targetedPosition: 'Président TJ  ROUEN',
-            targetedGrade: 'G2',
+            name: sessionName,
+            createdAt: '01/03/2026',
+            candidates: [
+              {
+                firstName: 'antoine',
+                lastName: 'dupond',
+                position: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  LYON' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  CAEN' },
+                  grade: 'G2',
+                },
+              },
+              {
+                firstName: 'sarah',
+                lastName: 'clerc',
+                position: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  ANNECY' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  ROUEN:' },
+                  grade: 'G2',
+                },
+              },
+            ],
           },
         ],
       });

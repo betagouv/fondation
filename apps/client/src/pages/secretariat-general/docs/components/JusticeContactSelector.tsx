@@ -71,6 +71,12 @@ export function JusticeContactSelector(
     [select],
   );
 
+  React.useEffect(() => {
+    if (!field.value) return;
+    if (!selection || selection.id !== field.value) select(field.value);
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
+  }, [field.value, select]);
+
   const { mutate: createJusticeContactMutation, isPending: isCreating } = useCreateJusticeContactMutation();
   const createJusticeContact = React.useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({

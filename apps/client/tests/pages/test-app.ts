@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
+import { AdminPage } from './admin.page';
 import { CreateSessionPage } from './create-session.page';
 import { ManageSessionsPage } from './manage-sessions.page';
 import { ManageSingleSessionPage } from './manage-single-session.page';
@@ -11,6 +12,7 @@ export class TestApp {
     manageSessions: new ManageSessionsPage(this),
     session: new ManageSingleSessionPage(this),
     members: new MembersPage(this),
+    admin: new AdminPage(this),
   };
 
   constructor(readonly page: Page) {}

@@ -27,7 +27,7 @@ export const Observers = ({
   return (
     <section
       id={reportHtmlIds.overview.observersSection}
-      className={clsx('rounded-lg bg-white', cx('fr-px-3w', 'fr-py-2w'))}
+      className={clsx('rounded-lg bg-white', cx('fr-px-6v', 'fr-py-4v'))}
     >
       <h2>Observant(s)</h2>
 
@@ -37,7 +37,7 @@ export const Observers = ({
           className={clsx('flex w-full flex-col gap-2 whitespace-pre-line')}
         >
           {observers.map(([observerName, ...observerInformation]) => (
-            <div key={observerName} className={cx('fr-mb-2w')}>
+            <div key={observerName} className={cx('fr-mb-4v')}>
               <div key={observerName} className={cx('fr-text--bold', 'fr-mb-1v')}>
                 {observerName}
               </div>
@@ -49,7 +49,7 @@ export const Observers = ({
 
       {hasObservations && (
         <>
-          <h3 className={cx('fr-h6', 'fr-mt-3w', 'fr-mb-2w')}>Observations reçues</h3>
+          <h3 className={cx('fr-h6', 'fr-mt-6v', 'fr-mb-4v')}>Observations reçues</h3>
           <div className={clsx('grid grid-cols-2 gap-4')}>
             {observations.map((observation: NonNullable<DetailedReportDto['observations']>[number]) => (
               <ObservationCard

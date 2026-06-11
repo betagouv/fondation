@@ -4,9 +4,11 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import type { RowData, Table } from '@tanstack/react-table';
 import clsx from 'clsx';
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { useDebouncedCallback } from 'use-debounce';
 
 export function ReactTableFilterSearch<Data extends RowData>(props: { table: Table<Data> }) {
+  const { formatMessage } = useIntl();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [search, setSearch] = React.useState(props.table.getState().globalFilter);
   const updateGlobalFilter = useDebouncedCallback((globalFilter: string) => {
@@ -25,6 +27,8 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
       inputRef.current.blur();
     }
   }, []);
+
+  const placeholder = props.table.options.meta?.globalFilterPlaceholder;
 
   if (!props.table.options.enableGlobalFilter) return null;
 
@@ -62,7 +66,9 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
           ref: inputRef,
           value: search,
           autoComplete: 'off',
-          placeholder: 'Rechercher',
+          placeholder: placeholder
+            ? formatMessage(placeholder)
+            : formatMessage({ defaultMessage: 'Rechercher' }),
           'aria-live': 'polite',
           onKeyDown: onKeyPress,
           onChange: (e) => {

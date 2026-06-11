@@ -16,7 +16,7 @@ export const AutoSaveNotice: React.FC = () => {
       isClosed={!isVisible}
       onClose={() => setIsVisible(false)}
       title="L'enregistrement des modifications est automatique."
-      className={clsx('w-full', cx('fr-px-4w', 'fr-py-3w'))}
+      className={clsx('w-full', cx('fr-px-8v', 'fr-py-6v'))}
     />
   );
 };

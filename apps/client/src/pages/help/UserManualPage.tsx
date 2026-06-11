@@ -7,7 +7,7 @@ export function UserManualPage() {
 
   return (
     <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <section className="fr-container fr-py-5w w-5/12 min-w-4xl">
+      <section className="fr-container fr-py-10v w-5/12 min-w-4xl">
         {isSg ? <SGUserManual /> : <MemberUserManual />}
       </section>
     </AuthGuard>

@@ -1,5 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 
+import { GenerateAgendaPage } from './generate-agenda.page';
+import { GenerateOfficialReportPage } from './generate-official-report.page';
 import type { TestApp } from './test-app';
 
 class ObservationModal {
@@ -185,5 +187,19 @@ export class ManageSingleSessionPage {
 
     await modal.dialog.waitFor({ state: 'visible' });
     return modal;
+  }
+
+  addToAgenda(): Promise<void> {
+    return new GenerateAgendaPage(this.app).addToAgendaButton.click();
+  }
+
+  startAgendaGeneration(): Promise<GenerateAgendaPage> {
+    const page = new GenerateAgendaPage(this.app);
+    return page.goto();
+  }
+
+  startOfficialReportGeneration(): Promise<GenerateOfficialReportPage> {
+    const page = new GenerateOfficialReportPage(this.app);
+    return page.goto();
   }
 }

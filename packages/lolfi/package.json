@@ -1,0 +1,27 @@
+{
+  "name": "lolfi",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LOLFI archive generator shared between the API tests and the front-end",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint:check": "oxlint",
+    "lint": "oxlint --fix",
+    "test": "node --test --require @swc-node/register test/*.test.ts"
+  },
+  "devDependencies": {
+    "@swc-node/register": "^1.11.1",
+    "@types/node": "24.12.4",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "catalog:",
+    "date-fns": "4.2.1",
+    "jszip": "3.10.1"
+  }
+}

@@ -1,7 +1,7 @@
 import { test as setup } from '../fixtures';
 
 setup('auth as SG', async ({ registerUser, page, http }) => {
-  const { email, password } = await registerUser({ role: 'ADJOINT_SECRETAIRE_GENERAL' });
+  const { email, password } = await registerUser({ role: 'ADMIN' });
 
   const response = await http.auth.login({ email, password });
   setup.expect(response.ok()).toBe(true);

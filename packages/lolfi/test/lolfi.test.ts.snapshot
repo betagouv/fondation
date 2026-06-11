@@ -1,0 +1,83 @@
+exports[`lolfi > should create LOLFI files 1`] = `
+{
+  "filename": "GRADES.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <grades num=\\"1\\">\\n        <grade>G1</grade>\\n<libelle>G1</libelle>\\n<tri>32</tri>\\n<masse_grade>G1</masse_grade>\\n<mg_libelle>G1</mg_libelle>\\n<mg_tri>32</mg_tri>\\n      </grades>\\n    \\n      <grades num=\\"2\\">\\n        <grade>G2</grade>\\n<libelle>G2</libelle>\\n<tri>31</tri>\\n<masse_grade>G2</masse_grade>\\n<mg_libelle>G2</mg_libelle>\\n<mg_tri>31</mg_tri>\\n      </grades>\\n    \\n      <grades num=\\"3\\">\\n        <grade>G3</grade>\\n<libelle>G3</libelle>\\n<tri>30</tri>\\n<masse_grade>G3</masse_grade>\\n<mg_libelle>G3</mg_libelle>\\n<mg_tri>30</mg_tri>\\n      </grades>\\n    \\n      <grades num=\\"4\\">\\n        <grade>G3sup</grade>\\n<libelle>G3sup</libelle>\\n<tri>29</tri>\\n<masse_grade>G3sup</masse_grade>\\n<mg_libelle>G3sup</mg_libelle>\\n<mg_tri>29</mg_tri>\\n      </grades>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 10`] = `
+{
+  "filename": "TRANSPARENCES.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <transparences num=\\"1\\">\\n        <num_session>96071</num_session>\\n<num_transparence>182802</num_transparence>\\n<num_emploi_cible>232793</num_emploi_cible>\\n<type_mouvement>E</type_mouvement>\\n<ta>2024</ta>\\n<resultat>1</resultat>\\n<id>182802</id>\\n<affectation>931628</affectation>\\n<date_grade null=\\"TRUE\\" />\\n<tri_poste>931628</tri_poste>\\n<rang_cand>1</rang_cand>\\n      </transparences>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 11`] = `
+{
+  "filename": "CANDIDATS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <candidats num=\\"1\\">\\n        <id>182802</id>\\n<num_candidat>182802</num_candidat>\\n<demande_conjointe>0</demande_conjointe>\\n<nom_ville_conjoint null=\\"TRUE\\" />\\n<observation null=\\"TRUE\\" />\\n<date_modification>22/04/2026</date_modification>\\n<adr1 null=\\"TRUE\\" />\\n<adr2 null=\\"TRUE\\" />\\n<codepos null=\\"TRUE\\" />\\n<ville null=\\"TRUE\\" />\\n<tel_perso null=\\"TRUE\\" />\\n<mandat null=\\"TRUE\\" />\\n<mandat_conjoint null=\\"TRUE\\" />\\n<prof_conjoint null=\\"TRUE\\" />\\n<article_l111 null=\\"TRUE\\" />\\n<obs_num_session null=\\"TRUE\\" />\\n      </candidats>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 12`] = `
+{
+  "filename": "DESIDERATA.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <desiderata num=\\"1\\">\\n        <num_desiderata>772688</num_desiderata>\\n<num_candidat>182802</num_candidat>\\n<num_emploi_cible>232793</num_emploi_cible>\\n<date_enregistrement>22/04/2026</date_enregistrement>\\n      </desiderata>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 2`] = `
+{
+  "filename": "FONCTIONS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <fonctions num=\\"1\\">\\n        <tri>0</tri>\\n<fonction>PR</fonction>\\n<libelle>Procureur de la République</libelle>\\n<lieufc>2</lieufc>\\n<fonction_m>procureur de la République</fonction_m>\\n<fonction_mp null=\\"TRUE\\" />\\n<fonction_f null=\\"TRUE\\" />\\n<fonction_fp null=\\"TRUE\\" />\\n<complement null=\\"TRUE\\" />\\n      </fonctions>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 3`] = `
+{
+  "filename": "POSADS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <posads num=\\"1\\">\\n        <posad>PT</posad>\\n<libelle>Plein temps</libelle>\\n<reel>1</reel>\\n      </posads>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 4`] = `
+{
+  "filename": "TYPE_JURIDICTION.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <type_juridiction num=\\"1\\">\\n        <type_jur>CA</type_jur>\\n<libelle>CA</libelle>\\n<tri>0</tri>\\n      </type_juridiction>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 5`] = `
+{
+  "filename": "JURIDICTIONS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <juridictions num=\\"1\\">\\n        <codejur>CA  LYON</codejur>\\n<type_jur>CA</type_jur>\\n<adr1 null=\\"TRUE\\" />\\n<adr2 null=\\"TRUE\\" />\\n<arrondissement null=\\"TRUE\\" />\\n<codepos null=\\"TRUE\\" />\\n<date_suppression>01/01/2999</date_suppression>\\n<libelle>CA  LYON</libelle>\\n<ressort>CA  LYON</ressort>\\n<ville_jur>LYON</ville_jur>\\n<ville null=\\"TRUE\\" />\\n      </juridictions>\\n    \\n      <juridictions num=\\"2\\">\\n        <codejur>CA  GRENOBLE</codejur>\\n<type_jur>CA</type_jur>\\n<adr1 null=\\"TRUE\\" />\\n<adr2 null=\\"TRUE\\" />\\n<arrondissement null=\\"TRUE\\" />\\n<codepos null=\\"TRUE\\" />\\n<date_suppression>01/01/2999</date_suppression>\\n<libelle>CA  GRENOBLE</libelle>\\n<ressort>CA  GRENOBLE</ressort>\\n<ville_jur>GRENOBLE</ville_jur>\\n<ville null=\\"TRUE\\" />\\n      </juridictions>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 6`] = `
+{
+  "filename": "POSTES.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 7`] = `
+{
+  "filename": "POSTES_2.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <postes_2 num=\\"1\\">\\n        <num_emploi_cible>931628</num_emploi_cible>\\n<profil null=\\"TRUE\\" />\\n<abrev_profil null=\\"TRUE\\" />\\n<bbis>0</bbis>\\n<codejur>CA  LYON</codejur>\\n<type_jur>CA</type_jur>\\n<masse_grade>G3</masse_grade>\\n<fonction>PR</fonction>\\n      </postes_2>\\n    \\n      <postes_2 num=\\"2\\">\\n        <num_emploi_cible>232793</num_emploi_cible>\\n<profil null=\\"TRUE\\" />\\n<abrev_profil null=\\"TRUE\\" />\\n<bbis>0</bbis>\\n<codejur>CA  GRENOBLE</codejur>\\n<type_jur>CA</type_jur>\\n<masse_grade>G3</masse_grade>\\n<fonction>PR</fonction>\\n      </postes_2>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 8`] = `
+{
+  "filename": "SESSIONS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <sessions num=\\"1\\">\\n        <num_session>96071</num_session>\\n<libelle>Transparence annuelle (96071)</libelle>\\n<date_publication>22/04/2026</date_publication>\\n      </sessions>\\n    </lolfi>"
+}
+`;
+
+exports[`lolfi > should create LOLFI files 9`] = `
+{
+  "filename": "MAGISTRATS.xml",
+  "buffer": "<?xml version=\\"1.0\\" encoding=\\"ISO-8859-1\\"?>\\n    <lolfi>\\n  \\n      <magistrats num=\\"1\\">\\n        <id>182802</id>\\n<civilite>M.</civilite>\\n<nom>TREVOUX</nom>\\n<prenom>ETIENNE</prenom>\\n<nom_marital null=\\"TRUE\\" />\\n<nom_usage null=\\"TRUE\\" />\\n<sit_fam>P</sit_fam>\\n<email_pro>etienne_trevoux37@justice.fr</email_pro>\\n<date_naiss>16/05/1982</date_naiss>\\n<lieu_naiss null=\\"TRUE\\" />\\n<dep_naiss null=\\"TRUE\\" />\\n<grade>G3</grade>\\n<date_grade null=\\"TRUE\\" />\\n<num_emploi_cible>931628</num_emploi_cible>\\n<date_installation null=\\"TRUE\\" />\\n<date_nomination null=\\"TRUE\\" />\\n<tableau>2024</tableau>\\n<historique null=\\"TRUE\\" />\\n<posad>PT</posad>\\n<posad_prev null=\\"TRUE\\" />\\n<date_posad_prev null=\\"TRUE\\" />\\n<posad_prev2 null=\\"TRUE\\" />\\n<date_posad_prev2 null=\\"TRUE\\" />\\n<date_modification null=\\"TRUE\\" />\\n<date_posad_prev_fin null=\\"TRUE\\" />\\n      </magistrats>\\n    </lolfi>"
+}
+`;

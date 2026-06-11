@@ -38,7 +38,7 @@ test.describe('Gérer les sessions', () => {
   test.describe('soit une session importée', () => {
     let lastSession: string | undefined;
 
-    test.beforeEach(async ({ app, registerUser, http }) => {
+    test.beforeEach(async ({ app, registerUser }) => {
       if (lastSession) {
         await app.pages.manageSessions.goto();
         if ((await app.pages.manageSessions.sessionRow(lastSession).count()) > 0) {
@@ -48,53 +48,72 @@ test.describe('Gérer les sessions', () => {
         }
       }
 
-      const name = `Transparence ${crypto.randomUUID()}`;
       const today = new Date();
       today.setUTCHours(0);
-      const inAWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+      const [day, month, year] = [today.getUTCDate(), today.getUTCMonth() + 1, today.getUTCFullYear()].map(
+        (x) => x.toString().padStart(2, '0'),
+      );
 
-      const { id: sessionId } = await http.sessions.createSession({
-        name,
-        date: today,
-        formation: 'PARQUET',
-        observationClosingDate: inAWeek,
-      });
+      const name = `Transparence ${crypto.randomUUID()}`;
 
-      await http.sessions.attachNominationFiles({
-        sessionId,
-        files: [
+      const lolfiForm = await app.pages.admin.goto('newIngestion');
+      await lolfiForm.upload({
+        sessions: [
           {
-            fileNumber: 1,
-            name: 'Pierre BOURDIEU',
-            birthDate: new Date('1930-08-01'),
-            currentPosition: 'Président CA  LYON',
-            grade: 'G2',
-            targetedPosition: 'Procureur CA  LYON',
-            targetedGrade: 'G3',
-            lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15'),
-          },
-          {
-            fileNumber: 2,
-            name: 'Anna HARENDT',
-            birthDate: new Date('1906-10-14'),
-            currentPosition: 'DETACHEMENT',
-            grade: 'G2',
-            targetedPosition: 'Président CA  STRASBOURG',
-            targetedGrade: 'G3',
-            lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15'),
-          },
-          {
-            fileNumber: 3,
-            name: 'Michel FOUCAULT',
-            birthDate: new Date('1926-10-15'),
-            currentPosition: 'Président CA  AGEN',
-            grade: 'G2',
-            targetedPosition: 'Président CA  METZ - G3',
-            targetedGrade: 'G3',
-            lastPositionDate: new Date('2020-07-15'),
-            lastRankingDate: new Date('2020-07-15'),
+            name,
+            createdAt: `${day}/${month}/${year}`,
+            candidates: [
+              {
+                firstName: 'pierre',
+                lastName: 'bourdieu',
+                position: {
+                  function: { id: 'PR', label: 'procureur général', formation: 'PARQUET' },
+                  jurisdiction: { id: 'CA  LYON' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: {
+                    id: '1PRA',
+                    label: 'premier procureur de la République adjoint',
+                    formation: 'PARQUET',
+                  },
+                  jurisdiction: { id: 'CA  LYON' },
+                  grade: 'G3',
+                },
+              },
+              {
+                firstName: 'anna',
+                lastName: 'harendt',
+                targetPosition: {
+                  grade: 'G2',
+                  function: { id: 'P', formation: 'PARQUET', label: 'président' },
+                  jurisdiction: { id: 'CA  STRASBOURG' },
+                },
+                position: {
+                  grade: 'G2',
+                  jurisdiction: { id: 'CA  LYON' },
+                  function: {
+                    id: 'DET',
+                    label: 'Détachement',
+                    formation: 'PARQUET',
+                  },
+                },
+              },
+              {
+                firstName: 'michel',
+                lastName: 'foucault',
+                position: {
+                  function: { id: 'P', formation: 'PARQUET', label: 'président' },
+                  jurisdiction: { id: 'CA  AGEN' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: { id: 'P', formation: 'PARQUET', label: 'président' },
+                  jurisdiction: { id: 'CA  METZ' },
+                  grade: 'G3',
+                },
+              },
+            ],
           },
         ],
       });
@@ -117,7 +136,7 @@ test.describe('Gérer les sessions', () => {
       await page.switchToReadModeButton.waitFor();
 
       // Et que je sélectionne "ANTONIO GRAMSCI" pour "Pierre BOURDIEU"
-      const row = page.sessionRow({ name: 'Pierre BOURDIEU' });
+      const row = page.sessionRow({ name: 'BOURDIEU PIERRE' });
 
       await row.locator(page.selectReporterButton).click();
       await page.searchReporterInput.fill('Antonio');
@@ -138,7 +157,7 @@ test.describe('Gérer les sessions', () => {
       await page.switchToReadModeButton.waitFor();
 
       // Et que je sélectionne les priorités "Étoilé, Outre-mer" pour la proposition de "Perre BOURDIEU"
-      const row = page.sessionRow({ name: 'Pierre BOURDIEU' });
+      const row = page.sessionRow({ name: 'BOURDIEU PIERRE' });
 
       await row.locator(page.prioritiesSelectBox).click();
       await page.priorityCheckbox({ name: 'Outre-mer' }).first().click({ force: true });
@@ -162,8 +181,8 @@ test.describe('Gérer les sessions', () => {
       await page.switchToReadModeButton.waitFor();
 
       // Et que je sélectionne les 2 dernières lignes
-      await page.sessionRow({ name: 'Anna HARENDT' }).getByRole('checkbox').first().click({ force: true });
-      await page.sessionRow({ name: 'Michel FOUCAULT' }).getByRole('checkbox').first().click({ force: true });
+      await page.sessionRow({ name: 'HARENDT ANNA' }).getByRole('checkbox').first().click({ force: true });
+      await page.sessionRow({ name: 'FOUCAULT MICHEL' }).getByRole('checkbox').first().click({ force: true });
 
       // Et que j'ouvre la dialogue d'actions groupées
       await page.batchActionsButton.click();
@@ -177,7 +196,7 @@ test.describe('Gérer les sessions', () => {
       await app.page.getByRole('button', { name: 'Appliquer' }).click();
 
       // Alors les sélecteurs de priorités des lignes affectées doivent contenir "Étoilé, Outre-mer"
-      for (const name of ['Anna HARENDT', 'Michel FOUCAULT']) {
+      for (const name of ['HARENDT ANNA', 'FOUCAULT MICHEL']) {
         const selectBoxContent = await page
           .sessionRow({ name })
           .locator(page.prioritiesSelectBox)
@@ -192,7 +211,7 @@ test.describe('Gérer les sessions', () => {
       await page.switchToEditModeButton.waitFor();
 
       // Alors les cellules "Priorité(s)" des lignes affectées doivent contenir "Étoilé, Outre-mer"
-      for (const name of ['Anna HARENDT', 'Michel FOUCAULT']) {
+      for (const name of ['HARENDT ANNA', 'FOUCAULT MICHEL']) {
         const cellContent = await page.sessionRow({ name }).locator('td:nth-of-type(7)').textContent();
 
         test.expect(cellContent).toContain('Étoilé');

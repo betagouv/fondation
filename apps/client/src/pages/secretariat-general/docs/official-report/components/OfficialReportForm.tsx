@@ -138,37 +138,27 @@ export function OfficialReportForm() {
         setValues(
           (form) => ({
             ...form,
-            chairmanId:
-              !state.dirtyFields?.chairmanId && agenda.chairman.id ? agenda.chairman.id : form.chairmanId,
-            secretaryId:
-              !state.dirtyFields?.secretaryId && agenda.presentationPlan?.secretaryId
-                ? agenda.presentationPlan.secretaryId
-                : form.secretaryId,
-            justiceContactId:
-              !state.dirtyFields?.justiceContactId && agenda.presentationPlan?.justiceContactId
-                ? agenda.presentationPlan.justiceContactId
-                : form.justiceContactId,
-            sessionMeetingDate:
-              !state.dirtyFields?.sessionMeetingDate && agenda.sessionMeetingDate
-                ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
-                : form.sessionMeetingDate,
-            sessionMeetingStartingTime:
-              !state.dirtyFields?.sessionMeetingStartingTime && agenda.presentationPlan?.startTime
-                ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) ||
-                  form.sessionMeetingStartingTime
-                : form.sessionMeetingStartingTime,
-            sessionMeetingEndingTime:
-              !state.dirtyFields?.sessionMeetingEndingTime && agenda.presentationPlan?.endTime
-                ? formTimeOnlyCodec.encode(agenda.presentationPlan.endTime) || form.sessionMeetingEndingTime
-                : form.sessionMeetingEndingTime,
-            memberIds:
-              !state?.dirtyFields?.memberIds && agenda.presentationPlan?.absentMembers
-                ? [...agenda.presentationPlan.absentMembers]
-                : form.memberIds,
+            chairmanId: agenda.chairman.id ? agenda.chairman.id : form.chairmanId,
+            secretaryId: agenda.presentationPlan?.secretaryId
+              ? agenda.presentationPlan.secretaryId
+              : form.secretaryId,
+            justiceContactId: agenda.presentationPlan?.justiceContactId
+              ? agenda.presentationPlan.justiceContactId
+              : form.justiceContactId,
+            sessionMeetingDate: agenda.sessionMeetingDate
+              ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
+              : form.sessionMeetingDate,
+            sessionMeetingStartingTime: agenda.presentationPlan?.startTime
+              ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
+              : form.sessionMeetingStartingTime,
+            sessionMeetingEndingTime: agenda.presentationPlan?.endTime
+              ? formTimeOnlyCodec.encode(agenda.presentationPlan.endTime) || form.sessionMeetingEndingTime
+              : form.sessionMeetingEndingTime,
+            memberIds: agenda.presentationPlan?.absentMembers
+              ? [...agenda.presentationPlan.absentMembers]
+              : form.memberIds,
             hasRenunciation:
-              !state?.dirtyFields?.hasRenunciation &&
-              agenda.presentationPlan &&
-              !agenda.presentationPlan.hasRenunciation
+              agenda.presentationPlan && !agenda.presentationPlan.hasRenunciation
                 ? agenda.presentationPlan.hasRenunciation
                 : form.hasRenunciation,
           }),
@@ -190,17 +180,8 @@ export function OfficialReportForm() {
         shouldTouch: true,
         shouldValidate: true,
       });
-
-      const agenda = agendas?.items.find(({ id }) => id === agendaId);
-      if (!agenda || !agenda.chairman.id) return;
-
-      setValue('chairmanId', agenda.chairman.id, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
     },
-    [agendas, setValue],
+    [setValue],
   );
 
   return (
@@ -228,7 +209,7 @@ export function OfficialReportForm() {
                 <FormattedMessage
                   defaultMessage={`ODJ {date, date, dateOnlyShort} - {name} - {initials} - {formation}`}
                   values={{
-                    date: dateOnlyToDate(agenda.date),
+                    date: dateOnlyToDate(agenda.sessionMeetingDate),
                     initials: toInitials(agenda.chairman),
                     name: normalizeSessionName(agenda.session),
                     formation: capitalize(FormationEnumLabel[agenda.formation]),

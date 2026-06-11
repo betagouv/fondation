@@ -5,7 +5,7 @@ test.describe('Gérer une liste de sessions', () => {
     let transparence1: string;
     let transparence2: string;
 
-    test.beforeAll(async ({ http }) => {
+    test.beforeEach(async ({ app }) => {
       if (transparence1 && transparence2) {
         return;
       }
@@ -13,13 +13,51 @@ test.describe('Gérer une liste de sessions', () => {
       transparence1 = `Transparence 1 - ${crypto.randomUUID()}`;
       transparence2 = `Transparence 2 - ${crypto.randomUUID()}`;
 
-      // oxfmt-ignore
-      {
-        // Soit une session "Transparence 1" en date du "01/03/2026"
-        await http.sessions.createSession({ name: transparence1, date: new Date('2026-03-01'), formation: 'PARQUET', observationClosingDate: new Date('2026-03-10') });
-        // Et une session "Transparence 1" en date du "01/02/2026"
-        await http.sessions.createSession({ name: transparence2, date: new Date('2026-02-01'), formation: 'PARQUET', observationClosingDate: new Date('2026-02-10') });
-      }
+      const lolfiIngestionsForm = await app.pages.admin.goto('newIngestion');
+      await lolfiIngestionsForm.upload({
+        sessions: [
+          {
+            name: transparence1,
+            createdAt: '01/03/2026',
+            candidates: [
+              {
+                firstName: 'antoine',
+                lastName: 'dupond',
+                position: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  LYON' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  CAEN' },
+                  grade: 'G2',
+                },
+              },
+            ],
+          },
+          {
+            name: transparence2,
+            createdAt: '01/02/2026',
+            candidates: [
+              {
+                firstName: 'sarah',
+                lastName: 'clerc',
+                position: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  ANNECY' },
+                  grade: 'G2',
+                },
+                targetPosition: {
+                  function: { id: 'P', label: 'président', formation: 'SIEGE', addition: 'du {codejur}' },
+                  jurisdiction: { id: 'TJ  ROUEN:' },
+                  grade: 'G2',
+                },
+              },
+            ],
+          },
+        ],
+      });
     });
 
     test(`les sessions doivent être triées par ordre décroissant de date de publication par défaut`, async ({
