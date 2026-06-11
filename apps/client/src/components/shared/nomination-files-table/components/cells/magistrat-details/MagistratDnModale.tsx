@@ -141,9 +141,16 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {props.nominationFile.content.nomMagistrat}
         {hasComment && (
           <i
+            aria-label="Au moins un commentaire est présent"
             className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
-            title="Commentaire présent"
-            aria-label="Commentaire présent"
+            title="Au moins un commentaire est présent"
+          />
+        )}
+        {props.nominationFile.hasAttachment && (
+          <i
+            aria-label="Au moins une pièce jointe est présente"
+            className="ri-file-line ml-1 cursor-pointer before:size-5! before:content-['']"
+            title="Au moins une pièce jointe est présente"
           />
         )}
       </div>

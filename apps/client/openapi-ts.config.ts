@@ -39,7 +39,9 @@ export default defineConfig({
     hooks: {
       operations: {
         isMutation: (operation) =>
-          operation.method !== 'get' || operation.id === 'createNominationSessionAttachmentUrl',
+          operation.method !== 'get' ||
+          operation.id === 'createNominationSessionAttachmentUrl' ||
+          operation.id === 'createNominationFileAttachmentUrl',
       },
     },
   },
