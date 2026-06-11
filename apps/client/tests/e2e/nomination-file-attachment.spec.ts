@@ -1,33 +1,40 @@
 import { test } from '../fixtures';
 
 test.describe('Pièces jointes de dossier de nomination', () => {
-  test("j'ajoute, vois puis supprime une pièce jointe", async ({ app, http }) => {
+  test("j'ajoute, vois puis supprime une pièce jointe", async ({ app }) => {
     // Soit une session avec un dossier de nomination
     const name = `Transparence ${crypto.randomUUID()}`;
     const today = new Date();
-    today.setUTCHours(0);
-    const inAWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+    const [day, month, year] = [today.getUTCDate(), today.getUTCMonth() + 1, today.getUTCFullYear()].map(
+      (x) => x.toString().padStart(2, '0'),
+    );
 
-    const { id: sessionId } = await http.sessions.createSession({
-      name,
-      date: today,
-      formation: 'PARQUET',
-      observationClosingDate: inAWeek,
-    });
-
-    await http.sessions.attachNominationFiles({
-      sessionId,
-      files: [
+    const lolfiForm = await app.pages.admin.goto('newIngestion');
+    await lolfiForm.upload({
+      sessions: [
         {
-          fileNumber: 1,
-          name: 'Pierre BOURDIEU',
-          birthDate: new Date('1930-08-01'),
-          currentPosition: 'Président CA  LYON',
-          grade: 'G2',
-          targetedPosition: 'Procureur CA  LYON',
-          targetedGrade: 'G3',
-          lastPositionDate: new Date('2020-07-15'),
-          lastRankingDate: new Date('2020-07-15'),
+          name,
+          createdAt: `${day}/${month}/${year}`,
+          candidates: [
+            {
+              firstName: 'pierre',
+              lastName: 'bourdieu',
+              position: {
+                function: { id: 'PR', label: 'procureur général', formation: 'PARQUET' },
+                jurisdiction: { id: 'CA  LYON' },
+                grade: 'G2',
+              },
+              targetPosition: {
+                function: {
+                  id: '1PRA',
+                  label: 'premier procureur de la République adjoint',
+                  formation: 'PARQUET',
+                },
+                jurisdiction: { id: 'CA  LYON' },
+                grade: 'G3',
+              },
+            },
+          ],
         },
       ],
     });
@@ -37,7 +44,7 @@ test.describe('Pièces jointes de dossier de nomination', () => {
     await app.pages.session.waitFor(name);
 
     // Quand j'ouvre le détail du magistrat
-    const modal = await app.pages.session.openMagistratDetails('Pierre BOURDIEU');
+    const modal = await app.pages.session.openMagistratDetails('BOURDIEU PIERRE');
 
     // Et que j'ajoute une pièce jointe
     const attachment = new File(['preuve'], 'preuve.pdf', { type: 'application/pdf' });
