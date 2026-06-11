@@ -23,6 +23,7 @@
   },
   "include": [
     "vite.config.ts",
+    "vitest.config.ts",
     "playwright.config.ts",
     "oxlint.config.ts",
     "tests/**/*.ts",

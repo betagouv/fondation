@@ -52,12 +52,6 @@ createRoot(document.getElementById('root')!, {
   </StrictMode>,
 );
 
-declare module '@codegouvfr/react-dsfr/spa' {
-  interface RegisterLink {
-    Link: typeof Link;
-  }
-}
-
 if (import.meta.env.DEV) {
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__TANSTACK_QUERY_CLIENT__ = queryClient;
