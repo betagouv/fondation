@@ -21,7 +21,7 @@ export class LolfiSessionsIngestor {
     @Inject(API_CONFIG_TOKEN)
     config: ApiConfig,
   ) {
-    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction ? new Date(Date.UTC(2026, 3, 1)) : true;
+    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction ? new Date(Date.UTC(2026, 5, 1)) : true;
   }
 
   handles(file: LolfiJob['files'][number]): boolean {
