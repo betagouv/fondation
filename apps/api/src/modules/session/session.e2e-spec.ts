@@ -10,6 +10,7 @@ import { agent } from 'supertest';
 import { Gender, Magistrat, Role } from 'shared-models';
 
 import { createSession } from '../../../test/utils/lolfi';
+import { PrismaService } from '../framework/database';
 import { FILE_MIME_TYPES } from '../framework/files';
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
 import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
@@ -99,6 +100,12 @@ describe('Session E2E', () => {
     });
 
     it('should import a session tree from a LODAM file', async () => {
+      // Detection resolves the targeted function against the global `function` reference table that
+      // other e2e specs ingest (e.g. the "PR" function). Clear it so this assertion stays null
+      // regardless of the order specs run in. deleteMany (not TRUNCATE CASCADE) honours the
+      // detected_targeted_function_id SET NULL fk leaving other specs' nomination files intact
+      await app.get(PrismaService).function.deleteMany();
+
       const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
       const response = await http
         .post('/api/sessions/v2/lodam')
@@ -253,6 +260,8 @@ describe('Session E2E', () => {
       } satisfies NominationFileAffectationItem);
     });
 
+    // 30s timeout: createSession runs a full LOLFI ingestion (job wait + search retry, up to 6.5s)
+    // before the summary requests which overruns the 5s jest default on slow CI runners
     it('should not report an empty summary as a present indicator', async () => {
       const session = await createSession({
         http,
@@ -314,6 +323,6 @@ describe('Session E2E', () => {
         canRead: true,
         canWrite: true,
       });
-    });
+    }, 30_000);
   });
 });
