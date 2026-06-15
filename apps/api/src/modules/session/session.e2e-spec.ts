@@ -4,11 +4,16 @@ import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
+import { createSession } from '../../../test/utils/lolfi';
 import { FILE_MIME_TYPES } from '../framework/files';
+import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
+import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
+import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
 import { AppModule } from 'src/app.module';
@@ -30,7 +35,12 @@ describe('Session E2E', () => {
   });
 
   beforeAll(async () => {
-    app = await AppModule.create();
+    const modules = await Test.createTestingModule({ imports: [RootModule] })
+      .overrideProvider(ChildProcessJobRunner)
+      .useClass(InProcessJobRunner)
+      .compile();
+
+    app = AppModule.configure(modules.createNestApplication());
     await app.init();
 
     auth = app.get(SimpleAuthService);
@@ -47,7 +57,7 @@ describe('Session E2E', () => {
     const { id: userId } = await auth.registerUser({
       email: user.email,
       password: user.password,
-      role: Role.ADJOINT_SECRETAIRE_GENERAL,
+      role: Role.ADMIN,
 
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -244,24 +254,40 @@ describe('Session E2E', () => {
     });
 
     it('should not report an empty summary as a present indicator', async () => {
-      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
-      const { body: session } = await http
-        .post('/api/sessions/v2/lodam')
-        .set({ cookie: user.cookie })
-        .attach('file', fileBuffer, { filename: 'transparence.xslx', contentType: FILE_MIME_TYPES.xlsx })
-        .attach(
-          'form',
-          Buffer.from(
-            JSON.stringify({
-              date: '2025-01-01',
-              observationClosingDate: '2025-03-01',
-              formation: Magistrat.Formation.PARQUET,
-              name: 'Transparence TEST ' + randomUUID(),
-            }),
-          ),
-          { filename: 'form.json', contentType: FILE_MIME_TYPES.json },
-        )
-        .expect(HttpStatus.CREATED);
+      const session = await createSession({
+        http,
+        cookie: user.cookie,
+        session: {
+          name: 'Transparence annuelle',
+          createdAt: '22/04/2026',
+          candidates: [
+            {
+              firstName: 'ETIENNE',
+              lastName: 'TREVOUX',
+              position: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  LYON' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+              targetPosition: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  GRENOBLE' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+            },
+          ],
+        },
+      });
 
       const summaryOf = async (nominationFileId: string) => {
         const { body } = await http.get(`/api/sessions/v2/${session.id}/files`).set({ cookie: user.cookie });
