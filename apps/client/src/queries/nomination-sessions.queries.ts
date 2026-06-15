@@ -9,6 +9,7 @@ import * as $api from '@api/sdk';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
+  ListedNominationFileAttachmentDto,
   ListNominationFilesAsExcelData,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
@@ -337,19 +338,27 @@ export const useAddNominationFileAttachmentsMutation = () => {
       sessionId: string;
       files: readonly File[] | FileList;
     }) => {
-      if (input.files.length === 0) return;
-
       await $api.sessions.uploadNominationFileAttachments({
         path: { nominationFileId: input.nominationFileId, sessionId: input.sessionId },
         body: { files: [...input.files] },
       });
     },
     onSuccess: async (_data, { nominationFileId, sessionId }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
+            ),
+          };
+        },
+      );
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
       });
     },
   });
@@ -363,12 +372,28 @@ export const useRemoveNominationFileAttachmentMutation = () => {
         path: { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       });
     },
-    onSuccess: async (_data, { nominationFileId, sessionId }) => {
+    onSuccess: async (_data, { fileId, nominationFileId, sessionId }) => {
+      const attachments = queryClient.getQueryData<ListedNominationFileAttachmentDto>(
+        sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+      );
+      const hasAttachment = (attachments?.items ?? []).some((item) => item.id !== fileId);
+
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId ? { ...item, hasAttachment } : item,
+            ),
+          };
+        },
+      );
+
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
       });
     },
   });

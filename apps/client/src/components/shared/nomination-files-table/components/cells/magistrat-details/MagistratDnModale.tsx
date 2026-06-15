@@ -12,6 +12,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
+import { useIntl } from 'react-intl';
 
 import { type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -120,6 +121,7 @@ export function MagistratModaleProvider(
 }
 
 export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
+  const { formatMessage } = useIntl();
   const ctx = useContext(MagistratModalContext);
 
   const hasComment =
@@ -141,16 +143,16 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {props.nominationFile.content.nomMagistrat}
         {hasComment && (
           <i
-            aria-label="Au moins un commentaire est présent"
+            aria-label={formatMessage({ defaultMessage: 'Au moins un commentaire est présent' })}
             className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
-            title="Au moins un commentaire est présent"
+            title={formatMessage({ defaultMessage: 'Au moins un commentaire est présent' })}
           />
         )}
         {props.nominationFile.hasAttachment && (
           <i
-            aria-label="Au moins une pièce jointe est présente"
+            aria-label={formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
             className="ri-file-line ml-1 cursor-pointer before:size-5! before:content-['']"
-            title="Au moins une pièce jointe est présente"
+            title={formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
           />
         )}
       </div>

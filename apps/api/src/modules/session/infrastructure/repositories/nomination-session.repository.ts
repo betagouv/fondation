@@ -516,7 +516,7 @@ export class NominationSessionRepository {
 
     await tx.nominationFileAttachment.delete({
       where: {
-        nominationFileId_fileId: {
+        primaryKey: {
           fileId: message.fileId,
           nominationFileId: message.nominationFileId,
         },

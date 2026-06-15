@@ -613,7 +613,7 @@ describe('NominationSession', () => {
     ).toThrow(CantUpdateNominationFiles);
   });
 
-  it('should throw when adding an attachment on a file outside the session', () => {
+  it('should throw when attaching to a nomination file that does not belong to the session', () => {
     const session = NominationSession.from({
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,

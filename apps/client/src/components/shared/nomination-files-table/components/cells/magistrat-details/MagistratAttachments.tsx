@@ -1,9 +1,11 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useCallback, useRef, useState, type ChangeEvent } from 'react';
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
+import { useCallback, useRef, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useTab } from '@/hooks/useTab';
 import {
   useAddNominationFileAttachmentsMutation,
   useCreateNominationFileAttachmentUrlMutation,
@@ -61,31 +63,18 @@ export function MagistratAttachments(props: {
             values={{ count: attachments.length }}
           />
         </p>
-
-        {canManage && (
-          <>
-            <Button
-              disabled={isAddPending}
-              iconId="fr-icon-add-line"
-              onClick={() => inputRef.current?.click()}
-              priority="tertiary no outline"
-              size="small"
-              title={formatMessage({ defaultMessage: 'Ajouter une pièce jointe' })}
-            >
-              <FormattedMessage defaultMessage="Ajouter" />
-            </Button>
-            <input
-              aria-hidden
-              className="hidden"
-              multiple
-              onChange={onAdd}
-              ref={inputRef}
-              tabIndex={-1}
-              type="file"
-            />
-          </>
-        )}
       </div>
+
+      {canManage && (
+        <Upload
+          className="mb-2"
+          multiple
+          disabled={isAddPending}
+          hint={null}
+          label={formatMessage({ defaultMessage: 'Ajouter une pièce jointe' })}
+          nativeInputProps={{ ref: inputRef, onChange: onAdd }}
+        />
+      )}
 
       {attachments.length > 0 ? (
         <ul aria-labelledby={labelId} className="m-0 flex flex-col gap-2 p-0">
@@ -101,9 +90,11 @@ export function MagistratAttachments(props: {
           ))}
         </ul>
       ) : (
-        <div aria-labelledby={labelId} className="w-full leading-7">
-          <FormattedMessage defaultMessage="Aucune pièce jointe" />
-        </div>
+        !canManage && (
+          <div aria-labelledby={labelId} className="w-full leading-7">
+            <FormattedMessage defaultMessage="Aucune pièce jointe" />
+          </div>
+        )
       )}
 
       {isAddError && (
@@ -130,49 +121,40 @@ function AttachmentItem(props: {
   name: string;
 }) {
   const { formatMessage } = useIntl();
-  const { mutate: createUrl, isPending: isUrlPending } = useCreateNominationFileAttachmentUrlMutation();
-  const { mutate: remove, isPending: isRemovePending } = useRemoveNominationFileAttachmentMutation();
-  const [error, setError] = useState<string | null>(null);
+  const tab = useTab();
+  const {
+    mutate: createUrl,
+    isPending: isUrlPending,
+    isError: isUrlError,
+    reset: resetUrl,
+  } = useCreateNominationFileAttachmentUrlMutation();
+  const {
+    mutate: remove,
+    isPending: isRemovePending,
+    isError: isRemoveError,
+    reset: resetRemove,
+  } = useRemoveNominationFileAttachmentMutation();
+
+  const error = isUrlError
+    ? formatMessage({ defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.' })
+    : isRemoveError
+      ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
+      : null;
 
   const onDownload = useCallback(() => {
-    setError(null);
-    const downloadError = formatMessage({
-      defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.',
-    });
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
         onSuccess: (response) => {
-          if (!response) {
-            setError(downloadError);
-            return;
-          }
-
-          const a = document.createElement('a');
-          a.href = response.url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+          if (response) tab.open(response.url);
         },
-        onError: () => setError(downloadError),
       },
     );
-  }, [createUrl, props.sessionId, props.nominationFileId, props.fileId, formatMessage]);
+  }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
 
   const onDelete = useCallback(() => {
-    setError(null);
-    remove(
-      { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
-      {
-        onError: () =>
-          setError(
-            formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' }),
-          ),
-      },
-    );
-  }, [remove, props.sessionId, props.nominationFileId, props.fileId, formatMessage]);
+    remove({ fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId });
+  }, [remove, props.sessionId, props.nominationFileId, props.fileId]);
 
   return (
     <li className="flex flex-col gap-1 pb-0">
@@ -199,7 +181,18 @@ function AttachmentItem(props: {
         )}
       </div>
 
-      {error && <Alert closable description={error} onClose={() => setError(null)} severity="error" small />}
+      {error && (
+        <Alert
+          closable
+          description={error}
+          onClose={() => {
+            resetUrl();
+            resetRemove();
+          }}
+          severity="error"
+          small
+        />
+      )}
     </li>
   );
 }
