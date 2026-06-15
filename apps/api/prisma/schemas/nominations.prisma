@@ -160,6 +160,7 @@ model Session {
   archiver             User?                 @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
 
   @@index([deletedAt])
+  @@index([archivedAt])
   @@map("session")
   @@schema("nominations_context")
 }
