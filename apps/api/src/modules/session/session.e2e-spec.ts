@@ -4,11 +4,17 @@ import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { agent } from 'supertest';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
+import { createSession } from '../../../test/utils/lolfi';
+import { PrismaService } from '../framework/database';
 import { FILE_MIME_TYPES } from '../framework/files';
+import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
+import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
+import { RootModule } from '../root.module';
 import { SimpleAuthService } from '../simple-auth';
 import { LoginDto } from '../simple-auth/infrastructure/dto/auth.dto';
 import { AppModule } from 'src/app.module';
@@ -30,7 +36,12 @@ describe('Session E2E', () => {
   });
 
   beforeAll(async () => {
-    app = await AppModule.create();
+    const modules = await Test.createTestingModule({ imports: [RootModule] })
+      .overrideProvider(ChildProcessJobRunner)
+      .useClass(InProcessJobRunner)
+      .compile();
+
+    app = AppModule.configure(modules.createNestApplication());
     await app.init();
 
     auth = app.get(SimpleAuthService);
@@ -47,7 +58,7 @@ describe('Session E2E', () => {
     const { id: userId } = await auth.registerUser({
       email: user.email,
       password: user.password,
-      role: Role.ADJOINT_SECRETAIRE_GENERAL,
+      role: Role.ADMIN,
 
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -89,6 +100,12 @@ describe('Session E2E', () => {
     });
 
     it('should import a session tree from a LODAM file', async () => {
+      // Detection resolves the targeted function against the global `function` reference table that
+      // other e2e specs ingest (e.g. the "PR" function). Clear it so this assertion stays null
+      // regardless of the order specs run in. deleteMany (not TRUNCATE CASCADE) honours the
+      // detected_targeted_function_id SET NULL fk leaving other specs' nomination files intact
+      await app.get(PrismaService).function.deleteMany();
+
       const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
       const response = await http
         .post('/api/sessions/v2/lodam')
@@ -242,5 +259,151 @@ describe('Session E2E', () => {
         ]),
       } satisfies NominationFileAffectationItem);
     });
+
+    // 30s timeout: createSession runs a full LOLFI ingestion (job wait + search retry, up to 6.5s)
+    // before the summary requests which overruns the 5s jest default on slow CI runners
+    it('should not report an empty summary as a present indicator', async () => {
+      const session = await createSession({
+        http,
+        cookie: user.cookie,
+        session: {
+          name: 'Transparence annuelle',
+          createdAt: '22/04/2026',
+          candidates: [
+            {
+              firstName: 'ETIENNE',
+              lastName: 'TREVOUX',
+              position: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  LYON' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+              targetPosition: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  GRENOBLE' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      const summaryOf = async (nominationFileId: string) => {
+        const { body } = await http.get(`/api/sessions/v2/${session.id}/files`).set({ cookie: user.cookie });
+        return (body.items as NominationFileAffectationItem[]).find(({ id }) => id === nominationFileId)
+          ?.summary;
+      };
+
+      const { body: initial } = await http
+        .get(`/api/sessions/v2/${session.id}/files`)
+        .set({ cookie: user.cookie });
+      const { id: nominationFileId } = initial.items[0] as NominationFileAffectationItem;
+      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
+
+      await http.post(summaryPath).set({ cookie: user.cookie }).expect(HttpStatus.CREATED);
+      expect(await summaryOf(nominationFileId)).toBeNull();
+
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: user.cookie })
+        .send({ content: 'Une vraie synthèse' })
+        .expect(HttpStatus.NO_CONTENT);
+      expect(await summaryOf(nominationFileId)).toEqual({
+        id: nominationFileId,
+        canRead: true,
+        canWrite: true,
+      });
+    }, 30_000);
+
+    // An empty summary belongs to no one: anyone can (re)create it and the first to write
+    // content becomes its author. Once authored, only that author can write it
+    it('leaves an empty summary authorless and gives it to the first writer', async () => {
+      const otherUser = {
+        email: faker.internet.email(),
+        password: faker.string.alphanumeric({ length: 20 }),
+      };
+      await auth.registerUser({
+        email: otherUser.email,
+        password: otherUser.password,
+        role: Role.ADMIN,
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        gender: faker.helpers.enumValue(Gender),
+      });
+      const otherLogin = await http
+        .post('/api/auth/v2/login')
+        .send(otherUser satisfies LoginDto)
+        .expect(HttpStatus.NO_CONTENT);
+      const otherCookie = otherLogin.headers['set-cookie'] as string;
+
+      const session = await createSession({
+        http,
+        cookie: user.cookie,
+        session: {
+          name: 'Transparence annuelle',
+          createdAt: '22/04/2026',
+          candidates: [
+            {
+              firstName: 'ETIENNE',
+              lastName: 'TREVOUX',
+              position: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  LYON' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+              targetPosition: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  GRENOBLE' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      const { body: initial } = await http
+        .get(`/api/sessions/v2/${session.id}/files`)
+        .set({ cookie: user.cookie });
+      const { id: nominationFileId } = initial.items[0] as NominationFileAffectationItem;
+      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
+
+      // an empty summary belongs to no one: creating it twice does not conflict
+      await http.post(summaryPath).set({ cookie: user.cookie }).expect(HttpStatus.CREATED);
+      await http.post(summaryPath).set({ cookie: otherCookie }).expect(HttpStatus.CREATED);
+
+      // the first to write content becomes the author
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: otherCookie })
+        .send({ content: 'Synthèse rédigée en premier' })
+        .expect(HttpStatus.NO_CONTENT);
+
+      // the other can no longer write: it now has an author
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: user.cookie })
+        .send({ content: 'tentative concurrente' })
+        .expect(HttpStatus.FORBIDDEN);
+    }, 30_000);
   });
 });
