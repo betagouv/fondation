@@ -52,15 +52,10 @@ export class SummaryController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @ZodResponse({ status: HttpStatus.CREATED, type: CreatedSummaryDto })
   createSummary(
-    @AuthedUser() user: { id: string },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<CreatedSummaryDto> {
-    return this.summaries.create({
-      userId: user.id,
-      sessionId,
-      nominationFileId,
-    });
+    return this.summaries.create({ sessionId, nominationFileId });
   }
 
   @Post('/attachments')
