@@ -389,6 +389,7 @@ export type PaginatedNominationFiles = {
             canRead: boolean;
             canWrite: boolean;
         } | null;
+        hasAttachment: boolean;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -462,6 +463,23 @@ export type ListedNominationSessionAttachmentDto = {
 };
 
 export type DetailedNominationSessionAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+};
+
+export type UploadNominationFileAttachmentsDto = {
+    files: Array<Blob | File>;
+};
+
+export type ListedNominationFileAttachmentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+    }>;
+};
+
+export type DetailedNominationFileAttachmentDto = {
     id: string;
     name: string;
     url: string;
@@ -2020,6 +2038,72 @@ export type ListNominationSessionAttachmentsResponses = {
 };
 
 export type ListNominationSessionAttachmentsResponse = ListNominationSessionAttachmentsResponses[keyof ListNominationSessionAttachmentsResponses];
+
+export type ListNominationFileAttachmentsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments';
+};
+
+export type ListNominationFileAttachmentsResponses = {
+    200: ListedNominationFileAttachmentDto;
+};
+
+export type ListNominationFileAttachmentsResponse = ListNominationFileAttachmentsResponses[keyof ListNominationFileAttachmentsResponses];
+
+export type UploadNominationFileAttachmentsData = {
+    body: UploadNominationFileAttachmentsDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments';
+};
+
+export type UploadNominationFileAttachmentsResponses = {
+    204: void;
+};
+
+export type UploadNominationFileAttachmentsResponse = UploadNominationFileAttachmentsResponses[keyof UploadNominationFileAttachmentsResponses];
+
+export type RemoveNominationFileAttachmentData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments/{fileId}';
+};
+
+export type RemoveNominationFileAttachmentResponses = {
+    204: void;
+};
+
+export type RemoveNominationFileAttachmentResponse = RemoveNominationFileAttachmentResponses[keyof RemoveNominationFileAttachmentResponses];
+
+export type CreateNominationFileAttachmentUrlData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments/{fileId}';
+};
+
+export type CreateNominationFileAttachmentUrlResponses = {
+    200: DetailedNominationFileAttachmentDto;
+};
+
+export type CreateNominationFileAttachmentUrlResponse = CreateNominationFileAttachmentUrlResponses[keyof CreateNominationFileAttachmentUrlResponses];
 
 export type DeleteNominationSessionData = {
     body?: never;
