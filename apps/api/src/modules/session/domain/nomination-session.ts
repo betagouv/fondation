@@ -103,6 +103,20 @@ export class NominationSessionAttachmentRemoved {
   ) {}
 }
 
+export class NominationFileAttachmentAdded {
+  constructor(
+    readonly nominationFileId: string,
+    readonly file: { id: string },
+  ) {}
+}
+
+export class NominationFileAttachmentRemoved {
+  constructor(
+    readonly nominationFileId: string,
+    readonly fileId: string,
+  ) {}
+}
+
 export class NominationSessionUpdated {
   constructor(
     readonly sessionId: string,
@@ -171,6 +185,8 @@ type NominationSessionEvent =
   | NominationSessionAffectationVersionPublished
   | NominationSessionAttachmentAdded
   | NominationSessionAttachmentRemoved
+  | NominationFileAttachmentAdded
+  | NominationFileAttachmentRemoved
   | NominationSessionCreated
   | NominationSessionFilePrioritiesUpdated
   | NominationSessionFileReportersAffected
@@ -502,6 +518,20 @@ export class NominationSession {
 
   hideAlert(command: { nominationFileId: string }) {
     this.#messages.push(new NominationFileAlertHidden(this.id, command.nominationFileId));
+  }
+
+  addNominationFileAttachments(command: { nominationFileId: string; files: { id: string }[] }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    for (const file of command.files) {
+      this.#messages.push(new NominationFileAttachmentAdded(command.nominationFileId, file));
+    }
+  }
+
+  removeNominationFileAttachment(command: { nominationFileId: string; fileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(new NominationFileAttachmentRemoved(command.nominationFileId, command.fileId));
   }
 
   validate(command: { userId: string | null }): void {

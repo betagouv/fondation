@@ -9,6 +9,7 @@ model File {
 
   attachedToReports                   ReportFile[]
   attachedToSessions                  SessionAttachment[]
+  attachedToNominationFiles           NominationFileAttachment[]
   filePublicUrls                      FilePublicUrl[]
   attachedToObservations              ObservationFile[]
   attachedToObservationMemberComments ObservationMemberCommentScreenshot[]

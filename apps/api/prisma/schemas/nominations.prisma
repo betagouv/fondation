@@ -97,6 +97,7 @@ model DossierDeNomination {
   observations               Observation[]
   memberMemos                MemberMemo[]
   summary                    Summary?
+  attachments                NominationFileAttachment[]
   agendaInclusions           AgendaNominationFile[]
   presentationPlanInclusions JusticePresentationPlanNominationFile[]
   officialReportInclusions   OfficialReportNominationFile[]
@@ -110,6 +111,18 @@ model DossierDeNomination {
   @@index([sessionId, sortableTargetedGrade])
   @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")
+  @@schema("nominations_context")
+}
+
+model NominationFileAttachment {
+  nominationFileId String @map("nomination_file_id") @db.Uuid
+  fileId           String @map("file_id") @db.Uuid
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  file           File                @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([nominationFileId, fileId], name: "primaryKey")
+  @@map("nomination_file_attachment")
   @@schema("nominations_context")
 }
 

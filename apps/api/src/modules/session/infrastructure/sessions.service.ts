@@ -32,6 +32,10 @@ import {
   CountUsersNewSessionsDto,
   CountUsersNewSessionsQuery,
 } from './queries/count-users-new-sessions.query';
+import {
+  type DetailedNominationFileAttachmentDto,
+  DetailNominationFileAttachmentQuery,
+} from './queries/detail-nomination-file-attachment.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -58,6 +62,10 @@ import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
 } from './queries/list-currently-affected-reporters.query';
+import {
+  type ListedNominationFileAttachmentDto,
+  ListNominationFileAttachmentsQuery,
+} from './queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 import {
   ListNominationFilesQuery,
@@ -80,6 +88,7 @@ export class SessionService {
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
+    private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
@@ -87,6 +96,7 @@ export class SessionService {
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
+    private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
@@ -300,6 +310,49 @@ export class SessionService {
 
     session.removeAttachment({ fileId: command.fileId });
     await this.nominationSessionRepository.persist(session);
+  }
+
+  async addNominationFileAttachments(command: {
+    sessionId: string;
+    nominationFileId: string;
+    files: { id: string }[];
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+
+    session.addNominationFileAttachments({
+      nominationFileId: command.nominationFileId,
+      files: command.files,
+    });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  async removeNominationFileAttachment(command: {
+    sessionId: string;
+    nominationFileId: string;
+    fileId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+
+    session.removeNominationFileAttachment({
+      nominationFileId: command.nominationFileId,
+      fileId: command.fileId,
+    });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  listNominationFileAttachments(query: {
+    sessionId: string;
+    nominationFileId: string;
+  }): Promise<ListedNominationFileAttachmentDto> {
+    return this.listNominationFileAttachmentsQuery.handle(query);
+  }
+
+  detailNominationFileAttachment(query: {
+    sessionId: string;
+    nominationFileId: string;
+    fileId: string;
+  }): Promise<DetailedNominationFileAttachmentDto> {
+    return this.detailNominationFileAttachmentQuery.handle(query);
   }
 
   listAttachments(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {

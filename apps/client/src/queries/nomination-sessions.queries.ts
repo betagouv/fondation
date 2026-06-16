@@ -9,6 +9,7 @@ import * as $api from '@api/sdk';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
+  ListedNominationFileAttachmentDto,
   ListNominationFilesAsExcelData,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
@@ -63,6 +64,8 @@ export const sessionKeys = {
   }) => key('sessions', 'listGdsSessions', props),
   listSessionAttachments: (props: { sessionId: string }) =>
     key('sessions', 'listSessionAttachments', props.sessionId),
+  listNominationFileAttachments: (props: { nominationFileId: string; sessionId: string }) =>
+    key('sessions', 'listNominationFileAttachments', props.sessionId, props.nominationFileId),
   lolfiMagistratUrl: (props?: { sessionId: string; nominationFileId?: string }) =>
     key('sessions', 'lolfiMagistratUrl', props?.sessionId, props?.nominationFileId),
   listCurrentlyAffectedReporters: (props?: { sessionId: string }) =>
@@ -323,6 +326,107 @@ export const useCreateNominationSessionAttachmentUrlMutation = () =>
       $api.sessions
         .createNominationSessionAttachmentUrl({
           path: { sessionId: props.sessionId, fileId: props.fileId },
+        })
+        .then(({ data = null }) => data),
+  });
+
+export const useAddNominationFileAttachmentsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      nominationFileId: string;
+      sessionId: string;
+      files: readonly File[] | FileList;
+    }) => {
+      await $api.sessions.uploadNominationFileAttachments({
+        path: { nominationFileId: input.nominationFileId, sessionId: input.sessionId },
+        body: { files: [...input.files] },
+      });
+    },
+    onSuccess: async (_data, { nominationFileId, sessionId }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
+            ),
+          };
+        },
+      );
+      await queryClient.invalidateQueries({
+        queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+      });
+    },
+  });
+};
+
+export const useRemoveNominationFileAttachmentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (props: { fileId: string; nominationFileId: string; sessionId: string }) => {
+      await $api.sessions.removeNominationFileAttachment({
+        path: { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
+      });
+    },
+    onSuccess: async (_data, { fileId, nominationFileId, sessionId }) => {
+      const attachments = queryClient.getQueryData<ListedNominationFileAttachmentDto>(
+        sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+      );
+      const hasAttachment = (attachments?.items ?? []).some((item) => item.id !== fileId);
+
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: PaginatedNominationFiles | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((item) =>
+              item.id === nominationFileId ? { ...item, hasAttachment } : item,
+            ),
+          };
+        },
+      );
+
+      await queryClient.invalidateQueries({
+        queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+      });
+    },
+  });
+};
+
+export const useListNominationFileAttachmentsQuery = (props: {
+  nominationFileId: string;
+  sessionId: string;
+}) =>
+  useQuery({
+    placeholderData: (prev) => prev,
+    queryKey: sessionKeys.listNominationFileAttachments({
+      nominationFileId: props.nominationFileId,
+      sessionId: props.sessionId,
+    }),
+    queryFn: () =>
+      $api.sessions
+        .listNominationFileAttachments({
+          path: { nominationFileId: props.nominationFileId, sessionId: props.sessionId },
+        })
+        .then(({ data = null }) => data),
+  });
+
+export const useCreateNominationFileAttachmentUrlMutation = () =>
+  useMutation({
+    mutationFn: (props: { fileId: string; nominationFileId: string; sessionId: string }) =>
+      $api.sessions
+        .createNominationFileAttachmentUrl({
+          path: {
+            fileId: props.fileId,
+            nominationFileId: props.nominationFileId,
+            sessionId: props.sessionId,
+          },
         })
         .then(({ data = null }) => data),
   });
