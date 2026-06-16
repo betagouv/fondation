@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { NoAuthorAvailable, OnlyAuthorCanWriteSummary, UnknownReader } from '../domain/summary';
+import { OnlyAuthorCanWriteSummary, UnknownReader } from '../domain/summary';
 
 @Injectable()
 export class SummaryFilter implements NestInterceptor {
@@ -24,13 +24,6 @@ export class SummaryFilter implements NestInterceptor {
               readerId: err.readerId,
             });
             return new NotFoundException();
-          }
-
-          if (err instanceof NoAuthorAvailable) {
-            this.logger.error(`the original author does not exist anymore`, {
-              nominationFileId: err.nominationFileId,
-            });
-            return new ForbiddenException();
           }
 
           if (err instanceof OnlyAuthorCanWriteSummary) {
