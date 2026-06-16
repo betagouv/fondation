@@ -324,5 +324,86 @@ describe('Session E2E', () => {
         canWrite: true,
       });
     }, 30_000);
+
+    // An empty summary belongs to no one: anyone can (re)create it and the first to write
+    // content becomes its author. Once authored, only that author can write it
+    it('leaves an empty summary authorless and gives it to the first writer', async () => {
+      const otherUser = {
+        email: faker.internet.email(),
+        password: faker.string.alphanumeric({ length: 20 }),
+      };
+      await auth.registerUser({
+        email: otherUser.email,
+        password: otherUser.password,
+        role: Role.ADMIN,
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        gender: faker.helpers.enumValue(Gender),
+      });
+      const otherLogin = await http
+        .post('/api/auth/v2/login')
+        .send(otherUser satisfies LoginDto)
+        .expect(HttpStatus.NO_CONTENT);
+      const otherCookie = otherLogin.headers['set-cookie'] as string;
+
+      const session = await createSession({
+        http,
+        cookie: user.cookie,
+        session: {
+          name: 'Transparence annuelle',
+          createdAt: '22/04/2026',
+          candidates: [
+            {
+              firstName: 'ETIENNE',
+              lastName: 'TREVOUX',
+              position: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  LYON' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+              targetPosition: {
+                grade: Magistrat.Grade.G3,
+                jurisdiction: { id: 'CA  GRENOBLE' },
+                function: {
+                  id: 'PR',
+                  label: 'Procureur de la République',
+                  labelOneMale: 'procureur de la République',
+                  formation: Magistrat.Formation.PARQUET,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      const { body: initial } = await http
+        .get(`/api/sessions/v2/${session.id}/files`)
+        .set({ cookie: user.cookie });
+      const { id: nominationFileId } = initial.items[0] as NominationFileAffectationItem;
+      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
+
+      // an empty summary belongs to no one: creating it twice does not conflict
+      await http.post(summaryPath).set({ cookie: user.cookie }).expect(HttpStatus.CREATED);
+      await http.post(summaryPath).set({ cookie: otherCookie }).expect(HttpStatus.CREATED);
+
+      // the first to write content becomes the author
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: otherCookie })
+        .send({ content: 'Synthèse rédigée en premier' })
+        .expect(HttpStatus.NO_CONTENT);
+
+      // the other can no longer write: it now has an author
+      await http
+        .put(`${summaryPath}/content`)
+        .set({ cookie: user.cookie })
+        .send({ content: 'tentative concurrente' })
+        .expect(HttpStatus.FORBIDDEN);
+    }, 30_000);
   });
 });

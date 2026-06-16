@@ -6,6 +6,7 @@ import { SummaryContainer } from '@/components/summary/components/SummaryContain
 import { Summary } from '@/components/summary/Summary';
 import { useVisibleSummarySections } from '@/components/summary/useVisibleSummarySections';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { useIsSg } from '@/hooks/roles.hook';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';
@@ -15,6 +16,7 @@ import { SummaryNotFound } from './SummaryNotFound';
 
 function SummaryPageInner() {
   const { user } = useUser();
+  const isSg = useIsSg();
 
   const params = useParams<{ sessionId: string; fileId: string }>();
   const sessionId = params.sessionId!;
@@ -36,7 +38,7 @@ function SummaryPageInner() {
   }
 
   const canWriteSummary =
-    isFetched && !!user?.id && !!data && !!data.summary.author?.id && user.id === data.summary.author.id;
+    isFetched && !!user?.id && !!data && (data.summary.author ? user.id === data.summary.author.id : isSg);
 
   const canReadSummary =
     isFetched &&
