@@ -569,6 +569,7 @@ export class NominationSessionRepository {
           },
         },
         create: {
+          id: file.id,
           number: file.fileNumber,
           sessionId: message.sessionId,
 
@@ -581,7 +582,6 @@ export class NominationSessionRepository {
           detectedTargetedPositionId: file.detectedTargetedPositionId,
           dueDate: session.dueDate,
           grade: file.grade,
-          id: file.id,
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
@@ -600,7 +600,6 @@ export class NominationSessionRepository {
           detectedTargetedPositionId: file.detectedTargetedPositionId,
           dueDate: session.dueDate,
           grade: file.grade,
-          id: file.id,
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
