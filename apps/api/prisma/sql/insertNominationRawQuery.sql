@@ -16,12 +16,12 @@ WITH bronze_nomination AS (
 ),
 
 silver_nomination AS (
-  SELECT bn.*
+  SELECT bn.*, tp.id AS real_targeted_position_id, cp.id AS real_current_position_id
   FROM bronze_nomination AS bn
     INNER JOIN nominations_context.magistrat AS m ON m.external_id = bn.magistrat_id
     INNER JOIN data_administration_context.session AS s ON s.id = bn.session_id
     INNER JOIN data_administration_context.position AS tp ON tp.id = bn.targeted_position_id
-    INNER JOIN data_administration_context.position AS cp ON cp.id = bn.current_position_id
+    LEFT JOIN data_administration_context.position AS cp ON cp.id = bn.current_position_id
 ),
 
 gold_nomination AS (
@@ -41,11 +41,11 @@ gold_nomination AS (
   SELECT
     id,
     session_id,
-    targeted_position_id,
+    real_targeted_position_id,
     "type",
     last_promotion_year,
     is_designated,
-    current_position_id,
+    real_current_position_id,
     last_ranking_date,
     position_sort,
     rank,

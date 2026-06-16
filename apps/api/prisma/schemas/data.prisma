@@ -178,7 +178,7 @@ model Nomination {
   magistratId        String                   @map("magistrat_id")
   sessionId          Int                      @map("session_id") @db.Integer
   targetedPositionId Int                      @map("targeted_position_id") @db.Integer
-  currentPositionId  Int                      @map("current_position_id") @db.Integer
+  currentPositionId  Int?                     @map("current_position_id") @db.Integer
   type               PrismaNominationTypeEnum @default(EQUIVALENT)
   isDesignated       Boolean                  @default(false) @map("is_designated")
   rank               Int                      @db.SmallInt
@@ -189,7 +189,7 @@ model Nomination {
   magistrat        Magistrat    @relation(fields: [magistratId], references: [externalId], onDelete: Cascade, onUpdate: NoAction)
   session          LolfiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   targetedPosition Position     @relation(fields: [targetedPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "targetPositionFk")
-  currentPosition  Position     @relation(fields: [currentPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "currentPositionFk")
+  currentPosition  Position?    @relation(fields: [currentPositionId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "currentPositionFk")
 
   @@index([positionSort])
   @@map("nomination")
