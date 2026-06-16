@@ -13,6 +13,8 @@ import { Magistrat, PrioriteEnum } from 'shared-models';
 import {
   LodamNominationSessionFilesCreated,
   NominationFileAlertHidden,
+  NominationFileAttachmentAdded,
+  NominationFileAttachmentRemoved,
   NominationFileMemberMemoWritten,
   NominationFileOutcomeDefined,
   NominationFilesAssociated,
@@ -162,6 +164,10 @@ export class NominationSessionRepository {
         await this.persistNominationSessionAttachmentAdded(tx, message);
       } else if (message instanceof NominationSessionAttachmentRemoved) {
         await this.persistNominationSessionAttachmentRemoved(tx, message);
+      } else if (message instanceof NominationFileAttachmentAdded) {
+        await this.persistNominationFileAttachmentAdded(tx, message);
+      } else if (message instanceof NominationFileAttachmentRemoved) {
+        await this.persistNominationFileAttachmentRemoved(tx, message);
       } else if (message instanceof NominationSessionUpdated) {
         await this.persistNominationSessionUpdated(tx, message);
       } else if (message instanceof NominationFileOutcomeDefined) {
@@ -481,6 +487,38 @@ export class NominationSessionRepository {
         sessionId_fileId: {
           fileId: message.fileId,
           sessionId: message.sessionId,
+        },
+      },
+    });
+
+    this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
+  }
+
+  private async persistNominationFileAttachmentAdded(
+    tx: Prisma.TransactionClient,
+    message: NominationFileAttachmentAdded,
+  ) {
+    await tx.nominationFileAttachment.create({
+      data: { nominationFileId: message.nominationFileId, fileId: message.file.id },
+    });
+  }
+
+  private async persistNominationFileAttachmentRemoved(
+    tx: Prisma.TransactionClient,
+    message: NominationFileAttachmentRemoved,
+  ) {
+    const attachment = await tx.nominationFileAttachment.findFirst({
+      where: { fileId: message.fileId, nominationFileId: message.nominationFileId },
+      select: { file: { select: { path: true, id: true } } },
+    });
+
+    if (!attachment) return;
+
+    await tx.nominationFileAttachment.delete({
+      where: {
+        primaryKey: {
+          fileId: message.fileId,
+          nominationFileId: message.nominationFileId,
         },
       },
     });

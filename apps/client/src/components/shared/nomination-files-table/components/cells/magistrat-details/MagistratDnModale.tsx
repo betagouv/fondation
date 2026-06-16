@@ -150,9 +150,16 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {props.nominationFile.content.nomMagistrat}
         {hasAnnotations && (
           <i
+            aria-label={annotationsLabel}
             className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
             title={annotationsLabel}
-            aria-label={annotationsLabel}
+          />
+        )}
+        {props.nominationFile.hasAttachment && (
+          <i
+            aria-label={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
+            className="ri-file-line ml-1 cursor-pointer before:size-5! before:content-['']"
+            title={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
           />
         )}
       </div>
