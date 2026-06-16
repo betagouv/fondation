@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { Summary } from '../domain/summary';
 import { PrismaService } from 'src/modules/framework/database';
@@ -26,20 +26,8 @@ export class SummaryService {
     private readonly generateAttachmentPublicUrlQuery: GetSummaryAttachmentUrlQuery,
   ) {}
 
-  async create(command: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
-  }): Promise<{ id: string }> {
-    const summaryAlreadyExists = await this.summaryRepository.exists(command);
-    if (summaryAlreadyExists) throw new ConflictException();
-
-    const summary = Summary.create({
-      authorId: command.userId,
-      sessionId: command.sessionId,
-      nominationFileId: command.nominationFileId,
-    });
-
+  async create(command: { sessionId: string; nominationFileId: string }): Promise<{ id: string }> {
+    const summary = Summary.create(command);
     await this.summaryRepository.persist(summary);
     return { id: summary.id };
   }
