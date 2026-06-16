@@ -87,7 +87,7 @@ export function AppErrorBoundary() {
               'fr-py-0',
             )}
           >
-            <div className="relative h-[200px] w-40">
+            <div className="relative h-50 w-40">
               <OvoidMotif className="absolute" />
               <OvoidBackground className="fr-artwork-background absolute" />
 

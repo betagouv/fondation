@@ -17,7 +17,10 @@ export function SummarySectionCard(props: {
   return (
     <section
       id={props.id}
-      className={clsx('rounded-lg bg-white', !props.disablePadding && 'fr-px-6v fr-py-4v')}
+      className={clsx(
+        'rounded-lg bg-(--background-default-grey)',
+        !props.disablePadding && 'fr-px-6v fr-py-4v',
+      )}
     >
       {props.children}
     </section>

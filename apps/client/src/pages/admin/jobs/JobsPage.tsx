@@ -109,9 +109,11 @@ export function JobsPage() {
                     <p className="fr-m-0 text-sm font-normal">Chargement...</p>
                   ) : (
                     <div>
-                      <p className="fr-m-0 font-normal text-red-500">Erreur</p>
+                      <p className="fr-m-0 font-normal text-(--text-default-error)">Erreur</p>
                       {error ? (
-                        <p className="fr-m-0 text-xs font-normal text-red-500">{String(error)}</p>
+                        <p className="fr-m-0 text-xs font-normal text-(--text-default-error)">
+                          {String(error)}
+                        </p>
                       ) : null}
                     </div>
                   ),
@@ -123,7 +125,7 @@ export function JobsPage() {
                     linkProps: { to: '' },
                     isActive: false,
                     text: (
-                      <p className="fr-m-0 text-sm font-normal text-gray-500">
+                      <p className="fr-m-0 text-sm font-normal text-(--text-mention-grey)">
                         Aucune ingestion ne correspond aux filtres
                       </p>
                     ),

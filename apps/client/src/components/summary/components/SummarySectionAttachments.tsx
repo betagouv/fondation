@@ -31,7 +31,7 @@ export function SummarySectionAttachments() {
             ))}
           </ul>
         ) : canWriteSummary ? null : (
-          <p className="text-sm text-gray-600">Aucune pièce jointe pour le moment</p>
+          <p className="text-sm text-(--text-mention-grey)">Aucune pièce jointe pour le moment</p>
         )}
       </div>
     </SummarySectionCard>

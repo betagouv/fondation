@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { JuridictionAutocomplete } from './JurisdictionAutocomplete';
 
 function JurisdictionSelectorSelected(props: { selected: readonly { id: string; label: string | null }[] }) {
-  if (props.selected.length === 0) return <span className="font-bold text-gray-300">n/a</span>;
+  if (props.selected.length === 0) return <span className="font-bold text-(--text-disabled-grey)">n/a</span>;
 
   return (
     <>

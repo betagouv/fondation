@@ -9,7 +9,7 @@ export function JobFilesTree(props: { files: readonly JobFile[] }) {
   const forest = React.useMemo(() => tree(props.files), [props.files]);
 
   return (
-    <div className="fr-p-6v flex w-full flex-wrap gap-4 overflow-x-auto rounded-sm border border-solid border-gray-300 bg-gray-100">
+    <div className="fr-p-6v flex w-full flex-wrap gap-4 overflow-x-auto rounded-sm border border-solid border-(--border-default-grey) bg-(--background-contrast-grey)">
       {forest.map((tree) => (
         <JobFileBranch key={tree.id} tree={tree} root />
       ))}

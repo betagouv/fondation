@@ -122,7 +122,7 @@ export function JusticeContactSelector(
 
       <ComboboxContent>
         <ComboboxEmpty>
-          <span className="text-[0.925rem] text-gray-500 italic">
+          <span className="text-[0.925rem] text-(--text-mention-grey) italic">
             <FormattedMessage defaultMessage={`Pas de représentant existant (en attente d'une saisie)`} />
           </span>
         </ComboboxEmpty>
@@ -144,9 +144,9 @@ export function JusticeContactSelector(
                     className={clsx(
                       'w-full first:rounded-t-none last:rounded-b-md',
                       `first:data-highlighted:rounded-t-none`,
-                      `data-highlighted:bg-grey-975 data-highlighted:hover:outline-0`,
+                      `data-highlighted:bg-(--background-default-grey-hover) data-highlighted:hover:outline-0`,
                       `data-highlighted:outline-2 data-highlighted:outline-solid`,
-                      `data-highlighted:outline-offset-2 data-highlighted:outline-blue-500`,
+                      `data-highlighted:outline-offset-2 data-highlighted:outline-(--border-active-blue-france)`,
                       {
                         'before:size-4! before:animate-spin before:content-[""]': isFetching || isCreating,
                       },

@@ -85,7 +85,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
   };
 
   return (
-    <form className="m-auto w-full max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
+    <form className="m-auto w-full max-w-120" onSubmit={handleSubmit(onSubmit)}>
       {session ? <h1>Éditer "{session?.name}"</h1> : <h1>Éditer la transparence</h1>}
       {errors.root && (
         <Alert className="fr-mb-2v" severity="error" title={errors.root.message} small description="" />
@@ -99,7 +99,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             label={
               <>
-                Nom de la transparence<span className="text-red-500">*</span>
+                Nom de la transparence<span className="text-(--text-default-error)">*</span>
               </>
             }
             id="nom-transparence"
@@ -123,7 +123,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             label={
               <>
-                Date de la transparence<span className="text-red-500">*</span>
+                Date de la transparence<span className="text-(--text-default-error)">*</span>
               </>
             }
             id="date-transparence"
@@ -147,7 +147,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             label={
               <>
-                Clôture du délai d'observation<span className="text-red-500">*</span>
+                Clôture du délai d'observation<span className="text-(--text-default-error)">*</span>
               </>
             }
             id="date-cloture-delai-observation"

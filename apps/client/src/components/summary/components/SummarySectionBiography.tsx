@@ -21,7 +21,7 @@ export function SummarySectionBiography() {
             ))}
         </ul>
       ) : (
-        <span className="text-gray-600">N/A</span>
+        <span className="text-(--text-mention-grey)">N/A</span>
       )}
     </SummarySectionCard>
   );

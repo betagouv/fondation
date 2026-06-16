@@ -32,17 +32,17 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
       role="button"
       onClick={() => toggleFile(props.node.id)}
       className={clsx(
-        'hover:border-opacity-85 fr-p-4v cursor-pointer rounded-sm border border-solid bg-white text-sm transition-all duration-100 select-none',
+        'hover:border-opacity-85 fr-p-4v cursor-pointer rounded-sm border border-solid bg-(--background-default-grey) text-sm transition-all duration-100 select-none',
         isSelected
-          ? 'border-blue-500 shadow-sm hover:border-blue-600 hover:shadow-md'
-          : 'border-gray-300 hover:border-blue-400 hover:shadow-sm',
+          ? 'border-(--border-active-blue-france) shadow-sm hover:border-(--border-active-blue-france) hover:shadow-md'
+          : 'border-(--border-default-grey) hover:border-(--border-active-blue-france) hover:shadow-sm',
       )}
     >
       <span className="flex items-center">
         <i
           className={clsx(
             props.node.status !== 'FAILED' && props.node.errors.length > 0
-              ? ['text-orange-500', cx('ri-error-warning-fill')]
+              ? ['text-(--text-default-warning)', cx('ri-error-warning-fill')]
               : [textColor, icon],
             'before:content-[""]',
             'before:size-4!',
@@ -53,7 +53,7 @@ export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
         <span>{props.node.name}</span>
       </span>
       <div className="fr-ml-5v flex flex-col">
-        {duration ? <span className="text-xs text-gray-500">{duration}</span> : null}
+        {duration ? <span className="text-xs text-(--text-mention-grey)">{duration}</span> : null}
       </div>
     </div>
   );
