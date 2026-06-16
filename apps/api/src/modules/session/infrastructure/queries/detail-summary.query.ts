@@ -118,7 +118,7 @@ export class DetailSummaryQuery {
       [summary.author?.id, ...summary.readers.map(({ user }) => user.id)].filter(isDefined),
     );
 
-    if (!allAllowedReaders.has(query.userId)) {
+    if (summary.author && !allAllowedReaders.has(query.userId)) {
       this.logger.error(
         `Unauthorized access attempt from ${query.userId} to ${query.nominationFileId}`,
         query,

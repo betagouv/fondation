@@ -11,12 +11,14 @@ import { IngestedLolfiArchiveDto } from '../../src/modules/ingest/infrastructure
 import { DetailedJobDto } from '../../src/modules/ingest/jobs/queries/details-job.query';
 import { assertIsDefined } from '../../src/utils/is-defined';
 
+let sessionIdSequence = randomInt(1_000_000, 1_000_000_000);
+
 export async function createSession(options: {
   cookie: string;
   session: LolfiData['sessions'][number];
   http: ReturnType<typeof supertest.agent>;
 }): Promise<{ id: string }> {
-  const sessionId = options.session.id || randomInt(100, 1e6);
+  const sessionId = options.session.id || ++sessionIdSequence;
   const sessionName = `${options.session.name || 'Transparence annuelle'}`;
 
   const archive = await generateLolfiArchive({
@@ -49,11 +51,17 @@ export async function createSession(options: {
     expect(status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
   }, /* timeout */ 2_000);
 
-  const sessionResponse = await options.http
-    .get('/api/sessions/v2/garde-des-sceaux')
-    .query({ search: `${sessionName} (${sessionId})` })
-    .set({ cookie: options.cookie })
-    .expect(HttpStatus.OK);
+  let session: { id: string } | undefined;
+  await waitForExpect(async () => {
+    const sessionResponse = await options.http
+      .get('/api/sessions/v2/garde-des-sceaux')
+      .query({ search: `${sessionName} (${sessionId})` })
+      .set({ cookie: options.cookie })
+      .expect(HttpStatus.OK);
 
-  return { id: assertIsDefined(sessionResponse.body.items[0], `unknown session "${sessionName}"`).id };
+    session = sessionResponse.body.items[0];
+    expect(session).toBeDefined();
+  });
+
+  return { id: assertIsDefined(session, `unknown session "${sessionName}"`).id };
 }
