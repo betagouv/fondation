@@ -29,6 +29,9 @@ dist-ssr
 /playwright/.cache/
 /playwright/.auth/
 
+# Storybook
+storybook-static/
+
 # Sentry Config File
 .env.sentry-build-plugin
 

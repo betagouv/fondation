@@ -22,21 +22,6 @@ export class SummaryRepository {
     private readonly files: Files,
   ) {}
 
-  async exists(query: { sessionId: string; nominationFileId: string }): Promise<boolean> {
-    const session = await this.prisma.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
-      select: {
-        dossierDeNominations: {
-          take: 1,
-          where: { id: query.nominationFileId },
-          select: { summary: { select: { nominationFileId: true } } },
-        },
-      },
-    });
-
-    return !!session?.dossierDeNominations[0]?.summary;
-  }
-
   // TODO: should we rehydrate files with outcomes?
   async find(query: { sessionId: string; nominationFileId: string }) {
     const session = await this.prisma.session.findUnique({
@@ -85,7 +70,7 @@ export class SummaryRepository {
     return tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
       data: {
-        summary: { create: { content: '', authorId: message.authorId } },
+        summary: { upsert: { create: { content: '' }, update: {} } },
       },
     });
   }
@@ -137,7 +122,10 @@ export class SummaryRepository {
   private persistSummaryContentWritten(tx: Prisma.TransactionClient, message: SummaryContentWritten) {
     return tx.summary.update({
       where: { nominationFileId: message.id },
-      data: { content: message.content },
+      data: {
+        content: message.content,
+        ...(message.newAuthorId ? { authorId: message.newAuthorId } : {}),
+      },
     });
   }
 

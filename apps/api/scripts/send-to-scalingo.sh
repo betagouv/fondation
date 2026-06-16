@@ -156,8 +156,7 @@ function run {
 }
 
 
-status_preprod=$(run 'PREPROD');
-status_prod=$(run 'PROD');
+run 'PREPROD'; status_preprod=$?
+run 'PROD'; status_prod=$?
 
-if [[ $status_preprod -gt 0 ]]; then exit 1; fi
-if [[ $status_prod -gt 0 ]]; then exit 1; fi
+if [[ $status_preprod -ne 0 || $status_prod -ne 0 ]]; then exit 1; fi

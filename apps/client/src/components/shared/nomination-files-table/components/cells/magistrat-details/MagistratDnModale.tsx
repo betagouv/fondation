@@ -121,14 +121,21 @@ export function MagistratModaleProvider(
 }
 
 export function MagistratDnModalLink(props: { nominationFile: SessionNominationFile }) {
-  const { formatMessage } = useIntl();
   const ctx = useContext(MagistratModalContext);
+  const intl = useIntl();
 
-  const hasComment =
-    !!props.nominationFile.memo ||
-    !!props.nominationFile.summary?.canWrite ||
-    !!props.nominationFile.summary?.canRead ||
-    (props.nominationFile.comment?.trim().length ?? 0) > 0;
+  const annotations: string[] = [];
+  if (props.nominationFile.memo) annotations.push(intl.formatMessage({ defaultMessage: 'mémo' }));
+  if (props.nominationFile.summary?.canWrite || props.nominationFile.summary?.canRead)
+    annotations.push(intl.formatMessage({ defaultMessage: 'synthèse' }));
+  if ((props.nominationFile.comment?.trim().length ?? 0) > 0)
+    annotations.push(intl.formatMessage({ defaultMessage: 'commentaire' }));
+
+  const hasAnnotations = annotations.length > 0;
+  const annotationsLabel = intl.formatMessage(
+    { defaultMessage: 'Ce dossier a des annotations ({annotations})' },
+    { annotations: intl.formatList(annotations, { type: 'conjunction' }) },
+  );
 
   return (
     <Button
@@ -141,18 +148,18 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
     >
       <div className="text-left leading-4 underline">
         {props.nominationFile.content.nomMagistrat}
-        {hasComment && (
+        {hasAnnotations && (
           <i
-            aria-label={formatMessage({ defaultMessage: 'Au moins un commentaire est présent' })}
+            aria-label={annotationsLabel}
             className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
-            title={formatMessage({ defaultMessage: 'Au moins un commentaire est présent' })}
+            title={annotationsLabel}
           />
         )}
         {props.nominationFile.hasAttachment && (
           <i
-            aria-label={formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
+            aria-label={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
             className="ri-file-line ml-1 cursor-pointer before:size-5! before:content-['']"
-            title={formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
+            title={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
           />
         )}
       </div>
