@@ -116,7 +116,9 @@ FROM
           nominations_context.summary_readers AS readers
           ON readers.summary_id = summaries.nomination_file_id
 
-      WHERE summaries.nomination_file_id = ddn.id
+      WHERE
+        summaries.nomination_file_id = ddn.id
+        AND TRIM(summaries."content") != ''
       GROUP BY summaries.nomination_file_id
     ) AS sub_summaries
   ) AS summaries ON TRUE,

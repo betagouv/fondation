@@ -2,7 +2,6 @@ import { Id, makeId } from 'src/utils/id';
 
 export class SummaryCreated {
   constructor(
-    readonly authorId: string,
     readonly sessionId: string,
     readonly nominationFileId: Id<'SummaryId'>,
   ) {}
@@ -33,6 +32,7 @@ export class SummaryContentWritten {
   constructor(
     readonly id: Id<'SummaryId'>,
     readonly content: string,
+    readonly newAuthorId: string | null,
   ) {}
 }
 
@@ -61,10 +61,10 @@ export class Summary {
     return new Summary(makeId('SummaryId', props.id), props.authorId);
   }
 
-  static create(props: { authorId: string; sessionId: string; nominationFileId: string }): Summary {
-    const summary = new Summary(makeId('SummaryId', props.nominationFileId), props.authorId);
+  static create(props: { sessionId: string; nominationFileId: string }): Summary {
+    const summary = new Summary(makeId('SummaryId', props.nominationFileId), null);
 
-    summary.#messages.push(new SummaryCreated(props.authorId, props.sessionId, summary.id));
+    summary.#messages.push(new SummaryCreated(props.sessionId, summary.id));
 
     return summary;
   }
@@ -103,13 +103,12 @@ export class Summary {
   }
 
   writeContent(command: { userId: string; content: string }): void {
-    if (!this.authorId) throw new NoAuthorAvailable(this.id);
-
-    if (command.userId !== this.authorId) {
+    if (this.authorId && command.userId !== this.authorId) {
       throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.userId);
     }
 
-    this.#messages.push(new SummaryContentWritten(this.id, command.content));
+    const newAuthorId = this.authorId ? null : command.userId;
+    this.#messages.push(new SummaryContentWritten(this.id, command.content, newAuthorId));
   }
 
   readonly #messages: SummaryMessage[] = [];
@@ -120,12 +119,6 @@ export class Summary {
 
 export class UnknownReader extends Error {
   constructor(readonly readerId: string) {
-    super();
-  }
-}
-
-export class NoAuthorAvailable extends Error {
-  constructor(readonly nominationFileId: string) {
     super();
   }
 }
