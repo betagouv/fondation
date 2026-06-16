@@ -36,11 +36,5 @@ export default defineConfig({
   ],
   parser: {
     pagination: { keywords: [] },
-    hooks: {
-      operations: {
-        isMutation: (operation) =>
-          operation.method !== 'get' || operation.id === 'createNominationSessionAttachmentUrl',
-      },
-    },
   },
 });

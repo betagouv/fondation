@@ -41,6 +41,7 @@ import {
   ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
+  UploadNominationFileAttachmentsDto,
   UploadSessionAttachmentsDto,
 } from './infrastructure/dtos/nomination-session.dto';
 import {
@@ -52,10 +53,12 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
+import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
@@ -390,6 +393,61 @@ export class SessionController {
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationSessionAttachmentDto> {
     return this.sessions.detailAttachment({ sessionId, fileId });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Put('/:sessionId/files/:nominationFileId/attachments')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseMultipartBody({
+    schema: UploadNominationFileAttachmentsDto,
+    destination: ({ request, id, mimetype }) =>
+      `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+  })
+  async uploadNominationFileAttachments(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() { files }: Multipart<typeof UploadNominationFileAttachmentsDto>,
+  ) {
+    await this.sessions.addNominationFileAttachments({ sessionId, nominationFileId, files });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Delete('/:sessionId/files/:nominationFileId/attachments/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeNominationFileAttachment(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('fileId') fileId: string,
+  ) {
+    await this.sessions.removeNominationFileAttachment({ sessionId, nominationFileId, fileId });
+  }
+
+  @HasRole()
+  @Get('/:sessionId/files/:nominationFileId/attachments')
+  @ZodResponse({
+    type: ListedNominationFileAttachmentDto,
+    status: HttpStatus.OK,
+  })
+  async listNominationFileAttachments(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<ListedNominationFileAttachmentDto> {
+    return this.sessions.listNominationFileAttachments({ sessionId, nominationFileId });
+  }
+
+  /** @warning this is a mutation */
+  @HasRole()
+  @Get('/:sessionId/files/:nominationFileId/attachments/:fileId')
+  @ZodResponse({
+    type: DetailedNominationFileAttachmentDto,
+    status: HttpStatus.OK,
+  })
+  async createNominationFileAttachmentUrl(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Param('fileId') fileId: string,
+  ): Promise<DetailedNominationFileAttachmentDto> {
+    return this.sessions.detailNominationFileAttachment({ sessionId, nominationFileId, fileId });
   }
 
   @HasRole()
