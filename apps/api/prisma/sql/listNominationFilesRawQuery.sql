@@ -38,6 +38,12 @@ SELECT
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
 
+  EXISTS (
+    SELECT 1
+    FROM nominations_context.nomination_file_attachment AS nfa
+    WHERE nfa.nomination_file_id = ddn.id
+  ) AS "hasAttachment",
+
   TS_RANK(ddn."search", query) AS "queryRank",
 
   summaries."summary" AS summary,

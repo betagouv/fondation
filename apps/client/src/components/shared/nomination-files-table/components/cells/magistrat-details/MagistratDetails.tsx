@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { type FC } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { formatBiography, formatObservers } from '@/components/reports/components/ReportOverview/formatters';
 import { reportHtmlIds } from '@/components/reports/dom/html-ids';
@@ -15,6 +16,7 @@ import { useIntlPositionDuration } from '@/i18n/hooks';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { MagistratComment } from './magistrat-comment/MagistratComment';
+import { MagistratAttachments } from './MagistratAttachments';
 import { MagistratSummaryButton } from './MagistratSummaryButton';
 import { MemberMemo } from './member-memo/MemberMemo';
 
@@ -48,7 +50,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
     : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -97,7 +99,10 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
 
       <div>
         <label className="text-xl font-semibold">
-          Observant(s){observersCount > 0 ? ` (${observersCount})` : null}
+          <FormattedMessage
+            defaultMessage="{count, plural, =0 {Observant} one {Observant (#)} other {Observants (#)}}"
+            values={{ count: observersCount }}
+          />
         </label>
         {formattedObservers && (
           <div className="w-full leading-7 whitespace-pre-line">{formattedObservers}</div>
@@ -121,6 +126,12 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
       </div>
 
       <MemberMemo sessionId={sessionId} nominationFileId={nominationFile.id} memo={nominationFile.memo} />
+
+      <MagistratAttachments
+        nominationFileId={nominationFile.id}
+        sessionId={sessionId}
+        isArchived={nominationFile.isArchived}
+      />
     </div>
   );
 };

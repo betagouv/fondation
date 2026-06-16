@@ -64,6 +64,12 @@ export class UploadSessionAttachmentsDto extends createZodDto(
   }),
 ) {}
 
+export class UploadNominationFileAttachmentsDto extends createZodDto(
+  z.object({
+    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file())),
+  }),
+) {}
+
 export class DefineNominationFileOutcomeDto extends createZodDto(
   z.object({
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
