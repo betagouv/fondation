@@ -150,10 +150,7 @@ function content(ctx: {
     .map(([outcome, files]) => ({
       outcome,
       html: html`<h2>${displayOutcomeTitle({ formation: ctx.formation, outcome, count: files.length })}</h2>
-        <p>
-          ${outcomeSectionIntro({ formation: ctx.formation, outcome })} sur
-          ${files.length > 1 ? 'les propositions suivantes' : 'la proposition suivante'}&nbsp;:
-        </p>
+        <p>${outcomeSectionIntro({ formation: ctx.formation, filesCount: files.length, outcome })}</p>
         <ol>
           ${files
             .map((file) =>
@@ -392,16 +389,29 @@ function displayOutcomeTitle(ctx: {
 function outcomeSectionIntro(ctx: {
   outcome: DocNominationFileOutcomeEnum;
   formation: Magistrat.Formation;
+  filesCount: number;
 }): string {
   switch (ctx.outcome) {
     case 'VALIDATED':
     case 'NON_VALIDATED':
-      return `Le Conseil a émis un ${displayOutcomeTitle({ ...ctx, count: 1 }).toLowerCase()}`;
+      return `Le Conseil a émis un ${displayOutcomeTitle({ ...ctx, count: 1 }).toLowerCase()} sur ${
+        ctx.filesCount > 1
+          ? /* html */ `les propositions de nomination suivantes&nbsp;:`
+          : /* html */ `la proposition de nomination suivante&nbsp;:`
+      }`;
 
     case 'SUSPENDED':
-      return `Le Conseil ne s’est pas encore prononcé`;
+      return `Le Conseil sursoit à statuer sur ${
+        ctx.filesCount > 1
+          ? /* html */ `les propositions de nomination suivantes&nbsp;:`
+          : /* html */ `la proposition de nomination suivante&nbsp;:`
+      }`;
 
     case 'WITHDRAWN':
-      return `Le Conseil constate le retrait`;
+      return `Le Conseil constate le retrait ${
+        ctx.filesCount > 1
+          ? /* html */ `des propositions de nomination suivantes&nbsp;:`
+          : /* html */ `de la proposition de nomination suivante&nbsp;:`
+      }`;
   }
 }

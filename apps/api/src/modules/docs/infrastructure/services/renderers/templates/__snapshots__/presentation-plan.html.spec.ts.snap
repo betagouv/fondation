@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`presentationPlanTemplate should render 1`] = `
+"
+            <div class="header"><h1>Proposition du Garde des sceaux</h1>
+<h2>Notice de restitution&nbsp;: séance du 01/07/2026</h2>
+<p class="formation">Formation compétente à l'égard des magistrats du siège</p></div>
+
+            <footer>
+              <div class="drapeau"></div>
+            </footer>
+
+            <div class="content" data-editable-content=""><h3>Introduction</h3>
+          <p>
+            Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret
+            du 9 mars 1994 pour la fixation de l'ordre du jour.
+          </p>
+<h3>Transparence annuelle</h3>
+<p>Sous la présidence de Simone&nbsp;MICHEL-LEVY&nbsp;:</p>
+<p>     Le Conseil supérieur de la magistrature émet un     <strong>avis non conforme</strong>     aux propositions de nomination suivantes&nbsp;:   </p><ul>         <li>           <strong>MME Marcelle Henry</strong>, pour la proposition au poste de présidente à la cour d'appel de Reims           (G3), aux motifs que&nbsp;: Sa dernière évaluation ne permet pas de confirmer sa proposition.         </li>         <li>           <strong>M. Léon BLUM</strong>, pour la proposition au poste de président à la cour d'appel de Riom           (G3), aux motifs que&nbsp;: Sans évaluation il n'est pas possible de confirmer la proposition.         </li>       </ul> <p>       Par ailleurs, le Conseil sursoit à statuer pour       les propositions suivantes&nbsp;:     </p>     <ul><li>       <strong>MME Mélinée MANOUCHIAN</strong>, pour la proposition au poste de présidente à la cour d'appel de Marseille       (G3).     </li></ul> <p>           Enfin, le Conseil émet un           <strong>avis conforme</strong>           à la proposition de nomination restante.         </p>
+<p>Commentaire&nbsp;: Le Conseil regrette de n'avoir été saisi que trop tard de la situation, particulièrement pour M. Léon BLUM dont l'évaluation ne nous a pas été fournie.</p>
+
+<h3>Informations administratives</h3>
+<ul>
+  <li>DSJ&nbsp;: MME Lucie AUBRAC, représentante de la DSJ</li>
+  <li>SG&nbsp;: Catherine&nbsp;DIOR</li>
+  <li>Heure de début de la séance de restitution&nbsp;: 18:00</li>
+  
+</ul></div>
+
+            <div class="footer"></div>
+          "
+`;
