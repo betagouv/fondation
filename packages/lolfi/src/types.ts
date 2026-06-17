@@ -28,6 +28,8 @@ export type LolfiPosition = {
   jurisdiction: LolfiJurisdiction;
   function: LolfiFunction;
   grade?: LolfiGradeEnum;
+  profile?: string;
+  profileId?: string | null;
 };
 
 export type LolfiData = {

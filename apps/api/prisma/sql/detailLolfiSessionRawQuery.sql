@@ -23,7 +23,16 @@ SELECT
   target_position.detected_jurisdiction_id AS "detectedJurisdictionId",
   target_position.grade AS "targetedGrade",
   target_position.sortable_targeted_grade AS "sortableTargetedGrade",
-  target_position.name AS "targetedPosition"
+  target_position.name AS "targetedPosition",
+
+  (
+    m.codepos ~ '^9(7|8)\d{3}'
+    OR "target_position".codepos ~ '^9(7|8)\d{3}'
+    OR m."ville_jur" = ANY('{CAYENNE,MAMOUDZOU,SAINT MARTIN,SAINT LAURENT DU MARONI}'::TEXT[])
+    OR "target_position"."ville_jur" = ANY('{CAYENNE,MAMOUDZOU,SAINT MARTIN,SAINT LAURENT DU MARONI}'::TEXT[])
+  ) AS "isOutreMer",
+
+  target_position.profile IS NOT NULL AS "isProfiled"
 
 FROM data_administration_context.nomination AS n
   LEFT JOIN LATERAL (
@@ -40,6 +49,8 @@ FROM data_administration_context.nomination AS n
       mm.grade_date,
       mm.installation_date,
       func.formation,
+      jj.codepos,
+      jj.ville_jur,
       CONCAT_WS(' ', LOWER(func.label), jj.codejur) AS current_position
 
     FROM nominations_context.magistrat mm
@@ -58,6 +69,9 @@ FROM data_administration_context.nomination AS n
       grade.sort AS "sortable_targeted_grade",
       func.formation,
       pos.grade_id AS "grade",
+      pos.profile,
+      jj.codepos,
+      jj.ville_jur,
       CONCAT_WS(' ', LOWER(func.label), jj.codejur) AS "name"
     FROM data_administration_context."position" pos
       LEFT JOIN data_administration_context.grade ON grade.grade = pos.grade_id
