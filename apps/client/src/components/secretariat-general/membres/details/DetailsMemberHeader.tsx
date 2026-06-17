@@ -31,7 +31,7 @@ export function DetailsMemberHeader(props: { member: { firstName: string; lastNa
       {window.history.length > 0 ? (
         <Button
           size="small"
-          className="mt-4 grow-0"
+          className="fr-mt-4v grow-0"
           priority="tertiary no outline"
           iconId="fr-icon-close-line"
           iconPosition="right"

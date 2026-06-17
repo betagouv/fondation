@@ -137,7 +137,7 @@ export function NominationFileTargetPositionProvider(props: React.PropsWithChild
 
             {error ? (
               <Alert
-                className="mb-4"
+                className="fr-mb-4v"
                 severity="error"
                 title={error.title}
                 description={error.description}

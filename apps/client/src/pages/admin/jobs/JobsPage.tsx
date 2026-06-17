@@ -72,18 +72,18 @@ export function JobsPage() {
   }
 
   return (
-    <div className="mx-4 flex min-h-full flex-col p-4 md:mx-0 md:flex-row">
+    <div className="fr-mx-4v fr-p-4v fr-mx-md-0 flex min-h-full flex-col md:flex-row">
       <SideMenu
         sticky
         className="md:w-80"
         classes={{
-          list: 'max-h-[53vh] min-h-full overflow-y-scroll pb-20',
+          list: 'max-h-[53vh] min-h-full overflow-y-scroll fr-pb-20v',
           link: activeBgClass,
         }}
         title={
           <>
             <h2>Ingestions</h2>
-            <div className="flex flex-nowrap gap-x-2 overflow-x-scroll pt-2 pb-4">
+            <div className="fr-pt-2v fr-pb-4v flex flex-nowrap gap-x-2 overflow-x-scroll">
               {statuses.map((s) => (
                 <Tag
                   small
@@ -106,11 +106,13 @@ export function JobsPage() {
                   linkProps: { to: '#' },
                   isActive: false,
                   text: isLoading ? (
-                    <p className="m-0 text-sm font-normal">Chargement...</p>
+                    <p className="fr-m-0 text-sm font-normal">Chargement...</p>
                   ) : (
                     <div>
-                      <p className="m-0 font-normal text-red-500">Erreur</p>
-                      {error ? <p className="m-0 text-xs font-normal text-red-500">{String(error)}</p> : null}
+                      <p className="fr-m-0 font-normal text-red-500">Erreur</p>
+                      {error ? (
+                        <p className="fr-m-0 text-xs font-normal text-red-500">{String(error)}</p>
+                      ) : null}
                     </div>
                   ),
                 },
@@ -121,7 +123,7 @@ export function JobsPage() {
                     linkProps: { to: '' },
                     isActive: false,
                     text: (
-                      <p className="m-0 text-sm font-normal text-gray-500">
+                      <p className="fr-m-0 text-sm font-normal text-gray-500">
                         Aucune ingestion ne correspond aux filtres
                       </p>
                     ),

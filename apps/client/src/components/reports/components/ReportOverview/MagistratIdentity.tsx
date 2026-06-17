@@ -37,8 +37,8 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
 }) => {
   return (
     <Card label="Identité du magistrat">
-      <header className="mb-6">
-        <h1 className="mb-0 flex flex-row items-center">
+      <header className="fr-mb-6v">
+        <h1 className="fr-mb-0 flex flex-row items-center">
           <span>{name}</span>
           <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={name} />
         </h1>

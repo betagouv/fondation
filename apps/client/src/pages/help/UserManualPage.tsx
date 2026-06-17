@@ -16,10 +16,10 @@ export function UserManualPage() {
 
 function UserManualHeading(props: { children: string }) {
   return (
-    <header className="mb-8">
+    <header className="fr-mb-8v">
       <h1 className="flex items-center justify-center">
         <span>Manuel utilisateur</span>
-        <span className="fr-h3 my-0! ml-2! border-y-0 border-r-0 border-l-2 border-solid pl-2">
+        <span className="fr-h3 fr-my-0 fr-ml-2v fr-pl-2v border-y-0 border-r-0 border-l-2 border-solid">
           {props.children}
         </span>
       </h1>

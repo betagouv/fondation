@@ -60,9 +60,9 @@ export function AbsentMemberSelector(
   }, [chairmanId, field]);
 
   return (
-    <div className="mb-6">
+    <div className="fr-mb-6v">
       <Select
-        className="mb-0"
+        className="fr-mb-0"
         nativeSelectProps={{ ...field, onChange, value: '' }}
         label={<FormattedMessage defaultMessage="Membres absents" />}
         state={fieldState.error ? 'error' : undefined}
@@ -89,7 +89,7 @@ export function AbsentMemberSelector(
           'flex gap-x-1 transition-opacity duration-150',
           {
             'opacity-0': field.value.length === 0,
-            'mt-2 opacity-100': field.value.length > 0,
+            'fr-mt-2v opacity-100': field.value.length > 0,
           },
         )}
       >

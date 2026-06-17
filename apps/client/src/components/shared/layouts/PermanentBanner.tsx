@@ -6,7 +6,7 @@ export function PermanentBanner(
 ) {
   return (
     <p
-      className={clsx('mb-0 flex h-10 w-full items-center justify-center text-sm', props.className)}
+      className={clsx('fr-mb-0 flex h-10 w-full items-center justify-center text-sm', props.className)}
       style={props.style}
     >
       {props.children}

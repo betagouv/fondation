@@ -88,7 +88,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
     <form className="m-auto w-full max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
       {session ? <h1>Éditer "{session?.name}"</h1> : <h1>Éditer la transparence</h1>}
       {errors.root && (
-        <Alert className="mb-2" severity="error" title={errors.root.message} small description="" />
+        <Alert className="fr-mb-2v" severity="error" title={errors.root.message} small description="" />
       )}
 
       <Controller

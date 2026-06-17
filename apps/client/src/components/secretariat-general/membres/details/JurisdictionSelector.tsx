@@ -12,7 +12,7 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
 
   return (
     <>
-      <ul className="flex list-none flex-row flex-wrap items-center gap-x-2 p-0">
+      <ul className="fr-p-0 flex list-none flex-row flex-wrap items-center gap-x-2">
         {props.selected.slice(0, 4).map(({ id, label }) => (
           <li key={`jurisdiction_${id}`} className="shrink-0 grow-0">
             <Tag>{label ?? id}</Tag>

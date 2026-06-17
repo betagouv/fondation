@@ -20,7 +20,7 @@ export function JobsListItem(props: { job: PaginatedJobsDto['items'][number] }) 
         Job #{job.id}
       </span>
 
-      <span className="mt-4 flex flex-col text-sm font-normal text-gray-500">
+      <span className="fr-mt-4v flex flex-col text-sm font-normal text-gray-500">
         {startedAtFormatted ? (
           <span
             className={clsx(

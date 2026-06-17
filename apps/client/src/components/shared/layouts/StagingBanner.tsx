@@ -13,7 +13,7 @@ export function StagingBanner() {
   return (
     <PermanentBanner style={{ color: textColor, backgroundColor: bgColor }}>
       <span className="font-bold">Environnement hors-production.</span>
-      <span className="ml-1">Les données affichées sont fictives</span>
+      <span className="fr-ml-1v">Les données affichées sont fictives</span>
     </PermanentBanner>
   );
 }

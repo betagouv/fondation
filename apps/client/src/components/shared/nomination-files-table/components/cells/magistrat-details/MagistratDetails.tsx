@@ -108,7 +108,7 @@ export const MagistratDetails: FC<MagistratDetailsProps> = ({ sessionId, nominat
           <div className="w-full leading-7 whitespace-pre-line">{formattedObservers}</div>
         )}
         {nominationFile.observations && nominationFile.observations.length > 0 && (
-          <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'mt-2')}>
+          <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'fr-mt-2v')}>
             {nominationFile.observations.map((observation) => (
               <ObservationCard
                 key={observation.id}

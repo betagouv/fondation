@@ -20,7 +20,7 @@ export function AgendaNominationFile(props: {
   return (
     <Checkbox
       small
-      className="anf m-0"
+      className="anf fr-m-0"
       options={[
         {
           nativeInputProps: {
@@ -29,13 +29,13 @@ export function AgendaNominationFile(props: {
             checked: props.checked,
           },
           label: (
-            <div className="flex w-full items-start gap-1 py-4">
+            <div className="fr-py-4v flex w-full items-start gap-1">
               <div className="w-[3ch] shrink-0">{props.file.number}</div>
               <div className="hidden w-[10%] md:block">
                 <UserAvatarList users={props.file.reporters} max={2} size="sm" />
               </div>
               <div
-                className="w-1/3 shrink-0 cursor-help pl-2"
+                className="fr-pl-2v w-1/3 shrink-0 cursor-help"
                 title={[props.file.magistrat.position.grade, props.file.magistrat.position.label].join(' - ')}
               >
                 <div className="truncate">
@@ -54,7 +54,7 @@ export function AgendaNominationFile(props: {
               </div>
               <i className={clsx(cx('ri-arrow-right-line'), 'shrink-0 before:size-5! before:content-[""]')} />
               <div
-                className="cursor-help px-2 pt-1 text-sm text-wrap md:w-[30%]"
+                className="fr-px-2v fr-pt-1v cursor-help text-sm text-wrap md:w-[30%]"
                 title={
                   [props.file.magistrat.position.grade, props.file.targetPosition.label]
                     .filter((x) => !!x)

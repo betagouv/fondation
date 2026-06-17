@@ -69,17 +69,17 @@ export function DocumentEditor(props: {
   return (
     <div className="mx-auto max-w-3xl rounded border border-solid border-gray-200 bg-white">
       <EditorContext value={{ editor }}>
-        <div className="sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-gray-200 bg-white p-2">
+        <div className="fr-p-2v sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-gray-200 bg-white">
           <BoldButton />
           <ItalicButton />
           <BulletListButton />
-          <div className="mx-1 w-px self-stretch bg-gray-200" />
+          <div className="fr-mx-1v w-px self-stretch bg-gray-200" />
           <UndoButton />
           <RedoButton />
         </div>
       </EditorContext>
 
-      <EditorContent editor={editor} className="min-h-100 p-4 [&_.tiptap]:outline-none" />
+      <EditorContent editor={editor} className="fr-p-4v min-h-100 [&_.tiptap]:outline-none" />
     </div>
   );
 }

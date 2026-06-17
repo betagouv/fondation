@@ -51,10 +51,13 @@ export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps
         <MenuBar />
         <EditorContent editor={editor} />
         <div
-          className={clsx("flex items-center p-2 text-xs before:mr-1 before:size-4! before:content-['']", {
-            'ri-loop-left-line': isDirty,
-            'fr-icon-success-line': !isDirty,
-          })}
+          className={clsx(
+            "fr-p-2v flex items-center text-xs before:mr-1 before:size-4! before:content-['']",
+            {
+              'ri-loop-left-line': isDirty,
+              'fr-icon-success-line': !isDirty,
+            },
+          )}
         >
           {isDirty ? `Enregistrement…` : `Enregistré`}
         </div>

@@ -23,7 +23,7 @@ export function SummarySectionAttachments() {
 
       <SummaryAttachmentInput />
 
-      <div className="mt-4">
+      <div className="fr-mt-4v">
         {attachmentsCount ? (
           <ul>
             {summary.summary.attachments.map(({ id, name, type }) => (

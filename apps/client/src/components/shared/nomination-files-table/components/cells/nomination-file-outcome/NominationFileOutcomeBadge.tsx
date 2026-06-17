@@ -21,7 +21,7 @@ function InnerNominationFileOutcomeBadge(props: {
   return (
     <Badge {...badgeProps} small severity={severity} noIcon as="span" className="text-nowrap">
       {icon && (
-        <i className={`mr-1 leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
+        <i className={`fr-mr-1v leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
       )}
       {badgeLabel}
     </Badge>

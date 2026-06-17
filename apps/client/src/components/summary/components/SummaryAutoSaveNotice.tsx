@@ -18,7 +18,7 @@ export function SummaryAutoSaveAlert() {
       severity="info"
       onClose={() => setIsVisible(false)}
       isClosed={!isVisible}
-      className="mb-12 rounded-lg border border-solid border-(--text-default-info)"
+      className="fr-mb-12v rounded-lg border border-solid border-(--text-default-info)"
       title={`L'enregistrement des modifications est automatique`}
     />
   );

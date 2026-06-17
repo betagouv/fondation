@@ -58,7 +58,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
     <Tooltip title="Fiche de juridiction requise">
       <Button
         size="small"
-        className="position-hearing-alert px-0 hover:underline"
+        className="position-hearing-alert fr-px-0 hover:underline"
         aria-controls={nominationFileTargetPositionModal.id}
         onClick={onClick}
         priority="tertiary no outline"
@@ -72,7 +72,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
             'text-center',
             'block',
             'rounded-full',
-            'p-1',
+            'fr-p-1v',
             'size-6',
 
             'before:block',

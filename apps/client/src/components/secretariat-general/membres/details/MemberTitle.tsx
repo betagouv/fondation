@@ -156,7 +156,7 @@ function MemberTitleAction(props: {
         <option value="PRESIDENT_PARQUET">Président Parquet</option>
       </Select>
       <Button
-        className="mt-1 ml-1 rounded-full"
+        className="fr-mt-1v fr-ml-1v rounded-full"
         priority="tertiary no outline"
         iconId="fr-icon-close-line"
         onClick={() => setEditing(false)}

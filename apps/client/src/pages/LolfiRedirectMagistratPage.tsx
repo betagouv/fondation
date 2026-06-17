@@ -74,7 +74,7 @@ function LolfiRedirectMagistratInner() {
                 description="Nous nous excusons pour la gêne occasionnée."
               />
               <ButtonsGroup
-                className="mt-2"
+                className="fr-mt-2v"
                 inlineLayoutWhen="md and up"
                 buttons={[{ onClick: closeWindow, children: 'Revenir au contenu', priority: 'primary' }]}
               />

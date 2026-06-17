@@ -83,7 +83,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
 
   return (
     <div className={clsx('flex flex-col', props.className)}>
-      <div className="flex justify-between pl-2">
+      <div className="fr-pl-2v flex justify-between">
         <IndeterminateCheckbox
           small
           checked={selection.hasSome}
@@ -110,9 +110,9 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
           />
         )}
       </div>
-      <div ref={scrollRef} className="mt-2 h-[42vh] min-h-64 overflow-y-scroll">
+      <div ref={scrollRef} className="fr-mt-2v h-[42vh] min-h-64 overflow-y-scroll">
         {filtered.length === 0 && (
-          <p className="pt-4 text-center text-gray-500">
+          <p className="fr-pt-4v text-center text-gray-500">
             <FormattedMessage defaultMessage="Aucune donnée disponible" />
           </p>
         )}
@@ -126,7 +126,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
                     key={virtualItem.key}
                     data-index={virtualItem.index}
                     ref={virtualizer.measureElement}
-                    className="absolute top-0 left-0 w-full px-2 hover:bg-gray-50"
+                    className="fr-px-2v absolute top-0 left-0 w-full hover:bg-gray-50"
                     style={{ transform: `translateY(${virtualItem.start}px)` }}
                   >
                     <AgendaNominationFile
@@ -147,13 +147,13 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
       <div
         className={clsx(
           cx('ri-arrow-down-s-line'),
-          'h-[32.5px] w-full pt-2 text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8! before:content-[""]',
+          'fr-pt-2v h-[32.5px] w-full text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8! before:content-[""]',
           down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_#fff]',
         )}
       />
 
       <ButtonsGroup
-        className="mt-6"
+        className="fr-mt-6v"
         inlineLayoutWhen="md and up"
         alignment="center"
         buttons={[
