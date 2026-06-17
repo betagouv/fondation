@@ -24,7 +24,7 @@ export const UploadExcelFailedAlert: FC<{
   return (
     <Alert
       ref={setRef}
-      className="mx-auto mb-6 max-w-2xl"
+      className="fr-mb-6v mx-auto max-w-2xl"
       severity="error"
       title="Échec de l'import"
       closable={true}

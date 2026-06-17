@@ -15,7 +15,7 @@ export function SummaryOutcomeNotice() {
 
   return (
     <Notice
-      className="mb-12 rounded-lg"
+      className="fr-mb-12v rounded-lg"
       severity="warning"
       title={
         <>

@@ -123,7 +123,7 @@ function InnerPresentationsTabReady() {
             <FormattedMessage defaultMessage="Notices" />
           </h2>
 
-          <ul className="m-0 list-none p-0">
+          <ul className="fr-m-0 fr-p-0 list-none">
             {planItems.map(({ startTime: _, ...item }) => (
               <li key={item.id} className="flex items-center">
                 <Button
@@ -140,7 +140,7 @@ function InnerPresentationsTabReady() {
                   />
                 </Button>
 
-                <div className="actions ml-10 flex items-center gap-x-2">
+                <div className="actions fr-ml-10v flex items-center gap-x-2">
                   <Button
                     size="small"
                     title={$t({ defaultMessage: 'Marquer restitué' })}

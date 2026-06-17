@@ -151,14 +151,14 @@ export function MagistratDnModalLink(props: { nominationFile: SessionNominationF
         {hasAnnotations && (
           <i
             aria-label={annotationsLabel}
-            className="ri-message-3-line ml-1 cursor-pointer before:size-5! before:content-['']"
+            className="ri-message-3-line fr-ml-1v cursor-pointer before:size-5! before:content-['']"
             title={annotationsLabel}
           />
         )}
         {props.nominationFile.hasAttachment && (
           <i
             aria-label={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
-            className="ri-file-line ml-1 cursor-pointer before:size-5! before:content-['']"
+            className="ri-file-line fr-ml-1v cursor-pointer before:size-5! before:content-['']"
             title={intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' })}
           />
         )}

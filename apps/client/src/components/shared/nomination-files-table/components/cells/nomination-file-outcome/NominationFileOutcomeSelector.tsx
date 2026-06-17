@@ -78,7 +78,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
     () =>
       (['@@EMPTY', ...baseOptions] as const).map((value) =>
         value === '@@EMPTY'
-          ? { value, label: <span className="pl-1 text-xs">AUCUNE</span>, selected: 'Issue' }
+          ? { value, label: <span className="fr-pl-1v text-xs">AUCUNE</span>, selected: 'Issue' }
           : {
               value,
               label: (

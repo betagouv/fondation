@@ -52,7 +52,7 @@ export function PresentationsTabsPage() {
     {
       count: (agendas?.items ?? []).length,
       counter: (label) => (
-        <Badge className="ml-1" as="span" small>
+        <Badge className="fr-ml-1v" as="span" small>
           {label}
         </Badge>
       ),
@@ -60,7 +60,7 @@ export function PresentationsTabsPage() {
   );
 
   return (
-    <div className="fr-container pt-4">
+    <div className="fr-container fr-pt-4v">
       <PresentationsBreadcrumb />
       <h1>
         <FormattedMessage defaultMessage="Restitutions" />

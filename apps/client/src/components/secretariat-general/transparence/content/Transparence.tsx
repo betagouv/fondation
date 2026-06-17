@@ -28,7 +28,7 @@ export function Transparence() {
   }
 
   if (!transparence || isError) {
-    return <div className="fr-container pt-5">Session de type Transparence non trouvée.</div>;
+    return <div className="fr-container fr-pt-5v">Session de type Transparence non trouvée.</div>;
   }
 
   const breadcrumb: BreadcrumbVM = {
@@ -67,7 +67,7 @@ export function Transparence() {
             <TableauDeBordResume {...transparence} />
             <TableauDeBordActions sessionId={sessionId!} />
           </div>
-          <div className="mb-8">
+          <div className="fr-mb-8v">
             <NominationFilesTable
               sessionId={sessionId!}
               formation={transparence.formation}

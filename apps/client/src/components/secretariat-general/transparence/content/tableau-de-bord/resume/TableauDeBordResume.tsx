@@ -89,8 +89,8 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     deleteSessionMutation.isPending || archiveSessionMutation.isPending || exportAsExcelMutation.isPending;
 
   return (
-    <div className="flex max-w-[63%] flex-col gap-y-2 px-2">
-      <h1 className="mb-0 flex items-center justify-between gap-2">
+    <div className="fr-px-2v flex max-w-[63%] flex-col gap-y-2">
+      <h1 className="fr-mb-0 flex items-center justify-between gap-2">
         <span className="hyphens-auto">{transparence.name}</span>
         <MenuRoot disabled={isMutationPending}>
           <MenuTrigger
@@ -167,13 +167,13 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
 
       <div className="flex max-w-xl flex-col gap-y-2">
         <div className="flex items-center justify-between gap-6">
-          <p className="m-0! text-sm text-gray-600">
+          <p className="fr-m-0 text-sm text-gray-600">
             <FormattedMessage
               defaultMessage="Transparence du {date, date, dateOnlyShort}"
               values={{ date: dateOnlyToDate(transparence.date) }}
             />
           </p>
-          <span className="rounded-sm bg-gray-100 p-1 text-xs font-semibold text-gray-600 uppercase">
+          <span className="fr-p-1v rounded-sm bg-gray-100 text-xs font-semibold text-gray-600 uppercase">
             {FormationEnumLabel[transparence.formation]}
           </span>
         </div>

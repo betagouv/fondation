@@ -102,7 +102,7 @@ const NouvelleTransparence: FC = () => {
       />
 
       <Notice
-        className="mx-auto mb-6 max-w-[480px]"
+        className="fr-mb-6v mx-auto max-w-[480px]"
         title="Risque de doublons"
         severity="warning"
         description={
@@ -261,7 +261,7 @@ const NouvelleTransparence: FC = () => {
           render={({ field: { onChange } }) => (
             <Upload
               id="nouvelle-transparence-file-upload"
-              className="mb-4"
+              className="fr-mb-4v"
               nativeInputProps={{
                 type: 'file',
                 ref: inputRef,

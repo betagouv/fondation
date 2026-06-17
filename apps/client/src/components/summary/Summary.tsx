@@ -21,7 +21,7 @@ export function Summary() {
       <SummaryAutoSaveAlert />
 
       {canWriteSummary ? (
-        <div className="mx-auto flex flex-row justify-end pb-8 lg:w-11/12">
+        <div className="fr-pb-8v mx-auto flex flex-row justify-end lg:w-11/12">
           <SummaryReaderSelector />
         </div>
       ) : null}

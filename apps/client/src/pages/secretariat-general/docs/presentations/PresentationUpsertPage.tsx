@@ -223,7 +223,7 @@ function MetadataStep(props: { className?: string }) {
       />
 
       <ButtonsGroup
-        className="mt-6"
+        className="fr-mt-6v"
         alignment="right"
         inlineLayoutWhen="md and up"
         buttons={[
@@ -300,7 +300,7 @@ function AgendaCommentsStep(props: { className?: string }) {
       ))}
 
       <ButtonsGroup
-        className="mt-6"
+        className="fr-mt-6v"
         alignment="right"
         inlineLayoutWhen="md and up"
         buttons={[

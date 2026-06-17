@@ -36,14 +36,14 @@ export function JuridictionAutocomplete(props: {
           />
         )}
       />
-      <p className="mt-1 mb-0 text-xs">
+      <p className="fr-mt-1v fr-mb-0 text-xs">
         {selected.length > 1
           ? `${selected.length} juridictions sélectionnées`
           : `${selected.length} juridiction sélectionnée`}
       </p>
       <div
         role="listbox"
-        className="mt-6 flex max-h-[calc(var(--modal-max-height)-20rem)] min-h-0 list-none flex-col items-start gap-y-2 overflow-y-scroll px-2 md:max-h-[calc(80vh-20rem)]"
+        className="fr-mt-6v fr-px-2v flex max-h-[calc(var(--modal-max-height)-20rem)] min-h-0 list-none flex-col items-start gap-y-2 overflow-y-scroll md:max-h-[calc(80vh-20rem)]"
       >
         {isLoading ? (
           <p>Chargement ...</p>

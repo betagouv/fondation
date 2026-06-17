@@ -23,17 +23,17 @@ export function UserAvatarList(props: {
   const content = (
     <ul
       className={clsx(
-        'm-0 flex cursor-pointer list-none items-center gap-x-2 p-0',
+        'fr-m-0 fr-p-0 flex cursor-pointer list-none items-center gap-x-2',
         (props.direction ?? 'row') === 'row' ? 'flex-row' : 'flex-col',
       )}
     >
       {(users.length > max ? users.slice(0, max) : users).map((user) => (
-        <li className="p-0" key={`${user.firstName} ${user.lastName}`}>
+        <li className="fr-p-0" key={`${user.firstName} ${user.lastName}`}>
           <UserAvatar user={user} size={props.size} enableTooltip={false} />
         </li>
       ))}
       {users.length > max ? (
-        <li className="p-0">
+        <li className="fr-p-0">
           <Badge
             noIcon
             small={props.size === 'sm'}

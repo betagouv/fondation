@@ -9,7 +9,7 @@ export const ReportsDnVueGenerale = (
   props: React.PropsWithChildren<{ sessionId: string; formation: FormationEnum }>,
 ) => {
   return (
-    <div className="my-4 flex flex-col gap-4">
+    <div className="fr-my-4v flex flex-col gap-4">
       <NominationFilesTable formation={props.formation} sessionId={props.sessionId!} isEditable={false}>
         {props.children}
       </NominationFilesTable>

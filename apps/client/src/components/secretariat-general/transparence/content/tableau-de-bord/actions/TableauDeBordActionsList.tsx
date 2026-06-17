@@ -49,7 +49,7 @@ export function TableauDeBordActionList(props: { className?: string; sessionId: 
   return (
     <ul
       className={clsx(
-        'm-0 flex list-none flex-row-reverse flex-wrap items-center gap-4 p-0',
+        'fr-m-0 fr-p-0 flex list-none flex-row-reverse flex-wrap items-center gap-4',
         props.className,
       )}
     >

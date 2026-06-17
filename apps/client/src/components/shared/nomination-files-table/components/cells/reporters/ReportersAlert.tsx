@@ -62,7 +62,7 @@ export function ReportersAlert(props: { dossier: SessionNominationFile; selected
 
   return (
     /** @warning ".multi-reporters-alert" is used by the table CSS to display the orange row */
-    <div className="multi-reporters-alert cursor-pointer pr-1">
+    <div className="multi-reporters-alert fr-pr-1v cursor-pointer">
       <Tooltip title="2 rapporteurs attendus">
         <i
           style={{
@@ -74,7 +74,7 @@ export function ReportersAlert(props: { dossier: SessionNominationFile; selected
             'text-center',
             'block',
             'rounded-full',
-            'p-1',
+            'fr-p-1v',
             'size-6',
             'before:block',
             'before:content-[""]',

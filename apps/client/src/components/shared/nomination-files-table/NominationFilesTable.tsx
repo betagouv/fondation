@@ -95,7 +95,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                 <FilesSelectionProvider selection={tableState.rowSelection}>
                   <FilesAffectationsProvider files={nominationFiles}>
                     <AlertsProvider>
-                      <div className="fr-container mb-4 flex flex-col gap-y-4">
+                      <div className="fr-container fr-mb-4v flex flex-col gap-y-4">
                         <div className="self-center">
                           <AlertsProvider.Alerts small className="shrink-0" />
                         </div>
@@ -103,7 +103,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                         {isSg ? (
                           <div className="flex items-center">
                             <NominationFilesAffectationsStatus />
-                            <NominationFilesStatusBadges className="ml-4 border-y-0 border-r-0 border-l border-solid border-l-gray-200 pl-4" />
+                            <NominationFilesStatusBadges className="fr-ml-4v fr-pl-4v border-y-0 border-r-0 border-l border-solid border-l-gray-200" />
                           </div>
                         ) : null}
                       </div>
