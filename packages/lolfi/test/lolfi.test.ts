@@ -30,6 +30,8 @@ describe('lolfi', () => {
                 targetPosition: {
                   grade: 'G3',
                   jurisdiction: { id: 'CA  GRENOBLE' },
+                  profile: 'profil assise',
+                  profileId: null,
                   function: {
                     id: 'PR',
                     label: 'Procureur de la République',

@@ -599,6 +599,22 @@ export class NominationSessionRepository {
     }
 
     for (const file of message.files) {
+      if (file.priorities.length) {
+        const statement = file.priorities.reduce(
+          (sql, priority) => Prisma.sql`ARRAY_REMOVE(${sql}, ${priority}::nominations_context.priorite_enum)`,
+          Prisma.sql`"priorities"`,
+        );
+
+        await tx.$executeRaw`
+          UPDATE "nominations_context"."dossier_de_nomination"
+          SET "priorities" = ${statement}
+          WHERE (
+            "session_id" = ${message.sessionId}::UUID
+            AND "number" = ${file.fileNumber}::INT
+          )
+        `;
+      }
+
       await tx.dossierDeNomination.upsert({
         where: {
           sessionExternalId: {
@@ -624,6 +640,7 @@ export class NominationSessionRepository {
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
+          priorities: file.priorities,
           rank: file.rank,
           sortableTargetedGrade: file.sortableTargetedGrade,
           targetedGrade: file.targetedGrade,
@@ -643,6 +660,7 @@ export class NominationSessionRepository {
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
+          priorities: { push: file.priorities },
           rank: file.rank,
           sortableTargetedGrade: file.sortableTargetedGrade,
           targetedGrade: file.targetedGrade,

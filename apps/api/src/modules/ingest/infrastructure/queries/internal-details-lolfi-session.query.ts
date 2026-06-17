@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
+import { Magistrat, PrioriteEnum } from 'shared-models';
 
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
@@ -46,10 +46,14 @@ export class InternalDetailsLolfiSessionQuery {
           detectedTargetedFunctionId: file.detectedTargetedFunctionId,
           detectedTargetedPositionId: file.detectedTargetedPositionId,
           sortableTargetedGrade: file.sortableTargetedGrade,
-          targetedGrade: await GradeSchema.parseAsync(file.targetedGrade),
+          targetedGrade: GradeSchema.parse(file.targetedGrade),
           targetedPosition: file.targetedPosition,
           formation: prismaFormationEnumToFormationEnum(file.formation),
           rank: `(${file.rank} sur une liste de ${files.length})`,
+          priorities: ([] as PrioriteEnum[]).concat(
+            file.isOutreMer ? [PrioriteEnum.OUTRE_MER] : [],
+            file.isProfiled ? [PrioriteEnum.PROFILE] : [],
+          ),
           magistrat: {
             id: file.magistratId,
             externalId: assertIsDefined(file.magistratExternalId),
@@ -80,6 +84,7 @@ export type DetailedLolfiSession = {
     detectedTargetedPositionId: number | null;
     detectedTargetedFunctionId: string | null;
     detectedJurisdictionId: string | null;
+    priorities: PrioriteEnum[];
     magistrat: {
       id: string;
       externalId: number;
