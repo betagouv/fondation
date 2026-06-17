@@ -28,7 +28,7 @@ AlertsProvider.Alerts = function InnerAlertList(
   if (!ctx || ctx.alerts.length === 0) return null;
 
   return (
-    <ul className="m-0 flex list-none flex-col gap-2 p-0" ref={props.ref}>
+    <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-2" ref={props.ref}>
       {ctx.alerts.map((alert) => (
         <li key={alert.id}>
           <Alert

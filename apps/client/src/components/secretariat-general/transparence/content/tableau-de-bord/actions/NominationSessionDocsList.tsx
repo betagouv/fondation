@@ -23,9 +23,9 @@ export function NominationSessionDocsList(props: { sessionId: string }) {
   if (!docs?.items?.length) return null;
 
   return (
-    <ul className={clsx('m-0 flex flex-col gap-2 p-0')}>
+    <ul className={clsx('fr-m-0 fr-p-0 flex flex-col gap-2')}>
       {docs.items.map((doc) => (
-        <li key={doc.id} className="flex items-center gap-4 pb-0">
+        <li key={doc.id} className="fr-pb-0 flex items-center gap-4">
           <DocActionDetails
             disabled={isActing}
             sessionId={props.sessionId}
@@ -34,7 +34,7 @@ export function NominationSessionDocsList(props: { sessionId: string }) {
           />
 
           {!isArchived && (
-            <ul className="m-0 flex list-none items-center gap-2 p-0">
+            <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-2">
               <li>
                 <DocActionUpdate
                   disabled={isActing}

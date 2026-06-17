@@ -25,7 +25,7 @@ function JdmaButton() {
 
   if (!url) return null;
   return (
-    <div className="mb-1 text-center">
+    <div className="fr-mb-1v text-center">
       <a
         key="jeDonneMonAvisLink"
         href={url}

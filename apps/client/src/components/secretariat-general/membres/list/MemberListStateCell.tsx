@@ -12,17 +12,17 @@ export function MemberListStatCell({ stats }: { stats: StatArray }) {
   );
 
   return (stats?.length ?? 0) > 0 ? (
-    <ul className="content m-0! flex list-none flex-row items-center justify-start gap-2 p-0">
+    <ul className="content fr-m-0 fr-p-0 flex list-none flex-row items-center justify-start gap-2">
       {sortedStats.map((stat) => (
         <li key={`member_list_stats_${stat.targetedGrade}`}>
           <Tag small>
             <strong>{GradeEnum[stat.targetedGrade]}</strong>
-            <span className="ml-1">{stat.count}</span>
+            <span className="fr-ml-1v">{stat.count}</span>
           </Tag>
         </li>
       ))}
     </ul>
   ) : (
-    <span className="pl-3">-</span>
+    <span className="fr-pl-3v">-</span>
   );
 }

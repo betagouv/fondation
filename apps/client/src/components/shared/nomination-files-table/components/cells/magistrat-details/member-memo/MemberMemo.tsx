@@ -21,7 +21,7 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
       hideLabel
       label=""
       textArea
-      classes={{ nativeInputOrTextArea: 'mt-2 member-memo-textarea' }}
+      classes={{ nativeInputOrTextArea: 'fr-mt-2v member-memo-textarea' }}
       nativeTextAreaProps={{
         value,
         rows: 5,
@@ -45,7 +45,7 @@ function ReadOnlyMemo(props: { value: string | null }) {
   // we use a <pre /> to handle '\n'
   return (
     <pre
-      className="mt-2 mb-0 overflow-hidden rounded-t-lg bg-(--background-contrast-grey) px-4 py-2 leading-6 text-wrap"
+      className="fr-mt-2v fr-mb-0 fr-px-4v fr-py-2v overflow-hidden rounded-t-lg bg-(--background-contrast-grey) leading-6 text-wrap"
       style={{ fontFamily: 'inherit' }}
     >
       {value}
@@ -80,9 +80,9 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
   if (!user || isSg) return null;
 
   return (
-    <div className="mb-4">
+    <div className="fr-mb-4v">
       <div className="flex flex-row justify-between">
-        <h3 className="fr-label mb-0 flex items-center gap-x-1 text-xl">
+        <h3 className="fr-label fr-mb-0 flex items-center gap-x-1 text-xl">
           Commentaire
           <Tooltip
             title={

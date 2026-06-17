@@ -10,7 +10,7 @@ import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
 
 function ObservationDescriptionReadOnly(props: { observation: GetObservationDetailsResponseDto }) {
-  return <div className="rounded-sm bg-gray-100 p-4">{props.observation.description}</div>;
+  return <div className="fr-p-4v rounded-sm bg-gray-100">{props.observation.description}</div>;
 }
 
 function ObservationDescriptionEditor(props: {

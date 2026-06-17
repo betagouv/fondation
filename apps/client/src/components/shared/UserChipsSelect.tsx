@@ -109,14 +109,14 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
 
   return (
     <div ref={containerRef} className="relative">
-      {label && <label className="mb-2 block text-sm font-medium">{label}</label>}
+      {label && <label className="fr-mb-2v block text-sm font-medium">{label}</label>}
 
       {selectedUsers.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-2">
+        <div className="fr-mb-2v flex flex-wrap gap-2">
           {selectedUsers.map((user) => (
             <div
               key={user.userId}
-              className="flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
+              className="fr-px-3v fr-py-1v flex items-center gap-1 rounded-full bg-blue-100 text-sm text-blue-800"
             >
               <span>
                 {user.firstName} {user.lastName}
@@ -124,7 +124,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
               <button
                 type="button"
                 onClick={() => removeUser(user.userId)}
-                className="ml-1 flex h-4 w-4 items-center justify-center rounded-full hover:bg-blue-200"
+                className="fr-ml-1v flex h-4 w-4 items-center justify-center rounded-full hover:bg-blue-200"
                 aria-label={`Retirer ${user.firstName} ${user.lastName}`}
               >
                 ×
@@ -153,7 +153,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fixed z-9999 mt-1 rounded-sm border border-gray-300 bg-white shadow-lg"
+              className="fr-mt-1v fixed z-9999 rounded-sm border border-gray-300 bg-white shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -163,13 +163,13 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
-              <ul className="m-0 max-h-[240px] list-none overflow-y-auto p-0 py-1">
+              <ul className="fr-m-0 fr-p-0 fr-py-1v max-h-[240px] list-none overflow-y-auto">
                 {filteredUsers.map((user) => (
-                  <li key={user.userId} className="m-0 list-none p-0">
+                  <li key={user.userId} className="fr-m-0 fr-p-0 list-none">
                     <button
                       type="button"
                       onMouseDown={(e) => addUser(e, user.userId)}
-                      className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2 text-left text-sm hover:bg-gray-100"
+                      className="fr-px-4v fr-py-2v block w-full cursor-pointer border-0 bg-transparent text-left text-sm hover:bg-gray-100"
                     >
                       <span className="font-medium">
                         {user.lastName.toUpperCase()} {user.firstName}
@@ -188,7 +188,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fixed z-9999 mt-1 rounded-sm border border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 shadow-lg"
+              className="fr-mt-1v fr-px-4v fr-py-3v fixed z-9999 rounded-sm border border-gray-300 bg-white text-sm text-gray-500 shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -204,7 +204,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
       </div>
 
       {selectedUsers.length > 0 && (
-        <p className="mt-1 text-xs text-gray-600">
+        <p className="fr-mt-1v text-xs text-gray-600">
           {selectedUsers.length} utilisateur{selectedUsers.length > 1 ? 's' : ''} sélectionné
           {selectedUsers.length > 1 ? 's' : ''}
         </p>
