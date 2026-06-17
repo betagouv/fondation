@@ -28,7 +28,7 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
       <h2 id={titleId}>{label}</h2>
 
       {isArchived ? (
-        <div className="rounded bg-gray-50 p-4" dangerouslySetInnerHTML={{ __html: content ?? '' }} />
+        <div className="fr-p-4v rounded bg-gray-50" dangerouslySetInnerHTML={{ __html: content ?? '' }} />
       ) : (
         <TipTapEditor
           value={content ?? undefined}

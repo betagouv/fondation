@@ -43,7 +43,7 @@ export function DocActionDetails(props: {
     >
       <>
         {doc.type === 'agenda' && !doc.isLinkedToOfficialReport && (
-          <Badge as="span" small noIcon severity="error" className="mr-1 rounded-full">
+          <Badge as="span" small noIcon severity="error" className="fr-mr-1v rounded-full">
             <FormattedMessage defaultMessage={'pv attendu'} />
           </Badge>
         )}

@@ -26,11 +26,11 @@ function SgSummaryBreadcrumb() {
   const { data } = useDetailedNominationSessionQuery({ sessionId });
 
   return (
-    <div className="mb-8 flex items-center justify-between">
+    <div className="fr-mb-8v flex items-center justify-between">
       {data && (
         <Breadcrumb
           id="summary-breadcrumb"
-          className="mb-0"
+          className="fr-mb-0"
           ariaLabel={`Fil d'Ariane de la synthèse de ${summary.name}`}
           breadcrumb={{
             segments: [
@@ -69,11 +69,11 @@ function MemberSummaryBreadcrumb() {
   const { data } = useDetailedNominationSessionQuery({ sessionId });
 
   return (
-    <div className="mb-8 flex items-center justify-between">
+    <div className="fr-mb-8v flex items-center justify-between">
       {data && (
         <Breadcrumb
           id="summary-breadcrumb"
-          className="mb-0"
+          className="fr-mb-0"
           ariaLabel={`Fil d'Ariane de la synthèse de ${summary.name}`}
           breadcrumb={{
             segments: [

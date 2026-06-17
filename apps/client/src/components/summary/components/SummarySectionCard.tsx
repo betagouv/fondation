@@ -15,7 +15,10 @@ export function SummarySectionCard(props: {
   }, [showSection, props.id]);
 
   return (
-    <section id={props.id} className={clsx('rounded-lg bg-white', !props.disablePadding && 'px-6 py-4')}>
+    <section
+      id={props.id}
+      className={clsx('rounded-lg bg-white', !props.disablePadding && 'fr-px-6v fr-py-4v')}
+    >
       {props.children}
     </section>
   );

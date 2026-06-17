@@ -61,7 +61,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
                 ))}
               </ul>
             ) : (
-              <p className="mb-0 text-sm">Aucune session en cours</p>
+              <p className="fr-mb-0 text-sm">Aucune session en cours</p>
             )}
           </section>
 

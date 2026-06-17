@@ -47,7 +47,7 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
   };
 
   return (
-    <div className="mt-4">
+    <div className="fr-mt-4v">
       <Input
         label="Exclusion de membre(s)"
         nativeInputProps={{
@@ -58,7 +58,7 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
         }}
       />
       {displayedMembers.length > 0 && (
-        <div className="max-h-32 overflow-y-auto p-4">
+        <div className="fr-p-4v max-h-32 overflow-y-auto">
           <Checkbox
             options={displayedMembers.map((member) => ({
               label: `${member.lastName} ${member.firstName}`.toUpperCase(),

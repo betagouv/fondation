@@ -53,7 +53,7 @@ export function ObservationDetailsContent({
     .map((part, i) => <li key={`observer_biography_${i}`}>{part}</li>);
 
   return (
-    <div className="bg-white p-8">
+    <div className="fr-p-8v bg-white">
       <div className="fr-mb-8v">
         <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
           {backLink.label}
@@ -147,7 +147,7 @@ export function ObservationDetailsContent({
                 <div className="fr-grid-row fr-mb-4v">
                   <dt className="fr-col-4 fr-text--bold">Biographie :</dt>
                   <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">
-                    <ul className="list-['-_'] p-0">{biographyItems}</ul>
+                    <ul className="fr-p-0 list-['-_']">{biographyItems}</ul>
                   </dd>
                 </div>
               )}
@@ -164,7 +164,7 @@ export function ObservationDetailsContent({
                 </h2>
                 {isArchived ? (
                   <div
-                    className="rounded bg-gray-100 p-2"
+                    className="fr-p-2v rounded bg-gray-100"
                     dangerouslySetInnerHTML={{ __html: observation.memberComment?.comment ?? '' }}
                   />
                 ) : (
@@ -223,8 +223,10 @@ export function ObservationDetailsContent({
                       title={proposition.magistratName}
                       desc={
                         <span className="fr-text--sm">
-                          {proposition.number && <span className="mb-1 block">N° {proposition.number}</span>}
-                          <span className="mb-1 block">{proposition.proposedPosition ?? '-'}</span>
+                          {proposition.number && (
+                            <span className="fr-mb-1v block">N° {proposition.number}</span>
+                          )}
+                          <span className="fr-mb-1v block">{proposition.proposedPosition ?? '-'}</span>
                           <span className="block text-gray-500"></span>
                         </span>
                       }

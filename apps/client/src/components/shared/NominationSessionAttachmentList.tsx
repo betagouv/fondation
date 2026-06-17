@@ -56,9 +56,9 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
     );
 
   return (
-    <ul className={clsx('m-0 flex flex-col gap-2 p-0')}>
+    <ul className={clsx('fr-m-0 fr-p-0 flex flex-col gap-2')}>
       {(attachments?.items ?? []).map((file) => (
-        <li key={file.id} className="flex items-center gap-4 pb-0">
+        <li key={file.id} className="fr-pb-0 flex items-center gap-4">
           <Button
             priority="tertiary no outline"
             className={clsx('inline truncate', { grow: !isSg })}

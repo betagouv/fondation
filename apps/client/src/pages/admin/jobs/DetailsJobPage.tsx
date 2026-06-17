@@ -55,7 +55,7 @@ export function DetailsJobPage() {
   }, [selectedFile]);
 
   return (
-    <div className="mt-7 max-w-full">
+    <div className="fr-mt-7v max-w-full">
       <h1 className="fr-h3">
         <i
           className={`${icon} before:mr-2 before:size-6! before:align-middle before:content-[""] ${textColor}`}
@@ -68,7 +68,7 @@ export function DetailsJobPage() {
       <JobFilesTree files={job?.files ?? []} />
 
       {selectedFile && (
-        <div className="mt-4 w-full rounded-sm border border-solid border-gray-300 p-6">
+        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-gray-300">
           <header className="flex items-start justify-between">
             <h2 className="fr-h5">Erreurs {selectedFile.name}</h2>
             <Button
@@ -82,7 +82,7 @@ export function DetailsJobPage() {
             </Button>
           </header>
           {selectedFile.errors.length > 0 ? (
-            <ul className="m-0 list-none p-0">
+            <ul className="fr-m-0 fr-p-0 list-none">
               {selectedFile.errors.map((e, i) => (
                 <li key={i}>
                   {e.entityNumber != null ? `${entityName} n°\u00A0${e.entityNumber}: ` : ''}
@@ -107,12 +107,12 @@ export function DetailsJobPage() {
       )}
 
       {(job?.errors ?? []).length > 0 ? (
-        <div className="mt-4 w-full rounded-sm border border-solid border-gray-300 p-6 shadow-sm">
+        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-gray-300 shadow-sm">
           <h2 className="fr-h5">
             <i
               className={clsx(
                 cx('ri-close-circle-fill'),
-                'mr-1 before:align-middle before:content-[""]',
+                'fr-mr-1v before:align-middle before:content-[""]',
                 textColor,
               )}
             />
@@ -120,7 +120,7 @@ export function DetailsJobPage() {
           </h2>
           {(job?.errors ?? []).map(({ error }, i) => (
             <pre
-              className="overflow-scroll rounded-sm bg-gray-100 p-4 font-mono text-sm"
+              className="fr-p-4v overflow-scroll rounded-sm bg-gray-100 font-mono text-sm"
               key={`job_${job?.id}_error_${i}`}
             >
               {error}

@@ -12,7 +12,7 @@ export function ReportList<Data extends RowData>(
   });
 
   return (
-    <div className="mt-12 mb-4 flex flex-col gap-4">
+    <div className="fr-mt-12v fr-mb-4v flex flex-col gap-4">
       <DataTable table={props.table} placeholder={`Aucun résultat ne correspond aux valeurs filtrées`}>
         {props.children}
       </DataTable>

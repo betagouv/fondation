@@ -14,8 +14,8 @@ export function SummarySectionMagistrat() {
 
   return (
     <SummarySectionCard id="magistrat">
-      <header className="mb-6">
-        <h1 className="mb-0 flex flex-row items-center">
+      <header className="fr-mb-6v">
+        <h1 className="fr-mb-0 flex flex-row items-center">
           <span>{summary.name}</span>
           <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
         </h1>
@@ -30,7 +30,7 @@ export function SummarySectionMagistrat() {
           </List.ItemContent>
         </List.Item>
 
-        <List.Item className="mt-2" isVisible={!!summary.position}>
+        <List.Item className="fr-mt-2v" isVisible={!!summary.position}>
           <List.ItemTitle>Poste actuel</List.ItemTitle>
           <List.ItemContent>{summary.position}</List.ItemContent>
         </List.Item>
@@ -42,7 +42,7 @@ export function SummarySectionMagistrat() {
           </List.ItemContent>
         </List.Item>
 
-        <List.Item className="mt-2" isVisible={!!summary.rank}>
+        <List.Item className="fr-mt-2v" isVisible={!!summary.rank}>
           <List.ItemTitle>Rang</List.ItemTitle>
           <List.ItemContent>{summary.rank}</List.ItemContent>
         </List.Item>
@@ -76,7 +76,7 @@ function List(props: { children: React.ReactNode }) {
   return <dl>{props.children}</dl>;
 }
 
-List.ItemContent = (props: { children: React.ReactNode }) => <dd className="pl-2">{props.children}</dd>;
+List.ItemContent = (props: { children: React.ReactNode }) => <dd className="fr-pl-2v">{props.children}</dd>;
 List.ItemTitle = (props: { children: string }) => <dt className="font-bold">{props.children}:</dt>;
 List.Item = function Item(props: { className?: string; isVisible?: boolean; children: React.ReactNode }) {
   if (props.isVisible === false) return null;

@@ -15,7 +15,7 @@ export function ComboboxInputGroup(props: React.PropsWithChildren) {
   return (
     <BaseCombobox.InputGroup
       className={clsx(
-        'w-64 cursor-text rounded-md border border-gray-200 bg-[canvas] px-1.5 py-1',
+        'fr-py-1v w-64 cursor-text rounded-md border border-gray-200 bg-[canvas] px-1.5',
         'focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-blue-france-sun-113',
         'min-[500px]:w-88',
       )}
@@ -45,7 +45,7 @@ export function ComboboxInput({
         />
       )}
       className={clsx(
-        `h-8 min-w-12 flex-1 rounded-md border-0 bg-transparent pl-2`,
+        `fr-pl-2v h-8 min-w-12 flex-1 rounded-md border-0 bg-transparent`,
         `text-base font-normal text-gray-900 outline-hidden`,
         className,
       )}
@@ -58,7 +58,7 @@ export function ComboboxEmpty(props: React.PropsWithChildren) {
   return (
     <BaseCombobox.Empty>
       {typeof children === 'string' ? (
-        <div className="p-4 text-center text-xs text-gray-500">{children}</div>
+        <div className="fr-p-4v text-center text-xs text-gray-500">{children}</div>
       ) : (
         children
       )}
@@ -92,8 +92,8 @@ export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
     <BaseCombobox.Item
       {...props}
       className={clsx(
-        `p-3 text-base leading-4 outline-hidden`,
-        // `grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-2 py-2 pl-4 pr-8`,
+        `fr-p-3v text-base leading-4 outline-hidden`,
+        // `grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-2 fr-py-2v fr-pl-4v fr-pr-8v`,
         `data-highlighted:relative data-highlighted:z-0`,
         `data-highlighted:before:absolute data-highlighted:before:inset-0`,
         `cursor-pointer data-highlighted:before:content-[""]`,

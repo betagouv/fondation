@@ -41,7 +41,7 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
           iconId="fr-icon-search-line"
           className="rounded-full"
         />
-        <p className="m-0 mt-2 text-xs text-gray-600">{search}</p>
+        <p className="fr-m-0 fr-mt-2v text-xs text-gray-600">{search}</p>
       </div>
 
       <Input
@@ -52,7 +52,7 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
         }}
         className={clsx(
           'peer',
-          'mb-0 w-0 rounded-full opacity-0',
+          'fr-mb-0 w-0 rounded-full opacity-0',
           'focus-within:z-10 focus-within:rounded focus-within:bg-white focus-within:p-6 focus-within:opacity-100 focus-within:shadow',
           'focus-within:absolute focus-within:w-[40%] focus-within:overflow-visible',
           'focus:within:duration-200 transition-none duration-initial focus-within:transition-[opacity,width]',

@@ -36,14 +36,14 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
   return (
     <div>
       <Breadcrumb
-        className="mb-2"
+        className="fr-mb-2v"
         id="reports-breadcrumb"
         ariaLabel="Fil d'Ariane des rapports"
         breadcrumb={breadcrumb}
       />
 
       <div>
-        <h1 className="mb-0">
+        <h1 className="fr-mb-0">
           <span>Transparence: </span>
           <span style={{ color: colors.options.yellowTournesol.sun407moon922.hover }}>{transparency}</span>
         </h1>

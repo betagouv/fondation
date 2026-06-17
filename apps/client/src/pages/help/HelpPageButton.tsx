@@ -12,7 +12,7 @@ export function HelpPageButton() {
     <Button
       linkProps={{ to: ROUTE_PATHS.HELP }}
       iconId="fr-icon-questionnaire-line"
-      className="mb-0! self-center"
+      className="fr-mb-0 self-center"
     >
       Centre d'aide
     </Button>

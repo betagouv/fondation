@@ -50,7 +50,7 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">Titre</dt>
 
         {isEditing ? (
@@ -96,7 +96,7 @@ export function MemberDisplayTitle(props: { member: { id: string; displayTitle: 
           />
         </form>
       ) : (
-        <div id={id} className="mt-2 rounded-sm border border-gray-300 bg-gray-50 p-4">
+        <div id={id} className="fr-mt-2v fr-p-4v rounded-sm border border-gray-300 bg-gray-50">
           {displayTitle || <span className="text-gray-400">Aucun titre</span>}
         </div>
       )}

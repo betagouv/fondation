@@ -133,7 +133,7 @@ export const IngestLolfiArchivePage: FC = () => {
 
         <Button
           priority="primary"
-          className="mt-6"
+          className="fr-mt-6v"
           onClick={handleSubmit(onSubmit)}
           disabled={isPending || !isValid}
           type="submit"

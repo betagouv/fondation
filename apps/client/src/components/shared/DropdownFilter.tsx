@@ -83,7 +83,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       >
         <span>
           {tagName}
-          {selectedValues.length > 0 && <span className="ml-1 text-xs">({selectedValues.length})</span>}
+          {selectedValues.length > 0 && <span className="fr-ml-1v text-xs">({selectedValues.length})</span>}
         </span>
         <span
           className={clsx(
@@ -95,8 +95,8 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       </Button>
 
       {isOpen && (
-        <div className="animate-in slide-in-from-top-2 absolute top-full left-0 z-50 mt-2 max-h-[250px] min-w-[230px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-lg duration-200">
-          <Checkbox options={checkboxOptions} state="default" className="mt-2! mb-0!" small />
+        <div className="animate-in slide-in-from-top-2 fr-mt-2v fr-p-4v absolute top-full left-0 z-50 max-h-[250px] min-w-[230px] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg duration-200">
+          <Checkbox options={checkboxOptions} state="default" className="fr-mt-2v fr-mb-0" small />
         </div>
       )}
     </div>

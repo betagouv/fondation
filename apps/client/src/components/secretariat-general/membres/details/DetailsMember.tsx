@@ -13,10 +13,10 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
     userId: props.member.id,
   });
   return (
-    <div className="mx-auto max-w-2xl pt-4 pb-12">
+    <div className="fr-pt-4v fr-pb-12v mx-auto max-w-2xl">
       <h1 className="fr-display-xl text-center">{`${capitalize(props.member.firstName)} ${props.member.lastName.toUpperCase()}`}</h1>
 
-      <article className="mt-16 flex flex-col gap-y-8">
+      <article className="fr-mt-16v flex flex-col gap-y-8">
         <section>
           <h2 className="fr-display-xs">Identifiants</h2>
 

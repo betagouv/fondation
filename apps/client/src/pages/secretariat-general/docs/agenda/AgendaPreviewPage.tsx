@@ -32,7 +32,7 @@ export function AgendaPreviewPage() {
 
   return (
     <>
-      <div className="fr-container pt-4">
+      <div className="fr-container fr-pt-4v">
         <Breadcrumb
           id="breadcrumb"
           ariaLabel="fil d'Ariane"

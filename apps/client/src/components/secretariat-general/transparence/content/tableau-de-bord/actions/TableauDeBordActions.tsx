@@ -22,7 +22,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         titleAs="h2"
         label={
           <>
-            Pièces jointes <Badge className="ml-1!">{(attachments?.items ?? []).length}</Badge>
+            Pièces jointes <Badge className="fr-ml-1v">{(attachments?.items ?? []).length}</Badge>
           </>
         }
       >
@@ -33,12 +33,12 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         <NominationSessionAttachmentList sessionId={sessionId} placeholder={null} />
 
         {!isArchived && (
-          <div className="mt-2 text-center">
+          <div className="fr-mt-2v text-center">
             <Button
               nativeButtonProps={importAttachments.modal.buttonProps}
               iconId="fr-icon-add-line"
               priority="tertiary no outline"
-              className="mt-2"
+              className="fr-mt-2v"
               title="Importer des pièces jointes"
               size="small"
             >
@@ -53,7 +53,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
           titleAs="h2"
           label={
             <>
-              Documents <Badge className="ml-1!">{(docs?.items ?? []).length}</Badge>
+              Documents <Badge className="fr-ml-1v">{(docs?.items ?? []).length}</Badge>
             </>
           }
         >
@@ -65,7 +65,7 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         </Accordion>
       )}
 
-      {!isArchived && <TableauDeBordActionList className="mt-2!" sessionId={sessionId} />}
+      {!isArchived && <TableauDeBordActionList className="fr-mt-2v" sessionId={sessionId} />}
     </div>
   );
 }

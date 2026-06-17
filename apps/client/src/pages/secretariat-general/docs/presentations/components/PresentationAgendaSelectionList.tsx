@@ -77,7 +77,7 @@ export function PresentationAgendaSelectionList(props: {
       <h3 className="fr-h5 flex items-start justify-between lowercase">
         <span>{formationLabel}</span>
         <Button
-          className="ml-12!"
+          className="fr-ml-12v"
           size="small"
           disabled={selection.size === 0 || isNavigating}
           iconId={selection.size > 0 ? 'fr-icon-add-line' : undefined}

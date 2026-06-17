@@ -47,7 +47,7 @@ export function ObservationLinks(props: {
                 >
                   {obs.magistrat?.firstName} {obs.magistrat?.lastName}
                   {(obs.hasDescription || obs.hasUserComment) && (
-                    <i className={clsx(cx('ri-message-3-line'), 'ml-1')} />
+                    <i className={clsx(cx('ri-message-3-line'), 'fr-ml-1v')} />
                   )}
                 </Link>
               </React.Fragment>
