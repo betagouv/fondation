@@ -1,5 +1,7 @@
 import { type JestConfigWithTsJest } from 'ts-jest';
 
+process.env.TZ = 'Etc/UTC';
+
 const jestConfig: JestConfigWithTsJest = {
   rootDir: '../../src',
   moduleFileExtensions: ['ts', 'js', 'json'],

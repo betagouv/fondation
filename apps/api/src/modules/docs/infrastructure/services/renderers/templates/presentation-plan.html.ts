@@ -121,8 +121,8 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readon
 
   const intro =
     ctx.previousCount > 0
-      ? html`Par ailleurs, le Conseil ne s'est pas encore prononcé pour`
-      : html`Le Conseil supérieur de la magistrature ne s'est pas encore prononcé pour`;
+      ? html`Par ailleurs, le Conseil sursoit à statuer pour`
+      : html`Le Conseil supérieur de la magistrature sursoit à statuer pour`;
 
   return html`<p>
       ${intro}
@@ -275,7 +275,7 @@ function content(ctx: {
     agendas: readonly {
       comments: readonly string[];
       chairman: { firstName: string; lastName: string };
-      nominationFiles: AgendaNominationFile[];
+      nominationFiles: readonly AgendaNominationFile[];
     }[];
   }[];
 }): string {
