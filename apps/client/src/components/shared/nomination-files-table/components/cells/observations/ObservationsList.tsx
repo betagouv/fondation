@@ -35,8 +35,8 @@ const ObservationCard: FC<{
   };
 
   return (
-    <div className="rounded-sm border bg-white p-4 shadow-xs">
-      <div className="mb-2 flex items-start justify-between">
+    <div className="fr-p-4v rounded-sm border bg-white shadow-xs">
+      <div className="fr-mb-2v flex items-start justify-between">
         <div>
           <div className="text-sm text-gray-500">Reçue le {formatDate(observation.dateReception)}</div>
           {observation.magistrat && (
@@ -83,7 +83,7 @@ const ObservationCard: FC<{
       </div>
 
       {observation.files.length > 0 && (
-        <div className="mt-3 border-t pt-3">
+        <div className="fr-mt-3v fr-pt-3v border-t">
           <div className="fr-mb-2v fr-text--sm fr-text--bold">Pièces jointes:</div>
           <ul className="fr-raw-list">
             {observation.files.map((file) => (
@@ -104,7 +104,7 @@ const ObservationCard: FC<{
       )}
 
       {observation.createdBy && (
-        <div className="mt-3 text-xs text-gray-400">
+        <div className="fr-mt-3v text-xs text-gray-400">
           Créée par {observation.createdBy.lastName} {observation.createdBy.firstName} le{' '}
           {formatDate(observation.createdAt)}
         </div>
@@ -124,15 +124,15 @@ export const ObservationsList: FC<{
   const observations = data?.observations ?? [];
 
   return (
-    <div className="mt-6">
-      <div className="mb-4">
+    <div className="fr-mt-6v">
+      <div className="fr-mb-4v">
         <label className="text-xl font-semibold">Observations ({observations.length})</label>
       </div>
 
       {isLoading ? (
         <div className="text-gray-500">Chargement...</div>
       ) : observations.length === 0 ? (
-        <div className="rounded-sm bg-gray-50 p-4 text-center text-gray-500">
+        <div className="fr-p-4v rounded-sm bg-gray-50 text-center text-gray-500">
           Aucune observation pour ce dossier
         </div>
       ) : (

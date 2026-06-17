@@ -56,12 +56,12 @@ export function DocumentPreviewLayout(props: {
 
   return (
     <div
-      className={clsx('mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col pt-5', {
+      className={clsx('fr-pt-5v mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col', {
         'fr-container': !isEditing,
       })}
     >
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
-        <h1 className="mb-0">{props.title}</h1>
+        <h1 className="fr-mb-0">{props.title}</h1>
         {!isEditing && props.html && !props.isPending && (
           <Button priority="secondary" iconId="fr-icon-edit-line" iconPosition="left" onClick={onEdit}>
             <FormattedMessage defaultMessage="Éditer" />
@@ -69,7 +69,7 @@ export function DocumentPreviewLayout(props: {
         )}
       </div>
 
-      <div className="mt-6 flex min-h-0 flex-1 gap-6">
+      <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
         {!props.isPending && isEditing && (
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto xl:flex-2">
             <DocumentEditor html={props.html} title={props.title} onHtmlChange={onHtmlChange} />
@@ -96,7 +96,7 @@ export function DocumentPreviewLayout(props: {
         </div>
       </div>
 
-      <div className="flex justify-center gap-4 bg-white px-4 py-6">
+      <div className="fr-px-4v fr-py-6v flex justify-center gap-4 bg-white">
         {isEditing ? (
           <>
             <Button priority="secondary" onClick={onCancel} disabled={isValidationPending}>

@@ -26,11 +26,11 @@ export const Avatar: FC = () => {
 
   return (
     <>
-      <Badge small noIcon className="mx-2 mt-0! ml-3! self-center">
+      <Badge small noIcon className="fr-mx-2v fr-mt-0 fr-ml-3v self-center">
         {RoleEnumLabels[user.role]}
       </Badge>
-      <Button className="mb-0!" onClick={onClickLogout}>
-        <div className="flex items-center gap-8 rounded-sm py-2">
+      <Button className="fr-mb-0" onClick={onClickLogout}>
+        <div className="fr-py-2v flex items-center gap-8 rounded-sm">
           <div className="flex items-center gap-2">
             <UserAvatar user={user} />
             <div id="avatar-logout" className="font-semibold hover:cursor-pointer">

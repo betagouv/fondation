@@ -47,7 +47,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
 
   const content = (
     <div className="max-h-96 min-w-[300px] overflow-hidden rounded-sm border border-gray-300 bg-white shadow-lg">
-      <div className="border-b border-gray-200 p-4">
+      <div className="fr-p-4v border-b border-gray-200">
         <Input
           label=""
           nativeInputProps={{
@@ -59,7 +59,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
         />
       </div>
 
-      <div className="max-h-64 space-y-2 overflow-y-auto p-4">
+      <div className="fr-p-4v max-h-64 space-y-2 overflow-y-auto">
         {filteredRapporteurs.length > 0 ? (
           filteredRapporteurs.map((rapporteur) => (
             <Checkbox
@@ -76,7 +76,7 @@ export const RapporteursDropdownBase: FC<RapporteursDropdownBaseProps> = ({
             />
           ))
         ) : (
-          <p className="py-4 text-center text-sm text-gray-500">Aucun rapporteur trouvé</p>
+          <p className="fr-py-4v text-center text-sm text-gray-500">Aucun rapporteur trouvé</p>
         )}
       </div>
     </div>

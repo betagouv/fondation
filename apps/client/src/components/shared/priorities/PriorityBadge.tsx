@@ -36,9 +36,9 @@ function InternalPriorityBadgeList(props: {
 
   if (priorities.length === 0) return null;
   return (
-    <ul className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1 p-0">
+    <ul className="fr-m-0 fr-p-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1">
       {priorities.map((priority) => (
-        <li className="m-0 p-0" key={priority}>
+        <li className="fr-m-0 fr-p-0" key={priority}>
           <PriorityBadge priority={priority} small={props.small} acronym={props.acronym} />
         </li>
       ))}

@@ -12,7 +12,7 @@ export const SortButton: FC<SortButtonProps> = ({ iconId, onClick, label }) => {
     <Button
       iconId={iconId}
       onClick={onClick}
-      className="fr-btn--icon-only p-0 hover:bg-transparent"
+      className="fr-btn--icon-only fr-p-0 hover:bg-transparent"
       priority="tertiary no outline"
       title={`Trier par ${label}`}
     />

@@ -27,7 +27,7 @@ export function ReactTableColumnVisibility<Data extends RowData>(props: { table:
         />
       }
     >
-      <div className="max-h-96 overflow-y-auto bg-white px-2 pt-4 shadow-xl">
+      <div className="fr-px-2v fr-pt-4v max-h-96 overflow-y-auto bg-white shadow-xl">
         <Checkbox
           small
           legend={<span className="text-sm font-bold uppercase">Colonnes</span>}

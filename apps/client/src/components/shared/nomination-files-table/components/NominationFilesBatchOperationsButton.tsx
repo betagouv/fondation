@@ -132,7 +132,7 @@ export function NominationFilesBatchOperationsButton() {
       >
         <div className="flex flex-col gap-2">
           <div>
-            <h3 className="mb-2 text-base font-semibold">Définir les priorités</h3>
+            <h3 className="fr-mb-2v text-base font-semibold">Définir les priorités</h3>
             <Checkbox
               orientation="horizontal"
               options={PRIORITIES.map((option) => ({
@@ -145,8 +145,8 @@ export function NominationFilesBatchOperationsButton() {
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-2">
-            <h3 className="mb-2 text-base font-semibold">Affecter des rapporteurs</h3>
+          <div className="fr-pt-2v border-t border-gray-200">
+            <h3 className="fr-mb-2v text-base font-semibold">Affecter des rapporteurs</h3>
             <NominationFilesReporterSelector
               availableRapporteurs={availableRapporteurs}
               selectedRapporteurs={localSelection}

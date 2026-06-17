@@ -39,15 +39,15 @@ export function PresentationsTabPast() {
         <FormattedMessage defaultMessage="Restitutions passées" />
       </h2>
       {isSuccess && pastPresentations?.items.length === 0 && (
-        <p className="text-md ml-2 text-gray-600 italic">
+        <p className="text-md fr-ml-2v text-gray-600 italic">
           <FormattedMessage defaultMessage="aucune restitution passée" />
         </p>
       )}
 
       {viewItems.length > 0 && (
-        <ul className="m-0 list-none p-0">
+        <ul className="fr-m-0 fr-p-0 list-none">
           {viewItems.map((item) => (
-            <li className="m-0 p-0" key={item.id}>
+            <li className="fr-m-0 fr-p-0" key={item.id}>
               <Button
                 size="small"
                 priority="tertiary no outline"

@@ -32,7 +32,7 @@ export function MagistratComment(props: {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <label htmlFor={id} className="text-xl font-semibold">
           Historique proposition
         </label>

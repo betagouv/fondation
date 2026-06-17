@@ -14,12 +14,12 @@ export const StagingAppLayout: React.FC<React.PropsWithChildren> = ({ children }
         className="fixed top-0 right-0 left-0 z-1000 flex h-10 items-center justify-center"
         style={{ color: textColor, backgroundColor: bgColor }}
       >
-        <p className="mb-0 text-sm">
+        <p className="fr-mb-0 text-sm">
           <span className="font-bold">Environnement hors-production.</span>
-          <span className="ml-1">Les données affichées sont fictives</span>
+          <span className="fr-ml-1v">Les données affichées sont fictives</span>
         </p>
       </div>
-      <div className="mt-10">{children}</div>
+      <div className="fr-mt-10v">{children}</div>
     </>
   );
 };

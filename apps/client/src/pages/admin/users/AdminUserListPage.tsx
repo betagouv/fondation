@@ -121,7 +121,7 @@ export function AdminUserListPage() {
   });
 
   return (
-    <div className="fr-container flex flex-col justify-center pt-10">
+    <div className="fr-container fr-pt-10v flex flex-col justify-center">
       <Breadcrumb
         id="administration-breadcrumb"
         ariaLabel="Fil d'Ariane pour l'Administration"

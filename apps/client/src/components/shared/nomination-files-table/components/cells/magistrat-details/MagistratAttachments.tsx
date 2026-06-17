@@ -56,7 +56,7 @@ export function MagistratAttachments(props: {
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="fr-mb-2v flex items-center justify-between">
         <p className="text-xl font-semibold" id={labelId}>
           <FormattedMessage
             defaultMessage="{count, plural, =0 {Pièce jointe} one {Pièce jointe (#)} other {Pièces jointes (#)}}"
@@ -67,7 +67,7 @@ export function MagistratAttachments(props: {
 
       {canManage && (
         <Upload
-          className="mb-2"
+          className="fr-mb-2v"
           multiple
           disabled={isAddPending}
           hint={null}
@@ -77,7 +77,7 @@ export function MagistratAttachments(props: {
       )}
 
       {attachments.length > 0 ? (
-        <ul aria-labelledby={labelId} className="m-0 flex flex-col gap-2 p-0">
+        <ul aria-labelledby={labelId} className="fr-m-0 fr-p-0 flex flex-col gap-2">
           {attachments.map((file) => (
             <AttachmentItem
               key={file.id}
@@ -99,7 +99,7 @@ export function MagistratAttachments(props: {
 
       {isAddError && (
         <Alert
-          className="mt-2"
+          className="fr-mt-2v"
           closable
           description={formatMessage({
             defaultMessage: "L'ajout de la pièce jointe a échoué. Veuillez réessayer.",
@@ -157,7 +157,7 @@ function AttachmentItem(props: {
   }, [remove, props.sessionId, props.nominationFileId, props.fileId]);
 
   return (
-    <li className="flex flex-col gap-1 pb-0">
+    <li className="fr-pb-0 flex flex-col gap-1">
       <div className="flex items-center gap-4">
         <Button
           className="inline truncate"

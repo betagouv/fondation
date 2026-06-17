@@ -8,7 +8,7 @@ export function ReactTableWrapper<Data extends RowData>(props: PropsWithChildren
   const shouldHideCaption = props.table.options.enableColumnFilters || props.table.options.enableGlobalFilter;
 
   return (
-    <div className={clsx('mb-0', cx('fr-table', shouldHideCaption && 'fr-table--no-caption'))}>
+    <div className={clsx('fr-mb-0', cx('fr-table', shouldHideCaption && 'fr-table--no-caption'))}>
       <div className="fr-table__wrapper">
         <div className="fr-table__container">
           <div className="fr-table__content flex">

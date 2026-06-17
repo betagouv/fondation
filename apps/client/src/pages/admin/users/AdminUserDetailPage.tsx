@@ -53,7 +53,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">Email</dt>
         {isEditing ? (
           <div className="flex gap-1">
@@ -107,7 +107,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="rounded-sm border border-gray-300 bg-gray-50 px-4! py-2!">{props.user.email}</dd>
+        <dd className="fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50">{props.user.email}</dd>
       )}
     </div>
   );
@@ -211,7 +211,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">Mot de passe</dt>
         {isEditing ? (
           <div className="flex gap-1">
@@ -267,7 +267,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="mt-2 rounded-sm border border-gray-300 bg-gray-50 px-4! py-2! text-gray-400">
+        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50 text-gray-400">
           ••••••••
         </dd>
       )}
@@ -359,7 +359,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">Rôle</dt>
         {isEditing ? (
           <Button
@@ -406,11 +406,11 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           ))}
         </Select>
       ) : (
-        <dd className="mt-2 rounded-sm border border-gray-300 bg-gray-50 px-4! py-2!">
+        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50">
           <AdminUserRole value={props.user.role} gender={props.user.gender} />
         </dd>
       )}
-      <AdminUserPromotionToggle className="mt-2 ml-4" user={props.user} />
+      <AdminUserPromotionToggle className="fr-mt-2v fr-ml-4v" user={props.user} />
     </div>
   );
 }
@@ -442,7 +442,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between">
+      <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">Titre</dt>
         {isEditing ? (
           <Button
@@ -484,7 +484,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <div className="mt-2 rounded-sm border border-gray-300 bg-gray-50 p-4">
+        <div className="fr-mt-2v fr-p-4v rounded-sm border border-gray-300 bg-gray-50">
           {props.user.displayTitle || <span className="text-gray-400">Aucun titre</span>}
         </div>
       )}
@@ -511,7 +511,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   }, [tab, impersonate]);
 
   return (
-    <div className="admin-user-detail-page mx-auto max-w-2xl pb-12">
+    <div className="admin-user-detail-page fr-pb-12v mx-auto max-w-2xl">
       <h1 className="fr-display-xl text-center">{fullName}</h1>
       {isUserImpersonable && (
         <p className="text-center">
@@ -528,7 +528,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
         </p>
       )}
 
-      <section className="mt-16 flex flex-col gap-y-8">
+      <section className="fr-mt-16v flex flex-col gap-y-8">
         <dl className="flex flex-col gap-y-4">
           <EmailField user={user} />
           <PasswordField user={user} />
@@ -554,12 +554,13 @@ export function AdminUserDetailPage() {
   }, [hasHistory, navigate]);
 
   if (isLoading) return;
-  if (isError || !user || !userId) return <div className="fr-container py-8">Utilisateur introuvable.</div>;
+  if (isError || !user || !userId)
+    return <div className="fr-container fr-py-8v">Utilisateur introuvable.</div>;
 
   const fullName = user ? toFullName(user) : undefined;
 
   return (
-    <div className="fr-container pt-10">
+    <div className="fr-container fr-pt-10v">
       <div className="flex items-start justify-between">
         <Breadcrumb
           id="administration-breadcrumb"
@@ -579,8 +580,8 @@ export function AdminUserDetailPage() {
         )}
       </div>
 
-      {isLoading && <div className="py-8">Chargement...</div>}
-      {(isError || !user || !userId) && <div className="py-8">Utilisateur introuvable</div>}
+      {isLoading && <div className="fr-py-8v">Chargement...</div>}
+      {(isError || !user || !userId) && <div className="fr-py-8v">Utilisateur introuvable</div>}
       {user && <AdminLoadedUserDetail user={user} />}
     </div>
   );

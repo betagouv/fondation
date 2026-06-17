@@ -202,7 +202,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
           />
         )}
       />
-      <div className="mt-1 text-sm">
+      <div className="fr-mt-1v text-sm">
         {selectedReaderIds.size
           ? selectedReaderIds.size > 1
             ? `${selectedReaderIds.size} lecteurs sélectionnés`
@@ -212,7 +212,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
 
       <Checkbox
         id="summary_reader_list"
-        className="mt-4 max-h-60 overflow-auto pb-24"
+        className="fr-mt-4v fr-pb-24v max-h-60 overflow-auto"
         options={checkboxOptions.map(({ label, value, checked }) => ({
           label,
           nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },

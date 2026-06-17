@@ -31,7 +31,7 @@ export function ImpersonationBanner() {
       </span>
       <Button
         size="small"
-        className="ml-1"
+        className="fr-ml-1v"
         priority="tertiary no outline"
         onClick={onClick}
         disabled={isPending}

@@ -54,7 +54,7 @@ export function TableauDeBordValidationCallOut(props: {
       {...noticeProps}
       severity="warning"
       title="Nouvelle session"
-      classes={{ root: 'mb-6', description: 'ml-1' }}
+      classes={{ root: 'fr-mb-6v', description: 'fr-ml-1v' }}
       description="Merci de valider les données"
     />
   );

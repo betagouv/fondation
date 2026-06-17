@@ -13,9 +13,9 @@ export function SummarySectionContent() {
 
   return (
     <SummarySectionCard id="synthese" disablePadding>
-      <h2 className="px-6 pt-4">Synthèse</h2>
+      <h2 className="fr-px-6v fr-pt-4v">Synthèse</h2>
 
-      <div className={clsx('rounded-b-lg px-6 pb-6', !canWriteSummary && 'bg-gray-50 pt-4')}>
+      <div className={clsx('fr-px-6v fr-pb-6v rounded-b-lg', !canWriteSummary && 'fr-pt-4v bg-gray-50')}>
         {canWriteSummary && !summary.isArchived ? (
           <SummaryEditor />
         ) : (

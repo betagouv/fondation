@@ -121,7 +121,7 @@ export function ManageSession() {
           closable
           severity="success"
           title={`Session «\u00A0${successSessionImportTitle}\u00A0» créée`}
-          className="mb-10"
+          className="fr-mb-10v"
         />
       )}
 
