@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import {
   JusticePresentationPlan,
   JusticePresentationPlanCreated,
@@ -13,7 +14,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
@@ -101,7 +102,9 @@ export class JusticePresentationPlanRepository {
           ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
         });
 
-        return items.map((f) => ({ ...f, agendaId, sessionId, sessionName }));
+        return items
+          .filter((file) => JusticePresentationPlanRepository.hasOutcome(file))
+          .map((f) => ({ ...f, agendaId, sessionId, sessionName }));
       }),
     ).then((result) => result.flat());
 
@@ -116,8 +119,8 @@ export class JusticePresentationPlanRepository {
       position: f.magistrat.position.label,
       targetedPosition: f.targetPosition.label,
       targetedGrade: f.targetPosition.grade,
-      outcome: f.outcome?.value ?? 'SUSPENDED',
-      outcomeComment: f.outcome?.comment,
+      outcome: f.outcome.value,
+      outcomeComment: f.outcome.comment,
       reporters: f.reporters.map(({ fullTitledName }) => fullTitledName),
     }));
 
@@ -250,5 +253,11 @@ export class JusticePresentationPlanRepository {
       where: { id: message.id },
       data: { isPresented: false },
     });
+  }
+
+  private static hasOutcome<
+    T extends { outcome: { value: DocNominationFileOutcomeEnum; comment: string | null } | null },
+  >(file: T): file is T & { outcome: NonNullable<T['outcome']> } {
+    return isDefined(file.outcome);
   }
 }

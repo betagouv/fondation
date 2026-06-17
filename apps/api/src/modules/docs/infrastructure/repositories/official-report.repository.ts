@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import {
   OfficialReport,
   OfficialReportCreated,
@@ -11,7 +12,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
@@ -98,21 +99,23 @@ export class OfficialReportRepository {
       ),
     ).then((result) => result.flatMap(({ items }) => items));
 
-    const nominationFilesCreateMany = nominationFiles.map(
-      (f) =>
-        ({
-          nominationFileId: f.id,
-          number: f.number,
-          name: f.magistrat.name,
-          grade: f.magistrat.position.grade,
-          position: f.magistrat.position.label,
-          targetedPosition: f.targetPosition.label,
-          targetedGrade: f.targetPosition.grade,
-          outcome: f.outcome?.value ?? 'SUSPENDED',
-          outcomeComment: f.outcome?.comment,
-          reporters: f.reporters.map((r) => r.fullTitledName),
-        }) satisfies Prisma.OfficialReportNominationFileUncheckedCreateWithoutOfficialReportInput,
-    );
+    const nominationFilesCreateMany = nominationFiles
+      .filter((file) => OfficialReportRepository.hasOutcome(file))
+      .map(
+        (f) =>
+          ({
+            nominationFileId: f.id,
+            number: f.number,
+            name: f.magistrat.name,
+            grade: f.magistrat.position.grade,
+            position: f.magistrat.position.label,
+            targetedPosition: f.targetPosition.label,
+            targetedGrade: f.targetPosition.grade,
+            outcome: f.outcome.value,
+            outcomeComment: f.outcome.comment,
+            reporters: f.reporters.map((r) => r.fullTitledName),
+          }) satisfies Prisma.OfficialReportNominationFileUncheckedCreateWithoutOfficialReportInput,
+      );
 
     // Supprimer l'ancien snapshot avant mise à jour
     await tx.officialReportNominationFile.deleteMany({
@@ -223,5 +226,11 @@ export class OfficialReportRepository {
         where: { id: report.pdfId },
       });
     }
+  }
+
+  private static hasOutcome<
+    T extends { outcome: { value: DocNominationFileOutcomeEnum; comment: string | null } | null },
+  >(file: T): file is T & { outcome: NonNullable<T['outcome']> } {
+    return isDefined(file.outcome);
   }
 }
