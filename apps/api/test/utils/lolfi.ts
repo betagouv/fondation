@@ -15,14 +15,13 @@ let sessionIdSequence = randomInt(1_000_000, 1_000_000_000);
 
 export async function createSession(options: {
   cookie: string;
-  session: LolfiData['sessions'][number];
   http: ReturnType<typeof supertest.agent>;
+  session: LolfiData['sessions'][number];
 }): Promise<{ id: string }> {
   const sessionId = options.session.id || ++sessionIdSequence;
   const sessionName = `${options.session.name || 'Transparence annuelle'}`;
-
   const archive = await generateLolfiArchive({
-    sessions: [{ ...options.session, name: sessionName, id: sessionId }],
+    sessions: [{ ...options.session, id: sessionId, name: sessionName }],
   });
 
   const ingestionResponse = await options.http

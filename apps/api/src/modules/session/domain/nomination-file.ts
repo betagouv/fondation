@@ -1,4 +1,4 @@
-import { Magistrat } from 'shared-models';
+import { Magistrat, PrioriteEnum } from 'shared-models';
 
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
@@ -29,6 +29,7 @@ export type LodamNominationFile = InternalNominationFile & {
 export type LodamNominationFileEntity = LodamNominationFile & { id: string };
 
 export type NominationFile = InternalNominationFile & {
+  priorities: PrioriteEnum[];
   sortableTargetedGrade: number;
   detectedMagistratId: string | null;
   detectedJurisdictionId: string | null;

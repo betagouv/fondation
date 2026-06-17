@@ -57,7 +57,14 @@ type MagistratFunction = {
   labelOneFemale: string | undefined;
   addition: string | undefined;
 };
-type MagistratPosition = { id: number; jurisdictionId: string; functionId: string; grade: LolfiGradeEnum };
+type MagistratPosition = {
+  id: number;
+  jurisdictionId: string;
+  functionId: string;
+  grade: LolfiGradeEnum;
+  profile: string | null;
+  profileId: string | null;
+};
 
 export async function* generateLolfiFiles(
   data: LolfiData,
@@ -142,6 +149,9 @@ export async function* generateLolfiFiles(
       jurisdictionId: j.id,
       grade: position.grade ?? 'G3',
       id: faker.number.int({ min: 100, max: 1e6 }),
+      profile: position.profile ?? null,
+      profileId:
+        position.profileId !== undefined ? position.profileId : position.profile ? crypto.randomUUID() : null,
     } satisfies MagistratPosition;
     positions.set(positionId, fullPosition);
     return fullPosition;
@@ -234,8 +244,8 @@ export async function* generateLolfiFiles(
       'postes_2',
       positions.values().map((pos) => ({
         num_emploi_cible: pos.id,
-        profil: null,
-        abrev_profil: null,
+        profil: pos.profile,
+        abrev_profil: pos.profileId,
         bbis: '0',
         codejur: pos.jurisdictionId,
         type_jur: 'CA',

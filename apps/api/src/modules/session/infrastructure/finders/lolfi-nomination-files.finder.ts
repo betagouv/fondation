@@ -37,6 +37,8 @@ export class LolfiNominationFilesFinder {
           assertIsDefined(file.targetedPosition, 'Magistrat LOLFI has not targeted position'),
         ),
 
+        priorities: file.priorities,
+
         detectedMagistratId: file.magistrat.id,
         sortableTargetedGrade: file.sortableTargetedGrade,
         detectedTargetedFunctionId: file.detectedTargetedFunctionId,
