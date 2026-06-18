@@ -68,7 +68,7 @@ export function PresentationsTabsPage() {
 
       <Tabs
         className="shadow-none! before:shadow-none!"
-        classes={{ panel: 'ring-gray-200 ring-1' }}
+        classes={{ panel: 'ring-(--border-default-grey) ring-1' }}
         selectedTabId={tabId}
         onTabChange={onTabChange}
         tabs={[

@@ -87,6 +87,9 @@ jobs:
       - name: Lint
         run: node_modules/.bin/oxlint --deny-warnings
 
+      - name: Check Tailwind colors
+        run: pnpm --filter client lint:colors
+
       - name: Format
         run: pnpm format:check
 

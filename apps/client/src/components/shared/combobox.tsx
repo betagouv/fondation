@@ -15,8 +15,8 @@ export function ComboboxInputGroup(props: React.PropsWithChildren) {
   return (
     <BaseCombobox.InputGroup
       className={clsx(
-        'fr-py-1v w-64 cursor-text rounded-md border border-gray-200 bg-[canvas] px-1.5',
-        'focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-blue-france-sun-113',
+        'fr-py-1v w-64 cursor-text rounded-md border border-(--border-default-grey) bg-[canvas] px-1.5',
+        'focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-(--border-active-blue-france)',
         'min-[500px]:w-88',
       )}
     >
@@ -46,7 +46,7 @@ export function ComboboxInput({
       )}
       className={clsx(
         `fr-pl-2v h-8 min-w-12 flex-1 rounded-md border-0 bg-transparent`,
-        `text-base font-normal text-gray-900 outline-hidden`,
+        `text-base font-normal text-(--text-default-grey) outline-hidden`,
         className,
       )}
     />
@@ -58,7 +58,7 @@ export function ComboboxEmpty(props: React.PropsWithChildren) {
   return (
     <BaseCombobox.Empty>
       {typeof children === 'string' ? (
-        <div className="fr-p-4v text-center text-xs text-gray-500">{children}</div>
+        <div className="fr-p-4v text-center text-xs text-(--text-mention-grey)">{children}</div>
       ) : (
         children
       )}
@@ -72,7 +72,7 @@ export function ComboboxContent(props: React.PropsWithChildren) {
       <BaseCombobox.Positioner className="z-50 outline-hidden" sideOffset={8}>
         <BaseCombobox.Popup
           className={clsx(
-            'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg first:rounded-t-none',
+            'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-(--border-default-grey) bg-[canvas] shadow-lg first:rounded-t-none',
             'transition-[transform,scale,opacity]',
             'data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90',
             'data-starting-style:opacity-0',
@@ -97,9 +97,9 @@ export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
         `data-highlighted:relative data-highlighted:z-0`,
         `data-highlighted:before:absolute data-highlighted:before:inset-0`,
         `cursor-pointer data-highlighted:before:content-[""]`,
-        `data-highlighted:outline-2 data-highlighted:outline-blue-500 data-highlighted:hover:outline-0`,
+        `data-highlighted:outline-2 data-highlighted:outline-(--border-active-blue-france) data-highlighted:hover:outline-0`,
         `last:rounded-b-md data-highlighted:outline-offset-2 first:data-highlighted:rounded-t-none`,
-        `data-highlighted:before:z-[-1] data-highlighted:before:bg-[#f6f6f6] last:data-highlighted:before:rounded-b-md`,
+        `data-highlighted:before:z-[-1] data-highlighted:before:bg-(--background-default-grey-hover) last:data-highlighted:before:rounded-b-md`,
         className,
       )}
     />

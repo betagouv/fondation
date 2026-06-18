@@ -90,13 +90,14 @@ export function NominationFileOutcomeCommentModal(props: {
           label={
             isCommentRequired ? (
               <>
-                commentaire concernant l'issue de ce dossier<span className="text-red-500">*</span>
+                commentaire concernant l'issue de ce dossier
+                <span className="text-(--text-default-error)">*</span>
               </>
             ) : (
               `commentaire concernant l'issue de ce dossier`
             )
           }
-          hintText={hasError ? <span className="text-red-600">{hint}</span> : undefined}
+          hintText={hasError ? <span className="text-(--text-default-error)">{hint}</span> : undefined}
           nativeTextAreaProps={{
             value: comment || '',
             required: isCommentRequired,

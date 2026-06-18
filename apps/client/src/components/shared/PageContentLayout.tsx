@@ -13,9 +13,9 @@ export const PageContentLayout: FC<PageContentLayoutProps> = ({
   children,
 }) => {
   const backgroundClass = fullBackgroundOrange
-    ? 'bg-light-orange'
+    ? 'bg-(--background-alt-beige-gris-galet)'
     : fullBackgroundGreen
-      ? 'bg-light-green'
+      ? 'bg-(--background-alt-green-emeraude)'
       : undefined;
 
   return (

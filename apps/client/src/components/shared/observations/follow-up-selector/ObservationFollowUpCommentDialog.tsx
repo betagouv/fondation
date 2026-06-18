@@ -82,13 +82,14 @@ export function ObservationFollowUpCommentModal(props: {
           label={
             isCommentRequired ? (
               <>
-                commentaire sur la suite donnée à cette observation <span className="text-red-500">*</span>
+                commentaire sur la suite donnée à cette observation{' '}
+                <span className="text-(--text-default-error)">*</span>
               </>
             ) : (
               'commentaire sur la suite donnée à cette observation'
             )
           }
-          hintText={error ? <span className="text-red-500">{error}</span> : null}
+          hintText={error ? <span className="text-(--text-default-error)">{error}</span> : null}
           nativeTextAreaProps={{
             name: 'observation_follow_up_comment',
             value: comment || '',

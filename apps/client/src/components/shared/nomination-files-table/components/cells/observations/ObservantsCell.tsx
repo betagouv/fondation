@@ -23,7 +23,7 @@ export function ObservantsCell({ nominationFile }: { nominationFile: SessionNomi
       <div className="flex flex-col gap-2">
         {nominationFile.content.observants?.length ? (
           <div className="text-sm">
-            <span className="font-medium text-gray-600">LODAM: </span>
+            <span className="font-medium text-(--text-mention-grey)">LODAM: </span>
             <span>{nominationFile.content.observants.join(', ')}</span>
           </div>
         ) : null}

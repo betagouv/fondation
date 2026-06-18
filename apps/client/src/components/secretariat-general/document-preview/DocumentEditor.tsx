@@ -67,13 +67,13 @@ export function DocumentEditor(props: {
   });
 
   return (
-    <div className="mx-auto max-w-3xl rounded border border-solid border-gray-200 bg-white">
+    <div className="mx-auto max-w-3xl rounded border border-solid border-(--border-default-grey) bg-(--background-default-grey)">
       <EditorContext value={{ editor }}>
-        <div className="fr-p-2v sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-gray-200 bg-white">
+        <div className="fr-p-2v sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey) bg-(--background-default-grey)">
           <BoldButton />
           <ItalicButton />
           <BulletListButton />
-          <div className="fr-mx-1v w-px self-stretch bg-gray-200" />
+          <div className="fr-mx-1v w-px self-stretch bg-(--border-default-grey)" />
           <UndoButton />
           <RedoButton />
         </div>

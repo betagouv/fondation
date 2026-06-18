@@ -154,7 +154,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
                 nativeButtonProps={confirmation.buttonProps}
                 iconId={deleteSessionMutation.isPending ? `ri-loader-4-fill` : 'ri-delete-bin-fill'}
                 onClick={onDelete}
-                className={clsx('before text-red-600', {
+                className={clsx('before text-(--text-default-error)', {
                   "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
                 })}
               >
@@ -167,13 +167,13 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
 
       <div className="flex max-w-xl flex-col gap-y-2">
         <div className="flex items-center justify-between gap-6">
-          <p className="fr-m-0 text-sm text-gray-600">
+          <p className="fr-m-0 text-sm text-(--text-mention-grey)">
             <FormattedMessage
               defaultMessage="Transparence du {date, date, dateOnlyShort}"
               values={{ date: dateOnlyToDate(transparence.date) }}
             />
           </p>
-          <span className="fr-p-1v rounded-sm bg-gray-100 text-xs font-semibold text-gray-600 uppercase">
+          <span className="fr-p-1v rounded-sm bg-(--background-contrast-grey) text-xs font-semibold text-(--text-mention-grey) uppercase">
             {FormationEnumLabel[transparence.formation]}
           </span>
         </div>

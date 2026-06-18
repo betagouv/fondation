@@ -27,7 +27,9 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
         }
       >
         {(attachments?.items ?? []).length === 0 && (
-          <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
+          <div className="text-center text-sm font-normal text-(--text-mention-grey)">
+            Aucune pièce jointe.
+          </div>
         )}
 
         <NominationSessionAttachmentList sessionId={sessionId} placeholder={null} />
@@ -58,7 +60,9 @@ export function TableauDeBordActions({ sessionId }: { sessionId: string }) {
           }
         >
           {(docs?.items ?? []).length === 0 && (
-            <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
+            <div className="text-center text-sm font-normal text-(--text-mention-grey)">
+              Aucune pièce jointe.
+            </div>
           )}
 
           <NominationSessionDocsList sessionId={sessionId} />

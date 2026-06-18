@@ -24,7 +24,7 @@ export function ObservationLinks(props: {
     <div className="flex flex-col gap-1">
       {props.nominationFile.legacyObservers.length > 0 && (
         <div className="text-sm">
-          <span className="font-medium text-gray-600">LODAM: </span>
+          <span className="font-medium text-(--text-mention-grey)">LODAM: </span>
           <span>{props.nominationFile.legacyObservers.join(', ')}</span>
         </div>
       )}
@@ -37,7 +37,7 @@ export function ObservationLinks(props: {
                 {i > 0 ? <span>, </span> : null}
                 <Link
                   key={obs.id}
-                  className="text-blue-600"
+                  className="text-(--text-action-high-blue-france)"
                   to={getObservationDetailsPath({
                     context: props.context ?? 'sg',
                     sessionId: props.sessionId,
@@ -57,7 +57,7 @@ export function ObservationLinks(props: {
       )}
 
       {!props.nominationFile.legacyObservers?.length && !props.nominationFile.observations?.length ? (
-        <span className="text-sm text-gray-500">-</span>
+        <span className="text-sm text-(--text-mention-grey)">-</span>
       ) : null}
     </div>
   );
