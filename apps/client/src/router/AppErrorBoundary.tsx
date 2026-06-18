@@ -3,8 +3,8 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 
-import { PageLayout } from '@/components/layout/PageLayout';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { PageLayout } from '@/layout/PageLayout';
 import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';

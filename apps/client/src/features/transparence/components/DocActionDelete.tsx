@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
 import type { FoundSessionDocsDto } from '@api/types';
 import { useDeleteAgenda, useDeleteOfficialReportMutation } from '@queries/agenda.queries';
 

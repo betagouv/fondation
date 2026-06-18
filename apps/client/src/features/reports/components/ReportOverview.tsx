@@ -2,8 +2,8 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
+import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
 import type { ReportStatusEnum } from '@/types/enums.types';
