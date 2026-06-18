@@ -2,10 +2,10 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { NominationFilesTable } from '@/features/nomination-files-table/components/NominationFilesTable';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
+import { AlertsProvider } from '@/shared/context/alerts/AlertsProvider';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';

@@ -3,7 +3,7 @@ import React from 'react';
 
 import { useAffectations } from '../context/files-affectations.context';
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useAlerts } from '@/shared/context/alerts/alerts.context';
 import { HttpException } from '@/utils/http-exception';
 import { useAffectNominationFilesReportersMutation } from '@queries/nomination-sessions.queries';
 

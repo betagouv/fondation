@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
 import { useNominationFilesTable } from '../../../context/files-table.context';
-import { UserAvatarList } from '@/components/shared/user-avatar';
 import { useAffectationRow } from '@/features/nomination-files-table/context/files-affectations.context';
+import { UserAvatarList } from '@/shared/components/user-avatar';
 import { useMemberListQuery } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

@@ -4,8 +4,8 @@ import clsx from 'clsx';
 
 import './AgendaNominationFile.css';
 
-import { UserAvatarList } from '@/components/shared/user-avatar';
 import { NominationFileOutcomeBadge } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
+import { UserAvatarList } from '@/shared/components/user-avatar';
 import { Marked } from '@/shared/ui/Marked';
 import type { FormationEnum } from '@/types/enums.types';
 import type { FoundDocsNominationFiles } from '@api/types';

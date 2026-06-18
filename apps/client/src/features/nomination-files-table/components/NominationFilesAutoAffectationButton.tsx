@@ -5,8 +5,8 @@ import { Link } from 'react-router';
 import { useAffectations } from '../context/files-affectations.context';
 import { useSelectedFileIds } from '../context/files-selection.context';
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { confirmationModal, useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useAlerts } from '@/shared/context/alerts/alerts.context';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,

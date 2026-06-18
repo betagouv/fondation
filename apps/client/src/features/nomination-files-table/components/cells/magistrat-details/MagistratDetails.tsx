@@ -2,9 +2,6 @@ import clsx from 'clsx';
 import { type FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
-import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationCard } from '@/features/observations/components/ObservationCard';
@@ -12,6 +9,9 @@ import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
 import { FormattedBirthDate } from '@/i18n/components';
 import { useIntlPositionDuration } from '@/i18n/hooks';
+import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { UserAvatarList } from '@/shared/components/user-avatar';
 import { TextValue } from '@/shared/ui/TextValue';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

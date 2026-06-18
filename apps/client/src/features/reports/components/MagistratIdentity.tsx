@@ -1,10 +1,10 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { type FC } from 'react';
 
-import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { labels } from '@/constants/labels.constants';
 import { FormattedBirthDate } from '@/i18n/components';
+import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
 import type { DetailedReportDto } from '@api/types';
 
 import { Card } from './Card';

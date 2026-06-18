@@ -1,5 +1,5 @@
-import { UserAvatarList } from '@/components/shared/user-avatar';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { UserAvatarList } from '@/shared/components/user-avatar';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { ReportersAlert } from './ReportersAlert';

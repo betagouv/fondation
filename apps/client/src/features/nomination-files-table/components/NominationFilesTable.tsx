@@ -10,9 +10,9 @@ import { FilesAffectationsProvider } from '../context/FilesAffectationsProvider'
 import { FilesSelectionProvider } from '../context/FilesSelectionProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useNominationFilesTableColumns } from '../hooks/useNominationFilesTableColumns.hook';
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
+import { AlertsProvider } from '@/shared/context/alerts/AlertsProvider';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import {
