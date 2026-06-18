@@ -52,7 +52,7 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
     return props.placeholder !== undefined ? (
       props.placeholder
     ) : (
-      <div className="text-center text-sm font-normal text-gray-600">Aucune pièce jointe.</div>
+      <div className="text-center text-sm font-normal text-(--text-mention-grey)">Aucune pièce jointe.</div>
     );
 
   return (

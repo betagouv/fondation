@@ -44,7 +44,7 @@ function ReactTablePaginationSizeSelector<Data>(props: { table: Table<Data> }) {
   return (
     <Select
       label=""
-      className={'flex max-w-[400px] shrink-0'}
+      className={'flex max-w-100 shrink-0'}
       nativeSelectProps={{ value: pageSize, onChange: onPageSizeChange }}
     >
       {ITEMS_PAR_PAGE.map((item) => (

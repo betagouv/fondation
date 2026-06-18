@@ -27,7 +27,7 @@ export const Observers = ({
   return (
     <section
       id={reportHtmlIds.overview.observersSection}
-      className={clsx('rounded-lg bg-white', cx('fr-px-6v', 'fr-py-4v'))}
+      className={clsx('rounded-lg bg-(--background-default-grey)', cx('fr-px-6v', 'fr-py-4v'))}
     >
       <h2>Observant(s)</h2>
 

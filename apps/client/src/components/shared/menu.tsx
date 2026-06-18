@@ -19,7 +19,7 @@ export const MenuContent = React.memo((props: React.PropsWithChildren) => (
     <BaseMenu.Positioner className="z-10 outline-hidden" sideOffset={8} align="end">
       <BaseMenu.Popup
         className={clsx(
-          'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-gray-300 bg-[canvas] shadow-lg',
+          'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-(--border-default-grey) bg-[canvas] shadow-lg',
           'transition-[transform,scale,opacity]',
           'data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90',
           'data-starting-style:opacity-0',

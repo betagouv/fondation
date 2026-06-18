@@ -116,7 +116,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           {selectedUsers.map((user) => (
             <div
               key={user.userId}
-              className="fr-px-3v fr-py-1v flex items-center gap-1 rounded-full bg-blue-100 text-sm text-blue-800"
+              className="fr-px-3v fr-py-1v flex items-center gap-1 rounded-full bg-(--background-action-low-blue-france) text-sm text-(--text-action-high-blue-france)"
             >
               <span>
                 {user.firstName} {user.lastName}
@@ -124,7 +124,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
               <button
                 type="button"
                 onClick={() => removeUser(user.userId)}
-                className="fr-ml-1v flex h-4 w-4 items-center justify-center rounded-full hover:bg-blue-200"
+                className="fr-ml-1v flex h-4 w-4 items-center justify-center rounded-full hover:bg-(--background-action-low-blue-france-hover)"
                 aria-label={`Retirer ${user.firstName} ${user.lastName}`}
               >
                 ×
@@ -153,7 +153,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fr-mt-1v fixed z-9999 rounded-sm border border-gray-300 bg-white shadow-lg"
+              className="fr-mt-1v fixed z-9999 rounded-sm border border-(--border-default-grey) bg-(--background-default-grey) shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -169,7 +169,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
                     <button
                       type="button"
                       onMouseDown={(e) => addUser(e, user.userId)}
-                      className="fr-px-4v fr-py-2v block w-full cursor-pointer border-0 bg-transparent text-left text-sm hover:bg-gray-100"
+                      className="fr-px-4v fr-py-2v block w-full cursor-pointer border-0 bg-transparent text-left text-sm hover:bg-(--background-default-grey-hover)"
                     >
                       <span className="font-medium">
                         {user.lastName.toUpperCase()} {user.firstName}
@@ -188,7 +188,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
           createPortal(
             <div
               ref={dropdownRef}
-              className="fr-mt-1v fr-px-4v fr-py-3v fixed z-9999 rounded-sm border border-gray-300 bg-white text-sm text-gray-500 shadow-lg"
+              className="fr-mt-1v fr-px-4v fr-py-3v fixed z-9999 rounded-sm border border-(--border-default-grey) bg-(--background-default-grey) text-sm text-(--text-mention-grey) shadow-lg"
               style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -204,7 +204,7 @@ export const UserChipsSelect: FC<UserChipsSelectProps> = ({
       </div>
 
       {selectedUsers.length > 0 && (
-        <p className="fr-mt-1v text-xs text-gray-600">
+        <p className="fr-mt-1v text-xs text-(--text-mention-grey)">
           {selectedUsers.length} utilisateur{selectedUsers.length > 1 ? 's' : ''} sélectionné
           {selectedUsers.length > 1 ? 's' : ''}
         </p>

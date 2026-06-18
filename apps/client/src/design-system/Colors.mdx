@@ -1,0 +1,87 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { Swatch, SwatchGrid } from './Swatch';
+
+<Meta title="Design Tokens/Couleurs" />
+
+# Couleurs utilisées dans le projet
+
+Toutes les couleurs proviennent du **Système de Design de l'État (DSFR)**, via les
+**tokens de décision**. Chaque pastille montre, de haut en bas :
+
+1. le **hex** (thème clair), la même valeur que dans Figma
+2. le **nom** de la décision
+3. la **variable** à écrire selon le contexte
+
+Exemple concret pour `text.default.error` :
+
+```tsx
+// en className (Tailwind), on écrit la variable CSS
+<p className="text-(--text-default-error)">Erreur</p>;
+
+// en style={{}} (TS), on importe la décision, typée et autocomplétée
+import { colors } from '@codegouvfr/react-dsfr';
+
+<p style={{ color: colors.decisions.text.default.error.default }}>Erreur</p>;
+```
+
+## Texte - `colors.decisions.text`
+
+<SwatchGrid>
+  <Swatch name="text.default.grey" variable="var(--text-default-grey)" />
+  <Swatch name="text.default.warning" variable="var(--text-default-warning)" />
+  <Swatch name="text.default.error" variable="var(--text-default-error)" />
+  <Swatch name="text.default.success" variable="var(--text-default-success)" />
+  <Swatch name="text.mention.grey" variable="var(--text-mention-grey)" />
+  <Swatch name="text.title.blueFrance" variable="var(--text-title-blue-france)" />
+  <Swatch name="text.actionHigh.grey" variable="var(--text-action-high-grey)" />
+  <Swatch name="text.actionHigh.blueFrance" variable="var(--text-action-high-blue-france)" />
+  <Swatch name="text.actionHigh.redMarianne" variable="var(--text-action-high-red-marianne)" />
+  <Swatch name="text.actionHigh.greenEmeraude" variable="var(--text-action-high-green-emeraude)" />
+  <Swatch name="text.actionHigh.purpleGlycine" variable="var(--text-action-high-purple-glycine)" />
+  <Swatch name="text.actionHigh.yellowTournesol" variable="var(--text-action-high-yellow-tournesol)" />
+  <Swatch name="text.disabled.grey" variable="var(--text-disabled-grey)" />
+  <Swatch name="text.inverted.grey" variable="var(--text-inverted-grey)" />
+</SwatchGrid>
+
+## Fond - `colors.decisions.background`
+
+<SwatchGrid>
+  <Swatch name="background.default.grey" variable="var(--background-default-grey)" />
+  <Swatch name="background.default.grey.hover" variable="var(--background-default-grey-hover)" />
+  <Swatch name="background.contrast.grey" variable="var(--background-contrast-grey)" />
+  <Swatch name="background.contrast.warning" variable="var(--background-contrast-warning)" />
+  <Swatch name="background.contrast.info" variable="var(--background-contrast-info)" />
+  <Swatch name="background.contrast.blueFrance" variable="var(--background-contrast-blue-france)" />
+  <Swatch
+    name="background.contrast.blueFrance.active"
+    variable="var(--background-contrast-blue-france-active)"
+  />
+  <Swatch name="background.contrast.greenEmeraude" variable="var(--background-contrast-green-emeraude)" />
+  <Swatch name="background.disabled.grey" variable="var(--background-disabled-grey)" />
+  <Swatch name="background.flat.error" variable="var(--background-flat-error)" />
+  <Swatch name="background.flat.success" variable="var(--background-flat-success)" />
+  <Swatch name="background.flat.warning" variable="var(--background-flat-warning)" />
+  <Swatch name="background.actionHigh.grey" variable="var(--background-action-high-grey)" />
+  <Swatch name="background.actionHigh.blueFrance" variable="var(--background-action-high-blue-france)" />
+  <Swatch name="background.actionLow.blueFrance" variable="var(--background-action-low-blue-france)" />
+  <Swatch name="background.actionLow.redMarianne" variable="var(--background-action-low-red-marianne)" />
+  <Swatch name="background.open.blueFrance" variable="var(--background-open-blue-france)" />
+  <Swatch name="background.alt.grey" variable="var(--background-alt-grey)" />
+  <Swatch name="background.alt.greenEmeraude" variable="var(--background-alt-green-emeraude)" />
+  <Swatch name="background.alt.beigeGrisGalet" variable="var(--background-alt-beige-gris-galet)" />
+  <Swatch name="background.alt.redMarianne" variable="var(--background-alt-red-marianne)" />
+  <Swatch name="background.alt.yellowTournesol" variable="var(--background-alt-yellow-tournesol)" />
+</SwatchGrid>
+
+## Bordure - `colors.decisions.border`
+
+<SwatchGrid>
+  <Swatch name="border.default.grey" variable="var(--border-default-grey)" />
+  <Swatch name="border.active.blueFrance" variable="var(--border-active-blue-france)" />
+</SwatchGrid>
+
+## Illustration - `colors.decisions.artwork`
+
+<SwatchGrid>
+  <Swatch name="artwork.background.purpleGlycine" variable="var(--artwork-background-purple-glycine)" />
+</SwatchGrid>

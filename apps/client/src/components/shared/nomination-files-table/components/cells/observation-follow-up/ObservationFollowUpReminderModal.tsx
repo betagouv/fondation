@@ -43,13 +43,13 @@ function SingleObservationWithFollowUpSelector(props: {
   );
 
   return (
-    <div className="fr-p-2v fr-pb-4v rounded-lg border-2 border-solid border-gray-100">
+    <div className="fr-p-2v fr-pb-4v rounded-lg border-2 border-solid border-(--border-default-grey)">
       <div>
         <h2 className="fr-mb-0 text-base">
           {capitalize(props.observation.magistrat.firstName)}{' '}
           {props.observation.magistrat.lastName.toUpperCase()}
         </h2>
-        <p className="fr-mb-2v text-sm text-gray-600">
+        <p className="fr-mb-2v text-sm text-(--text-mention-grey)">
           <FormattedMessage
             defaultMessage="{date, date, dateOnlyShort}"
             values={{ date: dateOnlyToDate(props.observation.date) }}

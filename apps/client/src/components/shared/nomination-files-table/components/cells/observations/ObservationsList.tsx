@@ -35,10 +35,12 @@ const ObservationCard: FC<{
   };
 
   return (
-    <div className="fr-p-4v rounded-sm border bg-white shadow-xs">
+    <div className="fr-p-4v rounded-sm border bg-(--background-default-grey) shadow-xs">
       <div className="fr-mb-2v flex items-start justify-between">
         <div>
-          <div className="text-sm text-gray-500">Reçue le {formatDate(observation.dateReception)}</div>
+          <div className="text-sm text-(--text-mention-grey)">
+            Reçue le {formatDate(observation.dateReception)}
+          </div>
           {observation.magistrat && (
             <div className="font-medium">
               Observant: {observation.magistrat.lastName} {observation.magistrat.firstName}
@@ -104,7 +106,7 @@ const ObservationCard: FC<{
       )}
 
       {observation.createdBy && (
-        <div className="fr-mt-3v text-xs text-gray-400">
+        <div className="fr-mt-3v text-xs text-(--text-disabled-grey)">
           Créée par {observation.createdBy.lastName} {observation.createdBy.firstName} le{' '}
           {formatDate(observation.createdAt)}
         </div>
@@ -130,9 +132,9 @@ export const ObservationsList: FC<{
       </div>
 
       {isLoading ? (
-        <div className="text-gray-500">Chargement...</div>
+        <div className="text-(--text-mention-grey)">Chargement...</div>
       ) : observations.length === 0 ? (
-        <div className="fr-p-4v rounded-sm bg-gray-50 text-center text-gray-500">
+        <div className="fr-p-4v rounded-sm bg-(--background-alt-grey) text-center text-(--text-mention-grey)">
           Aucune observation pour ce dossier
         </div>
       ) : (

@@ -112,7 +112,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
       </div>
       <div ref={scrollRef} className="fr-mt-2v h-[42vh] min-h-64 overflow-y-scroll">
         {filtered.length === 0 && (
-          <p className="fr-pt-4v text-center text-gray-500">
+          <p className="fr-pt-4v text-center text-(--text-mention-grey)">
             <FormattedMessage defaultMessage="Aucune donnée disponible" />
           </p>
         )}
@@ -126,7 +126,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
                     key={virtualItem.key}
                     data-index={virtualItem.index}
                     ref={virtualizer.measureElement}
-                    className="fr-px-2v absolute top-0 left-0 w-full hover:bg-gray-50"
+                    className="fr-px-2v absolute top-0 left-0 w-full hover:bg-(--background-alt-grey)"
                     style={{ transform: `translateY(${virtualItem.start}px)` }}
                   >
                     <AgendaNominationFile
@@ -140,15 +140,15 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
                 );
               })}
             </div>
-            <div data-sentinel ref={down.ref} className="h-[72px]" />
+            <div data-sentinel ref={down.ref} className="h-18" />
           </>
         )}
       </div>
       <div
         className={clsx(
           cx('ri-arrow-down-s-line'),
-          'fr-pt-2v h-[32.5px] w-full text-center text-gray-600 opacity-0 transition-opacity duration-100 before:size-8! before:content-[""]',
-          down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_#fff]',
+          'fr-pt-2v h-[32.5px] w-full text-center text-(--text-mention-grey) opacity-0 transition-opacity duration-100 before:size-8! before:content-[""]',
+          down.hasMore && 'shadow-t z-10 opacity-100 shadow-[0_-10px_20px_var(--background-default-grey)]',
         )}
       />
 

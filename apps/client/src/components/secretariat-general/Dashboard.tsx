@@ -20,7 +20,7 @@ const Dashboard: FC = () => {
       <h1>Tableau de bord</h1>
       <section>
         <Card
-          className="max-w-[314px]"
+          className="max-w-78.5"
           title="Créer une nouvelle transparence"
           description="Renseignez les premières informations à votre disposition concernant une nouvelle transparence."
           linkProps={{

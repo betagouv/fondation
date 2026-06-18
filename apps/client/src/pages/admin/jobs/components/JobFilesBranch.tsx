@@ -12,7 +12,7 @@ export function JobFileBranch(props: { tree: Tree; root?: boolean }) {
         'flex shrink flex-col items-center gap-2 2xl:flex-row',
         props.root &&
           props.tree.size > 1 &&
-          'fr-p-2v rounded-sm border border-dashed border-gray-300 xl:border-none xl:p-0',
+          'fr-p-2v rounded-sm border border-dashed border-(--border-default-grey) xl:border-none xl:p-0',
       )}
     >
       <JobFileNode node={props.tree} />

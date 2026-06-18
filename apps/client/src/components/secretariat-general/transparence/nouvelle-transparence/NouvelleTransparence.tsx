@@ -128,7 +128,7 @@ const NouvelleTransparence: FC = () => {
         />
       ) : null}
 
-      <form className="m-auto max-w-[480px]" onSubmit={handleSubmit(onSubmit)}>
+      <form className="m-auto max-w-120" onSubmit={handleSubmit(onSubmit)}>
         <Controller<FormSchema, 'name'>
           name="name"
           control={control}
@@ -136,7 +136,7 @@ const NouvelleTransparence: FC = () => {
             <Input
               label={
                 <>
-                  Nom de la transparence<span className="text-red-500">*</span>
+                  Nom de la transparence<span className="text-(--text-default-error)">*</span>
                 </>
               }
               id="nom-transparence"
@@ -158,7 +158,7 @@ const NouvelleTransparence: FC = () => {
             <Input
               label={
                 <>
-                  Date de la transparence<span className="text-red-500">*</span>
+                  Date de la transparence<span className="text-(--text-default-error)">*</span>
                 </>
               }
               id="date-transparence"
@@ -204,7 +204,7 @@ const NouvelleTransparence: FC = () => {
             <Input
               label={
                 <>
-                  Clôture du délai d'observation<span className="text-red-500">*</span>
+                  Clôture du délai d'observation<span className="text-(--text-default-error)">*</span>
                 </>
               }
               id="date-cloture-delai-observation"
@@ -276,7 +276,7 @@ const NouvelleTransparence: FC = () => {
               hint="Format supporté : xlsx."
               label={
                 <>
-                  Fichier<span className="text-red-500">*</span>
+                  Fichier<span className="text-(--text-default-error)">*</span>
                 </>
               }
               state={errors.file ? 'error' : 'default'}

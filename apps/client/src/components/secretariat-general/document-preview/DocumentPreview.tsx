@@ -90,13 +90,13 @@ export function DocumentPreviewLayout(props: {
               reloadKey={iframeKey}
               html={props.html}
               title={props.title}
-              className="h-full w-full border border-solid border-gray-100"
+              className="h-full w-full border border-solid border-(--border-default-grey)"
             />
           )}
         </div>
       </div>
 
-      <div className="fr-px-4v fr-py-6v flex justify-center gap-4 bg-white">
+      <div className="fr-px-4v fr-py-6v flex justify-center gap-4 bg-(--background-default-grey)">
         {isEditing ? (
           <>
             <Button priority="secondary" onClick={onCancel} disabled={isValidationPending}>

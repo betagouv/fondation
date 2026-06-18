@@ -28,7 +28,7 @@ export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps>
 
   return (
     <div className="flex flex-col">
-      <div className="fr-p-4v border-b border-gray-200">
+      <div className="fr-p-4v border-b border-(--border-default-grey)">
         <Input
           label=""
           nativeInputProps={{
@@ -57,7 +57,7 @@ export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps>
             />
           ))
         ) : (
-          <p className="fr-py-4v text-center text-sm text-gray-500">Aucun rapporteur trouvé</p>
+          <p className="fr-py-4v text-center text-sm text-(--text-mention-grey)">Aucun rapporteur trouvé</p>
         )}
       </div>
     </div>
