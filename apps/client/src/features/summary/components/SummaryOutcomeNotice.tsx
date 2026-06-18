@@ -1,7 +1,7 @@
 import Notice from '@codegouvfr/react-dsfr/Notice';
 
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useIsSg } from '@/hooks/roles.hook';
-import { useSummary } from '@/pages/summary/SummaryContext';
 import { outcomeLabel } from '@/types/enums.types';
 
 export function SummaryOutcomeNotice() {

@@ -1,7 +1,7 @@
 import { SideMenu } from '@codegouvfr/react-dsfr/SideMenu';
 import { useContext } from 'react';
 
-import { SummaryContext } from '@/pages/summary/SummaryContext';
+import { SummaryContext } from '@/features/summary/context/SummaryContext';
 
 export function SummarySideNav() {
   const { sections } = useContext(SummaryContext);

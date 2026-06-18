@@ -1,16 +1,16 @@
-import { ScrollToTop } from '../shared/ScrollToTop';
-import { useSummary } from '@/pages/summary/SummaryContext';
+import { ScrollToTop } from '@/components/shared/ScrollToTop';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 
-import { SummaryAutoSaveAlert } from './components/SummaryAutoSaveNotice';
-import { SummaryBreadcrumb } from './components/SummaryBreadcrumb';
-import { SummaryOutcomeNotice } from './components/SummaryOutcomeNotice';
-import { SummaryReaderSelector } from './components/SummaryReaderSelector';
-import { SummarySectionAttachments } from './components/SummarySectionAttachments';
-import { SummarySectionBiography } from './components/SummarySectionBiography';
-import { SummarySectionContent } from './components/SummarySectionContent';
-import { SummarySectionMagistrat } from './components/SummarySectionMagistrat';
-import { SummarySectionObservations } from './components/SummarySectionObservations';
-import { SummarySideNav } from './components/SummarySideNav';
+import { SummaryAutoSaveAlert } from './SummaryAutoSaveNotice';
+import { SummaryBreadcrumb } from './SummaryBreadcrumb';
+import { SummaryOutcomeNotice } from './SummaryOutcomeNotice';
+import { SummaryReaderSelector } from './SummaryReaderSelector';
+import { SummarySectionAttachments } from './SummarySectionAttachments';
+import { SummarySectionBiography } from './SummarySectionBiography';
+import { SummarySectionContent } from './SummarySectionContent';
+import { SummarySectionMagistrat } from './SummarySectionMagistrat';
+import { SummarySectionObservations } from './SummarySectionObservations';
+import { SummarySideNav } from './SummarySideNav';
 
 export function Summary() {
   const { canWriteSummary } = useSummary();
