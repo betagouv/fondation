@@ -51,7 +51,7 @@ const router = sentryCreateBrowserRouter([
       {
         path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
         lazy: () =>
-          import('@/pages/member/MemberLayout').then(({ MemberLayout }) => ({
+          import('@/pages/spaces/member/MemberLayout').then(({ MemberLayout }) => ({
             Component: MemberLayout,
           })),
         children: [
@@ -88,14 +88,16 @@ const router = sentryCreateBrowserRouter([
       {
         path: ROUTE_PATHS.SG.DASHBOARD,
         lazy: () =>
-          import('@/pages/secretariat-general/SecretariatLayout').then(({ SecretariatGeneralLayout }) => ({
-            Component: SecretariatGeneralLayout,
-          })),
+          import('@/pages/spaces/secretariat-general/SecretariatLayout').then(
+            ({ SecretariatGeneralLayout }) => ({
+              Component: SecretariatGeneralLayout,
+            }),
+          ),
         children: [
           {
             index: true,
             lazy: () =>
-              import('@/pages/secretariat-general/SecretariatGeneralPage').then(
+              import('@/pages/spaces/secretariat-general/SecretariatGeneralPage').then(
                 ({ SecretariatGeneralPage }) => ({ Component: SecretariatGeneralPage }),
               ),
           },
@@ -255,24 +257,26 @@ const router = sentryCreateBrowserRouter([
       {
         path: ROUTE_PATHS.ADMIN.ROOT,
         lazy: () =>
-          import('@/pages/admin/AdminLayout').then(({ AdminLayout }) => ({ Component: AdminLayout })),
+          import('@/pages/spaces/admin/AdminLayout').then(({ AdminLayout }) => ({ Component: AdminLayout })),
         children: [
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
             lazy: () =>
-              import('@/pages/admin/ingest/IngestLolfiArchivePage').then(({ IngestLolfiArchivePage }) => ({
-                Component: IngestLolfiArchivePage,
-              })),
+              import('@/pages/spaces/admin/ingest/IngestLolfiArchivePage').then(
+                ({ IngestLolfiArchivePage }) => ({
+                  Component: IngestLolfiArchivePage,
+                }),
+              ),
           },
           {
             path: ROUTE_PATHS.ADMIN.LIST_JOBS,
             lazy: () =>
-              import('@/pages/admin/jobs/JobsPage').then(({ JobsPage }) => ({ Component: JobsPage })),
+              import('@/pages/spaces/admin/jobs/JobsPage').then(({ JobsPage }) => ({ Component: JobsPage })),
             children: [
               {
                 path: ROUTE_PATHS.ADMIN.DETAILS_JOB,
                 lazy: () =>
-                  import('@/pages/admin/jobs/DetailsJobPage').then(({ DetailsJobPage }) => ({
+                  import('@/pages/spaces/admin/jobs/DetailsJobPage').then(({ DetailsJobPage }) => ({
                     Component: DetailsJobPage,
                   })),
               },
@@ -281,14 +285,14 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.ADMIN.USERS,
             lazy: () =>
-              import('@/pages/admin/users/AdminUserListPage').then(({ AdminUserListPage }) => ({
+              import('@/pages/spaces/admin/users/AdminUserListPage').then(({ AdminUserListPage }) => ({
                 Component: AdminUserListPage,
               })),
           },
           {
             path: ROUTE_PATHS.ADMIN.USER_DETAIL,
             lazy: () =>
-              import('@/pages/admin/users/AdminUserDetailPage').then(({ AdminUserDetailPage }) => ({
+              import('@/pages/spaces/admin/users/AdminUserDetailPage').then(({ AdminUserDetailPage }) => ({
                 Component: AdminUserDetailPage,
               })),
           },
