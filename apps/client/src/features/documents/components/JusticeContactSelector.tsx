@@ -4,7 +4,6 @@ import React from 'react';
 import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useMonoSelection } from '../official-report/hooks/useSelection';
 import {
   ComboboxContent,
   ComboboxEmpty,
@@ -14,6 +13,7 @@ import {
   ComboboxRoot,
   type ComboboxChangeEventDetails,
 } from '@/components/shared/combobox';
+import { useMonoSelection } from '@/features/documents/hooks/useSelection';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { unaccent } from '@/utils/string.utils';
 import { useCreateJusticeContactMutation, useFindJusticeContacts } from '@queries/agenda.queries';

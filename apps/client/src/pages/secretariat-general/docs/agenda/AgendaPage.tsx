@@ -1,11 +1,11 @@
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import clsx from 'clsx';
 
-import { AgendaBreadCrumb } from './components/AgendaBreadcrumb';
-import { useAgenda } from './context/AgendaContext';
-import { AgendaProvider } from './context/AgendaProvider';
-import { AgendaMetadataStep } from './steps/AgendaMetadataStep';
-import { AgendaNominationFilesStep } from './steps/AgendaNominationFilesStep';
+import { AgendaBreadCrumb } from '@/features/agenda/components/AgendaBreadcrumb';
+import { AgendaMetadataStep } from '@/features/agenda/components/AgendaMetadataStep';
+import { AgendaNominationFilesStep } from '@/features/agenda/components/AgendaNominationFilesStep';
+import { useAgenda } from '@/features/agenda/context/AgendaContext';
+import { AgendaProvider } from '@/features/agenda/context/AgendaProvider';
 
 function AgendaContent() {
   const { step } = useAgenda();

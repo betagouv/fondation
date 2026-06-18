@@ -3,7 +3,7 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { useAgendaBasket } from '../hooks/useAgendaBasket.hook';
+import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {

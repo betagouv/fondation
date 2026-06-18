@@ -7,9 +7,9 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { ChairmanSelector } from '../../components/ChairmanSelector';
-import { useAgenda } from '../context/AgendaContext';
-import type { AgendaMetadata } from '../context/AgendaContext.types';
+import { useAgenda } from '@/features/agenda/context/AgendaContext';
+import type { AgendaMetadata } from '@/features/agenda/context/AgendaContext.types';
+import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 
 const AgendaMetadataSchema = z.object({

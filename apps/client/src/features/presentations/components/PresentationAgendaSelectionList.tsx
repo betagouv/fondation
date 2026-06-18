@@ -3,7 +3,7 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { usePresentationPlan } from '../contexts/presentation-plan.context';
+import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
 import { useSelection } from '@/hooks/useSelection.hook';
 import { FormationEnumLabel, TypeDeSaisineEnum } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';

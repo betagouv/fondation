@@ -14,11 +14,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 import z from 'zod';
 
-import { AbsentMemberSelector } from '../components/AbsentMemberSelector';
-import { ChairmanSelector } from '../components/ChairmanSelector';
-import { JusticeContactSelector } from '../components/JusticeContactSelector';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
+import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
+import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
+import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
+import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
@@ -27,8 +28,6 @@ import {
   useListPresentationPlansAgendasQuery,
   useListSecretariesGeneralQuery,
 } from '@queries/agenda.queries';
-
-import { usePresentationPlan } from './contexts/presentation-plan.context';
 
 const MetadataSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide'),

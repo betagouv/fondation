@@ -5,6 +5,9 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
+import { PresentationAgendaSelectionList } from '@/features/presentations/components/PresentationAgendaSelectionList';
+import { usePresentPlanModal } from '@/features/presentations/context/present-plan-modal.context';
+import { PresentPlanModalProvider } from '@/features/presentations/context/PresentatPlanModalProvider';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
@@ -17,10 +20,6 @@ import {
   useListPresentationPlansAgendasQuery,
   useOpenJusticePresentationPlanPdfDocumentMutation,
 } from '@queries/agenda.queries';
-
-import { PresentationAgendaSelectionList } from './components/PresentationAgendaSelectionList';
-import { usePresentPlanModal } from './contexts/present-plan-modal.context';
-import { PresentPlanModalProvider } from './contexts/PresentatPlanModalProvider';
 
 export function PresentationsTabReady() {
   return (

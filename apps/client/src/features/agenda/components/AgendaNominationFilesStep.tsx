@@ -5,14 +5,15 @@ import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { useSelection } from '../../../../../hooks/useSelection.hook';
-import { AgendaFileSearch } from '../components/AgendaFileSearch';
-import { AgendaNominationFile } from '../components/AgendaNominationFile';
-import { useAgenda } from '../context/AgendaContext';
-import { useAgendaBasket } from '../hooks/useAgendaBasket.hook';
-import { useScrollDownIndicator } from '../hooks/useScrollDownIndicator.hook';
 import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
+import { useAgenda } from '@/features/agenda/context/AgendaContext';
+import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import { useScrollDownIndicator } from '@/features/agenda/hooks/useScrollDownIndicator.hook';
+import { useSelection } from '@/hooks/useSelection.hook';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
+
+import { AgendaFileSearch } from './AgendaFileSearch';
+import { AgendaNominationFile } from './AgendaNominationFile';
 
 export function AgendaNominationFilesStep(props: { className?: string }) {
   const { session, cancel, goToMetadata, agendaId, defaultFileIds } = useAgenda();

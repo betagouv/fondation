@@ -1,6 +1,6 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 
-import { useAgenda } from '../context/AgendaContext';
+import { useAgenda } from '@/features/agenda/context/AgendaContext';
 import { toFullName } from '@/utils/user.utils';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
