@@ -3,13 +3,10 @@ import { format } from 'date-fns';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import {
-  getTransparencesBreadCrumb,
-  TransparencesCurrentPage,
-} from '../../../../utils/transparences-breadcrumb.utils';
-import { Breadcrumb } from '../../../shared/Breadcrumb';
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import type { FormationEnum } from '@/types/enums.types';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
 
 export type HeaderReportListProps = {
   dateTransparence: PlainDateOnly;

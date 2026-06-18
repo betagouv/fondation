@@ -1,7 +1,7 @@
 import type { RowData, Table } from '@tanstack/react-table';
 
-import { NominationSessionAttachmentList } from '../../../shared/NominationSessionAttachmentList';
 import { DataTable } from '@/components/shared/data-table';
+import { NominationSessionAttachmentList } from '@/components/shared/NominationSessionAttachmentList';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
 export function ReportList<Data extends RowData>(

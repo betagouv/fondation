@@ -4,8 +4,8 @@ import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { getObservationDetailsPath } from '../../utils/route-path.utils';
-import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
-import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
+import { TipTapEditor } from '@/components/shared/ui/tip-tap-editor';
+import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useIsSg } from '@/hooks/roles.hook';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';

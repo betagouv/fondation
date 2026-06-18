@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 
-import { DeleteAttachmentModal } from '../../../shared/DeleteAttachmentModal';
+import { DeleteAttachmentModal } from '@/components/shared/DeleteAttachmentModal';
 import { generateReportFilePublicUrl } from '@queries/reports.queries';
 
 export function AttachedFilesList(props: {

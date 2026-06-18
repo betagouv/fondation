@@ -5,11 +5,17 @@ import React, { type FC } from 'react';
 import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
-import { PageContentLayout } from '../../../shared/PageContentLayout';
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
+import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { HeaderReportList } from '@/features/reports/components/HeaderReportList';
+import { ReportList } from '@/features/reports/components/ReportList';
+import { ReportListViewToggle } from '@/features/reports/components/ReportListViewToggle';
+import { ReportsDnVueGenerale } from '@/features/reports/components/ReportsDnVueGenerale';
+import { ReportStateTag } from '@/features/reports/components/ReportStateTag';
+import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
 import {
   PrioriteEnum,
   PrioriteEnumLabels,
@@ -20,13 +26,6 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedMemberSessionDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
 import { useDetailedMemberGdsSession } from '@queries/members.queries';
-
-import { HeaderReportList } from './HeaderReportList';
-import { ReportList } from './ReportList';
-import { ReportListViewToggle } from './ReportListViewToggle';
-import { ReportsDnVueGenerale } from './ReportsDnVueGenerale';
-import { ReportStateTag } from './ReportStateTag';
-import { useReportListFocus } from './useReportListFocus';
 
 function useReportListColumns(sessionId: string) {
   return React.useMemo(() => {

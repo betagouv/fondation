@@ -65,16 +65,16 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
             lazy: () =>
-              import('@/components/reports/components/ReportList/ReportListPage').then(
-                ({ default: ReportListPage }) => ({ Component: ReportListPage }),
-              ),
+              import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
+                Component: ReportListPage,
+              })),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
             lazy: () =>
-              import('@/components/reports/components/ReportOverview/ReportOverviewPage').then(
-                ({ default: ReportOverviewPage }) => ({ Component: ReportOverviewPage }),
-              ),
+              import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
+                Component: ReportOverviewPage,
+              })),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
