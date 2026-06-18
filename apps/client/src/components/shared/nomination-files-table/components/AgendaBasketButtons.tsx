@@ -5,7 +5,7 @@ import { generatePath, useNavigate } from 'react-router';
 
 import { useSelectedFileIds } from '../contexts/files-selection.context';
 import { useNominationFilesTable } from '../contexts/files-table.context';
-import { useAgendaBasket } from '@/pages/secretariat-general/docs/agenda/hooks/useAgendaBasket.hook';
+import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
 
