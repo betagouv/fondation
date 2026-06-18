@@ -1,4 +1,4 @@
-import { NominationSessionAttachmentList } from '@/components/shared/NominationSessionAttachmentList';
+import { NominationSessionAttachmentList } from '@/features/transparence/components/NominationSessionAttachmentList';
 
 type TransparencyAttachmentsSectionProps = {
   sessionId: string;

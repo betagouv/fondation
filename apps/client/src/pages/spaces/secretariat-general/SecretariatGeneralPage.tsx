@@ -1,7 +1,7 @@
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { Card } from '@/components/shared/card';
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES } from '@/constants/sg-anchor-attributes';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Card } from '@/shared/ui/card';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { getSgBreadCrumb } from '@/utils/sg-breadcrumb.utils';
 

@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
 import { defineMessage } from 'react-intl';
 
-import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';

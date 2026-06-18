@@ -1,6 +1,6 @@
-import { TipTapEditor } from '@/components/shared/ui/tip-tap-editor';
-import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
+import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 
 import { Card } from './Card';
 

@@ -1,8 +1,8 @@
 import Notice, { type NoticeProps } from '@codegouvfr/react-dsfr/Notice';
 import React from 'react';
 
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useAlerts } from '@/shared/context/alerts/alerts.context';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
 import { useValidateSessionMutation } from '@queries/nomination-sessions.queries';
