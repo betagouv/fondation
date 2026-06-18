@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint --fix",
     "lint:check": "oxlint",
-    "lint:colors": "node scripts/check-tailwind-colors.js",
+    "lint:colors": "bash scripts/check-tailwind-colors.sh",
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
     "types:check": "tsc --noEmit -p ./tsconfig.app.json",
