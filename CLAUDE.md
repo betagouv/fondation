@@ -301,4 +301,4 @@ La synchronisation entre le client et le serveur utilise Tanstack Query et le sd
 
 ## Décisions
 
-Certaines prises de décisions sont documentées dans [adr](../apps/api/docs/adr)
+Certaines prises de décisions sont documentées dans [./docs/adr](./docs/adr) et [./client/docs/adr](../apps/client/docs/adr).
