@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { AdminUserRoleEnum } from '@/pages/admin/users/admin-user-enum';
+import type { AdminUserRoleEnum } from '@/pages/spaces/admin/users/admin-user-enum';
 import * as $api from '@api/sdk';
 import type { DetailedAdminUserDto } from '@api/types';
 
