@@ -25,5 +25,5 @@ allowBuilds:
   unrs-resolver: false
   esbuild: true
 minimumReleaseAgeExclude:
-  # Renovate security update: react-router@7.15.0
-  - react-router@7.15.0
+  # Renovate security update: react-router@7.15.0 || 7.15.1
+  - react-router@7.15.0 || 7.15.1
