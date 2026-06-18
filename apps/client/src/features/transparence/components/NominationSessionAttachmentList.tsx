@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
+import { DeleteAttachmentModal } from '@/components/shared/DeleteAttachmentModal';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import {
@@ -9,8 +10,6 @@ import {
   useListNominationSessionAttachmentsQuery,
   useRemoveNominationSessionAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
-
-import { DeleteAttachmentModal } from './DeleteAttachmentModal';
 
 export function NominationSessionAttachmentList(props: { sessionId: string; placeholder?: ReactNode }) {
   const { isArchived } = useArchivedSession();

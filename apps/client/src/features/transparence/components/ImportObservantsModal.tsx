@@ -6,9 +6,9 @@ import clsx from 'clsx';
 import { type FC, useRef, useState } from 'react';
 
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
-import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '@/components/shared/HintImportXlsxFile';
 import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 
+import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from './HintImportXlsxFile';
 import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 export const modal = createModal({
