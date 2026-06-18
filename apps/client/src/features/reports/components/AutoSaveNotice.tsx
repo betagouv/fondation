@@ -2,7 +2,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Notice from '@codegouvfr/react-dsfr/Notice';
 import clsx from 'clsx';
 
-import { useLocallyStoredState } from '@/hooks/useLocallyStoredState.hook';
+import { useLocallyStoredState } from '@/shared/hooks/useLocallyStoredState.hook';
 
 export const AutoSaveNotice: React.FC = () => {
   const [isVisible, setIsVisible] = useLocallyStoredState<boolean>({

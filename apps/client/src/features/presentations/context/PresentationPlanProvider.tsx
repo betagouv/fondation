@@ -3,7 +3,7 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   presentationPlanKeys,
