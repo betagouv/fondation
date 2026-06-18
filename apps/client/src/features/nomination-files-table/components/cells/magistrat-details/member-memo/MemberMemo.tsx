@@ -8,7 +8,7 @@ import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 

@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 import { DeleteAttachmentModal } from '@/shared/ui/DeleteAttachmentModal';
 import {
   useCreateNominationSessionAttachmentUrlMutation,

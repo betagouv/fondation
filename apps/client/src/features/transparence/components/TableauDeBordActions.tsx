@@ -2,7 +2,7 @@ import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 

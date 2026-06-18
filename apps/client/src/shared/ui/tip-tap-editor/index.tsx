@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { useBeforeUnloadOrUnmount } from '@/hooks/useBeforeUnload';
+import { useBeforeUnloadOrUnmount } from '@/shared/hooks/useBeforeUnload';
 
 import type { FilesUploader } from './extensions/editor-file-uploader';
 import { useTipTapExtensions } from './extensions/useTipTapExtensions';

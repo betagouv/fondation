@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { useTab } from '@/hooks/useTab';
+import { useTab } from '@/shared/hooks/useTab';
 import type { FoundSessionDocsDto } from '@api/types';
 import {
   useDetailsSessionAgendaMutation,

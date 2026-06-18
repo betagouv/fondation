@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router';
 
-import { PageLayout } from './components/layout/PageLayout';
+import { PageLayout } from '@/layout/PageLayout';
 
 export const HomePage = () => {
   return (
