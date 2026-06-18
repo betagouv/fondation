@@ -12,11 +12,11 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import './DocumentEditor.css';
 
-import { BoldButton } from '@/components/shared/ui/tip-tap-editor/buttons/BoldButton';
-import { BulletListButton } from '@/components/shared/ui/tip-tap-editor/buttons/BulletListButton';
-import { ItalicButton } from '@/components/shared/ui/tip-tap-editor/buttons/ItalicButton';
-import { RedoButton } from '@/components/shared/ui/tip-tap-editor/buttons/RedoButton';
-import { UndoButton } from '@/components/shared/ui/tip-tap-editor/buttons/UndoButton';
+import { BoldButton } from '@/shared/ui/tip-tap-editor/buttons/BoldButton';
+import { BulletListButton } from '@/shared/ui/tip-tap-editor/buttons/BulletListButton';
+import { ItalicButton } from '@/shared/ui/tip-tap-editor/buttons/ItalicButton';
+import { RedoButton } from '@/shared/ui/tip-tap-editor/buttons/RedoButton';
+import { UndoButton } from '@/shared/ui/tip-tap-editor/buttons/UndoButton';
 
 function extractEditableContent(html: string | undefined | null): string {
   const doc = new DOMParser().parseFromString(html ?? '', 'text/html');

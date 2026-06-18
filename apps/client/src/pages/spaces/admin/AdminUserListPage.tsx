@@ -4,10 +4,10 @@ import React from 'react';
 import { defineMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { PaginatedAdminUserListItemDto } from '@api/types';

@@ -1,6 +1,6 @@
 import { Outlet, useLocation, useParams } from 'react-router';
 
-import { PageContentLayout } from '../../../components/shared/PageContentLayout';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { AuthGuard } from '@/features/auth/components/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 

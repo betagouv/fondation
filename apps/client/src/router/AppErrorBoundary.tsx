@@ -4,8 +4,8 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 
 import { PageLayout } from '@/components/layout/PageLayout';
-import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 

@@ -4,9 +4,9 @@ import { format } from 'date-fns';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedNominationSessionsDto } from '@api/types';

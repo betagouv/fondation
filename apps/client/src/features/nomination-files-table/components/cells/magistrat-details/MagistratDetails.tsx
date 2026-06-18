@@ -4,7 +4,6 @@ import { FormattedMessage } from 'react-intl';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
-import { TextValue } from '@/components/shared/TextValue';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -13,6 +12,7 @@ import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
 import { FormattedBirthDate } from '@/i18n/components';
 import { useIntlPositionDuration } from '@/i18n/hooks';
+import { TextValue } from '@/shared/ui/TextValue';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { MagistratComment } from './magistrat-comment/MagistratComment';

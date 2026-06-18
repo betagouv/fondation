@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { useAffectationRow } from '../../context/files-affectations.context';
-import { DropdownSelectMultiple } from '@/components/shared/DropdownSelectMultiple';
 import { PriorityBadge, PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { DropdownSelectMultiple } from '@/shared/ui/DropdownSelectMultiple';
 import { PrioriteEnum } from '@/types/enums.types';
 
 const PRIORITY_SELECTOR_ITEMS = Object.values(PrioriteEnum);

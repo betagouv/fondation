@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 
 import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
-import { DropdownSelect } from '@/components/shared/DropdownSelect';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { DropdownSelect } from '@/shared/ui/DropdownSelect';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,

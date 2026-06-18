@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import type { FormationEnum } from '@/types/enums.types';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
 import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';

@@ -3,7 +3,7 @@ import React from 'react';
 import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { Mandatory } from '@/components/shared/Mandatory';
+import { Mandatory } from '@/shared/ui/Mandatory';
 import type { FormationEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 import type { FoundDocsMembersDto } from '@api/types';

@@ -8,7 +8,7 @@ import { FormattedMessage } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 import { z } from 'zod';
 
-import { Mandatory } from '@/components/shared/Mandatory';
+import { Mandatory } from '@/shared/ui/Mandatory';
 import { toFullName } from '@/utils/user.utils';
 import {
   useCreateObservationMutation,

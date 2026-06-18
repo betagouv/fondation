@@ -1,5 +1,5 @@
-import { ScrollToTop } from '@/components/shared/ScrollToTop';
 import { useSummary } from '@/features/summary/context/SummaryContext';
+import { ScrollToTop } from '@/shared/ui/ScrollToTop';
 
 import { SummaryAutoSaveAlert } from './SummaryAutoSaveNotice';
 import { SummaryBreadcrumb } from './SummaryBreadcrumb';

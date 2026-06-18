@@ -2,9 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
-import { DeleteAttachmentModal } from '@/components/shared/DeleteAttachmentModal';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { DeleteAttachmentModal } from '@/shared/ui/DeleteAttachmentModal';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,

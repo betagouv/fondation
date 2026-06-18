@@ -4,9 +4,9 @@ import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { TipTapEditor } from '@/components/shared/ui/tip-tap-editor';
-import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
+import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
