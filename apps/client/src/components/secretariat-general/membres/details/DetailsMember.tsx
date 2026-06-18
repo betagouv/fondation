@@ -82,7 +82,7 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
 
             <div className="flex flex-row items-center justify-between">
               <dt className="font-bold">Personnes exclues</dt>
-              <dd className="text-right font-bold text-gray-300">n/a</dd>
+              <dd className="text-right font-bold text-(--text-disabled-grey)">n/a</dd>
             </div>
           </dl>
         </section>

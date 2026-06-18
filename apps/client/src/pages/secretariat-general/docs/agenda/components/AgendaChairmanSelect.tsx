@@ -21,7 +21,7 @@ export function AgendaChairmanSelect(props: {
     <Select
       label={
         <>
-          Président de séance<span className="text-red-600">*</span>
+          Président de séance<span className="text-(--text-default-error)">*</span>
         </>
       }
       nativeSelectProps={{

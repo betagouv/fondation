@@ -53,7 +53,7 @@ export function AgendaMetadataStep(props: { className?: string }) {
           <Input
             label={
               <>
-                Date de la séance<span className="text-red-600">*</span>
+                Date de la séance<span className="text-(--text-default-error)">*</span>
               </>
             }
             nativeInputProps={{ type: 'date', ...field }}
@@ -69,7 +69,7 @@ export function AgendaMetadataStep(props: { className?: string }) {
           <Input
             label={
               <>
-                Date de l'ordre du jour<span className="text-red-600">*</span>
+                Date de l'ordre du jour<span className="text-(--text-default-error)">*</span>
               </>
             }
             nativeInputProps={{ type: 'date', ...field }}

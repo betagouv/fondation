@@ -1,3 +1,4 @@
+import '@codegouvfr/react-dsfr/main.css';
 import '../src/index.css';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import type { Preview } from '@storybook/react-vite';

@@ -105,7 +105,7 @@ function InnerPresentationsTabReady() {
       <div className="fr-container">
         <p
           className={clsx(
-            'text-md text-center text-gray-600 before:animate-spin before:content-[""]',
+            'text-md text-center text-(--text-mention-grey) before:animate-spin before:content-[""]',
             cx('ri-loader-4-line'),
           )}
         >
@@ -164,7 +164,7 @@ function InnerPresentationsTabReady() {
                   <Button
                     title={$t({ defaultMessage: `Supprimer` })}
                     size="small"
-                    className="rounded-full hover:text-red-500"
+                    className="rounded-full hover:text-(--text-default-error)"
                     priority="tertiary no outline"
                     iconId="fr-icon-delete-bin-fill"
                     nativeButtonProps={{ 'data-plan-id': item.id, onClick: onClickDelete }}

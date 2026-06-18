@@ -14,7 +14,9 @@ export function Marked(props: { search: string; value: string }) {
   return (
     <span>
       {result.groups.pre.replace(/\s/g, '\u00A0') || ''}
-      <mark className="fr-py-1v rounded-xs bg-light-blue">{result.groups.search || ''}</mark>
+      <mark className="fr-py-1v rounded-xs bg-(--background-contrast-info)">
+        {result.groups.search || ''}
+      </mark>
       {result.groups.post.replace(/\s/g, '\u00A0') || ''}
     </span>
   );

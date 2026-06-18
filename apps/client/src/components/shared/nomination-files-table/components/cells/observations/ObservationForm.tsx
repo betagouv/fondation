@@ -232,7 +232,7 @@ export const ObservationForm: FC<{
   return (
     <form id="observation-form" onSubmit={handleFormSubmit(onSubmit)} className="flex flex-col gap-6">
       {createError || updateError ? (
-        <p className="fr-mb-0 text-red-600">
+        <p className="fr-mb-0 text-(--text-default-error)">
           {createError?.message ||
             updateError?.message ||
             (isEditing ? `Erreur pendant la mise à jour` : `Erreur à la création`)}
@@ -296,13 +296,13 @@ export const ObservationForm: FC<{
           <div
             id="magistrat-listbox"
             role="listbox"
-            className="fr-mt-1v absolute max-h-60 w-full overflow-y-auto rounded-sm border bg-white shadow-lg"
+            className="fr-mt-1v absolute max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey) shadow-lg"
             style={{ zIndex: 9999 }}
           >
             {isSearching ? (
-              <div className="fr-p-3v text-sm text-gray-500">Recherche...</div>
+              <div className="fr-p-3v text-sm text-(--text-mention-grey)">Recherche...</div>
             ) : (displayedMagistrats ?? []).length === 0 ? (
-              <div className="fr-p-3v text-sm text-gray-500">Aucun résultat</div>
+              <div className="fr-p-3v text-sm text-(--text-mention-grey)">Aucun résultat</div>
             ) : (
               (displayedMagistrats ?? []).map((magistrat) => (
                 <button
@@ -310,11 +310,11 @@ export const ObservationForm: FC<{
                   type="button"
                   role="option"
                   aria-selected={selectedMagistrat?.id === magistrat.id}
-                  className="fr-p-3v w-full cursor-pointer border-b text-left hover:bg-gray-100"
+                  className="fr-p-3v w-full cursor-pointer border-b text-left hover:bg-(--background-default-grey-hover)"
                   onClick={() => handleMagistratSelect(magistrat)}
                 >
                   <div className="font-medium">{toFullName(magistrat)}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-(--text-mention-grey)">
                     {[magistrat.grade, magistrat.currentPosition]
                       .flatMap((x) => {
                         const trimmed = x?.trim();
@@ -350,12 +350,15 @@ export const ObservationForm: FC<{
           </label>
           <div className="flex flex-wrap gap-2">
             {existingFiles.map((file) => (
-              <div key={file.id} className="fr-px-3v fr-py-2v flex items-center gap-2 rounded-sm bg-gray-100">
+              <div
+                key={file.id}
+                className="fr-px-3v fr-py-2v flex items-center gap-2 rounded-sm bg-(--background-contrast-grey)"
+              >
                 <i className="ri-file-line" />
                 <span className="text-sm">{file.name}</span>
                 <button
                   type="button"
-                  className="fr-ml-2v text-red-600 hover:text-red-800"
+                  className="fr-ml-2v text-(--text-default-error) hover:text-(--text-default-error)"
                   onClick={() => handleRemoveExistingFile(file.id)}
                   title="Supprimer ce fichier"
                 >
@@ -365,7 +368,7 @@ export const ObservationForm: FC<{
             ))}
           </div>
           {filesToDetach.length > 0 && (
-            <div className="fr-mt-2v text-sm text-orange-600">
+            <div className="fr-mt-2v text-sm text-(--text-default-warning)">
               {filesToDetach.length > 1
                 ? `${filesToDetach.length} fichiers seront supprimés`
                 : `1 fichier sera supprimé`}
@@ -408,7 +411,7 @@ export const ObservationForm: FC<{
         )}
       />
       {files.length > 0 && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-(--text-mention-grey)">
           <FormattedMessage
             values={{ count: files.length }}
             defaultMessage={`{count, plural,

@@ -101,7 +101,7 @@ export const IngestLolfiArchivePage: FC = () => {
         />
       )}
 
-      <form className="m-auto max-w-[480px]">
+      <form className="m-auto max-w-120">
         <Controller<FormSchema, 'archive'>
           name="archive"
           control={control}
@@ -122,7 +122,7 @@ export const IngestLolfiArchivePage: FC = () => {
               hint="Format supporté : .zip"
               label={
                 <>
-                  Archive LOLFI<span className="text-red-500">*</span>
+                  Archive LOLFI<span className="text-(--text-default-error)">*</span>
                 </>
               }
               state={errors.archive || asyncErrors ? 'error' : 'default'}
