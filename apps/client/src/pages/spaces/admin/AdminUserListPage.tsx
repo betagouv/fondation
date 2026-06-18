@@ -6,13 +6,12 @@ import { generatePath } from 'react-router';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
+import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
+import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
 import { useAdminUsersQuery } from '@queries/administration.queries';
-
-import { ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
-import { AdminUserRole } from './AdminUserRole';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
 const h = createColumnHelper<AdminUserItem>();
