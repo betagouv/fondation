@@ -13,7 +13,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(({ id, label, children },
       ref={ref}
       id={id}
       aria-label={label}
-      className={clsx('rounded-lg bg-white', cx('fr-px-6v', 'fr-py-4v'))}
+      className={clsx('rounded-lg bg-(--background-default-grey)', cx('fr-px-6v', 'fr-py-4v'))}
     >
       {children}
     </section>

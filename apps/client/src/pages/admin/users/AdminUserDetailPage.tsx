@@ -107,7 +107,9 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50">{props.user.email}</dd>
+        <dd className="fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+          {props.user.email}
+        </dd>
       )}
     </div>
   );
@@ -267,7 +269,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50 text-gray-400">
+        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey) text-(--text-disabled-grey)">
           ••••••••
         </dd>
       )}
@@ -406,7 +408,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           ))}
         </Select>
       ) : (
-        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-gray-300 bg-gray-50">
+        <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
           <AdminUserRole value={props.user.role} gender={props.user.gender} />
         </dd>
       )}
@@ -484,8 +486,8 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           />
         </form>
       ) : (
-        <div className="fr-mt-2v fr-p-4v rounded-sm border border-gray-300 bg-gray-50">
-          {props.user.displayTitle || <span className="text-gray-400">Aucun titre</span>}
+        <div className="fr-mt-2v fr-p-4v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+          {props.user.displayTitle || <span className="text-(--text-disabled-grey)">Aucun titre</span>}
         </div>
       )}
     </div>

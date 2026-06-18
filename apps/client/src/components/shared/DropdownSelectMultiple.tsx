@@ -72,13 +72,14 @@ export function DropdownSelectMultiple<T>(props: PropsWithChildren<DropdownSelec
 
   return (
     <DropdownMenu trigger={trigger} isOpen={isOpen} onOpenChange={setIsOpen}>
-      <div className="fr-p-2v max-h-64 min-w-[200px] overflow-hidden border border-solid border-gray-100 bg-white shadow-lg">
+      <div className="fr-p-2v max-h-64 min-w-[200px] overflow-hidden border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-lg">
         <Checkbox
           small
           classes={{
             content: 'fr-m-0',
-            inputGroup: 'hover:bg-gray-100 fr-pr-2v fr-pl-4v fr-py-0 first-of-type:mt-0!',
-            root: 'border border-gray-50 overflow-y-auto fr-m-0',
+            inputGroup:
+              'hover:bg-(--background-default-grey-hover) fr-pr-2v fr-pl-4v fr-py-0 first-of-type:mt-0!',
+            root: 'border border-(--border-default-grey) overflow-y-auto fr-m-0',
           }}
           options={props.items.map((item, i) => {
             const key = getKey(item);

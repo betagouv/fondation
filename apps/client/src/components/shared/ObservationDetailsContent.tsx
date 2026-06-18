@@ -53,7 +53,7 @@ export function ObservationDetailsContent({
     .map((part, i) => <li key={`observer_biography_${i}`}>{part}</li>);
 
   return (
-    <div className="fr-p-8v bg-white">
+    <div className="fr-p-8v bg-(--background-default-grey)">
       <div className="fr-mb-8v">
         <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
           {backLink.label}
@@ -164,7 +164,7 @@ export function ObservationDetailsContent({
                 </h2>
                 {isArchived ? (
                   <div
-                    className="fr-p-2v rounded bg-gray-100"
+                    className="fr-p-2v rounded bg-(--background-contrast-grey)"
                     dangerouslySetInnerHTML={{ __html: observation.memberComment?.comment ?? '' }}
                   />
                 ) : (
@@ -192,7 +192,7 @@ export function ObservationDetailsContent({
           <section className="fr-mb-8v">
             <h2 className="fr-h4">Pièce(s) jointe(s)</h2>
             {observation.files.length === 0 ? (
-              <p className="fr-text--sm text-gray-500">Aucune pièce jointe</p>
+              <p className="fr-text--sm text-(--text-mention-grey)">Aucune pièce jointe</p>
             ) : (
               <ul className="fr-raw-list">
                 {observation.files.map((file) => (
@@ -227,7 +227,7 @@ export function ObservationDetailsContent({
                             <span className="fr-mb-1v block">N° {proposition.number}</span>
                           )}
                           <span className="fr-mb-1v block">{proposition.proposedPosition ?? '-'}</span>
-                          <span className="block text-gray-500"></span>
+                          <span className="block text-(--text-mention-grey)"></span>
                         </span>
                       }
                       linkProps={{

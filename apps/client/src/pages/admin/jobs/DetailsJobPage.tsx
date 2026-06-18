@@ -68,7 +68,7 @@ export function DetailsJobPage() {
       <JobFilesTree files={job?.files ?? []} />
 
       {selectedFile && (
-        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-gray-300">
+        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-(--border-default-grey)">
           <header className="flex items-start justify-between">
             <h2 className="fr-h5">Erreurs {selectedFile.name}</h2>
             <Button
@@ -101,13 +101,13 @@ export function DetailsJobPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-600">Aucune erreur</p>
+            <p className="text-sm text-(--text-mention-grey)">Aucune erreur</p>
           )}
         </div>
       )}
 
       {(job?.errors ?? []).length > 0 ? (
-        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-gray-300 shadow-sm">
+        <div className="fr-mt-4v fr-p-6v w-full rounded-sm border border-solid border-(--border-default-grey) shadow-sm">
           <h2 className="fr-h5">
             <i
               className={clsx(
@@ -120,7 +120,7 @@ export function DetailsJobPage() {
           </h2>
           {(job?.errors ?? []).map(({ error }, i) => (
             <pre
-              className="fr-p-4v overflow-scroll rounded-sm bg-gray-100 font-mono text-sm"
+              className="fr-p-4v overflow-scroll rounded-sm bg-(--background-contrast-grey) font-mono text-sm"
               key={`job_${job?.id}_error_${i}`}
             >
               {error}

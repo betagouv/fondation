@@ -50,7 +50,11 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
         <table>
           <tbody>
             <tr>
-              <th scope="row" className="text-left" style={{ color: colors.options.grey._625_425.default }}>
+              <th
+                scope="row"
+                className="text-left"
+                style={{ color: colors.decisions.text.disabled.grey.default }}
+              >
                 Publication le:
               </th>
               <td>
@@ -59,7 +63,11 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
             </tr>
             {dueDate && (
               <tr>
-                <th scope="row" className="text-left" style={{ color: colors.options.grey._625_425.default }}>
+                <th
+                  scope="row"
+                  className="text-left"
+                  style={{ color: colors.decisions.text.disabled.grey.default }}
+                >
                   1<sup>è</sup> séance le:
                 </th>
                 <td>

@@ -19,7 +19,10 @@ export function UserAvatar(props: {
   const content = (
     <div
       style={{ backgroundColor: colors.decisions.text.title.blueFrance.default }}
-      className={clsx(`rounded-full text-center font-medium text-white`, userAvatarSizes[props.size ?? 'md'])}
+      className={clsx(
+        `rounded-full text-center font-medium text-(--text-inverted-grey)`,
+        userAvatarSizes[props.size ?? 'md'],
+      )}
     >
       {firstLetters}
     </div>

@@ -145,7 +145,7 @@ export function NominationFilesBatchOperationsButton() {
             />
           </div>
 
-          <div className="fr-pt-2v border-t border-gray-200">
+          <div className="fr-pt-2v border-t border-(--border-default-grey)">
             <h3 className="fr-mb-2v text-base font-semibold">Affecter des rapporteurs</h3>
             <NominationFilesReporterSelector
               availableRapporteurs={availableRapporteurs}

@@ -39,7 +39,7 @@ export function PresentationsTabPast() {
         <FormattedMessage defaultMessage="Restitutions passées" />
       </h2>
       {isSuccess && pastPresentations?.items.length === 0 && (
-        <p className="text-md fr-ml-2v text-gray-600 italic">
+        <p className="text-md fr-ml-2v text-(--text-mention-grey) italic">
           <FormattedMessage defaultMessage="aucune restitution passée" />
         </p>
       )}

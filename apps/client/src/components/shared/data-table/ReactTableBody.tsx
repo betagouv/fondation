@@ -16,7 +16,7 @@ function ReactTableBodyPlaceholder<Data extends RowData>(props: PropsWithChildre
     <tr>
       <td
         colSpan={columnsCount + (canSelectRow ? 1 : 0)}
-        className={clsx({ 'text-gray-600': typeof props.children === 'string' })}
+        className={clsx({ 'text-(--text-mention-grey)': typeof props.children === 'string' })}
         style={{ textAlign: typeof props.children === 'string' ? 'center' : undefined }}
       >
         {props.children}
