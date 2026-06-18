@@ -3,7 +3,7 @@ import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { useCallback, useMemo, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-import { useFoundJurisdictionsQuery } from '../jurisdictions.queries';
+import { useFoundJurisdictionsQuery } from '@queries/jurisdictions.queries';
 
 export function JuridictionAutocomplete(props: {
   selected: readonly { id: string; label: string | null }[];

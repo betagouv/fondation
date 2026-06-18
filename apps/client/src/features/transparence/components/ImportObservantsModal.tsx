@@ -5,10 +5,11 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { type FC, useRef, useState } from 'react';
 
-import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '../../../../../shared/HintImportXlsxFile';
-import { UploadExcelFailedAlert } from '../../../nouvelle-transparence/UploadExcelFailedAlert';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from '@/components/shared/HintImportXlsxFile';
 import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
+
+import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 export const modal = createModal({
   id: 'modal-import-observations-transparence',

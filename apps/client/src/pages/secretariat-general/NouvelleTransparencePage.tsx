@@ -1,4 +1,4 @@
-import NouvelleTransparence from '../../components/secretariat-general/transparence/nouvelle-transparence/NouvelleTransparence';
+import NouvelleTransparence from '@/features/transparence/components/NouvelleTransparence';
 
 export const NouvelleTransparencePage = () => {
   return <NouvelleTransparence />;

@@ -1,4 +1,4 @@
-import { ManageSession } from '../../components/secretariat-general/session/ManageSession';
+import { ManageSession } from '@/features/sessions/components/ManageSession';
 
 export const ManageSessionPage = () => {
   return (

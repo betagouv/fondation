@@ -1,6 +1,6 @@
 import Breadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 
-import { ROUTE_PATHS } from '../../../../utils/route-path.utils';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function MemberListHeader() {
   return (

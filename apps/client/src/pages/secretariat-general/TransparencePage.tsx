@@ -1,4 +1,4 @@
-import { Transparence } from '../../components/secretariat-general/transparence/content/Transparence';
+import { Transparence } from '@/features/transparence/components/Transparence';
 
 export const TransparencePage = () => {
   return <Transparence />;

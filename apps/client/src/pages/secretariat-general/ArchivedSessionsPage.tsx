@@ -1,4 +1,4 @@
-import { ManageArchivedSessions } from '../../components/secretariat-general/session/ManageArchivedSessions';
+import { ManageArchivedSessions } from '@/features/sessions/components/ManageArchivedSessions';
 
 export const ArchivedSessionsPage = () => {
   return (

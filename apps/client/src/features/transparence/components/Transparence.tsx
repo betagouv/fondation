@@ -10,10 +10,10 @@ import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
-import * as importAttachments from './tableau-de-bord/actions/ImportAttachmentModal';
-import { TableauDeBordActions } from './tableau-de-bord/actions/TableauDeBordActions';
-import { TableauDeBordResume } from './tableau-de-bord/resume/TableauDeBordResume';
-import { TableauDeBordValidationCallOut } from './tableau-de-bord/resume/TableauDeBordValidationCallOut';
+import * as importAttachments from './ImportAttachmentModal';
+import { TableauDeBordActions } from './TableauDeBordActions';
+import { TableauDeBordResume } from './TableauDeBordResume';
+import { TableauDeBordValidationCallOut } from './TableauDeBordValidationCallOut';
 
 export function Transparence() {
   const { sessionId } = useParams();

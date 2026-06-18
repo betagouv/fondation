@@ -4,7 +4,6 @@ import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
-import * as importAttachments from '../actions/ImportAttachmentModal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/components/shared/menu';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
@@ -18,6 +17,7 @@ import {
   useListNominationFilesAsExcelMutation,
 } from '@queries/nomination-sessions.queries';
 
+import * as importAttachments from './ImportAttachmentModal';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {

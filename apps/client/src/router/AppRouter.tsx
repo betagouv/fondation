@@ -116,7 +116,7 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.SESSION_ID_EDIT,
             lazy: () =>
-              import('@/components/secretariat-general/transparence/content/tableau-de-bord/resume/TableauDeBordEditTransparence').then(
+              import('@/features/transparence/components/TableauDeBordEditTransparence').then(
                 ({ TableauDeBordEditTransparencePage }) => ({
                   Component: TableauDeBordEditTransparencePage,
                 }),

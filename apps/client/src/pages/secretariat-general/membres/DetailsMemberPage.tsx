@@ -1,9 +1,9 @@
 import { Navigate, useParams } from 'react-router';
 
-import { DetailsMember } from '../../../components/secretariat-general/membres/details/DetailsMember';
-import { DetailsMemberHeader } from '../../../components/secretariat-general/membres/details/DetailsMemberHeader';
 import { PageContentLayout } from '../../../components/shared/PageContentLayout';
 import { ROUTE_PATHS } from '../../../utils/route-path.utils';
+import { DetailsMember } from '@/features/members/components/DetailsMember';
+import { DetailsMemberHeader } from '@/features/members/components/DetailsMemberHeader';
 import { useDetailedMember } from '@queries/members.queries';
 
 export function DetailsMemberPage() {

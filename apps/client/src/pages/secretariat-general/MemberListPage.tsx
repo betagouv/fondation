@@ -1,6 +1,6 @@
-import { MemberList } from '../../components/secretariat-general/membres/list/MemberList';
-import { MemberListHeader } from '../../components/secretariat-general/membres/list/MemberListHeader';
 import { PageContentLayout } from '../../components/shared/PageContentLayout';
+import { MemberList } from '@/features/members/components/MemberList';
+import { MemberListHeader } from '@/features/members/components/MemberListHeader';
 
 export function MemberListPage() {
   return (
