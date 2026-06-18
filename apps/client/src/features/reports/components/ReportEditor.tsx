@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { reportHtmlIds } from '../../dom/html-ids';
+import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 
 import { TextareaCard } from './TextareaCard';
-import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
 
 export type ReportEditorProps = {
   comment: string | null;

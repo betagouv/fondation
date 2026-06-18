@@ -1,5 +1,5 @@
-import { reportHtmlIds } from '../../dom/html-ids';
 import { labels } from '@/constants/labels.constants';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 
 import { Card } from './Card';
 

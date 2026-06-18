@@ -2,14 +2,14 @@ import clsx from 'clsx';
 import { type FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { formatBiography, formatObservers } from '@/components/reports/components/ReportOverview/formatters';
-import { reportHtmlIds } from '@/components/reports/dom/html-ids';
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { ObservationCard } from '@/components/shared/observations';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { TextValue } from '@/components/shared/TextValue';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
 import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { FormattedBirthDate } from '@/i18n/components';
 import { useIntlPositionDuration } from '@/i18n/hooks';
