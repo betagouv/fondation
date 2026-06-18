@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 
 import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 import { DropdownSelect } from '@/components/shared/DropdownSelect';
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,

@@ -4,7 +4,7 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { useNominationFilesTable } from '../../../contexts/files-table.context';
+import { useNominationFilesTable } from '../../../context/files-table.context';
 import { observationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
 import { ObservationFollowUpSelector } from '@/features/observations/components/ObservationFollowUpSelector';
 import type { ObservationFollowupEnum } from '@/types/enums.types';

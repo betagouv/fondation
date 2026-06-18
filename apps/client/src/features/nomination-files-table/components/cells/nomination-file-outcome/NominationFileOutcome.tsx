@@ -1,7 +1,7 @@
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
 
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { NominationFileOutcomeBadge } from './NominationFileOutcomeBadge';

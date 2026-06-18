@@ -5,6 +5,11 @@ import './NominationFilesTable.css';
 
 import { defineMessage } from 'react-intl';
 
+import { useNominationFilesTable } from '../context/files-table.context';
+import { FilesAffectationsProvider } from '../context/FilesAffectationsProvider';
+import { FilesSelectionProvider } from '../context/FilesSelectionProvider';
+import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
+import { useNominationFilesTableColumns } from '../hooks/useNominationFilesTableColumns.hook';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -15,19 +20,14 @@ import {
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
-import { MagistratModaleProvider } from './components/cells/magistrat-details/MagistratDnModale';
-import { NominationFileOutcomeCommentModalProvider } from './components/cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
-import { ObservationFollowUpReminderProvider } from './components/cells/observation-follow-up/ObservationFollowUpReminderProvider';
-import { ObservationsModalProvider } from './components/cells/observations/ObservationsModalProvider';
-import { NominationFileTargetPositionProvider } from './components/cells/targeted-position/NominationFileTargetPositionProvider';
-import { NominationFilesTableActionsBar } from './components/NominationFilesActionsBar';
-import { NominationFilesAffectationsStatus } from './components/NominationFilesAffectationsStatus';
-import { NominationFilesStatusBadges } from './components/NominationFilesStatusBadges';
-import { useNominationFilesTable } from './contexts/files-table.context';
-import { FilesAffectationsProvider } from './contexts/FilesAffectationsProvider';
-import { FilesSelectionProvider } from './contexts/FilesSelectionProvider';
-import { NominationFilesTableProvider } from './contexts/NominationFilesTableProvider';
-import { useNominationFilesTableColumns } from './useNominationFilesTableColumns.hook';
+import { MagistratModaleProvider } from './cells/magistrat-details/MagistratDnModale';
+import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
+import { ObservationFollowUpReminderProvider } from './cells/observation-follow-up/ObservationFollowUpReminderProvider';
+import { ObservationsModalProvider } from './cells/observations/ObservationsModalProvider';
+import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
+import { NominationFilesTableActionsBar } from './NominationFilesActionsBar';
+import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';
+import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 
 function NominationFilesTableInner(props: React.PropsWithChildren) {
   const isSg = useIsSgNavigation();

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useAffectationRow } from '../../contexts/files-affectations.context';
+import { useAffectationRow } from '../../context/files-affectations.context';
 import { DropdownSelectMultiple } from '@/components/shared/DropdownSelectMultiple';
 import { PriorityBadge, PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { PrioriteEnum } from '@/types/enums.types';

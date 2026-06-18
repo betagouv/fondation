@@ -1,7 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import clsx from 'clsx';
 
-import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { useNominationFilesStatusCountsQuery } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesStatusBadges(props: { className?: string }) {

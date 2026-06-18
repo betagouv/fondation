@@ -2,9 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 
-import { useAffectations } from '../contexts/files-affectations.context';
-import { useSelectedFileIds } from '../contexts/files-selection.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useAffectations } from '../context/files-affectations.context';
+import { useSelectedFileIds } from '../context/files-selection.context';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { useAlerts } from '@/components/shared/alerts/alerts.context';
 import { confirmationModal, useConfirmation } from '@/hooks/useConfirmation.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';

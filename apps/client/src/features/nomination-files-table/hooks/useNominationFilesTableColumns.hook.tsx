@@ -1,6 +1,14 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
+import { MagistratDnModalLink } from '../components/cells/magistrat-details/MagistratDnModale';
+import { useSortedNominationFileOutcomes } from '../components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
+import { NominationFilesOutcomeCell } from '../components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
+import { NominationFilesPriorityCell } from '../components/cells/NominationFilesPriorityCell';
+import { ObservantsCell } from '../components/cells/observations/ObservantsCell';
+import { ReportersCell } from '../components/cells/reporters/ReportersCell';
+import { NominationFileTargetPositionCell } from '../components/cells/targeted-position/NominationFileTargetPositionCell';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { outcomeLabel, PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
@@ -8,15 +16,6 @@ import {
   getListCurrentlyAffectedReportersQueryOptions,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
-
-import { MagistratDnModalLink } from './components/cells/magistrat-details/MagistratDnModale';
-import { useSortedNominationFileOutcomes } from './components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
-import { NominationFilesOutcomeCell } from './components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
-import { NominationFilesPriorityCell } from './components/cells/NominationFilesPriorityCell';
-import { ObservantsCell } from './components/cells/observations/ObservantsCell';
-import { ReportersCell } from './components/cells/reporters/ReportersCell';
-import { NominationFileTargetPositionCell } from './components/cells/targeted-position/NominationFileTargetPositionCell';
-import { useNominationFilesTable } from './contexts/files-table.context';
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {

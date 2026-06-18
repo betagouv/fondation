@@ -1,6 +1,6 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 
-import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesAffectationsStatus() {

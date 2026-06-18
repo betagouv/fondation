@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 
-import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { ObservationLinks } from '@/features/observations/components/ObservationLinks';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

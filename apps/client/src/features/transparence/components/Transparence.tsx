@@ -5,7 +5,7 @@ import { useParams } from 'react-router';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
+import { NominationFilesTable } from '@/features/nomination-files-table/components/NominationFilesTable';
 import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';

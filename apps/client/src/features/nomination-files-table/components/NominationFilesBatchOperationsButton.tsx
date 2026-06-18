@@ -3,9 +3,9 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useCallback, useMemo, useState } from 'react';
 
-import { useAffectations } from '../contexts/files-affectations.context';
-import { useSelectedFileIds } from '../contexts/files-selection.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useAffectations } from '../context/files-affectations.context';
+import { useSelectedFileIds } from '../context/files-selection.context';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 

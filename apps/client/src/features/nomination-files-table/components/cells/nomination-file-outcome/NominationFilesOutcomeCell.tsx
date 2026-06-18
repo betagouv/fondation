@@ -1,4 +1,4 @@
-import { useNominationFilesTable } from '../../../contexts/files-table.context';
+import { useNominationFilesTable } from '../../../context/files-table.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { NominationFileDocStatusBadge } from './NominationFileDocStatusBadge';

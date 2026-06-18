@@ -3,8 +3,8 @@ import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
-import { useSelectedFileIds } from '../contexts/files-selection.context';
-import { useNominationFilesTable } from '../contexts/files-table.context';
+import { useSelectedFileIds } from '../context/files-selection.context';
+import { useNominationFilesTable } from '../context/files-table.context';
 import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
