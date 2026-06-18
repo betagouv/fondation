@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import React from 'react';
 import { useDebounce } from 'use-debounce';
 
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';

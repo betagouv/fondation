@@ -5,7 +5,7 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import React from 'react';
 
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

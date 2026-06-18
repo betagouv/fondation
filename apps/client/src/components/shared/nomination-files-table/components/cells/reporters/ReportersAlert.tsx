@@ -3,7 +3,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
-import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

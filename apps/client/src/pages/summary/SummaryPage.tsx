@@ -1,14 +1,14 @@
 import { useParams } from 'react-router';
 
-import { AuthGuard } from '@/components/guards/AuthGuard';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { AuthGuard } from '@/features/auth/components/AuthGuard';
+import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { Summary } from '@/features/summary/components/Summary';
 import { SummaryContainer } from '@/features/summary/components/SummaryContainer';
 import { SummaryNotFound } from '@/features/summary/components/SummaryNotFound';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { useVisibleSummarySections } from '@/features/summary/hooks/useVisibleSummarySections';
-import { useIsSg } from '@/hooks/roles.hook';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';

@@ -5,9 +5,9 @@ import Compass from '@codegouvfr/react-dsfr/picto/Compass';
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router';
 
-import { AuthGuard } from '@/components/guards/AuthGuard';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
-import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { AuthGuard } from '@/features/auth/components/AuthGuard';
+import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { useLolfiMagistratUrlQuery } from '@queries/nomination-sessions.queries';
 
 function useCountdown(time = 5_000) {

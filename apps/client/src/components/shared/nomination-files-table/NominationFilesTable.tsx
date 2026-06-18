@@ -8,7 +8,7 @@ import { defineMessage } from 'react-intl';
 import { ObservationFollowUpCommentProvider } from '../observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import {
   useSessionNominationFilesQuery,
