@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import React from 'react';
 import { Link } from 'react-router';
 
-import { getObservationDetailsPath } from '../../utils/route-path.utils';
+import { getObservationDetailsPath } from '@/utils/route-path.utils';
 
 export function ObservationLinks(props: {
   context?: 'sg' | 'membre';

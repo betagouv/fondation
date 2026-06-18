@@ -2,14 +2,13 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import React from 'react';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { useObservationFollowUpCommentDialog } from '@/features/observations/hooks/useObservationFollowUpCommentDialog';
 import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumLabels,
   type ObservationFollowupEnum,
 } from '@/types/enums.types';
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
-
-import { useObservationFollowUpCommentDialog } from './useObservationFollowUpCommentDialog';
 
 export function ObservationFollowUpSelector(props: {
   isArchived: boolean;

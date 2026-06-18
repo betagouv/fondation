@@ -7,9 +7,9 @@ import { generatePath, useParams } from 'react-router';
 
 import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { ObservationLinks } from '@/components/shared/ObservationLinks';
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { ObservationLinks } from '@/features/observations/components/ObservationLinks';
 import { HeaderReportList } from '@/features/reports/components/HeaderReportList';
 import { ReportList } from '@/features/reports/components/ReportList';
 import { ReportListViewToggle } from '@/features/reports/components/ReportListViewToggle';

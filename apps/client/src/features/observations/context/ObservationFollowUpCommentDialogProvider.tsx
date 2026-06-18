@@ -1,12 +1,12 @@
 import React from 'react';
 
+import { ObservationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 import {
   ObservationFollowUpCommentContext,
   type ObservationFollowUpCommentCallback,
 } from './ObservationFollowUpCommentContext';
-import { ObservationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
 
 export function ObservationFollowUpCommentProvider(props: React.PropsWithChildren) {
   const [followUp, setFollowUp] = React.useState<ObservationFollowupEnum | null>(null);

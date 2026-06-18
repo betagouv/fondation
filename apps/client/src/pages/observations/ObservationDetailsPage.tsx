@@ -2,11 +2,11 @@ import React from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { ObservationDetailsContent } from '@/components/shared/ObservationDetailsContent';
-import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
+import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAttachObservationMemberCommentScreenshotsMutation,

@@ -3,16 +3,16 @@ import Card from '@codegouvfr/react-dsfr/Card';
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
-import { getObservationDetailsPath } from '../../utils/route-path.utils';
+import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { TipTapEditor } from '@/components/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { dateOnlyToDate } from '@/utils/date-only.util';
+import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
-import { LolfiMagistratLink } from './LolfiMagistratLink';
 import { ObservationDescription } from './ObservationDescription';
-import { ObservationFollowUpSelector } from './observations/follow-up-selector/ObservationFollowUpSelector';
+import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
 
 type ObservationDetailsContentProps = {
   sessionId: string;

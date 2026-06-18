@@ -3,12 +3,12 @@ import { type FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { ObservationCard } from '@/components/shared/observations';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { TextValue } from '@/components/shared/TextValue';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { ObservationCard } from '@/features/observations/components/ObservationCard';
 import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
 import { FormattedBirthDate } from '@/i18n/components';

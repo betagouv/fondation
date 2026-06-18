@@ -1,12 +1,11 @@
 import React from 'react';
 
-import type { ObservationFollowupEnum } from '@/types/enums.types';
-
+import { observationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
 import {
   ObservationFollowUpCommentContext,
   type ObservationFollowUpCommentEvent,
-} from './ObservationFollowUpCommentContext';
-import { observationFollowUpCommentModal } from './ObservationFollowUpCommentDialog';
+} from '@/features/observations/context/ObservationFollowUpCommentContext';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export function useObservationFollowUpCommentDialog() {
   const ctx = React.useContext(ObservationFollowUpCommentContext);

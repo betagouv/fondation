@@ -5,8 +5,8 @@ import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '../../../contexts/files-table.context';
-import { observationFollowUpCommentModal } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialog';
-import { ObservationFollowUpSelector } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpSelector';
+import { observationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
+import { ObservationFollowUpSelector } from '@/features/observations/components/ObservationFollowUpSelector';
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { capitalize } from '@/utils/string.utils';
