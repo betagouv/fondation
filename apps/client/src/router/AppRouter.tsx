@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import { HomePage } from '../HomePage';
 import { ROUTE_PATHS } from '../utils/route-path.utils';
-import { LoginPage } from '@/pages/LoginPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
 
 import { AppErrorBoundary } from './AppErrorBoundary';
 
@@ -44,7 +44,7 @@ const router = sentryCreateBrowserRouter([
       {
         path: ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI,
         lazy: () =>
-          import('@/pages/LolfiRedirectMagistratPage').then(({ LolfiRedirectMagistrat }) => ({
+          import('@/pages/sessions/LolfiRedirectMagistratPage').then(({ LolfiRedirectMagistrat }) => ({
             Component: LolfiRedirectMagistrat,
           })),
       },
@@ -58,7 +58,7 @@ const router = sentryCreateBrowserRouter([
           {
             index: true,
             lazy: () =>
-              import('@/pages/member/SessionsPage').then(({ SessionsPage }) => ({
+              import('@/pages/transparence/SessionsPage').then(({ SessionsPage }) => ({
                 Component: SessionsPage,
               })),
           },
@@ -79,9 +79,9 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
             lazy: () =>
-              import('@/pages/secretariat-general/ObservationDetailsPage').then(
-                ({ ObservationDetailsPage }) => ({ Component: ObservationDetailsPage }),
-              ),
+              import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
+                Component: ObservationDetailsPage,
+              })),
           },
         ],
       },
@@ -102,14 +102,14 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
             lazy: () =>
-              import('@/pages/secretariat-general/NouvelleTransparencePage').then(
+              import('@/pages/transparence/NouvelleTransparencePage').then(
                 ({ NouvelleTransparencePage }) => ({ Component: NouvelleTransparencePage }),
               ),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID,
             lazy: () =>
-              import('@/pages/secretariat-general/TransparencePage').then(({ TransparencePage }) => ({
+              import('@/pages/transparence/TransparencePage').then(({ TransparencePage }) => ({
                 Component: TransparencePage,
               })),
           },
@@ -125,103 +125,103 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
             lazy: () =>
-              import('@/pages/secretariat-general/ObservationDetailsPage').then(
-                ({ ObservationDetailsPage }) => ({ Component: ObservationDetailsPage }),
-              ),
+              import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
+                Component: ObservationDetailsPage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_SESSION,
             lazy: () =>
-              import('@/pages/secretariat-general/ManageSessionPage').then(({ ManageSessionPage }) => ({
+              import('@/pages/sessions/ManageSessionPage').then(({ ManageSessionPage }) => ({
                 Component: ManageSessionPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
             lazy: () =>
-              import('@/pages/secretariat-general/ArchivedSessionsPage').then(({ ArchivedSessionsPage }) => ({
+              import('@/pages/sessions/ArchivedSessionsPage').then(({ ArchivedSessionsPage }) => ({
                 Component: ArchivedSessionsPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
             lazy: () =>
-              import('@/pages/secretariat-general/MemberListPage').then(({ MemberListPage }) => ({
+              import('@/pages/members/MemberListPage').then(({ MemberListPage }) => ({
                 Component: MemberListPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
             lazy: () =>
-              import('@/pages/secretariat-general/DetailsMemberPage').then(({ DetailsMemberPage }) => ({
+              import('@/pages/members/DetailsMemberPage').then(({ DetailsMemberPage }) => ({
                 Component: DetailsMemberPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_NEW,
             lazy: () =>
-              import('@/pages/secretariat-general/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
+              import('@/pages/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
                 Component: CreateOrUpdateAgendaPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_UPDATE,
             lazy: () =>
-              import('@/pages/secretariat-general/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
+              import('@/pages/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
                 Component: CreateOrUpdateAgendaPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
             lazy: () =>
-              import('@/pages/secretariat-general/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
+              import('@/pages/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
                 Component: AgendaPreviewPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
             lazy: () =>
-              import('@/pages/secretariat-general/OfficialReportPage').then(
+              import('@/pages/official-report/OfficialReportPage').then(
                 ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
               ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
             lazy: () =>
-              import('@/pages/secretariat-general/OfficialReportPage').then(
+              import('@/pages/official-report/OfficialReportPage').then(
                 ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
               ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
             lazy: () =>
-              import('@/pages/secretariat-general/OfficialReportPreviewPage').then(
+              import('@/pages/official-report/OfficialReportPreviewPage').then(
                 ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
               ),
           },
           {
             lazy: () =>
-              import('@/pages/secretariat-general/PresentationsLayout').then(({ PresentationsLayout }) => ({
+              import('@/pages/presentations/PresentationsLayout').then(({ PresentationsLayout }) => ({
                 Component: PresentationsLayout,
               })),
             children: [
               {
                 lazy: () =>
-                  import('@/pages/secretariat-general/PresentationsTabsPage').then(
-                    ({ PresentationsTabsPage }) => ({ Component: PresentationsTabsPage }),
-                  ),
+                  import('@/pages/presentations/PresentationsTabsPage').then(({ PresentationsTabsPage }) => ({
+                    Component: PresentationsTabsPage,
+                  })),
                 children: [
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
                     lazy: () =>
-                      import('@/pages/secretariat-general/PresentationsTabPast').then(
+                      import('@/pages/presentations/PresentationsTabPast').then(
                         ({ PresentationsTabPast }) => ({ Component: PresentationsTabPast }),
                       ),
                   },
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_READY,
                     lazy: () =>
-                      import('@/pages/secretariat-general/PresentationsTabReady').then(
+                      import('@/pages/presentations/PresentationsTabReady').then(
                         ({ PresentationsTabReady }) => ({ Component: PresentationsTabReady }),
                       ),
                   },
@@ -230,21 +230,21 @@ const router = sentryCreateBrowserRouter([
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
                 lazy: () =>
-                  import('@/pages/secretariat-general/PresentationUpsertPage').then(
+                  import('@/pages/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
                 lazy: () =>
-                  import('@/pages/secretariat-general/PresentationUpsertPage').then(
+                  import('@/pages/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
                 lazy: () =>
-                  import('@/pages/secretariat-general/PresentationsPreviewPage').then(
+                  import('@/pages/presentations/PresentationsPreviewPage').then(
                     ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
                   ),
               },
