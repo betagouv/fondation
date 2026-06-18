@@ -7,7 +7,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { generatePath, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';

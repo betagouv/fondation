@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 
 import { TextareaCard } from './TextareaCard';

@@ -1,6 +1,6 @@
 import type React from 'react';
 
-import { NominationFilesTable } from '@/components/shared/nomination-files-table/NominationFilesTable';
+import { NominationFilesTable } from '@/features/nomination-files-table/components/NominationFilesTable';
 import type { FormationEnum } from '@/types/enums.types';
 
 import { TransparencyAttachmentsSection } from './TransparencyAttachmentsSection';

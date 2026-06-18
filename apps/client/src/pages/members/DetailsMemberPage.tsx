@@ -1,8 +1,8 @@
 import { Navigate, useParams } from 'react-router';
 
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import { DetailsMember } from '@/features/members/components/DetailsMember';
 import { DetailsMemberHeader } from '@/features/members/components/DetailsMemberHeader';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedMember } from '@queries/members.queries';
 

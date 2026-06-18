@@ -1,7 +1,7 @@
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { DocumentPreviewLayout } from '@/components/shared/ui/document-preview/DocumentPreview';
+import { DocumentPreviewLayout } from '@/shared/ui/document-preview/DocumentPreview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useJusticePresentationPlanHtmlQuery,

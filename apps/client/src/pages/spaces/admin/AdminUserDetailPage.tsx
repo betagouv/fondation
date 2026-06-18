@@ -7,7 +7,6 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import {
   PROMOTABLE_ROLES,
@@ -16,6 +15,7 @@ import {
 } from '@/features/administration/labels/admin-user-enum';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { useTab } from '@/hooks/useTab';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';

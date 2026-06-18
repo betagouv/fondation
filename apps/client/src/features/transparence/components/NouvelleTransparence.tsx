@@ -12,9 +12,9 @@ import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { Mandatory } from '@/components/shared/Mandatory';
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Mandatory } from '@/shared/ui/Mandatory';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { getSgBreadCrumb } from '@/utils/sg-breadcrumb.utils';

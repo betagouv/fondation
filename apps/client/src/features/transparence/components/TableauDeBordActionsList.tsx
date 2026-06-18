@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import React from 'react';
 
-import { useAlerts } from '@/components/shared/alerts/alerts.context';
+import { useAlerts } from '@/shared/context/alerts/alerts.context';
 import {
   useDetailedNominationSessionAffectationsVersionQuery,
   usePublishVersionMutation,

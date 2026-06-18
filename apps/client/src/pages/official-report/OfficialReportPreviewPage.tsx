@@ -1,8 +1,8 @@
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { DocumentPreviewLayout } from '@/components/shared/ui/document-preview/DocumentPreview';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DocumentPreviewLayout } from '@/shared/ui/document-preview/DocumentPreview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useGenerateOfficialReportPdfMutation,

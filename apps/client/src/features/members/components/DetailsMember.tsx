@@ -1,4 +1,4 @@
-import { AlertsProvider } from '@/components/shared/alerts/AlertsProvider';
+import { AlertsProvider } from '@/shared/context/alerts/AlertsProvider';
 import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
