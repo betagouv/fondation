@@ -262,22 +262,22 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
             lazy: () =>
-              import('@/pages/spaces/admin/ingest/IngestLolfiArchivePage').then(
-                ({ IngestLolfiArchivePage }) => ({
-                  Component: IngestLolfiArchivePage,
-                }),
-              ),
+              import('@/pages/spaces/admin/IngestLolfiArchivePage').then(({ IngestLolfiArchivePage }) => ({
+                Component: IngestLolfiArchivePage,
+              })),
           },
           {
             path: ROUTE_PATHS.ADMIN.LIST_JOBS,
             lazy: () =>
-              import('@/pages/spaces/admin/jobs/JobsPage').then(({ JobsPage }) => ({ Component: JobsPage })),
+              import('@/pages/spaces/admin/AdminJobsPage').then(({ AdminJobsPage }) => ({
+                Component: AdminJobsPage,
+              })),
             children: [
               {
                 path: ROUTE_PATHS.ADMIN.DETAILS_JOB,
                 lazy: () =>
-                  import('@/pages/spaces/admin/jobs/DetailsJobPage').then(({ DetailsJobPage }) => ({
-                    Component: DetailsJobPage,
+                  import('@/pages/spaces/admin/AdminJobDetailsPage').then(({ AdminJobDetailsPage }) => ({
+                    Component: AdminJobDetailsPage,
                   })),
               },
             ],
@@ -285,14 +285,14 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.ADMIN.USERS,
             lazy: () =>
-              import('@/pages/spaces/admin/users/AdminUserListPage').then(({ AdminUserListPage }) => ({
+              import('@/pages/spaces/admin/AdminUserListPage').then(({ AdminUserListPage }) => ({
                 Component: AdminUserListPage,
               })),
           },
           {
             path: ROUTE_PATHS.ADMIN.USER_DETAIL,
             lazy: () =>
-              import('@/pages/spaces/admin/users/AdminUserDetailPage').then(({ AdminUserDetailPage }) => ({
+              import('@/pages/spaces/admin/AdminUserDetailPage').then(({ AdminUserDetailPage }) => ({
                 Component: AdminUserDetailPage,
               })),
           },

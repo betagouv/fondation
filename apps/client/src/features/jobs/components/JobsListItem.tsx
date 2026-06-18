@@ -2,9 +2,9 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import React from 'react';
 
-import { formatJobDate } from '../common/format-job-date.utils';
-import { formatJobDuration } from '../common/format-job-duration.utils';
-import { JOB_STATUS_ICONS } from '../common/job-status.utils';
+import { formatJobDate } from '../utils/format-job-date.utils';
+import { formatJobDuration } from '../utils/format-job-duration.utils';
+import { JOB_STATUS_ICONS } from '../utils/job-status.utils';
 import type { PaginatedJobsDto } from '@api/types';
 
 export function JobsListItem(props: { job: PaginatedJobsDto['items'][number] }) {
