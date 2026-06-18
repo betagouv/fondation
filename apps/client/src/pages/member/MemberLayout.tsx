@@ -4,7 +4,7 @@ import { AuthGuard } from '../../components/guards/AuthGuard';
 import { PageContentLayout } from '../../components/shared/PageContentLayout';
 import { AUTHORIZED_ROLES } from '../../constants/authorized-roles.constants';
 
-export const TransparencesLayout = () => {
+export const MemberLayout = () => {
   const params = useParams();
   const { pathname } = useLocation();
 

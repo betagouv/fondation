@@ -1,20 +1,16 @@
-import { Accordion } from '@codegouvfr/react-dsfr/Accordion';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, useNavigate } from 'react-router';
+import { FormattedMessage } from 'react-intl';
+import { useNavigate } from 'react-router';
 import z from 'zod';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { Mandatory } from '@/components/shared/Mandatory';
 import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
@@ -23,11 +19,7 @@ import { usePresentationPlan } from '@/features/presentations/context/presentati
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
-import {
-  useDetailsAgendaMetadataQuery,
-  useListPresentationPlansAgendasQuery,
-  useListSecretariesGeneralQuery,
-} from '@queries/agenda.queries';
+import { useDetailsAgendaMetadataQuery, useListSecretariesGeneralQuery } from '@queries/agenda.queries';
 
 const MetadataSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide'),
@@ -39,7 +31,7 @@ const MetadataSchema = z.object({
   hasRenunciation: z.boolean(),
 });
 
-function MetadataStep(props: { className?: string }) {
+export function PresentationMetadataStep(props: { className?: string }) {
   const { state, setMetadata, isDisabled } = usePresentationPlan();
   const navigate = useNavigate();
 
@@ -240,134 +232,5 @@ function MetadataStep(props: { className?: string }) {
         ]}
       />
     </form>
-  );
-}
-
-function AgendaCommentsStep(props: { className?: string }) {
-  const { state, createPlan, isDisabled, planId, goToMetadata } = usePresentationPlan();
-
-  const { data: agendasData } = useListPresentationPlansAgendasQuery({
-    ignorePlanId: planId ?? undefined,
-  });
-
-  const agendaIds = Object.keys(state.agendas);
-  const agendas = React.useMemo(
-    () => (agendasData?.items ?? []).filter(({ id }) => agendaIds.includes(id)),
-    [agendasData, agendaIds],
-  );
-
-  const uniqueAgendas = React.useMemo(() => {
-    const seenSessions = new Set<string>();
-    return agendas.filter(({ session }) => {
-      if (seenSessions.has(session.id)) return false;
-      seenSessions.add(session.id);
-      return true;
-    });
-  }, [agendas]);
-
-  const [comments, setComments] = React.useState<Record<string, string>>(() =>
-    Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? ''])),
-  );
-
-  const onCommentChange = React.useCallback((agendaId: string, value: string) => {
-    setComments((prev) => ({ ...prev, [agendaId]: value }));
-  }, []);
-
-  const onSubmit = React.useCallback(() => {
-    createPlan({
-      agendas: Object.fromEntries(
-        Object.entries(comments).map(([id, comment]) => [id, comment.trim() || null]),
-      ),
-    });
-  }, [comments, createPlan]);
-
-  return (
-    <div className={clsx('mx-auto max-w-2xl', props.className)}>
-      {uniqueAgendas.map((agenda, i) => (
-        <Accordion key={agenda.id} defaultExpanded={i === 0} label={agenda.session.name}>
-          <Input
-            label="Commentaire"
-            textArea
-            nativeTextAreaProps={{
-              rows: 4,
-              value: comments[agenda.id] ?? '',
-              style: { fieldSizing: 'content' },
-              onChange: (e) => onCommentChange(agenda.id, e.target.value),
-            }}
-          />
-        </Accordion>
-      ))}
-
-      <ButtonsGroup
-        className="fr-mt-6v"
-        alignment="right"
-        inlineLayoutWhen="md and up"
-        buttons={[
-          { children: 'Retour', priority: 'secondary', onClick: goToMetadata, type: 'button' },
-          {
-            children: 'Créer la notice',
-            type: 'button',
-            onClick: onSubmit,
-            disabled: isDisabled,
-          },
-        ]}
-      />
-    </div>
-  );
-}
-
-function PresentationBreadcrumb() {
-  const { planId } = usePresentationPlan();
-  const { formatMessage } = useIntl();
-  return (
-    <Breadcrumb
-      ariaLabel="Fil d'Ariane"
-      id="restitutions_breadcrumb"
-      breadcrumb={{
-        currentPageLabel: planId
-          ? formatMessage({ defaultMessage: `Notice de restitution` })
-          : formatMessage({ defaultMessage: 'Nouvelle notice de restitution' }),
-        segments: [
-          { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-          { label: 'Restitutions', to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY) },
-        ],
-      }}
-    />
-  );
-}
-
-const STEPS = {
-  METADATA: { title: 'Métadonnées de la notice' },
-  AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' },
-} as const;
-
-export function PresentationUpsertPage() {
-  const { state, isFetching } = usePresentationPlan();
-
-  const step = STEPS[state.step];
-  const stepIndex = state.step === 'METADATA' ? 1 : 2;
-  const nextTitle = state.step === 'METADATA' ? STEPS.AGENDA_COMMENTS.title : undefined;
-
-  return (
-    <div className="fr-container fr-py-4v">
-      <PresentationBreadcrumb />
-
-      {isFetching ? (
-        <p
-          className={clsx(
-            cx('ri-loader-4-line'),
-            'text-center before:mr-1 before:animate-spin before:content-[""]',
-          )}
-        >
-          <FormattedMessage defaultMessage={'Chargement...'} />
-        </p>
-      ) : (
-        <>
-          <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
-          <MetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
-          <AgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />
-        </>
-      )}
-    </div>
   );
 }
