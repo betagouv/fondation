@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { type JobFile } from '../common/job.types';
-import { tree } from '../common/tree.utils';
+import { type JobFile } from '../types/job.types';
+import { tree } from '../utils/tree.utils';
 
 import { JobFileBranch } from './JobFilesBranch';
 

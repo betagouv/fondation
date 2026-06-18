@@ -1,4 +1,4 @@
-import type { JobFile, Tree } from './job.types';
+import type { JobFile, Tree } from '../types/job.types';
 
 export function tree(files: readonly JobFile[]): Tree[] {
   const nodes = new Map(
