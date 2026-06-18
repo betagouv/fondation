@@ -1,4 +1,4 @@
-import './index.css';
+import './styles/index.css';
 import './instrument.ts';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import * as Sentry from '@sentry/react';

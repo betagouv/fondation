@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import React from 'react';
 
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 
 import { DocActionDelete } from './DocActionDelete';

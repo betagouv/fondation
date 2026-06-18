@@ -13,8 +13,8 @@ import {
   ROLE_OPTIONS,
   type AdminUserRoleEnum,
 } from '@/features/administration/labels/admin-user-enum';
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { useTab } from '@/hooks/useTab';
+import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';

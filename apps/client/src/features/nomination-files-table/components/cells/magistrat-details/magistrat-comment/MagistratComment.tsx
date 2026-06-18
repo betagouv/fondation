@@ -3,7 +3,7 @@ import { useCallback, useId, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';

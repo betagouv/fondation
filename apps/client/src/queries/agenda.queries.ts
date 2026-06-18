@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useTab } from '@/hooks/useTab';
+import { useTab } from '@/shared/hooks/useTab';
 import type { FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import * as $api from '@api/sdk';
