@@ -4,7 +4,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { useCallback, useRef, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useTab } from '@/hooks/useTab';
 import {
   useAddNominationFileAttachmentsMutation,

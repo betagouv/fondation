@@ -1,7 +1,7 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import React from 'react';
 
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumLabels,

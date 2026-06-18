@@ -5,7 +5,7 @@ import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 
 import { PageLayout } from '@/components/layout/PageLayout';
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 

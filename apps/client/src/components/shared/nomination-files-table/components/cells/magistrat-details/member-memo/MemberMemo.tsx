@@ -7,8 +7,8 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
-import { useIsSg } from '@/hooks/roles.hook';
 import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 
