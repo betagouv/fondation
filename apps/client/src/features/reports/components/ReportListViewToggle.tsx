@@ -1,6 +1,6 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 
-import { useReportListFocus } from './useReportListFocus';
+import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
 
 export function ReportListViewToggle(props: { onChange?: (focus: 'general' | 'affectations') => unknown }) {
   const [focus, setFocus] = useReportListFocus();

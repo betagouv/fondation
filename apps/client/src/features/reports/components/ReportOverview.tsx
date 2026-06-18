@@ -2,14 +2,12 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import {
-  getTransparencesBreadCrumb,
-  TransparencesCurrentPage,
-} from '../../../../utils/transparences-breadcrumb.utils';
-import { Breadcrumb } from '../../../shared/Breadcrumb';
-import { ScrollToTop } from '../../../shared/ScrollToTop';
+import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
+import { ScrollToTop } from '@/components/shared/ScrollToTop';
+import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
 import type { ReportStatusEnum } from '@/types/enums.types';
+import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
 import {
   useAttachReportFilesMutation,
   useDetachReportFilesMutation,
@@ -20,7 +18,6 @@ import {
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
-import { formatBiography, formatObservers } from './formatters';
 import { MagistratIdentity } from './MagistratIdentity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
