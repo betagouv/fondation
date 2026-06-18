@@ -1,12 +1,11 @@
 import { SideMenu, type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
 import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { SUMMARY_SECTIONS } from '../../../../constants/summary-sections.constants';
-import { reportHtmlIds } from '../../dom/html-ids';
-import { scrollToSummarySection } from '../../dom/scroll-to-summary-section';
-import { summaryScrollListenersFactory } from '../../dom/summary-scroll-listeners';
-
-import { useObservedSections } from './hooks/useObservedSections';
+import { SUMMARY_SECTIONS } from '@/features/reports/constants/summary-sections.constants';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { scrollToSummarySection } from '@/features/reports/dom/scroll-to-summary-section';
+import { summaryScrollListenersFactory } from '@/features/reports/dom/summary-scroll-listeners';
+import { useObservedSections } from '@/features/reports/hooks/useObservedSections';
 
 export type SummaryProps = {
   observers: string[] | null;

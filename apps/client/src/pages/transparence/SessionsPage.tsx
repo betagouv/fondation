@@ -1,3 +1,3 @@
-import Sessions from '../../components/reports/components/Transparencies/Sessions';
+import Sessions from '@/features/transparence/components/Sessions';
 
 export const SessionsPage = () => <Sessions />;

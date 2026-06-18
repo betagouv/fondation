@@ -1,8 +1,8 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 
-import { reportHtmlIds } from '../../dom/html-ids';
 import { ObservationCard } from '@/components/shared/observations';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import type { DetailedReportDto } from '@api/types';
 
 export const Observers = ({
