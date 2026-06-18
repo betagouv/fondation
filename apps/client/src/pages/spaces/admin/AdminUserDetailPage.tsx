@@ -8,6 +8,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
+import {
+  PROMOTABLE_ROLES,
+  ROLE_OPTIONS,
+  type AdminUserRoleEnum,
+} from '@/features/administration/labels/admin-user-enum';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { useTab } from '@/hooks/useTab';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -23,9 +29,6 @@ import {
   useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
 import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
-
-import { PROMOTABLE_ROLES, ROLE_OPTIONS, type AdminUserRoleEnum } from './admin-user-enum';
-import { AdminUserRole } from './AdminUserRole';
 
 function EmailField(props: { user: DetailedAdminUserDto }) {
   const [isEditing, setEditing] = React.useState(false);
