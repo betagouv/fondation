@@ -9,7 +9,11 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
-import { PROMOTABLE_ROLES, ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
+import {
+  PROMOTABLE_ROLES,
+  ROLE_OPTIONS,
+  type AdminUserRoleEnum,
+} from '@/features/administration/labels/admin-user-enum';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
 import { useTab } from '@/hooks/useTab';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';

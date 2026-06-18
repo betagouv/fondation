@@ -262,16 +262,16 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
             lazy: () =>
-              import('@/pages/spaces/admin/IngestLolfiArchivePage').then(
-                ({ IngestLolfiArchivePage }) => ({
-                  Component: IngestLolfiArchivePage,
-                }),
-              ),
+              import('@/pages/spaces/admin/IngestLolfiArchivePage').then(({ IngestLolfiArchivePage }) => ({
+                Component: IngestLolfiArchivePage,
+              })),
           },
           {
             path: ROUTE_PATHS.ADMIN.LIST_JOBS,
             lazy: () =>
-              import('@/pages/spaces/admin/AdminJobsPage').then(({ AdminJobsPage }) => ({ Component: AdminJobsPage })),
+              import('@/pages/spaces/admin/AdminJobsPage').then(({ AdminJobsPage }) => ({
+                Component: AdminJobsPage,
+              })),
             children: [
               {
                 path: ROUTE_PATHS.ADMIN.DETAILS_JOB,
