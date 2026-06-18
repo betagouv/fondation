@@ -5,17 +5,17 @@ import React, { type FC } from 'react';
 import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
-import { useDataTable, useQueryDataTableState } from '@/components/shared/data-table';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { ObservationLinks } from '@/components/shared/ObservationLinks';
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
-import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { ObservationLinks } from '@/features/observations/components/ObservationLinks';
 import { HeaderReportList } from '@/features/reports/components/HeaderReportList';
 import { ReportList } from '@/features/reports/components/ReportList';
 import { ReportListViewToggle } from '@/features/reports/components/ReportListViewToggle';
 import { ReportsDnVueGenerale } from '@/features/reports/components/ReportsDnVueGenerale';
 import { ReportStateTag } from '@/features/reports/components/ReportStateTag';
 import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
+import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import {
   PrioriteEnum,
   PrioriteEnumLabels,

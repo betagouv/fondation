@@ -7,8 +7,8 @@ import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
 import { useDebounce } from 'use-debounce';
 
-import { Marked } from '@/components/shared/Marked';
 import { useSummary } from '@/features/summary/context/SummaryContext';
+import { Marked } from '@/shared/ui/Marked';
 import { capitalize } from '@/utils/string.utils';
 import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 

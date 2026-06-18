@@ -4,10 +4,10 @@ import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { PresentationAgendaCommentsStep } from '@/features/presentations/components/PresentationAgendaCommentsStep';
 import { PresentationMetadataStep } from '@/features/presentations/components/PresentationMetadataStep';
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 function PresentationBreadcrumb() {

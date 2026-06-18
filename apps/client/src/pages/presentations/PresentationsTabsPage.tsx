@@ -4,7 +4,7 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useListPresentationPlansAgendasQuery } from '@queries/agenda.queries';
 

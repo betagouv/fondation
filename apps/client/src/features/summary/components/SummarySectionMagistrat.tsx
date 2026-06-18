@@ -1,10 +1,10 @@
 import { differenceInYears, format } from 'date-fns';
 import React from 'react';
 
-import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
+import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 
 import { SummarySectionCard } from './SummarySectionCard';

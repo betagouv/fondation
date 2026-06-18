@@ -11,11 +11,11 @@ import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 import z from 'zod';
 
-import { Mandatory } from '@/components/shared/Mandatory';
 import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
+import { Mandatory } from '@/shared/ui/Mandatory';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
