@@ -2,10 +2,9 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
+import { PermanentBanner } from '@/components/shared/layouts/PermanentBanner';
 import { toFullName } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
-
-import { PermanentBanner } from './PermanentBanner';
 
 const text = colors.options.purpleGlycine.main494.default;
 const bgColor = colors.options.purpleGlycine._950_100.default;

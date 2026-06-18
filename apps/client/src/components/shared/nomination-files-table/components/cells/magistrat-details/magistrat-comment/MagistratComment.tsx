@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useId, useState } from 'react';
 import { useParams } from 'react-router';
 
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
-import { useIsSg } from '@/hooks/roles.hook';
 
 import { MagistratCommentEdit } from './MagistratCommentEdit';
 import { MagistratCommentView } from './MagistratCommentView';

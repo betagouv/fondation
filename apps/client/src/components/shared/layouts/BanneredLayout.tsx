@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import React from 'react';
 
+import { ImpersonationBanner } from '@/features/auth/components/ImpersonationBanner';
+
 import { ArchiveBanner } from './archived-banner/ArchivedSessionBanner';
-import { ImpersonationBanner } from './ImpersonationBanner';
 import { StagingBanner } from './StagingBanner';
 
 export function Banners(

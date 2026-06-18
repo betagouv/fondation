@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { useNavigate } from 'react-router';
 
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
-import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useCreateSummaryMutation } from '@queries/summary.queries';
