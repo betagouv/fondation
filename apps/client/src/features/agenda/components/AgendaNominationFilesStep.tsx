@@ -5,11 +5,11 @@ import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { IndeterminateCheckbox } from '@/components/shared/indeterminate-checkbox/IndeterminateCheckbox';
 import { useAgenda } from '@/features/agenda/context/AgendaContext';
 import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { useScrollDownIndicator } from '@/features/agenda/hooks/useScrollDownIndicator.hook';
 import { useSelection } from '@/hooks/useSelection.hook';
+import { IndeterminateCheckbox } from '@/shared/ui/indeterminate-checkbox/IndeterminateCheckbox';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 import { AgendaFileSearch } from './AgendaFileSearch';

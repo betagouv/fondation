@@ -7,7 +7,7 @@ import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
 import { generatePath, useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { PageContentLayout } from '@/components/shared/PageContentLayout';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { IngestedLolfiArchiveDto } from '@api/types';

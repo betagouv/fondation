@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
 import { useNavigate } from 'react-router';
 
-import { UserAvatar } from '@/components/shared/user-avatar';
+import { UserAvatar } from '@/shared/components/user-avatar';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useLogout, useUser } from '@queries/auth.queries';

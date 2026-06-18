@@ -1,10 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useNavigate } from 'react-router';
 
-import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
