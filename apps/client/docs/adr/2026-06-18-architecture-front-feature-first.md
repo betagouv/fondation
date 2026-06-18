@@ -15,16 +15,16 @@ Avant, le code était rangé par _type technique_ :
 
 ```txt
 src/
-` - components/
-  | - guards/
-  | - layout/
-  | - login/
-  | - reports/
-  | - secretariat-general/
-  | - shared/
-  ` - summary/
-` - hooks/
-` - design-system/
+├─ components/
+│  ├─ guards/
+│  ├─ layout/
+│  ├─ login/
+│  ├─ reports/
+│  ├─ secretariat-general/
+│  ├─ shared/
+│  └─ summary/
+├─ hooks/
+└─ design-system/
 ```
 
 Conséquences :
@@ -57,32 +57,32 @@ composants, hooks, context, constantes, libellés, utilitaires.
 
 ```txt
 src/features/
-` - administration/
-` - agenda/
-` - auth/
-` - documents/
-` - jobs/
-` - members/
-` - nomination-files-table/
-` - observations/
-` - official-report/
-` - presentations/
-` - reports/
-` - sessions/
-` - summary/
-` - transparence/
+├─ administration/
+├─ agenda/
+├─ auth/
+├─ documents/
+├─ jobs/
+├─ members/
+├─ nomination-files-table/
+├─ observations/
+├─ official-report/
+├─ presentations/
+├─ reports/
+├─ sessions/
+├─ summary/
+└─ transparence/
 ```
 
 Structure interne d'une feature (ex. `reports`) :
 
 ```txt
 src/features/reports/
-` - components/
-` - constants/
-` - dom/
-` - hooks/
-` - labels/
-` - utils/
+├─ components/
+├─ constants/
+├─ dom/
+├─ hooks/
+├─ labels/
+└─ utils/
 ```
 
 **Critère d'appartenance** : si supprimer le domaine supprimerait le fichier, alors le
@@ -96,10 +96,10 @@ et qui ne portent pas de domaine métier à eux seuls.
 
 ```txt
 src/shared/
-` - components/
-` - context/
-` - hooks/
-` - ui/
+├─ components/
+├─ context/
+├─ hooks/
+└─ ui/
 ```
 
 Deux niveaux de composants :
@@ -122,18 +122,18 @@ des morceaux de `features/` et `shared/` ; elle ne contient pas de logique méti
 
 ```txt
 src/pages/
-` - agenda/
-` - auth/
-` - help/
-` - members/
-` - observations/
-` - official-report/
-` - presentations/
-` - reports/
-` - sessions/
-` - spaces/
-` - summary/
-` - transparence/
+├─ agenda/
+├─ auth/
+├─ help/
+├─ members/
+├─ observations/
+├─ official-report/
+├─ presentations/
+├─ reports/
+├─ sessions/
+├─ spaces/
+├─ summary/
+└─ transparence/
 ```
 
 `pages/spaces/` regroupe les **coquilles par rôle** (layout + garde d'accès) :
@@ -147,15 +147,15 @@ couches techniques transverses, chacune un repère architectural reconnaissable 
 
 ```txt
 src/
-` - constants/   valeurs littérales globales
-` - generated/   client API généré (hey-api), ne pas éditer à la main
-` - i18n/        internationalisation
-` - layout/      ossature de l'application (header...)
-` - models/      view-models transverses
-` - queries/     couche d'état asynchrone (Tanstack Query + SDK)
-` - router/      configuration des routes
-` - types/       définitions de types transverses
-` - utils/       fonctions pures transverses
+├─ constants/   valeurs littérales globales
+├─ generated/   client API généré (hey-api), ne pas éditer à la main
+├─ i18n/        internationalisation
+├─ layout/      ossature de l'application (header...)
+├─ models/      view-models transverses
+├─ queries/     couche d'état asynchrone (Tanstack Query + SDK)
+├─ router/      configuration des routes
+├─ types/       définitions de types transverses
+└─ utils/       fonctions pures transverses
 ```
 
 ## Pourquoi pas tout dans `shared/` ?
