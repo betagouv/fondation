@@ -1,5 +1,5 @@
-import { reportHtmlIds } from '../components/reports/dom/html-ids';
-import { summaryLabels, type SummarySection } from '../components/reports/labels/summary-labels';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { summaryLabels, type SummarySection } from '@/features/reports/labels/summary-labels';
 
 export const SUMMARY_SECTIONS: SummarySection[] = [
   {

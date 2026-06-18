@@ -2,8 +2,8 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import type { FC } from 'react';
 
-import { reportHtmlIds } from '../../dom/html-ids';
-import { summaryLabels } from '../../labels/summary-labels';
+import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { summaryLabels } from '@/features/reports/labels/summary-labels';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 
 import { AttachedFilesList } from './AttachedFilesList';

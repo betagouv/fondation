@@ -1,8 +1,8 @@
+import { TipTapEditor } from '@/components/shared/ui/tip-tap-editor';
+import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
 
 import { Card } from './Card';
-import { TipTapEditor } from './TipTapEditor';
-import type { FilesUploader } from './TipTapEditor/extensions/editor-file-uploader';
 
 export type TextareaCardProps = {
   cardId: string;
