@@ -1,6 +1,6 @@
-import { AuthGuard } from '@/components/guards/AuthGuard';
-import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
-import { useIsSg } from '@/hooks/roles.hook';
+import { AuthGuard } from '@/features/auth/components/AuthGuard';
+import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 
 export function UserManualPage() {
   const isSg = useIsSg();

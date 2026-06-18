@@ -5,8 +5,8 @@ import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 import { useContext } from 'react';
 
 import { OvoidBackground, OvoidMotif } from '@/components/shared/ovoid';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
-import { useIsSg } from '@/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 /** @see https://www.systeme-de-design.gouv.fr/version-courante/fr/modeles/pages-types/page-d-erreurs */

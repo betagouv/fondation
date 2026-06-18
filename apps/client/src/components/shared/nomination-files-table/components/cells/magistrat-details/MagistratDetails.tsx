@@ -8,9 +8,9 @@ import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge'
 import { TextValue } from '@/components/shared/TextValue';
 import { UserAvatarList } from '@/components/shared/user-avatar';
 import { labels } from '@/constants/labels.constants';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { reportHtmlIds } from '@/features/reports/dom/html-ids';
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
 import { FormattedBirthDate } from '@/i18n/components';
 import { useIntlPositionDuration } from '@/i18n/hooks';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';

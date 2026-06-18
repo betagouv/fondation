@@ -6,7 +6,7 @@ import { ObservationDetailsContent } from '@/components/shared/ObservationDetail
 import { ObservationFollowUpCommentProvider } from '@/components/shared/observations/follow-up-selector/ObservationFollowUpCommentDialogProvider';
 import { PageContentLayout } from '@/components/shared/PageContentLayout';
 import type { FilesUploader } from '@/components/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAttachObservationMemberCommentScreenshotsMutation,
