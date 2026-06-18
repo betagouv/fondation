@@ -489,18 +489,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.12
     devDependencies:
-      '@types/lodash':
-        specifier: 4.17.24
-        version: 4.17.24
-      form-data:
-        specifier: 4.0.5
-        version: 4.0.5
       rimraf:
         specifier: 6.1.3
         version: 6.1.3
-      type-fest:
-        specifier: 4.41.0
-        version: 4.41.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -3659,9 +3650,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/lodash@4.17.24':
-    resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
   '@types/mdx@2.0.13':
     resolution: {integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==}
@@ -10628,8 +10616,6 @@ snapshots:
       pretty-format: 30.4.1
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/lodash@4.17.24': {}
 
   '@types/mdx@2.0.13': {}
 
