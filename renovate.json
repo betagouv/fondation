@@ -4,11 +4,16 @@
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "semanticCommitScope": "FON-000",
+  "commitMessageLowerCase": "never",
+  "commitMessageAction": "update",
   "dependencyDashboard": true,
   "schedule": ["after 6am and before 8pm on Sunday"],
   "pinDigests": true,
   "minimumReleaseAge": "15 days",
   "prConcurrentLimit": 1,
+  "toolSettings": {
+    "nodeMaxMemory": 2048
+  },
   "vulnerabilityAlerts": {
     "enabled": true,
     "prConcurrentLimit": 1
