@@ -15,7 +15,7 @@
     "test": "node --test --require @swc-node/register test/*.test.ts"
   },
   "devDependencies": {
-    "@swc-node/register": "^1.11.1",
+    "@swc-node/register": "1.11.1",
     "@types/node": "24.12.4",
     "typescript": "5.9.3"
   },
