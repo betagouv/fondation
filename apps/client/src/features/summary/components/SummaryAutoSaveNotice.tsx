@@ -1,7 +1,7 @@
 import Notice from '@codegouvfr/react-dsfr/Notice';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { useLocallyStoredState } from '@/hooks/useLocallyStoredState.hook';
+import { useLocallyStoredState } from '@/shared/hooks/useLocallyStoredState.hook';
 
 export function SummaryAutoSaveAlert() {
   const { canWriteSummary } = useSummary();

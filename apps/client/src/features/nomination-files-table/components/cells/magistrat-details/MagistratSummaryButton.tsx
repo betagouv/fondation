@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useCreateSummaryMutation } from '@queries/summary.queries';

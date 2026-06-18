@@ -5,7 +5,7 @@ import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useMonoSelection } from '@/features/documents/hooks/useSelection';
-import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
 import {
   ComboboxContent,
   ComboboxEmpty,
