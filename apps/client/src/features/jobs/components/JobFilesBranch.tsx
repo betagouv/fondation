@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import React from 'react';
 
-import type { Tree } from '../common/job.types';
+import type { Tree } from '../types/job.types';
 
 import { JobFileNode } from './JobFileNode';
 

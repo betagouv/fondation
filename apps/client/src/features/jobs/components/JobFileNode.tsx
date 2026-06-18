@@ -2,10 +2,10 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import React from 'react';
 
-import { formatJobDuration } from '../common/format-job-duration.utils';
-import { JOB_STATUS_ICONS } from '../common/job-status.utils';
-import type { Tree } from '../common/job.types';
-import { useSelectedJob } from '../contexts/job.context';
+import { formatJobDuration } from '../utils/format-job-duration.utils';
+import { JOB_STATUS_ICONS } from '../utils/job-status.utils';
+import type { Tree } from '../types/job.types';
+import { useSelectedJob } from '../context/job.context';
 
 export function JobFileNode(props: { node: Omit<Tree, 'children'> }) {
   const { icon, textColor } = React.useMemo(() => {

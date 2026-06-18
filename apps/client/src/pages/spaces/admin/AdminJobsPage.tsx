@@ -6,15 +6,14 @@ import { parseAsArrayOf, parseAsStringEnum, useQueryState } from 'nuqs';
 import { useCallback, useMemo } from 'react';
 import { Navigate, Outlet, generatePath, useParams } from 'react-router';
 
+import { JobsListItem } from '@/features/jobs/components/JobsListItem';
+import { SelectedJobProvider } from '@/features/jobs/context';
+import { JOB_STATUS_ICONS } from '@/features/jobs/utils/job-status.utils';
 import { JobStatusEnum, JobStatusEnumLabel } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useListJobsInfiniteQuery } from '@queries/jobs.queries';
 
-import { JOB_STATUS_ICONS } from './common/job-status.utils';
-import { JobsListItem } from './components/JobsListItem';
-import { SelectedJobProvider } from './contexts';
-
-export function JobsPage() {
+export function AdminJobsPage() {
   const params = useParams();
   const [statusFilter, setStatusFilter] = useQueryState(
     'status',

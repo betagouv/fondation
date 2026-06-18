@@ -4,14 +4,14 @@ import clsx from 'clsx';
 import React from 'react';
 import { useOutletContext, useParams } from 'react-router';
 
+import { JobFilesTree } from '@/features/jobs/components/JobFilesTree';
+import { useSelectedJob } from '@/features/jobs/context';
+import { JOB_STATUS_ICONS } from '@/features/jobs/utils/job-status.utils';
 import { useDetailsJobQuery } from '@queries/jobs.queries';
 
-import { JOB_STATUS_ICONS } from './common/job-status.utils';
-import type { JobsPageOutletContextType } from './common/jobs-page-outlet-context.type';
-import { JobFilesTree } from './components/JobFilesTree';
-import { useSelectedJob } from './contexts';
+import type { JobsPageOutletContextType } from './jobs-page-outlet-context.type';
 
-export function DetailsJobPage() {
+export function AdminJobDetailsPage() {
   const params = useParams<{ jobId: string }>();
   const jobId = parseInt(String(params.jobId), 10);
   const { status } = useOutletContext<JobsPageOutletContextType>();
