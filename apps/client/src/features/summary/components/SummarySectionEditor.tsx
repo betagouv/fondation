@@ -2,7 +2,7 @@ import React from 'react';
 
 import { TipTapEditor } from '@/components/reports/components/ReportOverview/TipTapEditor';
 import type { FilesUploader } from '@/components/reports/components/ReportOverview/TipTapEditor/extensions/editor-file-uploader';
-import { useSummary } from '@/pages/summary/SummaryContext';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useIncludeFileInSummaryContentMutation, useWriteSummaryMutation } from '@queries/summary.queries';
 
 export function SummaryEditor() {

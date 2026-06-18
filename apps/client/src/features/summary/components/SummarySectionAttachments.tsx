@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import React from 'react';
 
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
-import { useSummary } from '@/pages/summary/SummaryContext';
 import {
   useAttachSummaryFilesMutation,
   useDetachSummaryFilesMutation,
