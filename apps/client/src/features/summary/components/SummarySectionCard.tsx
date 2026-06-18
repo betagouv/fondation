@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import React from 'react';
 
-import type { SummarySectionAnchor } from '../useVisibleSummarySections';
-import { SummaryContext } from '@/pages/summary/SummaryContext';
+import { SummaryContext } from '@/features/summary/context/SummaryContext';
+import type { SummarySectionAnchor } from '@/features/summary/hooks/useVisibleSummarySections';
 
 export function SummarySectionCard(props: {
   id: SummarySectionAnchor;

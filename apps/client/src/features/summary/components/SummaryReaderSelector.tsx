@@ -8,7 +8,7 @@ import React from 'react';
 import { useDebounce } from 'use-debounce';
 
 import { Marked } from '@/components/shared/Marked';
-import { useSummary } from '@/pages/summary/SummaryContext';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { capitalize } from '@/utils/string.utils';
 import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 

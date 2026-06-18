@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router';
 
 import { transparencyToLabel } from '@/components/reports/labels/labels-mappers';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useIsSg } from '@/hooks/roles.hook';
-import { useSummary } from '@/pages/summary/SummaryContext';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 

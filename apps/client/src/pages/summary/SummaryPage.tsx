@@ -2,17 +2,16 @@ import { useParams } from 'react-router';
 
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { SummaryContainer } from '@/components/summary/components/SummaryContainer';
-import { Summary } from '@/components/summary/Summary';
-import { useVisibleSummarySections } from '@/components/summary/useVisibleSummarySections';
 import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { SummaryContainer } from '@/features/summary/components/SummaryContainer';
+import { SummaryContext } from '@/features/summary/context/SummaryContext';
+import { useVisibleSummarySections } from '@/features/summary/hooks/useVisibleSummarySections';
+import { Summary } from '@/features/summary/Summary';
+import { SummaryNotFound } from '@/features/summary/SummaryNotFound';
 import { useIsSg } from '@/hooks/roles.hook';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';
-
-import { SummaryContext } from './SummaryContext';
-import { SummaryNotFound } from './SummaryNotFound';
 
 function SummaryPageInner() {
   const { user } = useUser();

@@ -3,8 +3,8 @@ import React from 'react';
 
 import { LolfiMagistratLink } from '@/components/shared/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/components/shared/priorities/PriorityBadge';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
-import { useSummary } from '@/pages/summary/SummaryContext';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 
 import { SummarySectionCard } from './SummarySectionCard';
