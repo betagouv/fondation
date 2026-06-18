@@ -3,7 +3,7 @@ import React from 'react';
 
 import './SummarySectionContent.css';
 
-import { useSummary } from '@/pages/summary/SummaryContext';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 
 import { SummarySectionCard } from './SummarySectionCard';
 import { SummaryEditor } from './SummarySectionEditor';

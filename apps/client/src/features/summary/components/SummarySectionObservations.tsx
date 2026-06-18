@@ -1,4 +1,4 @@
-import { useSummary } from '@/pages/summary/SummaryContext';
+import { useSummary } from '@/features/summary/context/SummaryContext';
 import { capitalize } from '@/utils/string.utils';
 
 import { SummarySectionCard } from './SummarySectionCard';
