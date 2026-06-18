@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 
 import { useNominationFilesTable } from '@/components/shared/nomination-files-table/contexts/files-table.context';
 import { ObservationLinks } from '@/components/shared/ObservationLinks';
-import { useIsSgNavigation } from '@/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { useObservationsModal } from './ObservationsModalContext';

@@ -4,7 +4,7 @@ import React from 'react';
 import { useIntl } from 'react-intl';
 import { useMatch } from 'react-router';
 
-import { useIsSg } from '@/hooks/roles.hook';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 const VERSION = import.meta.env.VITE_TAGGED_VERSION;

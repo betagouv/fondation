@@ -4,7 +4,7 @@ import React from 'react';
 import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
-import { useIsAdmin, useIsSg } from '@/hooks/roles.hook';
+import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 

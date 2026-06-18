@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/hooks/archive/useArchivedSession';
-import { useIsSg } from '@/hooks/roles.hook';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
