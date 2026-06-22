@@ -1,4 +1,4 @@
-import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
+import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 
 import { ROUTE_PATHS, type RoutePathSecretariat } from './route-path.utils';
 

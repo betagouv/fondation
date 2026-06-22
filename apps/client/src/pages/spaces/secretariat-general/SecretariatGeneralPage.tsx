@@ -1,4 +1,3 @@
-import { SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES } from '@/constants/sg-anchor-attributes';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { Card } from '@/shared/ui/card';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
@@ -22,7 +21,7 @@ export const SecretariatGeneralPage = () => {
           title="Créer une nouvelle transparence"
           description="Renseignez les premières informations à votre disposition concernant une nouvelle transparence."
           linkProps={{
-            to: SECRETARIAT_GENERAL_ANCHOR_ATTRIBUTES.nouvelleTransparence,
+            to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
           }}
         />
       </section>

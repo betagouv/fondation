@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 
