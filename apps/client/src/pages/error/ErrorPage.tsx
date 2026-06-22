@@ -9,7 +9,7 @@ import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
-export function AppErrorBoundary() {
+export function ErrorPage() {
   const { user } = useUser();
   const isSg = useIsSg();
 

@@ -1,18 +1,17 @@
 import * as Sentry from '@sentry/react';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 
-import { HomePage } from '../HomePage';
-import { ROUTE_PATHS } from '../utils/route-path.utils';
+import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
-
-import { AppErrorBoundary } from './AppErrorBoundary';
+import { ErrorPage } from '@/pages/error/ErrorPage';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
-const router = sentryCreateBrowserRouter([
+export const router = sentryCreateBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
-    errorElement: <AppErrorBoundary />,
+    element: <RootLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: '/',
@@ -162,68 +161,72 @@ const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.AGENDA_NEW,
             lazy: () =>
-              import('@/pages/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
+              import('@/pages/documents/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
                 Component: CreateOrUpdateAgendaPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_UPDATE,
             lazy: () =>
-              import('@/pages/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
+              import('@/pages/documents/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
                 Component: CreateOrUpdateAgendaPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
             lazy: () =>
-              import('@/pages/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
+              import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
                 Component: AgendaPreviewPage,
               })),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
             lazy: () =>
-              import('@/pages/official-report/OfficialReportPage').then(
+              import('@/pages/documents/official-report/OfficialReportPage').then(
                 ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
               ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
             lazy: () =>
-              import('@/pages/official-report/OfficialReportPage').then(
+              import('@/pages/documents/official-report/OfficialReportPage').then(
                 ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
               ),
           },
           {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
             lazy: () =>
-              import('@/pages/official-report/OfficialReportPreviewPage').then(
+              import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
                 ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
               ),
           },
           {
             lazy: () =>
-              import('@/pages/presentations/PresentationsLayout').then(({ PresentationsLayout }) => ({
-                Component: PresentationsLayout,
-              })),
+              import('@/pages/documents/presentations/PresentationsLayout').then(
+                ({ PresentationsLayout }) => ({
+                  Component: PresentationsLayout,
+                }),
+              ),
             children: [
               {
                 lazy: () =>
-                  import('@/pages/presentations/PresentationsTabsPage').then(({ PresentationsTabsPage }) => ({
-                    Component: PresentationsTabsPage,
-                  })),
+                  import('@/pages/documents/presentations/PresentationsTabsPage').then(
+                    ({ PresentationsTabsPage }) => ({
+                      Component: PresentationsTabsPage,
+                    }),
+                  ),
                 children: [
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
                     lazy: () =>
-                      import('@/pages/presentations/PresentationsTabPast').then(
+                      import('@/pages/documents/presentations/PresentationsTabPast').then(
                         ({ PresentationsTabPast }) => ({ Component: PresentationsTabPast }),
                       ),
                   },
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_READY,
                     lazy: () =>
-                      import('@/pages/presentations/PresentationsTabReady').then(
+                      import('@/pages/documents/presentations/PresentationsTabReady').then(
                         ({ PresentationsTabReady }) => ({ Component: PresentationsTabReady }),
                       ),
                   },
@@ -232,21 +235,21 @@ const router = sentryCreateBrowserRouter([
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
                 lazy: () =>
-                  import('@/pages/presentations/PresentationUpsertPage').then(
+                  import('@/pages/documents/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
                 lazy: () =>
-                  import('@/pages/presentations/PresentationUpsertPage').then(
+                  import('@/pages/documents/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
               },
               {
                 path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
                 lazy: () =>
-                  import('@/pages/presentations/PresentationsPreviewPage').then(
+                  import('@/pages/documents/presentations/PresentationsPreviewPage').then(
                     ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
                   ),
               },
@@ -301,7 +304,3 @@ const router = sentryCreateBrowserRouter([
     ],
   },
 ]);
-
-export const AppRouter = () => {
-  return <RouterProvider router={router} />;
-};

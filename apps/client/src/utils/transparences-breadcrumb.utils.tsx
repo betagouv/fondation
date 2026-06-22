@@ -1,7 +1,7 @@
 import type { NavigateFunction } from 'react-router';
 
-import type { BreadcrumbVM } from '../models/breadcrumb-vm.model';
 import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
+import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { FormationEnumLabel, type FormationEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 

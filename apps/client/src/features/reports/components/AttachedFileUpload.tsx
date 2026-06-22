@@ -2,7 +2,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import type { FC } from 'react';
 
-import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import { summaryLabels } from '@/features/reports/labels/summary-labels';
 import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
 
