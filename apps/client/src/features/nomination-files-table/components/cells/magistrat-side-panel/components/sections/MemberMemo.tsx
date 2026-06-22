@@ -1,7 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-
-import './MemberMemo.css';
-
 import Input from '@codegouvfr/react-dsfr/Input';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
@@ -21,7 +18,7 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
       hideLabel
       label=""
       textArea
-      classes={{ nativeInputOrTextArea: 'fr-mt-2v member-memo-textarea' }}
+      classes={{ nativeInputOrTextArea: 'fr-mt-2v field-sizing-content' }}
       nativeTextAreaProps={{
         value,
         rows: 5,

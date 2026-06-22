@@ -3,9 +3,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 
+import { MAGISTRAT_PANEL_ID, useMagistratPanel } from '../context/magistrat-panel.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-
-import { MAGISTRAT_PANEL_ID, useMagistratPanel } from './magistrat-panel.context';
 
 export function MagistratPanelTrigger(props: { nominationFile: SessionNominationFile }) {
   const { activeId, open } = useMagistratPanel();

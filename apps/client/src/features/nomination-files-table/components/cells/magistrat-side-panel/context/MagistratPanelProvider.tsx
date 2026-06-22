@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { MagistratPanelContext } from './magistrat-panel.context';
+import { MagistratPanelContext, type MagistratPanelLeaveGuard } from './magistrat-panel.context';
 
 type PendingEdge = { edge: 'first' | 'last'; pageIndex: number };
 
@@ -20,37 +20,51 @@ export function MagistratPanelProvider(
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingEdge | null>(null);
 
+  const leaveGuardRef = useRef<MagistratPanelLeaveGuard | null>(null);
+  const registerLeaveGuard = useCallback((guard: MagistratPanelLeaveGuard | null) => {
+    leaveGuardRef.current = guard;
+  }, []);
+  const canLeave = useCallback(() => (leaveGuardRef.current ? leaveGuardRef.current() : true), []);
+
   const localIndex = activeId ? nominationFiles.findIndex((file) => file.id === activeId) : -1;
   const globalIndex = localIndex === -1 ? -1 : pagination.pageIndex * pagination.pageSize + localIndex;
   const hasPrevious = globalIndex > 0;
   const hasNext = globalIndex !== -1 && globalIndex < totalCount - 1;
 
-  const open = useCallback((id: string) => {
-    setPending(null);
-    setActiveId(id);
-  }, []);
+  const open = useCallback(
+    (id: string) => {
+      if (!canLeave()) return;
+      setPending(null);
+      setActiveId(id);
+    },
+    [canLeave],
+  );
+
   const close = useCallback(() => {
+    if (!canLeave()) return;
     setPending(null);
     setActiveId(null);
-  }, []);
+  }, [canLeave]);
 
   const previous = useCallback(() => {
+    if (!canLeave()) return;
     if (localIndex > 0) {
       setActiveId(nominationFiles[localIndex - 1].id);
     } else if (hasPrevious) {
       setPending({ edge: 'last', pageIndex: pagination.pageIndex - 1 });
       onPageChange(pagination.pageIndex - 1);
     }
-  }, [localIndex, nominationFiles, hasPrevious, pagination.pageIndex, onPageChange]);
+  }, [canLeave, hasPrevious, localIndex, nominationFiles, onPageChange, pagination.pageIndex]);
 
   const next = useCallback(() => {
+    if (!canLeave()) return;
     if (localIndex !== -1 && localIndex < nominationFiles.length - 1) {
       setActiveId(nominationFiles[localIndex + 1].id);
     } else if (hasNext) {
       setPending({ edge: 'first', pageIndex: pagination.pageIndex + 1 });
       onPageChange(pagination.pageIndex + 1);
     }
-  }, [localIndex, nominationFiles, hasNext, pagination.pageIndex, onPageChange]);
+  }, [canLeave, hasNext, localIndex, nominationFiles, onPageChange, pagination.pageIndex]);
 
   useEffect(() => {
     if (
@@ -65,7 +79,7 @@ export function MagistratPanelProvider(
       pending.edge === 'first' ? nominationFiles[0] : nominationFiles[nominationFiles.length - 1];
     setActiveId(target.id);
     setPending(null);
-  }, [pending, isFetching, pagination.pageIndex, nominationFiles]);
+  }, [isFetching, nominationFiles, pagination.pageIndex, pending]);
 
   const value = useMemo(
     () => ({
@@ -78,8 +92,21 @@ export function MagistratPanelProvider(
       next,
       open,
       previous,
+      registerLeaveGuard,
     }),
-    [localIndex, nominationFiles, activeId, close, hasNext, hasPrevious, pending, next, open, previous],
+    [
+      activeId,
+      close,
+      hasNext,
+      hasPrevious,
+      localIndex,
+      next,
+      nominationFiles,
+      open,
+      pending,
+      previous,
+      registerLeaveGuard,
+    ],
   );
 
   return <MagistratPanelContext value={value}>{props.children}</MagistratPanelContext>;

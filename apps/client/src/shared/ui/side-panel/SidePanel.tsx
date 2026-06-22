@@ -40,7 +40,7 @@ export function SidePanel(props: {
 
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open, id, onClose]);
+  }, [id, onClose, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -67,8 +67,8 @@ export function SidePanel(props: {
         'fixed inset-y-0 right-0 z-1000 flex h-full w-full max-w-full flex-col bg-(--background-default-grey) shadow-[-8px_0_24px_rgba(0,0,0,0.16)] transition duration-300 ease-out outline-none md:w-1/2',
         open ? 'translate-x-0 opacity-100' : 'pointer-events-none translate-x-full opacity-0',
       )}
-      inert={!open}
       id={id}
+      inert={!open}
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}

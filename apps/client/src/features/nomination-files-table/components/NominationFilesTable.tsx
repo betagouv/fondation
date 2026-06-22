@@ -20,8 +20,8 @@ import {
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
-import { MagistratPanel } from './cells/magistrat-details/magistrat-panel/MagistratPanel';
-import { MagistratPanelProvider } from './cells/magistrat-details/magistrat-panel/MagistratPanelProvider';
+import { MagistratPanel } from './cells/magistrat-side-panel/components/MagistratPanel';
+import { MagistratPanelProvider } from './cells/magistrat-side-panel/context/MagistratPanelProvider';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationFollowUpReminderProvider } from './cells/observation-follow-up/ObservationFollowUpReminderProvider';
 import { ObservationsModalProvider } from './cells/observations/ObservationsModalProvider';

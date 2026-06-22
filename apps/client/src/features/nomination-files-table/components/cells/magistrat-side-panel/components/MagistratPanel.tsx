@@ -2,10 +2,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useRef } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { MagistratDetails } from '../MagistratDetails';
+import { MAGISTRAT_PANEL_ID, useMagistratPanel } from '../context/magistrat-panel.context';
 import { SidePanel } from '@/shared/ui/side-panel/SidePanel';
 
-import { MAGISTRAT_PANEL_ID, useMagistratPanel } from './magistrat-panel.context';
+import { MagistratDetail } from './MagistratDetail';
 
 export function MagistratPanel(props: { sessionId: string }) {
   const { activeFile, close, hasNext, hasPrevious, isOpen, next, previous } = useMagistratPanel();
@@ -45,7 +45,7 @@ export function MagistratPanel(props: { sessionId: string }) {
       onClose={close}
       open={isOpen}
     >
-      {fileToRender && <MagistratDetails nominationFile={fileToRender} sessionId={props.sessionId} />}
+      {fileToRender && <MagistratDetail nominationFile={fileToRender} sessionId={props.sessionId} />}
     </SidePanel>
   );
 }

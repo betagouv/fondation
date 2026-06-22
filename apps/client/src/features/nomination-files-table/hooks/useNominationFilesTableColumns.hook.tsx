@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
-import { MagistratPanelTrigger } from '../components/cells/magistrat-details/magistrat-panel/MagistratPanelTrigger';
+import { MagistratPanelTrigger } from '../components/cells/magistrat-side-panel/components/MagistratPanelTrigger';
 import { useSortedNominationFileOutcomes } from '../components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
 import { NominationFilesOutcomeCell } from '../components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from '../components/cells/NominationFilesPriorityCell';
@@ -26,57 +26,56 @@ export const useNominationFilesTableColumns = () => {
     () => [
       h.accessor('content.numeroDeDossier', {
         id: 'fileNumber',
+        cell: ({ cell }) => cell.getValue(),
         enableSorting: true,
         header: 'N°',
-        sortDescFirst: true,
-        cell: ({ cell }) => cell.getValue(),
         meta: { size: '10%' },
+        sortDescFirst: true,
       }),
 
       h.accessor('content.nomMagistrat', {
         id: 'name',
+        cell: ({ row }) => <MagistratPanelTrigger nominationFile={row.original} />,
         enableSorting: true,
         header: 'Magistrat',
-        cell: ({ row }) => <MagistratPanelTrigger nominationFile={row.original} />,
       }),
 
       h.accessor('content.grade', {
+        cell: ({ cell }) => cell.getValue(),
         enableSorting: false,
         header: 'Grade actuel',
-        cell: ({ cell }) => cell.getValue(),
       }),
 
       h.accessor('content.posteCible', {
+        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
         enableSorting: false,
         header: 'Poste cible',
-        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
       }),
 
       h.accessor('content.gradeCible', {
-        enableSorting: true,
         id: 'targetedGrade',
+        cell: ({ cell }) => cell.getValue(),
+        enableSorting: true,
         header: 'Grade cible',
         sortDescFirst: true,
-        cell: ({ cell }) => cell.getValue(),
       }),
 
       h.accessor('content.observants', {
+        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
         enableSorting: false,
         header: 'Observant(s)',
-        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
       }),
 
       h.accessor('priorities', {
+        cell: ({ row }) => <NominationFilesPriorityCell nominationFile={row.original} />,
         enableSorting: false,
         header: 'Priorité(s)',
-        cell: ({ row }) => <NominationFilesPriorityCell nominationFile={row.original} />,
-
         meta: {
           filters: {
-            filterId: 'priorities',
-            type: 'enum',
-            label: 'Priorités',
             emptyValue: { id: 'null', label: 'Aucune' },
+            filterId: 'priorities',
+            label: 'Priorités',
+            type: 'enum',
             values: Object.values(PrioriteEnum).map((priorite) => ({
               id: priorite,
               label: PrioriteEnumLabels[priorite],
@@ -86,36 +85,35 @@ export const useNominationFilesTableColumns = () => {
       }),
 
       h.accessor('reporters', {
+        cell: ({ row }) => <ReportersCell dossier={row.original} />,
         enableSorting: false,
         header: 'Rapporteur(s)',
-        cell: ({ row }) => <ReportersCell dossier={row.original} />,
-
         meta: {
           filters: {
+            emptyValue: { id: 'null', label: 'Aucun' },
             filterId: 'reporters',
             label: 'Rapporteur(s)',
-            type: 'asyncList',
-            emptyValue: { label: 'Aucun', id: 'null' },
             query: {
               ...getListCurrentlyAffectedReportersQueryOptions({ sessionId }),
               select: toListItems,
             },
+            type: 'asyncList',
           },
         },
       }),
 
       h.accessor('content.outcome', {
+        cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />,
         enableSorting: false,
         header: 'Issue',
-        cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />,
         meta: {
           filters: {
-            type: 'enum',
             filterId: 'outcomes',
             label: 'Issue(s)',
+            type: 'enum',
             values: [{ id: 'null', label: 'Aucune' }].concat(
               outcomes.map((value) => {
-                let label = outcomeLabel({ value, formation });
+                let label = outcomeLabel({ formation, value });
                 label = label[0].toUpperCase() + label.slice(1);
 
                 return { id: value, label };
@@ -125,7 +123,7 @@ export const useNominationFilesTableColumns = () => {
         },
       }),
     ],
-    [sessionId, formation, outcomes],
+    [formation, outcomes, sessionId],
   );
 };
 

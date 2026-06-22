@@ -4,6 +4,8 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 export const MAGISTRAT_PANEL_ID = 'magistrat-panel';
 
+export type MagistratPanelLeaveGuard = () => boolean;
+
 export type MagistratPanelContextValue = {
   activeFile: SessionNominationFile | null;
   activeId: string | null;
@@ -14,6 +16,7 @@ export type MagistratPanelContextValue = {
   next: () => void;
   open: (id: string) => void;
   previous: () => void;
+  registerLeaveGuard: (guard: MagistratPanelLeaveGuard | null) => void;
 };
 
 export const MagistratPanelContext = createContext<MagistratPanelContextValue | null>(null);
