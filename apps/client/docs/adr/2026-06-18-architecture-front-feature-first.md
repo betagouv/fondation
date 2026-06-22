@@ -79,7 +79,6 @@ Structure interne d'une feature (ex. `reports`) :
 src/features/reports/
 ├─ components/
 ├─ constants/
-├─ dom/
 ├─ hooks/
 ├─ labels/
 └─ utils/
@@ -102,14 +101,22 @@ src/shared/
 └─ ui/
 ```
 
-Deux niveaux de composants :
+Deux niveaux de composants, distingués par leur **direction de dépendance** et non par un
+risque de collision de noms :
 
-- **`shared/ui/`** : primitives d'interface **agnostiques** du métier (`Card`, `DataTable`,
-  `Breadcrumb`, les dropdowns, `combobox`, `loaders`...). C'est l'ancien `components/shared`
-  fusionné avec `design-system`.
-- **`shared/components/`** : composants réutilisés qui portent encore un **léger** vocabulaire
-  métier transverse mais n'appartiennent à aucun domaine précis (`UserAvatar`, `PriorityBadge`,
+- **`shared/ui/`** : la couche feuille. Ces composants **ne dépendent de rien d'interne** : ni
+  `features/`, ni `queries/`, ni le client généré. Ils sont purement présentationnels (`Card`,
+  `DataTable`, `Breadcrumb`, les dropdowns, `combobox`, `loaders`...). C'est l'ancien
+  `components/shared`.
+- **`shared/components/`** : composants réutilisés qui ont le droit de **toucher un peu de
+  métier** transverse sans appartenir à un domaine précis (`UserAvatar`, `PriorityBadge`,
   les `banners`, `LolfiMagistratLink`).
+
+L'intérêt de `ui/` n'est donc pas d'éviter des collisions. Il est d'**isoler une couche sans
+dépendance interne** : elle est testable seule et extractible dans un paquet sans entraîner le
+reste de l'application. Cette invariante est mécanique et non seulement déclarative : une règle
+`no-restricted-imports` scopée à `shared/ui/` dans `.oxlintrc.json` suffit à interdire tout
+import de `features/`, `queries/` ou du client généré.
 
 La convention d'organisation interne de ces composants (dossier `kebab-case`, barrel file
 `index.ts`, import via un point d'entrée unique) est décrite dans
@@ -122,13 +129,15 @@ des morceaux de `features/` et `shared/` ; elle ne contient pas de logique méti
 
 ```txt
 src/pages/
-├─ agenda/
 ├─ auth/
+├─ documents/
+│  ├─ agenda/
+│  ├─ official-report/
+│  └─ presentations/
+├─ error/
 ├─ help/
 ├─ members/
 ├─ observations/
-├─ official-report/
-├─ presentations/
 ├─ reports/
 ├─ sessions/
 ├─ spaces/
@@ -139,6 +148,17 @@ src/pages/
 `pages/spaces/` regroupe les **coquilles par rôle** (layout + garde d'accès) :
 `admin/`, `member/`, `secretariat-general/`. À quel public une page est servie est une
 affaire du **routeur**, pas de la feature.
+
+`pages/documents/` regroupe les pages des documents produits par le SG autour d'une session
+(`agenda`, `official-report`, `presentations`). Ici, l'imbrication est légitime : `pages/`
+**reflète l'arbre du routeur** qui est hiérarchique (`.../session/:id/docs/...`).
+
+> [!NOTE]
+> On regroupe dans `pages/` mais **pas** dans `features/`. Une feature est autonome : `agenda`,
+> `official-report` et `presentations` restent à plat et **dépendent** de `features/documents/`,
+> qui détient leurs briques communes (les sélecteurs de membres). Les imbriquer ferait de
+> `documents/` un nœud hybride (feature _et_ namespace). Le groupement par arbre est l'affaire
+> du routeur, donc de `pages/`.
 
 ## Les dossiers techniques restent à la racine
 
@@ -151,9 +171,9 @@ src/
 ├─ generated/   client API généré (hey-api), ne pas éditer à la main
 ├─ i18n/        internationalisation
 ├─ layout/      ossature de l'application (header...)
-├─ models/      view-models transverses
 ├─ queries/     couche d'état asynchrone (Tanstack Query + SDK)
-├─ router/      configuration des routes
+├─ router.tsx   l'objet routeur (arbre des routes), rendu par main.tsx
+├─ styles/      styles globaux + doc des couleurs DSFR
 ├─ types/       définitions de types transverses
 └─ utils/       fonctions pures transverses
 ```

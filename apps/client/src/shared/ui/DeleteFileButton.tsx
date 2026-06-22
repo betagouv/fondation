@@ -3,7 +3,7 @@ import React from 'react';
 
 import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
 
-export function DeleteAttachmentModal(props: { fileName: string; onDelete: () => void }) {
+export function DeleteFileButton(props: { fileName: string; onDelete: () => void }) {
   const confirmation = useConfirmation();
 
   const onDelete = React.useCallback(async () => {

@@ -1,4 +1,4 @@
-import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import { summaryLabels, type SummarySection } from '@/features/reports/labels/summary-labels';
 
 export const SUMMARY_SECTIONS: SummarySection[] = [
