@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
-import { MagistratDnModalLink } from '../components/cells/magistrat-details/MagistratDnModale';
+import { MagistratPanelTrigger } from '../components/cells/magistrat-details/magistrat-panel/MagistratPanelTrigger';
 import { useSortedNominationFileOutcomes } from '../components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
 import { NominationFilesOutcomeCell } from '../components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from '../components/cells/NominationFilesPriorityCell';
@@ -37,7 +37,7 @@ export const useNominationFilesTableColumns = () => {
         id: 'name',
         enableSorting: true,
         header: 'Magistrat',
-        cell: ({ row }) => <MagistratDnModalLink nominationFile={row.original} />,
+        cell: ({ row }) => <MagistratPanelTrigger nominationFile={row.original} />,
       }),
 
       h.accessor('content.grade', {

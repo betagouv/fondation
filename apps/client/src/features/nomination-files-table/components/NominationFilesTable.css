@@ -2,3 +2,7 @@ table tr:has(.multi-reporters-alert) td,
 table tr:has(.position-hearing-alert) td {
   background-color: var(--background-alt-red-marianne);
 }
+
+table tr:has(.magistrat-panel-trigger[aria-current='true']) td {
+  background-color: var(--background-alt-blue-france);
+}

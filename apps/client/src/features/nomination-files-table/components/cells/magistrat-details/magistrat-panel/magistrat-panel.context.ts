@@ -1,0 +1,25 @@
+import { createContext, useContext } from 'react';
+
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
+export const MAGISTRAT_PANEL_ID = 'magistrat-panel';
+
+export type MagistratPanelContextValue = {
+  activeFile: SessionNominationFile | null;
+  activeId: string | null;
+  close: () => void;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  isOpen: boolean;
+  next: () => void;
+  open: (id: string) => void;
+  previous: () => void;
+};
+
+export const MagistratPanelContext = createContext<MagistratPanelContextValue | null>(null);
+
+export function useMagistratPanel() {
+  const context = useContext(MagistratPanelContext);
+  if (!context) throw new Error('useMagistratPanel must be used within a MagistratPanelProvider');
+  return context;
+}
