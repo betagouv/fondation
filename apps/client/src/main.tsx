@@ -7,12 +7,12 @@ import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { IntlProvider } from 'react-intl';
-import { Link } from 'react-router';
+import { Link, RouterProvider } from 'react-router';
 
 import { authKeys } from '@queries/auth.queries.ts';
 
 import { frFormat } from './i18n/formats.ts';
-import { AppRouter } from './router/AppRouter.tsx';
+import { router } from './router.tsx';
 import { HttpException } from './utils/http-exception.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
@@ -45,7 +45,7 @@ createRoot(document.getElementById('root')!, {
     <QueryClientProvider client={queryClient}>
       <NuqsAdapter>
         <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
-          <AppRouter />
+          <RouterProvider router={router} />
         </IntlProvider>
       </NuqsAdapter>
     </QueryClientProvider>

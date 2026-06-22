@@ -1,7 +1,14 @@
 import DsfrBreadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
 import type { FC } from 'react';
+import type { To } from 'react-router';
 
-import type { BreadcrumbVM } from '../../models/breadcrumb-vm.model';
+export type BreadcrumbVM = {
+  currentPageLabel: string;
+  segments: {
+    label: string;
+    to: To;
+  }[];
+};
 
 export type BreadcrumbProps = {
   breadcrumb: BreadcrumbVM;
