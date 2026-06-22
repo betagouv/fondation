@@ -1,13 +1,11 @@
 import { Outlet } from 'react-router';
 
-import { PageLayout } from '@/layout/PageLayout';
+import { PageLayout } from './PageLayout';
 
-export const HomePage = () => {
+export const RootLayout = () => {
   return (
     <PageLayout>
       <Outlet />
     </PageLayout>
   );
 };
-
-export default HomePage;

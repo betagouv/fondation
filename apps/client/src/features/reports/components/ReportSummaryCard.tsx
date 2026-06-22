@@ -4,7 +4,7 @@ import React from 'react';
 
 import './ReportSummaryCard.css';
 
-import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import type { DetailedReportDto } from '@api/types';
 import { useGenerateSummaryAttachmentPublicUrlMutation } from '@queries/summary.queries';
 

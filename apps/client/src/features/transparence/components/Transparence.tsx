@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
 import { NominationFilesTable } from '@/features/nomination-files-table/components/NominationFilesTable';
-import type { BreadcrumbVM } from '@/models/breadcrumb-vm.model';
 import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
 import { AlertsProvider } from '@/shared/context/alerts/AlertsProvider';
+import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';

@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ACCEPTED_MIME_TYPES } from '@/constants/mimetypes.constants';
 import type { ReportStatusEnum } from '@/types/enums.types';
 import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
+
+const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const reportKeys = {
   reportById: (props: { reportId: string }) => ['report', props.reportId],

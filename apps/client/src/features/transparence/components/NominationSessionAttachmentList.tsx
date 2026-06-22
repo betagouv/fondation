@@ -4,7 +4,7 @@ import { useCallback, type ReactNode } from 'react';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
-import { DeleteAttachmentModal } from '@/shared/ui/DeleteAttachmentModal';
+import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
@@ -68,7 +68,7 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
           </Button>
 
           {isSg && !isArchived && (
-            <DeleteAttachmentModal
+            <DeleteFileButton
               fileName={file.name}
               onDelete={() => deleteAttachment({ fileId: file.id, sessionId: props.sessionId })}
             />

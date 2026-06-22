@@ -1,4 +1,4 @@
-import { reportHtmlIds } from '@/features/reports/dom/html-ids';
+import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import type { DetailedReportDto } from '@api/types';
 
 import { Card } from './Card';

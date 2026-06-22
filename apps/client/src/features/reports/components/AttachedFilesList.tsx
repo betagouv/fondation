@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 
-import { DeleteAttachmentModal } from '@/shared/ui/DeleteAttachmentModal';
+import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import { generateReportFilePublicUrl } from '@queries/reports.queries';
 
 export function AttachedFilesList(props: {
@@ -42,7 +42,7 @@ export function AttachedFilesList(props: {
             {file.name}
           </Button>
 
-          <DeleteAttachmentModal fileName={file.name} onDelete={() => props.onDelete(file.name)} />
+          <DeleteFileButton fileName={file.name} onDelete={() => props.onDelete(file.name)} />
         </li>
       ))}
     </ul>

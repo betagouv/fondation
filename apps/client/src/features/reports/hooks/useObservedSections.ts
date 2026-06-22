@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { summarySectionsObserverFactory } from '@/features/reports/dom/summary-section-observer-factory';
+import { summarySectionsObserverFactory } from '@/features/reports/utils/summary-section-observer-factory';
 
 export const useObservedSections = (
   sectionIds: string[],
