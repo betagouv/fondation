@@ -14,10 +14,12 @@ import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/quer
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListedUsersDto, ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { OpenIdAuthService } from './openid-auth.service';
 
 @Injectable()
 export class SimpleAuthService {
   constructor(
+    readonly openId: OpenIdAuthService,
     private readonly detailsUserQuery: DetailsUserQuery,
     private readonly detailsUserFromSessionQuery: DetailsUserFromSessionIdQuery,
     private readonly detailsUserFromImpersonationQuery: DetailsUserFromImpersonationQuery,
@@ -43,10 +45,11 @@ export class SimpleAuthService {
   }
 
   async login(command: { email: string; password: string }): Promise<AuthSession> {
-    const user = await this.userRepository.findByEmail(command.email.toLowerCase());
+    const user = await this.userRepository.findByEmail(command.email);
     const session = await user.authenticate({
-      plainPassword: command.password,
+      type: 'password',
       now: this.clock.now(),
+      plainPassword: command.password,
     });
     await this.userRepository.persist(user);
     return session;

@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router';
 
-import Login from '@/features/auth/components/Login';
+import { Login } from '@/features/auth/components/Login';
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
