@@ -5,6 +5,7 @@ import * as $api from '@api/sdk';
 
 export const authKeys = {
   introspectSession: () => ['introspectSession'],
+  openIdProviders: () => ['auth', 'openidProviders'],
 };
 
 export const useUser = () => {
@@ -46,7 +47,7 @@ export function useLogout() {
   });
 }
 
-export function useLogin() {
+export function usePasswordLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -61,5 +62,20 @@ export function useLogin() {
 export function useImpersonateMutation(props: { userId: string }) {
   return useMutation({
     mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } }),
+  });
+}
+
+export function usePrepareOpenIdLoginMutation(props: { provider: string }) {
+  return useMutation({
+    mutationFn: () => $api.auth.prepareOpenIdRequest({ path: { provider: props.provider } }),
+  });
+}
+
+const MINUTES = 1_000 * 60;
+export function useListOpenIdProvidersQuery() {
+  return useQuery({
+    staleTime: 10 * MINUTES,
+    queryKey: authKeys.openIdProviders(),
+    queryFn: () => $api.auth.listOpenIdProviders().then(({ data = null }) => data),
   });
 }
