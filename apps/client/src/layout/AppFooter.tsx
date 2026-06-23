@@ -49,7 +49,7 @@ export function AppFooter() {
   const isLogin = path !== null;
 
   const contentDescription =
-    'Cet outil est réservé aux Secrétariat Général du Conseil Supérieur de la Magistrature et à ses membres.';
+    'Cet outil est réservé au Secrétariat Général du Conseil Supérieur de la Magistrature et à ses membres.';
 
   return (
     <>

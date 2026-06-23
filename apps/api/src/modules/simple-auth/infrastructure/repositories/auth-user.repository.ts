@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { PrismaService } from 'src/modules/framework/database';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
+  AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
   AuthUserRegistered,
   AuthUserUnAuthenticated,
-} from '../../domain/auth-user';
-import { PrismaService } from 'src/modules/framework/database';
+} from 'src/modules/simple-auth/domain/auth-user';
 import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
@@ -16,9 +17,9 @@ export class AuthUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<AuthUser> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       select: { id: true, password: true },
-      where: { email },
+      where: { email: { equals: email, mode: 'insensitive' } },
     });
 
     if (!user) throw new NotFoundException();
@@ -58,6 +59,10 @@ export class AuthUserRepository {
 
         if (event instanceof AuthImpersonationRevoked) {
           return this.persistImpersonationRevoked(event);
+        }
+
+        if (event instanceof AuthOpenIdRequestCompleted) {
+          return this.persistAuthOpenIdRequestCompleted(event);
         }
 
         return assertNever(event);
@@ -112,5 +117,11 @@ export class AuthUserRepository {
 
   private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
     return this.prisma.authSession.delete({ where: { sessionId } });
+  }
+
+  private persistAuthOpenIdRequestCompleted(message: AuthOpenIdRequestCompleted) {
+    return this.prisma.openIdRequest.delete({
+      where: { primaryKey: { id: message.request.id, provider: message.request.provider } },
+    });
   }
 }
