@@ -5,7 +5,6 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { generateLolfiArchive, LolfiData } from 'lolfi';
 import supertest from 'supertest';
-import waitForExpect from 'wait-for-expect';
 
 import { Gender, Magistrat, Role } from 'shared-models';
 
@@ -230,22 +229,25 @@ describe('lolfi', () => {
     const jobId = ingestionBody.id;
 
     let nextSessionId: string;
-    await waitForExpect(async () => {
-      const { body: job } = await http
-        .get(`/api/jobs/v1/${jobId}`)
-        .set({ cookie: user.cookie })
-        .expect(HttpStatus.OK);
-      expect(job.status).toBe('SUCCEEDED');
+    await expect
+      .poll(async () => {
+        const { body: job } = await http
+          .get(`/api/jobs/v1/${jobId}`)
+          .set({ cookie: user.cookie })
+          .expect(HttpStatus.OK);
+        expect(job.status).toBe('SUCCEEDED');
 
-      const { body: sessions } = await http
-        .get('/api/sessions/v2/garde-des-sceaux')
-        .set({ cookie: user.cookie })
-        .query({ search: `${nextSession.name} (${nextSession.id})` })
-        .expect(HttpStatus.OK);
-      expect(sessions.items[0]).toBeDefined();
+        const { body: sessions } = await http
+          .get('/api/sessions/v2/garde-des-sceaux')
+          .set({ cookie: user.cookie })
+          .query({ search: `${nextSession.name} (${nextSession.id})` })
+          .expect(HttpStatus.OK);
+        expect(sessions.items[0]).toBeDefined();
 
-      nextSessionId = sessions.items[0].id;
-    });
+        nextSessionId = sessions.items[0].id;
+        return nextSessionId;
+      })
+      .toBeDefined();
 
     const sessionResponse = await http
       .set({ cookie: user.cookie })

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`agendaTemplate should render 1`] = `
+exports[`agendaTemplate > should render 1`] = `
 "
             <div class="header"><h1>Avis du Conseil supérieur de la magistrature</h1>
 <p class="formation">

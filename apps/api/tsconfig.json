@@ -22,7 +22,7 @@
     "lib": ["ESNext"],
     "types": [
       "node",
-      "jest",
+      "vitest/globals",
       "bcrypt",
       "common-tags",
       "cookie-parser",
