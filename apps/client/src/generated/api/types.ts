@@ -38,6 +38,14 @@ export type DetailedUserResponseDto = {
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
 
+export type ListedOpenIdProvidersDto = {
+    items: Array<string>;
+};
+
+export type PreparedOpenIdRequestDto = {
+    url: string;
+};
+
 export type AttachReportFileDto = {
     files: Array<Blob | File>;
 };
@@ -1521,6 +1529,50 @@ export type ImpersonateResponses = {
 };
 
 export type ImpersonateResponse = ImpersonateResponses[keyof ImpersonateResponses];
+
+export type ListOpenIdProvidersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/openid/providers';
+};
+
+export type ListOpenIdProvidersResponses = {
+    200: ListedOpenIdProvidersDto;
+};
+
+export type ListOpenIdProvidersResponse = ListOpenIdProvidersResponses[keyof ListOpenIdProvidersResponses];
+
+export type PrepareOpenIdRequestData = {
+    body?: never;
+    path: {
+        provider: string;
+    };
+    query?: never;
+    url: '/api/auth/v2/openid/{provider}/requests';
+};
+
+export type PrepareOpenIdRequestResponses = {
+    201: PreparedOpenIdRequestDto;
+};
+
+export type PrepareOpenIdRequestResponse = PrepareOpenIdRequestResponses[keyof PrepareOpenIdRequestResponses];
+
+export type CallbackData = {
+    body?: never;
+    path: {
+        provider: string;
+    };
+    query: {
+        state: string;
+        code: string;
+    };
+    url: '/api/auth/v2/openid/{provider}/callback';
+};
+
+export type CallbackResponses = {
+    200: unknown;
+};
 
 export type DetachFilesData = {
     body?: never;
