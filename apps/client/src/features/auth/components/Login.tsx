@@ -1,63 +1,60 @@
-import { PasswordInput } from '@codegouvfr/react-dsfr/blocks/PasswordInput';
-import { Button } from '@codegouvfr/react-dsfr/Button';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { Input } from '@codegouvfr/react-dsfr/Input';
-import { useNavigate } from 'react-router';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import { FormattedMessage } from 'react-intl';
+import { useSearchParams } from 'react-router';
 
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useLogin } from '@queries/auth.queries';
+import { useListOpenIdProvidersQuery } from '@queries/auth.queries';
 
-import { AuthenticationFailedAlert } from './AuthenticationFailedAlert';
+import { LoginPasswordForm } from './LoginPasswordForm';
+import { LoginProConnectButton } from './LoginProConnectButton';
 
-export const Login = () => {
-  const navigate = useNavigate();
+export function Login() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const listProviders = useListOpenIdProvidersQuery();
 
-  const { isError, isPending, mutateAsync: authenticateAsync } = useLogin();
-
-  const authenticateUser = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
-
-    await authenticateAsync(
-      { email, password },
-      { onSuccess: () => navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD) },
-    );
-  };
+  const hasError = searchParams.has('error');
+  const onAlertClose = () =>
+    setSearchParams((prev) => {
+      prev.delete('error');
+      return new URLSearchParams(prev);
+    });
 
   return (
-    <div id="login-layout" className="flex h-full items-center justify-center">
-      <form onSubmit={authenticateUser} className="w-1/2">
-        <div className={cx('fr-mb-6v')}>{isError && !isPending && <AuthenticationFailedAlert />}</div>
-        <Input
-          label="Email"
-          id="email"
-          nativeInputProps={{
-            name: 'email',
-            type: 'email',
-            autoCorrect: 'off',
-            autoCapitalize: 'off',
-            autoComplete: 'email',
-            spellCheck: false,
-          }}
-        />
-        <PasswordInput
-          label="Mot de passe"
-          nativeInputProps={{
-            id: 'password',
-            name: 'password',
-            autoCorrect: 'off',
-            autoCapitalize: 'off',
-            autoComplete: 'current-password',
-            spellCheck: false,
-          }}
-        />
-        <Button type="submit">Se connecter</Button>
-      </form>
+    <div className="fr-container fr-container--fluid fr-mb-md-14v fr-pt-md-14v">
+      <div className="fr-grid-row fr-grid-row--gutters fr-grid-row--center">
+        <div className="fr-col-12 fr-col-md-10 fr-col-lg-9 fr-p-5v bg-(--background-alt-grey)">
+          <div className="fr-container fr-px-md-0 fr-py-10v fr-py-md-14v">
+            <div className="fr-grid-row fr-grid-row-gutters fr-grid-row--center">
+              <div className="fr-col-12 fr-col-md-10 fr-col-lg-10">
+                <h1>
+                  <FormattedMessage defaultMessage="Connexion à Fondation" />
+                </h1>
+
+                {hasError && (
+                  <Alert
+                    className="fr-mb-6v"
+                    small
+                    onClose={onAlertClose}
+                    severity="error"
+                    as="h2"
+                    closable
+                    title={<FormattedMessage defaultMessage="Impossible de vous identifier" />}
+                    description={
+                      <FormattedMessage defaultMessage="Veuillez réessayer, et en cas de nouvel échec vous connecter avec votre compte" />
+                    }
+                  />
+                )}
+
+                {listProviders.isFetched && (
+                  <>
+                    <LoginProConnectButton />
+                    <LoginPasswordForm />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Login;
+}

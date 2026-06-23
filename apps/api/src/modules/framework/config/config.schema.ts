@@ -45,8 +45,6 @@ export const ConfigSchema = z.object({
     process.env.INBOUND_ALLOWED_API_TOKENS ?? '',
   ),
 
-  chromiumExecutablePath: z.prefault(z.string().optional(), process.env.CHROMIUM_EXECUTABLE_PATH),
-
   scalingo: z.preprocess(
     () => ({}),
     z.object({
@@ -56,6 +54,38 @@ export const ConfigSchema = z.object({
   ),
 
   mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
+
+  proConnect: z.preprocess(
+    () => ({}),
+    z
+      .object({
+        domain: z.prefault(
+          z
+            .url({ protocol: /https/ })
+            .refine((x) => new URL(x).origin === x)
+            .optional(),
+          process.env.PRO_CONNECT_DOMAIN,
+        ),
+        clientId: z.prefault(
+          z
+            .string()
+            .trim()
+            .optional()
+            .transform((x) => (x === '' ? undefined : x)),
+          process.env.PRO_CONNECT_CLIENT_ID,
+        ),
+        clientSecret: z.prefault(
+          z
+            .string()
+            .trim()
+            .optional()
+            .transform((x) => (x === '' ? undefined : x)),
+          process.env.PRO_CONNECT_CLIENT_SECRET,
+        ),
+      })
+      .optional()
+      .transform((x) => (x ? (x.domain && x.clientId && x.clientSecret ? x : undefined) : x)),
+  ),
 
   s3: z.preprocess(
     () => ({}),
