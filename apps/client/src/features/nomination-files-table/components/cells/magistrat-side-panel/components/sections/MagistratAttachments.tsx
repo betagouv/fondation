@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useTab } from '@/shared/hooks/useTab';
+import { formatFileSize, splitFileName } from '@/utils/file.utils';
 import {
   useAddNominationFileAttachmentsMutation,
   useCreateNominationFileAttachmentUrlMutation,
@@ -56,36 +57,27 @@ export function MagistratAttachments(props: {
 
   return (
     <div>
-      <div className="fr-mb-2v flex items-center justify-between">
-        <p className="text-xl font-semibold" id={labelId}>
-          <FormattedMessage
-            defaultMessage="{count, plural, =0 {Pièce jointe} one {Pièce jointe (#)} other {Pièces jointes (#)}}"
-            values={{ count: attachments.length }}
-          />
-        </p>
-      </div>
-
-      {canManage && (
-        <Upload
-          className="fr-mb-2v"
-          multiple
-          disabled={isAddPending}
-          hint={null}
-          label={formatMessage({ defaultMessage: 'Ajouter une pièce jointe' })}
-          nativeInputProps={{ ref: inputRef, onChange: onAdd }}
+      <p className="fr-mb-6v text-xl font-semibold" id={labelId}>
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes}}"
+          values={{ count: attachments.length }}
         />
-      )}
+      </p>
 
       {attachments.length > 0 ? (
-        <ul aria-labelledby={labelId} className="fr-m-0 fr-p-0 flex flex-col gap-2">
+        <ul
+          aria-labelledby={labelId}
+          className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey) border-y border-(--border-default-grey)"
+        >
           {attachments.map((file) => (
             <AttachmentItem
               key={file.id}
+              canDelete={canManage}
               fileId={file.id}
+              name={file.name}
               nominationFileId={props.nominationFileId}
               sessionId={props.sessionId}
-              canDelete={canManage}
-              name={file.name}
+              size={file.size}
             />
           ))}
         </ul>
@@ -95,6 +87,28 @@ export function MagistratAttachments(props: {
             <FormattedMessage defaultMessage="Aucune pièce jointe" />
           </div>
         )
+      )}
+
+      {canManage && (
+        <div
+          className="fr-mt-3v fr-p-4v max-w-105 cursor-pointer bg-(--background-alt-grey) [&_.fr-label]:cursor-pointer [&_.fr-upload]:cursor-pointer"
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest('.fr-upload, .fr-label')) return;
+            inputRef.current?.click();
+          }}
+        >
+          <Upload
+            disabled={isAddPending}
+            hint={formatMessage({ defaultMessage: 'Formats supportés : png, jpeg et pdf' })}
+            label={formatMessage({ defaultMessage: 'Ajouter un fichier' })}
+            multiple
+            nativeInputProps={{
+              accept: 'image/png,image/jpeg,application/pdf',
+              onChange: onAdd,
+              ref: inputRef,
+            }}
+          />
+        </div>
       )}
 
       {isAddError && (
@@ -119,6 +133,7 @@ function AttachmentItem(props: {
   sessionId: string;
   canDelete: boolean;
   name: string;
+  size: number | null;
 }) {
   const { formatMessage } = useIntl();
   const tab = useTab();
@@ -135,13 +150,18 @@ function AttachmentItem(props: {
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
 
+  const { label, extension } = splitFileName(props.name);
+  const meta = [extension?.toUpperCase(), props.size != null ? formatFileSize(props.size) : null]
+    .filter(Boolean)
+    .join(' - ');
+
   const error = isUrlError
     ? formatMessage({ defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.' })
     : isRemoveError
       ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
       : null;
 
-  const onDownload = useCallback(() => {
+  const onPreview = useCallback(() => {
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
@@ -152,37 +172,68 @@ function AttachmentItem(props: {
     );
   }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
 
+  const onDownload = useCallback(() => {
+    createUrl(
+      { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
+      {
+        onSuccess: (response) => {
+          if (response) tab.download(`${response.url}?download`);
+        },
+      },
+    );
+  }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
+
   const onDelete = useCallback(() => {
     remove({ fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId });
   }, [remove, props.sessionId, props.nominationFileId, props.fileId]);
 
   return (
-    <li className="fr-pb-0 flex flex-col gap-1">
-      <div className="flex items-center gap-4">
-        <Button
-          className="inline truncate"
-          disabled={isUrlPending || isRemovePending}
-          onClick={onDownload}
-          priority="tertiary no outline"
-        >
-          {props.name}
-        </Button>
+    <li className="fr-py-3v">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 gap-2">
+          <span
+            aria-hidden="true"
+            className="fr-icon-file-line fr-icon--sm fr-mt-1v shrink-0 text-(--text-title-blue-france)"
+          />
+          <div className="flex min-w-0 flex-col">
+            <button
+              className="truncate text-left text-(--text-action-high-blue-france) underline disabled:opacity-50"
+              disabled={isUrlPending || isRemovePending}
+              onClick={onPreview}
+              title={props.name}
+              type="button"
+            >
+              {label}
+            </button>
+            {meta && <span className="text-sm text-(--text-mention-grey)">{meta}</span>}
+          </div>
+        </div>
 
-        {props.canDelete && (
+        <div className="flex shrink-0 items-center gap-1">
           <Button
-            className="rounded-full"
-            disabled={isRemovePending}
-            iconId="fr-icon-delete-bin-fill"
-            onClick={onDelete}
+            disabled={isUrlPending || isRemovePending}
+            iconId="fr-icon-download-line"
+            onClick={onDownload}
             priority="tertiary no outline"
             size="small"
-            title={formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: props.name })}
+            title={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: props.name })}
           />
-        )}
+          {props.canDelete && (
+            <Button
+              disabled={isRemovePending}
+              iconId="fr-icon-delete-bin-line"
+              onClick={onDelete}
+              priority="tertiary no outline"
+              size="small"
+              title={formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: props.name })}
+            />
+          )}
+        </div>
       </div>
 
       {error && (
         <Alert
+          className="fr-mt-2v"
           closable
           description={error}
           onClose={() => {
