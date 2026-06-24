@@ -3,7 +3,6 @@ import { randomInt } from 'node:crypto';
 import { HttpStatus } from '@nestjs/common';
 import { generateLolfiArchive, type LolfiData } from 'lolfi';
 import supertest from 'supertest';
-import waitForExpect from 'wait-for-expect';
 
 import { PrismaJobStatusEnum } from '../../src/generated/prisma/enums';
 import { FILE_MIME_TYPES } from '../../src/modules/framework/files';
@@ -34,33 +33,39 @@ export async function createSession(options: {
     .expect(HttpStatus.OK);
 
   const { id: jobId } = ingestionResponse.body as IngestedLolfiArchiveDto;
-  await waitForExpect(async () => {
-    const jobResponse = await options.http
-      .get(`/api/jobs/v1/${jobId}`)
-      .set({ cookie: options.cookie })
-      .expect(HttpStatus.OK);
+  await vi.waitFor(
+    async () => {
+      const jobResponse = await options.http
+        .get(`/api/jobs/v1/${jobId}`)
+        .set({ cookie: options.cookie })
+        .expect(HttpStatus.OK);
 
-    const status: PrismaJobStatusEnum = (jobResponse.body as DetailedJobDto).status;
-    if (status === 'FAILED') {
-      console.error((jobResponse.body as DetailedJobDto).errors);
-      console.error((jobResponse.body as DetailedJobDto).files.map((file) => file.errors));
-      expect(status).toBe('FAILED');
-    }
-
-    expect(status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
-  }, /* timeout */ 2_000);
+      const status: PrismaJobStatusEnum = (jobResponse.body as DetailedJobDto).status;
+      if (status === 'FAILED') {
+        console.error((jobResponse.body as DetailedJobDto).errors);
+        console.error((jobResponse.body as DetailedJobDto).files.map((file) => file.errors));
+        expect(status).toBe('FAILED');
+      } else {
+        expect(status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
+      }
+    },
+    { timeout: 2_000 },
+  );
 
   let session: { id: string } | undefined;
-  await waitForExpect(async () => {
-    const sessionResponse = await options.http
-      .get('/api/sessions/v2/garde-des-sceaux')
-      .query({ search: `${sessionName} (${sessionId})` })
-      .set({ cookie: options.cookie })
-      .expect(HttpStatus.OK);
+  await vi.waitFor(
+    async () => {
+      const sessionResponse = await options.http
+        .get('/api/sessions/v2/garde-des-sceaux')
+        .query({ search: `${sessionName} (${sessionId})` })
+        .set({ cookie: options.cookie })
+        .expect(HttpStatus.OK);
 
-    session = sessionResponse.body.items[0];
-    expect(session).toBeDefined();
-  });
+      session = sessionResponse.body.items[0];
+      expect(session).toBeDefined();
+    },
+    { timeout: 2_000 },
+  );
 
   return { id: assertIsDefined(session, `unknown session "${sessionName}"`).id };
 }
