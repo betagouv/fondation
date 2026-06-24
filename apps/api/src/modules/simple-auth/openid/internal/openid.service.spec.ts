@@ -2,6 +2,7 @@ import { generateKeyPairSync, KeyObject, sign as signData } from 'node:crypto';
 
 import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { Clock } from 'src/modules/framework/clock';
 
@@ -78,8 +79,8 @@ describe('OpenIdService', () => {
 
   describe('authenticate', () => {
     it('exchanges the code, verifies the tokens and returns the email', async () => {
-      const httpRequest = jest.fn();
-      const get = jest.fn();
+      const httpRequest = vi.fn();
+      const get = vi.fn();
       const service = makeService({ request: httpRequest, get });
       const request = service.request();
 
@@ -107,7 +108,7 @@ describe('OpenIdService', () => {
       });
 
       expect(result).toEqual({ email: 'agent@justice.gouv.fr' });
-      const body = new URLSearchParams(httpRequest.mock.calls[0][0].data);
+      const body = new URLSearchParams(httpRequest.mock.calls[0]![0].data);
       expect(body.get('grant_type')).toBe('authorization_code');
       expect(body.get('code')).toBe('the-code');
       expect(body.get('code_verifier')).toBe(request.state.challenge?.toString());

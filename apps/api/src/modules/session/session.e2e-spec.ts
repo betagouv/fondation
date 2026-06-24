@@ -12,6 +12,8 @@ import { Gender, Magistrat, Role } from 'shared-models';
 import { createSession } from '../../../test/utils/lolfi';
 import { PrismaService } from '../framework/database';
 import { FILE_MIME_TYPES } from '../framework/files';
+import { MultipartFile } from '../framework/files/multipart/multipart.file';
+import { Sanitizer } from '../framework/files/sanitizers';
 import { ChildProcessJobRunner } from '../ingest/jobs/runner/child-process-job-runner';
 import { InProcessJobRunner } from '../ingest/jobs/runner/in-process-job-runner';
 import { RootModule } from '../root.module';
@@ -39,6 +41,8 @@ describe('Session E2E', () => {
     const modules = await Test.createTestingModule({ imports: [RootModule] })
       .overrideProvider(ChildProcessJobRunner)
       .useClass(InProcessJobRunner)
+      .overrideProvider(Sanitizer)
+      .useValue({ sanitize: async (file: MultipartFile) => file })
       .compile();
 
     app = AppModule.configure(modules.createNestApplication());
@@ -262,7 +266,7 @@ describe('Session E2E', () => {
       } satisfies NominationFileAffectationItem);
     });
 
-    it('should attach a file to a nomination file and flag it in the list', async () => {
+    it('should attach a file to a nomination file and list it', async () => {
       const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
       const importResponse = await http
         .post('/api/sessions/v2/lodam')
@@ -310,9 +314,7 @@ describe('Session E2E', () => {
       expect(updatedFile.hasAttachment).toBe(true);
     });
 
-    // 30s timeout: createSession runs a full LOLFI ingestion (job wait + search retry, up to 6.5s)
-    // before the summary requests which overruns the 5s jest default on slow CI runners
-    it('should not report an empty summary as a present indicator', async () => {
+    it('should not report an empty summary', async () => {
       const session = await createSession({
         http,
         cookie: user.cookie,
@@ -373,11 +375,9 @@ describe('Session E2E', () => {
         canRead: true,
         canWrite: true,
       });
-    }, 30_000);
+    }, 10_000);
 
-    // An empty summary belongs to no one: anyone can (re)create it and the first to write
-    // content becomes its author. Once authored, only that author can write it
-    it('leaves an empty summary authorless and gives it to the first writer', async () => {
+    it('should leave an empty summary authorless and define ownership to first writer', async () => {
       const otherUser = {
         email: faker.internet.email(),
         password: faker.string.alphanumeric({ length: 20 }),
@@ -448,12 +448,12 @@ describe('Session E2E', () => {
         .send({ content: 'Synthèse rédigée en premier' })
         .expect(HttpStatus.NO_CONTENT);
 
-      // the other can no longer write: it now has an author
+      // other users can no longer edit it
       await http
         .put(`${summaryPath}/content`)
         .set({ cookie: user.cookie })
         .send({ content: 'tentative concurrente' })
         .expect(HttpStatus.FORBIDDEN);
-    }, 30_000);
+    }, 10_000);
   });
 });

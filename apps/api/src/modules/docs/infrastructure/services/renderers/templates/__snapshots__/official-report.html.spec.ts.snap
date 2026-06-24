@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`officialReportTemplate should render 1`] = `
+exports[`officialReportTemplate > should render 1`] = `
 "
             <div class="header"><h1>
   Procès-verbal de restitution de la séance du 01/07/2026 tenue à Paris
