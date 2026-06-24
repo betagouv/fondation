@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -39,21 +40,15 @@ export function MagistratSummaryButton(props: { sessionId: string; nominationFil
 
   if (canCreateSummary) {
     return (
-      <Button
-        size="small"
-        priority="tertiary no outline"
-        iconId="fr-icon-edit-fill"
-        disabled={isCreating}
-        onClick={createSummary}
-      >
-        Écrire une synthèse
+      <Button disabled={isCreating} onClick={createSummary} priority="secondary" size="small">
+        <FormattedMessage defaultMessage="Écrire une synthèse" />
       </Button>
     );
   }
 
   return (
-    <Button size="small" priority="tertiary no outline" iconId="ri-eye-fill" linkProps={{ to: link }}>
-      Voir la synthèse
+    <Button iconId="ri-eye-fill" linkProps={{ to: link }} priority="tertiary no outline" size="small">
+      <FormattedMessage defaultMessage="Voir la synthèse" />
     </Button>
   );
 }

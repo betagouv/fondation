@@ -1,5 +1,6 @@
 import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import Badge from '@codegouvfr/react-dsfr/Badge';
+import clsx from 'clsx';
 import React from 'react';
 
 import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
@@ -10,6 +11,12 @@ const color = {
   PROFILE: 'info',
 } as const satisfies Record<PrioriteEnum, AlertProps.Severity | 'new' | null>;
 
+const customColorClassName = {
+  ETOILE: '',
+  OUTRE_MER: 'bg-(--yellow-tournesol-950-100)! text-(--text-default-grey)!',
+  PROFILE: '',
+} as const satisfies Record<PrioriteEnum, string>;
+
 const acronyms = {
   ETOILE: 'E',
   OUTRE_MER: 'OM',
@@ -19,7 +26,16 @@ const acronyms = {
 function InternalPriorityBadge(props: { priority: PrioriteEnum; small?: false; acronym?: true }) {
   const label = props.acronym ? acronyms[props.priority] : PrioriteEnumLabels[props.priority];
   return (
-    <Badge noIcon severity={color[props.priority]} small={props.small !== false} as="span">
+    <Badge
+      as="span"
+      className={clsx(
+        customColorClassName[props.priority],
+        !props.acronym && 'h-6! min-w-25 justify-center gap-3',
+      )}
+      noIcon
+      severity={color[props.priority]}
+      small={props.small !== false}
+    >
       {label}
     </Badge>
   );

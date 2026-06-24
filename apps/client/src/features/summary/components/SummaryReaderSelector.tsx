@@ -5,6 +5,7 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
 import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
@@ -17,47 +18,58 @@ const summaryReadersModal = createModal({
   isOpenedByDefault: false,
 });
 
-export function SummaryReaderSelector() {
+export function SummaryReaderSelector(
+  props: {
+    priority?: React.ComponentProps<typeof Button>['priority'];
+    iconId?: React.ComponentProps<typeof Button>['iconId'];
+    className?: string;
+    withCount?: boolean;
+  } = {},
+) {
   const { summary, canWriteSummary } = useSummary();
 
   if (!canWriteSummary) return null;
 
   const readersCount = summary.summary.readers.length;
+  const withCount = props.withCount ?? true;
+
+  const button = (
+    <Button
+      {...summaryReadersModal.buttonProps}
+      className={props.className ?? 'rounded-full'}
+      disabled={summary.isArchived}
+      iconId={props.iconId ?? (readersCount > 0 ? 'fr-icon-group-fill' : 'fr-icon-admin-fill')}
+      priority={props.priority}
+    >
+      {withCount && readersCount > 0 ? (
+        <FormattedMessage defaultMessage="Partager ({count})" values={{ count: readersCount }} />
+      ) : (
+        <FormattedMessage defaultMessage="Partager" />
+      )}
+    </Button>
+  );
 
   return (
     <>
       <SummaryReaderModal />
 
-      {readersCount > 0 ? (
+      {withCount && readersCount > 0 ? (
         <Tooltip
           title={summary.summary.readers
             .map(({ firstName, lastName }) => `${capitalize(firstName)} ${lastName.toUpperCase()}`)
             .join(', ')}
         >
-          <Button
-            {...summaryReadersModal.buttonProps}
-            iconId="fr-icon-group-fill"
-            className="rounded-full"
-            disabled={summary.isArchived}
-          >
-            Partager ({readersCount})
-          </Button>
+          {button}
         </Tooltip>
       ) : (
-        <Button
-          {...summaryReadersModal.buttonProps}
-          iconId="fr-icon-admin-fill"
-          className="rounded-full"
-          disabled={summary.isArchived}
-        >
-          Partager
-        </Button>
+        button
       )}
     </>
   );
 }
 
 function SummaryReaderModal() {
+  const intl = useIntl();
   const { summary, sessionId, nominationFileId } = useSummary();
   const originalReaderIds = React.useMemo(() => summary.summary.readers.map(({ id }) => id), [summary]);
   const [state, setState] = React.useState<{ readers: string[]; isDirty: boolean }>({
@@ -105,17 +117,19 @@ function SummaryReaderModal() {
 
   return (
     <summaryReadersModal.Component
-      title="Partager cette synthèse"
+      title={intl.formatMessage({ defaultMessage: 'Partager cette synthèse' })}
       buttons={[
         {
-          children: 'Annuler',
+          children: intl.formatMessage({ defaultMessage: 'Annuler' }),
           priority: 'secondary',
           doClosesModal: true,
           disabled: isUpdatingReaders,
         },
         {
           doClosesModal: !isUpdatingReaders && !state.isDirty,
-          children: state.isDirty ? 'Partager' : 'Ok',
+          children: state.isDirty
+            ? intl.formatMessage({ defaultMessage: 'Partager' })
+            : intl.formatMessage({ defaultMessage: 'Ok' }),
           priority: 'primary',
           disabled: isUpdatingReaders,
           onClick: onConfirmSummaryReaders,
@@ -203,11 +217,14 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         )}
       />
       <div className="fr-mt-1v text-sm">
-        {selectedReaderIds.size
-          ? selectedReaderIds.size > 1
-            ? `${selectedReaderIds.size} lecteurs sélectionnés`
-            : `1 lecteur sélectionné`
-          : '\u00A0'}
+        {selectedReaderIds.size ? (
+          <FormattedMessage
+            defaultMessage="{count, plural, one {# lecteur sélectionné} other {# lecteurs sélectionnés}}"
+            values={{ count: selectedReaderIds.size }}
+          />
+        ) : (
+          '\u00A0'
+        )}
       </div>
 
       <Checkbox

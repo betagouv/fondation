@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -10,6 +11,7 @@ import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 
 function DebouncedTextarea(props: { value: string; onChange: (value: string) => unknown }) {
+  const intl = useIntl();
   const [value, setValue] = React.useState(props.value);
   const notify = useDebouncedCallback((value: string) => props.onChange(value), 600);
 
@@ -22,7 +24,7 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
       nativeTextAreaProps={{
         value,
         rows: 5,
-        placeholder: 'Saisissez vos idées à conserver pour plus tard',
+        placeholder: intl.formatMessage({ defaultMessage: 'Saisissez vos idées à conserver pour plus tard' }),
         autoFocus: true,
         onChange: ({ target }) => {
           const value = String(target.value);
@@ -37,7 +39,12 @@ function DebouncedTextarea(props: { value: string; onChange: (value: string) => 
 function ReadOnlyMemo(props: { value: string | null }) {
   const value = props.value || '';
 
-  if (value.length === 0) return <div className="text-sm text-(--text-mention-grey) italic">N/A</div>;
+  if (value.length === 0)
+    return (
+      <div className="text-sm text-(--text-mention-grey) italic">
+        <FormattedMessage defaultMessage="N/A" />
+      </div>
+    );
 
   // we use a <pre /> to handle '\n'
   return (
@@ -51,6 +58,7 @@ function ReadOnlyMemo(props: { value: string | null }) {
 }
 
 export function MemberMemo(props: { sessionId: string; nominationFileId: string; memo: string | null }) {
+  const intl = useIntl();
   const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { user } = useUser();
@@ -77,27 +85,35 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
   if (!user || isSg) return null;
 
   return (
-    <div className="fr-mb-4v">
+    <div>
       <div className="flex flex-row justify-between">
         <h3 className="fr-label fr-mb-0 flex items-center gap-x-1 text-xl">
-          Commentaire
+          <FormattedMessage defaultMessage="Commentaire" />
           <Tooltip
             title={
               (props.memo?.length ?? 0) > 0
-                ? `Ce commentaire n'est visible que par vous`
-                : `Ce commentaire ne sera visible que par vous`
+                ? intl.formatMessage({ defaultMessage: "Ce commentaire n'est visible que par vous" })
+                : intl.formatMessage({ defaultMessage: 'Ce commentaire ne sera visible que par vous' })
             }
           />
         </h3>
         {!isArchived && (
           <Button
-            size="small"
             iconId={mode === 'read' ? 'fr-icon-edit-fill' : 'ri-check-line'}
-            priority="tertiary"
             onClick={switchMode}
-            title={mode === 'edit' ? 'Passer en mode lecture' : 'Passer en mode édition'}
+            priority="tertiary"
+            size="small"
+            title={
+              mode === 'edit'
+                ? intl.formatMessage({ defaultMessage: 'Passer en mode lecture' })
+                : intl.formatMessage({ defaultMessage: 'Passer en mode édition' })
+            }
           >
-            {mode === 'edit' ? 'Ok' : 'Éditer'}
+            {mode === 'edit' ? (
+              <FormattedMessage defaultMessage="Ok" />
+            ) : (
+              <FormattedMessage defaultMessage="Éditer" />
+            )}
           </Button>
         )}
       </div>
