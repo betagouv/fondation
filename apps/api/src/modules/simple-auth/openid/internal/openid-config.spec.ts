@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
+import { vi, type Mock } from 'vitest';
 
 import { internalOpenIdConfigFactory, OpenIdConfig } from './openid-config';
 
@@ -7,7 +8,7 @@ const ISSUER = 'https://issuer.test';
 const WELL_KNOWN = `${ISSUER}/.well-known/openid-configuration`;
 
 describe('OpenIdConfig', () => {
-  async function makeConfig(http: { get?: jest.Mock } = {}): Promise<OpenIdConfig> {
+  async function makeConfig(http: { get?: Mock } = {}): Promise<OpenIdConfig> {
     return internalOpenIdConfigFactory(
       http as unknown as HttpService,
       {
@@ -25,7 +26,7 @@ describe('OpenIdConfig', () => {
   }
 
   it('should expose the normalized metadata fetched from the discovery and jwks endpoints', async () => {
-    const get = jest.fn().mockImplementation((url: string) =>
+    const get = vi.fn().mockImplementation((url: string) =>
       of({
         data: url.endsWith('/jwks')
           ? { keys: [{ kty: 'RSA', kid: 'key-1' }] }

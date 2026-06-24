@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`presentationPlanTemplate should render 1`] = `
+exports[`presentationPlanTemplate > should render 1`] = `
 "
             <div class="header"><h1>Proposition du Garde des sceaux</h1>
 <h2>Notice de restitution&nbsp;: séance du 01/07/2026</h2>

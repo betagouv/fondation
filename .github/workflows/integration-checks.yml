@@ -97,9 +97,7 @@ jobs:
         run: node apps/api/scripts/init-buckets.js
 
       - name: Test Api
-        env:
-          NODE_OPTIONS: --experimental-vm-modules
-        run: pnpm --filter api exec jest --runInBand --config ./test/jest/jest-all.config.ts
+        run: pnpm --filter api exec vitest run
 
       - name: truncate db
         shell: bash
