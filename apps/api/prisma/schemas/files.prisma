@@ -4,6 +4,7 @@ model File {
   name            String                    @db.VarChar
   path            String[]                  @db.VarChar
   bucket          String                    @db.VarChar
+  sizeInBytes     Int?                      @map("size_in_bytes") @db.Integer
   /// @deprecated
   storageProvider PrismaStorageProviderEnum @default(SCALEWAY) @map("storage_provider") @ignore
 

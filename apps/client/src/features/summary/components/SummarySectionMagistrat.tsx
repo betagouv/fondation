@@ -4,7 +4,7 @@ import React from 'react';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
 import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 
 import { SummarySectionCard } from './SummarySectionCard';

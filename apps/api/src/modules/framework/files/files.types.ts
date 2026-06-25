@@ -4,6 +4,7 @@ export type FondationFile = {
   name: string;
   path: string;
   buffer: Buffer;
+  size?: number;
   mimeType?: FileMimeType;
   meta?: {
     /** this could be a domain driven ID to store in the Db */

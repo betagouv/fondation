@@ -14,6 +14,26 @@ export const summaryKeys = {
   }) => ['summaries', 'searchSummaryReaders', props] as const,
 };
 
+// Replace <img> file references (data-file-id / data-file-name) with their real URLs so images render
+function injectScreenshotUrls(
+  content: string,
+  screenshots: readonly { id: string; name: string; url: string }[],
+): string {
+  const byId = new Map(screenshots.map((s) => [s.id, s.url]));
+  const byName = new Map(screenshots.map((s) => [s.name, s.url]));
+
+  const $div = document.createElement('div');
+  $div.innerHTML = content;
+  for (const $img of $div.querySelectorAll('img')) {
+    const url =
+      ($img.dataset.fileId && byId.get($img.dataset.fileId)) ||
+      ($img.dataset.fileName && byName.get($img.dataset.fileName));
+    if (url) $img.src = url;
+  }
+
+  return $div.innerHTML;
+}
+
 export const useSummaryQuery = (options: { sessionId: string; nominationFileId: string }) =>
   useQuery({
     refetchOnWindowFocus: false,
@@ -22,30 +42,7 @@ export const useSummaryQuery = (options: { sessionId: string; nominationFileId: 
       const { data } = await $api.summaries.detailSummary({ path: options });
 
       if (data) {
-        const byId = new Map(data.summary.screenshots.map((s) => [s.id, s.url]));
-        const byName = new Map(data.summary.screenshots.map((s) => [s.name, s.url]));
-
-        const $div = document.createElement('div');
-        $div.innerHTML = data.summary.content;
-        for (const $img of $div.querySelectorAll('img')) {
-          if ($img.dataset.fileId) {
-            const url = byId.get($img.dataset.fileId);
-            if (url) {
-              $img.src = url;
-              continue;
-            }
-          }
-
-          if ($img.dataset.fileName) {
-            const url = byName.get($img.dataset.fileName);
-            if (url) {
-              $img.src = url;
-              continue;
-            }
-          }
-        }
-
-        data.summary.content = $div.innerHTML;
+        data.summary.content = injectScreenshotUrls(data.summary.content, data.summary.screenshots);
       }
 
       return data ?? null;
@@ -191,6 +188,7 @@ export const useSearchSummaryReadersQuery = (options: {
 }) =>
   useQuery({
     placeholderData: (prev) => prev,
+    staleTime: 30_000,
     queryKey: summaryKeys.searchSummaryReaders(options),
     queryFn: async () => {
       const { sessionId, nominationFileId, search, includeIds } = options;

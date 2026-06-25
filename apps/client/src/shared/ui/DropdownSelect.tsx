@@ -55,15 +55,15 @@ export const DropdownSelect = <T extends string = string>({
 
   return (
     <DropdownMenu trigger={trigger} isOpen={isOpen} onOpenChange={setIsOpen}>
-      <div className="min-w-[200px] overflow-hidden rounded-sm border border-(--border-default-grey) bg-[canvas] shadow-lg">
-        <div className="fr-p-2v max-h-64 space-y-1 overflow-y-auto">
+      <div className="w-max overflow-hidden rounded-sm border border-(--border-default-grey) bg-[canvas] shadow-lg">
+        <div className="fr-py-1v flex max-h-64 flex-col gap-1 overflow-y-auto">
           {options.map((option) => (
             <button
               key={option.value}
-              onClick={() => handleSelect(option.value)}
-              className={`fr-px-4v fr-py-2v w-full rounded text-left hover:bg-(--background-default-grey-hover) ${
+              className={`fr-px-4v fr-py-2v rounded text-left hover:bg-(--background-default-grey-hover) ${
                 value === option.value ? 'bg-(--background-open-blue-france) font-semibold' : ''
               }`}
+              onClick={() => handleSelect(option.value)}
             >
               {option.label}
             </button>

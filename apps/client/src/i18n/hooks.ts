@@ -37,7 +37,7 @@ export function useIntlBirthDate() {
 
 export function useIntlPositionDuration() {
   const { formatMessage } = useIntl();
-  const delimiter = formatMessage({ defaultMessage: ' et ' });
+  const delimiter = ` ${formatMessage({ defaultMessage: 'et' })} `;
 
   return React.useCallback(
     (startDate: Date | PlainDateOnly | null | undefined) => {

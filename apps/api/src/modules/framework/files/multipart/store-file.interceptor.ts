@@ -68,11 +68,13 @@ export class StoreFileInterceptor implements NestInterceptor {
             () => this.sanitizer.sanitize(f),
           );
 
+          const buffer = Buffer.from(await sanitized.arrayBuffer());
           return {
             path: f.path as string,
             name: f.name,
+            size: buffer.length,
             meta: { id: f.id },
-            buffer: Buffer.from(await sanitized.arrayBuffer()),
+            buffer,
           };
         }),
       ),
