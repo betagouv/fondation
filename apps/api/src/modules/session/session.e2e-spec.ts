@@ -305,7 +305,7 @@ describe('Session E2E', () => {
         .get(`/api/sessions/v2/${sessionId}/files/${nominationFileId}/attachments`)
         .set({ cookie: user.cookie })
         .expect(HttpStatus.OK);
-      expect(attachments.body.items).toEqual([{ id: expect.any(String), name: 'note.pdf' }]);
+      expect(attachments.body.items).toEqual([{ id: expect.any(String), name: 'note.pdf', size: 18 }]);
 
       const filesAfter = await http.get(`/api/sessions/v2/${sessionId}/files`).set({ cookie: user.cookie });
       const updatedFile = filesAfter.body.items.find(

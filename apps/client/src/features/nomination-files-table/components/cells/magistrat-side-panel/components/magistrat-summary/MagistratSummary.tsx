@@ -1,6 +1,6 @@
 import Card from '@codegouvfr/react-dsfr/Card';
 import * as Sentry from '@sentry/react';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -99,7 +99,7 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
   );
 }
 
-function SummarySection(props: { action?: React.ReactNode; children: React.ReactNode }) {
+function SummarySection(props: { action?: ReactNode; children: ReactNode }) {
   return (
     <div>
       <div className="fr-mb-4v flex items-center justify-between gap-2">
