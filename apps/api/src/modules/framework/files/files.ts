@@ -259,7 +259,7 @@ export class Files implements OnApplicationBootstrap {
         path: file.path.split('/'),
         id: file.meta?.id ?? makeId('FileId'),
         bucket: this.bucketName,
-        size: file.size ?? null,
+        sizeInBytes: file.size ?? null,
       }));
 
       await this.prisma.file.createMany({ data: toCreate });

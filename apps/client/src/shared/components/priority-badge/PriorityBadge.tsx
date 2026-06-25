@@ -5,9 +5,9 @@ import React from 'react';
 import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 
 const colorClassName = {
-  ETOILE: 'bg-(--background-contrast-warning)! text-(--text-default-warning)!',
-  OUTRE_MER: 'bg-(--yellow-tournesol-950-100)! text-(--yellow-tournesol-sun-407-moon-922)!',
-  PROFILE: 'bg-(--background-contrast-info)! text-(--text-default-info)!',
+  ETOILE: 'bg-(--background-contrast-warning) text-(--text-default-warning)',
+  OUTRE_MER: 'bg-(--yellow-tournesol-950-100) text-(--yellow-tournesol-sun-407-moon-922)',
+  PROFILE: 'bg-(--background-contrast-info) text-(--text-default-info)',
 } as const satisfies Record<PrioriteEnum, string>;
 
 const acronyms = {
@@ -21,7 +21,7 @@ function InternalPriorityBadge(props: { acronym?: boolean; priority: PrioriteEnu
   return (
     <Badge
       as="span"
-      className={clsx(colorClassName[props.priority], !props.acronym && 'h-6!')}
+      className={clsx(colorClassName[props.priority], !props.acronym && 'h-6')}
       noIcon
       small={props.small ?? true}
     >

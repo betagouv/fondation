@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { makeSessionNominationFiles } from '@/test-utils/factories/session-nomination-file.factory';
+import { makeSessionNominationFileList } from '@/test-utils/factories/session-nomination-file.factory';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { useMagistratPanel, type MagistratPanelContextValue } from './magistrat-panel.context';
@@ -44,8 +44,8 @@ function renderProvider(initialProps: ProviderProps) {
 }
 
 const PAGE_SIZE = 2;
-const firstPage = makeSessionNominationFiles(['a', 'b']);
-const secondPage = makeSessionNominationFiles(['c', 'd']);
+const firstPage = makeSessionNominationFileList(['a', 'b']);
+const secondPage = makeSessionNominationFileList(['c', 'd']);
 
 function baseProps(overrides: Partial<ProviderProps> = {}): ProviderProps {
   return {

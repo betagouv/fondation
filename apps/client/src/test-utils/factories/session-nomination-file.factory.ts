@@ -45,6 +45,6 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
   };
 }
 
-export function makeSessionNominationFiles(ids: readonly string[]): SessionNominationFile[] {
+export function makeSessionNominationFileList(ids: readonly string[]): SessionNominationFile[] {
   return ids.map((id) => makeSessionNominationFile({ id }));
 }

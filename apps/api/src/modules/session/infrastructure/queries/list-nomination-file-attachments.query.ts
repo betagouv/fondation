@@ -16,7 +16,7 @@ export class ListNominationFileAttachmentsQuery {
       where: { id: query.nominationFileId, sessionId: query.sessionId },
       select: {
         attachments: {
-          select: { file: { select: { id: true, name: true, size: true } } },
+          select: { file: { select: { id: true, name: true, sizeInBytes: true } } },
           orderBy: { file: { createdAt: 'desc' } },
         },
       },
@@ -27,7 +27,7 @@ export class ListNominationFileAttachmentsQuery {
       items: nominationFile.attachments.map(({ file }) => ({
         id: file.id,
         name: file.name,
-        size: file.size,
+        size: file.sizeInBytes,
       })),
     };
   }

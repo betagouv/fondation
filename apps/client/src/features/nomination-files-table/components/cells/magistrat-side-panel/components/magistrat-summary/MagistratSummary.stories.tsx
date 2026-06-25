@@ -66,7 +66,7 @@ function makeSummaryDetail(props: {
       attachments: [],
       author: null,
       content:
-        '<p>Magistrate au parcours confirmé, dont la candidature est portée par une expérience solide en juridiction.</p>',
+        '<p>Magistrate au parcours confirmé dont la candidature est portée par une expérience solide en juridiction</p>',
       readers: [],
       screenshots: [],
       updatedAt: '2026-03-12',

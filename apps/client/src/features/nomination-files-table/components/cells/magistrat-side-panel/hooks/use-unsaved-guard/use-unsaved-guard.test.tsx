@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { useMagistratPanel, type MagistratPanelContextValue } from '../../context/magistrat-panel.context';
 import { MagistratPanelProvider } from '../../context/MagistratPanelProvider';
-import { makeSessionNominationFiles } from '@/test-utils/factories/session-nomination-file.factory';
+import { makeSessionNominationFileList } from '@/test-utils/factories/session-nomination-file.factory';
 
 import { useUnsavedGuard } from './use-unsaved-guard.hook';
 
@@ -23,7 +23,7 @@ function setup() {
   const ui = (isDirty: boolean) => (
     <MagistratPanelProvider
       isFetching={false}
-      nominationFiles={makeSessionNominationFiles(['a', 'b'])}
+      nominationFiles={makeSessionNominationFileList(['a', 'b'])}
       onPageChange={vi.fn()}
       pagination={{ pageIndex: 0, pageSize: 2 }}
       totalCount={2}
@@ -57,11 +57,11 @@ describe('useUnsavedGuard', () => {
     act(() => t.panel().open('a'));
     t.setDirty(true);
 
-    expect(t.showWarning()).toBe(false); // not warned until a leave is attempted
+    expect(t.showWarning()).toBe(false);
 
     act(() => t.panel().next());
 
-    expect(t.panel().activeFile?.id).toBe('a'); // navigation blocked
+    expect(t.panel().activeFile?.id).toBe('a');
     expect(t.panel().isLeaveBlocked).toBe(true);
     expect(t.showWarning()).toBe(true);
   });
@@ -74,7 +74,7 @@ describe('useUnsavedGuard', () => {
 
     expect(t.panel().isLeaveBlocked).toBe(true);
 
-    t.setDirty(false); // e.g. saved or cancelled
+    t.setDirty(false);
 
     expect(t.showWarning()).toBe(false);
     expect(t.panel().isLeaveBlocked).toBe(false);
@@ -96,7 +96,7 @@ describe('useUnsavedGuard', () => {
     const ui = (mounted: boolean) => (
       <MagistratPanelProvider
         isFetching={false}
-        nominationFiles={makeSessionNominationFiles(['a', 'b'])}
+        nominationFiles={makeSessionNominationFileList(['a', 'b'])}
         onPageChange={vi.fn()}
         pagination={{ pageIndex: 0, pageSize: 2 }}
         totalCount={2}
@@ -108,14 +108,14 @@ describe('useUnsavedGuard', () => {
     const view = render(ui(false));
     const panel = () => panelRef.current!;
 
-    act(() => panel().open('a')); // opens before the editing section mounts
-    view.rerender(ui(true)); // the dirty editing section is now in the tree
+    act(() => panel().open('a'));
+    view.rerender(ui(true));
 
     act(() => panel().next());
-    expect(panel().activeFile?.id).toBe('a'); // blocked by the dirty guard
+    expect(panel().activeFile?.id).toBe('a');
     expect(panel().isLeaveBlocked).toBe(true);
 
-    view.rerender(ui(false)); // the editing section leaves the tree
+    view.rerender(ui(false));
 
     expect(panel().isLeaveBlocked).toBe(false);
     act(() => panel().next());

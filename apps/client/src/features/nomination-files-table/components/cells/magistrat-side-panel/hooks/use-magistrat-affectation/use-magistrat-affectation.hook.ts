@@ -41,8 +41,8 @@ export function useMagistratAffectation(props: {
     return reporterIds.map((id) => byId.get(id)).filter((reporter) => !!reporter);
   }, [availableRapporteurs, reporterIds]);
 
-  const prioritiesDirty = !sameValues(priorities, nominationFile.priorities);
-  const reportersDirty = !sameValues(
+  const prioritiesDirty = !sameValuesIgnoringOrder(priorities, nominationFile.priorities);
+  const reportersDirty = !sameValuesIgnoringOrder(
     reporterIds,
     nominationFile.reporters.map((reporter) => reporter.id),
   );
@@ -72,7 +72,7 @@ export function useMagistratAffectation(props: {
   };
 }
 
-export function sameValues(a: readonly string[], b: readonly string[]): boolean {
+export function sameValuesIgnoringOrder(a: readonly string[], b: readonly string[]): boolean {
   if (a.length !== b.length) return false;
   const set = new Set(a);
   return b.every((value) => set.has(value));
