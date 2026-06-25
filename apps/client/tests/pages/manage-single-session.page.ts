@@ -11,7 +11,7 @@ class ObservationModal {
   }
 
   get dialog(): Locator {
-    return this.page.getByRole('dialog');
+    return this.page.locator('#modal-observations');
   }
 
   get inputDate(): Locator {
@@ -76,14 +76,14 @@ class ObservationModal {
   }
 }
 
-class MagistratDetailsModal {
+class MagistratSidePanel {
   private readonly page: Page;
   constructor(app: TestApp) {
     this.page = app.page;
   }
 
   get dialog(): Locator {
-    return this.page.getByRole('dialog');
+    return this.page.locator('#magistrat-panel');
   }
 
   private get fileInput(): Locator {
@@ -91,7 +91,7 @@ class MagistratDetailsModal {
   }
 
   attachment(name: string): Locator {
-    return this.dialog.getByRole('button', { name, exact: true });
+    return this.dialog.getByTitle(name, { exact: true });
   }
 
   private deleteButton(name: string): Locator {
@@ -114,13 +114,13 @@ class MagistratDetailsModal {
 export class ManageSingleSessionPage {
   constructor(private readonly app: TestApp) {}
 
-  async openMagistratDetails(name: string): Promise<MagistratDetailsModal> {
-    const modal = new MagistratDetailsModal(this.app);
+  async openMagistratDetails(name: string): Promise<MagistratSidePanel> {
+    const panel = new MagistratSidePanel(this.app);
 
     await this.app.page.getByRole('button', { name }).first().click();
-    await modal.dialog.waitFor({ state: 'visible' });
+    await panel.dialog.waitFor({ state: 'visible' });
 
-    return modal;
+    return panel;
   }
 
   waitFor(sessionName: string): Promise<void> {

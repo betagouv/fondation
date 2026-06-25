@@ -20,10 +20,11 @@ import {
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
-import { MagistratModaleProvider } from './cells/magistrat-details/MagistratDnModale';
+import { MagistratPanel } from './cells/magistrat-side-panel/components/MagistratPanel';
+import { MagistratPanelProvider } from './cells/magistrat-side-panel/context/MagistratPanelProvider';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationFollowUpReminderProvider } from './cells/observation-follow-up/ObservationFollowUpReminderProvider';
-import { ObservationsModalProvider } from './cells/observations/ObservationsModalProvider';
+import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 import { NominationFilesTableActionsBar } from './NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';
@@ -48,7 +49,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     }
   }, [tableState, setTableState, edition]);
 
-  const { data, isLoading } = useSessionNominationFilesQuery({
+  const { data, isLoading, isFetching } = useSessionNominationFilesQuery({
     sessionId,
     sorting: tableState.sorting,
     pagination: tableState.pagination,
@@ -61,6 +62,11 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     },
   });
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
+  const onPageChange = React.useCallback(
+    (pageIndex: number) =>
+      setTableState((state) => ({ ...state, pagination: { ...state.pagination, pageIndex } })),
+    [setTableState],
+  );
   const enableRowSelection = React.useMemo(
     () => !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable),
     [edition],
@@ -87,11 +93,18 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
 
   return (
     <ObservationsModalProvider>
-      <MagistratModaleProvider nominationFiles={nominationFiles} sessionId={sessionId}>
+      <MagistratPanelProvider
+        isFetching={isFetching}
+        nominationFiles={nominationFiles}
+        onPageChange={onPageChange}
+        pagination={tableState.pagination}
+        totalCount={data?.totalCount ?? 0}
+      >
         <NominationFileOutcomeCommentModalProvider formation={formation}>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
             <ObservationFollowUpCommentProvider>
               <ObservationFollowUpReminderProvider>
+                <MagistratPanel sessionId={sessionId} />
                 <FilesSelectionProvider selection={tableState.rowSelection}>
                   <FilesAffectationsProvider files={nominationFiles}>
                     <AlertsProvider>
@@ -131,7 +144,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
             </ObservationFollowUpCommentProvider>
           </NominationFileTargetPositionProvider>
         </NominationFileOutcomeCommentModalProvider>
-      </MagistratModaleProvider>
+      </MagistratPanelProvider>
     </ObservationsModalProvider>
   );
 }

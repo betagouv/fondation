@@ -5,7 +5,7 @@ import { useNominationFilesTable } from '@/features/nomination-files-table/conte
 import { ObservationLinks } from '@/features/observations/components/ObservationLinks';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { useObservationsModal } from './ObservationsModalContext';
+import { useObservationsModal } from './context/ObservationsModalContext';
 
 export function ObservantsCell({ nominationFile }: { nominationFile: SessionNominationFile }) {
   const isSg = useIsSgNavigation();

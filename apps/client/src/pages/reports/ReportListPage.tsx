@@ -13,7 +13,7 @@ import { ReportsDnVueGenerale } from '@/features/reports/components/ReportsDnVue
 import { ReportStateTag } from '@/features/reports/components/ReportStateTag';
 import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
 import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
-import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
 import { useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import {

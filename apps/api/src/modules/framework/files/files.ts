@@ -259,6 +259,7 @@ export class Files implements OnApplicationBootstrap {
         path: file.path.split('/'),
         id: file.meta?.id ?? makeId('FileId'),
         bucket: this.bucketName,
+        sizeInBytes: file.size ?? null,
       }));
 
       await this.prisma.file.createMany({ data: toCreate });
@@ -396,7 +397,10 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async getFileContent(fileUrlId: string): Promise<{ file: StreamableFile; expiresAt: Date }> {
+  async getFileContent(
+    fileUrlId: string,
+    options?: { download?: boolean },
+  ): Promise<{ file: StreamableFile; expiresAt: Date }> {
     const file = await this.prisma.filePublicUrl.findUnique({
       where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
       select: { url: true, expiresAt: true, file: { select: { name: true } } },
@@ -426,7 +430,7 @@ export class Files implements OnApplicationBootstrap {
       expiresAt: file.expiresAt,
       file: new StreamableFile(response.data, {
         type: filenameToMimeType(file.file.name),
-        disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
+        disposition: `${options?.download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(file.file.name)}"`,
       }),
     };
   }
