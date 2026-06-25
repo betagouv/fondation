@@ -484,6 +484,7 @@ export type ListedNominationFileAttachmentDto = {
     items: Array<{
         id: string;
         name: string;
+        size: number | null;
     }>;
 };
 
