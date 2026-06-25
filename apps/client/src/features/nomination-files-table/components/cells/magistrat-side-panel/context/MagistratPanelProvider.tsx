@@ -28,6 +28,7 @@ export function MagistratPanelProvider(
     };
   }, []);
   const canLeave = useCallback(() => {
+    // call every guard so each edited section surfaces its own warning
     let allowed = true;
     for (const guard of leaveGuardsRef.current) if (!guard()) allowed = false;
     return allowed;
