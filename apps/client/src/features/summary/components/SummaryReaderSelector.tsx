@@ -20,9 +20,10 @@ const summaryReadersModal = createModal({
 
 export function SummaryReaderSelector(
   props: {
-    priority?: React.ComponentProps<typeof Button>['priority'];
     iconId?: React.ComponentProps<typeof Button>['iconId'];
-    className?: string;
+    priority?: React.ComponentProps<typeof Button>['priority'];
+    rounded?: boolean;
+    size?: React.ComponentProps<typeof Button>['size'];
     withCount?: boolean;
   } = {},
 ) {
@@ -32,21 +33,32 @@ export function SummaryReaderSelector(
 
   const readersCount = summary.summary.readers.length;
   const withCount = props.withCount ?? true;
+  const rounded = props.rounded ?? true;
+  const iconId =
+    props.iconId ??
+    (withCount ? (readersCount > 0 ? 'fr-icon-group-fill' : 'fr-icon-admin-fill') : undefined);
 
-  const button = (
-    <Button
-      {...summaryReadersModal.buttonProps}
-      className={props.className ?? 'rounded-full'}
-      disabled={summary.isArchived}
-      iconId={props.iconId ?? (readersCount > 0 ? 'fr-icon-group-fill' : 'fr-icon-admin-fill')}
-      priority={props.priority}
-    >
-      {withCount && readersCount > 0 ? (
-        <FormattedMessage defaultMessage="Partager ({count})" values={{ count: readersCount }} />
-      ) : (
-        <FormattedMessage defaultMessage="Partager" />
-      )}
+  const label =
+    withCount && readersCount > 0 ? (
+      <FormattedMessage defaultMessage="Partager ({count})" values={{ count: readersCount }} />
+    ) : (
+      <FormattedMessage defaultMessage="Partager" />
+    );
+
+  const commonProps = {
+    ...summaryReadersModal.buttonProps,
+    className: rounded ? 'rounded-full' : undefined,
+    disabled: summary.isArchived,
+    priority: props.priority,
+    size: props.size,
+  };
+
+  const button = iconId ? (
+    <Button {...commonProps} iconId={iconId}>
+      {label}
     </Button>
+  ) : (
+    <Button {...commonProps}>{label}</Button>
   );
 
   return (
@@ -115,6 +127,18 @@ function SummaryReaderModal() {
     },
   });
 
+  const [shouldRender, setShouldRender] = React.useState(isOpen);
+  React.useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      return;
+    }
+    // Keep the content mounted until the DSFR close animation ends, to avoid a flash while it fades out.
+    const closeAnimationMs = 300;
+    const timeout = setTimeout(() => setShouldRender(false), closeAnimationMs);
+    return () => clearTimeout(timeout);
+  }, [isOpen]);
+
   return (
     <summaryReadersModal.Component
       title={intl.formatMessage({ defaultMessage: 'Partager cette synthèse' })}
@@ -136,7 +160,7 @@ function SummaryReaderModal() {
         },
       ]}
     >
-      {isOpen ? <SummaryReaderAutocomplete readers={originalReaderIds} onChange={onChange} /> : null}
+      {shouldRender ? <SummaryReaderAutocomplete readers={originalReaderIds} onChange={onChange} /> : null}
     </summaryReadersModal.Component>
   );
 }
@@ -168,7 +192,12 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
     [selectedReaderIds, setReaderIds, props],
   );
 
-  const { data: readers } = useSearchSummaryReadersQuery({
+  const {
+    data: readers,
+    isLoading,
+    isError,
+    refetch,
+  } = useSearchSummaryReadersQuery({
     sessionId,
     nominationFileId,
     includeIds,
@@ -227,14 +256,31 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         )}
       </div>
 
-      <Checkbox
-        id="summary_reader_list"
-        className="fr-mt-4v fr-pb-24v max-h-60 overflow-auto"
-        options={checkboxOptions.map(({ label, value, checked }) => ({
-          label,
-          nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },
-        }))}
-      />
+      {isError ? (
+        <div className="fr-mt-4v flex flex-col items-start gap-2 text-sm text-(--text-default-error)">
+          <FormattedMessage defaultMessage="Impossible de charger la liste des lecteurs." />
+          <Button priority="secondary" size="small" onClick={() => refetch()}>
+            <FormattedMessage defaultMessage="Réessayer" />
+          </Button>
+        </div>
+      ) : isLoading ? (
+        <div className="fr-mt-4v text-sm text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Chargement…" />
+        </div>
+      ) : checkboxOptions.length === 0 ? (
+        <div className="fr-mt-4v text-sm text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Aucun lecteur trouvé." />
+        </div>
+      ) : (
+        <Checkbox
+          id="summary_reader_list"
+          className="fr-mt-4v fr-pb-24v max-h-60 overflow-auto"
+          options={checkboxOptions.map(({ label, value, checked }) => ({
+            label,
+            nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },
+          }))}
+        />
+      )}
     </div>
   );
 }

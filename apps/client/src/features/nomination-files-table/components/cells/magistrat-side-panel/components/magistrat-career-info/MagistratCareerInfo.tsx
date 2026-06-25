@@ -6,7 +6,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 function positionWithGrade(position: string | null, grade: string | null) {
   if (!position) return grade ?? '';
-  return grade ? `${position} (${grade})` : position;
+  return grade ? `${grade} - ${position}` : position;
 }
 
 export function MagistratCareerInfo(props: { content: SessionNominationFile['content'] }) {

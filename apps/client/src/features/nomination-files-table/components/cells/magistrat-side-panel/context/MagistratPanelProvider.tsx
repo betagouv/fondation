@@ -20,11 +20,27 @@ export function MagistratPanelProvider(
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingEdge | null>(null);
 
-  const leaveGuardRef = useRef<MagistratPanelLeaveGuard | null>(null);
-  const registerLeaveGuard = useCallback((guard: MagistratPanelLeaveGuard | null) => {
-    leaveGuardRef.current = guard;
+  const leaveGuardsRef = useRef(new Set<MagistratPanelLeaveGuard>());
+  const registerLeaveGuard = useCallback((guard: MagistratPanelLeaveGuard) => {
+    leaveGuardsRef.current.add(guard);
+    return () => {
+      leaveGuardsRef.current.delete(guard);
+    };
   }, []);
-  const canLeave = useCallback(() => (leaveGuardRef.current ? leaveGuardRef.current() : true), []);
+  const canLeave = useCallback(() => {
+    let allowed = true;
+    for (const guard of leaveGuardsRef.current) if (!guard()) allowed = false;
+    return allowed;
+  }, []);
+
+  const [blockedKeys, setBlockedKeys] = useState<readonly string[]>([]);
+  const setLeaveBlocked = useCallback((key: string, blocked: boolean) => {
+    setBlockedKeys((keys) => {
+      if (blocked === keys.includes(key)) return keys;
+      return blocked ? [...keys, key] : keys.filter((current) => current !== key);
+    });
+  }, []);
+  const isLeaveBlocked = blockedKeys.length > 0;
 
   const localIndex = activeId ? nominationFiles.findIndex((file) => file.id === activeId) : -1;
   const globalIndex = localIndex === -1 ? -1 : pagination.pageIndex * pagination.pageSize + localIndex;
@@ -88,17 +104,20 @@ export function MagistratPanelProvider(
       close,
       hasNext,
       hasPrevious,
+      isLeaveBlocked,
       isOpen: localIndex !== -1 || pending !== null,
       next,
       open,
       previous,
       registerLeaveGuard,
+      setLeaveBlocked,
     }),
     [
       activeId,
       close,
       hasNext,
       hasPrevious,
+      isLeaveBlocked,
       localIndex,
       next,
       nominationFiles,
@@ -106,6 +125,7 @@ export function MagistratPanelProvider(
       pending,
       previous,
       registerLeaveGuard,
+      setLeaveBlocked,
     ],
   );
 

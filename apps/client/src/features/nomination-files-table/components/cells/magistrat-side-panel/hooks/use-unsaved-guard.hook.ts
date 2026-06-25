@@ -14,7 +14,6 @@ export function useUnsavedGuard(isDirty: boolean, onBlocked: () => void) {
 
   useEffect(() => {
     if (!panel) return;
-    panel.registerLeaveGuard(() => guardRef.current());
-    return () => panel.registerLeaveGuard(null);
+    return panel.registerLeaveGuard(() => guardRef.current());
   }, [panel]);
 }

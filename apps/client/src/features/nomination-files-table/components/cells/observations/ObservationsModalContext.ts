@@ -2,12 +2,12 @@ import { createContext, useContext } from 'react';
 
 import { type Observation } from '@queries/observations.queries';
 
-type ActiveFile = { sessionId: string; id: string; name: string };
-type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
+export type ActiveFile = { sessionId: string; id: string; name: string };
 
 type ObservationsModalContextType = {
-  open: (file: ActiveFile, mode?: ModalMode) => void;
-  requestDelete: (observation: Observation) => void;
+  open: (file: ActiveFile, mode?: 'view' | 'create') => void;
+  edit: (observation: Observation, file?: ActiveFile) => void;
+  requestDelete: (observation: Observation, file?: ActiveFile) => void;
 };
 
 /** @internal */

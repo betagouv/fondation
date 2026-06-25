@@ -1,9 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { useId, useState } from 'react';
+import { useContext, useEffect, useId, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router';
 
+import { MagistratPanelContext } from '../../context/magistrat-panel.context';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard.hook';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
@@ -100,6 +101,14 @@ function SgCommentEdit(props: {
   };
 
   const warn = showWarning && isDirty;
+
+  const panel = useContext(MagistratPanelContext);
+  useEffect(() => {
+    if (!panel) return;
+    panel.setLeaveBlocked('sg-comment', warn);
+    return () => panel.setLeaveBlocked('sg-comment', false);
+  }, [panel, warn]);
+
   const errorMessage = hasError
     ? formatMessage({ defaultMessage: "Échec de l'enregistrement. Réessayez." })
     : warn
@@ -116,7 +125,7 @@ function SgCommentEdit(props: {
         nativeTextAreaProps={{
           onChange: (e) => change(e.target.value),
           placeholder: formatMessage({ defaultMessage: 'Saisissez un commentaire…' }),
-          rows: 6,
+          rows: 4,
           value: comment,
         }}
         state={hasError || warn ? 'error' : 'default'}

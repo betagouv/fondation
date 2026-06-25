@@ -1,0 +1,128 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { QueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+
+import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { authKeys } from '@queries/auth.queries';
+import { memberKeys } from '@queries/members.queries';
+
+import { MagistratHeader } from './MagistratHeader';
+
+const SESSION_ID = 'session-1';
+const CURRENT_USER_ID = 'current-user';
+
+const priorities = Object.values(PrioriteEnum);
+
+const REPORTER_SCENARIOS = ['none', 'others', 'you'] as const;
+type ReporterScenario = (typeof REPORTER_SCENARIOS)[number];
+
+const OTHER_REPORTERS = [
+  { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevre' },
+  { id: 'reporter-2', firstName: 'Paul', lastName: 'Moreau' },
+];
+
+const AVAILABLE_MEMBERS = [
+  { id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' },
+  ...OTHER_REPORTERS,
+  { id: 'reporter-3', firstName: 'Sophie', lastName: 'Bernard' },
+];
+
+function reportersFor(scenario: ReporterScenario) {
+  if (scenario === 'none') return [];
+  if (scenario === 'you')
+    return [{ id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' }, OTHER_REPORTERS[0]];
+  return OTHER_REPORTERS;
+}
+
+function seedQueries(client: QueryClient) {
+  client.setQueryData(authKeys.introspectSession(), {
+    id: CURRENT_USER_ID,
+    civility: 'Monsieur PETIT',
+    firstName: 'Jean',
+    isImpersonated: false,
+    lastName: 'Petit',
+    role: 'MEMBRE_DU_SIEGE',
+  });
+
+  const memberListOptions = {
+    formations: ['COMMUN', FormationEnum.SIEGE],
+    pagination: { pageIndex: 0, pageSize: 100 },
+  };
+  client.setQueryData(memberKeys.listMembers(memberListOptions), { items: AVAILABLE_MEMBERS });
+}
+
+const VIEWS = ['sg', 'sgArchived', 'member'] as const;
+type View = (typeof VIEWS)[number];
+
+function MagistratHeaderStory(props: {
+  nomMagistrat: string;
+  priorities: PrioriteEnum[];
+  reporters: ReporterScenario;
+  view: View;
+}) {
+  const isSg = props.view !== 'member';
+  const isEditable = props.view === 'sg';
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate(isSg ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
+  }, [isSg, navigate]);
+
+  const nominationFile = makeSessionNominationFile({
+    content: { nomMagistrat: props.nomMagistrat },
+    priorities: props.priorities,
+    reporters: reportersFor(props.reporters),
+  });
+
+  return (
+    <StoryQueryClient seed={seedQueries}>
+      <NominationFilesTableProvider
+        formation={FormationEnum.SIEGE}
+        isEditable={isEditable}
+        sessionId={SESSION_ID}
+      >
+        <MagistratHeader nominationFile={nominationFile} sessionId={SESSION_ID} />
+      </NominationFilesTableProvider>
+    </StoryQueryClient>
+  );
+}
+
+const meta = {
+  title: 'Features/Magistrat/MagistratHeader',
+  component: MagistratHeaderStory,
+  parameters: { layout: 'padded' },
+  tags: ['autodocs'],
+  argTypes: {
+    nomMagistrat: { control: 'text' },
+    priorities: { control: 'check', options: priorities },
+    reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
+    view: { control: 'inline-radio', options: VIEWS },
+  },
+  args: {
+    nomMagistrat: 'Camille DURAND',
+    priorities: [PrioriteEnum.ETOILE],
+    reporters: 'you',
+    view: 'sg',
+  },
+} satisfies Meta<typeof MagistratHeaderStory>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Playground: Story = {};
+
+export const SecretaireGeneral: Story = {
+  args: { priorities: [PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER], reporters: 'others', view: 'sg' },
+  argTypes: { view: { control: false } },
+};
+
+export const Membre: Story = {
+  args: { priorities: [], reporters: 'you', view: 'member' },
+  argTypes: { view: { control: false } },
+};

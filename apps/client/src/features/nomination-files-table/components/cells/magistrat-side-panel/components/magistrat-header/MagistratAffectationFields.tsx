@@ -3,7 +3,7 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
 import { DropdownMenu } from '@/shared/ui/DropdownMenu';
 import { PrioriteEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';

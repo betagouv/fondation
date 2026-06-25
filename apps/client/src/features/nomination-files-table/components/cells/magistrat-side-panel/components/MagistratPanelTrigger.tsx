@@ -13,7 +13,7 @@ export function MagistratPanelTrigger(props: { nominationFile: SessionNomination
 
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (isActive) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (isActive) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [isActive]);
 
   const annotations: string[] = [];

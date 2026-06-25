@@ -86,14 +86,7 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
       }}
     >
       <SummarySection
-        action={
-          <SummaryReaderSelector
-            className=""
-            iconId="fr-icon-lock-line"
-            priority="secondary"
-            withCount={false}
-          />
-        }
+        action={<SummaryReaderSelector priority="secondary" rounded={false} size="small" withCount={false} />}
       >
         <SummaryPreviewCard
           content={data.summary.content}
@@ -110,9 +103,9 @@ function SummarySection(props: { action?: React.ReactNode; children: React.React
   return (
     <div>
       <div className="fr-mb-4v flex items-center justify-between gap-2">
-        <h2 className="fr-mb-0 text-xl font-semibold">
+        <h3 className="fr-mb-0 text-xl font-semibold">
           <FormattedMessage defaultMessage="Synthèse" />
-        </h2>
+        </h3>
         {props.action}
       </div>
       {props.children}
@@ -144,7 +137,7 @@ function SummaryPreviewCard(props: {
 
   return (
     <Card
-      desc={excerpt ? <span className="line-clamp-2">{excerpt}</span> : undefined}
+      desc={excerpt ? <span className="line-clamp-2 text-base">{excerpt}</span> : undefined}
       enlargeLink
       linkProps={{ to: props.link }}
       size="small"

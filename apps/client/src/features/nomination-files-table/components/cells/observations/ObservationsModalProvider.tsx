@@ -5,235 +5,255 @@ import {
   useContext,
   useLayoutEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
   type FC,
   type PropsWithChildren,
 } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
 
 import { ObservationForm } from './ObservationForm';
 import { ObservationsList } from './ObservationsList';
-import { ObservationsModalContext } from './ObservationsModalContext';
+import { ObservationsModalContext, type ActiveFile } from './ObservationsModalContext';
 
-type ActiveFile = { sessionId: string; id: string; name: string };
-type ModalMode = 'view' | 'create' | 'edit' | 'confirm-delete';
+type ModalState =
+  | { status: 'closed' }
+  | { status: 'view'; file: ActiveFile }
+  | { status: 'create'; file: ActiveFile; standalone: boolean }
+  | { status: 'edit'; file: ActiveFile; observation: Observation; standalone: boolean }
+  | { status: 'confirm-delete'; file: ActiveFile; observation: Observation; standalone: boolean };
+
+type ModalAction =
+  | { type: 'open'; file: ActiveFile; mode: 'view' | 'create' }
+  | { type: 'goCreate' }
+  | { type: 'edit'; observation: Observation; file?: ActiveFile }
+  | { type: 'requestDelete'; observation: Observation; file?: ActiveFile }
+  | { type: 'exit' }
+  | { type: 'conceal' };
+
+// A standalone action was opened directly bypassing the list: leaving it closes the modal
+const leave = (state: ModalState): ModalState =>
+  'standalone' in state && !state.standalone ? { status: 'view', file: state.file } : { status: 'closed' };
+
+function modalReducer(state: ModalState, action: ModalAction): ModalState {
+  switch (action.type) {
+    case 'open':
+      return action.mode === 'create'
+        ? { status: 'create', file: action.file, standalone: true }
+        : { status: 'view', file: action.file };
+    case 'goCreate':
+      return 'file' in state ? { status: 'create', file: state.file, standalone: false } : state;
+    case 'edit': {
+      const file = action.file ?? ('file' in state ? state.file : null);
+      if (!file) return state;
+      return { status: 'edit', file, observation: action.observation, standalone: Boolean(action.file) };
+    }
+    case 'requestDelete': {
+      const file = action.file ?? ('file' in state ? state.file : null);
+      if (!file) return state;
+      return {
+        status: 'confirm-delete',
+        file,
+        observation: action.observation,
+        standalone: Boolean(action.file),
+      };
+    }
+    case 'exit':
+      return leave(state);
+    case 'conceal':
+      return { status: 'closed' };
+  }
+}
 
 const modalObservations = createModal({
   id: 'modal-observations',
   isOpenedByDefault: false,
 });
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-};
-
 export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [activeFile, setActiveFile] = useState<ActiveFile | null>(null);
-  const [modalMode, setModalMode] = useState<ModalMode>('view');
-  const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
-  const [deletingObservation, setDeletingObservation] = useState<Observation | null>(null);
+  const intl = useIntl();
+  const [state, dispatch] = useReducer(modalReducer, { status: 'closed' });
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const [isPending, setIsPending] = useState<boolean>(false);
   const { mutate: deleteObservation, isPending: isDeleting } = useDeleteObservationMutation();
 
   const isOpen = useIsModalOpen(modalObservations, {
-    onConceal() {
-      setModalMode('view');
-      setEditingObservation(null);
-      setDeletingObservation(null);
-      setActiveFile(null);
-    },
+    onConceal: () => dispatch({ type: 'conceal' }),
   });
 
+  const shouldBeOpen = state.status !== 'closed';
   useLayoutEffect(() => {
-    if (activeFile && !isOpen) {
+    if (shouldBeOpen && !isOpen) {
       // Bug in @codegouvfr/react-dsfr implementation for the modal
       const modalExists = Boolean(
         // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         modalRef.current && (window as any).dsfr(modalRef.current)?.modal,
       );
-      if (modalExists) {
-        modalObservations.open();
-      }
+      if (modalExists) modalObservations.open();
+    } else if (!shouldBeOpen && isOpen) {
+      modalObservations.close();
     }
-  }, [activeFile, isOpen]);
-
-  const open = (file: { sessionId: string; id: string; name: string }, mode: ModalMode = 'view') => {
-    setModalMode(mode);
-    setActiveFile(file);
-  };
-
-  const handleEdit = (observation: Observation) => {
-    setEditingObservation(observation);
-    setModalMode('edit');
-  };
-
-  const handleBackToView = () => {
-    setModalMode('view');
-    setEditingObservation(null);
-  };
-
-  const handleSuccess = () => {
-    setModalMode('view');
-    setEditingObservation(null);
-  };
-
-  const requestDelete = (observation: Observation) => {
-    setDeletingObservation(observation);
-    setModalMode('confirm-delete');
-  };
+  }, [shouldBeOpen, isOpen]);
 
   const handleConfirmDelete = () => {
-    if (!deletingObservation || !activeFile) return;
+    if (state.status !== 'confirm-delete') return;
+    const { file, observation } = state;
     deleteObservation(
-      {
-        sessionId: activeFile.sessionId,
-        nominationFileId: activeFile.id,
-        observationId: deletingObservation.id,
-      },
-      {
-        onSuccess: () => {
-          setDeletingObservation(null);
-          setModalMode('view');
-        },
-      },
+      { sessionId: file.sessionId, nominationFileId: file.id, observationId: observation.id },
+      { onSuccess: () => dispatch({ type: 'exit' }) },
     );
   };
 
-  const handleCancelDelete = () => {
-    setDeletingObservation(null);
-    setModalMode('view');
-  };
+  const title = (() => {
+    switch (state.status) {
+      case 'closed':
+        return '';
+      case 'view':
+        return intl.formatMessage({ defaultMessage: 'Observations - {name}' }, { name: state.file.name });
+      case 'create':
+        return intl.formatMessage(
+          { defaultMessage: 'Nouvelle observation - {name}' },
+          { name: state.file.name },
+        );
+      case 'confirm-delete':
+        return intl.formatMessage({ defaultMessage: "Supprimer l'observation" });
+      case 'edit':
+        return intl.formatMessage(
+          { defaultMessage: "Éditer l'observation - {name}" },
+          { name: state.file.name },
+        );
+    }
+  })();
 
-  const title = useMemo(() => {
-    if (!activeFile) return '';
-    if (modalMode === 'view') return `Observations - ${activeFile.name}`;
-    if (modalMode === 'create') return `Nouvelle observation - ${activeFile.name}`;
-    if (modalMode === 'confirm-delete') return "Supprimer l'observation";
-    return `Éditer l'observation - ${activeFile.name}`;
-  }, [modalMode, activeFile]);
+  const onPendingChange = useCallback((pending: boolean) => setIsPending(pending), []);
 
   const modalProps = { ref: modalRef };
 
-  const onPendingChange = useCallback(
-    (pending: boolean) => {
-      setIsPending(pending);
-    },
-    [setIsPending],
+  const value = useMemo(
+    () => ({
+      edit: (observation: Observation, file?: ActiveFile) => dispatch({ type: 'edit', observation, file }),
+      open: (file: ActiveFile, mode: 'view' | 'create' = 'view') => dispatch({ type: 'open', file, mode }),
+      requestDelete: (observation: Observation, file?: ActiveFile) =>
+        dispatch({ type: 'requestDelete', observation, file }),
+    }),
+    [],
   );
 
+  const mode = state.status === 'closed' ? 'view' : state.status;
+
   return (
-    <ObservationsModalContext value={{ open, requestDelete }}>
+    <ObservationsModalContext value={value}>
       {children}
 
       <modalObservations.Component
         {...modalProps}
-        title={title}
-        size="large"
-        concealingBackdrop={false}
         buttons={
-          modalMode === 'view'
+          mode === 'view'
             ? [
                 {
-                  children: 'Ajouter',
-                  priority: 'secondary' as const,
+                  children: intl.formatMessage({ defaultMessage: 'Ajouter' }),
                   disabled: isPending,
-                  onClick: () => setModalMode('create'),
                   doClosesModal: false,
+                  onClick: () => dispatch({ type: 'goCreate' }),
+                  priority: 'secondary' as const,
                 },
                 {
+                  children: intl.formatMessage({ defaultMessage: 'Fermer' }),
                   doClosesModal: true,
-                  children: 'Fermer',
                 },
               ]
-            : modalMode === 'create'
+            : mode === 'create'
               ? [
                   {
+                    children: intl.formatMessage({ defaultMessage: 'Annuler' }),
+                    disabled: isPending,
                     doClosesModal: true,
                     priority: 'secondary' as const,
-                    disabled: isPending,
-                    children: 'Annuler',
                   },
                   {
-                    doClosesModal: false,
-                    priority: 'primary' as const,
-                    children: 'Créer',
+                    children: intl.formatMessage({ defaultMessage: 'Créer' }),
                     disabled: isPending,
+                    doClosesModal: false,
                     nativeButtonProps: {
-                      type: 'submit',
                       form: 'observation-form',
+                      type: 'submit',
                     },
+                    priority: 'primary' as const,
                   },
                 ]
-              : modalMode === 'confirm-delete'
+              : mode === 'confirm-delete'
                 ? [
                     {
-                      doClosesModal: false,
-                      priority: 'secondary' as const,
-                      children: 'Annuler',
+                      children: intl.formatMessage({ defaultMessage: 'Annuler' }),
                       disabled: isPending,
-                      onClick: handleCancelDelete,
+                      doClosesModal: false,
+                      onClick: () => dispatch({ type: 'exit' }),
+                      priority: 'secondary' as const,
                     },
                     {
-                      doClosesModal: false,
-                      priority: 'primary' as const,
-                      children: 'Supprimer',
+                      children: intl.formatMessage({ defaultMessage: 'Supprimer' }),
                       disabled: isPending,
-                      onClick: handleConfirmDelete,
+                      doClosesModal: false,
                       nativeButtonProps: {
                         disabled: isDeleting,
                       },
+                      onClick: handleConfirmDelete,
+                      priority: 'primary' as const,
                     },
                   ]
                 : [
                     {
-                      doClosesModal: false,
-                      priority: 'secondary' as const,
-                      children: 'Retour',
+                      children: intl.formatMessage({ defaultMessage: 'Retour' }),
                       disabled: isPending,
-                      onClick: handleBackToView,
+                      doClosesModal: false,
+                      onClick: () => dispatch({ type: 'exit' }),
+                      priority: 'secondary' as const,
                     },
                     {
-                      doClosesModal: false,
-                      priority: 'primary' as const,
-                      children: 'Enregistrer',
+                      children: intl.formatMessage({ defaultMessage: 'Enregistrer' }),
                       disabled: isPending,
+                      doClosesModal: false,
                       nativeButtonProps: {
-                        type: 'submit',
                         form: 'observation-form',
+                        type: 'submit',
                       },
+                      priority: 'primary' as const,
                     },
                   ]
         }
+        concealingBackdrop={false}
+        size="large"
+        title={title}
       >
-        {activeFile &&
-          (modalMode === 'view' ? (
+        {state.status !== 'closed' &&
+          (state.status === 'view' ? (
             <ObservationsList
-              sessionId={activeFile.sessionId}
-              nominationFileId={activeFile.id}
-              onEdit={handleEdit}
-              onRequestDelete={requestDelete}
+              nominationFileId={state.file.id}
+              onEdit={(observation) => dispatch({ type: 'edit', observation })}
+              onRequestDelete={(observation) => dispatch({ type: 'requestDelete', observation })}
+              sessionId={state.file.sessionId}
             />
-          ) : modalMode === 'confirm-delete' && deletingObservation ? (
+          ) : state.status === 'confirm-delete' ? (
             <p>
-              Êtes-vous sûr de vouloir supprimer cette observation du{' '}
-              <strong>{formatDate(deletingObservation.dateReception)}</strong> ?
+              <FormattedMessage
+                defaultMessage="Êtes-vous sûr de vouloir supprimer cette observation du <b>{date, date, dateOnlyShort}</b> ?"
+                values={{
+                  b: (chunks) => <strong>{chunks}</strong>,
+                  date: new Date(state.observation.dateReception),
+                }}
+              />
             </p>
           ) : (
             <ObservationForm
-              sessionId={activeFile.sessionId}
-              nominationFileId={activeFile.id}
-              nominationFileName={activeFile.name}
-              observation={editingObservation ?? undefined}
+              nominationFileId={state.file.id}
+              nominationFileName={state.file.name}
+              observation={state.status === 'edit' ? state.observation : undefined}
               onPending={onPendingChange}
-              onSuccess={handleSuccess}
+              onSuccess={() => dispatch({ type: 'exit' })}
+              sessionId={state.file.sessionId}
             />
           ))}
       </modalObservations.Component>

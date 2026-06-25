@@ -12,11 +12,13 @@ export type MagistratPanelContextValue = {
   close: () => void;
   hasNext: boolean;
   hasPrevious: boolean;
+  isLeaveBlocked: boolean;
   isOpen: boolean;
   next: () => void;
   open: (id: string) => void;
   previous: () => void;
-  registerLeaveGuard: (guard: MagistratPanelLeaveGuard | null) => void;
+  registerLeaveGuard: (guard: MagistratPanelLeaveGuard) => () => void;
+  setLeaveBlocked: (key: string, blocked: boolean) => void;
 };
 
 export const MagistratPanelContext = createContext<MagistratPanelContextValue | null>(null);

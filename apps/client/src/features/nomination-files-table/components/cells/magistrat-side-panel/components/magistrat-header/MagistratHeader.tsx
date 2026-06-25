@@ -4,17 +4,19 @@ import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { MagistratPanelContext } from '../../context/magistrat-panel.context';
+import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation.hook';
+import { useUnsavedGuard } from '../../hooks/use-unsaved-guard.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/shared/components/priorities/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
 import { toFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { MagistratPrioritySelect, MagistratReporterSelect } from './MagistratAffectationFields';
-import { useMagistratAffectation } from './useMagistratAffectation';
 
 export function MagistratHeader(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
@@ -24,6 +26,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const { nomMagistrat, isUpdatable } = nominationFile.content;
 
   const [isEditing, setIsEditing] = React.useState(false);
+  const [showWarning, setShowWarning] = React.useState(false);
   React.useEffect(() => setIsEditing(false), [nominationFile.id]);
 
   const affectation = useMagistratAffectation({
@@ -32,6 +35,27 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
     onSaved: () => setIsEditing(false),
   });
 
+  const startEditing = () => {
+    setShowWarning(false);
+    setIsEditing(true);
+  };
+  const stopEditing = () => {
+    setShowWarning(false);
+    setIsEditing(false);
+  };
+
+  const prioritiesDirty = isEditing && affectation.prioritiesDirty;
+  const reportersDirty = isEditing && affectation.reportersDirty;
+  useUnsavedGuard(prioritiesDirty || reportersDirty, () => setShowWarning(true));
+
+  const panel = React.useContext(MagistratPanelContext);
+  const blocked = showWarning && (prioritiesDirty || reportersDirty);
+  React.useEffect(() => {
+    if (!panel) return;
+    panel.setLeaveBlocked('magistrat-header', blocked);
+    return () => panel.setLeaveBlocked('magistrat-header', false);
+  }, [panel, blocked]);
+
   const canEdit = isEditable && !!isUpdatable;
 
   const surfaceClassName = isSg
@@ -39,15 +63,18 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
     : 'bg-(--background-action-low-brown-cafe-creme)';
 
   return (
-    <div className={clsx('-mx-6 -mt-6 flex flex-col gap-6 p-8', surfaceClassName)}>
+    <div className={clsx('-mx-8 -mt-8 flex flex-col gap-6 p-8', surfaceClassName)}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-6">
           {isEditing ? (
-            <MagistratPrioritySelect
-              onChange={affectation.setPriorities}
-              surfaceClassName={surfaceClassName}
-              value={affectation.priorities}
-            />
+            <div className="flex flex-col gap-1">
+              <MagistratPrioritySelect
+                onChange={affectation.setPriorities}
+                surfaceClassName={surfaceClassName}
+                value={affectation.priorities}
+              />
+              {showWarning && prioritiesDirty && <UnsavedWarning />}
+            </div>
           ) : (
             <PriorityBadgeList priorities={nominationFile.priorities} />
           )}
@@ -66,7 +93,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
             <div className="flex items-center gap-2">
               <Button
                 disabled={affectation.isPending}
-                onClick={() => setIsEditing(false)}
+                onClick={stopEditing}
                 priority="secondary"
                 size="small"
               >
@@ -82,25 +109,39 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
               </Button>
             </div>
           ) : (
-            <Button onClick={() => setIsEditing(true)} priority="secondary" size="small">
+            <Button onClick={startEditing} priority="secondary" size="small">
               <FormattedMessage defaultMessage="Modifier" />
             </Button>
           ))}
       </div>
       {isEditing ? (
-        <div className="flex items-center gap-1">
-          <ReportersAlert dossier={nominationFile} selectedReportersCount={affectation.reporterIds.length} />
-          <MagistratReporterSelect
-            available={affectation.availableRapporteurs}
-            onChange={affectation.setReporterIds}
-            surfaceClassName={surfaceClassName}
-            value={affectation.reporterIds}
-          />
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <ReportersAlert
+              dossier={nominationFile}
+              selectedReportersCount={affectation.reporterIds.length}
+            />
+            <MagistratReporterSelect
+              available={affectation.availableRapporteurs}
+              onChange={affectation.setReporterIds}
+              surfaceClassName={surfaceClassName}
+              value={affectation.reporterIds}
+            />
+          </div>
+          {showWarning && reportersDirty && <UnsavedWarning />}
         </div>
       ) : (
         <ReporterStatus currentUserId={user?.id} reporters={nominationFile.reporters} />
       )}
     </div>
+  );
+}
+
+function UnsavedWarning() {
+  return (
+    <p className="fr-error-text mt-2" role="alert">
+      <FormattedMessage defaultMessage="Modifications non enregistrées. Cliquez sur Valider pour sauvegarder." />
+    </p>
   );
 }
 

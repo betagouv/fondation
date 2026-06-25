@@ -9,10 +9,19 @@ const meta = {
   component: SidePanel,
   parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
+  argTypes: {
+    ariaLabel: { control: false },
+    ariaLabelledBy: { control: false },
+    children: { control: 'text' },
+    header: { control: false },
+    id: { control: false },
+    onClose: { control: false },
+    open: { control: 'boolean' },
+  },
   args: {
     ariaLabel: 'Panneau de démonstration',
-    children: <p>Contenu du panneau latéral</p>,
-    header: <span className="text-xl font-semibold">Titre du panneau</span>,
+    children: 'Contenu du panneau latéral',
+    header: <span className="pl-4 text-xl font-semibold">Titre du panneau</span>,
     id: 'demo-side-panel',
     onClose: () => {},
     open: true,
@@ -23,7 +32,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Open: Story = {};
+export const Playground: Story = {};
 
 function SidePanelDemo(args: ComponentProps<typeof SidePanel>) {
   const [open, setOpen] = useState(false);

@@ -1,20 +1,13 @@
-import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import clsx from 'clsx';
 import React from 'react';
 
 import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
 
-const color = {
-  ETOILE: 'warning',
-  OUTRE_MER: 'new',
-  PROFILE: 'info',
-} as const satisfies Record<PrioriteEnum, AlertProps.Severity | 'new' | null>;
-
-const customColorClassName = {
-  ETOILE: '',
-  OUTRE_MER: 'bg-(--yellow-tournesol-950-100)! text-(--text-default-grey)!',
-  PROFILE: '',
+const colorClassName = {
+  ETOILE: 'bg-(--background-contrast-warning)! text-(--text-default-warning)!',
+  OUTRE_MER: 'bg-(--yellow-tournesol-950-100)! text-(--yellow-tournesol-sun-407-moon-922)!',
+  PROFILE: 'bg-(--background-contrast-info)! text-(--text-default-info)!',
 } as const satisfies Record<PrioriteEnum, string>;
 
 const acronyms = {
@@ -23,18 +16,14 @@ const acronyms = {
   PROFILE: 'P',
 } as const satisfies Record<PrioriteEnum, string>;
 
-function InternalPriorityBadge(props: { priority: PrioriteEnum; small?: false; acronym?: true }) {
+function InternalPriorityBadge(props: { acronym?: boolean; priority: PrioriteEnum; small?: boolean }) {
   const label = props.acronym ? acronyms[props.priority] : PrioriteEnumLabels[props.priority];
   return (
     <Badge
       as="span"
-      className={clsx(
-        customColorClassName[props.priority],
-        !props.acronym && 'h-6! min-w-25 justify-center gap-3',
-      )}
+      className={clsx(colorClassName[props.priority], !props.acronym && 'h-6!')}
       noIcon
-      severity={color[props.priority]}
-      small={props.small !== false}
+      small={props.small ?? true}
     >
       {label}
     </Badge>
@@ -44,9 +33,9 @@ function InternalPriorityBadge(props: { priority: PrioriteEnum; small?: false; a
 export const PriorityBadge = React.memo(InternalPriorityBadge);
 
 function InternalPriorityBadgeList(props: {
+  acronym?: boolean;
   priorities: readonly PrioriteEnum[];
-  small?: false;
-  acronym?: true;
+  small?: boolean;
 }) {
   const priorities = React.useMemo(() => Array.from(new Set(props.priorities)).sort(), [props.priorities]);
 
@@ -55,7 +44,7 @@ function InternalPriorityBadgeList(props: {
     <ul className="fr-m-0 fr-p-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1">
       {priorities.map((priority) => (
         <li className="fr-m-0 fr-p-0" key={priority}>
-          <PriorityBadge priority={priority} small={props.small} acronym={props.acronym} />
+          <PriorityBadge acronym={props.acronym} priority={priority} small={props.small} />
         </li>
       ))}
     </ul>

@@ -191,6 +191,8 @@ export const useSearchSummaryReadersQuery = (options: {
 }) =>
   useQuery({
     placeholderData: (prev) => prev,
+    retry: 1,
+    staleTime: 30_000,
     queryKey: summaryKeys.searchSummaryReaders(options),
     queryFn: async () => {
       const { sessionId, nominationFileId, search, includeIds } = options;

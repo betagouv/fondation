@@ -7,12 +7,13 @@ export function SidePanel(props: {
   ariaLabel?: string;
   ariaLabelledBy?: string;
   children: ReactNode;
+  disableClose?: boolean;
   header?: ReactNode;
   id?: string;
   onClose: () => void;
   open: boolean;
 }) {
-  const { ariaLabel, ariaLabelledBy, children, header, id, onClose, open } = props;
+  const { ariaLabel, ariaLabelledBy, children, disableClose, header, id, onClose, open } = props;
   const panelRef = useRef<HTMLElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -33,7 +34,7 @@ export function SidePanel(props: {
       const target = event.target instanceof Element ? event.target : null;
       if (!target) return;
       if (panelRef.current?.contains(target)) return;
-      if (target.closest('[role="dialog"]')) return;
+      if (target.closest('dialog, [role="dialog"], .fr-modal')) return;
       if (id && target.closest(`[aria-controls="${id}"]`)) return;
       onClose();
     }
@@ -79,6 +80,8 @@ export function SidePanel(props: {
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-(--border-default-grey) px-4 py-3">
         <div className="flex items-center gap-2">{header}</div>
         <Button
+          className="mr-4"
+          disabled={disableClose}
           iconId="fr-icon-close-line"
           iconPosition="right"
           onClick={onClose}
@@ -89,7 +92,7 @@ export function SidePanel(props: {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      <div className="flex-1 overflow-y-auto p-8">{children}</div>
     </aside>
   );
 }
