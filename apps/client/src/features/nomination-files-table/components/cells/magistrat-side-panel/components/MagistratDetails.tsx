@@ -22,11 +22,16 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
       <MagistratBiography historique={historique} />
       <MagistratObservations nominationFile={nominationFile} sessionId={sessionId} />
       <SgComment
-        id={`${nominationFile.id}-comment-input`}
+        key={`${nominationFile.id}-comment`}
         initialComment={nominationFile.comment}
         nominationFileId={nominationFile.id}
       />
-      <MemberMemo memo={nominationFile.memo} nominationFileId={nominationFile.id} sessionId={sessionId} />
+      <MemberMemo
+        key={`${nominationFile.id}-memo`}
+        memo={nominationFile.memo}
+        nominationFileId={nominationFile.id}
+        sessionId={sessionId}
+      />
       <MagistratAttachments
         isArchived={nominationFile.isArchived}
         nominationFileId={nominationFile.id}

@@ -4,9 +4,8 @@ import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { MagistratPanelContext } from '../../context/magistrat-panel.context';
-import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation.hook';
-import { useUnsavedGuard } from '../../hooks/use-unsaved-guard.hook';
+import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation/use-magistrat-affectation.hook';
+import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
@@ -26,8 +25,6 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const { nomMagistrat, isUpdatable } = nominationFile.content;
 
   const [isEditing, setIsEditing] = React.useState(false);
-  const [showWarning, setShowWarning] = React.useState(false);
-  React.useEffect(() => setIsEditing(false), [nominationFile.id]);
 
   const affectation = useMagistratAffectation({
     nominationFile,
@@ -35,26 +32,12 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
     onSaved: () => setIsEditing(false),
   });
 
-  const startEditing = () => {
-    setShowWarning(false);
-    setIsEditing(true);
-  };
-  const stopEditing = () => {
-    setShowWarning(false);
-    setIsEditing(false);
-  };
+  const startEditing = () => setIsEditing(true);
+  const stopEditing = () => setIsEditing(false);
 
   const prioritiesDirty = isEditing && affectation.prioritiesDirty;
   const reportersDirty = isEditing && affectation.reportersDirty;
-  useUnsavedGuard(prioritiesDirty || reportersDirty, () => setShowWarning(true));
-
-  const panel = React.useContext(MagistratPanelContext);
-  const blocked = showWarning && (prioritiesDirty || reportersDirty);
-  React.useEffect(() => {
-    if (!panel) return;
-    panel.setLeaveBlocked('magistrat-header', blocked);
-    return () => panel.setLeaveBlocked('magistrat-header', false);
-  }, [panel, blocked]);
+  const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
 
   const canEdit = isEditable && !!isUpdatable;
 

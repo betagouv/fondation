@@ -2,7 +2,7 @@ import { Button } from '@codegouvfr/react-dsfr/Button';
 import { useState, type ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
-import { DropdownMenu } from '@/shared/ui/DropdownMenu';
+import { DropdownMenu } from '../DropdownMenu';
 
 const DROPDOWN_WIDTH = 'w-72';
 

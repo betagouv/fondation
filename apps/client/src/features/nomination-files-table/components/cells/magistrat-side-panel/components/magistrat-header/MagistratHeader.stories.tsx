@@ -22,28 +22,28 @@ const REPORTER_SCENARIOS = ['none', 'others', 'you'] as const;
 type ReporterScenario = (typeof REPORTER_SCENARIOS)[number];
 
 const OTHER_REPORTERS = [
-  { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevre' },
-  { id: 'reporter-2', firstName: 'Paul', lastName: 'Moreau' },
+  { firstName: 'Marie', id: 'reporter-1', lastName: 'Lefevre' },
+  { firstName: 'Paul', id: 'reporter-2', lastName: 'Moreau' },
 ];
 
 const AVAILABLE_MEMBERS = [
-  { id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' },
+  { firstName: 'Jean', id: CURRENT_USER_ID, lastName: 'Petit' },
   ...OTHER_REPORTERS,
-  { id: 'reporter-3', firstName: 'Sophie', lastName: 'Bernard' },
+  { firstName: 'Sophie', id: 'reporter-3', lastName: 'Bernard' },
 ];
 
 function reportersFor(scenario: ReporterScenario) {
   if (scenario === 'none') return [];
   if (scenario === 'you')
-    return [{ id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' }, OTHER_REPORTERS[0]];
+    return [{ firstName: 'Jean', id: CURRENT_USER_ID, lastName: 'Petit' }, OTHER_REPORTERS[0]];
   return OTHER_REPORTERS;
 }
 
 function seedQueries(client: QueryClient) {
   client.setQueryData(authKeys.introspectSession(), {
-    id: CURRENT_USER_ID,
     civility: 'Monsieur PETIT',
     firstName: 'Jean',
+    id: CURRENT_USER_ID,
     isImpersonated: false,
     lastName: 'Petit',
     role: 'MEMBRE_DU_SIEGE',
@@ -115,14 +115,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Playground: Story = {};
-
 export const SecretaireGeneral: Story = {
   args: { priorities: [PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER], reporters: 'others', view: 'sg' },
-  argTypes: { view: { control: false } },
 };
 
 export const Membre: Story = {
   args: { priorities: [], reporters: 'you', view: 'member' },
-  argTypes: { view: { control: false } },
 };

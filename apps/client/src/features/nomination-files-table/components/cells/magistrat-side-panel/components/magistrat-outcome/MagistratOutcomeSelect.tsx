@@ -4,8 +4,8 @@ import { useSortedNominationFileOutcomes } from '../../../nomination-file-outcom
 import { NominationFileOutcomeBadge } from '../../../nomination-file-outcome/NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
 import { useObservationFollowUpReminderModal } from '../../../observation-follow-up/useObservationFollowUpReminderModal.hook';
-import { SoftDropdown } from '../SoftDropdown';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { SoftDropdown } from '@/shared/ui/soft-dropdown/SoftDropdown';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,

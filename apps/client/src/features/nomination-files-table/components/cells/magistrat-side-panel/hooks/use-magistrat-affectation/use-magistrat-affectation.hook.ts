@@ -72,7 +72,7 @@ export function useMagistratAffectation(props: {
   };
 }
 
-function sameValues(a: readonly string[], b: readonly string[]): boolean {
+export function sameValues(a: readonly string[], b: readonly string[]): boolean {
   if (a.length !== b.length) return false;
   const set = new Set(a);
   return b.every((value) => set.has(value));

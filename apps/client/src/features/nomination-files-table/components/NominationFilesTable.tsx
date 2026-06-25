@@ -24,7 +24,7 @@ import { MagistratPanel } from './cells/magistrat-side-panel/components/Magistra
 import { MagistratPanelProvider } from './cells/magistrat-side-panel/context/MagistratPanelProvider';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationFollowUpReminderProvider } from './cells/observation-follow-up/ObservationFollowUpReminderProvider';
-import { ObservationsModalProvider } from './cells/observations/ObservationsModalProvider';
+import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 import { NominationFilesTableActionsBar } from './NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';

@@ -13,20 +13,20 @@ import {
 } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { ObservationForm } from '../ObservationForm';
+import { ObservationsList } from '../ObservationsList';
 import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
 
-import { ObservationForm } from './ObservationForm';
-import { ObservationsList } from './ObservationsList';
 import { ObservationsModalContext, type ActiveFile } from './ObservationsModalContext';
 
-type ModalState =
+export type ModalState =
   | { status: 'closed' }
   | { status: 'view'; file: ActiveFile }
   | { status: 'create'; file: ActiveFile; standalone: boolean }
   | { status: 'edit'; file: ActiveFile; observation: Observation; standalone: boolean }
   | { status: 'confirm-delete'; file: ActiveFile; observation: Observation; standalone: boolean };
 
-type ModalAction =
+export type ModalAction =
   | { type: 'open'; file: ActiveFile; mode: 'view' | 'create' }
   | { type: 'goCreate' }
   | { type: 'edit'; observation: Observation; file?: ActiveFile }
@@ -38,7 +38,7 @@ type ModalAction =
 const leave = (state: ModalState): ModalState =>
   'standalone' in state && !state.standalone ? { status: 'view', file: state.file } : { status: 'closed' };
 
-function modalReducer(state: ModalState, action: ModalAction): ModalState {
+export function modalReducer(state: ModalState, action: ModalAction): ModalState {
   switch (action.type) {
     case 'open':
       return action.mode === 'create'

@@ -1,9 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
-import { useObservationsModal, type ActiveFile } from '../../../observations/ObservationsModalContext';
+import {
+  useObservationsModal,
+  type ActiveFile,
+} from '../../../observations/context/ObservationsModalContext';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { formatObservers } from '@/features/reports/utils/formatters';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
@@ -52,7 +56,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
           {magistratName}
         </Link>
         {observation.magistrat?.currentPosition && (
-          <span className="font-normal"> ({observation.magistrat.currentPosition})</span>
+          <span className="text-sm font-normal"> ({observation.magistrat.currentPosition})</span>
         )}
       </div>
       <div className="text-sm text-(--text-mention-grey)">
@@ -65,7 +69,10 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
       {observation.files.length > 0 && (
         <div className="fr-mt-3v fr-pt-3v border-t">
           <div className="fr-mb-2v fr-text--sm fr-text--bold">
-            <FormattedMessage defaultMessage="Pièces jointes :" />
+            <FormattedMessage
+              defaultMessage="{count, plural, one {Pièce jointe :} other {Pièces jointes :}}"
+              values={{ count: observation.files.length }}
+            />
           </div>
           <ul className="fr-raw-list">
             {observation.files.map((attachment) => (
@@ -154,7 +161,15 @@ export function MagistratObservations({
         )}
       </div>
 
-      {formattedObservers && <div className="w-full leading-7 whitespace-pre-line">{formattedObservers}</div>}
+      {formattedObservers && (
+        <ul className="fr-raw-list fr-mt-2v fr-mb-5v flex flex-wrap gap-2">
+          {formattedObservers.map((observer, index) => (
+            <li key={`${observer}-${index}`}>
+              <Tag small>{observer}</Tag>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {observations.length > 0 && (
         <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'fr-mt-2v')}>
@@ -165,7 +180,7 @@ export function MagistratObservations({
       )}
 
       {!formattedObservers && observations.length === 0 && (
-        <div className="w-full leading-7 whitespace-pre-line">
+        <div className="fr-mt-2v w-full leading-7 whitespace-pre-line">
           <FormattedMessage defaultMessage="Aucun" />
         </div>
       )}

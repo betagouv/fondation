@@ -50,13 +50,13 @@ function MagistratOutcomeComment(props: {
   };
 
   return (
-    <div className="fr-mt-2v flex items-center gap-2">
-      <i aria-hidden className="ri-message-3-line text-(--text-mention-grey)" />
-      <p className="fr-mb-0 grow text-sm text-(--text-mention-grey)">
+    <div className="fr-mt-3v flex items-center gap-2">
+      <i aria-hidden className="ri-message-3-line shrink-0 text-(--text-mention-grey)" />
+      <p className="fr-mb-0 min-w-0 grow text-sm wrap-break-word text-(--text-mention-grey)">
         {props.comment || <FormattedMessage defaultMessage="Aucun commentaire" />}
       </p>
       {props.comment && (
-        <Button onClick={edit} priority="tertiary no outline" size="small">
+        <Button className="-mt-1.5 shrink-0" onClick={edit} priority="tertiary no outline" size="small">
           <FormattedMessage defaultMessage="Modifier" />
         </Button>
       )}
