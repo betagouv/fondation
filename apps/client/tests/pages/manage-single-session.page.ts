@@ -11,7 +11,7 @@ class ObservationModal {
   }
 
   get dialog(): Locator {
-    return this.page.getByRole('dialog');
+    return this.page.locator('#modal-observations');
   }
 
   get inputDate(): Locator {
@@ -83,7 +83,7 @@ class MagistratSidePanel {
   }
 
   get dialog(): Locator {
-    return this.page.getByRole('dialog');
+    return this.page.locator('#magistrat-panel');
   }
 
   private get fileInput(): Locator {
