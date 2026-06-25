@@ -1,10 +1,9 @@
-import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { useMemo } from 'react';
+import { FormattedMessage } from 'react-intl';
 
+import { SoftDropdown } from '../SoftDropdown';
 import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
-import { DropdownMenu } from '@/shared/ui/DropdownMenu';
 import { PrioriteEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 
@@ -12,46 +11,6 @@ const PRIORITY_ITEMS = Object.values(PrioriteEnum);
 
 const REPORTER_TAG =
   'fr-tag font-normal! bg-(--background-default-grey)! text-(--text-action-high-blue-france)!';
-
-const SOFT_PANEL =
-  'fr-p-3v max-h-80 w-max overflow-y-auto rounded-lg border border-(--border-default-grey) shadow-[0_4px_16px_rgba(0,0,0,0.12)] [&_.fr-fieldset]:mb-0 [&_.fr-fieldset__element:last-child]:mb-0 [&_.fr-messages-group]:hidden [&_.fr-badge]:min-w-0! [&_.fr-badge]:justify-start';
-
-function SoftDropdown(props: { label: ReactNode; surfaceClassName?: string; children: ReactNode }) {
-  const intl = useIntl();
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const [minWidth, setMinWidth] = useState<number>();
-
-  useEffect(() => {
-    if (open && triggerRef.current) setMinWidth(triggerRef.current.offsetWidth);
-  }, [open]);
-
-  const trigger = (
-    <div className="w-fit" ref={triggerRef}>
-      <Button
-        className="w-full justify-between! [&_.fr-badge]:min-w-0! [&_.fr-badge]:justify-start"
-        iconId={open ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
-        iconPosition="right"
-        priority="tertiary"
-        size="small"
-      >
-        {props.label}
-      </Button>
-    </div>
-  );
-  return (
-    <DropdownMenu isOpen={open} onOpenChange={setOpen} trigger={trigger}>
-      <div
-        aria-label={intl.formatMessage({ defaultMessage: 'Sélection' })}
-        className={`${SOFT_PANEL} ${props.surfaceClassName ?? 'bg-(--background-default-grey)'}`}
-        role="dialog"
-        style={{ minWidth }}
-      >
-        {props.children}
-      </div>
-    </DropdownMenu>
-  );
-}
 
 export function MagistratPrioritySelect(props: {
   value: readonly PrioriteEnum[];

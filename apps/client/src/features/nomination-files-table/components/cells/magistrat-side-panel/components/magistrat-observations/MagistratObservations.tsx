@@ -51,7 +51,9 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
         <Link to={detailPath} title={detailTitle} className="bg-none! text-(--text-action-high-blue-france)">
           {magistratName}
         </Link>
-        {observation.magistrat?.currentPosition && ` (${observation.magistrat.currentPosition})`}
+        {observation.magistrat?.currentPosition && (
+          <span className="font-normal"> ({observation.magistrat.currentPosition})</span>
+        )}
       </div>
       <div className="text-sm text-(--text-mention-grey)">
         <FormattedMessage

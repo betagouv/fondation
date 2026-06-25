@@ -100,11 +100,11 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
         pagination={tableState.pagination}
         totalCount={data?.totalCount ?? 0}
       >
-        <MagistratPanel sessionId={sessionId} />
         <NominationFileOutcomeCommentModalProvider formation={formation}>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
             <ObservationFollowUpCommentProvider>
               <ObservationFollowUpReminderProvider>
+                <MagistratPanel sessionId={sessionId} />
                 <FilesSelectionProvider selection={tableState.rowSelection}>
                   <FilesAffectationsProvider files={nominationFiles}>
                     <AlertsProvider>
