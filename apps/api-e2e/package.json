@@ -1,0 +1,21 @@
+{
+  "name": "api-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "openapi:generate": "openapi-ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "catalog:",
+    "@hey-api/openapi-ts": "0.93.0",
+    "@types/node": "24.12.4",
+    "@types/supertest": "7.2.0",
+    "lolfi": "workspace:*",
+    "shared-models": "workspace:*",
+    "supertest": "7.2.2",
+    "typescript": "5.9.3",
+    "vitest": "4.1.8"
+  }
+}
