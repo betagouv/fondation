@@ -4,10 +4,10 @@ import { spawn } from 'node:child_process';
 import postgres from 'postgres';
 import { type TestProject } from 'vitest/node';
 
-import { makeLoggedInUserFixture } from './src/fixtures/auth.fixture';
-import { makeCreateSessionFixture } from './src/fixtures/session.fixture';
-import { TestStepsAdmin } from './src/steps';
-import { functions, jurisdictions } from './src/utils/seed';
+import { makeLoggedInUserFixture } from './src/fixtures/auth.fixture.ts';
+import { makeCreateSessionFixture } from './src/fixtures/session.fixture.ts';
+import { TestStepsAdmin } from './src/steps.ts';
+import { functions, jurisdictions } from './src/utils/seed.ts';
 
 function makeOnData(source: 'stdout' | 'stderr', resolve: (url: string) => void) {
   const decoder = new TextDecoder();
@@ -17,6 +17,7 @@ function makeOnData(source: 'stdout' | 'stderr', resolve: (url: string) => void)
     const line = decoder.decode(chunk);
     const match = re.exec(line);
 
+    // You can uncomment this line to debug the behavior of the server
     // if (source === 'stdout') process.stdout.write(line);
     if (source === 'stderr') process.stderr.write(line);
 
@@ -181,7 +182,7 @@ async function startServer(provide: TestProject['provide']): Promise<[apiUrl: st
       resolve(value);
     };
 
-    const signal = AbortSignal.timeout(10_000);
+    const signal = AbortSignal.timeout(process.env.CI ? 30_000 : 10_000);
     signal.addEventListener('abort', () => {
       if (alreadyResolved) return;
 
