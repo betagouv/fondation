@@ -2,7 +2,7 @@ import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { DocumentPreviewLayout } from '@/shared/ui/document-preview/DocumentPreview';
+import { DocumentPreviewLayout } from '@/shared/ui/document-preview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAgendaHtmlQuery,

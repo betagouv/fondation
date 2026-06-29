@@ -2,8 +2,8 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
-import { SoftDropdown } from '@/shared/ui/soft-dropdown/SoftDropdown';
+import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priority-badge';
+import { SoftDropdown } from '@/shared/ui/soft-dropdown';
 import { PrioriteEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 

@@ -8,7 +8,7 @@ import { generatePath } from 'react-router';
 import { PresentationAgendaSelectionList } from '@/features/presentations/components/PresentationAgendaSelectionList';
 import { usePresentPlanModal } from '@/features/presentations/context/present-plan-modal.context';
 import { PresentPlanModalProvider } from '@/features/presentations/context/PresentatPlanModalProvider';
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';

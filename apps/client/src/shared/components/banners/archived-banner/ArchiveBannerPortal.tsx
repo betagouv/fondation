@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 
 export function ArchiveBannerPortal(
   props: React.PropsWithChildren<{ isArchived: boolean | undefined | null }>,

@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from 'react';
 
-import { BanneredLayout } from '@/shared/components/banners/BanneredLayout';
-import { ArchivedSessionProvider } from '@/shared/context/archived-session/ArchivedSessionProvider';
-import { ConfirmationProvider } from '@/shared/context/confirmation/useConfirmation.hook';
+import { BanneredLayout } from '@/shared/components/banners';
+import { ArchivedSessionProvider } from '@/shared/context/archived-session';
+import { ConfirmationProvider } from '@/shared/context/confirmation';
 
 import { AppFooter } from './AppFooter';
 import { AppHeader } from './header/Header';

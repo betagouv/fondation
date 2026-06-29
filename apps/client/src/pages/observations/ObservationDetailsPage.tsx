@@ -4,7 +4,7 @@ import { Navigate, useParams, useSearchParams } from 'react-router';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
-import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
