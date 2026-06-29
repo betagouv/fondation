@@ -2,13 +2,11 @@ import { randomUUID } from 'node:crypto';
 
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import supertest from 'supertest';
 
 import { Gender, ReportFileUsage, Role } from 'shared-models';
 
 import { PrismaService } from '../framework/database';
 import { SimpleAuthService } from '../simple-auth';
-import { AppModule } from 'src/app.module';
 
 describe('Report E2E', () => {
   let cookie: string;
@@ -18,17 +16,7 @@ describe('Report E2E', () => {
   let prisma: PrismaService;
   let http: ReturnType<(typeof supertest)['agent']>;
 
-  beforeAll(async () => {
-    app = await AppModule.create();
-
-    await app.init();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  beforeEach(async () => {
+  beforeEach(async ({}) => {
     prisma = app.get(PrismaService);
     const auth = app.get(SimpleAuthService);
 

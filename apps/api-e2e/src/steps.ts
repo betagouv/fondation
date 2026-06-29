@@ -1,5 +1,5 @@
-import { type Client, createClient, createConfig } from './generated/api/client/index';
-import * as api from './generated/api/sdk';
+import { type Client, createClient, createConfig } from './generated/api/client/index.ts';
+import * as api from './generated/api/sdk.ts';
 
 type RemoveNever<T> = {
   [K in keyof T as [T[K]] extends [never] ? never : K]: T[K];
@@ -13,11 +13,9 @@ type Complement<T, U> = RemoveEmpty<
   }>
 >;
 
-type AA = (typeof api)['members']['listMemberSessions'];
-
 export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: string } | undefined };
 export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | '@user'> & {
-  auth: Pick<(typeof api)['auth'], 'introspectSession'>;
+  auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   summaries: Pick<
     TestSteps['summaries'],
     'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'
@@ -32,9 +30,19 @@ export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | 
   >;
 };
 
-export type TestStepsAgent = Complement<TestSteps, TestStepsMember> & {
-  auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
+export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
+  members: Omit<
+    (typeof api)['members'],
+    'detailsMemberSession' | 'listMemberSessions' | 'writeNominationFileMemberMemo'
+  >;
 };
+
+export type TestStepsAgent = Omit<
+  Complement<TestSteps, TestStepsMember> & {
+    auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
+  },
+  'administration' | 'ingest'
+>;
 
 function createSdk(client: Client, user?: { id: string }): TestSteps {
   return new Proxy(api as TestSteps, {

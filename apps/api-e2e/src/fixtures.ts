@@ -1,11 +1,9 @@
 import { test as base, inject } from 'vitest';
 
-import { makeLoggedInUserFixture, registerUser } from './fixtures/auth.fixture';
-import { makeCreateSessionFixture } from './fixtures/session.fixture';
-import { RegisterUserDto } from './generated/api/types';
-import { makeHttpClient, TestStepsAgent, TestStepsMember } from './steps';
-
-type RoleEnum = NonNullable<RegisterUserDto['role']>;
+import { makeLoggedInUserFixture, registerUser } from './fixtures/auth.fixture.ts';
+import { makeCreateSessionFixture } from './fixtures/session.fixture.ts';
+import { RegisterUserDto } from './generated/api/types.ts';
+import { makeHttpClient, TestStepsAdmin, TestStepsAgent, TestStepsMember } from './steps.ts';
 
 export const test = base
   .extend(
@@ -13,27 +11,19 @@ export const test = base
     { scope: 'worker' },
     () => inject('apiUrl') ?? process.env.API_URL ?? 'http://localhost:3000',
   )
-  .extend('agent', async ({ baseUrl }): Promise<TestStepsAgent> => {
-    const logIn = makeLoggedInUserFixture(baseUrl);
-    const steps = await logIn('ADMIN');
+  .extend('logIn', ({ baseUrl }) => makeLoggedInUserFixture(baseUrl))
+  .extend('admin', ({ logIn }): Promise<TestStepsAdmin> => logIn('ADMIN'))
+  .extend('member', async ({ logIn }): Promise<TestStepsMember> => logIn('MEMBRE_COMMUN'))
+  .extend('agent', async ({ logIn }): Promise<TestStepsAgent> => logIn('ADJOINT_SECRETAIRE_GENERAL'))
 
-    return steps as any;
-  })
-  .extend('member', async ({ baseUrl }): Promise<TestStepsMember> => {
-    const logIn = makeLoggedInUserFixture(baseUrl);
-    const steps = await logIn('MEMBRE_COMMUN');
-    return steps as any;
-  })
   .extend('registerUser', ({ baseUrl }) => {
     const client = makeHttpClient(baseUrl);
 
+    type RoleEnum = NonNullable<RegisterUserDto['role']>;
     return <Role extends RoleEnum>(
       user: Role | (Omit<RegisterUserDto, 'role'> & { role: Role }),
     ): Promise<{ id: string; firstName: string; lastName: string; email: string; password: string }> => {
       return registerUser({ client, user });
     };
   })
-  .extend('withSession', async ({ agent }) => makeCreateSessionFixture(agent));
-
-export { beforeAll, beforeEach, describe, expect, vi } from 'vitest';
-export { test as it };
+  .extend('sessions', ({ admin }) => makeCreateSessionFixture(admin));

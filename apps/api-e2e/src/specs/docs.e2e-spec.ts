@@ -1,139 +1,108 @@
-import supertest from 'supertest';
-
 import { Magistrat } from 'shared-models';
 
-import { registerUser } from '../fixtures/auth.fixture';
-import { createSession } from '../fixtures/session.fixture';
-import type { FoundDocsNominationFiles } from '../generated/api/types';
+import { test } from '../fixtures.ts';
+import * as seed from '../utils/seed.ts';
 
-import { getBaseUrl } from '../fixtures';
-const baseUrl = getBaseUrl();
+test.describe('Docs Service', () => {
+  let chairmanId: string;
+  let sessionId: string;
 
-describe('Docs Service', () => {
-  const http = supertest(baseUrl);
+  test.beforeEach(async ({ agent, sessions, registerUser, expect }) => {
+    const chairman = await registerUser('MEMBRE_DU_PARQUET');
 
-  let chairman: { id: string };
-  let session: { id: string };
-  let user: { email: string; password: string; id: string; cookie: string };
-
-  beforeAll(async () => {
-    const chairmanCredentials = await registerUser(baseUrl, 'MEMBRE_DU_PARQUET');
-    const adminCredentials = await registerUser(baseUrl, 'ADMIN');
-
-    const adminLogin = await http
-      .post('/api/auth/v2/login')
-      .send({ email: adminCredentials.email, password: adminCredentials.password })
-      .expect(204);
-    user = { ...adminCredentials, cookie: adminLogin.headers['set-cookie']! };
-
-    // Promote chairman to PRESIDENT_PARQUET via the administration endpoint
-    await http
-      .put(`/api/administration/v1/users/${chairmanCredentials.id}/role`)
-      .set({ cookie: user.cookie })
-      .send({ role: 'PRESIDENT_PARQUET' })
-      .expect(204);
-    chairman = { id: chairmanCredentials.id };
-
-    session = await createSession({
-      baseUrl,
-      cookie: user.cookie,
-      session: {
-        createdAt: '23/04/2026',
-        candidates: [
-          {
-            firstName: 'ANTONIO',
-            lastName: 'GRAMSCI',
-            civilite: 'M.',
-            position: {
-              function: { id: 'PR', label: 'Procureur de la République', formation: Magistrat.Formation.PARQUET },
-              jurisdiction: { id: 'CA  AMIENS' },
-              grade: Magistrat.Grade.G3,
-            },
-            targetPosition: {
-              function: { id: 'PR', label: 'Procureur de la République', formation: Magistrat.Formation.PARQUET },
-              jurisdiction: { id: 'CA  REIMS' },
-              grade: Magistrat.Grade.G3,
-            },
-          },
-          {
-            firstName: 'HANNAH',
-            lastName: 'ARENDT',
-            civilite: 'MME',
-            position: {
-              function: { id: 'PR', label: 'Procureur de la République', formation: Magistrat.Formation.PARQUET },
-              jurisdiction: { id: 'CA  GRENOBLE' },
-              grade: Magistrat.Grade.G3,
-            },
-            targetPosition: {
-              function: { id: 'PR', label: 'Procureur de la République', formation: Magistrat.Formation.PARQUET },
-              jurisdiction: { id: 'CA  LYON' },
-              grade: Magistrat.Grade.G3,
-            },
-          },
-        ],
-      },
+    const titleUpdateResponse = await agent.members.updateTitle({
+      path: { userId: chairman.id },
+      body: { title: 'PRESIDENT_PARQUET' },
     });
+    expect(titleUpdateResponse.response.status).toBe(204);
 
-    await http.post(`/api/sessions/v2/${session.id}/validation`).set({ cookie: user.cookie }).expect(204);
-    await http
-      .post(`/api/sessions/v2/${session.id}/files/reporters/versions`)
-      .set({ cookie: user.cookie })
-      .expect(204);
+    chairmanId = chairman.id;
+
+    const session = await sessions.createOne({
+      createdAt: '23/04/2026',
+      candidates: [
+        {
+          firstName: 'ANTONIO',
+          lastName: 'GRAMSCI',
+          civilite: 'M.',
+          position: {
+            function: seed.functions.PR,
+            jurisdiction: seed.jurisdictions['CA  AMIENS'],
+            grade: Magistrat.Grade.G3,
+          },
+          targetPosition: {
+            function: seed.functions.PR,
+            jurisdiction: seed.jurisdictions['CA  REIMS'],
+            grade: Magistrat.Grade.G3,
+          },
+        },
+        {
+          firstName: 'HANNAH',
+          lastName: 'ARENDT',
+          civilite: 'MME',
+          position: {
+            function: seed.functions.PR,
+            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+            grade: Magistrat.Grade.G3,
+          },
+          targetPosition: {
+            function: seed.functions.PR,
+            jurisdiction: seed.jurisdictions['CA  LYON'],
+            grade: Magistrat.Grade.G3,
+          },
+        },
+      ],
+    });
+    sessionId = session.id;
+
+    const validateRes = await agent.sessions.validateSession({ path: { sessionId } });
+    expect(validateRes.response.status).toBe(204);
+
+    const publishRes = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId },
+    });
+    expect(publishRes.response.status).toBe(204);
   });
 
-  beforeEach(async () => {
-    const response = await http
-      .post('/api/auth/v2/login')
-      .send({ email: user.email, password: user.password })
-      .expect(204);
-    user.cookie = response.headers['set-cookie']!;
-  });
+  test('should prevent creating an agenda with twice the same file', async ({ agent, expect }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    expect(foundFiles.response.status).toBe(200);
+    expect(foundFiles.data!.items).toHaveLength(2);
 
-  it('should prevent creating an agenda with twice the same file', async () => {
-    const foundAgendaNominationFiles = await http
-      .get(`/api/docs/v1/sessions/${session.id}/files`)
-      .set({ cookie: user.cookie })
-      .expect(200);
-
-    const nominationFiles: FoundDocsNominationFiles = foundAgendaNominationFiles.body;
-    expect(nominationFiles.items).toHaveLength(2);
-
-    for (const { id } of nominationFiles.items) {
-      await http
-        .put(`/api/sessions/v2/${session.id}/files/${id}/outcome`)
-        .set({ cookie: user.cookie })
-        .send({ comment: null, outcome: 'VALIDATED' })
-        .expect(204);
+    for (const { id } of foundFiles.data!.items) {
+      const outcomeRes = await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId: id },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+      expect(outcomeRes.response.status).toBe(204);
     }
 
-    const agenda1 = await http
-      .post(`/api/docs/v1/sessions/${session.id}/agendas`)
-      .set({ cookie: user.cookie })
-      .send({
-        chairmanId: chairman.id,
+    const firstFileId = foundFiles.data!.items[0]!.id;
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
         date: { day: 1, month: 2, year: 2026 },
         sessionMeetingDate: { day: 10, month: 2, year: 2026 },
-        nominationFileIds: [nominationFiles.items[0]!.id],
-      })
-      .expect(201);
+        nominationFileIds: [firstFileId],
+      },
+    });
+    expect(agenda.response.status).toBe(201);
+    expect(agenda.data).toEqual({ id: expect.any(String) });
 
-    expect(agenda1.body).toEqual({ id: expect.any(String) });
+    const foundAfter = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    expect(foundAfter.data!.items).toHaveLength(1);
 
-    const foundAfter = await http
-      .get(`/api/docs/v1/sessions/${session.id}/files`)
-      .set({ cookie: user.cookie })
-      .expect(200);
-    expect((foundAfter.body as FoundDocsNominationFiles).items).toHaveLength(1);
-
-    await http
-      .post(`/api/docs/v1/sessions/${session.id}/agendas`)
-      .set({ cookie: user.cookie })
-      .send({
-        chairmanId: chairman.id,
+    const duplicateAgenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
         date: { day: 2, month: 2, year: 2026 },
         sessionMeetingDate: { day: 11, month: 2, year: 2026 },
-        nominationFileIds: [nominationFiles.items[0]!.id],
-      })
-      .expect(400);
+        nominationFileIds: [firstFileId],
+      },
+    });
+    expect(duplicateAgenda.response.status).toBe(400);
   });
 });

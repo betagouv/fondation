@@ -1,229 +1,108 @@
-import * as assert from 'node:assert';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+import { Magistrat } from 'shared-models';
 
-import { describe, beforeAll, test } from '../fixtures';
-import type { AffectReportersDto, DetailedReportDto, ListedMemberSessionsDto } from '../generated/api/types';
+import { test } from '../fixtures.ts';
+import * as seed from '../utils/seed.ts';
 
-const LODAM_FILE_PATH = path.join(__dirname, '../../assets/lodam/lodam_transparence.xlsx');
+test.describe('Session Affectations E2E', () => {
+  let sessionId: string;
+  let nominationFileId: string;
+  let memberId: string;
 
-describe('Session Affectations E2E', () => {
-  let user: { id: string; cookie: string };
-  let member: { id: string; email: string; password: string; cookie: string | undefined };
+  test.beforeEach(async ({ agent, member, sessions, expect }) => {
+    memberId = member['@user']!.id;
 
-  describe('Given an existing session', () => {
-    let sessionId: string;
+    const session = await sessions.createOne({
+      name: 'Transparence affectation',
+      createdAt: '22/04/2026',
+      candidates: [
+        {
+          firstName: 'ETIENNE',
+          lastName: 'TREVOUX',
+          position: {
+            grade: Magistrat.Grade.G3,
+            jurisdiction: seed.jurisdictions['CA  LYON'],
+            function: seed.functions.PR,
+          },
+          targetPosition: {
+            grade: Magistrat.Grade.G3,
+            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+            function: seed.functions.PR,
+          },
+        },
+      ],
+    });
+    sessionId = session.id;
 
-    beforeAll(async ({ registerUser }) => {
-      // Register members that exist in the LODAM file (ANDOCHE, DURAND)
-      await registerUser(baseUrl, 'MEMBRE_COMMUN');
-      await registerUser(baseUrl, 'MEMBRE_DU_PARQUET');
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.response.status).toBe(200);
+    nominationFileId = files.data!.items[0]!.id;
+  });
 
-      const partialMember = await registerUser(baseUrl, 'MEMBRE_DU_PARQUET');
-      member = { ...partialMember, cookie: undefined };
+  test("an unaffected session does not appear in the member's list", async ({ member, expect }) => {
+    const memberSessions = await member.members.listMemberSessions({ path: { userId: memberId } });
+    expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
+  });
 
-      const admin = await registerUser(baseUrl, 'ADJOINT_SECRETAIRE_GENERAL');
-
-      const loginRes = await http.post('/api/auth/v2/login').auth(admin.email, admin.password).expect(204);
-      user = { id: admin.id, cookie: loginRes.headers['set-cookie']! };
-
-      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
-      const importRes = await http
-        .post('/api/sessions/v2/lodam')
-        .set({ cookie: user.cookie })
-        .attach('file', fileBuffer, {
-          filename: 'transparence.xlsx',
-          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-        .attach(
-          'form',
-          Buffer.from(
-            JSON.stringify({
-              date: '2025-06-01',
-              observationClosingDate: '2025-06-07',
-              formation: 'PARQUET',
-              name: 'Transparence TEST ' + crypto.randomUUID(),
-            }),
-          ),
-          { filename: 'form.json', contentType: 'application/json' },
-        )
-        .expect(201);
-
-      sessionId = importRes.body.id;
+  test('the affectation lifecycle preserves the report edition', async ({ agent, member, expect }) => {
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
+      throwOnError: true,
     });
 
-    test("when available, then the session should not appear in the members' list before publishing", async ({
-      member,
-    }) => {
-      member['@'];
-      const listMemberSessionsRes = await member.members.list;
-
-      await http
-        .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
-        .set({ cookie: member.cookie })
-        .expect(200);
-
-      expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).not.toContainEqual({
-        id: sessionId,
-      });
+    await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId },
+      throwOnError: true,
     });
 
-    describe('when the admin publish the session with an affectation', () => {
-      beforeAll(async () => {
-        const sessionRes = await http
-          .get(`/api/sessions/v2/${sessionId}/files`)
-          .set({ cookie: user.cookie })
-          .expect(200);
+    const affected = await member.members.listMemberSessions({ path: { userId: memberId } });
+    expect(affected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: true }));
 
-        const firstFileId: string = sessionRes.body.items[0]!.id;
-        await http
-          .post(`/api/sessions/v2/${sessionId}/files/reporters`)
-          .set({ cookie: user.cookie })
-          .send({
-            items: [{ nominationFileId: firstFileId, reporterIds: [member.id], priorities: [] }],
-          } satisfies AffectReportersDto)
-          .expect(204);
-
-        await http
-          .post(`/api/sessions/v2/${sessionId}/files/reporters/versions`)
-          .set({ cookie: user.cookie })
-          .expect(204);
-
-        const loginRes = await http
-          .post('/api/auth/v2/login')
-          .auth(member.email, member.password)
-          .expect(204);
-        member.cookie = loginRes.headers['set-cookie']!;
-      });
-
-      test("then the session should be visible inside the members' list", async () => {
-        const listMemberSessionsRes = await http
-          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
-          .set({ cookie: member.cookie })
-          .expect(200);
-
-        expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).toContainEqual(
-          expect.objectContaining({ id: sessionId, isAffected: true }),
-        );
-      });
-
-      test('then the report should be editable', async () => {
-        const listMemberSessionsRes = await http
-          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
-          .set({ cookie: member.cookie })
-          .expect(200);
-        const firstAffected = (listMemberSessionsRes.body as ListedMemberSessionsDto).items.find(
-          (x) => x.isAffected,
-        );
-        expect(firstAffected).toBeDefined();
-        assert.ok(firstAffected);
-
-        const detailedSession = await http
-          .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`)
-          .set({ cookie: member.cookie })
-          .expect(200);
-
-        const firstReport = detailedSession.body.items[0];
-        expect(firstReport).toBeDefined();
-        assert.ok(firstReport);
-
-        await http
-          .patch(`/api/reports/v2/${firstReport.id}`)
-          .send({ status: 'IN_PROGRESS' })
-          .set({ cookie: member.cookie })
-          .expect(204);
-      });
-
-      describe('and then removes the affectation', () => {
-        beforeAll(async () => {
-          const sessionRes = await http
-            .get(`/api/sessions/v2/${sessionId}/files`)
-            .set({ cookie: user.cookie })
-            .expect(200);
-
-          const firstFileId: string = sessionRes.body.items[0]!.id;
-          await http
-            .post(`/api/sessions/v2/${sessionId}/files/reporters`)
-            .set({ cookie: user.cookie })
-            .send({
-              items: [{ nominationFileId: firstFileId, reporterIds: [], priorities: [] }],
-            } satisfies AffectReportersDto)
-            .expect(204);
-
-          await http
-            .set({ cookie: user.cookie })
-            .post(`/api/sessions/v2/${sessionId}/files/reporters/versions`)
-            .expect(204);
-        });
-
-        test(`then the session should not be visible as affected in the members' list`, async () => {
-          const loginRes = await http
-            .post('/api/auth/v2/login')
-            .auth(member.email, member.password)
-            .expect(204);
-          member.cookie = loginRes.headers['set-cookie']!;
-
-          const listMemberSessionsRes = await http
-            .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
-            .set({ cookie: member.cookie })
-            .expect(200);
-
-          expect((listMemberSessionsRes.body as ListedMemberSessionsDto).items).toContainEqual(
-            expect.objectContaining({ id: sessionId, isAffected: false }),
-          );
-        });
-
-        describe('and reset affectation', () => {
-          beforeAll(async () => {
-            const sessionRes = await http
-              .get(`/api/sessions/v2/${sessionId}/files`)
-              .set({ cookie: user.cookie })
-              .expect(200);
-
-            const firstFileId: string = sessionRes.body.items[0]!.id;
-            await http
-              .post(`/api/sessions/v2/${sessionId}/files/reporters`)
-              .set({ cookie: user.cookie })
-              .send({
-                items: [{ nominationFileId: firstFileId, reporterIds: [member.id], priorities: [] }],
-              } satisfies AffectReportersDto)
-              .expect(204);
-
-            await http
-              .set({ cookie: user.cookie })
-              .post(`/api/sessions/v2/${sessionId}/files/reporters/versions`)
-              .expect(204);
-          });
-
-          test('then the report should keep the previous editions', async () => {
-            const listMemberSessionsRes = await http
-              .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux`)
-              .set({ cookie: member.cookie })
-              .expect(200);
-            const firstAffected = (listMemberSessionsRes.body as ListedMemberSessionsDto).items.find(
-              (x) => x.isAffected,
-            );
-            expect(firstAffected).toBeDefined();
-            assert.ok(firstAffected);
-
-            const detailedSession = await http
-              .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${firstAffected.id}`)
-              .set({ cookie: member.cookie })
-              .expect(200);
-
-            const firstReport = detailedSession.body.items[0];
-            expect(firstReport).toBeDefined();
-            assert.ok(firstReport);
-
-            const reportRes = await http
-              .get(`/api/reports/v2/${firstReport.id}`)
-              .set({ cookie: member.cookie })
-              .expect(200);
-
-            expect((reportRes.body as DetailedReportDto).state).toBe('IN_PROGRESS');
-          });
-        });
-      });
+    const { data: detailedSession } = await member.members.detailsMemberSession({
+      path: { userId: memberId, sessionId },
     });
+    const reportId = detailedSession!.items[0]!.id;
+
+    await member.reports.updateReport({
+      path: { reportId },
+      body: { status: 'IN_PROGRESS' },
+      throwOnError: true,
+    });
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: { items: [{ nominationFileId, reporterIds: [], priorities: [] }] },
+      throwOnError: true,
+    });
+
+    const publishedAffectationsResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId },
+    });
+    expect(publishedAffectationsResponse.response.status).toBe(204);
+
+    const unaffected = await member.members.listMemberSessions({ path: { userId: memberId } });
+    expect(unaffected.data!.items).toContainEqual(
+      expect.objectContaining({ id: sessionId, isAffected: false }),
+    );
+
+    // Re-affecting must restore the previous report edition rather than resetting it
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
+      throwOnError: true,
+    });
+
+    await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId },
+      throwOnError: true,
+    });
+
+    const { data: reaffected } = await member.members.detailsMemberSession({
+      path: { userId: memberId, sessionId },
+    });
+    const restoredReport = await member.reports.detailReport({
+      path: { reportId: reaffected!.items[0]!.id },
+    });
+    expect(restoredReport.data!.state).toBe('IN_PROGRESS');
   });
 });

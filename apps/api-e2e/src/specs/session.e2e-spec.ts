@@ -1,104 +1,115 @@
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+// oxlint-disable no-console
 import { randomUUID } from 'node:crypto';
+import * as fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
-import supertest from 'supertest';
+import type { LolfiData } from 'lolfi';
 
-import { Magistrat } from 'shared-models';
+import { test } from '../fixtures.ts';
+import type {
+  ImportNominationSessionFromLodamXlsxDto,
+  PaginatedNominationFiles,
+} from '../generated/api/types.ts';
+import { makeFile } from '../utils/files.ts';
+import * as seed from '../utils/seed.ts';
 
-import { registerUser } from '../fixtures/auth.fixture';
-import { createSession } from '../fixtures/session.fixture';
-import type { PaginatedNominationFiles } from '../generated/api/types';
-
-import { getBaseUrl } from '../fixtures';
-const baseUrl = getBaseUrl();
-const LODAM_FILE_PATH = path.join(__dirname, '../../assets/lodam/lodam_transparence.xlsx');
+const LODAM_FILE_PATH = fileURLToPath(new URL('../../assets/lodam/lodam_transparence.xlsx', import.meta.url));
 
 type NominationFile = PaginatedNominationFiles['items'][number];
 
-describe('Session E2E', () => {
-  const http = supertest(baseUrl);
-  let user: { id: string; email: string; password: string; cookie: string };
-
-  beforeEach(async () => {
-    const registered = await registerUser(baseUrl, 'ADMIN');
-    const loginResponse = await http
-      .post('/api/auth/v2/login')
-      .send({ email: registered.email, password: registered.password })
-      .expect(204);
-
-    user = { ...registered, cookie: loginResponse.headers['set-cookie'] as string };
+async function lodamFile(): Promise<File> {
+  const buffer = await fs.readFile(LODAM_FILE_PATH);
+  return new File([buffer], 'transparence.xlsx', {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
+}
 
-  describe('Given existing members', () => {
-    beforeAll(async () => {
-      // These members are matched by the LODAM file auto-affectation logic (firstName + lastName)
-      await http
-        .post('/api/auth/v2/register')
-        .send({
-          firstName: 'Charles',
-          lastName: 'ANDOCHE',
-          role: 'MEMBRE_COMMUN',
-          gender: 'M',
-          email: `charles.andoche+${randomUUID()}@example.com`,
-          password: randomUUID(),
-        });
+function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
+  return new Blob(
+    [
+      JSON.stringify({
+        date: '2025-01-01',
+        observationClosingDate: '2025-03-01',
+        formation: 'PARQUET',
+        name: 'Transparence TEST ' + randomUUID(),
+      } as const),
+    ],
+    { type: 'application/json' },
+  ) as any;
+}
 
-      await http
-        .post('/api/auth/v2/register')
-        .send({
-          firstName: 'Côme',
-          lastName: 'DURAND',
-          role: 'MEMBRE_DU_PARQUET',
-          email: `come.durand+${randomUUID()}@example.com`,
-          gender: 'M',
-          password: randomUUID(),
-        });
+const TREVOUX_SESSION: LolfiData['sessions'][number] = {
+  name: 'Transparence annuelle',
+  createdAt: '22/04/2026',
+  candidates: [
+    {
+      firstName: 'ETIENNE',
+      lastName: 'TREVOUX',
+      position: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  LYON'],
+        function: seed.functions.PR,
+      },
+      targetPosition: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+        function: seed.functions.PR,
+      },
+    },
+  ],
+};
+
+test.describe('Session E2E', () => {
+  test.describe('Given existing members', () => {
+    // These members are matched by the LODAM file auto-affectation logic (firstName + lastName)
+    test.beforeEach(async ({ registerUser }) => {
+      await registerUser({
+        firstName: 'Charles',
+        lastName: 'ANDOCHE',
+        role: 'MEMBRE_COMMUN',
+        gender: 'MALE',
+        email: `charles.andoche+${randomUUID()}@example.com`,
+        password: randomUUID(),
+      });
+
+      await registerUser({
+        firstName: 'Côme',
+        lastName: 'DURAND',
+        role: 'MEMBRE_DU_PARQUET',
+        gender: 'MALE',
+        email: `come.durand+${randomUUID()}@example.com`,
+        password: randomUUID(),
+      });
     });
 
-    it('should import a session tree from a LODAM file', async () => {
-      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
-      const response = await http
-        .post('/api/sessions/v2/lodam')
-        .set({ cookie: user.cookie })
-        .attach('file', fileBuffer, {
-          filename: 'transparence.xlsx',
-          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-        .attach(
-          'form',
-          Buffer.from(
-            JSON.stringify({
-              date: '2025-01-01',
-              observationClosingDate: '2025-03-01',
-              formation: Magistrat.Formation.PARQUET,
-              name: 'Transparence TEST ' + randomUUID(),
-            }),
-          ),
-          { filename: 'form.json', contentType: 'application/json' },
-        );
+    test('should import a session tree from a LODAM file', async ({ agent, expect }) => {
+      const response = await agent.sessions.createSessionFromLodam({
+        body: {
+          file: await lodamFile(),
+          form: lodamForm(),
+        },
+      });
 
-      if (response.status === 400) {
-        console.error(response.body.errors);
-        expect(response.status).toBe(201);
+      if (response.response.status === 400) {
+        // oxlint-disable-next-line no-console
+        console.error(response.error);
       }
+      expect(response.response.status).toBe(201);
 
-      const { id: sessionId } = response.body;
+      const sessionId = response.data!.id;
       expect(sessionId).toBeDefined();
 
-      const lastAffectationVersionMeta = await http
-        .get(`/api/sessions/v2/${sessionId}/files/reporters/versions/last`)
-        .set({ cookie: user.cookie });
-      expect(lastAffectationVersionMeta.body).toMatchObject({
+      const lastAffectationVersionMeta = await agent.sessions.detailNominationSessionAffectationsVersion({
+        path: { sessionId },
+      });
+      expect(lastAffectationVersionMeta.data).toMatchObject({
         status: 'BROUILLON',
         version: 1,
       });
 
-      const nominationFiles = await http
-        .get(`/api/sessions/v2/${sessionId}/files`)
-        .set({ cookie: user.cookie });
+      const nominationFiles = await agent.sessions.listNominationFiles({ path: { sessionId } });
 
-      expect(nominationFiles.body.items).toContainEqual({
+      expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         isArchived: false,
         content: {
@@ -107,8 +118,8 @@ describe('Session E2E', () => {
           dateEchéance: null,
           datePassageAuGrade: { day: 17, month: 12, year: 2010 },
           datePriseDeFonctionPosteActuel: { day: 1, month: 9, year: 2020 },
-          grade: Magistrat.Grade.I,
-          gradeCible: Magistrat.Grade.HH,
+          grade: 'I',
+          gradeCible: 'G3',
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
@@ -120,8 +131,8 @@ describe('Session E2E', () => {
           version: 2,
           outcome: null,
           isAlertHidden: false,
-          detectedJurisdictionId: null,
-          detectedTargetedFunctionId: null,
+          detectedJurisdictionId: 'TJ  GRASSE',
+          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },
@@ -140,7 +151,7 @@ describe('Session E2E', () => {
         hasAttachment: false,
       } satisfies NominationFile);
 
-      expect(nominationFiles.body.items).toContainEqual({
+      expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         id: expect.any(String),
         isArchived: false,
@@ -151,8 +162,8 @@ describe('Session E2E', () => {
           dateEchéance: null,
           datePassageAuGrade: { day: 27, month: 8, year: 2008 },
           datePriseDeFonctionPosteActuel: { day: 2, month: 9, year: 2019 },
-          grade: Magistrat.Grade.I,
-          gradeCible: Magistrat.Grade.HH,
+          grade: 'I',
+          gradeCible: 'G3',
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
@@ -164,8 +175,8 @@ describe('Session E2E', () => {
           version: 2,
           outcome: null,
           isAlertHidden: false,
-          detectedJurisdictionId: null,
-          detectedTargetedFunctionId: null,
+          detectedJurisdictionId: 'TJ  TOULON',
+          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },
@@ -180,113 +191,54 @@ describe('Session E2E', () => {
       } satisfies NominationFile);
     });
 
-    it('should attach a file to a nomination file and list it', async () => {
-      const fileBuffer = await fs.readFile(LODAM_FILE_PATH);
-      const importResponse = await http
-        .post('/api/sessions/v2/lodam')
-        .set({ cookie: user.cookie })
-        .attach('file', fileBuffer, {
-          filename: 'transparence.xlsx',
-          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        })
-        .attach(
-          'form',
-          Buffer.from(
-            JSON.stringify({
-              date: '2025-01-01',
-              observationClosingDate: '2025-03-01',
-              formation: Magistrat.Formation.PARQUET,
-              name: 'Transparence TEST ' + randomUUID(),
-            }),
-          ),
-          { filename: 'form.json', contentType: 'application/json' },
-        );
-      const { id: sessionId } = importResponse.body;
+    test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
 
-      const filesBefore = await http
-        .get(`/api/sessions/v2/${sessionId}/files`)
-        .set({ cookie: user.cookie });
-      const nominationFileId: string = filesBefore.body.items[0].id;
+      const filesBefore = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const nominationFileId = filesBefore.data!.items[0]!.id;
 
-      await http
-        .put(`/api/sessions/v2/${sessionId}/files/${nominationFileId}/attachments`)
-        .set({ cookie: user.cookie })
-        .attach('files', Buffer.from('attachment content'), {
-          filename: 'note.pdf',
-          contentType: 'application/pdf',
-        })
-        .expect(204);
+      const uploadRes = await agent.sessions.uploadNominationFileAttachments({
+        path: { sessionId, nominationFileId },
+        body: { files: [makeFile({ type: 'application/pdf', name: 'note.pdf' })] },
+      });
+      expect(uploadRes.response.status).toBe(204);
 
-      const attachments = await http
-        .get(`/api/sessions/v2/${sessionId}/files/${nominationFileId}/attachments`)
-        .set({ cookie: user.cookie })
-        .expect(200);
-      expect(attachments.body.items).toEqual([{ id: expect.any(String), name: 'note.pdf' }]);
+      const attachments = await agent.sessions.listNominationFileAttachments({
+        path: { sessionId, nominationFileId },
+      });
+      expect(attachments.response.status).toBe(200);
+      expect(attachments.data!.items).toEqual([{ id: expect.any(String), name: 'note.pdf' }]);
 
-      const filesAfter = await http
-        .get(`/api/sessions/v2/${sessionId}/files`)
-        .set({ cookie: user.cookie });
-      const updatedFile = filesAfter.body.items.find((file: NominationFile) => file.id === nominationFileId);
-      expect(updatedFile.hasAttachment).toBe(true);
+      const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
+      expect(updatedFile?.hasAttachment).toBe(true);
     });
 
-    it('should not report an empty summary', async () => {
-      const session = await createSession({
-        baseUrl,
-        cookie: user.cookie,
-        session: {
-          name: 'Transparence annuelle',
-          createdAt: '22/04/2026',
-          candidates: [
-            {
-              firstName: 'ETIENNE',
-              lastName: 'TREVOUX',
-              position: {
-                grade: Magistrat.Grade.G3,
-                jurisdiction: { id: 'CA  LYON' },
-                function: {
-                  id: 'PR',
-                  label: 'Procureur de la République',
-                  labelOneMale: 'procureur de la République',
-                  formation: Magistrat.Formation.PARQUET,
-                },
-              },
-              targetPosition: {
-                grade: Magistrat.Grade.G3,
-                jurisdiction: { id: 'CA  GRENOBLE' },
-                function: {
-                  id: 'PR',
-                  label: 'Procureur de la République',
-                  labelOneMale: 'procureur de la République',
-                  formation: Magistrat.Formation.PARQUET,
-                },
-              },
-            },
-          ],
-        },
-      });
+    test('should not report an empty summary', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
 
       const summaryOf = async (nominationFileId: string) => {
-        const { body } = await http
-          .get(`/api/sessions/v2/${session.id}/files`)
-          .set({ cookie: user.cookie });
-        return (body.items as NominationFile[]).find(({ id }) => id === nominationFileId)?.summary;
+        const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+        return files.data!.items.find(({ id }) => id === nominationFileId)?.summary;
       };
 
-      const { body: initial } = await http
-        .get(`/api/sessions/v2/${session.id}/files`)
-        .set({ cookie: user.cookie });
-      const { id: nominationFileId } = initial.items[0] as NominationFile;
-      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
 
-      await http.post(summaryPath).set({ cookie: user.cookie }).expect(201);
+      const createRes = await agent.summaries.createSummary({
+        path: { sessionId: session.id, nominationFileId },
+      });
+      expect(createRes.response.status).toBe(201);
       expect(await summaryOf(nominationFileId)).toBeNull();
 
-      await http
-        .put(`${summaryPath}/content`)
-        .set({ cookie: user.cookie })
-        .send({ content: 'Une vraie synthèse' })
-        .expect(204);
+      const writeRes = await agent.summaries.writeSummary({
+        path: { sessionId: session.id, nominationFileId },
+        body: { content: 'Une vraie synthèse' },
+      });
+      expect(writeRes.response.status).toBe(204);
       expect(await summaryOf(nominationFileId)).toEqual({
         id: nominationFileId,
         canRead: true,
@@ -294,69 +246,34 @@ describe('Session E2E', () => {
       });
     }, 10_000);
 
-    it('should leave an empty summary authorless and define ownership to first writer', async () => {
-      const otherRegistered = await registerUser(baseUrl, 'ADMIN');
-      const otherLogin = await http
-        .post('/api/auth/v2/login')
-        .send({ email: otherRegistered.email, password: otherRegistered.password })
-        .expect(204);
-      const otherCookie: string = otherLogin.headers['set-cookie']!;
+    test('should leave an empty summary authorless and define ownership to first writer', async ({
+      logIn,
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const other = await logIn('ADJOINT_SECRETAIRE_GENERAL');
 
-      const session = await createSession({
-        baseUrl,
-        cookie: user.cookie,
-        session: {
-          name: 'Transparence annuelle',
-          createdAt: '22/04/2026',
-          candidates: [
-            {
-              firstName: 'ETIENNE',
-              lastName: 'TREVOUX',
-              position: {
-                grade: Magistrat.Grade.G3,
-                jurisdiction: { id: 'CA  LYON' },
-                function: {
-                  id: 'PR',
-                  label: 'Procureur de la République',
-                  labelOneMale: 'procureur de la République',
-                  formation: Magistrat.Formation.PARQUET,
-                },
-              },
-              targetPosition: {
-                grade: Magistrat.Grade.G3,
-                jurisdiction: { id: 'CA  GRENOBLE' },
-                function: {
-                  id: 'PR',
-                  label: 'Procureur de la République',
-                  labelOneMale: 'procureur de la République',
-                  formation: Magistrat.Formation.PARQUET,
-                },
-              },
-            },
-          ],
-        },
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+      const summaryPath = { sessionId: session.id, nominationFileId };
+
+      expect((await agent.summaries.createSummary({ path: summaryPath })).response.status).toBe(201);
+      expect((await other.summaries.createSummary({ path: summaryPath })).response.status).toBe(201);
+
+      const firstWrite = await other.summaries.writeSummary({
+        path: summaryPath,
+        body: { content: 'Synthèse rédigée en premier' },
       });
+      expect(firstWrite.response.status).toBe(204);
 
-      const { body: initial } = await http
-        .get(`/api/sessions/v2/${session.id}/files`)
-        .set({ cookie: user.cookie });
-      const { id: nominationFileId } = initial.items[0] as NominationFile;
-      const summaryPath = `/api/sessions/v2/${session.id}/files/${nominationFileId}/summary`;
-
-      await http.post(summaryPath).set({ cookie: user.cookie }).expect(201);
-      await http.post(summaryPath).set({ cookie: otherCookie }).expect(201);
-
-      await http
-        .put(`${summaryPath}/content`)
-        .set({ cookie: otherCookie })
-        .send({ content: 'Synthèse rédigée en premier' })
-        .expect(204);
-
-      await http
-        .put(`${summaryPath}/content`)
-        .set({ cookie: user.cookie })
-        .send({ content: 'tentative concurrente' })
-        .expect(403);
+      const concurrentWrite = await agent.summaries.writeSummary({
+        path: summaryPath,
+        body: { content: 'tentative concurrente' },
+      });
+      expect(concurrentWrite.response.status).toBe(403);
     }, 10_000);
   });
 });

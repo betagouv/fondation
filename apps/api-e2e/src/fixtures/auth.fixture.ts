@@ -1,13 +1,13 @@
+// oxlint-disable no-console
 import * as assert from 'node:assert/strict';
 
 import { faker } from '@faker-js/faker';
 
-import { Client } from '../generated/api/client/index';
-import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types';
-import { makeStepsFixtures, TestSteps } from '../steps';
+import { Client } from '../generated/api/client/index.ts';
+import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.ts';
+import { makeStepsFixtures, TestSteps } from '../steps.ts';
 
 export type RoleEnum = NonNullable<RegisterUserDto['role']>;
-type FixtureRoleEnum = Exclude<RoleEnum, 'ADJOINT_SECRETAIRE_GENERAL'>;
 
 export type AuthUser = {
   id: string;
@@ -20,7 +20,7 @@ export type AuthUser = {
 
 export async function registerUser<Role extends RoleEnum>(options: {
   client: Client;
-  user: Role | (Omit<RegisterUserDto, 'role'> & { role: Role });
+  user: Role | (Partial<Omit<RegisterUserDto, 'role'>> & { role: Role });
 }): Promise<AuthUser> {
   const inputUser = (
     typeof options.user === 'string' ? { role: options.user } : options.user
@@ -38,8 +38,10 @@ export async function registerUser<Role extends RoleEnum>(options: {
   const { response: userResponse, data: createdUser } = await client.post({
     url: `/api/auth/v2/register`,
     body: user,
+    throwOnError: true,
     headers: {
       'Content-Type': 'application/json',
+      // see apps/api/.env.e2e#E2E_API_TOKEN
       Authorization: `Bearer FthDG8SXXzWD6eOzybymzXh1bHqHepZG`,
     },
   });
@@ -52,11 +54,14 @@ export function makeLoggedInUserFixture(baseUrl: string) {
   const steps = makeStepsFixtures({ baseUrl });
 
   return async function loggedInUserFixture(
-    input: FixtureRoleEnum | (Omit<RegisterUserDto, 'role'> & { role: FixtureRoleEnum }),
+    input: RoleEnum | (Omit<RegisterUserDto, 'role'> & { role: RoleEnum }),
   ): Promise<TestSteps> {
     const user = await registerUser({ client: steps['@client'], user: input });
 
-    const { response } = await steps.auth.login({ body: { email: user.email, password: user.password } });
+    const { response } = await steps.auth.login({
+      body: { email: user.email, password: user.password },
+      throwOnError: true,
+    });
     assert.ok(response.status === 204, `Could not login as ${user.email}`);
     const cookies = response.headers.getSetCookie();
 

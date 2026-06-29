@@ -3,13 +3,13 @@ import * as assert from 'node:assert/strict';
 import { randomInt } from 'node:crypto';
 
 import { generateLolfiArchive, type LolfiData } from 'lolfi';
-import { vi } from 'vitest';
 
-import { TestStepsAgent } from '../steps';
+import { TestStepsAdmin } from '../steps.ts';
+import { waitFor } from '../utils/wait-for.ts';
 
 let sessionIdSequence = randomInt(1_000_000, 1_000_000_000);
 
-export function makeCreateSessionFixture(steps: TestStepsAgent) {
+export function makeCreateSessionFixture(steps: TestStepsAdmin) {
   async function generateSessionsArchive(
     inputSessions: LolfiData['sessions'],
   ): Promise<{ file: File; names: string[] }> {
@@ -36,12 +36,14 @@ export function makeCreateSessionFixture(steps: TestStepsAgent) {
 
   async function createMultipleSessions(sessions: LolfiData['sessions']): Promise<{ id: string }[]> {
     const { names, file } = await generateSessionsArchive(sessions);
-    const jobId = await steps.ingest.ingestLolfiArchive({ body: { file } }).then(({ data }) => data!.id);
+    const jobId = await steps.ingest
+      .ingestLolfiArchive({ body: { file }, throwOnError: true })
+      .then(({ data }) => data!.id);
 
-    await vi.waitFor(
+    await waitFor(
       async () => {
         const { status, errors, files } = await steps.jobs
-          .detailsJob({ path: { jobId } })
+          .detailsJob({ path: { jobId }, throwOnError: true })
           .then(({ data }) => data!);
 
         if (status === 'FAILED') {
@@ -55,7 +57,7 @@ export function makeCreateSessionFixture(steps: TestStepsAgent) {
     );
 
     const result: { id: string }[] = [];
-    await vi.waitFor(
+    await waitFor(
       async () => {
         for (const name of names) {
           const [firstSession] = await steps.sessions
@@ -79,5 +81,5 @@ export function makeCreateSessionFixture(steps: TestStepsAgent) {
     return session;
   }
 
-  return { createSession };
+  return { createOne: createSession, createMany: createMultipleSessions };
 }

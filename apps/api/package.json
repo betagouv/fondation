@@ -12,7 +12,7 @@
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
     "start": "dotenvx run -- nest start",
-    "start:e2e": "dotenvx run -f .env.e2e -f .env -- nest start",
+    "start:e2e": "dotenvx run -f .env.e2e -f .env -- nest start --entryFile main.e2e",
     "dev": "dotenvx run -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "lint": "oxlint --fix",

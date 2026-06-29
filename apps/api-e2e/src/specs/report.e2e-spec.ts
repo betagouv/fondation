@@ -1,141 +1,99 @@
-import { randomUUID } from 'node:crypto';
+import { Magistrat } from 'shared-models';
 
-import supertest from 'supertest';
+import { test } from '../fixtures.ts';
+import { makeFile } from '../utils/files.ts';
+import * as seed from '../utils/seed.ts';
 
-import { Magistrat, ReportFileUsage } from 'shared-models';
-
-import { registerUser } from '../fixtures/auth.fixture';
-import { createSession } from '../fixtures/session.fixture';
-import type { DetailedReportDto } from '../generated/api/types';
-
-import { getBaseUrl } from '../fixtures';
-const baseUrl = getBaseUrl();
-
-describe('Report E2E', () => {
-  const http = supertest(baseUrl);
-  let cookie: string;
+test.describe('Report E2E', () => {
   let reportId: string;
 
-  beforeAll(async () => {
-    const admin = await registerUser(baseUrl, 'ADMIN');
-    const member = await registerUser(baseUrl, 'MEMBRE_COMMUN');
-
-    const adminLogin = await http
-      .post('/api/auth/v2/login')
-      .send({ email: admin.email, password: admin.password })
-      .expect(204);
-    const adminCookie: string = adminLogin.headers['set-cookie']!;
-
-    const memberLogin = await http
-      .post('/api/auth/v2/login')
-      .send({ email: member.email, password: member.password })
-      .expect(204);
-    cookie = memberLogin.headers['set-cookie']!;
-
+  test.beforeEach(async ({ sessions, agent, member, expect }) => {
     // Create a session and assign the member so a report is created automatically
-    const session = await createSession({
-      baseUrl,
-      cookie: adminCookie,
-      session: {
-        name: 'Transparence rapport',
-        createdAt: '22/04/2026',
-        candidates: [
-          {
-            firstName: 'ETIENNE',
-            lastName: 'TREVOUX',
-            position: {
-              grade: Magistrat.Grade.G3,
-              jurisdiction: { id: 'CA  LYON' },
-              function: {
-                id: 'PR',
-                label: 'Procureur de la République',
-                labelOneMale: 'procureur de la République',
-                formation: Magistrat.Formation.PARQUET,
-              },
-            },
-            targetPosition: {
-              grade: Magistrat.Grade.G3,
-              jurisdiction: { id: 'CA  GRENOBLE' },
-              function: {
-                id: 'PR',
-                label: 'Procureur de la République',
-                labelOneMale: 'procureur de la République',
-                formation: Magistrat.Formation.PARQUET,
-              },
-            },
+    const session = await sessions.createOne({
+      name: 'Transparence rapport',
+      createdAt: '22/04/2026',
+      candidates: [
+        {
+          firstName: 'ETIENNE',
+          lastName: 'TREVOUX',
+          position: {
+            grade: Magistrat.Grade.G3,
+            jurisdiction: seed.jurisdictions['CA  LYON'],
+            function: seed.functions.PR,
           },
-        ],
-      },
+          targetPosition: {
+            grade: Magistrat.Grade.G3,
+            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+            function: seed.functions.PR,
+          },
+        },
+      ],
     });
 
-    const filesRes = await http
-      .get(`/api/sessions/v2/${session.id}/files`)
-      .set({ cookie: adminCookie })
-      .expect(200);
-    const nominationFileId: string = filesRes.body.items[0].id;
+    const filesResponse = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+    expect(filesResponse.response.status).toBe(200);
 
-    // Assign member as reporter and publish
-    await http
-      .post(`/api/sessions/v2/${session.id}/files/reporters`)
-      .set({ cookie: adminCookie })
-      .send({ items: [{ nominationFileId, reporterIds: [member.id], priorities: [] }] })
-      .expect(204);
+    const nominationFileId: string = filesResponse.data!.items[0]!.id;
 
-    await http
-      .post(`/api/sessions/v2/${session.id}/files/reporters/versions`)
-      .set({ cookie: adminCookie })
-      .expect(204);
+    const affectResponse = await agent.sessions.affectReporters({
+      path: { sessionId: session.id },
+      body: { items: [{ nominationFileId, reporterIds: [member['@user']!.id], priorities: [] }] },
+    });
+    expect(affectResponse.response.status).toBe(204);
 
-    // Refresh member cookie and get report ID
-    const memberLogin2 = await http
-      .post('/api/auth/v2/login')
-      .send({ email: member.email, password: member.password })
-      .expect(204);
-    cookie = memberLogin2.headers['set-cookie']!;
+    const publishResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: session.id },
+    });
+    expect(publishResponse.response.status).toBe(204);
 
-    const memberSessionRes = await http
-      .get(`/api/members/v1/${member.id}/sessions/transparence/garde-des-sceaux/${session.id}`)
-      .set({ cookie })
-      .expect(200);
-    reportId = memberSessionRes.body.items[0].id;
+    const memberId = member['@user']!.id;
+    const reportsRes = await member.members.detailsMemberSession({
+      path: { userId: memberId, sessionId: session.id },
+    });
+
+    reportId = reportsRes.data!.items[0]!.id;
   });
 
-  it('should attach files to a report', async () => {
-    const filename = `image_${randomUUID()}.png`;
+  test('should attach files to a report', async ({ member, expect }) => {
+    const file = makeFile({ type: 'image/png', name: `image_${crypto.randomUUID()}.png` });
 
-    await http
-      .post(`/api/reports/v2/${reportId}/files`)
-      .query({ usage: ReportFileUsage.ATTACHMENT })
-      .attach('files', Buffer.alloc(8), { contentType: 'image/png', filename })
-      .set('cookie', cookie)
-      .expect(204);
+    const attachmentRes = await member.reports.attachFiles({
+      path: { reportId },
+      body: { files: [file] },
+      query: { usage: 'ATTACHMENT' },
+    });
+    expect(attachmentRes.response.status).toBe(204);
 
-    const res = await http.get(`/api/reports/v2/${reportId}`).set('cookie', cookie).expect(200);
-    expect((res.body as DetailedReportDto).attachments.map((a) => a.name)).toContain(filename);
+    const responseBody = await member.reports.detailReport({ path: { reportId } });
+    expect(responseBody.response.status).toBe(200);
+    expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
   });
 
-  it('should detach files from a report', async () => {
-    const id = randomUUID();
-    const file1 = `image_1_${id}.png`;
-    const file2 = `image_2_${id}.png`;
+  test('should detach files from a report', async ({ member, expect }) => {
+    const [file1, file2] = [null, null].map((_, i) =>
+      makeFile({ name: `image_${i + 1}_${crypto.randomUUID()}.png`, type: 'image/png' }),
+    ) as [File, File];
 
-    await http
-      .post(`/api/reports/v2/${reportId}/files`)
-      .query({ usage: ReportFileUsage.ATTACHMENT })
-      .attach('files', Buffer.alloc(8), { contentType: 'image/png', filename: file1 })
-      .attach('files', Buffer.alloc(8), { contentType: 'image/png', filename: file2 })
-      .set('cookie', cookie)
-      .expect(204);
+    const attachmentRes = await member.reports.attachFiles({
+      path: { reportId },
+      body: { files: [file1, file2] },
+      query: { usage: 'ATTACHMENT' },
+    });
+    expect(attachmentRes.response.status).toBe(204);
 
-    await http
-      .delete(`/api/reports/v2/${reportId}/files`)
-      .query({ fileNames: file1 })
-      .set('cookie', cookie)
-      .expect(204);
+    const reportResBefore = await member.reports.detailReport({ path: { reportId } });
+    expect(reportResBefore.data?.attachments).toHaveLength(2);
 
-    const after = await http.get(`/api/reports/v2/${reportId}`).set('cookie', cookie).expect(200);
-    const names = (after.body as DetailedReportDto).attachments.map((a) => a.name);
-    expect(names).not.toContain(file1);
-    expect(names).toContain(file2);
+    const deleteAttachmentRes = await member.reports.detachFiles({
+      path: { reportId },
+      query: { fileNames: file1.name },
+    });
+    expect(deleteAttachmentRes.response.status).toBe(204);
+
+    const reportResAfter = await member.reports.detailReport({ path: { reportId } });
+    expect(reportResAfter.data?.attachments).toHaveLength(1);
+
+    expect(reportResAfter.data?.attachments.map(({ name }) => name)).not.toContain(file1.name);
+    expect(reportResAfter.data?.attachments.map(({ name }) => name)).toContain(file2.name);
   });
 });
