@@ -26,7 +26,7 @@ export function Checkbox(props: {
       />
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden size-4 text-white peer-checked:block peer-indeterminate:hidden"
+        className="pointer-events-none absolute inset-0 hidden size-4 text-(--text-inverted-blue-france) peer-checked:block peer-indeterminate:hidden"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -38,7 +38,7 @@ export function Checkbox(props: {
       </svg>
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden size-4 text-white peer-indeterminate:block"
+        className="pointer-events-none absolute inset-0 hidden size-4 text-(--text-inverted-blue-france) peer-indeterminate:block"
         viewBox="0 0 16 16"
       >
         <rect fill="currentColor" height="2" rx="1" width="9" x="3.5" y="7" />
