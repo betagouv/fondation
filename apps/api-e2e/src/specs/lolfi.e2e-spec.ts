@@ -57,7 +57,9 @@ test.describe('lolfi', () => {
       ],
     });
 
-    const sessionFiles = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+    const sessionFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+    });
     expect(sessionFiles.data!.items[0]!.priorities).toEqual(['PROFILE']);
   });
 
@@ -110,7 +112,9 @@ test.describe('lolfi', () => {
     // Re-ingesting the same session alongside a new one must update it, not duplicate it
     const [, next] = await sessions.createMany([initialSession, nextSession]);
 
-    const initialFiles = await agent.sessions.listNominationFiles({ path: { sessionId: initial.id } });
+    const initialFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId: initial.id },
+    });
     expect(initialFiles.data!.totalCount).toBe(1);
 
     const nextFiles = await agent.sessions.listNominationFiles({ path: { sessionId: next!.id } });

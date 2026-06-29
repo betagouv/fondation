@@ -30,7 +30,11 @@ export const jurisdictions = {
   'CA  REIMS': { id: 'CA  GRENOBLE', label: "Cour d'appel de Reims" },
   'CA  MONTPELLIER': { id: 'CA  MONTPELLIER', label: "Cour d'appel de Montpellier" },
   'TJ   LYON': { id: 'TJ  LYON', label: 'Tribunal judiciaire de Lyon', ressort: 'CA  LYON' },
-  'TJ  GRASSE': { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse', ressort: 'CA  AIX EN PROVENCE' },
+  'TJ  GRASSE': {
+    id: 'TJ  GRASSE',
+    label: 'Tribunal judiciaire de Grasse',
+    ressort: 'CA  AIX EN PROVENCE',
+  },
   'TPR  CANNES': {
     id: 'TPR  CANNES',
     label: 'Tribunal de proximité de Cannes',
@@ -47,5 +51,9 @@ export const jurisdictions = {
     label: 'Tribunal judiciaire de Narbonne',
     ressort: 'CA  MONTPELLIER',
   },
-  'TJ  BEZIERS': { id: 'TJ  BEZIERS', label: 'Tribunal judiciaire de Béziers', ressort: 'CA  MONTPELLIER' },
+  'TJ  BEZIERS': {
+    id: 'TJ  BEZIERS',
+    label: 'Tribunal judiciaire de Béziers',
+    ressort: 'CA  MONTPELLIER',
+  },
 } as const satisfies Record<string, LolfiJurisdiction>;

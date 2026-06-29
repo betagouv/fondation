@@ -11,7 +11,7 @@ import { functions, jurisdictions } from './src/utils/seed';
 
 function makeOnData(source: 'stdout' | 'stderr', resolve: (url: string) => void) {
   const decoder = new TextDecoder();
-  const re = /running on\s*(http:\/\/[[\]a-zA-Z0-9\/\-_:]+)/i;
+  const re = /running on\s*(http:\/\/[[\]a-zA-Z0-9/\-_:]+)/i;
 
   return function onData(chunk: Buffer) {
     const line = decoder.decode(chunk);

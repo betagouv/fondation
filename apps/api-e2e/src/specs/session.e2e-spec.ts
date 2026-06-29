@@ -6,10 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { LolfiData } from 'lolfi';
 
 import { test } from '../fixtures.ts';
-import type {
-  ImportNominationSessionFromLodamXlsxDto,
-  PaginatedNominationFiles,
-} from '../generated/api/types.ts';
+import type { ImportNominationSessionFromLodamXlsxDto, PaginatedNominationFiles } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -184,8 +181,16 @@ test.describe('Session E2E', () => {
         memo: null,
         summary: null,
         reporters: expect.arrayContaining([
-          expect.objectContaining({ id: expect.any(String), firstName: 'charles', lastName: 'andoche' }),
-          expect.objectContaining({ id: expect.any(String), firstName: 'côme', lastName: 'durand' }),
+          expect.objectContaining({
+            id: expect.any(String),
+            firstName: 'charles',
+            lastName: 'andoche',
+          }),
+          expect.objectContaining({
+            id: expect.any(String),
+            firstName: 'côme',
+            lastName: 'durand',
+          }),
         ]),
         hasAttachment: false,
       } satisfies NominationFile);

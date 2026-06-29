@@ -42,7 +42,9 @@ test.describe('Members E2E', () => {
     });
 
     test('updates a member excluded jurisdictions', async ({ agent, expect }) => {
-      const detailedMemberBefore = await agent.members.detailsMember({ path: { userId: memberId } });
+      const detailedMemberBefore = await agent.members.detailsMember({
+        path: { userId: memberId },
+      });
       expect(detailedMemberBefore.data?.excludedJurisdictions).toEqual([]);
 
       const updateRes = await agent.members.excludeJurisdictions({

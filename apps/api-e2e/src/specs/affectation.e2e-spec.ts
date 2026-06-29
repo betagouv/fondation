@@ -81,9 +81,7 @@ test.describe('Session Affectations E2E', () => {
     expect(publishedAffectationsResponse.response.status).toBe(204);
 
     const unaffected = await member.members.listMemberSessions({ path: { userId: memberId } });
-    expect(unaffected.data!.items).toContainEqual(
-      expect.objectContaining({ id: sessionId, isAffected: false }),
-    );
+    expect(unaffected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: false }));
 
     // Re-affecting must restore the previous report edition rather than resetting it
     await agent.sessions.affectReporters({

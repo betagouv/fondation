@@ -30,7 +30,9 @@ test.describe('Report E2E', () => {
       ],
     });
 
-    const filesResponse = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+    const filesResponse = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+    });
     expect(filesResponse.response.status).toBe(200);
 
     const nominationFileId: string = filesResponse.data!.items[0]!.id;

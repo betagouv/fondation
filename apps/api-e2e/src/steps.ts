@@ -16,14 +16,8 @@ type Complement<T, U> = RemoveEmpty<
 export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: string } | undefined };
 export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
-  summaries: Pick<
-    TestSteps['summaries'],
-    'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'
-  >;
-  members: Pick<
-    TestSteps['members'],
-    'listMemberSessions' | 'detailsMemberSession' | 'writeNominationFileMemberMemo'
-  >;
+  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
+  members: Pick<TestSteps['members'], 'listMemberSessions' | 'detailsMemberSession' | 'writeNominationFileMemberMemo'>;
   observations: Pick<
     TestSteps['observations'],
     'listObservations' | 'getObservationDetails' | 'getObservationFileUrl' | 'listObservationsAttachments'
