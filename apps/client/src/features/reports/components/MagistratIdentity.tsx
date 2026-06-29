@@ -4,7 +4,7 @@ import { type FC } from 'react';
 import { labels } from '@/constants/labels.constants';
 import { FormattedBirthDate } from '@/i18n/components';
 import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { DetailedReportDto } from '@api/types';
 
 import { Card } from './Card';

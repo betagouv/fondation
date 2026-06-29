@@ -1,6 +1,6 @@
 import { Node, NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from '@tiptap/react';
 
-import { Pulse } from '@/shared/ui/loaders/pulse';
+import { Pulse } from '@/shared/ui/loaders';
 
 import { makeEditorImageUploader, type FilesUploader } from './editor-file-uploader';
 

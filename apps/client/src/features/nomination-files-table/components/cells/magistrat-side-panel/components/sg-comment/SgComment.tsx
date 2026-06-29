@@ -4,8 +4,8 @@ import { useParams } from 'react-router';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
-import { CommentEditor } from '@/shared/ui/comment-editor/CommentEditor';
+import { useArchivedSession } from '@/shared/context/archived-session';
+import { CommentEditor } from '@/shared/ui/comment-editor';
 import { useUpdateNominationFileCommentMutation } from '@queries/members.queries';
 
 export function SgComment(props: { initialComment?: string | null; nominationFileId: string }) {

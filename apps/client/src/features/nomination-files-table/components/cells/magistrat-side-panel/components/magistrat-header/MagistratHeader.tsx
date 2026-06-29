@@ -10,7 +10,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
-import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { toFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';

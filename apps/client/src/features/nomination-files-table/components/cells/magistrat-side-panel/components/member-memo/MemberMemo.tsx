@@ -3,8 +3,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
-import { CommentEditor } from '@/shared/ui/comment-editor/CommentEditor';
+import { useArchivedSession } from '@/shared/context/archived-session';
+import { CommentEditor } from '@/shared/ui/comment-editor';
 import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 

@@ -4,8 +4,8 @@ import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useArchivedSession } from '@/shared/context/archived-session';
+import { useConfirmation } from '@/shared/context/confirmation';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';

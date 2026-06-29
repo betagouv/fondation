@@ -12,8 +12,8 @@ import { ReportListViewToggle } from '@/features/reports/components/ReportListVi
 import { ReportsDnVueGenerale } from '@/features/reports/components/ReportsDnVueGenerale';
 import { ReportStateTag } from '@/features/reports/components/ReportStateTag';
 import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
-import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
-import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import {

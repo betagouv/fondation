@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ArchivedSessionContext } from '@/shared/context/archived-session/ArchivedSessionContext';
+import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
 

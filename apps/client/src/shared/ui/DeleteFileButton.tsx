@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 
 export function DeleteFileButton(props: { fileName: string; onDelete: () => void }) {
   const confirmation = useConfirmation();

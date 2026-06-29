@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { generatePath, useNavigate } from 'react-router';
 
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { FoundSessionDocsDto } from '@api/types';
 

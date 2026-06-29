@@ -1,5 +1,5 @@
 import { useNominationFilesTable } from '../../context/files-table.context';
-import { PriorityBadgeList } from '@/shared/components/priority-badge/PriorityBadge';
+import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { NominationFilesPrioritySelectorCell } from './NominationFilesPrioritySelectorCell';

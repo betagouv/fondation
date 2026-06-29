@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import {
   useCreateNominationSessionAttachmentUrlMutation,

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient } from '@tanstack/react-query';
 
-import { ArchivedSessionContext } from '@/shared/context/archived-session/ArchivedSessionContext';
+import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { authKeys } from '@queries/auth.queries';
 
