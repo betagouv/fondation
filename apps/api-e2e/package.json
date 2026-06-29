@@ -1,0 +1,23 @@
+{
+  "name": "api-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "openapi:generate": "openapi-ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "types:check": "tsc -p ."
+  },
+  "devDependencies": {
+    "@faker-js/faker": "catalog:",
+    "@hey-api/openapi-ts": "0.93.0",
+    "@types/node": "24.12.4",
+    "lolfi": "workspace:*",
+    "postgres": "^3.4.9",
+    "shared-models": "workspace:*",
+    "typescript": "5.9.3",
+    "undici-types": "^8.5.0",
+    "vitest": "4.1.8"
+  }
+}
