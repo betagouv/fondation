@@ -205,9 +205,10 @@ test.describe('Session E2E', () => {
       const filesBefore = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const nominationFileId = filesBefore.data!.items[0]!.id;
 
+      const fileToAttach = makeFile({ type: 'application/pdf', name: 'note.pdf' });
       const uploadRes = await agent.sessions.uploadNominationFileAttachments({
         path: { sessionId, nominationFileId },
-        body: { files: [makeFile({ type: 'application/pdf', name: 'note.pdf' })] },
+        body: { files: [fileToAttach] },
       });
       expect(uploadRes.response.status).toBe(204);
 
@@ -215,7 +216,9 @@ test.describe('Session E2E', () => {
         path: { sessionId, nominationFileId },
       });
       expect(attachments.response.status).toBe(200);
-      expect(attachments.data!.items).toEqual([{ id: expect.any(String), name: 'note.pdf' }]);
+      expect(attachments.data!.items).toEqual([
+        { id: expect.any(String), name: fileToAttach.name, size: fileToAttach.size },
+      ]);
 
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
