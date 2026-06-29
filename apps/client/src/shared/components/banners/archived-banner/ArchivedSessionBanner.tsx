@@ -1,7 +1,7 @@
 import { colors } from '@codegouvfr/react-dsfr';
 
 import { PermanentBanner } from '../PermanentBanner';
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 
 const bgColor = colors.decisions.background.alt.yellowTournesol.active;
 const text = colors.decisions.text.actionHigh.grey.default;

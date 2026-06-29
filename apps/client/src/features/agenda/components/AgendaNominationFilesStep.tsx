@@ -8,8 +8,8 @@ import { FormattedMessage } from 'react-intl';
 import { useAgenda } from '@/features/agenda/context/AgendaContext';
 import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { useScrollDownIndicator } from '@/features/agenda/hooks/useScrollDownIndicator.hook';
-import { useSelection } from '@/shared/hooks/useSelection.hook';
-import { IndeterminateCheckbox } from '@/shared/ui/indeterminate-checkbox/IndeterminateCheckbox';
+import { useSelection } from '@/shared/hooks/useSelection';
+import { IndeterminateCheckbox } from '@/shared/ui/indeterminate-checkbox';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 
 import { AgendaFileSearch } from './AgendaFileSearch';

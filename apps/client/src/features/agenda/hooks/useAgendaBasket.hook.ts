@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLocallyStoredState } from '@/shared/hooks/useLocallyStoredState.hook';
+import { useLocallyStoredState } from '@/shared/hooks/useLocallyStoredState';
 
 export type AgendaBasket = {
   fileIds: readonly string[];

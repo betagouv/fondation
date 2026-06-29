@@ -3,7 +3,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { useCallback, useRef, useState } from 'react';
 
-import { useAlerts } from '@/shared/context/alerts/alerts.context';
+import { useAlerts } from '@/shared/context/alerts';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
 export const modal = createModal({

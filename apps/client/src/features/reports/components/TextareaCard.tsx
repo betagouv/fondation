@@ -1,4 +1,4 @@
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 

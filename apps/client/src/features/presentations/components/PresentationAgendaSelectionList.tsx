@@ -4,7 +4,7 @@ import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
-import { useSelection } from '@/shared/hooks/useSelection.hook';
+import { useSelection } from '@/shared/hooks/useSelection';
 import { FormationEnumLabel, TypeDeSaisineEnum } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
