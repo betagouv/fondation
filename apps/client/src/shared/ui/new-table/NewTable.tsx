@@ -1,0 +1,137 @@
+import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
+import clsx from 'clsx';
+import { type ReactNode, useEffect, useRef } from 'react';
+
+import { useTableVirtualizer } from './hooks/useTableVirtualizer';
+
+function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
+  const glyph = props.direction === 'asc' ? '▲' : props.direction === 'desc' ? '▼' : '↕';
+  return (
+    <span aria-hidden className="text-xs text-(--text-mention-grey)">
+      {glyph}
+    </span>
+  );
+}
+
+function HeaderCell<Data extends RowData>(props: { header: Header<Data, unknown> }) {
+  const { header } = props;
+  const sticky = header.column.columnDef.meta?.sticky;
+  const canSort = header.column.getCanSort();
+  const direction = header.column.getIsSorted();
+  const ariaSort = direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none';
+
+  return (
+    <div
+      aria-sort={canSort ? ariaSort : undefined}
+      className={clsx(
+        'flex h-12 items-center overflow-hidden px-4 text-sm leading-6 font-bold text-ellipsis whitespace-nowrap text-(--text-default-grey)',
+        sticky && 'sticky left-0 z-3 border-r border-(--border-default-grey) bg-(--background-contrast-grey)',
+      )}
+      role="columnheader"
+      style={{ width: header.getSize() }}
+    >
+      {canSort ? (
+        <button
+          className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-sm leading-6 font-bold text-(--text-default-grey) hover:text-(--text-action-high-blue-france)"
+          onClick={header.column.getToggleSortingHandler()}
+          type="button"
+        >
+          {flexRender(header.column.columnDef.header, header.getContext())}
+          <SortIcon direction={direction} />
+        </button>
+      ) : (
+        flexRender(header.column.columnDef.header, header.getContext())
+      )}
+    </div>
+  );
+}
+
+export function NewTable<Data extends RowData>(props: {
+  emptyLabel?: ReactNode;
+  isLoading?: boolean;
+  onEndReached?: () => void;
+  rowTint?: (row: Row<Data>) => string | undefined;
+  table: Table<Data>;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { onEndReached, table } = props;
+
+  const rows = table.getRowModel().rows;
+  const totalRows = rows.length;
+  const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollRef });
+  const virtualRows = virtualizer.getVirtualItems();
+
+  const lastRenderedIndex = virtualRows.at(-1)?.index;
+  useEffect(() => {
+    if (onEndReached && lastRenderedIndex !== undefined && lastRenderedIndex >= totalRows - 1) {
+      onEndReached();
+    }
+  }, [onEndReached, lastRenderedIndex, totalRows]);
+
+  const isEmpty = !props.isLoading && totalRows === 0;
+
+  return (
+    <div
+      className="relative size-full overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)"
+      ref={scrollRef}
+      tabIndex={0}
+    >
+      <div aria-rowcount={totalRows} className="grid w-full text-sm text-(--text-default-grey)" role="table">
+        <div className="sticky top-0 z-2 grid bg-(--background-contrast-grey)" role="rowgroup">
+          {table.getHeaderGroups().map((group) => (
+            <div className="flex w-full border-b border-(--border-default-grey)" key={group.id} role="row">
+              {group.headers.map((header) => (
+                <HeaderCell header={header} key={header.id} />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="relative grid" role="rowgroup" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          {isEmpty ? (
+            <div className="p-8 text-center text-(--text-mention-grey)" role="row">
+              <div role="cell">{props.emptyLabel ?? 'Aucune donnée'}</div>
+            </div>
+          ) : null}
+
+          {virtualRows.map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            return (
+              <div
+                aria-rowindex={virtualRow.index + 1}
+                aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
+                className={clsx(
+                  'absolute flex h-12 w-full border-b border-(--border-default-grey)',
+                  props.rowTint?.(row) ??
+                    'hover:bg-(--background-alt-grey-hover) aria-selected:bg-(--background-open-blue-france)',
+                )}
+                data-index={virtualRow.index}
+                key={row.id}
+                ref={virtualizer.measureElement}
+                role="row"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const sticky = cell.column.columnDef.meta?.sticky;
+                  return (
+                    <div
+                      className={clsx(
+                        'flex items-center overflow-hidden px-4 py-2 text-ellipsis whitespace-nowrap',
+                        sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey) bg-inherit',
+                      )}
+                      key={cell.id}
+                      role="cell"
+                      style={{ width: cell.column.getSize() }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
