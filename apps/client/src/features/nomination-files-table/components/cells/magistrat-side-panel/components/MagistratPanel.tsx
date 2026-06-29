@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { MAGISTRAT_PANEL_ID, useMagistratPanel } from '../context/magistrat-panel.context';
-import { SidePanel } from '@/shared/ui/side-panel/SidePanel';
+import { SidePanel } from '@/shared/ui/side-panel';
 
 import { MagistratDetails } from './MagistratDetails';
 

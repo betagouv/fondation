@@ -8,7 +8,7 @@ import { SummaryContainer } from '@/features/summary/components/SummaryContainer
 import { SummaryNotFound } from '@/features/summary/components/SummaryNotFound';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { useVisibleSummarySections } from '@/features/summary/hooks/useVisibleSummarySections';
-import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';

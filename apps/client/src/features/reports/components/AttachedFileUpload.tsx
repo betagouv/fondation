@@ -4,7 +4,7 @@ import type { FC } from 'react';
 
 import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import { summaryLabels } from '@/features/reports/labels/summary-labels';
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 
 import { AttachedFilesList } from './AttachedFilesList';
 import { Card } from './Card';

@@ -12,7 +12,7 @@ import { NominationFilesTableProvider } from '../context/NominationFilesTablePro
 import { useNominationFilesTableColumns } from '../hooks/useNominationFilesTableColumns.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
-import { AlertsProvider } from '@/shared/context/alerts/AlertsProvider';
+import { AlertsProvider } from '@/shared/context/alerts';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import {

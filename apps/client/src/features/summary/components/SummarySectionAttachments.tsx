@@ -3,7 +3,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import React from 'react';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 import {
   useAttachSummaryFilesMutation,
   useDetachSummaryFilesMutation,

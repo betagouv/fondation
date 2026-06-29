@@ -5,7 +5,7 @@ import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
 import { type FC, useRef, useState } from 'react';
 
-import { useAlerts } from '@/shared/context/alerts/alerts.context';
+import { useAlerts } from '@/shared/context/alerts';
 import { useUpdateNominationSessionObserversFromLodamMutation } from '@queries/nomination-sessions.queries';
 
 import { ACCEPT_XLSX_FILE, HintImportXlsxFile } from './HintImportXlsxFile';

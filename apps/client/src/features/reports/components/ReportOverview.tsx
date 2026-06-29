@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
 import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
-import { ArchiveBannerPortal } from '@/shared/components/banners/archived-banner/ArchiveBannerPortal';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
 import type { ReportStatusEnum } from '@/types/enums.types';

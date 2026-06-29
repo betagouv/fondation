@@ -3,8 +3,8 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import React, { type SyntheticEvent } from 'react';
 
-import { useAlerts } from '@/shared/context/alerts/alerts.context';
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useAlerts } from '@/shared/context/alerts';
+import { useConfirmation } from '@/shared/context/confirmation';
 import { useUpdateTitleMutation } from '@queries/members.queries';
 
 type MemberTitleValue = 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';

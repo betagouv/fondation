@@ -1,7 +1,7 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, FC } from 'react';
 
-import { useArchivedSession } from '@/shared/context/archived-session/useArchivedSession';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import { REPORT_STATUS_ENUM_LABEL, type ReportStatusEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 
