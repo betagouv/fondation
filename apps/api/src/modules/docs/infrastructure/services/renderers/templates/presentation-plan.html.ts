@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 
-import { date, fullname } from '../helpers';
+import { date, fullname, requiresElision } from '../helpers';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -102,9 +102,10 @@ function displayOutcome(ctx: {
 }
 
 function nominationFileParagraph(file: AgendaNominationFile): string {
+  const position = `${requiresElision(file.targetedPosition) ? `d'` : 'de '}${file.targetedPosition}`;
   return html`
     <li>
-      <strong>${file.name}</strong>, pour la proposition au poste de ${file.targetedPosition}
+      <strong>${file.name}</strong>, pour la proposition au poste ${position}
       (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;: ${file.outcomeComment}` : ''}.
     </li>
   `;
