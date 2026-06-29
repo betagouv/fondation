@@ -6,6 +6,7 @@ import { DateOnlyJson, Gender } from 'shared-models';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { capitalize } from 'src/utils/capitalize';
 import { DateOnly } from 'src/utils/date-only';
+import { unaccent } from 'src/utils/unaccent';
 
 export function fullname(props: { firstName: string; lastName: string }): string {
   return `${capitalize(props.firstName)}\u00A0${props.lastName.toUpperCase()}`;
@@ -53,6 +54,12 @@ export function date(date: Date | DateOnly | DateOnlyJson, format: DateFormat = 
   if (formatted.match(/1er/)) return formatted.replace(/^1er/, `1<sup>er</sup>`);
 
   return formatted;
+}
+
+const elidingInitials = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'h']);
+export function requiresElision(word: string): boolean {
+  const first = unaccent(word).trim()[0]?.toLowerCase();
+  return !!first && elidingInitials.has(first);
 }
 
 const conjunctionListFormatter = new Intl.ListFormat('fr', {

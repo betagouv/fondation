@@ -2,7 +2,7 @@ import { stripIndent } from 'common-tags';
 
 import { Gender, Magistrat } from 'shared-models';
 
-import { conjunctionList, date, displayTitled, fullname } from '../helpers';
+import { conjunctionList, date, displayTitled, fullname, requiresElision } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
@@ -45,7 +45,7 @@ function officialReportNominationParagraph(ctx: {
     : '';
 
   const targetedPosition = ctx.file.targetedPosition
-    ? `, au poste de ${ctx.file.targetedPosition} (${ctx.file.targetedGrade})`
+    ? `, au poste ${requiresElision(ctx.file.targetedPosition) ? `d'` : 'de '}${ctx.file.targetedPosition} (${ctx.file.targetedGrade})`
     : '';
 
   const reporters =
