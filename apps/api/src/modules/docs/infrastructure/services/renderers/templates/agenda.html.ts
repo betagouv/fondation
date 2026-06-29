@@ -2,7 +2,7 @@ import { stripIndent } from 'common-tags';
 
 import { Gender, Magistrat } from 'shared-models';
 
-import { conjunctionList, date, titled } from '../helpers';
+import { conjunctionList, date, requiresElision, titled } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import type { Pretty } from 'src/utils/types';
 
@@ -41,7 +41,7 @@ function agendaNominationParagraph(
     ? `, actuellement ${ctx.currentPosition} (${ctx.currentGrade})`
     : '';
   const targetPosition = ctx.targetedPosition
-    ? `, au poste de ${ctx.targetedPosition} (${ctx.targetedGrade})`
+    ? `, au poste ${requiresElision(ctx.targetedPosition) ? `d'` : 'de '}${ctx.targetedPosition} (${ctx.targetedGrade})`
     : '';
   const reporters = ctx.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.reporters)}` : '';
 
