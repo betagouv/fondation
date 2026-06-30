@@ -1,4 +1,4 @@
-import { NominationFileOutcome } from 'src/modules/session/domain/nomination-file-outcome';
+import { NominationFileOutcome } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { makeId } from 'src/utils/id';
 
 import { nominationFileOutcomeToDocNominationFileOutcome } from './doc-nomination-file-outcome';

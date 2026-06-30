@@ -9,7 +9,7 @@ import {
 } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -19,8 +19,8 @@ import { ReportedNominationFilesFinder } from './reported-nomination-files.finde
 @Injectable()
 export class DocsNominationFilesFinder {
   constructor(
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
 
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
 

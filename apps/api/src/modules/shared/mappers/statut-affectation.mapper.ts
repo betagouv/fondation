@@ -1,5 +1,5 @@
 import { PrismaStatutAffectationEnum } from 'src/generated/prisma/enums';
-import { StatutAffectationEnum } from 'src/modules/session/domain/statut-affectation.enum';
+import { StatutAffectationEnum } from 'src/modules/session/shared/types/statut-affectation.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export function prismaStatutAffectationEnumToStatutAffectationEnum(

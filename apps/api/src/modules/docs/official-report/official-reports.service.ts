@@ -2,12 +2,12 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { PrismaService } from '../../framework/database';
 import { MembersService } from '../../members';
-import { SessionService } from '../../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
 import { OfficialReportInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 
 import { OfficialReport } from './domain/official-report';
@@ -52,8 +52,8 @@ export class OfficialReportsService {
 
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   detailsSessionOfficialReport(query: {

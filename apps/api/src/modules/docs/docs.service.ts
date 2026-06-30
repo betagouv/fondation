@@ -2,6 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../framework/database';
 import { MembersService } from '../members';
+import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from '../shared/formation.enum';
 import { Prisma } from 'src/generated/prisma/client';
 
@@ -52,6 +53,8 @@ export class DocsService {
 
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   findSessionDocs(query: { sessionId: string }): Promise<FoundSessionDocsDto> {

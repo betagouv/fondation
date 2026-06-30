@@ -1,4 +1,4 @@
-import { NominationFileOutcomeEnum } from 'src/modules/session/domain/nomination-file-outcome';
+import { NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { DateOnlyJson } from 'src/utils/date-only';
 
 export type OfficialReportInvalidation =

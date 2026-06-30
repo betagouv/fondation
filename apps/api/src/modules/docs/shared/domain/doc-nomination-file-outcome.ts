@@ -1,7 +1,7 @@
 import {
   NominationFileOutcomeEnum,
   nominationFileOutcomeLabel,
-} from 'src/modules/session/domain/nomination-file-outcome';
+} from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { assertNever } from 'src/utils/assert-never';
 

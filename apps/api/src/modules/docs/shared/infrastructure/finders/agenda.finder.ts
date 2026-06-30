@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import {
   formationEnumToPrismaFormationEnum,
@@ -21,8 +21,8 @@ export class AgendaFinder {
   constructor(
     private readonly prisma: PrismaService,
 
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   async findNonIncludedInOfficialReport(query: {

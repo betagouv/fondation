@@ -10,7 +10,7 @@ import {
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
-import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
+import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { isDefined } from 'src/utils/is-defined';
 
 import {
