@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
+import { ConfirmationProvider } from '@/shared/context/confirmation';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { sessionKeys } from '@queries/nomination-sessions.queries';
@@ -38,11 +39,13 @@ function MagistratAttachmentsStory(props: { hasFiles: boolean; isArchived: boole
 
   return (
     <StoryQueryClient key={String(props.hasFiles)} seed={seed}>
-      <MagistratAttachments
-        isArchived={props.isArchived}
-        nominationFileId={NOMINATION_FILE_ID}
-        sessionId={SESSION_ID}
-      />
+      <ConfirmationProvider>
+        <MagistratAttachments
+          isArchived={props.isArchived}
+          nominationFileId={NOMINATION_FILE_ID}
+          sessionId={SESSION_ID}
+        />
+      </ConfirmationProvider>
     </StoryQueryClient>
   );
 }

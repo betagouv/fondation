@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 
 import type { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
 
@@ -6,18 +6,20 @@ import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommen
 import { OutcomeCommentModalContext, type OutcomeCommentCallback } from './OutcomeCommentModalContext';
 
 export function NominationFileOutcomeCommentModalProvider(props: {
+  children: ReactNode;
   formation: FormationEnum;
-  children: React.ReactNode;
 }) {
-  const [outcome, setOutcome] = React.useState<NominationFileOutcomeEnum | null>(null);
-  const [commentCallback, setCommentCallback] = React.useState<OutcomeCommentCallback | null>(null);
+  const [outcome, setOutcome] = useState<NominationFileOutcomeEnum | null>(null);
+  const [initialComment, setInitialComment] = useState<string | null>(null);
+  const [commentCallback, setCommentCallback] = useState<OutcomeCommentCallback | null>(null);
 
-  const reset = React.useCallback(() => {
+  const reset = useCallback(() => {
     setOutcome(null);
+    setInitialComment(null);
     setCommentCallback(null);
-  }, [setOutcome, setCommentCallback]);
+  }, [setCommentCallback, setInitialComment, setOutcome]);
 
-  const onCommentChange = React.useCallback(
+  const onCommentChange = useCallback(
     (comment: string | null) => {
       commentCallback?.({ type: 'comment', value: comment });
       reset();
@@ -25,17 +27,26 @@ export function NominationFileOutcomeCommentModalProvider(props: {
     [commentCallback, reset],
   );
 
-  const onDrop = React.useCallback(() => {
+  const onDrop = useCallback(() => {
     commentCallback?.({ type: 'drop' });
     reset();
   }, [commentCallback, reset]);
 
   return (
-    <OutcomeCommentModalContext value={{ outcome, setOutcome, commentCallback, setCommentCallback }}>
+    <OutcomeCommentModalContext
+      value={{
+        commentCallback,
+        initialComment,
+        outcome,
+        setCommentCallback,
+        setInitialComment,
+        setOutcome,
+      }}
+    >
       <NominationFileOutcomeCommentModal
-        onDrop={onDrop}
-        onChange={onCommentChange}
         formation={props.formation}
+        onChange={onCommentChange}
+        onDrop={onDrop}
       />
 
       {props.children}

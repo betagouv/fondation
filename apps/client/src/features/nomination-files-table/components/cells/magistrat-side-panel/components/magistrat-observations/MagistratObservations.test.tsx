@@ -43,7 +43,7 @@ describe('MagistratObservations', () => {
   it('shows the empty state when there is neither observer nor observation', () => {
     renderObservations();
 
-    expect(screen.getByText('Aucun')).toBeInTheDocument();
+    expect(screen.getByText('Aucun observant sur cette proposition')).toBeInTheDocument();
   });
 
   it('uses the singular heading for a single observer', () => {
@@ -73,8 +73,16 @@ describe('MagistratObservations', () => {
 
   it('hides the add button from a member', () => {
     isSg.mockReturnValue(false);
-    renderObservations();
+    renderObservations({ observants: ['Tribunal de Lyon'] });
 
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
+  });
+
+  it('renders nothing for a member when there is neither observer nor observation', () => {
+    isSg.mockReturnValue(false);
+    renderObservations();
+
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+    expect(screen.queryByText('Aucun observant sur cette proposition')).not.toBeInTheDocument();
   });
 });

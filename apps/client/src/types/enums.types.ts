@@ -134,8 +134,8 @@ export const ObservationFollowUpEnum = {
 
 export const ObservationFollowUpEnumLabels = {
   ALERT: 'Signalement',
-  REFERENCE: 'Recommandation',
   INTERESTING: `Digne d'intérêt`,
+  REFERENCE: 'Recommandation',
 } as const satisfies Record<ObservationFollowupEnum, string>;
 
 export type JobStatusEnum = DetailedJobDto['status'];

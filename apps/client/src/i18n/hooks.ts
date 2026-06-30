@@ -27,8 +27,13 @@ export function useIntlBirthDate() {
       if (age === null) return null;
 
       return $t(
-        { defaultMessage: `{birthDate, date, dateOnlyShort} ({age})` },
-        { birthDate: birthDate instanceof Date ? birthDate : dateOnlyToDate(birthDate), age },
+        { defaultMessage: `{birthDate, date, dateOnlyShort} (<bold>{age}</bold>)` },
+        {
+          birthDate: birthDate instanceof Date ? birthDate : dateOnlyToDate(birthDate),
+          age,
+          bold: (chunks: React.ReactNode[]): React.ReactNode =>
+            React.createElement('strong', { className: 'fr-text--bold' }, chunks),
+        },
       );
     },
     [$t, formatAge],

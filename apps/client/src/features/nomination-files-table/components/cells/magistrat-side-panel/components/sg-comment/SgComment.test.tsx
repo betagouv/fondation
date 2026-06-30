@@ -46,7 +46,7 @@ describe('SgComment visibility', () => {
 
     expect(screen.getByText('Complément SG')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Valider' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
   });
 
   it('shows a read-only comment to a member when one exists', () => {
@@ -92,8 +92,11 @@ describe('SgComment edition', () => {
     );
   });
 
-  it('keeps the Valider button disabled until the comment changes', () => {
+  it('keeps the Valider button disabled until the comment changes', async () => {
+    const user = userEvent.setup();
     renderComment({ user: SG, initialComment: 'Inchangé' });
+
+    await user.click(screen.getByRole('textbox'));
 
     expect(screen.getByRole('button', { name: 'Valider' })).toBeDisabled();
   });

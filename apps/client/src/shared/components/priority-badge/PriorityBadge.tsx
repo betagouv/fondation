@@ -17,13 +17,14 @@ const acronyms = {
 } as const satisfies Record<PrioriteEnum, string>;
 
 function InternalPriorityBadge(props: { acronym?: boolean; priority: PrioriteEnum; small?: boolean }) {
+  const small = props.small ?? true;
   const label = props.acronym ? acronyms[props.priority] : PrioriteEnumLabels[props.priority];
   return (
     <Badge
       as="span"
-      className={clsx(colorClassName[props.priority], !props.acronym && 'h-6')}
+      className={clsx('whitespace-nowrap', colorClassName[props.priority], !props.acronym && small && 'h-6')}
       noIcon
-      small={props.small ?? true}
+      small={small}
     >
       {label}
     </Badge>

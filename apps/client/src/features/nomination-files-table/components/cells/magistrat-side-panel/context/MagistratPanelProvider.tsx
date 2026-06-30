@@ -106,7 +106,7 @@ export function MagistratPanelProvider(
       hasNext,
       hasPrevious,
       isLeaveBlocked,
-      isOpen: localIndex !== -1 || pending !== null,
+      isOpen: activeId !== null || pending !== null,
       next,
       open,
       previous,

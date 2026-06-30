@@ -5,7 +5,7 @@ import { formatBiography } from '@/features/reports/utils/formatters';
 export function MagistratBiography(props: { historique: string | null }) {
   return (
     <div>
-      <label className="fr-mb-2v block text-xl font-semibold" id={reportHtmlIds.overview.biography}>
+      <label className="fr-mb-4v block text-xl font-semibold" id={reportHtmlIds.overview.biography}>
         {labels.magistrat.biography}
       </label>
       <div

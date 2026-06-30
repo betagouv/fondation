@@ -4,6 +4,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
 import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
+import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
@@ -20,6 +21,7 @@ const summaryReadersModal = createModal({
 
 export function SummaryReaderSelector(
   props: {
+    className?: string;
     iconId?: React.ComponentProps<typeof Button>['iconId'];
     priority?: React.ComponentProps<typeof Button>['priority'];
     rounded?: boolean;
@@ -47,7 +49,7 @@ export function SummaryReaderSelector(
 
   const commonProps = {
     ...summaryReadersModal.buttonProps,
-    className: rounded ? 'rounded-full' : undefined,
+    className: clsx(rounded && 'rounded-full', props.className) || undefined,
     disabled: summary.isArchived,
     priority: props.priority,
     size: props.size,

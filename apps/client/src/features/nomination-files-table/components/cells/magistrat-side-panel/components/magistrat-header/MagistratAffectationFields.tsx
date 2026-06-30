@@ -1,9 +1,8 @@
-import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { PriorityBadge, PriorityBadgeList } from '@/shared/components/priority-badge';
-import { SoftDropdown } from '@/shared/ui/soft-dropdown';
+import { PriorityBadge } from '@/shared/components/priority-badge';
+import { Dropdown } from '@/shared/ui/dropdown';
 import { PrioriteEnum } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 
@@ -15,33 +14,21 @@ const REPORTER_TAG =
 export function MagistratPrioritySelect(props: {
   value: readonly PrioriteEnum[];
   onChange: (value: PrioriteEnum[]) => void;
-  surfaceClassName?: string;
 }) {
-  const { value, onChange } = props;
-  const toggle = (item: PrioriteEnum) =>
-    onChange(value.includes(item) ? value.filter((p) => p !== item) : [...value, item]);
+  const options = PRIORITY_ITEMS.map((priority) => ({
+    value: priority,
+    label: <PriorityBadge priority={priority} small={false} />,
+  }));
 
   return (
-    <SoftDropdown
-      label={
-        value.length === 0 ? (
-          <span className="text-sm">
-            <FormattedMessage defaultMessage="Priorité" />
-          </span>
-        ) : (
-          <PriorityBadgeList priorities={value} />
-        )
-      }
-      surfaceClassName={props.surfaceClassName}
-    >
-      <Checkbox
-        options={PRIORITY_ITEMS.map((item) => ({
-          label: <PriorityBadge priority={item} />,
-          nativeInputProps: { checked: value.includes(item), onChange: () => toggle(item) },
-        }))}
-        small
-      />
-    </SoftDropdown>
+    <Dropdown
+      multiple
+      label={<FormattedMessage defaultMessage="Définir une priorité" />}
+      onSelect={(values) => props.onChange(values as PrioriteEnum[])}
+      options={options}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+      selected={props.value}
+    />
   );
 }
 
@@ -51,49 +38,28 @@ export function MagistratReporterSelect(props: {
   available: readonly Reporter[];
   value: readonly string[];
   onChange: (ids: string[]) => void;
-  surfaceClassName?: string;
 }) {
   const { available, value, onChange } = props;
 
-  const toggle = (id: string) =>
-    onChange(value.includes(id) ? value.filter((r) => r !== id) : [...value, id]);
-
-  const sorted = useMemo(
-    () => [...available].sort((a, b) => a.lastName.localeCompare(b.lastName)),
+  const options = useMemo(
+    () =>
+      [...available]
+        .sort((a, b) => a.lastName.localeCompare(b.lastName))
+        .map((reporter) => ({
+          value: reporter.userId,
+          label: <span className={REPORTER_TAG}>{toFullName(reporter)}</span>,
+        })),
     [available],
-  );
-  const selected = useMemo(
-    () => available.filter((reporter) => value.includes(reporter.userId)),
-    [available, value],
   );
 
   return (
-    <SoftDropdown
-      label={
-        selected.length === 0 ? (
-          <FormattedMessage defaultMessage="Affecter un rapporteur" />
-        ) : (
-          <span className="flex flex-wrap items-center gap-2">
-            {selected.map((reporter) => (
-              <span className={REPORTER_TAG} key={reporter.userId}>
-                {toFullName(reporter)}
-              </span>
-            ))}
-          </span>
-        )
-      }
-      surfaceClassName={props.surfaceClassName}
-    >
-      <Checkbox
-        options={sorted.map((reporter) => ({
-          label: toFullName(reporter),
-          nativeInputProps: {
-            checked: value.includes(reporter.userId),
-            onChange: () => toggle(reporter.userId),
-          },
-        }))}
-        small
-      />
-    </SoftDropdown>
+    <Dropdown
+      multiple
+      label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
+      onSelect={onChange}
+      options={options}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+      selected={value}
+    />
   );
 }

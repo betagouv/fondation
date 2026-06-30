@@ -9,6 +9,7 @@ function InnerNominationFileOutcomeBadge(props: {
   formation: FormationEnum;
   outcome: NominationFileOutcomeEnum | null;
   short?: boolean;
+  small?: boolean;
 }) {
   const { badge, acronym, icon, severity, label } = useNominationFileOutcome(props);
 
@@ -19,7 +20,14 @@ function InnerNominationFileOutcomeBadge(props: {
   // ts hack to add the title
   const badgeProps = { title: props.short ? label : undefined };
   return (
-    <Badge {...badgeProps} small severity={severity} noIcon as="span" className="text-nowrap">
+    <Badge
+      {...badgeProps}
+      small={props.small ?? true}
+      severity={severity}
+      noIcon
+      as="span"
+      className="text-nowrap"
+    >
       {icon && (
         <i className={`fr-mr-1v leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
       )}
@@ -29,7 +37,9 @@ function InnerNominationFileOutcomeBadge(props: {
 }
 
 export const NominationFileOutcomeBadge = React.memo(InnerNominationFileOutcomeBadge, (prev, props) =>
-  (['formation', 'outcome', 'short'] as const).every((prop) =>
-    prop === 'short' ? !!prev.short === !!props.short : Object.is(prev[prop], props[prop]),
+  (['formation', 'outcome', 'short', 'small'] as const).every((prop) =>
+    prop === 'short' || prop === 'small'
+      ? !!prev[prop] === !!props[prop]
+      : Object.is(prev[prop], props[prop]),
   ),
 );
