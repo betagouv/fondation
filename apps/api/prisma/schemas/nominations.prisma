@@ -188,6 +188,7 @@ model Session {
   transparenceGds SessionTransparenceGds?
 
   dossierDeNominations DossierDeNomination[]
+  nominationFileMtts   NominationFileMtt[]
 
   @@index([deletedAt])
   @@index([archivedAt])
@@ -304,6 +305,7 @@ enum PrismaPrioriteEnum {
 
 enum PrismaTypeDeSaisineEnum {
   TRANSPARENCE_GDS
+  MTT
 
   @@map("type_de_saisine")
   @@schema("nominations_context")

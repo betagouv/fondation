@@ -23,9 +23,10 @@ model Jurisdiction {
   ville_jur       String?
   ville           String?
 
-  excludedByUserIds         ExcludedJurisdiction[]
-  positions                 Position[]
-  detectedInNominationFiles DossierDeNomination[]
+  excludedByUserIds            ExcludedJurisdiction[]
+  positions                    Position[]
+  detectedInNominationFiles    DossierDeNomination[]
+  detectedInNominationFilesMtt NominationFileMtt[]
 
   @@map("jurisdictions")
   @@schema("data_administration_context")

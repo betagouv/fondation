@@ -58,7 +58,8 @@ function header(ctx: { date: DateOnly; typeDeSaisine: TypeDeSaisineEnum; formati
   const saisineTitle = assertIsDefined(
     (
       {
-        ['TRANSPARENCE_GDS']: `Proposition du Garde des sceaux`,
+        TRANSPARENCE_GDS: `Proposition du Garde des sceaux`,
+        MTT: `MTT`,
       } satisfies Record<TypeDeSaisineEnum, string>
     )[ctx.typeDeSaisine],
     `Le type de saisine n'est pas supporté: "${ctx.typeDeSaisine}"`,

@@ -1,0 +1,57 @@
+enum PrismaMttMoveEnum {
+  /// proposition de nomination avant stage probatoire
+  internship_before
+  /// proposition de nomination après stage probatoire
+  internship_after
+  /// transmission dossier au CSM après avis stage probatoire défavorable
+  internship_non_validated
+  /// nomination pour un nouveau mandat
+  mandate
+  /// demande de mutation
+  transfer
+  /// réintégration après disponibilité
+  availability
+
+  @@map("mtt_move_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaMttFunctionEnum {
+  siege_civil
+  siege_penal
+  siege_both
+  parquet
+
+  @@map("mtt_function_enum")
+  @@schema("nominations_context")
+}
+
+model NominationFileMtt {
+  id        String @id @db.Uuid
+  sessionId String @map("session_id") @db.Uuid
+  number    Int    @db.SmallInt
+
+  name                 String
+  function             PrismaMttFunctionEnum
+  move                 PrismaMttMoveEnum
+  currentPosition      String                @map("current_position")
+  targetedPosition     String                @map("targeted_position")
+  targetedJurisdiction String                @map("targeted_jurisdiction")
+
+  targetedPositionStartDate DateTime? @map("targeted_position_start_date") @db.Date
+  mandateStartDate          DateTime? @map("mandate_start_date") @db.Date
+  mandateEndDate            DateTime? @map("mandate_end_date") @db.Date
+
+  detectedMagistratId    String? @map("detected_magistrat_id")
+  detectedJurisdictionId String? @map("detected_jurisdiction_id")
+
+  session              Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  detectedMagistrat    Magistrat?    @relation(fields: [detectedMagistratId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  detectedJurisdiction Jurisdiction? @relation(fields: [detectedJurisdictionId], references: [codejur], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([sessionId, number])
+  @@index([sessionId, move])
+  @@index([sessionId, function])
+  @@map("nomination_file_mtt")
+  @@schema("nominations_context")
+}

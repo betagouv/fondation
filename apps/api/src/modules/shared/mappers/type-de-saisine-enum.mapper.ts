@@ -6,6 +6,8 @@ export function prismaTypeDeSaisineEnumToTypeDeSaisine(value: PrismaTypeDeSaisin
   switch (value) {
     case 'TRANSPARENCE_GDS':
       return 'TRANSPARENCE_GDS';
+    case 'MTT':
+      return 'MTT';
     default:
       return assertNever(value);
   }
@@ -15,6 +17,8 @@ export function typeDeSaisineToPrismaTypeDeSaisineEnum(value: TypeDeSaisineEnum)
   switch (value) {
     case 'TRANSPARENCE_GDS':
       return 'TRANSPARENCE_GDS';
+    case TypeDeSaisine.MTT:
+      return 'MTT';
     default:
       return assertNever(value);
   }
