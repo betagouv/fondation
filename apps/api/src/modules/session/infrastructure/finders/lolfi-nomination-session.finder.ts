@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 
-import { NominationSession } from 'src/modules/session/domain/nomination-session';
+import { SessionTransparence } from 'src/modules/session/domain/session-transparence';
 import { LolfiNominationFilesFinder } from 'src/modules/session/infrastructure/finders/lolfi-nomination-files.finder';
 import { NominationSessionRepository } from 'src/modules/session/infrastructure/repositories/nomination-session.repository';
 import { DateOnly } from 'src/utils/date-only';
@@ -19,18 +19,18 @@ export class LolfiNominationSessionFinder {
     id: number;
     name: string | null;
     creationDate: DateOnly;
-  }): Promise<NominationSession[]> {
+  }): Promise<SessionTransparence[]> {
     const sessions = await this.sessions.findByLolfiSessionId(props.id);
     const nominationFiles = await this.lolfiNominationFiles.find(props.id);
 
-    const output: NominationSession[] = [];
+    const output: SessionTransparence[] = [];
     for (const formation of Object.values(Magistrat.Formation)) {
       const existingSession = sessions[formation];
       if (existingSession?.isArchived) continue;
 
       const session =
         existingSession?.session ??
-        NominationSession.create({
+        SessionTransparence.create({
           formation,
           lolfiSessionId: props.id,
           date: props.creationDate,

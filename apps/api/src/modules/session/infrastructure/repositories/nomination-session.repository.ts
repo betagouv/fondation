@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import {
   ConflictException,
   Injectable,
@@ -11,28 +9,28 @@ import {
 import { Magistrat, PrioriteEnum } from 'shared-models';
 
 import {
-  LodamNominationSessionFilesCreated,
-  NominationFileAlertHidden,
-  NominationFileAttachmentAdded,
-  NominationFileAttachmentRemoved,
-  NominationFileMemberMemoWritten,
-  NominationFileOutcomeDefined,
-  NominationFilesAssociated,
-  NominationSession,
-  NominationSessionAffectationVersionCreated,
-  NominationSessionAffectationVersionPublished,
-  NominationSessionArchived,
-  NominationSessionAttachmentAdded,
-  NominationSessionAttachmentRemoved,
-  NominationSessionCreated,
-  NominationSessionDeleted,
-  NominationSessionFilePrioritiesUpdated,
-  NominationSessionFileReportersAffected,
-  NominationSessionFilesObserversUpdated,
-  NominationSessionIsArchived,
-  NominationSessionUpdated,
-  NominationSessionValidated,
-} from '../../domain/nomination-session';
+  LodamSessionTransparenceFilesCreated,
+  SessionTransparence,
+  SessionTransparenceAffectationVersionCreated,
+  SessionTransparenceAffectationVersionPublished,
+  SessionTransparenceArchived,
+  SessionTransparenceAttachmentAdded,
+  SessionTransparenceAttachmentRemoved,
+  SessionTransparenceCreated,
+  SessionTransparenceDeleted,
+  SessionTransparenceFileAlertHidden,
+  SessionTransparenceFileAttachmentAdded,
+  SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileMemberMemoWritten,
+  SessionTransparenceFilePrioritiesUpdated,
+  SessionTransparenceFileReportersAffected,
+  SessionTransparenceFilesAssociated,
+  SessionTransparenceFilesObserversUpdated,
+  SessionTransparenceIsArchived,
+  SessionTransparenceOutcomeDefined,
+  SessionTransparenceUpdated,
+  SessionTransparenceValidated,
+} from '../../domain/session-transparence';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { NominationSessionFileFinder } from '../finders/nomination-session-file.finder';
 import { Prisma } from 'src/generated/prisma/client';
@@ -70,7 +68,7 @@ export class NominationSessionRepository {
       tx?: Prisma.TransactionClient;
       nominationFileIds?: Set<string>;
     } = {},
-  ): Promise<NominationSession> {
+  ): Promise<SessionTransparence> {
     if (!options.tx) {
       return this.prisma.$transaction((tx) => this.find(id, { ...options, tx }));
     }
@@ -83,11 +81,15 @@ export class NominationSessionRepository {
         id: true,
         formation: true,
         archivedAt: true,
+        typeDeSaisine: true,
       },
     });
 
     if (!session) throw new NotFoundException();
-    if (session.archivedAt) throw new NominationSessionIsArchived(id);
+    if (session.archivedAt) throw new SessionTransparenceIsArchived(id);
+
+    // FIXME: remove once we know how to rehydrate a mtt session
+    if (session.typeDeSaisine !== 'TRANSPARENCE_GDS') throw new NotFoundException();
 
     const nominationFiles = await this.nominationSessionFileFinder.findUpdatable({
       tx,
@@ -100,7 +102,7 @@ export class NominationSessionRepository {
       sessionId: id,
     });
 
-    return NominationSession.from({
+    return SessionTransparence.from({
       id,
       nominationFiles,
       formation: prismaFormationEnumToFormationEnum(session.formation),
@@ -113,28 +115,28 @@ export class NominationSessionRepository {
   }
 
   async findByLolfiSessionId(lolfiSessionId: number): Promise<{
-    [K in Magistrat.Formation]?: { isArchived: false; session: NominationSession } | { isArchived: true };
+    [K in Magistrat.Formation]?: { isArchived: false; session: SessionTransparence } | { isArchived: true };
   }> {
     return this.prisma.$transaction(async (tx) => {
-      const ids = await tx.session.findMany({
-        select: { id: true, archivedAt: true, formation: true },
+      const sessions = await tx.sessionTransparenceGds.findMany({
+        select: { session: { select: { id: true, archivedAt: true, formation: true } } },
         where: { lolfiSessionId },
       });
 
-      if (ids.length > 2) {
+      if (sessions.length > 2) {
         this.logger.error(`More than 2 sessions found for lolfiSessionId: ${lolfiSessionId}`);
 
         throw new InternalServerErrorException();
       }
 
-      if (ids.length === 0) return {};
+      if (sessions.length === 0) return {};
 
       const entries = await Promise.all(
-        ids.map(async ({ id, archivedAt, formation }) => {
-          if (archivedAt) return [formation, { isArchived: true }] as const;
+        sessions.map(async ({ session: s }) => {
+          if (s.archivedAt) return [s.formation, { isArchived: true }] as const;
 
-          const session = await this.find(id, { tx });
-          return [formation, { session, isArchived: false }] as const;
+          const session = await this.find(s.id, { tx });
+          return [s.formation, { session, isArchived: false }] as const;
         }),
       );
 
@@ -142,57 +144,57 @@ export class NominationSessionRepository {
     });
   }
 
-  async persist(session: NominationSession, tx?: Prisma.TransactionClient): Promise<void> {
+  async persist(session: SessionTransparence, tx?: Prisma.TransactionClient): Promise<void> {
     if (!tx) return this.prisma.$transaction((tx) => this.persist(session, tx));
 
     for (const message of session.messages) {
-      if (message instanceof NominationSessionFileReportersAffected) {
-        await this.persistAffectedReportersToNominationSessionFile(tx, message);
-      } else if (message instanceof NominationSessionFilePrioritiesUpdated) {
-        await this.persistNominationSessionFilesPriorityUpdated(tx, message);
-      } else if (message instanceof NominationSessionAffectationVersionPublished) {
-        await this.persistNominationSessionAffectionVersionPublished(tx, message);
-      } else if (message instanceof NominationSessionAffectationVersionCreated) {
-        await this.persistNominationSessionAffectationVersionCreated(tx, message);
-      } else if (message instanceof NominationSessionCreated) {
-        await this.persistNominationSessionCreated(tx, message);
-      } else if (message instanceof LodamNominationSessionFilesCreated) {
-        await this.persistNominationSessionFilesCreated(tx, message);
-      } else if (message instanceof NominationSessionFilesObserversUpdated) {
-        await this.persistNominationSessionFilesObserversUpdated(tx, message);
-      } else if (message instanceof NominationSessionAttachmentAdded) {
-        await this.persistNominationSessionAttachmentAdded(tx, message);
-      } else if (message instanceof NominationSessionAttachmentRemoved) {
-        await this.persistNominationSessionAttachmentRemoved(tx, message);
-      } else if (message instanceof NominationFileAttachmentAdded) {
-        await this.persistNominationFileAttachmentAdded(tx, message);
-      } else if (message instanceof NominationFileAttachmentRemoved) {
-        await this.persistNominationFileAttachmentRemoved(tx, message);
-      } else if (message instanceof NominationSessionUpdated) {
-        await this.persistNominationSessionUpdated(tx, message);
-      } else if (message instanceof NominationFileOutcomeDefined) {
-        await this.persistNominationFileOutcomeDefined(tx, message);
-      } else if (message instanceof NominationFileMemberMemoWritten) {
-        await this.persistNominationFileMemberMemoWritten(tx, message);
-      } else if (message instanceof NominationFileAlertHidden) {
-        await this.persistNominationFileAlertHidden(tx, message);
-      } else if (message instanceof NominationFilesAssociated) {
-        await this.persistNominationFilesAssociated(tx, message);
-      } else if (message instanceof NominationSessionValidated) {
-        await this.persistNominationSessionValidated(tx, message);
-      } else if (message instanceof NominationSessionDeleted) {
-        await this.persistNominationSessionDeleted(tx, message);
-      } else if (message instanceof NominationSessionArchived) {
-        await this.persistNominationSessionArchived(tx, message);
+      if (message instanceof SessionTransparenceFileReportersAffected) {
+        await this.persistSessionTransparenceFileReportersAffected(tx, message);
+      } else if (message instanceof SessionTransparenceFilePrioritiesUpdated) {
+        await this.persistSessionTransparenceFilePrioritiesUpdated(tx, message);
+      } else if (message instanceof SessionTransparenceAffectationVersionPublished) {
+        await this.persistSessionTransparenceAffectationVersionPublished(tx, message);
+      } else if (message instanceof SessionTransparenceAffectationVersionCreated) {
+        await this.persistSessionTransparenceAffectationVersionCreated(tx, message);
+      } else if (message instanceof SessionTransparenceCreated) {
+        await this.persistSessionTransparenceCreated(tx, message);
+      } else if (message instanceof LodamSessionTransparenceFilesCreated) {
+        await this.persistLodamSessionTransparenceFilesCreated(tx, message);
+      } else if (message instanceof SessionTransparenceFilesObserversUpdated) {
+        await this.persistSessionTransparenceFilesObserversUpdated(tx, message);
+      } else if (message instanceof SessionTransparenceAttachmentAdded) {
+        await this.persistSessionTransparenceAttachmentAdded(tx, message);
+      } else if (message instanceof SessionTransparenceAttachmentRemoved) {
+        await this.persistSessionTransparenceAttachmentRemoved(tx, message);
+      } else if (message instanceof SessionTransparenceFileAttachmentAdded) {
+        await this.persistSessionTransparenceFileAttachmentAdded(tx, message);
+      } else if (message instanceof SessionTransparenceFileAttachmentRemoved) {
+        await this.persistSessionTransparenceFileAttachmentRemoved(tx, message);
+      } else if (message instanceof SessionTransparenceUpdated) {
+        await this.persistSessionTransparenceUpdated(tx, message);
+      } else if (message instanceof SessionTransparenceOutcomeDefined) {
+        await this.persistSessionTransparenceOutcomeDefined(tx, message);
+      } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
+        await this.persistSessionTransparenceFileMemberMemoWritten(tx, message);
+      } else if (message instanceof SessionTransparenceFileAlertHidden) {
+        await this.persistSessionTransparenceFileAlertHidden(tx, message);
+      } else if (message instanceof SessionTransparenceFilesAssociated) {
+        await this.persistSessionTransparenceFilesAssociated(tx, message);
+      } else if (message instanceof SessionTransparenceValidated) {
+        await this.persistSessionTransparenceValidated(tx, message);
+      } else if (message instanceof SessionTransparenceDeleted) {
+        await this.persistSessionTransparenceDeleted(tx, message);
+      } else if (message instanceof SessionTransparenceArchived) {
+        await this.persistSessionTransparenceArchived(tx, message);
       } else {
         assertNever(message);
       }
     }
   }
 
-  private async persistAffectedReportersToNominationSessionFile(
+  private async persistSessionTransparenceFileReportersAffected(
     tx: Prisma.TransactionClient,
-    message: NominationSessionFileReportersAffected,
+    message: SessionTransparenceFileReportersAffected,
   ) {
     const { versionId } = message;
     if (versionId) {
@@ -235,9 +237,9 @@ export class NominationSessionRepository {
     }
   }
 
-  private persistNominationSessionFilesPriorityUpdated(
+  private persistSessionTransparenceFilePrioritiesUpdated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionFilePrioritiesUpdated,
+    message: SessionTransparenceFilePrioritiesUpdated,
   ) {
     return tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
@@ -245,9 +247,9 @@ export class NominationSessionRepository {
     });
   }
 
-  private async persistNominationSessionAffectionVersionPublished(
+  private async persistSessionTransparenceAffectationVersionPublished(
     tx: Prisma.TransactionClient,
-    message: NominationSessionAffectationVersionPublished,
+    message: SessionTransparenceAffectationVersionPublished,
   ) {
     const session = await tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
@@ -340,9 +342,9 @@ export class NominationSessionRepository {
     await tx.$queryRawTyped(deleteReportsAfterAffectationPublicationRawQuery(message.sessionId, versionId));
   }
 
-  private async persistNominationSessionAffectationVersionCreated(
+  private async persistSessionTransparenceAffectationVersionCreated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionAffectationVersionCreated,
+    message: SessionTransparenceAffectationVersionCreated,
   ) {
     let previousVersion: {
       id: string;
@@ -388,9 +390,9 @@ export class NominationSessionRepository {
     }
   }
 
-  private async persistNominationSessionCreated(
+  private async persistSessionTransparenceCreated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionCreated,
+    message: SessionTransparenceCreated,
   ) {
     const existingSession = await tx.session.findFirst({
       where: {
@@ -416,25 +418,28 @@ export class NominationSessionRepository {
         typeDeSaisine: message.typeDeSaisine,
         formation: message.formation,
         date: message.date.toDate(),
-        observationsClosingDate: message.observationClosingDate.toDate(),
-        dueDate: message.dueDate?.toDate() ?? null,
-        positionStartDate: message.positionStartDate?.toDate() ?? null,
-        lolfiSessionId: message.lolfiSessionId,
 
-        /** @deprecated */
-        sessionImportId: randomUUID(),
+        transparenceGds: {
+          create: {
+            lolfiSessionId: message.lolfiSessionId,
+            dueDate: message.dueDate?.toDate() ?? null,
+            positionStartDate: message.positionStartDate?.toDate() ?? null,
+            observationsClosingDate: message.observationClosingDate.toDate(),
+          },
+        },
       },
     });
   }
 
-  private async persistNominationSessionFilesCreated(
+  private async persistLodamSessionTransparenceFilesCreated(
     tx: Prisma.TransactionClient,
-    message: LodamNominationSessionFilesCreated,
+    message: LodamSessionTransparenceFilesCreated,
   ) {
-    const session = await tx.session.findUnique({
-      where: { id: message.sessionId },
+    const session = await tx.sessionTransparenceGds.findUnique({
+      where: { sessionId: message.sessionId },
       select: { dueDate: true },
     });
+
     await tx.$queryRawTyped(
       insertLodamNominationFilesRawQuery(
         message.files.map((file) => ({
@@ -450,9 +455,9 @@ export class NominationSessionRepository {
     );
   }
 
-  private async persistNominationSessionFilesObserversUpdated(
+  private async persistSessionTransparenceFilesObserversUpdated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionFilesObserversUpdated,
+    message: SessionTransparenceFilesObserversUpdated,
   ) {
     for (const x of message.nominationFileObservers) {
       await tx.dossierDeNomination.update({
@@ -462,18 +467,18 @@ export class NominationSessionRepository {
     }
   }
 
-  private async persistNominationSessionAttachmentAdded(
+  private async persistSessionTransparenceAttachmentAdded(
     tx: Prisma.TransactionClient,
-    message: NominationSessionAttachmentAdded,
+    message: SessionTransparenceAttachmentAdded,
   ) {
     await tx.sessionAttachment.create({
       data: { sessionId: message.sessionId, fileId: message.file.id },
     });
   }
 
-  private async persistNominationSessionAttachmentRemoved(
+  private async persistSessionTransparenceAttachmentRemoved(
     tx: Prisma.TransactionClient,
-    message: NominationSessionAttachmentRemoved,
+    message: SessionTransparenceAttachmentRemoved,
   ) {
     const attachment = await tx.sessionAttachment.findFirst({
       where: { fileId: message.fileId, sessionId: message.sessionId },
@@ -494,18 +499,18 @@ export class NominationSessionRepository {
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
   }
 
-  private async persistNominationFileAttachmentAdded(
+  private async persistSessionTransparenceFileAttachmentAdded(
     tx: Prisma.TransactionClient,
-    message: NominationFileAttachmentAdded,
+    message: SessionTransparenceFileAttachmentAdded,
   ) {
     await tx.nominationFileAttachment.create({
       data: { nominationFileId: message.nominationFileId, fileId: message.file.id },
     });
   }
 
-  private async persistNominationFileAttachmentRemoved(
+  private async persistSessionTransparenceFileAttachmentRemoved(
     tx: Prisma.TransactionClient,
-    message: NominationFileAttachmentRemoved,
+    message: SessionTransparenceFileAttachmentRemoved,
   ) {
     const attachment = await tx.nominationFileAttachment.findFirst({
       where: { fileId: message.fileId, nominationFileId: message.nominationFileId },
@@ -526,25 +531,30 @@ export class NominationSessionRepository {
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
   }
 
-  private async persistNominationSessionUpdated(
+  private async persistSessionTransparenceUpdated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionUpdated,
+    message: SessionTransparenceUpdated,
   ) {
     await tx.session.update({
       where: { id: message.sessionId },
       data: {
         name: message.data.name,
         date: message.data.date.toDate(),
-        observationsClosingDate: message.data.observationsClosingDate.toDate(),
-        dueDate: message.data.dueDate?.toDate() ?? null,
-        positionStartDate: message.data.positionStartDate?.toDate() ?? null,
+
+        transparenceGds: {
+          update: {
+            dueDate: message.data.dueDate?.toDate() ?? null,
+            positionStartDate: message.data.positionStartDate?.toDate() ?? null,
+            observationsClosingDate: message.data.observationsClosingDate.toDate(),
+          },
+        },
       },
     });
   }
 
-  private async persistNominationFileOutcomeDefined(
+  private async persistSessionTransparenceOutcomeDefined(
     tx: Prisma.TransactionClient,
-    message: NominationFileOutcomeDefined,
+    message: SessionTransparenceOutcomeDefined,
   ) {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
@@ -552,9 +562,9 @@ export class NominationSessionRepository {
     });
   }
 
-  private async persistNominationFileMemberMemoWritten(
+  private async persistSessionTransparenceFileMemberMemoWritten(
     tx: Prisma.TransactionClient,
-    message: NominationFileMemberMemoWritten,
+    message: SessionTransparenceFileMemberMemoWritten,
   ) {
     await tx.memberMemo.upsert({
       where: {
@@ -574,9 +584,9 @@ export class NominationSessionRepository {
     });
   }
 
-  private async persistNominationFileAlertHidden(
+  private async persistSessionTransparenceFileAlertHidden(
     tx: Prisma.TransactionClient,
-    message: NominationFileAlertHidden,
+    message: SessionTransparenceFileAlertHidden,
   ) {
     await tx.dossierDeNomination.update({
       where: { sessionId: message.sessionId, id: message.nominationFileId },
@@ -584,12 +594,12 @@ export class NominationSessionRepository {
     });
   }
 
-  private async persistNominationFilesAssociated(
+  private async persistSessionTransparenceFilesAssociated(
     tx: Prisma.TransactionClient,
-    message: NominationFilesAssociated,
+    message: SessionTransparenceFilesAssociated,
   ) {
-    const session = await tx.session.findFirst({
-      where: { id: message.sessionId },
+    const session = await tx.sessionTransparenceGds.findFirst({
+      where: { sessionId: message.sessionId },
       select: { dueDate: true },
     });
 
@@ -668,23 +678,22 @@ export class NominationSessionRepository {
     }
   }
 
-  private async persistNominationSessionValidated(
+  private async persistSessionTransparenceValidated(
     tx: Prisma.TransactionClient,
-    message: NominationSessionValidated,
+    message: SessionTransparenceValidated,
   ) {
     await tx.session.update({
       where: { id: message.sessionId },
       data: {
-        isValidated: true,
         validatedBy: message.userId,
         validatedAt: this.clock.now(),
       },
     });
   }
 
-  private async persistNominationSessionDeleted(
+  private async persistSessionTransparenceDeleted(
     tx: Prisma.TransactionClient,
-    message: NominationSessionDeleted,
+    message: SessionTransparenceDeleted,
   ) {
     await tx.session.update({
       where: { id: message.id },
@@ -692,9 +701,9 @@ export class NominationSessionRepository {
     });
   }
 
-  private async persistNominationSessionArchived(
+  private async persistSessionTransparenceArchived(
     tx: Prisma.TransactionClient,
-    message: NominationSessionArchived,
+    message: SessionTransparenceArchived,
   ) {
     await tx.session.update({
       where: { id: message.sessionId },

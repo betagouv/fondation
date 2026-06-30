@@ -55,11 +55,10 @@ export class InternalDetailMemberSessionQuery {
         select: {
           id: true,
           name: true,
-          sessionImportId: true,
           formation: true,
           date: true,
-          dueDate: true,
           archivedAt: true,
+          transparenceGds: { select: { dueDate: true } },
         },
         where: {
           deletedAt: null,
@@ -190,11 +189,10 @@ export class InternalDetailMemberSessionQuery {
       session: {
         id: session.id,
         isArchived: !!session.archivedAt,
-        sessionImportId: session.sessionImportId,
         formation: session.formation,
         transparency: session.name,
         dateTransparence: DateOnly.fromDate(session.date).toJson(),
-        dateSeance: DateOnly.fromOptionalDate(session.dueDate)?.toJson() ?? null,
+        dateSeance: DateOnly.fromOptionalDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
       },
     };
   }
@@ -221,22 +219,6 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     targettedPosition: z.string(),
     targetedGrade: z.enum(Magistrat.Grade),
 
-    /** @deprecated legacy observations from LODAM. Prefer observations */
-    observers: z.array(z.string()).meta({
-      deprecated: true,
-      description: 'legacy observations from LODAM. Prefer observations',
-    }),
-    /** @deprecated prefer observations */
-    observationMagistrat: z
-      .array(
-        z.object({
-          id: z.string(),
-          firstName: z.string(),
-          lastName: z.string(),
-          observationId: z.string(),
-        }),
-      )
-      .meta({ deprecated: true, description: 'prefer observations' }),
     observations: z.array(
       z.object({
         id: z.string(),
@@ -257,7 +239,6 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     session: z.object({
       id: z.string(),
       isArchived: z.boolean(),
-      sessionImportId: z.string(),
       formation: z.string(),
       transparency: z.string(),
       dateTransparence: dateOnlyJsonSchema,

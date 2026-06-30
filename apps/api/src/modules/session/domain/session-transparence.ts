@@ -18,7 +18,7 @@ import {
 } from './nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 
-export class NominationSessionFileReportersAffected {
+export class SessionTransparenceFileReportersAffected {
   constructor(
     readonly sessionId: string,
     readonly versionId: string | null,
@@ -29,7 +29,7 @@ export class NominationSessionFileReportersAffected {
   ) {}
 }
 
-export class NominationSessionFilePrioritiesUpdated {
+export class SessionTransparenceFilePrioritiesUpdated {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
@@ -37,7 +37,7 @@ export class NominationSessionFilePrioritiesUpdated {
   ) {}
 }
 
-export class NominationSessionAffectationVersionPublished {
+export class SessionTransparenceAffectationVersionPublished {
   constructor(
     readonly sessionId: string,
     readonly versionId: string | undefined,
@@ -45,14 +45,14 @@ export class NominationSessionAffectationVersionPublished {
   ) {}
 }
 
-export class NominationSessionAffectationVersionCreated {
+export class SessionTransparenceAffectationVersionCreated {
   constructor(
     readonly sessionId: string,
     readonly version: { id: string; version: number },
   ) {}
 }
 
-export class NominationSessionCreated {
+export class SessionTransparenceCreated {
   constructor(
     readonly sessionId: string,
     readonly name: string,
@@ -66,21 +66,21 @@ export class NominationSessionCreated {
   ) {}
 }
 
-export class LodamNominationSessionFilesCreated {
+export class LodamSessionTransparenceFilesCreated {
   constructor(
     readonly sessionId: string,
     readonly files: readonly LodamNominationFileEntity[],
   ) {}
 }
 
-export class NominationFilesAssociated {
+export class SessionTransparenceFilesAssociated {
   constructor(
     readonly sessionId: string,
     readonly files: readonly NominationFileEntity[],
   ) {}
 }
 
-export class NominationSessionFilesObserversUpdated {
+export class SessionTransparenceFilesObserversUpdated {
   constructor(
     readonly sessionId: string,
     readonly nominationFileObservers: readonly {
@@ -90,35 +90,35 @@ export class NominationSessionFilesObserversUpdated {
   ) {}
 }
 
-export class NominationSessionAttachmentAdded {
+export class SessionTransparenceAttachmentAdded {
   constructor(
     readonly sessionId: string,
     readonly file: { id: string },
   ) {}
 }
 
-export class NominationSessionAttachmentRemoved {
+export class SessionTransparenceAttachmentRemoved {
   constructor(
     readonly sessionId: string,
     readonly fileId: string,
   ) {}
 }
 
-export class NominationFileAttachmentAdded {
+export class SessionTransparenceFileAttachmentAdded {
   constructor(
     readonly nominationFileId: string,
     readonly file: { id: string },
   ) {}
 }
 
-export class NominationFileAttachmentRemoved {
+export class SessionTransparenceFileAttachmentRemoved {
   constructor(
     readonly nominationFileId: string,
     readonly fileId: string,
   ) {}
 }
 
-export class NominationSessionUpdated {
+export class SessionTransparenceUpdated {
   constructor(
     readonly sessionId: string,
     readonly data: {
@@ -131,7 +131,7 @@ export class NominationSessionUpdated {
   ) {}
 }
 
-export class NominationFileOutcomeDefined {
+export class SessionTransparenceOutcomeDefined {
   constructor(
     readonly nominationFileId: string,
     readonly outcome: NominationFileOutcomeEnum | null,
@@ -139,7 +139,7 @@ export class NominationFileOutcomeDefined {
   ) {}
 }
 
-export class NominationFileMemberMemoWritten {
+export class SessionTransparenceFileMemberMemoWritten {
   constructor(
     readonly userId: string,
     readonly sessionId: string,
@@ -148,28 +148,28 @@ export class NominationFileMemberMemoWritten {
   ) {}
 }
 
-export class NominationFileAlertHidden {
+export class SessionTransparenceFileAlertHidden {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
   ) {}
 }
 
-export class NominationSessionValidated {
+export class SessionTransparenceValidated {
   constructor(
     readonly sessionId: string,
     readonly userId: string | null,
   ) {}
 }
 
-export class NominationSessionDeleted {
+export class SessionTransparenceDeleted {
   constructor(
     readonly id: string,
     readonly userId: string,
   ) {}
 }
 
-export class NominationSessionArchived {
+export class SessionTransparenceArchived {
   constructor(
     readonly sessionId: string,
     readonly userId: string,
@@ -177,27 +177,27 @@ export class NominationSessionArchived {
 }
 
 type NominationSessionEvent =
-  | LodamNominationSessionFilesCreated
-  | NominationFileAlertHidden
-  | NominationFileMemberMemoWritten
-  | NominationFileOutcomeDefined
-  | NominationFilesAssociated
-  | NominationSessionAffectationVersionCreated
-  | NominationSessionAffectationVersionPublished
-  | NominationSessionAttachmentAdded
-  | NominationSessionAttachmentRemoved
-  | NominationFileAttachmentAdded
-  | NominationFileAttachmentRemoved
-  | NominationSessionCreated
-  | NominationSessionFilePrioritiesUpdated
-  | NominationSessionFileReportersAffected
-  | NominationSessionFilesObserversUpdated
-  | NominationSessionUpdated
-  | NominationSessionValidated
-  | NominationSessionDeleted
-  | NominationSessionArchived;
+  | LodamSessionTransparenceFilesCreated
+  | SessionTransparenceFileAlertHidden
+  | SessionTransparenceFileMemberMemoWritten
+  | SessionTransparenceOutcomeDefined
+  | SessionTransparenceFilesAssociated
+  | SessionTransparenceAffectationVersionCreated
+  | SessionTransparenceAffectationVersionPublished
+  | SessionTransparenceAttachmentAdded
+  | SessionTransparenceAttachmentRemoved
+  | SessionTransparenceFileAttachmentAdded
+  | SessionTransparenceFileAttachmentRemoved
+  | SessionTransparenceCreated
+  | SessionTransparenceFilePrioritiesUpdated
+  | SessionTransparenceFileReportersAffected
+  | SessionTransparenceFilesObserversUpdated
+  | SessionTransparenceUpdated
+  | SessionTransparenceValidated
+  | SessionTransparenceDeleted
+  | SessionTransparenceArchived;
 
-type NominationSessionAffectationVersion = {
+type SessionTransparenceAffectationVersion = {
   id: string;
   version: number;
   isDraft: boolean;
@@ -209,7 +209,7 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   }
 }
 
-export class NominationSessionAffectationHasUnknownReporter extends Error {
+export class SessionTransparenceAffectationHasUnknownReporter extends Error {
   constructor(
     readonly errors: readonly {
       fileNumber: number;
@@ -232,39 +232,39 @@ export class CantUpdateNominationFiles extends Error {
   }
 }
 
-export class NominationSessionIsNotDeletable extends Error {
+export class SessionTransparenceIsNotDeletable extends Error {
   constructor(readonly sessionId: string) {
     super();
   }
 }
 
-export class NominationSessionCannotBeArchived extends Error {
+export class SessionTransparenceIsNotArchivable extends Error {
   constructor(readonly unreportedFileCount: number) {
     super();
   }
 }
 
-export class NominationSessionIsArchived extends Error {
+export class SessionTransparenceIsArchived extends Error {
   constructor(readonly sessionId: string) {
     super();
   }
 }
 
-export class NominationSession {
+export class SessionTransparence {
   private constructor(
     readonly id: string,
     readonly formation: Magistrat.Formation,
-    readonly version: NominationSessionAffectationVersion | null,
+    readonly version: SessionTransparenceAffectationVersion | null,
     private nominationFiles: Map<string, UpdatableNominationFile>,
   ) {}
 
   static from(props: {
     id: string;
     formation: Magistrat.Formation;
-    version: NominationSessionAffectationVersion | null;
+    version: SessionTransparenceAffectationVersion | null;
     nominationFiles: readonly UpdatableNominationFileState[];
   }) {
-    return new NominationSession(
+    return new SessionTransparence(
       props.id,
       props.formation,
       props.version,
@@ -274,15 +274,15 @@ export class NominationSession {
 
   static create(command: {
     name: string;
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS;
     formation: Magistrat.Formation;
     date: DateOnly;
     observationClosingDate: DateOnly | null;
     dueDate: DateOnly | null;
     positionStartDate: DateOnly | null;
     lolfiSessionId: number | null;
-  }): NominationSession {
-    const session = NominationSession.from({
+  }): SessionTransparence {
+    const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
       formation: command.formation,
       version: null,
@@ -293,7 +293,7 @@ export class NominationSession {
       command.observationClosingDate ?? DateOnly.fromDate(addWeeks(command.date.toDate(), 1));
 
     session.#messages.push(
-      new NominationSessionCreated(
+      new SessionTransparenceCreated(
         session.id,
         command.name,
         command.typeDeSaisine,
@@ -310,8 +310,8 @@ export class NominationSession {
   }
 
   static createLodamNominationTreeAndAffectMembers(
-    command: CreateLodamNominationSessionCommand,
-  ): NominationSession {
+    command: CreateLodamSessionTransparenceCommand,
+  ): SessionTransparence {
     const session = this.create({ ...command, lolfiSessionId: null });
     session.validate({ userId: command.userId });
 
@@ -355,7 +355,7 @@ export class NominationSession {
     }
 
     if (unknownReporters.length) {
-      throw new NominationSessionAffectationHasUnknownReporter(unknownReporters);
+      throw new SessionTransparenceAffectationHasUnknownReporter(unknownReporters);
     }
 
     session.nominationFiles = new Map(
@@ -369,7 +369,7 @@ export class NominationSession {
       ]),
     );
 
-    session.#messages.push(new LodamNominationSessionFilesCreated(session.id, nominationFileEntities));
+    session.#messages.push(new LodamSessionTransparenceFilesCreated(session.id, nominationFileEntities));
 
     if (affectations.length > 0) {
       session.affectNominationFileReporters({
@@ -383,7 +383,7 @@ export class NominationSession {
 
   associateNominationFiles(command: { files: readonly NominationFile[] }): void {
     this.#messages.push(
-      new NominationFilesAssociated(
+      new SessionTransparenceFilesAssociated(
         this.id,
         command.files.map((file) => ({
           ...file,
@@ -397,7 +397,7 @@ export class NominationSession {
     this.assertsCanUpdateFiles(props.nominationFileId);
 
     this.#messages.push(
-      new NominationSessionFilePrioritiesUpdated(this.id, props.nominationFileId, props.priorities),
+      new SessionTransparenceFilePrioritiesUpdated(this.id, props.nominationFileId, props.priorities),
     );
   }
 
@@ -415,7 +415,7 @@ export class NominationSession {
     if (this.version && !this.version.isDraft) {
       versionId = makeId('AffectationVersionId');
       this.#messages.push(
-        new NominationSessionAffectationVersionCreated(this.id, {
+        new SessionTransparenceAffectationVersionCreated(this.id, {
           id: versionId,
           version: this.version.version + 1,
         }),
@@ -435,7 +435,7 @@ export class NominationSession {
     }
 
     this.#messages.push(
-      new NominationSessionFileReportersAffected(this.id, versionId ?? null, command.affectations),
+      new SessionTransparenceFileReportersAffected(this.id, versionId ?? null, command.affectations),
     );
   }
 
@@ -443,7 +443,7 @@ export class NominationSession {
     if (this.version && !this.version.isDraft) return;
 
     this.#messages.push(
-      new NominationSessionAffectationVersionPublished(this.id, this.version?.id, props.userId),
+      new SessionTransparenceAffectationVersionPublished(this.id, this.version?.id, props.userId),
     );
   }
 
@@ -481,17 +481,17 @@ export class NominationSession {
     }
 
     this.assertsCanUpdateFiles(...knownFiles.map(({ id }) => id));
-    this.#messages.push(new NominationSessionFilesObserversUpdated(this.id, knownFiles));
+    this.#messages.push(new SessionTransparenceFilesObserversUpdated(this.id, knownFiles));
   }
 
   addAttachments(command: { files: { id: string }[] }) {
     for (const file of command.files) {
-      this.#messages.push(new NominationSessionAttachmentAdded(this.id, file));
+      this.#messages.push(new SessionTransparenceAttachmentAdded(this.id, file));
     }
   }
 
   removeAttachment(command: { fileId: string }) {
-    this.#messages.push(new NominationSessionAttachmentRemoved(this.id, command.fileId));
+    this.#messages.push(new SessionTransparenceAttachmentRemoved(this.id, command.fileId));
   }
 
   update(command: {
@@ -501,14 +501,14 @@ export class NominationSession {
     dueDate: DateOnly | null;
     positionStartDate: DateOnly | null;
   }): void {
-    this.#messages.push(new NominationSessionUpdated(this.id, command));
+    this.#messages.push(new SessionTransparenceUpdated(this.id, command));
   }
 
   defineNominationFileOutcome(command: { nominationFileId: string; outcome: NominationFileOutcome | null }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     this.#messages.push(
-      new NominationFileOutcomeDefined(
+      new SessionTransparenceOutcomeDefined(
         command.nominationFileId,
         command.outcome?.outcome ?? null,
         command.outcome?.comment ?? null,
@@ -521,50 +521,57 @@ export class NominationSession {
     if (trimmed.length === 0) return;
 
     this.#messages.push(
-      new NominationFileMemberMemoWritten(command.userId, this.id, command.nominationFileId, trimmed),
+      new SessionTransparenceFileMemberMemoWritten(
+        command.userId,
+        this.id,
+        command.nominationFileId,
+        trimmed,
+      ),
     );
   }
 
   hideAlert(command: { nominationFileId: string }) {
-    this.#messages.push(new NominationFileAlertHidden(this.id, command.nominationFileId));
+    this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
   }
 
   addNominationFileAttachments(command: { nominationFileId: string; files: { id: string }[] }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     for (const file of command.files) {
-      this.#messages.push(new NominationFileAttachmentAdded(command.nominationFileId, file));
+      this.#messages.push(new SessionTransparenceFileAttachmentAdded(command.nominationFileId, file));
     }
   }
 
   removeNominationFileAttachment(command: { nominationFileId: string; fileId: string }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
-    this.#messages.push(new NominationFileAttachmentRemoved(command.nominationFileId, command.fileId));
+    this.#messages.push(
+      new SessionTransparenceFileAttachmentRemoved(command.nominationFileId, command.fileId),
+    );
   }
 
   validate(command: { userId: string | null }): void {
-    this.#messages.push(new NominationSessionValidated(this.id, command.userId));
+    this.#messages.push(new SessionTransparenceValidated(this.id, command.userId));
   }
 
   archive(command: { userId: string; unreportedFileCount: number }): void {
     if (command.unreportedFileCount > 0) {
-      throw new NominationSessionCannotBeArchived(command.unreportedFileCount);
+      throw new SessionTransparenceIsNotArchivable(command.unreportedFileCount);
     }
 
-    this.#messages.push(new NominationSessionArchived(this.id, command.userId));
+    this.#messages.push(new SessionTransparenceArchived(this.id, command.userId));
   }
 
   delete(command: { userId: string; attachmentsCount: number; affectedReportersCount: number }): void {
     if (command.attachmentsCount !== 0 || command.affectedReportersCount !== 0) {
-      throw new NominationSessionIsNotDeletable(this.id);
+      throw new SessionTransparenceIsNotDeletable(this.id);
     }
 
     if (this.version?.isDraft) {
       this.publishAffectationVersion(command);
     }
 
-    this.#messages.push(new NominationSessionDeleted(this.id, command.userId));
+    this.#messages.push(new SessionTransparenceDeleted(this.id, command.userId));
   }
 
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
@@ -585,8 +592,8 @@ export class NominationSession {
   }
 }
 
-export type CreateLodamNominationSessionCommand = {
-  typeDeSaisine: TypeDeSaisine;
+export type CreateLodamSessionTransparenceCommand = {
+  typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS;
   files: readonly LodamNominationFile[];
   name: string;
   date: DateOnly;
