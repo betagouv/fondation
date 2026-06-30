@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
-
-import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
   id: z.string(),

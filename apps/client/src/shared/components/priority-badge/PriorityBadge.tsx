@@ -22,7 +22,7 @@ function InternalPriorityBadge(props: { acronym?: boolean; priority: PrioriteEnu
   return (
     <Badge
       as="span"
-      className={clsx(colorClassName[props.priority], !props.acronym && small && 'h-6')}
+      className={clsx('whitespace-nowrap', colorClassName[props.priority], !props.acronym && small && 'h-6')}
       noIcon
       small={small}
     >

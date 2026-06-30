@@ -50,11 +50,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
         <div className="flex flex-col gap-6">
           {isEditing ? (
             <div className="flex flex-col gap-1">
-              <MagistratPrioritySelect
-                onChange={affectation.setPriorities}
-                surfaceClassName={surfaceClassName}
-                value={affectation.priorities}
-              />
+              <MagistratPrioritySelect onChange={affectation.setPriorities} value={affectation.priorities} />
               {showWarning && prioritiesDirty && <UnsavedWarning />}
             </div>
           ) : (
@@ -113,7 +109,6 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
             <MagistratReporterSelect
               available={affectation.availableRapporteurs}
               onChange={affectation.setReporterIds}
-              surfaceClassName={surfaceClassName}
               value={affectation.reporterIds}
             />
           </div>

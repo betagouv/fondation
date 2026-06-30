@@ -28,6 +28,7 @@ export function NominationFileOutcomeCommentModal(props: {
   const isCommentRequired = useMemo(() => outcome === 'NON_VALIDATED', [outcome]);
 
   const isCommentValid = (comment?.trim().length ?? 0) > 0;
+  const isUnchanged = (comment?.trim() || null) === initialComment;
   const hint =
     props.formation === 'PARQUET'
       ? formatMessage({ defaultMessage: 'Les avis défavorables nécessitent un commentaire' })
@@ -80,7 +81,7 @@ export function NominationFileOutcomeCommentModal(props: {
         },
         {
           children: <FormattedMessage defaultMessage="Sauvegarder" />,
-          disabled: isCommentRequired && !isCommentValid,
+          disabled: isUnchanged || (isCommentRequired && !isCommentValid),
           doClosesModal: false,
           onClick: onConfirmClick,
           priority: 'primary',

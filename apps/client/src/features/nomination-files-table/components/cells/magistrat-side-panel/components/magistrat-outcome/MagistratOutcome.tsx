@@ -66,16 +66,18 @@ function MagistratOutcomeComment(props: {
       <p className="fr-mb-0 min-w-0 grow text-sm wrap-break-word text-(--text-mention-grey)">
         {props.comment || <FormattedMessage defaultMessage="Aucun commentaire" />}
       </p>
-      {props.comment && (
-        <Button
-          className="relative -top-2 min-h-9! shrink-0 px-3.5! py-1.5! text-[0.9375rem]!"
-          onClick={edit}
-          priority="tertiary no outline"
-          size="small"
-        >
+      <Button
+        className="relative -top-2 min-h-9! shrink-0 px-3.5! py-1.5! text-[0.9375rem]!"
+        onClick={edit}
+        priority="tertiary no outline"
+        size="small"
+      >
+        {props.comment ? (
           <FormattedMessage defaultMessage="Modifier" />
-        </Button>
-      )}
+        ) : (
+          <FormattedMessage defaultMessage="Ajouter" />
+        )}
+      </Button>
     </div>
   );
 }
