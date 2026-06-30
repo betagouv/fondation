@@ -5,7 +5,7 @@ import z from 'zod';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
-export class CountUsersNewSessionsQuery {
+export class CountNonValidatedSessionsQuery {
   constructor(private readonly db: Db) {}
 
   async handle(): Promise<CountUsersNewSessionsDto> {

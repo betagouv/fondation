@@ -38,10 +38,6 @@ import {
 } from './queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto, CountUnaffectedFilesQuery } from './queries/count-unaffected-files.query';
 import {
-  CountUsersNewSessionsDto,
-  CountUsersNewSessionsQuery,
-} from './queries/count-users-new-sessions.query';
-import {
   type DetailedNominationFileAttachmentDto,
   DetailNominationFileAttachmentQuery,
 } from './queries/detail-nomination-file-attachment.query';
@@ -112,7 +108,6 @@ export class TransparenceService {
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
-    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
@@ -503,11 +498,6 @@ export class TransparenceService {
     return this.countNominationFilesByStatusQuery.handle(query);
   }
 
-  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
-    return this.countUsersNewSessionsQuery.handle();
-  }
-
-  @Transactional()
   async validateSession(command: { sessionId: string; userId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.validate({ userId: command.userId });

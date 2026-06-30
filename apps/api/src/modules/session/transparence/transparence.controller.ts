@@ -22,7 +22,6 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
-
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -52,7 +51,6 @@ import {
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
-import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
@@ -69,13 +67,6 @@ import { TransparenceService } from './infrastructure/transparence.service';
 @Controller('/api/sessions/v2')
 export class SessionController {
   constructor(private readonly sessions: TransparenceService) {}
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/new/count')
-  @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
-  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
-    return this.sessions.countUsersNewSessions();
-  }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/validation')
