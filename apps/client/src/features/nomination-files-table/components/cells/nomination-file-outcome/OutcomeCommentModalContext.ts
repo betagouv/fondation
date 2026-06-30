@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext, useCallback, useContext } from 'react';
 
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
@@ -8,31 +8,36 @@ type OutcomeCommentCallbackEvent = { type: 'drop' } | { type: 'comment'; value: 
 export type OutcomeCommentCallback = (event: OutcomeCommentCallbackEvent) => unknown;
 
 type OutcomeCommentDialogContextType = {
-  outcome: NominationFileOutcomeEnum | null;
-  setOutcome: (value: NominationFileOutcomeEnum) => void;
-
   commentCallback: OutcomeCommentCallback | null;
+  initialComment: string | null;
+  outcome: NominationFileOutcomeEnum | null;
   setCommentCallback: (callback: OutcomeCommentCallback) => void;
+  setInitialComment: (value: string | null) => void;
+  setOutcome: (value: NominationFileOutcomeEnum) => void;
 };
 
 /** @internal */
-export const OutcomeCommentModalContext = React.createContext<OutcomeCommentDialogContextType>(
+export const OutcomeCommentModalContext = createContext<OutcomeCommentDialogContextType>(
   null as unknown as OutcomeCommentDialogContextType,
 );
 
 export function useOutcomeCommentDialog() {
-  const { setOutcome, setCommentCallback } = React.useContext(OutcomeCommentModalContext);
+  const { setCommentCallback, setInitialComment, setOutcome } = useContext(OutcomeCommentModalContext);
 
-  const waitForOutcomeComment = React.useCallback(
-    (outcome: NominationFileOutcomeEnum): Promise<OutcomeCommentCallbackEvent> => {
+  const waitForOutcomeComment = useCallback(
+    (
+      outcome: NominationFileOutcomeEnum,
+      initialComment: string | null = null,
+    ): Promise<OutcomeCommentCallbackEvent> => {
       setOutcome(outcome);
+      setInitialComment(initialComment);
       return new Promise((resolve) => {
         setCommentCallback(() => resolve);
 
         nominationFileOutcomeCommentModal.open();
       });
     },
-    [setOutcome, setCommentCallback],
+    [setCommentCallback, setInitialComment, setOutcome],
   );
 
   return { waitForOutcomeComment };

@@ -30,9 +30,13 @@ function renderEditor(props: {
 }
 
 describe('CommentEditor', () => {
-  it('keeps the actions disabled until the value changes', async () => {
+  it('reveals the actions on focus, disabled until the value changes', async () => {
     const user = userEvent.setup();
     renderEditor({ initialValue: 'Inchangé' });
+
+    expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('textbox'));
 
     expect(screen.getByRole('button', { name: 'Valider' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Annuler' })).toBeDisabled();

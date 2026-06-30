@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+
+import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -13,6 +16,7 @@ const ObservationSchema = z.object({
   id: z.string(),
   dateReception: z.string(),
   description: z.string(),
+  followUp: z.enum(ObservationFollowUp.enum).nullable(),
   magistrat: z
     .object({
       id: z.string(),
@@ -54,13 +58,13 @@ export class ListObservationsQuery {
         dateReception: true,
         createdAt: true,
         description: true,
+        followUp: true,
         magistrat: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             usedName: true,
-            adminPosition: true,
           },
         },
         createdByUser: {
@@ -83,19 +87,28 @@ export class ListObservationsQuery {
       },
     });
 
+    const magistratIds = [
+      ...new Set(observations.map((obs) => obs.magistrat?.id).filter((id) => id !== undefined)),
+    ];
+    const positions = magistratIds.length
+      ? await this.prisma.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
+      : [];
+    const positionByMagistratId = new Map(positions.map((p) => [p.magistratId, p.currentPosition]));
+
     return {
       observations: observations.map((obs) => ({
         id: obs.id,
         dateReception: obs.dateReception.toISOString(),
         createdAt: obs.createdAt.toISOString(),
         description: obs.description,
+        followUp: obs.followUp,
         magistrat: obs.magistrat
           ? {
               id: obs.magistrat.id,
               firstName: obs.magistrat.firstName,
               lastName: obs.magistrat.lastName,
               usedName: obs.magistrat.usedName,
-              currentPosition: obs.magistrat.adminPosition,
+              currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
             }
           : null,
         createdBy: obs.createdByUser,

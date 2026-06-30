@@ -55,7 +55,7 @@ export function MagistratOutcomeSelect(props: { nominationFile: SessionNominatio
     <SoftDropdown
       label={
         current ? (
-          <NominationFileOutcomeBadge formation={formation} outcome={current} />
+          <NominationFileOutcomeBadge formation={formation} outcome={current} small={false} />
         ) : (
           <span className="text-sm">
             <FormattedMessage defaultMessage="Sélectionner" />

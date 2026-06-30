@@ -28,7 +28,7 @@ export function SgComment(props: { initialComment?: string | null; nominationFil
       <h3 className="fr-mb-2v text-xl font-semibold">
         <FormattedMessage defaultMessage="Complément SG" />
       </h3>
-      <p className="fr-mb-3v text-sm text-(--text-mention-grey)">
+      <p className="fr-mb-4v text-sm text-(--text-mention-grey)">
         <FormattedMessage defaultMessage="Ce commentaire est visible par les membres" />
       </p>
 

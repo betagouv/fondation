@@ -3,7 +3,7 @@ export const labels = {
     biography: 'Biographie',
     birthDate: 'Date de naissance',
     currentPosition: 'Poste actuel',
-    targettedPosition: 'Poste pressenti',
+    targettedPosition: 'Poste cible',
     dureeDuPoste: 'Durée sur le poste',
     rank: 'Rang',
   },

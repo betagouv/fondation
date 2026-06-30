@@ -6,7 +6,6 @@ import { FormattedMessage } from 'react-intl';
 
 import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation/use-magistrat-affectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
@@ -19,7 +18,6 @@ import { MagistratPrioritySelect, MagistratReporterSelect } from './MagistratAff
 
 export function MagistratHeader(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
-  const isSg = useIsSgNavigation();
   const { user } = useUser();
   const { isEditable } = useNominationFilesTable();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
@@ -41,9 +39,10 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
 
   const canEdit = isEditable && !!isUpdatable;
 
-  const surfaceClassName = isSg
-    ? 'bg-(--background-alt-blue-france)'
-    : 'bg-(--background-action-low-brown-cafe-creme)';
+  const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
+  const surfaceClassName = isReporter
+    ? 'bg-(--background-action-low-brown-cafe-creme)'
+    : 'bg-(--background-alt-blue-france)';
 
   return (
     <div className={clsx('-mx-8 -mt-8 flex flex-col gap-6 p-8', surfaceClassName)}>
@@ -59,7 +58,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
               {showWarning && prioritiesDirty && <UnsavedWarning />}
             </div>
           ) : (
-            <PriorityBadgeList priorities={nominationFile.priorities} />
+            <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
           <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
             {nomMagistrat}
@@ -75,6 +74,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
           (isEditing ? (
             <div className="flex items-center gap-2">
               <Button
+                className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
                 disabled={affectation.isPending}
                 onClick={stopEditing}
                 priority="secondary"
@@ -83,6 +83,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
                 <FormattedMessage defaultMessage="Annuler" />
               </Button>
               <Button
+                className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
                 disabled={affectation.isPending}
                 onClick={affectation.save}
                 priority="primary"
@@ -92,7 +93,12 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
               </Button>
             </div>
           ) : (
-            <Button onClick={startEditing} priority="secondary" size="small">
+            <Button
+              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+              onClick={startEditing}
+              priority="secondary"
+              size="small"
+            >
               <FormattedMessage defaultMessage="Modifier" />
             </Button>
           ))}
@@ -135,7 +141,7 @@ function ReporterStatus(props: { currentUserId: string | undefined; reporters: r
   if (reporters.length === 0)
     return (
       <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
-        <FormattedMessage defaultMessage="Aucun rapporteur affecté" />
+        <FormattedMessage defaultMessage="Affectation non effectuée" />
       </div>
     );
 

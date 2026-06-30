@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Input } from '@codegouvfr/react-dsfr/Input';
+import clsx from 'clsx';
 import { useEffect, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -20,7 +21,10 @@ export function CommentEditor(props: {
   const [value, setValue] = useState(saved);
   const [hasError, setHasError] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
   const isDirty = value !== saved;
+  const showActions = isFocused || isDirty || !!props.warning;
 
   useEffect(() => {
     onDirtyChange?.(isDirty);
@@ -67,7 +71,12 @@ export function CommentEditor(props: {
       : undefined;
 
   return (
-    <div>
+    <div
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsFocused(false);
+      }}
+      onFocus={() => setIsFocused(true)}
+    >
       <Input
         label=""
         nativeTextAreaProps={{
@@ -81,13 +90,35 @@ export function CommentEditor(props: {
         stateRelatedMessage={errorMessage}
         textArea
       />
-      <div className="flex justify-end gap-2">
-        <Button disabled={!isDirty || isPending} onClick={cancel} priority="secondary" size="small">
-          <FormattedMessage defaultMessage="Annuler" />
-        </Button>
-        <Button disabled={!isDirty || isPending} onClick={save} priority="primary" size="small">
-          <FormattedMessage defaultMessage="Valider" />
-        </Button>
+      <div
+        aria-hidden={!showActions}
+        className={clsx(
+          'grid transition-all duration-200 ease-out',
+          showActions ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="flex justify-end gap-2">
+            <Button
+              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+              disabled={!isDirty || isPending}
+              onClick={cancel}
+              priority="secondary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Annuler" />
+            </Button>
+            <Button
+              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+              disabled={!isDirty || isPending}
+              onClick={save}
+              priority="primary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Valider" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

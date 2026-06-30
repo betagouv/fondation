@@ -1,7 +1,8 @@
 import Input from '@codegouvfr/react-dsfr/Input';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import React from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { FormationEnum } from '@/types/enums.types';
 
@@ -17,21 +18,22 @@ export function NominationFileOutcomeCommentModal(props: {
   onChange: (comment: string | null) => unknown;
   onDrop: () => unknown;
 }) {
-  const { outcome } = React.useContext(OutcomeCommentModalContext);
+  const { formatMessage } = useIntl();
+  const { outcome, initialComment } = useContext(OutcomeCommentModalContext);
 
-  const [hasError, setError] = React.useState(false);
-  const [comment, setComment] = React.useState<string | null>(null);
-  const [closedByUser, setClosedByUser] = React.useState(true);
+  const [hasError, setError] = useState(false);
+  const [comment, setComment] = useState<string | null>(null);
+  const [closedByUser, setClosedByUser] = useState(true);
 
-  const isCommentRequired = React.useMemo(() => outcome === 'NON_VALIDATED', [outcome]);
+  const isCommentRequired = useMemo(() => outcome === 'NON_VALIDATED', [outcome]);
 
   const isCommentValid = (comment?.trim().length ?? 0) > 0;
   const hint =
     props.formation === 'PARQUET'
-      ? `Les avis défavorables nécessitent un commentaire`
-      : `Les avis non conformes nécessitent un commentaire`;
+      ? formatMessage({ defaultMessage: 'Les avis défavorables nécessitent un commentaire' })
+      : formatMessage({ defaultMessage: 'Les avis non conformes nécessitent un commentaire' });
 
-  useIsModalOpen(nominationFileOutcomeCommentModal, {
+  const isOpen = useIsModalOpen(nominationFileOutcomeCommentModal, {
     onConceal() {
       if (closedByUser) props.onDrop();
 
@@ -41,7 +43,11 @@ export function NominationFileOutcomeCommentModal(props: {
     },
   });
 
-  const onCancelClick = React.useCallback(() => {
+  useEffect(() => {
+    if (isOpen) setComment(initialComment);
+  }, [isOpen, initialComment]);
+
+  const onCancelClick = useCallback(() => {
     if (isCommentRequired) return;
 
     props.onChange(null);
@@ -49,7 +55,7 @@ export function NominationFileOutcomeCommentModal(props: {
     nominationFileOutcomeCommentModal.close();
   }, [props, isCommentRequired]);
 
-  const onConfirmClick = React.useCallback(() => {
+  const onConfirmClick = useCallback(() => {
     if (isCommentRequired && !isCommentValid) {
       setError(true);
       return;
@@ -63,50 +69,46 @@ export function NominationFileOutcomeCommentModal(props: {
 
   return (
     <nominationFileOutcomeCommentModal.Component
-      title="Commentaire"
-      concealingBackdrop={!isCommentRequired}
-      topAnchor
       buttons={[
         {
-          doClosesModal: false,
-          priority: 'secondary',
-          children: 'Sans commentaire',
-          onClick: onCancelClick,
+          children: <FormattedMessage defaultMessage="Sans commentaire" />,
           disabled: isCommentRequired,
+          doClosesModal: false,
+          onClick: onCancelClick,
+          priority: 'secondary',
           title: isCommentRequired ? hint : undefined,
         },
         {
-          doClosesModal: false,
-          priority: 'primary',
-          children: 'Sauvegarder',
-          onClick: onConfirmClick,
+          children: <FormattedMessage defaultMessage="Sauvegarder" />,
           disabled: isCommentRequired && !isCommentValid,
+          doClosesModal: false,
+          onClick: onConfirmClick,
+          priority: 'primary',
         },
       ]}
+      concealingBackdrop={!isCommentRequired}
+      title={<FormattedMessage defaultMessage="Commentaire" />}
+      topAnchor
     >
       <form>
         <Input
-          textArea
-          label={
-            isCommentRequired ? (
-              <>
-                commentaire concernant l'issue de ce dossier
-                <span className="text-(--text-default-error)">*</span>
-              </>
-            ) : (
-              `commentaire concernant l'issue de ce dossier`
-            )
-          }
           hintText={hasError ? <span className="text-(--text-default-error)">{hint}</span> : undefined}
+          label={
+            <>
+              <FormattedMessage defaultMessage="Commentaire concernant l'issue de ce dossier" />
+              {isCommentRequired && <span className="text-(--text-default-error)">*</span>}
+            </>
+          }
           nativeTextAreaProps={{
-            value: comment || '',
-            required: isCommentRequired,
             onChange: (event) => {
               setComment(event.target.value || null);
 
               if (hasError) setError(false);
             },
+            required: isCommentRequired,
+            value: comment || '',
           }}
+          textArea
         />
       </form>
     </nominationFileOutcomeCommentModal.Component>

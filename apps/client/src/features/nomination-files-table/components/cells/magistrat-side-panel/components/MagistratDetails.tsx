@@ -15,7 +15,7 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
   const { historique } = nominationFile.content;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       <MagistratHeader key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
       <MagistratOutcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <MagistratCareerInfo content={nominationFile.content} />
