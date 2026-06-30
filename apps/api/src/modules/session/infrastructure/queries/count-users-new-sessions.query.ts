@@ -10,7 +10,7 @@ export class CountUsersNewSessionsQuery {
 
   async handle(): Promise<CountUsersNewSessionsDto> {
     const count = await this.prisma.session.count({
-      where: { isValidated: false, deletedAt: null },
+      where: { validatedAt: null, deletedAt: null },
     });
 
     return { count };

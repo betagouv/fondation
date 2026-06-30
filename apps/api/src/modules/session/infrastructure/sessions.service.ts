@@ -5,7 +5,7 @@ import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine
 
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
-import { NominationSession } from '../domain/nomination-session';
+import { SessionTransparence } from '../domain/session-transparence';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
@@ -259,7 +259,7 @@ export class SessionService {
       formation: command.formation,
     });
 
-    const session = NominationSession.createLodamNominationTreeAndAffectMembers({
+    const session = SessionTransparence.createLodamNominationTreeAndAffectMembers({
       ...command,
       formationMembers: members,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
@@ -491,7 +491,7 @@ export class SessionService {
         Sentry.captureException(error);
         this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
 
-        return [] as NominationSession[];
+        return [] as SessionTransparence[];
       });
 
       for (const nominationSession of nominationSessions) {

@@ -11,6 +11,7 @@ import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailNominationSessionQuery {
@@ -37,12 +38,16 @@ export class DetailNominationSessionQuery {
         id: true,
         name: true,
         date: true,
-        observationsClosingDate: true,
-        dueDate: true,
-        positionStartDate: true,
+        transparenceGds: {
+          select: {
+            observationsClosingDate: true,
+            dueDate: true,
+            positionStartDate: true,
+          },
+        },
         formation: true,
         typeDeSaisine: true,
-        isValidated: true,
+        validatedAt: true,
         archivedAt: true,
 
         _count: { select: { attachments: true } },
@@ -65,20 +70,24 @@ export class DetailNominationSessionQuery {
       sessionId: query.sessionId,
       tx: query.tx,
     });
-    const isArchivable = session.isValidated && !session.archivedAt && unreportedCount === 0;
+    const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
 
     return {
       id: session.id,
       name: session.name,
       formation: prismaFormationEnumToFormationEnum(session.formation),
-      observationsClosingDate: DateOnly.fromDate(session.observationsClosingDate).toJson(),
+      observationsClosingDate: DateOnly.fromDate(
+        assertIsDefined(
+          session.transparenceGds?.observationsClosingDate,
+          `${session.id} no observation closing date`,
+        ),
+      ).toJson(),
       date: DateOnly.fromDate(session.date).toJson(),
-      dueDate: session.dueDate ? DateOnly.fromDate(session.dueDate).toJson() : null,
-      positionStartDate: session.positionStartDate
-        ? DateOnly.fromDate(session.positionStartDate).toJson()
-        : null,
+      dueDate: DateOnly.fromOptionalDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
+      positionStartDate:
+        DateOnly.fromOptionalDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
-      isValidated: session.isValidated,
+      isValidated: session.validatedAt !== null,
       isDeletable,
       isArchived: !!session.archivedAt,
       isArchivable,

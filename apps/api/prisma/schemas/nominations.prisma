@@ -143,21 +143,32 @@ model CommentAccess {
 }
 
 model Session {
-  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
-  version                 Int                     @default(1)
-  name                    String
-  formation               PrismaFormationEnum
-  typeDeSaisine           PrismaTypeDeSaisineEnum @map("type_de_saisine")
-  sessionImportId         String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
-  date                    DateTime                @db.Date
-  observationsClosingDate DateTime                @map("observations_closing_date") @db.Date
-  dueDate                 DateTime?               @map("due_date") @db.Date
-  positionStartDate       DateTime?               @map("position_start_date") @db.Date
-  lolfiSessionId          Int?                    @map("lolfi_session_id")
-  isValidated             Boolean                 @default(false) @map("is_validated")
-  validatedBy             String?                 @map("validated_by") @db.Uuid
-  validatedAt             DateTime?               @map("validated_at")
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  name          String
+  formation     PrismaFormationEnum
+  typeDeSaisine PrismaTypeDeSaisineEnum @map("type_de_saisine")
+  date          DateTime                @db.Date
+
+  /// @deprecated - unused to delete
+  version                 Int       @default(1) @ignore
+  /// @deprecated - unused to delete
+  sessionImportId         String    @unique(map: "session_session_import_id_unique") @default(dbgenerated("gen_random_uuid()::text")) @map("session_import_id") @ignore
+  /// @deprecated - see SessionTransparenceGds.observationsClosingDate
+  observationsClosingDate DateTime? @map("observations_closing_date") @ignore @db.Date
+  /// @deprecated - see SessionTransparenceGds.dueDate
+  dueDate                 DateTime? @map("due_date") @ignore @db.Date
+  /// @deprecated - see SessionTransparenceGds.positionStartDate
+  positionStartDate       DateTime? @map("position_start_date") @ignore @db.Date
+
+  /// @deprecated - see SessionTransparenceGds.lolfiSessionId
+  lolfiSessionId Int? @map("lolfi_session_id") @ignore
+
+  /// @deprecated - validatedAt is enough
+  isValidated Boolean   @default(false) @map("is_validated") @ignore
+  validatedBy String?   @map("validated_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
 
   // wee need to keep the session since LOLFI could update an existing session
   deletedAt DateTime? @map("deleted_at")
@@ -166,16 +177,36 @@ model Session {
   archivedAt DateTime? @map("archived_at")
   archivedBy String?   @map("archived_by") @db.Uuid
 
-  affectationVersions  AffectationVersion[]
+  affectationVersions AffectationVersion[]
+  attachments         SessionAttachment[]
+  validator           User?                @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletionAuthor      User?                @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
+  archiver            User?                @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
+
+  transparenceGds SessionTransparenceGds?
+
   dossierDeNominations DossierDeNomination[]
-  attachments          SessionAttachment[]
-  validator            User?                 @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletionAuthor       User?                 @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
-  archiver             User?                 @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
 
   @@index([deletedAt])
   @@index([archivedAt])
+  @@index([typeDeSaisine])
   @@map("session")
+  @@schema("nominations_context")
+}
+
+model SessionTransparenceGds {
+  sessionId String @id @map("session_id") @db.Uuid
+
+  dueDate                 DateTime? @map("due_date") @db.Date
+  positionStartDate       DateTime? @map("position_start_date") @db.Date
+  observationsClosingDate DateTime  @map("observations_closing_date") @db.Date
+
+  lolfiSessionId Int? @map("lolfi_session_id")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lolfiSessionId])
+  @@map("session_transparence_gds")
   @@schema("nominations_context")
 }
 
