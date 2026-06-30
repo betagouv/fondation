@@ -3,6 +3,10 @@ import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
+import {
+  ListedNominationSessionAttachmentDto,
+  ListSessionAttachmentsQuery,
+} from '../../abstract/infrastructure/queries/list-session-attachments.query';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
@@ -77,10 +81,6 @@ import {
   ListNominationFilesQuery,
   type PaginatedNominationFiles,
 } from './queries/list-nomination-files.query';
-import {
-  type ListedNominationSessionAttachmentDto,
-  ListNominationSessionAttachmentsQuery,
-} from './queries/list-nomination-session-attachments.query';
 import { SessionTransparenceRepository } from './repositories/session-transparence.repository';
 
 @Injectable()
@@ -102,7 +102,7 @@ export class TransparenceService {
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
-    private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
+    private readonly listNominationSessionAttachmentsQuery: ListSessionAttachmentsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
@@ -118,6 +118,7 @@ export class TransparenceService {
     private readonly events: EventEmitter2,
   ) {}
 
+  // FIXME: should be moved to abstract sessions and update the DTO according to new constraints
   /** @internal */
   listMemberSessions(query: {
     user: { id: string; role: RoleEnum };

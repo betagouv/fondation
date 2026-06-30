@@ -58,7 +58,6 @@ import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistr
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
-import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -360,18 +359,6 @@ export class SessionController {
       sessionId,
       fileId,
     });
-  }
-
-  @HasRole()
-  @Get('/:sessionId/attachments')
-  @ZodResponse({
-    type: ListedNominationSessionAttachmentDto,
-    status: HttpStatus.OK,
-  })
-  async listNominationSessionAttachments(
-    @Param('sessionId') sessionId: string,
-  ): Promise<ListedNominationSessionAttachmentDto> {
-    return this.sessions.listAttachments({ sessionId });
   }
 
   /** @warning this is a mutation */

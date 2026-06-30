@@ -30,7 +30,6 @@ import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/li
 import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
-import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
@@ -63,7 +62,7 @@ import { SessionController } from './transparence.controller';
     ListNominationFileAttachmentsQuery,
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
-    ListNominationSessionAttachmentsQuery,
+    LolfiTransparenceFilesFinder,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
     NominationFileJurisdictionsFinder,
