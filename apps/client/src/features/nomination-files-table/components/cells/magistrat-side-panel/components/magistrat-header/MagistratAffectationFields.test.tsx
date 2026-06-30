@@ -20,10 +20,10 @@ describe('MagistratPrioritySelect', () => {
   it('adds a priority that is not yet selected', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    renderWithIntl(<MagistratPrioritySelect value={[]} onChange={onChange} />);
+    renderWithIntl(<MagistratPrioritySelect onChange={onChange} value={[]} />);
 
-    await user.click(screen.getByRole('button', { name: 'Priorité' }));
-    await user.click(await screen.findByRole('checkbox', { name: 'Étoilé' }));
+    await user.click(screen.getByRole('button', { name: 'Définir une priorité' }));
+    await user.click(await screen.findByRole('option', { name: 'Étoilé' }));
 
     expect(onChange).toHaveBeenCalledWith([PrioriteEnum.ETOILE]);
   });
@@ -31,10 +31,10 @@ describe('MagistratPrioritySelect', () => {
   it('removes a priority that is already selected', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    renderWithIntl(<MagistratPrioritySelect value={[PrioriteEnum.ETOILE]} onChange={onChange} />);
+    renderWithIntl(<MagistratPrioritySelect onChange={onChange} value={[PrioriteEnum.ETOILE]} />);
 
-    await user.click(screen.getByRole('button'));
-    await user.click(await screen.findByRole('checkbox', { name: 'Étoilé' }));
+    await user.click(screen.getByRole('button', { name: 'Définir une priorité' }));
+    await user.click(await screen.findByRole('option', { name: 'Étoilé' }));
 
     expect(onChange).toHaveBeenCalledWith([]);
   });
@@ -48,22 +48,22 @@ describe('MagistratReporterSelect', () => {
 
   it('lists reporters sorted by last name', async () => {
     const user = userEvent.setup();
-    renderWithIntl(<MagistratReporterSelect available={REPORTERS} value={[]} onChange={vi.fn()} />);
+    renderWithIntl(<MagistratReporterSelect available={REPORTERS} onChange={vi.fn()} value={[]} />);
 
     await user.click(screen.getByRole('button', { name: 'Affecter un rapporteur' }));
 
-    const checkboxes = await screen.findAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(2);
-    expect(checkboxes[0]).toBe(screen.getByRole('checkbox', { name: 'Jean ALBERT' }));
+    const options = await screen.findAllByRole('option');
+    expect(options).toHaveLength(2);
+    expect(options[0]).toBe(screen.getByRole('option', { name: 'Jean ALBERT' }));
   });
 
   it('toggles a reporter by user id', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    renderWithIntl(<MagistratReporterSelect available={REPORTERS} value={[]} onChange={onChange} />);
+    renderWithIntl(<MagistratReporterSelect available={REPORTERS} onChange={onChange} value={[]} />);
 
     await user.click(screen.getByRole('button', { name: 'Affecter un rapporteur' }));
-    await user.click(await screen.findByRole('checkbox', { name: 'Jean ALBERT' }));
+    await user.click(await screen.findByRole('option', { name: 'Jean ALBERT' }));
 
     expect(onChange).toHaveBeenCalledWith(['a']);
   });

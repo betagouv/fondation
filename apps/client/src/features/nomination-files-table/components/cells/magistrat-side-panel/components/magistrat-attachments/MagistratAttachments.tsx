@@ -5,6 +5,7 @@ import { useCallback, useRef, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 import { useTab } from '@/shared/hooks/useTab';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
 import {
@@ -55,9 +56,11 @@ export function MagistratAttachments(props: {
     [add, props.sessionId, props.nominationFileId],
   );
 
+  if (attachments.length === 0 && !canManage) return null;
+
   return (
     <div>
-      <p className="fr-mb-6v text-xl font-semibold" id={labelId}>
+      <p className="fr-mb-4v text-xl font-semibold" id={labelId}>
         <FormattedMessage
           defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes}}"
           values={{ count: attachments.length }}
@@ -91,7 +94,7 @@ export function MagistratAttachments(props: {
 
       {canManage && (
         <div
-          className="fr-mt-3v fr-p-4v max-w-105 cursor-pointer bg-(--background-alt-grey) [&_.fr-label]:cursor-pointer [&_.fr-upload]:cursor-pointer"
+          className="fr-mt-3v fr-p-4v max-w-105 cursor-pointer bg-(--background-alt-grey) [&_.fr-hint-text]:text-sm [&_.fr-hint-text]:font-normal [&_.fr-hint-text]:text-(--text-mention-grey) [&_.fr-label]:cursor-pointer [&_.fr-label]:text-base [&_.fr-label]:font-medium [&_.fr-label]:text-(--text-label-grey) [&_.fr-upload]:cursor-pointer"
           onClick={(event) => {
             if ((event.target as HTMLElement).closest('.fr-upload, .fr-label')) return;
             inputRef.current?.click();
@@ -99,7 +102,7 @@ export function MagistratAttachments(props: {
         >
           <Upload
             disabled={isAddPending}
-            hint={formatMessage({ defaultMessage: 'Formats supportés : png, jpeg et pdf' })}
+            hint={formatMessage({ defaultMessage: 'Formats supportés : PNG, JPG et PDF' })}
             label={formatMessage({ defaultMessage: 'Ajouter un fichier' })}
             multiple
             nativeInputProps={{
@@ -149,6 +152,7 @@ function AttachmentItem(props: {
     isError: isRemoveError,
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
+  const { buttonProps, waitForConfirmation } = useConfirmation();
 
   const { label, extension } = splitFileName(props.name);
   const meta = [extension?.toUpperCase(), props.size != null ? formatFileSize(props.size) : null]
@@ -177,15 +181,41 @@ function AttachmentItem(props: {
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
         onSuccess: (response) => {
-          if (response) tab.download(`${response.url}?download`);
+          if (!response) return;
+          const { pathname } = new URL(response.url);
+          tab.download(`${pathname}?download`);
         },
       },
     );
   }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
 
-  const onDelete = useCallback(() => {
+  const onDelete = useCallback(async () => {
+    const { isConfirmed } = await waitForConfirmation({
+      title: formatMessage({ defaultMessage: 'Supprimer la pièce jointe' }),
+      content: (
+        <p>
+          <FormattedMessage
+            defaultMessage="Êtes-vous sûr de vouloir supprimer la pièce jointe <b>{name}</b> ?"
+            values={{ b: (chunks) => <strong>{chunks}</strong>, name: props.name }}
+          />
+        </p>
+      ),
+      i18n: {
+        cancel: formatMessage({ defaultMessage: 'Annuler' }),
+        confirm: formatMessage({ defaultMessage: 'Supprimer' }),
+      },
+    });
+    if (!isConfirmed) return;
     remove({ fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId });
-  }, [remove, props.sessionId, props.nominationFileId, props.fileId]);
+  }, [
+    waitForConfirmation,
+    remove,
+    formatMessage,
+    props.name,
+    props.sessionId,
+    props.nominationFileId,
+    props.fileId,
+  ]);
 
   return (
     <li className="fr-py-3v">
@@ -200,7 +230,10 @@ function AttachmentItem(props: {
               className="truncate text-left text-(--text-action-high-blue-france) underline disabled:opacity-50"
               disabled={isUrlPending || isRemovePending}
               onClick={onPreview}
-              title={props.name}
+              title={formatMessage(
+                { defaultMessage: 'Ouvrir {name} dans un nouvel onglet' },
+                { name: props.name },
+              )}
               type="button"
             >
               {label}
@@ -222,6 +255,7 @@ function AttachmentItem(props: {
             <Button
               disabled={isRemovePending}
               iconId="fr-icon-delete-bin-line"
+              nativeButtonProps={buttonProps}
               onClick={onDelete}
               priority="tertiary no outline"
               size="small"

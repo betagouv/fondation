@@ -14,8 +14,12 @@ const mocks = vi.hoisted(() => ({
   isSg: vi.fn(() => true),
   open: vi.fn(),
   remove: vi.fn(),
+  waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
 
+vi.mock('@/shared/context/confirmation', () => ({
+  useConfirmation: () => ({ buttonProps: {}, waitForConfirmation: mocks.waitForConfirmation }),
+}));
 vi.mock('@/shared/hooks/useTab', () => ({ useTab: () => ({ open: mocks.open, download: mocks.download }) }));
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/nomination-sessions.queries', () => ({
@@ -64,12 +68,12 @@ describe('MagistratAttachments listing', () => {
     expect(screen.getByText('PDF - 2 Ko')).toBeInTheDocument();
   });
 
-  it('shows the empty state to a member when there is no attachment', () => {
+  it('renders nothing for a member when there is no attachment', () => {
     mocks.isSg.mockReturnValue(false);
     mocks.attachments = [];
-    renderAttachments();
+    const { container } = renderAttachments();
 
-    expect(screen.getByText('Aucune pièce jointe')).toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
@@ -90,29 +94,41 @@ describe('MagistratAttachments actions', () => {
     expect(mocks.open).toHaveBeenCalledWith('https://files/rapport.pdf');
   });
 
-  it('downloads the file with the download flag', async () => {
+  it('downloads the file same-origin with the download flag', async () => {
     mocks.createUrl.mockImplementation((_vars, options) =>
-      options.onSuccess({ url: 'https://files/rapport.pdf' }),
+      options.onSuccess({ url: 'http://localhost:3000/api/files/v1/abc' }),
     );
     const user = userEvent.setup();
     renderAttachments();
 
     await user.click(screen.getByRole('button', { name: 'Télécharger rapport.pdf' }));
 
-    expect(mocks.download).toHaveBeenCalledWith('https://files/rapport.pdf?download');
+    expect(mocks.download).toHaveBeenCalledWith('/api/files/v1/abc?download');
   });
 
-  it('removes the file when deleting', async () => {
+  it('removes the file once the deletion is confirmed', async () => {
     const user = userEvent.setup();
     renderAttachments();
 
     await user.click(screen.getByRole('button', { name: 'Supprimer rapport.pdf' }));
 
+    expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
     expect(mocks.remove).toHaveBeenCalledWith({
       fileId: 'file-1',
       nominationFileId: 'nf-1',
       sessionId: 'session-1',
     });
+  });
+
+  it('does not remove the file when the deletion is cancelled', async () => {
+    mocks.waitForConfirmation.mockResolvedValueOnce({ isConfirmed: false });
+    const user = userEvent.setup();
+    renderAttachments();
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer rapport.pdf' }));
+
+    expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
+    expect(mocks.remove).not.toHaveBeenCalled();
   });
 
   it('uploads the selected files', async () => {

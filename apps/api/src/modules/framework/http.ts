@@ -87,12 +87,13 @@ class InstrumentedHttpService implements Required<HttpService> {
 
   request<T = any>(config: AxiosRequestConfig): Observable<AxiosResponse<T>> {
     const { method, url } = config;
-    this.logger.debug(`${method} ${url}`);
+    const safeUrl = url?.split('?')[0] ?? url;
+    this.logger.debug(`${method} ${safeUrl}`);
 
     return Sentry.startSpan(
       {
         op: 'http.client',
-        name: `${method} ${url}`,
+        name: `${method} ${safeUrl}`,
       },
       (span) => {
         span.setAttributes(InstrumentedHttpService.requestAttributes(config));

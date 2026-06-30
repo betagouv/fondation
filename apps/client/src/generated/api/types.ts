@@ -381,7 +381,7 @@ export type PaginatedNominationFiles = {
                 month: number;
                 day: number;
             };
-            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+            followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
             followUpComment: string | null;
             hasDescription: boolean;
             hasUserComment: boolean;
@@ -1294,6 +1294,7 @@ export type ListObservationsResponseDto = {
         id: string;
         dateReception: string;
         description: string;
+        followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
         magistrat: {
             id: string;
             firstName: string;
@@ -1340,7 +1341,7 @@ export type GetObservationDetailsResponseDto = {
         proposedPosition: string | null;
     };
     description: string;
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+    followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     followUpComment: string | null;
     files: Array<{
         id: string;
@@ -1406,7 +1407,7 @@ export type WriteMemberCommentDto = {
 };
 
 export type FollowUpOnObservationDto = {
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+    followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     comment: string | null;
 };
 
@@ -1469,7 +1470,9 @@ export type GetFileByFileUrlData = {
     path: {
         fileUrlId: string;
     };
-    query?: never;
+    query: {
+        download: string;
+    };
     url: '/api/files/v1/{fileUrlId}';
 };
 

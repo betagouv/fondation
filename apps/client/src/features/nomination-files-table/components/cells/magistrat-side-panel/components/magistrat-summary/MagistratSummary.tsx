@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryReaderSelector } from '@/features/summary/components/SummaryReaderSelector';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import { useUser } from '@queries/auth.queries';
@@ -31,14 +32,21 @@ export function MagistratSummary(props: { nominationFile: SessionNominationFile;
 }
 
 function MagistratSummaryContent(props: { nominationFile: SessionNominationFile; sessionId: string }) {
-  if (props.nominationFile.summary?.canRead) {
+  const isSg = useIsSg();
+  const { isArchived } = useArchivedSession();
+  const { summary } = props.nominationFile;
+
+  if (summary?.canRead) {
     return <ReadableSummary nominationFile={props.nominationFile} sessionId={props.sessionId} />;
   }
+
+  const canCreate = !isArchived && !summary && isSg;
+  if (!canCreate) return null;
 
   return (
     <SummarySection action={<MagistratSummaryButton {...props} />}>
       <p className="fr-mb-0 text-(--text-mention-grey)">
-        <FormattedMessage defaultMessage="Aucune synthèse" />
+        <FormattedMessage defaultMessage="Aucune synthèse rédigée" />
       </p>
     </SummarySection>
   );
@@ -86,7 +94,15 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
       }}
     >
       <SummarySection
-        action={<SummaryReaderSelector priority="secondary" rounded={false} size="small" withCount={false} />}
+        action={
+          <SummaryReaderSelector
+            className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+            priority="secondary"
+            rounded={false}
+            size="small"
+            withCount={false}
+          />
+        }
       >
         <SummaryPreviewCard
           content={data.summary.content}

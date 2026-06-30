@@ -66,7 +66,7 @@ describe('MagistratHeader reporter status', () => {
   it('announces when no reporter is assigned', () => {
     renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [] }) });
 
-    expect(screen.getByText('Aucun rapporteur affecté')).toBeInTheDocument();
+    expect(screen.getByText('Affectation non effectuée')).toBeInTheDocument();
   });
 
   it('lists reporters when the current user is not one of them', () => {
@@ -133,14 +133,14 @@ describe('MagistratHeader edition', () => {
       nominationFile: makeSessionNominationFile({ content: { isUpdatable: true }, reporters: [] }),
     });
 
-    expect(screen.getByText('Aucun rapporteur affecté')).toBeInTheDocument();
+    expect(screen.getByText('Affectation non effectuée')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Modifier' }));
 
     expect(screen.getByRole('button', { name: 'Valider' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Annuler' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Affecter un rapporteur/ })).toBeInTheDocument();
-    expect(screen.queryByText('Aucun rapporteur affecté')).not.toBeInTheDocument();
+    expect(screen.queryByText('Affectation non effectuée')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Annuler' }));

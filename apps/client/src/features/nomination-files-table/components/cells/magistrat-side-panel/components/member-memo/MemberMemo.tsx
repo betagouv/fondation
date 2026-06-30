@@ -25,7 +25,7 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
       <h3 className="fr-mb-2v text-xl font-semibold">
         <FormattedMessage defaultMessage="Commentaire" />
       </h3>
-      <p className="fr-mb-3v text-sm text-(--text-mention-grey)">
+      <p className="fr-mb-4v text-sm text-(--text-mention-grey)">
         <FormattedMessage defaultMessage="Ce commentaire n'est visible que par vous" />
       </p>
 

@@ -38,10 +38,10 @@ vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
   useDefineNominationFileOutcomeMutation: () => ({ mutate: mocks.mutate, reset: mocks.reset }),
 }));
 
-function renderSelect() {
+function renderSelect(overrides?: Parameters<typeof makeSessionNominationFile>[0]) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <MagistratOutcomeSelect nominationFile={makeSessionNominationFile()} />
+      <MagistratOutcomeSelect nominationFile={makeSessionNominationFile(overrides)} />
     </IntlProvider>,
   );
 }
@@ -55,12 +55,12 @@ describe('MagistratOutcomeSelect', () => {
   });
   afterEach(() => vi.clearAllMocks());
 
-  it('clears the outcome without opening the comment dialog', async () => {
+  it('clears the active outcome without opening the comment dialog', async () => {
     const user = userEvent.setup();
-    renderSelect();
+    renderSelect({ content: { outcome: { value: 'VALIDATED', comment: null } } });
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
-    await user.click(await screen.findByRole('button', { name: 'Aucune' }));
+    await user.click(screen.getByRole('button', { name: 'CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     expect(mocks.waitForOutcomeComment).not.toHaveBeenCalled();
     expect(mocks.mutate).toHaveBeenCalledWith({ comment: null, outcome: null });
@@ -72,7 +72,7 @@ describe('MagistratOutcomeSelect', () => {
     renderSelect();
 
     await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
-    await user.click(await screen.findByRole('button', { name: 'CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
     expect(mocks.mutate).toHaveBeenCalledWith({ comment: 'Bien', outcome: 'VALIDATED' }, expect.anything());
@@ -86,7 +86,7 @@ describe('MagistratOutcomeSelect', () => {
     renderSelect();
 
     await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
-    await user.click(await screen.findByRole('button', { name: 'CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     await waitFor(() => expect(mocks.reset).toHaveBeenCalledTimes(1));
     expect(mocks.mutate).not.toHaveBeenCalled();

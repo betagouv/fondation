@@ -40,14 +40,14 @@ export function MagistratSummaryButton(props: { sessionId: string; nominationFil
 
   if (canCreateSummary) {
     return (
-      <Button disabled={isCreating} onClick={createSummary} priority="secondary" size="small">
+      <Button disabled={isCreating} onClick={createSummary} priority="secondary" size="medium">
         <FormattedMessage defaultMessage="Écrire une synthèse" />
       </Button>
     );
   }
 
   return (
-    <Button iconId="ri-eye-fill" linkProps={{ to: link }} priority="tertiary no outline" size="small">
+    <Button iconId="ri-eye-fill" linkProps={{ to: link }} priority="tertiary no outline" size="medium">
       <FormattedMessage defaultMessage="Voir la synthèse" />
     </Button>
   );

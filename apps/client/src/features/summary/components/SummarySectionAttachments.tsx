@@ -86,7 +86,7 @@ function SummaryAttachment(props: { fileId: string; name: string; type: string }
   const { mutateAsync: detach, isPending: detachingIsPending } = useDetachSummaryFilesMutation();
   const { buttonProps, waitForConfirmation } = useConfirmation();
   const onDeleteAttachment = React.useCallback(async () => {
-    const confirmed = await waitForConfirmation({
+    const { isConfirmed } = await waitForConfirmation({
       title: `Veuillez confirmer la suppression du fichier`,
       content: `Une fois supprimé, il sera impossible de le récupérer.`,
       i18n: {
@@ -95,7 +95,7 @@ function SummaryAttachment(props: { fileId: string; name: string; type: string }
       },
     });
 
-    if (!confirmed) return;
+    if (!isConfirmed) return;
 
     await detach({ sessionId, nominationFileId, fileIds: [props.fileId] });
   }, [sessionId, nominationFileId, detach, props.fileId, waitForConfirmation]);

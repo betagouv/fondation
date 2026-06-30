@@ -163,4 +163,16 @@ describe('MagistratPanelProvider', () => {
     expect(view.panel.isOpen).toBe(false);
     expect(view.panel.activeFile).toBeNull();
   });
+
+  it('stays open when the active file drops out of the refreshed list', () => {
+    const view = renderProvider(baseProps());
+
+    act(() => view.panel.open('a'));
+    expect(view.panel.isOpen).toBe(true);
+
+    view.rerender(baseProps({ nominationFiles: makeSessionNominationFileList(['b']) }));
+
+    expect(view.panel.isOpen).toBe(true);
+    expect(view.panel.activeFile).toBeNull();
+  });
 });

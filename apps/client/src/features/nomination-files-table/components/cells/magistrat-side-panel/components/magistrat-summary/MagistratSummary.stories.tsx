@@ -142,5 +142,3 @@ export const Shared: Story = { args: { readers: true } };
 export const Member: Story = { args: { view: 'member' } };
 
 export const EmptySg: Story = { args: { hasSummary: false } };
-
-export const EmptyMember: Story = { args: { view: 'member', hasSummary: false } };
