@@ -96,8 +96,9 @@ export class DetailReportQuery {
                 name: true,
                 date: true,
                 formation: true,
-                dueDate: true,
                 archivedAt: true,
+
+                transparenceGds: { select: { dueDate: true } },
               },
             },
 
@@ -208,7 +209,8 @@ export class DetailReportQuery {
         : null,
 
       dateTransparence: DateOnly.fromDate(report.nominationFile.session.date).toJson(),
-      dueDate: DateOnly.fromOptionalDate(report.nominationFile.session.dueDate)?.toJson() ?? null,
+      dueDate:
+        DateOnly.fromOptionalDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ?? null,
       formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,

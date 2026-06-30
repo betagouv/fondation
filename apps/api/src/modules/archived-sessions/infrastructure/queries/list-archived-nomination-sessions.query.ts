@@ -58,9 +58,10 @@ export class ListArchivedNominationSessionsQuery {
           name: true,
           formation: true,
           date: true,
-          dueDate: true,
           typeDeSaisine: true,
-          isValidated: true,
+          validatedAt: true,
+
+          transparenceGds: { select: { dueDate: true } },
         },
       }),
     ]);
@@ -70,7 +71,7 @@ export class ListArchivedNominationSessionsQuery {
       name: s.name,
       formation: prismaFormationEnumToFormationEnum(s.formation),
       date: DateOnly.fromDate(s.date).toJson(),
-      dueDate: s.dueDate ? DateOnly.fromDate(s.dueDate).toJson() : null,
+      dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
       status: ListArchivedNominationSessionsQuery.computeStatus(s),
     }));
@@ -78,8 +79,8 @@ export class ListArchivedNominationSessionsQuery {
     return paginate({ items, totalCount, pagination: query.pagination });
   }
 
-  private static computeStatus(session: { isValidated: boolean }): SessionStatus {
-    if (!session.isValidated) return 'TO_VALIDATE';
+  private static computeStatus(session: { validatedAt: Date | null }): SessionStatus {
+    if (!session.validatedAt) return 'TO_VALIDATE';
     return 'READY';
   }
 }

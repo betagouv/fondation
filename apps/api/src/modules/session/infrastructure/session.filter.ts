@@ -14,13 +14,13 @@ import {
 } from '../domain/nomination-file-outcome';
 import {
   CantUpdateNominationFiles,
-  NominationSessionAffectationHasUnknownReporter,
-  NominationSessionCannotBeArchived,
-  NominationSessionIsArchived,
-  NominationSessionIsNotDeletable,
   NonFormationMemberDefinedAsReporter,
+  SessionTransparenceAffectationHasUnknownReporter,
+  SessionTransparenceIsArchived,
+  SessionTransparenceIsNotArchivable,
+  SessionTransparenceIsNotDeletable,
   UnknownNominationFiles,
-} from '../domain/nomination-session';
+} from '../domain/session-transparence';
 
 export class SessionExceptionFilter implements NestInterceptor {
   private readonly logger = new Logger(SessionExceptionFilter.name);
@@ -32,7 +32,7 @@ export class SessionExceptionFilter implements NestInterceptor {
             return new BadRequestException({ message: err.message }, { cause: err });
           }
 
-          if (err instanceof NominationSessionAffectationHasUnknownReporter) {
+          if (err instanceof SessionTransparenceAffectationHasUnknownReporter) {
             const list = new Intl.ListFormat('fr-FR', { type: 'conjunction' });
             return new BadRequestException(
               {
@@ -89,7 +89,7 @@ export class SessionExceptionFilter implements NestInterceptor {
             );
           }
 
-          if (err instanceof NominationSessionIsNotDeletable) {
+          if (err instanceof SessionTransparenceIsNotDeletable) {
             return new BadRequestException({
               validationErrors: [
                 `La session ne doit plus avoir d'affectation et plus de pièces jointes avant d'être supprimé`,
@@ -97,13 +97,13 @@ export class SessionExceptionFilter implements NestInterceptor {
             });
           }
 
-          if (err instanceof NominationSessionIsArchived) {
+          if (err instanceof SessionTransparenceIsArchived) {
             return new ForbiddenException({
               validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
             });
           }
 
-          if (err instanceof NominationSessionCannotBeArchived) {
+          if (err instanceof SessionTransparenceIsNotArchivable) {
             return new BadRequestException({
               validationErrors: [`la session ne peut pas être archivée`],
             });
