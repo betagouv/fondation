@@ -91,11 +91,15 @@ class MagistratSidePanel {
   }
 
   attachment(name: string): Locator {
-    return this.dialog.getByTitle(name, { exact: true });
+    return this.dialog.getByTitle(`Ouvrir ${name} dans un nouvel onglet`, { exact: true });
   }
 
   private deleteButton(name: string): Locator {
     return this.dialog.getByRole('button', { name: `Supprimer ${name}` });
+  }
+
+  private get confirmDeleteButton(): Locator {
+    return this.page.locator('#confirmation_modal').getByRole('button', { name: 'Supprimer', exact: true });
   }
 
   async addAttachment(file: File): Promise<void> {
@@ -108,6 +112,7 @@ class MagistratSidePanel {
 
   async deleteAttachment(name: string): Promise<void> {
     await this.deleteButton(name).click();
+    await this.confirmDeleteButton.click();
   }
 }
 
