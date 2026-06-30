@@ -14,10 +14,10 @@ import {
   LodamNominationFile,
   LodamNominationFileEntity,
   LolfiNominationFile,
-  UpdatableNominationFile,
-  UpdatableNominationFileState,
+  TransparenceFileDocsSnapshot,
 } from './nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
+import * as policies from './policies/transparence-file.policies';
 
 export class SessionTransparenceFileReportersAffected {
   constructor(
@@ -144,8 +144,14 @@ export class SessionTransparenceAuditionScheduled {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
-    readonly auditionDate: DateOnly | null,
-    readonly auditionTime: TimeOnly | null,
+    readonly auditionDateTime: { date: DateOnly; time: TimeOnly },
+  ) {}
+}
+
+export class SessionTransparenceAuditionUnScheduled {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
   ) {}
 }
 
@@ -196,6 +202,7 @@ type NominationSessionEvent =
   | LodamSessionTransparenceFilesCreated
   | SessionTransparenceFileAlertHidden
   | SessionTransparenceAuditionScheduled
+  | SessionTransparenceAuditionUnScheduled
   | SessionTransparenceFileMemberMemoWritten
   | SessionTransparenceOutcomeDefined
   | SessionTransparenceLolfiFilesAssociated
@@ -267,26 +274,40 @@ export class SessionTransparenceIsArchived extends Error {
   }
 }
 
+export class CannotScheduleAuditionOnNominationFile extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
 export class SessionTransparence {
   private constructor(
     readonly id: string,
     readonly formation: FormationEnum,
     readonly version: SessionTransparenceAffectationVersion | null,
-    private nominationFiles: Map<string, UpdatableNominationFile>,
+    private files: Map<string, { canUpdate: boolean; canScheduleAudition: boolean }>,
   ) {}
 
   static from(props: {
     id: string;
     formation: FormationEnum;
     version: SessionTransparenceAffectationVersion | null;
-    nominationFiles: readonly UpdatableNominationFileState[];
+    nominationFiles: readonly TransparenceFileDocsSnapshot[];
   }) {
-    return new SessionTransparence(
-      props.id,
-      props.formation,
-      props.version,
-      new Map(props.nominationFiles.map((state) => [state.id, UpdatableNominationFile.from(state)] as const)),
+    const files = new Map(
+      props.nominationFiles.map(
+        (file) =>
+          [
+            file.id,
+            {
+              canUpdate: policies.canUpdateTransparenceFile(file, { archivedAt: null }),
+              canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
+            },
+          ] as const,
+      ),
     );
+
+    return new SessionTransparence(props.id, props.formation, props.version, files);
   }
 
   static create(command: {
@@ -375,15 +396,20 @@ export class SessionTransparence {
       throw new SessionTransparenceAffectationHasUnknownReporter(unknownReporters);
     }
 
-    session.nominationFiles = new Map(
-      nominationFileEntities.map((x) => [
-        x.id,
-        UpdatableNominationFile.from({
-          id: x.id,
-          outcome: null,
-          docs: [],
-        }),
-      ]),
+    session.files = new Map(
+      nominationFileEntities.map(
+        (x) =>
+          [
+            x.id,
+            {
+              canScheduleAudition: policies.canScheduleAudition({ outcome: null }, { archivedAt: null }),
+              canUpdate: policies.canUpdateTransparenceFile(
+                { id: x.id, outcome: null, docs: [] },
+                { archivedAt: null },
+              ),
+            },
+          ] as const,
+      ),
     );
 
     session.#messages.push(new LodamSessionTransparenceFilesCreated(session.id, nominationFileEntities));
@@ -525,31 +551,23 @@ export class SessionTransparence {
     );
   }
 
+  unscheduleAudition(command: { nominationFileId: string }) {
+    this.#messages.push(new SessionTransparenceAuditionUnScheduled(this.id, command.nominationFileId));
+  }
+
   scheduleAudition(command: {
     nominationFileId: string;
-    auditionDate: DateOnly | null;
-    auditionTime: TimeOnly | null;
+    auditionDateTime: { date: DateOnly; time: TimeOnly };
   }) {
-    const hasDate = command.auditionDate !== null;
-    const hasTime = command.auditionTime !== null;
-    if (hasDate !== hasTime) {
-      throw new AuditionRequiresDateAndTime();
-    }
-
     this.assertsCanUpdateFiles(command.nominationFileId);
 
-    const willHaveAudition = hasDate && hasTime;
-    if (willHaveAudition) {
-      this.nominationFiles.get(command.nominationFileId)!.assertAllowsAudition();
+    const file = this.files.get(command.nominationFileId);
+    if (!file?.canScheduleAudition) {
+      throw new CannotScheduleAuditionOnNominationFile(command.nominationFileId);
     }
 
     this.#messages.push(
-      new SessionTransparenceAuditionScheduled(
-        this.id,
-        command.nominationFileId,
-        command.auditionDate,
-        command.auditionTime,
-      ),
+      new SessionTransparenceAuditionScheduled(this.id, command.nominationFileId, command.auditionDateTime),
     );
   }
 
@@ -614,8 +632,8 @@ export class SessionTransparence {
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
     const nonUpdatableIds = new Set<string>();
     for (const id of nominationFileIds) {
-      const file = this.nominationFiles.get(id);
-      if (!file || !file.isUpdatable()) nonUpdatableIds.add(id);
+      const isUpdatable = this.files.get(makeId('NominationFileId', id));
+      if (!isUpdatable) nonUpdatableIds.add(id);
     }
 
     if (nonUpdatableIds.size) {

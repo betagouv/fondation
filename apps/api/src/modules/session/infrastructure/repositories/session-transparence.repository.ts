@@ -15,6 +15,7 @@ import {
   SessionTransparenceAttachmentAdded,
   SessionTransparenceAttachmentRemoved,
   SessionTransparenceAuditionScheduled,
+  SessionTransparenceAuditionUnScheduled,
   SessionTransparenceCreated,
   SessionTransparenceDeleted,
   SessionTransparenceFileAlertHidden,
@@ -31,7 +32,7 @@ import {
   SessionTransparenceValidated,
 } from '../../domain/session-transparence';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { NominationSessionFileFinder } from '../finders/nomination-session-file.finder';
+import { TransparenceFilesFinder } from '../finders/transparence-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import {
   deleteReportsAfterAffectationPublicationRawQuery,
@@ -53,15 +54,15 @@ import { getAllNominationSessionReportRules } from './nomination-session-report-
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
 @Injectable()
-export class NominationSessionRepository {
-  private readonly logger = new Logger(NominationSessionRepository.name);
+export class SessionTransparenceRepository {
+  private readonly logger = new Logger(SessionTransparenceRepository.name);
 
   constructor(
     private readonly clock: Clock,
     private readonly prisma: PrismaService,
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
-    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
+    private readonly transparenceFilesFinder: TransparenceFilesFinder,
   ) {}
 
   async find(
@@ -93,7 +94,7 @@ export class NominationSessionRepository {
     // FIXME: remove once we know how to rehydrate a mtt session
     if (session.typeDeSaisine !== 'TRANSPARENCE_GDS') throw new NotFoundException();
 
-    const nominationFiles = await this.nominationSessionFileFinder.findUpdatable({
+    const nominationFiles = await this.transparenceFilesFinder.findDocsSnapshots({
       tx,
       sessionId: session.id,
       nominationFileIds: options.nominationFileIds,
@@ -185,6 +186,8 @@ export class NominationSessionRepository {
         invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(tx, message)));
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
         await this.persistSessionTransparenceAuditionScheduled(tx, message);
+      } else if (message instanceof SessionTransparenceAuditionUnScheduled) {
+        await this.persistSessionTransparenceAuditionUnScheduled(tx, message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
         await this.persistSessionTransparenceFileMemberMemoWritten(tx, message);
       } else if (message instanceof SessionTransparenceFileAlertHidden) {
@@ -615,9 +618,19 @@ export class NominationSessionRepository {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
       data: {
-        auditionDate: message.auditionDate?.toDate() ?? null,
-        auditionTime: message.auditionTime ? timeOnlyToDate(message.auditionTime) : null,
+        auditionDate: message.auditionDateTime.date.toDate(),
+        auditionTime: timeOnlyToDate(message.auditionDateTime.time),
       },
+    });
+  }
+
+  private async persistSessionTransparenceAuditionUnScheduled(
+    tx: Prisma.TransactionClient,
+    message: SessionTransparenceAuditionUnScheduled,
+  ) {
+    await tx.dossierDeNomination.update({
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
+      data: { auditionDate: null, auditionTime: null },
     });
   }
 

@@ -22,7 +22,6 @@ export class SummaryRepository {
     private readonly files: Files,
   ) {}
 
-  // TODO: should we rehydrate files with outcomes?
   async find(query: { sessionId: string; nominationFileId: string }) {
     const session = await this.prisma.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },

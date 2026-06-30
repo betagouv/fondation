@@ -323,11 +323,15 @@ export class SessionController {
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: UpdateAuditionDateDto,
   ): Promise<void> {
+    const auditionDateTime =
+      !body.auditionDate || !body.auditionTime
+        ? null
+        : { date: DateOnly.fromJson(body.auditionDate), time: body.auditionTime };
+
     await this.sessions.updateNominationFileAuditionDate({
       sessionId,
       nominationFileId,
-      auditionDate: body.auditionDate ? DateOnly.fromJson(body.auditionDate) : null,
-      auditionTime: body.auditionTime,
+      auditionDateTime,
     });
   }
 

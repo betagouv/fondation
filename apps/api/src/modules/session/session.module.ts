@@ -9,8 +9,8 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { UnreportedSessionFilesCountFinder } from './infrastructure/finders/count-unreported-files.finder';
 import { LolfiNominationFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
-import { NominationSessionFileFinder } from './infrastructure/finders/nomination-session-file.finder';
 import { NominationSessionFinder } from './infrastructure/finders/nomination-session.finder';
+import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
@@ -29,7 +29,7 @@ import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-n
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
 import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
-import { NominationSessionRepository } from './infrastructure/repositories/nomination-session.repository';
+import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { SessionService } from './infrastructure/sessions.service';
 import { SessionController } from './session.controller';
 import { SummaryModule } from './summary.module';
@@ -65,9 +65,9 @@ import { SummaryModule } from './summary.module';
     ListNominationSessionsQuery,
     LolfiNominationFilesFinder,
     LolfiNominationSessionFinder,
-    NominationSessionFileFinder,
+    TransparenceFilesFinder,
     NominationSessionFinder,
-    NominationSessionRepository,
+    SessionTransparenceRepository,
     SessionService,
     UnaffectedFilesFinder,
     UnreportedSessionFilesCountFinder,

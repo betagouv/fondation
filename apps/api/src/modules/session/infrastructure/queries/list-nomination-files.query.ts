@@ -2,8 +2,12 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
+import * as transparenceFilesPolicies from '../../domain/policies/transparence-file.policies';
+import {
+  NOMINATION_SESSION_FILE_STATUSES,
+  transparenceFileStatus,
+} from '../../domain/session-transparence-file-status';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
@@ -20,8 +24,7 @@ import {
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
@@ -112,16 +115,17 @@ export class ListNominationFilesQuery {
         Number(txCount ?? 0n),
         txFiles.map((file) => {
           const docs = linkedDocs.get(file.id) ?? [];
-          const updatable = UpdatableNominationFile.from({
-            id: file.id,
-            outcome: file.outcome,
-            docs,
-          });
-
           return {
             ...file,
-            status: updatable.status(),
-            isUpdatable: updatable.isUpdatable(),
+            status: transparenceFileStatus({ id: file.id, docs }),
+            isUpdatable: transparenceFilesPolicies.canUpdateTransparenceFile(
+              {
+                docs,
+                id: file.id,
+                outcome: file.outcome,
+              },
+              { archivedAt: session?.archivedAt },
+            ),
           };
         }),
         session?.archivedAt,
@@ -163,7 +167,9 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         comment: x.comment,
-        canScheduleAudition: !isArchived && NominationFileOutcome.allowsAudition(x.outcome),
+        canScheduleAudition: transparenceFilesPolicies.canScheduleAudition(x, {
+          archivedAt: sessionArchivedAt,
+        }),
         auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({

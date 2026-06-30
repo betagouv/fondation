@@ -4,13 +4,9 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
 import { LodamNominationFile } from './nomination-file';
+import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 import {
-  NominationFileCannotBeAuditioned,
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from './nomination-file-outcome';
-import {
-  AuditionRequiresDateAndTime,
+  CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   NonFormationMemberDefinedAsReporter,
@@ -19,6 +15,7 @@ import {
   SessionTransparenceAffectationVersionCreated,
   SessionTransparenceAffectationVersionPublished,
   SessionTransparenceAuditionScheduled,
+  SessionTransparenceAuditionUnScheduled,
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
@@ -622,17 +619,14 @@ describe('SessionTransparence', () => {
 
     session.scheduleAudition({
       nominationFileId: 'nomination-file-id-1',
-      auditionDate,
-      auditionTime,
+      auditionDateTime: { date: auditionDate, time: auditionTime },
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceAuditionScheduled(
-        'session-id',
-        'nomination-file-id-1',
-        auditionDate,
-        auditionTime,
-      ),
+      new SessionTransparenceAuditionScheduled('session-id', 'nomination-file-id-1', {
+        date: auditionDate,
+        time: auditionTime,
+      }),
     ]);
   });
 
@@ -653,10 +647,12 @@ describe('SessionTransparence', () => {
     expect(() =>
       session.scheduleAudition({
         nominationFileId: 'nomination-file-id-1',
-        auditionDate: new DateOnly(2026, 7, 10),
-        auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+        auditionDateTime: {
+          date: new DateOnly(2026, 7, 10),
+          time: { hours: 14, minutes: 30, seconds: 0 },
+        },
       }),
-    ).toThrow(NominationFileCannotBeAuditioned);
+    ).toThrow(CannotScheduleAuditionOnNominationFile);
   });
 
   it('should clear the audition without checking the outcome when no date is provided', () => {
@@ -673,42 +669,13 @@ describe('SessionTransparence', () => {
       ],
     });
 
-    session.scheduleAudition({
+    session.unscheduleAudition({
       nominationFileId: 'nomination-file-id-1',
-      auditionDate: null,
-      auditionTime: null,
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceAuditionScheduled('session-id', 'nomination-file-id-1', null, null),
+      new SessionTransparenceAuditionUnScheduled('session-id', 'nomination-file-id-1'),
     ]);
-  });
-
-  it.each([
-    { auditionDate: new DateOnly(2026, 7, 10), auditionTime: null, missing: 'time' },
-    { auditionDate: null, auditionTime: { hours: 14, minutes: 30, seconds: 0 }, missing: 'date' },
-  ])('should throw when scheduling an audition without its $missing', ({ auditionDate, auditionTime }) => {
-    const session = SessionTransparence.from({
-      id: 'session-id',
-      formation: 'SIEGE',
-      version: null,
-      nominationFiles: [
-        {
-          id: 'nomination-file-id-1',
-          outcome: null,
-          docs: [],
-        },
-      ],
-    });
-
-    expect(() =>
-      session.scheduleAudition({
-        nominationFileId: 'nomination-file-id-1',
-        auditionDate,
-        auditionTime,
-      }),
-    ).toThrow(AuditionRequiresDateAndTime);
-    expect(session.messages).toEqual([]);
   });
 
   it('should add attachments to a nomination file', () => {

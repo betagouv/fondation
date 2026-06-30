@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { UpdatableNominationFileState } from '../../domain/nomination-file';
+import { TransparenceFileDocsSnapshot } from '../../domain/nomination-file';
 import { Prisma } from 'src/generated/prisma/client';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { PrismaService } from 'src/modules/framework/database';
@@ -8,7 +8,7 @@ import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
-export class NominationSessionFileFinder {
+export class TransparenceFilesFinder {
   constructor(
     private readonly prisma: PrismaService,
 
@@ -38,20 +38,20 @@ export class NominationSessionFileFinder {
       .map(({ id, number: fileNumber }) => ({ id, fileNumber }));
   }
 
-  async findUpdatable(query: {
+  async findDocsSnapshots(query: {
     sessionId: string;
     nominationFileIds: Set<string> | undefined;
     tx?: Prisma.TransactionClient;
-  }): Promise<UpdatableNominationFileState[]> {
+  }): Promise<TransparenceFileDocsSnapshot[]> {
     if (!query.tx) {
-      return this.prisma.$transaction((tx) => this.findUpdatable({ ...query, tx }));
+      return this.prisma.$transaction((tx) => this.findDocsSnapshots({ ...query, tx }));
     }
 
     assertPgParams(query.nominationFileIds || []);
 
     const inIds =
       (query.nominationFileIds?.size ?? 0) > 0 ? { in: [...(query.nominationFileIds ?? [])] } : undefined;
-    const updatableNominationFiles = await query.tx.dossierDeNomination.findMany({
+    const snapshots = await query.tx.dossierDeNomination.findMany({
       where: { id: inIds, sessionId: query.sessionId },
       select: {
         id: true,
@@ -61,10 +61,10 @@ export class NominationSessionFileFinder {
 
     const { items: withDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
       tx: query.tx,
-      nominationFileIds: new Set(updatableNominationFiles.map(({ id }) => id)),
+      nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 
-    return updatableNominationFiles.map((file) => {
+    return snapshots.map((file) => {
       const docs = withDocs.get(file.id) ?? [];
       return { ...file, docs };
     });

@@ -3,14 +3,14 @@ import { format } from 'date-fns';
 
 import { SessionTransparence } from 'src/modules/session/domain/session-transparence';
 import { LolfiNominationFilesFinder } from 'src/modules/session/infrastructure/finders/lolfi-nomination-files.finder';
-import { NominationSessionRepository } from 'src/modules/session/infrastructure/repositories/nomination-session.repository';
+import { SessionTransparenceRepository } from 'src/modules/session/infrastructure/repositories/session-transparence.repository';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class LolfiNominationSessionFinder {
   constructor(
-    private readonly sessions: NominationSessionRepository,
+    private readonly sessions: SessionTransparenceRepository,
     private readonly lolfiNominationFiles: LolfiNominationFilesFinder,
   ) {}
 

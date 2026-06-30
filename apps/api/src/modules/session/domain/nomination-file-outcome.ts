@@ -72,20 +72,18 @@ export class NominationFileOutcome {
     return outcome === null || (NON_FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
   }
 
+  // TODO: move once {@link selectableOutcomes} move
   static commentRequired(outcome: NominationFileOutcomeEnum): boolean {
     return outcome === 'NON_VALIDATED';
   }
 
+  // FIXME: move somewhere else
   static selectableOutcomes(formation: FormationEnum): SelectableNominationFileOutcome[] {
     return OUTCOMES_IN_SELECTION_ORDER.map((value) => ({
       value,
       label: nominationFileOutcomeLabel({ outcome: value, formation }),
       commentRequired: NominationFileOutcome.commentRequired(value),
     }));
-  }
-
-  static assertAllowsAudition(outcome: NominationFileOutcomeEnum | null): void {
-    if (!this.allowsAudition(outcome)) throw new NominationFileCannotBeAuditioned(outcome!);
   }
 
   private constructor(
@@ -103,7 +101,7 @@ export class NominationFileOutcome {
     return new NominationFileOutcome(outcome, comment);
   }
 
-  static assertIsNominationFileOutcome(value: any): NominationFileOutcomeEnum {
+  private static assertIsNominationFileOutcome(value: any): NominationFileOutcomeEnum {
     if (!NOMINATION_FILE_OUTCOMES.includes(value)) {
       throw new UnknownNominationFileOutcome(value);
     }
@@ -131,12 +129,6 @@ export class UnknownNominationFileOutcome extends Error {
 }
 
 export class NominationFileOutcomeRequiresComment extends Error {
-  constructor(readonly outcome: NominationFileOutcomeEnum) {
-    super();
-  }
-}
-
-export class NominationFileCannotBeAuditioned extends Error {
   constructor(readonly outcome: NominationFileOutcomeEnum) {
     super();
   }

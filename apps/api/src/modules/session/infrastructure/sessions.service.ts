@@ -27,8 +27,8 @@ import { AffectationVersionFinder, FoundAffectationVersion } from './finders/aff
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import { UnreportedSessionFilesCountFinder } from './finders/count-unreported-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
-import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import { NominationSessionFinder } from './finders/nomination-session.finder';
+import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -85,7 +85,7 @@ import {
   ListedNominationSessionsDto,
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
-import { NominationSessionRepository } from './repositories/nomination-session.repository';
+import { SessionTransparenceRepository } from './repositories/session-transparence.repository';
 
 @Injectable()
 export class SessionService {
@@ -106,8 +106,8 @@ export class SessionService {
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
-    private readonly nominationSessionFileFinder: NominationSessionFileFinder,
-    private readonly nominationSessionRepository: NominationSessionRepository,
+    private readonly nominationSessionFileFinder: TransparenceFilesFinder,
+    private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
@@ -266,18 +266,20 @@ export class SessionService {
   async updateNominationFileAuditionDate(command: {
     sessionId: string;
     nominationFileId: string;
-    auditionDate: DateOnly | null;
-    auditionTime: TimeOnly | null;
+    auditionDateTime: { date: DateOnly; time: TimeOnly } | null;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set([command.nominationFileId]),
     });
 
-    session.scheduleAudition({
-      nominationFileId: command.nominationFileId,
-      auditionDate: command.auditionDate,
-      auditionTime: command.auditionTime,
-    });
+    if (!isDefined(command.auditionDateTime)) {
+      session.unscheduleAudition({ nominationFileId: command.nominationFileId });
+    } else {
+      session.scheduleAudition({
+        nominationFileId: command.nominationFileId,
+        auditionDateTime: command.auditionDateTime,
+      });
+    }
 
     await this.nominationSessionRepository.persist(session);
   }

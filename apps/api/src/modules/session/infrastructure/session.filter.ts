@@ -9,12 +9,12 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
-  NominationFileCannotBeAuditioned,
   NominationFileOutcomeRequiresComment,
   UnknownNominationFileOutcome,
 } from '../domain/nomination-file-outcome';
 import {
   AuditionRequiresDateAndTime,
+  CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
   SessionTransparenceAffectationHasUnknownReporter,
@@ -105,7 +105,7 @@ export class SessionExceptionFilter implements NestInterceptor {
             });
           }
 
-          if (err instanceof NominationFileCannotBeAuditioned) {
+          if (err instanceof CannotScheduleAuditionOnNominationFile) {
             return new BadRequestException({
               validationErrors: [
                 `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
