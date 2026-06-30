@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
+import { ListGdsNominationSessionsQueryDto } from '../../abstract-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
@@ -13,11 +13,11 @@ import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappe
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
-const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
+export const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
-export class ListNominationSessionsQuery {
+export class ListSessionsQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: {
@@ -77,7 +77,7 @@ export class ListNominationSessionsQuery {
       date: DateOnly.fromDate(s.date).toJson(),
       dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
-      status: ListNominationSessionsQuery.computeStatus(s, reportedIds),
+      status: ListSessionsQuery.computeStatus(s, reportedIds),
     }));
 
     return paginate({ items, totalCount, pagination: query.pagination });

@@ -32,7 +32,6 @@ import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/lis
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
 import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
 import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
@@ -67,7 +66,6 @@ import { SessionController } from './transparence.controller';
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,
-    ListNominationSessionsQuery,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
     NominationFileJurisdictionsFinder,

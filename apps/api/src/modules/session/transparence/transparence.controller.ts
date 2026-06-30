@@ -22,6 +22,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -38,7 +39,6 @@ import {
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadNominationFileAttachmentsDto,
@@ -61,7 +61,6 @@ import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/li
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -70,24 +69,6 @@ import { TransparenceService } from './infrastructure/transparence.service';
 @Controller('/api/sessions/v2')
 export class SessionController {
   constructor(private readonly sessions: TransparenceService) {}
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/garde-des-sceaux')
-  @UsePipes(ZodValidationPipe)
-  @ApiPaginated()
-  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
-  listSessionsOfTypeGardeDesSceaux(
-    @QueryPagination() pagination: Pagination,
-    @Query() query: ListGdsNominationSessionsQueryDto,
-  ): Promise<ListedNominationSessionsDto> {
-    return this.sessions.listNominationSessions({
-      pagination,
-      search: query.search || null,
-      formations: query.formations,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: 'TRANSPARENCE_GDS',
-    });
-  }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/new/count')

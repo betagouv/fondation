@@ -22,7 +22,6 @@ import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
-import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import {
@@ -86,10 +85,6 @@ import {
   type ListedNominationSessionAttachmentDto,
   ListNominationSessionAttachmentsQuery,
 } from './queries/list-nomination-session-attachments.query';
-import {
-  ListedNominationSessionsDto,
-  ListNominationSessionsQuery,
-} from './queries/list-nomination-sessions.query';
 import { SessionTransparenceRepository } from './repositories/session-transparence.repository';
 
 @Injectable()
@@ -112,7 +107,6 @@ export class TransparenceService {
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
-    private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
@@ -432,16 +426,6 @@ export class TransparenceService {
         new OfficialReportsInvalidatedIntegrationEvent(invalidation),
       );
     }
-  }
-
-  listNominationSessions(query: {
-    search: string | null;
-    pagination: Pagination;
-    typeDeSaisine: TypeDeSaisineEnum;
-    formations: readonly FormationEnum[] | undefined;
-    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
-  }): Promise<ListedNominationSessionsDto> {
-    return this.listNominationSessionsQuery.handle(query);
   }
 
   async defineNominationFileOutcome(command: {
