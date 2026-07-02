@@ -12,10 +12,10 @@ import { Magistrat, PrioriteEnum } from 'shared-models';
 
 import {
   LodamNominationSessionFilesCreated,
+  LolfiNominationFilesAssociated,
   NominationFileAlertHidden,
   NominationFileMemberMemoWritten,
   NominationFileOutcomeDefined,
-  NominationFilesAssociated,
   NominationSession,
   NominationSessionAffectationVersionCreated,
   NominationSessionAffectationVersionPublished,
@@ -170,7 +170,7 @@ export class NominationSessionRepository {
         await this.persistNominationFileMemberMemoWritten(tx, message);
       } else if (message instanceof NominationFileAlertHidden) {
         await this.persistNominationFileAlertHidden(tx, message);
-      } else if (message instanceof NominationFilesAssociated) {
+      } else if (message instanceof LolfiNominationFilesAssociated) {
         await this.persistNominationFilesAssociated(tx, message);
       } else if (message instanceof NominationSessionValidated) {
         await this.persistNominationSessionValidated(tx, message);
@@ -548,7 +548,7 @@ export class NominationSessionRepository {
 
   private async persistNominationFilesAssociated(
     tx: Prisma.TransactionClient,
-    message: NominationFilesAssociated,
+    message: LolfiNominationFilesAssociated,
   ) {
     const session = await tx.session.findFirst({
       where: { id: message.sessionId },
@@ -563,15 +563,16 @@ export class NominationSessionRepository {
     for (const file of message.files) {
       await tx.dossierDeNomination.upsert({
         where: {
-          sessionFileNumber: {
+          sessionExternalId: {
             sessionId: message.sessionId,
-            number: file.fileNumber,
+            externalId: file.externalId,
           },
         },
         create: {
-          id: file.id,
-          number: file.fileNumber,
+          id: makeId('LolfiNominationFileId'),
           sessionId: message.sessionId,
+          externalId: file.externalId,
+          number: file.fileNumber,
 
           biography: file.biography,
           birthDate: file.birthDate?.toDate(),
@@ -591,6 +592,7 @@ export class NominationSessionRepository {
           targetedPosition: file.targetedPosition,
         },
         update: {
+          number: file.fileNumber,
           biography: file.biography,
           birthDate: file.birthDate?.toDate(),
           currentPosition: file.currentPosition,

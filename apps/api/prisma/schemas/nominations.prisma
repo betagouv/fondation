@@ -81,6 +81,7 @@ model DossierDeNomination {
   /// might be temporary
   alertHidden Boolean @default(false) @map("alert_hidden")
 
+  externalId            Int?                     @map("external_id")
   sortableTargetedGrade Int                      @map("sortable_targeted_grade") @db.SmallInt
   search                Unsupported("tsvector")? @default(dbgenerated("to_tsvector('unaccent_fr'::regconfig, lower(name))"))
 
@@ -105,7 +106,7 @@ model DossierDeNomination {
   detectedTargetedFunction Function?     @relation(fields: [detectedTargetedFunctionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   detectedTargetedPosition Position?     @relation(fields: [detectedTargetedPositionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
-  @@unique([sessionId, number], name: "sessionFileNumber")
+  @@unique([sessionId, externalId], name: "sessionExternalId")
   @@index([sessionId, sortableTargetedGrade])
   @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")

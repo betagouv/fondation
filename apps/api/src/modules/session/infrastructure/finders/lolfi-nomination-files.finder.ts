@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { Magistrat } from 'shared-models';
 
-import { NominationFile } from '../../domain/nomination-file';
+import { LolfiNominationFile } from '../../domain/nomination-file';
 import { IngestService } from 'src/modules/ingest/infrastructure/ingest.service';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -14,15 +14,16 @@ export class LolfiNominationFilesFinder {
     private readonly ingest: IngestService,
   ) {}
 
-  async find(sessionId: number): Promise<Record<Magistrat.Formation, { items: NominationFile[] }>> {
+  async find(sessionId: number): Promise<Record<Magistrat.Formation, { items: LolfiNominationFile[] }>> {
     const { items: files } = await this.ingest.internalDetailsLolfiSession(sessionId);
 
-    const parquet: NominationFile[] = [];
-    const siege: NominationFile[] = [];
+    const parquet: LolfiNominationFile[] = [];
+    const siege: LolfiNominationFile[] = [];
 
     for (const file of files) {
-      const nominationFile: NominationFile = {
+      const nominationFile: LolfiNominationFile = {
         fileNumber: NaN,
+        externalId: file.externalId,
         name: file.magistrat.name,
         biography: file.magistrat.biography,
         birthDate: DateOnly.fromOptionalDate(file.magistrat.birthDate),

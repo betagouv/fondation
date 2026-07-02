@@ -39,6 +39,7 @@ export class InternalDetailsLolfiSessionQuery {
         }
 
         items.push({
+          externalId: file.externalId,
           lastRankingDate: file.lastRankingDate,
           lastPositionDate: file.lastPositionDate,
           detectedJurisdictionId: file.detectedJurisdictionId,
@@ -68,6 +69,7 @@ export class InternalDetailsLolfiSessionQuery {
 
 export type DetailedLolfiSession = {
   items: {
+    externalId: number;
     rank: string;
     lastRankingDate: Date | null;
     lastPositionDate: Date | null;
