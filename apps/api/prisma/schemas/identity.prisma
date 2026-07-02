@@ -65,6 +65,7 @@ model User {
   authorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_author")
   deletorOfSessions                   Session[]                  @relation("session_deletion_author")
   archiverOfSessions                  Session[]                  @relation("session_archive_author")
+  validatorOfSessions                 SessionTransparenceGds[]
 
   @@map("users")
   @@schema("identity_and_access_context")

@@ -15,6 +15,7 @@ import {
 } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];
@@ -64,8 +65,7 @@ export class ListArchivedNominationSessionsQuery {
         date: true,
         typeDeSaisine: true,
         validatedAt: true,
-
-        transparenceGds: { select: { dueDate: true } },
+        transparenceGds: { select: { dueDate: true, validatedAt: true } },
       },
     });
 
@@ -76,14 +76,14 @@ export class ListArchivedNominationSessionsQuery {
       date: DateOnly.fromDate(s.date).toJson(),
       dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
-      status: ListArchivedNominationSessionsQuery.computeStatus(s),
+      status: ListArchivedNominationSessionsQuery.computeStatus(s.transparenceGds),
     }));
 
     return paginate({ items, totalCount, pagination: query.pagination });
   }
 
-  private static computeStatus(session: { validatedAt: Date | null }): SessionStatus {
-    if (!session.validatedAt) return 'TO_VALIDATE';
+  private static computeStatus(session: { validatedAt: Date | null } | null): SessionStatus {
+    if (!isDefined(session?.validatedAt)) return 'TO_VALIDATE';
     return 'READY';
   }
 }

@@ -12,7 +12,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailNominationSessionQuery {
@@ -36,14 +36,14 @@ export class DetailNominationSessionQuery {
         date: true,
         transparenceGds: {
           select: {
-            observationsClosingDate: true,
             dueDate: true,
+            observationsClosingDate: true,
             positionStartDate: true,
+            validatedAt: true,
           },
         },
         formation: true,
         typeDeSaisine: true,
-        validatedAt: true,
         archivedAt: true,
 
         _count: { select: { attachments: true } },
@@ -65,7 +65,8 @@ export class DetailNominationSessionQuery {
     const unreportedCount = await this.unreportedSessionFilesCountFinder.find({
       sessionId: query.sessionId,
     });
-    const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
+    const isArchivable =
+      !!session.transparenceGds?.validatedAt && !session.archivedAt && unreportedCount === 0;
 
     const formation = prismaFormationEnumToFormationEnum(session.formation);
 
@@ -85,7 +86,7 @@ export class DetailNominationSessionQuery {
       positionStartDate:
         DateOnly.fromOptionalDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
-      isValidated: session.validatedAt !== null,
+      isValidated: isDefined(session.transparenceGds?.validatedAt),
       isDeletable,
       isArchived: !!session.archivedAt,
       isArchivable,

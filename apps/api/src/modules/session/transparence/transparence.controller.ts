@@ -50,6 +50,7 @@ import {
 } from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountUsersNewSessionsDto } from './infrastructure/queries/count-non-validated-sessions.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -66,6 +67,13 @@ import { TransparenceService } from './infrastructure/transparence.service';
 @Controller('/api/sessions/v2')
 export class SessionController {
   constructor(private readonly sessions: TransparenceService) {}
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/new/count')
+  @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
+  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
+    return this.sessions.countNonValidatedSessions();
+  }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/validation')

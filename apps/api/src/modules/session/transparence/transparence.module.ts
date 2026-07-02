@@ -16,6 +16,7 @@ import { NominationSessionFinder } from './infrastructure/finders/transparence-s
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { UnreportedSessionFilesCountFinder } from './infrastructure/finders/unreported-transparence-files-count.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountNonValidatedSessionsQuery } from './infrastructure/queries/count-non-validated-sessions.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
@@ -47,6 +48,7 @@ import { SessionController } from './transparence.controller';
     AffectationVersionFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
+    CountNonValidatedSessionsQuery,
     CountUnaffectedFilesQuery,
     DetailNominationFileAttachmentQuery,
     DetailNominationSessionAffectationVersionQuery,
@@ -62,7 +64,6 @@ import { SessionController } from './transparence.controller';
     ListNominationFileAttachmentsQuery,
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
-    LolfiTransparenceFilesFinder,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
     NominationFileJurisdictionsFinder,

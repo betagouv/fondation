@@ -40,6 +40,10 @@ import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
 } from './queries/count-nomination-files-by-status.query';
+import {
+  CountNonValidatedSessionsQuery,
+  CountUsersNewSessionsDto,
+} from './queries/count-non-validated-sessions.query';
 import { CountedUnaffectedFilesDto, CountUnaffectedFilesQuery } from './queries/count-unaffected-files.query';
 import {
   type DetailedNominationFileAttachmentDto,
@@ -110,6 +114,7 @@ export class TransparenceService {
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+    private readonly countNonValidatedSessionsQuery: CountNonValidatedSessionsQuery,
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
@@ -118,7 +123,6 @@ export class TransparenceService {
     private readonly events: EventEmitter2,
   ) {}
 
-  // FIXME: should be moved to abstract sessions and update the DTO according to new constraints
   /** @internal */
   listMemberSessions(query: {
     user: { id: string; role: RoleEnum };
@@ -138,6 +142,11 @@ export class TransparenceService {
     priorities: (PriorityEnum | null)[] | undefined;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
+  }
+
+  @Transactional()
+  countNonValidatedSessions(): Promise<CountUsersNewSessionsDto> {
+    return this.countNonValidatedSessionsQuery.handle();
   }
 
   @Transactional()
