@@ -43,7 +43,7 @@ export class LolfiNominationSessionFinder {
         });
 
       if (nominationFiles[formation].items.length === 0) continue;
-      session.associateNominationFiles({
+      session.associateLolfiNominationFiles({
         files: nominationFiles[formation].items,
       });
 

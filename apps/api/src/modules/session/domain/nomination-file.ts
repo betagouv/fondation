@@ -36,7 +36,7 @@ export type NominationFile = InternalNominationFile & {
   detectedTargetedPositionId: number | null;
 };
 
-export type NominationFileEntity = NominationFile & { id: string };
+export type LolfiNominationFile = NominationFile & { externalId: number };
 
 export const NOMINATION_SESSION_FILE_STATUSES = ['TO_REPORT', 'DSJ_PLANNED', 'DSJ_REPORTED'] as const;
 

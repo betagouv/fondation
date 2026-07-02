@@ -1,6 +1,7 @@
 -- @param {Int} $1:sessionId
 
 SELECT
+  n.id AS "externalId",
   n.is_designated AS "isDesignated",
   n.rank,
 
@@ -67,4 +68,13 @@ FROM data_administration_context.nomination AS n
   ) AS target_position ON TRUE
 
 WHERE n.session_id = $1::INT
-ORDER BY n.position_sort;
+ORDER BY
+  -- multiple nominations on the the same position possible
+  n.position_sort,
+  -- might be missing, but should be the best criteria
+  m.grade_date,
+  -- might be duplicated (potential bug on LOLFI's side)
+  n.rank,
+  m.last_name,
+  m.first_name,
+  m.married_name;

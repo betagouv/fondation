@@ -11,8 +11,7 @@ import { partition } from 'src/utils/iterables';
 import {
   LodamNominationFile,
   LodamNominationFileEntity,
-  NominationFile,
-  NominationFileEntity,
+  LolfiNominationFile,
   UpdatableNominationFile,
   UpdatableNominationFileState,
 } from './nomination-file';
@@ -73,10 +72,10 @@ export class LodamNominationSessionFilesCreated {
   ) {}
 }
 
-export class NominationFilesAssociated {
+export class LolfiNominationFilesAssociated {
   constructor(
     readonly sessionId: string,
-    readonly files: readonly NominationFileEntity[],
+    readonly files: readonly LolfiNominationFile[],
   ) {}
 }
 
@@ -167,7 +166,7 @@ type NominationSessionEvent =
   | NominationFileAlertHidden
   | NominationFileMemberMemoWritten
   | NominationFileOutcomeDefined
-  | NominationFilesAssociated
+  | LolfiNominationFilesAssociated
   | NominationSessionAffectationVersionCreated
   | NominationSessionAffectationVersionPublished
   | NominationSessionAttachmentAdded
@@ -365,16 +364,8 @@ export class NominationSession {
     return session;
   }
 
-  associateNominationFiles(command: { files: readonly NominationFile[] }): void {
-    this.#messages.push(
-      new NominationFilesAssociated(
-        this.id,
-        command.files.map((file) => ({
-          ...file,
-          id: makeId('NominationFileId'),
-        })),
-      ),
-    );
+  associateLolfiNominationFiles(command: { files: readonly LolfiNominationFile[] }): void {
+    this.#messages.push(new LolfiNominationFilesAssociated(this.id, command.files));
   }
 
   setNominationFilePriority(props: { nominationFileId: string; priorities: PrioriteEnum[] }) {
