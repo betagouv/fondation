@@ -1,13 +1,25 @@
-import { buildName, buildPosition } from './magistrat.helper';
+import { Gender } from 'shared-models';
+
+import { buildMemberName, buildName, buildPosition } from './magistrat.helper';
 
 describe('magistrat helpers', () => {
   describe('buildName', () => {
     it.each`
-      magistrat                                                                                          | expected
-      ${{ civility: 'M.', firstName: 'JEAN-CHARLES', lastName: 'HENRI', usedName: null }}                | ${'M. Jean-Charles\u00A0HENRI'}
-      ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', usedName: 'SKŁODOWSKA - CURIE' }} | ${'Mme Marie\u00A0SKŁODOWSKA - CURIE'}
+      magistrat                                                                                | expected
+      ${{ civility: 'M.', firstName: 'JEAN-CHARLES', lastName: 'HENRI', marriedName: null }}   | ${'M.\u00A0HENRI\u00A0Jean-Charles'}
+      ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'CURIE' }} | ${'Mme\u00A0SKŁODOWSKA\u00A0Marie (ép. CURIE)'}
     `(`should render as $expected`, ({ magistrat, expected }) => {
       expect(buildName(magistrat)).toBe(expected);
+    });
+  });
+
+  describe('buildMemberName', () => {
+    it.each`
+      magistrat                                                             | expected
+      ${{ gender: Gender.M, firstName: 'JEAN-CHARLES', lastName: 'HENRI' }} | ${'M.\u00A0Jean-Charles\u00A0HENRI'}
+      ${{ gender: Gender.F, firstName: 'MARIE', lastName: 'SKŁODOWSKA' }}   | ${'Mme\u00A0Marie\u00A0SKŁODOWSKA'}
+    `(`should render as $expected`, ({ magistrat, expected }) => {
+      expect(buildMemberName(magistrat)).toBe(expected);
     });
   });
 

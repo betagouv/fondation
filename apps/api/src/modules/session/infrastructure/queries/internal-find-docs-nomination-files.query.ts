@@ -6,7 +6,7 @@ import { Gender, Magistrat } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { buildName, buildPosition } from '../helpers/magistrat.helper';
+import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
@@ -130,15 +130,12 @@ const SqlNominationFilesSchema = z
       gender: u.gender,
       firstName: u.firstName,
       lastName: u.lastName,
-      fullTitledName: buildName({
-        civility: u.gender === Gender.M ? 'M.' : 'MME',
+      fullTitledName: buildMemberName({
+        gender: u.gender,
         firstName: u.firstName,
         lastName: u.lastName,
-        usedName: null,
       }),
     }));
-
-    const name = buildName(item.magistrat);
 
     return {
       reporters,
@@ -152,7 +149,7 @@ const SqlNominationFilesSchema = z
         : null,
 
       magistrat: {
-        name,
+        name: buildName(item.magistrat),
         id: item.magistrat.id,
         externalId: item.magistrat.externalId,
         position: {
@@ -169,19 +166,6 @@ const SqlNominationFilesSchema = z
         functionId: item.targetPosition.function?.id ?? null,
         jurisdictionId: item.targetPosition.jurisdiction?.id ?? null,
       },
-
-      /** deprecated */
-      name,
-      /** deprecated */
-      currentPosition,
-      /** deprecated */
-      targetedPosition,
-      /** deprecated */
-      magistratId: item.magistrat.id,
-      /** deprecated */
-      grade: item.magistrat.position.grade,
-      /** deprecated */
-      targetedGrade: item.targetPosition.grade,
     };
   });
 
