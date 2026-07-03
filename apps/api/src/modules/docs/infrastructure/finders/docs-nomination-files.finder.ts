@@ -56,6 +56,7 @@ export class FoundDocsNominationFiles extends createZodDto(
             fullTitledName: z.string(),
           }),
         ),
+
         outcome: z
           .object({
             value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),

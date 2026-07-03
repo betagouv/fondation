@@ -31,7 +31,6 @@ import {
   DocsNominationFilesFinder,
   FoundDocsNominationFiles,
 } from './infrastructure/finders/docs-nomination-files.finder';
-import { ReportedNominationFilesFinder } from './infrastructure/finders/reported-nomination-files.finder';
 import {
   DetailedAgendaFilesDto,
   DetailsAgendaFilesQuery,
@@ -59,7 +58,6 @@ import {
 } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
-import { FindAgendaNominationFilesQuery } from './infrastructure/queries/find-agenda-nomination-files.query';
 import { FindChairmenQuery, FoundChairmenDto } from './infrastructure/queries/find-chairmen.query';
 import {
   FindJusticeContactsQuery,
@@ -109,8 +107,7 @@ export class DocsService {
     private readonly officialReportRepository: OfficialReportRepository,
 
     private readonly agendaFinder: AgendaFinder,
-    private readonly agendaNominationFilesFinder: DocsNominationFilesFinder,
-    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
+    private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
 
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
@@ -121,7 +118,6 @@ export class DocsService {
     private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
-    private readonly findAgendaNominationFilesQuery: FindAgendaNominationFilesQuery,
     private readonly findChairmenQuery: FindChairmenQuery,
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
     private readonly findMembersForNewOfficialReportQuery: FindMembersForNewOfficialReportQuery,
@@ -151,11 +147,8 @@ export class DocsService {
     return this.findChairmenQuery.handle(query);
   }
 
-  findAgendaNominationFiles(query: {
-    sessionId: string;
-    ignoreAgendaId?: string;
-  }): Promise<FoundDocsNominationFiles> {
-    return this.findAgendaNominationFilesQuery.handle(query);
+  findAgendaNominationFiles(query: { sessionId: string }): Promise<FoundDocsNominationFiles> {
+    return this.docsNominationFilesFinder.find(query);
   }
 
   async createAgenda(command: {
@@ -172,15 +165,10 @@ export class DocsService {
         id: command.chairmanId,
       });
 
-      const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
+      const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
         tx,
         sessionId: command.sessionId,
         ids: command.nominationFileIds,
-      });
-
-      const reportedNominationFiles = await this.reportedNominationFilesFinder.findReportedInAgendas({
-        tx,
-        fileIds: new Set(nominationFiles.map(({ id }) => id)),
       });
 
       const agenda = Agenda.create({
@@ -200,7 +188,6 @@ export class DocsService {
         authorId: command.authorId,
         date: DateOnly.fromJson(command.date),
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-        reportedNominationFiles,
       });
 
       await this.agendaRepository.persist(agenda, tx);
@@ -228,21 +215,14 @@ export class DocsService {
         id: command.chairmanId,
       });
 
-      const { items: nominationFiles } = await this.agendaNominationFilesFinder.find({
+      const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
         tx,
         sessionId: agenda.sessionId,
         ids: command.nominationFileIds,
       });
 
-      const reportedNominationFiles = await this.reportedNominationFilesFinder.findReportedInAgendas({
-        tx,
-        ignoreAgendaId: command.agendaId,
-        fileIds: new Set(nominationFiles.map(({ id }) => id)),
-      });
-
       agenda.update({
         chairman,
-        reportedNominationFiles,
         authorId: command.authorId,
         date: DateOnly.fromJson(command.date),
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),

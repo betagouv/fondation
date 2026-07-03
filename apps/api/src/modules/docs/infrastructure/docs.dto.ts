@@ -17,10 +17,6 @@ export class CreateOrUpdateAgendaDto extends createZodDto(
 
 export class CreatedAgendaDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
-export class FindAgendaNominationFilesQueryDto extends createZodDto(
-  z.object({ ignoreAgendaId: z.string().optional() }),
-) {}
-
 export class CreatedOfficialReportDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
 export class CreateOrUpdateOfficialReportDto extends createZodDto(
