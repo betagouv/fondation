@@ -30,7 +30,7 @@ export class AgendaRepository {
     if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
 
     const foundAgenda = await query.tx.agenda.findUnique({
-      select: { id: true, sessionId: true },
+      select: { id: true, sessionId: true, officialReportId: true },
       where: { id: query.agendaId },
     });
 
@@ -39,6 +39,9 @@ export class AgendaRepository {
     return Agenda.from({
       id: makeId('AgendaId', foundAgenda.id),
       sessionId: makeId('SessionId', foundAgenda.sessionId),
+      officialReportId: foundAgenda.officialReportId
+        ? makeId('OfficialReportId', foundAgenda.officialReportId)
+        : null,
     });
   }
 

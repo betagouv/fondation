@@ -5,6 +5,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { useAgendaBasket } from '../hooks/useAgendaBasket.hook';
 import { useConfirmation } from '@/hooks/useConfirmation.hook';
+import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   agendaKeys,
@@ -51,10 +52,12 @@ export function AgendaProvider(props: React.PropsWithChildren) {
 
   const [state, setState] = React.useState<{
     stepIndex: 1 | 2;
+    error: string | null;
     metadata: AgendaMetadata | null;
     selectedFileIds: string[] | null;
     defaultFileIds: string[] | null;
   }>({
+    error: null,
     stepIndex: 1,
     metadata: null,
     selectedFileIds: null,
@@ -162,10 +165,41 @@ export function AgendaProvider(props: React.PropsWithChildren) {
 
       if (agendaId) {
         resetAgenda.mutate(undefined, {
-          onSuccess: () => updateAgenda.mutate({ ...payload, agendaId }, { onSuccess }),
+          onSuccess: () =>
+            updateAgenda.mutate(
+              { ...payload, agendaId },
+              {
+                onSuccess,
+                onError: async (error) => {
+                  const defaultError = formatMessage({
+                    defaultMessage: `Impossible de mettre à jour l'ordre du jour`,
+                  });
+                  if (error instanceof HttpException) {
+                    const body = await error.response.json();
+                    setState((s) => ({ ...s, error: body.validationError || defaultError }));
+                  } else {
+                    setState((s) => ({ ...s, error: defaultError }));
+                  }
+                },
+              },
+            ),
         });
       } else {
-        createAgenda.mutate({ ...payload, sessionId }, { onSuccess });
+        createAgenda.mutate(
+          { ...payload, sessionId },
+          {
+            onSuccess,
+            onError: async (error) => {
+              const defaultError = formatMessage({ defaultMessage: `Impossible de créer l'ordre du jour` });
+              if (error instanceof HttpException) {
+                const body = await error.response.json();
+                setState((s) => ({ ...s, error: body.validationError || defaultError }));
+              } else {
+                setState((s) => ({ ...s, error: defaultError }));
+              }
+            },
+          },
+        );
       }
     },
     [
@@ -189,6 +223,7 @@ export function AgendaProvider(props: React.PropsWithChildren) {
     <AgendaContext
       value={{
         agendaId,
+        error: state.error,
         step: STEPS[state.stepIndex],
         session: {
           id: sessionId,

@@ -11,11 +11,15 @@ import {
 import { Prisma } from 'src/generated/prisma/client';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 
+import { ReportedNominationFilesFinder } from './reported-nomination-files.finder';
+
 @Injectable()
 export class DocsNominationFilesFinder {
   constructor(
     @Inject(forwardRef(() => SessionService))
     private readonly sessions: SessionService,
+
+    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
   ) {}
 
   async find(query: {
@@ -30,14 +34,41 @@ export class DocsNominationFilesFinder {
     })) as FoundDocsNominationFiles;
     if (sessionNominationFiles.length === 0) return { items: [] };
 
-    const output = sessionNominationFiles.map((file) => {
+    const items = sessionNominationFiles.map((file) => {
       if (!file.outcome) return file;
 
       file.outcome.value = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
       return file;
     });
 
-    return { items: output };
+    return { items };
+  }
+
+  async findNonReported(query: {
+    sessionId: string;
+    ignoreOfficialReportId?: string;
+    ids?: readonly string[];
+    tx?: Prisma.TransactionClient;
+  }): Promise<FoundDocsNominationFiles> {
+    const { items: sessionNominationFiles } = await this.find(query);
+    if (sessionNominationFiles.length === 0) return { items: [] };
+
+    const fileIds = new Set(sessionNominationFiles.map((f) => f.id));
+    const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+      fileIds,
+      tx: query.tx,
+      ignoreOfficialReportId: query.ignoreOfficialReportId,
+    });
+
+    const items = sessionNominationFiles.filter(
+      (file) =>
+        !reportedNominationFiles.isReported({
+          nominationFileId: file.id,
+          ignoreOfficialReportId: query.ignoreOfficialReportId,
+        }),
+    );
+
+    return { items };
   }
 }
 

@@ -91,9 +91,10 @@ export class OfficialReportRepository {
 
     const nominationFiles = await Promise.all(
       agendas.map((agenda) =>
-        this.nominationFilesFinder.find({
+        this.nominationFilesFinder.findNonReported({
           tx,
           sessionId: agenda.sessionId,
+          ignoreOfficialReportId: message.id,
           ids: agenda.nominationFiles.flatMap((nf) => (nf.nominationFileId ? [nf.nominationFileId] : [])),
         }),
       ),

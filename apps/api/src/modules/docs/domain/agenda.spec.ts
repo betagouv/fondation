@@ -3,8 +3,10 @@ import { faker } from '@faker-js/faker';
 import { Gender, Magistrat } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
+import { makeId } from 'src/utils/id';
 
-import { Agenda, EmptyAgenda } from './agenda';
+import { Agenda, AgendaFilesAlreadyReported, EmptyAgenda } from './agenda';
+import { ReportedNominationFileCollection } from './reported-nomination-file-collection';
 
 describe('Agenda', () => {
   const props = Object.freeze({
@@ -33,6 +35,7 @@ describe('Agenda', () => {
     ],
     sessionId: 'session-1',
     sessionMeetingDate: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
+    reportedFiles: ReportedNominationFileCollection.from([]),
   } as const satisfies Parameters<(typeof Agenda)['create']>[0]);
 
   it('should prevent creating an agenda without files', () => {
@@ -40,8 +43,62 @@ describe('Agenda', () => {
       Agenda.create({
         ...props,
         nominationFiles: [],
+        reportedFiles: ReportedNominationFileCollection.from([]),
       });
 
     expect(act).toThrow(EmptyAgenda);
+  });
+
+  it('should prevent creating an agenda with files already reported', () => {
+    const officialReportId = makeId('OfficialReportId');
+    const act = () =>
+      Agenda.create({
+        ...props,
+        reportedFiles: ReportedNominationFileCollection.from([
+          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+        ]),
+      });
+
+    expect(act).toThrow(AgendaFilesAlreadyReported);
+  });
+
+  it('should prevent updating an agenda with an already reported file', () => {
+    const agenda = Agenda.from({
+      ...props,
+      id: makeId('AgendaId'),
+      sessionId: makeId('SessionId'),
+      officialReportId: null,
+    });
+
+    const officialReportId = makeId('OfficialReportId');
+    const act = () =>
+      agenda.update({
+        ...props,
+        reportedFiles: ReportedNominationFileCollection.from([
+          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+        ]),
+      });
+
+    expect(act).toThrow(new AgendaFilesAlreadyReported([props.nominationFiles[0].id]));
+  });
+
+  it('should allow updating an agenda with an already reported file in the linked official report', () => {
+    const officialReportId = makeId('OfficialReportId');
+    const agenda = Agenda.from({
+      ...props,
+      id: makeId('AgendaId'),
+      sessionId: makeId('SessionId'),
+      officialReportId,
+    });
+
+    const act = () =>
+      agenda.update({
+        ...props,
+        reportedFiles: ReportedNominationFileCollection.from([
+          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+        ]),
+      });
+
+    expect(act).not.toThrow();
   });
 });
