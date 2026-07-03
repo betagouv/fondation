@@ -8,7 +8,6 @@ import { DocsService } from './docs.service';
 import { DocsController } from './infrastructure/docs.controller';
 import { AgendaFinder } from './infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from './infrastructure/finders/docs-nomination-files.finder';
-import { ReportedNominationFilesFinder } from './infrastructure/finders/reported-nomination-files.finder';
 import { DetailsAgendaFilesQuery } from './infrastructure/queries/details-agenda-files.query';
 import { DetailsAgendaMetadataQuery } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailsOfficialReportQuery } from './infrastructure/queries/details-official-report.query';
@@ -18,7 +17,6 @@ import { DetailsSessionAgendaQuery } from './infrastructure/queries/details-sess
 import { DetailsSessionOfficialReportQuery } from './infrastructure/queries/details-session-official-report.query';
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
-import { FindAgendaNominationFilesQuery } from './infrastructure/queries/find-agenda-nomination-files.query';
 import { FindChairmenQuery } from './infrastructure/queries/find-chairmen.query';
 import { FindJusticeContactsQuery } from './infrastructure/queries/find-justice-contacts.query';
 import { FindMembersForNewOfficialReportQuery } from './infrastructure/queries/find-members-for-new-official-report.query';
@@ -58,7 +56,6 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     DocsService,
     FindAgendaDocumentPdfQuery,
     FindAgendaDocumentQuery,
-    FindAgendaNominationFilesQuery,
     FindChairmenQuery,
     FindJusticeContactsQuery,
     FindMembersForNewOfficialReportQuery,
@@ -77,7 +74,6 @@ import { PresentationPlanRenderer } from './infrastructure/services/renderers/pr
     OfficialReportRepository,
     PdfRenderer,
     PresentationPlanRenderer,
-    ReportedNominationFilesFinder,
   ],
   exports: [DocsService],
 })

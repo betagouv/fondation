@@ -48,7 +48,6 @@ import {
   CreateOrUpdateAgendaDto,
   CreateOrUpdateJusticePresentationPlanDto,
   CreateOrUpdateOfficialReportDto,
-  FindAgendaNominationFilesQueryDto,
   FindDocsMembersQueryDto,
   FoundDocsMembersDto,
   ListAgendasForNewOfficialReportQueryDto,
@@ -141,11 +140,8 @@ export class DocsController {
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
   @Get('/sessions/:sessionId/files')
   @ZodResponse({ type: FoundDocsNominationFiles, status: HttpStatus.OK })
-  findAgendaNominationFiles(
-    @Param('sessionId') sessionId: string,
-    @Query() { ignoreAgendaId }: FindAgendaNominationFilesQueryDto,
-  ): Promise<FoundDocsNominationFiles> {
-    return this.docs.findAgendaNominationFiles({ sessionId, ignoreAgendaId });
+  findAgendaNominationFiles(@Param('sessionId') sessionId: string): Promise<FoundDocsNominationFiles> {
+    return this.docs.findAgendaNominationFiles({ sessionId });
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
