@@ -5,6 +5,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
+import { ReportedNominationFileCollection } from './reported-nomination-file-collection';
 
 export class AgendaCreated {
   constructor(
@@ -49,8 +50,10 @@ export class AgendaDeleted {
 
 export type AgendaEvent = AgendaCreated | AgendaUpdated | AgendaDeleted;
 
-export class EmptyAgenda extends Error {
-  constructor(readonly agendaId: string) {
+export class EmptyAgenda extends Error {}
+
+export class AgendaFilesAlreadyReported extends Error {
+  constructor(readonly fileIds: readonly string[]) {
     super();
   }
 }
@@ -61,14 +64,19 @@ export class Agenda {
   private constructor(
     readonly id: Id<'AgendaId'>,
     readonly sessionId: Id<'SessionId'>,
+    readonly officialReportId: Id<'OfficialReportId'> | null,
   ) {}
 
   get messages(): readonly AgendaEvent[] {
     return this.#messages;
   }
 
-  static from(props: { id: Id<'AgendaId'>; sessionId: Id<'SessionId'> }): Agenda {
-    return new Agenda(props.id, props.sessionId);
+  static from(props: {
+    id: Id<'AgendaId'>;
+    sessionId: Id<'SessionId'>;
+    officialReportId: Id<'OfficialReportId'> | null;
+  }): Agenda {
+    return new Agenda(props.id, props.sessionId, props.officialReportId);
   }
 
   update(command: {
@@ -84,9 +92,20 @@ export class Agenda {
       title: UserTitleEnum | null;
       displayTitle: string | null;
     };
+    reportedFiles: ReportedNominationFileCollection;
   }): void {
-    const { nominationFiles } = command;
-    if (nominationFiles.length === 0) throw new EmptyAgenda(this.id);
+    if (command.nominationFiles.length === 0) throw new EmptyAgenda();
+
+    const reportedFiles = command.nominationFiles.filter((file) =>
+      command.reportedFiles.isReported({
+        nominationFileId: file.id,
+        ignoreOfficialReportId: this.officialReportId ?? undefined,
+      }),
+    );
+
+    if (reportedFiles.length) {
+      throw new AgendaFilesAlreadyReported(reportedFiles.map(({ id }) => id));
+    }
 
     this.#messages.push(
       new AgendaUpdated(
@@ -95,7 +114,7 @@ export class Agenda {
         { ...command.chairman, id: makeId('ChairmanId', command.chairman.id) },
         command.date.toDate(),
         command.sessionMeetingDate.toDate(),
-        nominationFiles,
+        command.nominationFiles,
       ),
     );
   }
@@ -118,11 +137,23 @@ export class Agenda {
     date: DateOnly;
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
+    reportedFiles: ReportedNominationFileCollection;
   }): Agenda {
-    const agenda = new Agenda(makeId('AgendaId'), makeId('SessionId', props.sessionId));
-    const { nominationFiles } = props;
+    if (props.nominationFiles.length === 0) throw new EmptyAgenda();
 
-    if (nominationFiles.length === 0) throw new EmptyAgenda(agenda.id);
+    const reportedFiles = props.nominationFiles.filter((file) =>
+      props.reportedFiles.isReported({ nominationFileId: file.id }),
+    );
+    if (reportedFiles.length) {
+      throw new AgendaFilesAlreadyReported(reportedFiles.map(({ id }) => id));
+    }
+
+    const agenda = Agenda.from({
+      id: makeId('AgendaId'),
+      sessionId: makeId('SessionId', props.sessionId),
+      officialReportId: null,
+    });
+
     agenda.#messages.push(
       new AgendaCreated(
         agenda.id,
@@ -131,7 +162,7 @@ export class Agenda {
         { ...props.chairman, id: makeId('ChairmanId', props.chairman.id) },
         props.date.toDate(),
         props.sessionMeetingDate.toDate(),
-        nominationFiles,
+        props.nominationFiles,
       ),
     );
 

@@ -16,6 +16,7 @@ export type AgendaMetadata = {
 export type AgendaContextType = {
   step: AgendaStep;
   agendaId: string | null;
+  error: string | null;
   session: { id: string; dueDate: PlainDateOnly | null; formation: FormationEnum };
   metadata: AgendaMetadata | null;
   selectedFileIds: readonly string[] | null;

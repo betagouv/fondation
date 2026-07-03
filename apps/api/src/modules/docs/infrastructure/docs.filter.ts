@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { EmptyAgenda } from '../domain/agenda';
+import { AgendaFilesAlreadyReported, EmptyAgenda } from '../domain/agenda';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
@@ -36,6 +36,15 @@ export class DocsFilter implements NestInterceptor {
           if (err instanceof EmptyAgenda) {
             return new BadRequestException({
               validationError: `Au moins un dossier valide doit être sélectionné`,
+            });
+          }
+
+          if (err instanceof AgendaFilesAlreadyReported) {
+            return new BadRequestException({
+              validationError:
+                err.fileIds.length > 1
+                  ? `1 dossier apparaît déjà dans un PV`
+                  : `${err.fileIds.length} dossiers apparaissent déjà dans un PV`,
             });
           }
 

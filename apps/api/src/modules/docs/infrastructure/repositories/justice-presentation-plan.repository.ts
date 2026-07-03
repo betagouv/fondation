@@ -90,15 +90,17 @@ export class JusticePresentationPlanRepository {
         id: true,
         sessionId: true,
         sessionName: true,
+        officialReportId: true,
         nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
       },
     });
 
     const nominationFiles = await Promise.all(
-      agendas.map(async ({ id: agendaId, sessionId, sessionName, nominationFiles }) => {
-        const { items } = await this.docsNominationFilesFinder.find({
+      agendas.map(async ({ id: agendaId, officialReportId, sessionId, sessionName, nominationFiles }) => {
+        const { items } = await this.docsNominationFilesFinder.findNonReported({
           tx,
           sessionId,
+          ignoreOfficialReportId: officialReportId ?? undefined,
           ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
         });
 

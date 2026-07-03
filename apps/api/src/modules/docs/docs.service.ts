@@ -31,6 +31,7 @@ import {
   DocsNominationFilesFinder,
   FoundDocsNominationFiles,
 } from './infrastructure/finders/docs-nomination-files.finder';
+import { ReportedNominationFilesFinder } from './infrastructure/finders/reported-nomination-files.finder';
 import {
   DetailedAgendaFilesDto,
   DetailsAgendaFilesQuery,
@@ -108,6 +109,7 @@ export class DocsService {
 
     private readonly agendaFinder: AgendaFinder,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
 
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
@@ -148,7 +150,7 @@ export class DocsService {
   }
 
   findAgendaNominationFiles(query: { sessionId: string }): Promise<FoundDocsNominationFiles> {
-    return this.docsNominationFilesFinder.find(query);
+    return this.docsNominationFilesFinder.findNonReported(query);
   }
 
   async createAgenda(command: {
@@ -171,8 +173,18 @@ export class DocsService {
         ids: command.nominationFileIds,
       });
 
+      const reportedFiles = await this.reportedNominationFilesFinder.find({
+        tx,
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+      });
+
       const agenda = Agenda.create({
         chairman,
+        reportedFiles,
+        authorId: command.authorId,
+        sessionId: command.sessionId,
+        date: DateOnly.fromJson(command.date),
+        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
         nominationFiles: nominationFiles.map((f) => ({
           id: f.id,
           number: f.number,
@@ -184,10 +196,6 @@ export class DocsService {
           targetedPosition: f.targetPosition.label,
           reporters: f.reporters.map((r) => r.fullTitledName),
         })),
-        sessionId: command.sessionId,
-        authorId: command.authorId,
-        date: DateOnly.fromJson(command.date),
-        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       });
 
       await this.agendaRepository.persist(agenda, tx);
@@ -221,8 +229,15 @@ export class DocsService {
         ids: command.nominationFileIds,
       });
 
+      const reportedFiles = await this.reportedNominationFilesFinder.find({
+        tx,
+        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+        ignoreOfficialReportId: agenda.officialReportId ?? undefined,
+      });
+
       agenda.update({
         chairman,
+        reportedFiles,
         authorId: command.authorId,
         date: DateOnly.fromJson(command.date),
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
