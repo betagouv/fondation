@@ -111,4 +111,15 @@ describe('officialReportTemplate', () => {
 
     expect($('main').html()).not.toContain(`indique renonce au délai de convocation`);
   });
+
+  it('should include non president members in end-time', () => {
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseSession,
+        chairman: { ...baseSession.chairman, title: null, displayTitle: null },
+      }),
+    );
+
+    expect($('.end-time').html()).toMatchSnapshot();
+  });
 });

@@ -1,5 +1,12 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`officialReportTemplate should include non president members in end-time 1`] = `
+"
+  <em>À 18:10, Simone&nbsp;MICHEL-LEVY, clôture la
+    séance.</em>
+"
+`;
+
 exports[`officialReportTemplate should render 1`] = `
 "
             <div class="header"><h1>
@@ -60,7 +67,8 @@ exports[`officialReportTemplate should render 1`] = `
         </ol></div>
 
             <div class="footer"><p class="end-time">
-  <em>À 18:10, Simone&nbsp;MICHEL-LEVY, présidente de la formation siège, clôture la séance.</em>
+  <em>À 18:10, Simone&nbsp;MICHEL-LEVY, présidente de la formation siège, clôture la
+    séance.</em>
 </p>
 <section class="signatures">
   <div>

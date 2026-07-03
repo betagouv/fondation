@@ -63,7 +63,9 @@ function displayPresidentTitle(ctx: {
     title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'> | null;
     displayTitle: string | null;
   };
-}): string {
+}): string | null {
+  if (!ctx.chairman.title) return null;
+
   const formationLabel = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
   const presidentTitle =
     ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
@@ -116,7 +118,7 @@ function content(ctx: {
   const intro =
     `<p>Sous la présidence de ${fullname(ctx.chairman)}` +
     (ctx.chairman.displayTitle ? `, ${ctx.chairman.displayTitle}` : '') +
-    `, ${presidentTitle}` +
+    (presidentTitle ? `, ${presidentTitle}` : '') +
     `, en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:</p>`;
 
   const membersList = html`
@@ -249,7 +251,10 @@ function footer(ctx: {
 
   return html`
     <p class="end-time">
-      <em>À ${endTime}, ${fullname(ctx.chairman)}, ${presidentTitle}, clôture la séance.</em>
+      <em
+        >À ${endTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, clôture la
+        séance.</em
+      >
     </p>
     <section class="signatures">
       <div>
