@@ -28,7 +28,7 @@
     "@aws-sdk/client-s3": "3.1073.0",
     "@aws-sdk/lib-storage": "3.1073.0",
     "@aws-sdk/s3-request-presigner": "3.1073.0",
-    "@dotenvx/dotenvx": "1.52.0",
+    "@dotenvx/dotenvx": "1.75.1",
     "@nestjs/axios": "4.0.1",
     "@nestjs/common": "11.1.27",
     "@nestjs/core": "11.1.27",
@@ -66,14 +66,14 @@
     "@nestjs/schematics": "11.1.0",
     "@nestjs/testing": "11.1.27",
     "@prisma/generator-helper": "6.19.3",
-    "@sentry/cli": "3.4.2",
+    "@sentry/cli": "3.6.0",
     "@types/bcrypt": "6.0.0",
     "@types/common-tags": "1.8.4",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/inquirer": "8.2.12",
     "@types/multer": "2.1.0",
-    "@types/node": "24.12.4",
+    "@types/node": "26.0.1",
     "@types/pg": "8.20.0",
     "@types/sax": "1.2.7",
     "@types/supertest": "7.2.0",
@@ -87,6 +87,6 @@
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
     "typescript": "5.9.3",
-    "vitest": "4.1.8"
+    "vitest": "4.1.9"
   }
 }

@@ -1,4 +1,4 @@
-import { File, type FileOptions } from 'node:buffer';
+import { File, type FilePropertyBag } from 'node:buffer';
 
 import { FILE_MIME_TYPES, FileMimeType, isMimeType } from '../mime-type';
 
@@ -10,9 +10,9 @@ export class MultipartFile extends File {
   readonly mimeType: FileMimeType;
 
   constructor(props: {
-    buffers: Buffer[];
+    buffers: readonly Buffer[];
     filename: string;
-    options: FileOptions & {
+    options: FilePropertyBag & {
       id: string;
       path: string | null;
       overrideFiles: boolean;
@@ -21,7 +21,7 @@ export class MultipartFile extends File {
   }) {
     const { overrideFiles, deleteOnFail, path, id, ...fileOptions } = props.options;
 
-    super(props.buffers, props.filename, fileOptions);
+    super(props.buffers as Buffer<ArrayBuffer>[], props.filename, fileOptions);
 
     this.id = id;
     this.mimeType = isMimeType(fileOptions.type) ? fileOptions.type : FILE_MIME_TYPES.bin;
@@ -30,7 +30,7 @@ export class MultipartFile extends File {
     this.overrideFiles = overrideFiles;
   }
 
-  clone(buffers: Buffer[]): MultipartFile {
+  clone(buffers: readonly Buffer[]): MultipartFile {
     return new MultipartFile({
       buffers,
       filename: this.name,
