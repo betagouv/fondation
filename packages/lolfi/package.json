@@ -17,7 +17,7 @@
   "devDependencies": {
     "@swc-node/register": "1.11.1",
     "@types/node": "24.12.4",
-    "typescript": "5.9.3"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@faker-js/faker": "catalog:",

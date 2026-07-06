@@ -19,7 +19,6 @@
     "lint:check": "oxlint",
     "types:check": "tsc --noEmit",
     "test": "vitest run",
-    "cli": "dotenvx run -- ts-node -r tsconfig-paths/register src/cli.ts",
     "prisma": "dotenvx run -- prisma",
     "sentry": "sentry-cli",
     "postinstall": "node node_modules/puppeteer/install.mjs"
@@ -76,17 +75,11 @@
     "@types/node": "26.0.1",
     "@types/pg": "8.20.0",
     "@types/sax": "1.2.7",
-    "@types/supertest": "7.2.0",
     "@types/unzipper": "0.10.11",
     "jszip": "3.10.1",
     "lolfi": "workspace:*",
     "prisma": "6.19.2",
-    "source-map-support": "0.5.21",
-    "supertest": "7.2.2",
-    "ts-loader": "9.5.7",
-    "ts-node": "10.9.2",
-    "tsconfig-paths": "4.2.0",
-    "typescript": "5.9.3",
+    "typescript": "catalog:",
     "vitest": "4.1.9"
   }
 }
