@@ -8,19 +8,6 @@ import {
 
 import { Magistrat, PrioriteEnum } from 'shared-models';
 
-import { Prisma } from 'src/generated/prisma/client';
-import {
-  deleteReportsAfterAffectationPublicationRawQuery,
-  insertLodamNominationFilesRawQuery,
-} from 'src/generated/prisma/sql';
-import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
 import {
   LodamSessionTransparenceFilesCreated,
   SessionTransparence,
@@ -46,6 +33,19 @@ import {
 } from '../../domain/session-transparence';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { NominationSessionFileFinder } from '../finders/nomination-session-file.finder';
+import { Prisma } from 'src/generated/prisma/client';
+import {
+  deleteReportsAfterAffectationPublicationRawQuery,
+  insertLodamNominationFilesRawQuery,
+} from 'src/generated/prisma/sql';
+import { Clock } from 'src/modules/framework/clock';
+import { PrismaService } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
+import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { assertNever } from 'src/utils/assert-never';
+import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
 
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
