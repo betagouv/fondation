@@ -38,3 +38,6 @@ allowBuilds:
   puppeteer: false
   unrs-resolver: false
   esbuild: true
+minimumReleaseAgeExclude:
+  # Renovate security update: @hey-api/openapi-ts@0.97.3
+  - "@hey-api/openapi-ts@0.97.3"
