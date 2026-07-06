@@ -16,7 +16,7 @@
     "lolfi": "workspace:*",
     "postgres": "^3.4.9",
     "shared-models": "workspace:*",
-    "typescript": "5.9.3",
+    "typescript": "catalog:",
     "undici-types": "^8.5.0",
     "vitest": "4.1.8"
   }
