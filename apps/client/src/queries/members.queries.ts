@@ -11,6 +11,7 @@ import type {
 
 import { docsKeys } from './agenda.queries';
 import { sessionKeys } from './nomination-sessions.queries';
+import { summaryKeys } from './summary.queries';
 
 export const memberKeys = {
   listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
@@ -214,6 +215,41 @@ export function useUpdateNominationFileCommentMutation() {
             items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file)),
           };
         },
+      );
+    },
+  });
+}
+
+export function useUpdateNominationFileAuditionDateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      sessionId: string;
+      nominationFileId: string;
+      auditionDate: string | null;
+    }) => {
+      await $api.sessions.updateNominationFileAuditionDate({
+        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
+        body: { auditionDate: mutation.auditionDate },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, auditionDate }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: { items: { id: string; auditionDate?: string | null }[] } | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, auditionDate } : file)),
+          };
+        },
+      );
+
+      queryClient.setQueryData(
+        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        (old: { auditionDate: string | null } | undefined) => (old ? { ...old, auditionDate } : old),
       );
     },
   });

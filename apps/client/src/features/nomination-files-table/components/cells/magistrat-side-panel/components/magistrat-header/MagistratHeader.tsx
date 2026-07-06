@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
+import { format } from 'date-fns';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
@@ -21,6 +22,10 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const { user } = useUser();
   const { isEditable } = useNominationFilesTable();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
+
+  const auditionDateLabel = nominationFile.auditionDate
+    ? format(new Date(nominationFile.auditionDate), "dd/MM/yyyy 'à' HH'h'mm")
+    : null;
 
   const [isEditing, setIsEditing] = React.useState(false);
 
@@ -56,15 +61,26 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
           ) : (
             <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
-          <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
-            {nomMagistrat}
-            <LolfiMagistratLink
-              name={nomMagistrat}
-              nominationFileId={nominationFile.id}
-              sessionId={sessionId}
-              small
-            />
-          </h2>
+          <div className="flex flex-col gap-3">
+            <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
+              {nomMagistrat}
+              <LolfiMagistratLink
+                name={nomMagistrat}
+                nominationFileId={nominationFile.id}
+                sessionId={sessionId}
+                small
+              />
+            </h2>
+            {auditionDateLabel && (
+              <p className="fr-mb-0 flex items-center gap-2 text-sm text-(--text-default-grey) italic">
+                <span aria-hidden className="fr-icon-speak-line fr-icon--sm" />
+                <FormattedMessage
+                  defaultMessage="Une audition est prévue le {date}"
+                  values={{ date: auditionDateLabel }}
+                />
+              </p>
+            )}
+          </div>
         </div>
         {canEdit &&
           (isEditing ? (

@@ -30,6 +30,7 @@ export function MagistratPanelTrigger(props: { nominationFile: SessionNomination
   );
 
   const attachmentLabel = intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' });
+  const auditionLabel = intl.formatMessage({ defaultMessage: 'Une audition est prévue pour ce magistrat' });
 
   return (
     <Button
@@ -42,19 +43,26 @@ export function MagistratPanelTrigger(props: { nominationFile: SessionNomination
       size="small"
       style={{ color: colors.decisions.text.default.grey.default }}
     >
-      <div className="text-left leading-4 underline">
+      <div className="flex flex-wrap items-center text-left leading-4 underline">
         {props.nominationFile.content.nomMagistrat}
+        {props.nominationFile.auditionDate && (
+          <i
+            aria-label={auditionLabel}
+            className="fr-icon-speak-line fr-icon--sm fr-ml-1v cursor-pointer"
+            title={auditionLabel}
+          />
+        )}
         {hasAnnotations && (
           <i
             aria-label={annotationsLabel}
-            className="ri-message-3-line fr-ml-1v cursor-pointer before:size-5! before:content-['']"
+            className="ri-message-3-line fr-ml-1v relative -top-0.5 cursor-pointer before:size-4! before:content-['']"
             title={annotationsLabel}
           />
         )}
         {props.nominationFile.hasAttachment && (
           <i
             aria-label={attachmentLabel}
-            className="ri-file-line fr-ml-1v cursor-pointer before:size-5! before:content-['']"
+            className="ri-file-line fr-ml-1v relative -top-0.5 cursor-pointer before:size-4! before:content-['']"
             title={attachmentLabel}
           />
         )}

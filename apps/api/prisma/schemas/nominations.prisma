@@ -54,6 +54,7 @@ model DossierDeNomination {
   priorite       PrismaPrioriteEnum?              @ignore
   priorities     PrismaPrioriteEnum[]             @default([])
   comment        String?                          @map("comment") @db.Text
+  auditionDate   DateTime?                        @map("audition_date") @db.Timestamptz(6)
   outcome        PrismaNominationFileOutcomeEnum?
   outcomeComment String?                          @map("outcome_comment")
 

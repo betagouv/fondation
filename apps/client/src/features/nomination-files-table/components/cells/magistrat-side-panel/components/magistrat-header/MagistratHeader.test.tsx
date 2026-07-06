@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { format } from 'date-fns';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -184,6 +185,22 @@ describe('MagistratHeader edition', () => {
 
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+});
+
+describe('MagistratHeader audition date', () => {
+  it('announces the scheduled audition, date and time', () => {
+    const auditionDate = '2026-09-15T14:30:00.000Z';
+    renderHeader({ nominationFile: makeSessionNominationFile({ auditionDate }) });
+
+    const label = format(new Date(auditionDate), "dd/MM/yyyy 'à' HH'h'mm");
+    expect(screen.getByText(`Une audition est prévue le ${label}`)).toBeInTheDocument();
+  });
+
+  it('says nothing about an audition when none is scheduled', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ auditionDate: null }) });
+
+    expect(screen.queryByText(/Une audition est prévue/)).not.toBeInTheDocument();
   });
 });
 

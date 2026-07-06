@@ -160,6 +160,7 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
+        auditionDate: x.auditionDate?.toISOString() ?? null,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
@@ -266,6 +267,7 @@ const RawListedNominationFiles = z.array(
     id: z.uuid(),
     priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPrioriteEnum)),
     comment: z.string().nullable(),
+    auditionDate: z.date().nullable(),
     biography: z.string().nullable(),
     birthDate: z.date().nullable(),
     currentPosition: z.string().nullable(),
@@ -339,6 +341,7 @@ const NominationFileAffectationItemSchema = z.object({
   priorities: z.array(z.enum(PrioriteEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
+  auditionDate: z.iso.datetime().nullable(),
   reporters: z.array(
     z.object({
       id: z.string(),

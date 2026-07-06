@@ -91,7 +91,7 @@ function useReportListColumns(sessionId: string) {
               name: row.original.name,
               id: row.original.nominationFileId,
               observations: row.original.observations,
-              legacyObservers: row.original.observers,
+              legacyObservers: [],
             }}
           />
         ),

@@ -2,6 +2,7 @@ import React from 'react';
 
 export const SUMMARY_SECTION_ANCHORS = [
   { id: 'magistrat', label: 'Magistrat' },
+  { id: 'audition', label: 'Audition' },
   { id: 'biographie', label: 'Biographie' },
   { id: 'observants', label: 'Observants' },
   { id: 'synthese', label: 'Synthèse' },

@@ -19,6 +19,7 @@ SELECT
   ddn.id,
   ARRAY_TO_JSON(ddn.priorities) AS "priorities",
   ddn."comment",
+  ddn.audition_date AS "auditionDate",
   ddn.biography,
   ddn.birth_date AS "birthDate",
   ddn.current_position AS "currentPosition",

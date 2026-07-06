@@ -90,3 +90,9 @@ export class UpdateCommentDto extends createZodDto(
     comment: z.string().max(50000).nullable(),
   }),
 ) {}
+
+export class UpdateAuditionDateDto extends createZodDto(
+  z.object({
+    auditionDate: z.iso.datetime().nullable(),
+  }),
+) {}

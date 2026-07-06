@@ -6,6 +6,7 @@ import { SummaryBreadcrumb } from './SummaryBreadcrumb';
 import { SummaryOutcomeNotice } from './SummaryOutcomeNotice';
 import { SummaryReaderSelector } from './SummaryReaderSelector';
 import { SummarySectionAttachments } from './SummarySectionAttachments';
+import { SummarySectionAuditionDate } from './SummarySectionAuditionDate';
 import { SummarySectionBiography } from './SummarySectionBiography';
 import { SummarySectionContent } from './SummarySectionContent';
 import { SummarySectionMagistrat } from './SummarySectionMagistrat';
@@ -34,6 +35,7 @@ export function Summary() {
           <div className="flex flex-col gap-y-8">
             <SummarySectionMagistrat />
             <SummarySectionBiography />
+            <SummarySectionAuditionDate />
             <SummarySectionObservations />
             <SummarySectionContent />
             <SummarySectionAttachments />

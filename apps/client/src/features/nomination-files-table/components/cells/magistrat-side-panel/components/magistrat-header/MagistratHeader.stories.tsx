@@ -60,6 +60,7 @@ const VIEWS = ['sg', 'sgArchived', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
 function MagistratHeaderStory(props: {
+  auditionDate?: string | null;
   nomMagistrat: string;
   priorities: PrioriteEnum[];
   reporters: ReporterScenario;
@@ -74,6 +75,7 @@ function MagistratHeaderStory(props: {
   }, [isSg, navigate]);
 
   const nominationFile = makeSessionNominationFile({
+    auditionDate: props.auditionDate || null,
     content: { nomMagistrat: props.nomMagistrat },
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
@@ -105,6 +107,7 @@ const meta = {
   },
   args: {
     nomMagistrat: 'Camille DURAND',
+    auditionDate: '2026-09-15T14:30:00.000Z',
     priorities: [PrioriteEnum.ETOILE],
     reporters: 'you',
     view: 'sg',

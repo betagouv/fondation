@@ -243,6 +243,20 @@ export class SessionService {
     });
   }
 
+  async updateNominationFileAuditionDate(command: {
+    sessionId: string;
+    nominationFileId: string;
+    auditionDate: string | null;
+  }): Promise<void> {
+    await this.prisma.dossierDeNomination.update({
+      where: {
+        id: command.nominationFileId,
+        sessionId: command.sessionId,
+      },
+      data: { auditionDate: command.auditionDate },
+    });
+  }
+
   async createNominationSessionFromLodam(command: {
     files: readonly LodamNominationFile[];
     name: string;

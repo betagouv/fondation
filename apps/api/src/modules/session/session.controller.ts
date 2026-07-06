@@ -31,6 +31,7 @@ import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
+  UpdateAuditionDateDto,
   UpdateCommentDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
@@ -311,6 +312,22 @@ export class SessionController {
       sessionId,
       nominationFileId,
       comment: body.comment,
+    });
+  }
+
+  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @Patch('/:sessionId/files/:nominationFileId/audition-date')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFileAuditionDate(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: UpdateAuditionDateDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFileAuditionDate({
+      sessionId,
+      nominationFileId,
+      auditionDate: body.auditionDate,
     });
   }
 
