@@ -18,8 +18,7 @@
     "husky": "9.1.7",
     "oxfmt": "0.47.0",
     "oxlint": "catalog:",
-    "oxlint-tsgolint": "catalog:",
-    "type-fest": "4.41.0"
+    "oxlint-tsgolint": "catalog:"
   },
   "engines": {
     "node": "24",

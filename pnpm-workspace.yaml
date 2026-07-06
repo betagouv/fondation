@@ -7,11 +7,14 @@ catalog:
   '@faker-js/faker': 9.9.0
   oxlint: 1.60.0
   'oxlint-tsgolint': 0.22.0
+  typescript: 5.9.3
+  '@types/node': 26.0.1
 
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
   node-xlsx>xlsx: '-'
+
 # jest-dom augments `vitest` without depending on it, so pnpm resolves its
 # augmentation against the api's vitest instead of the client's. Declaring the
 # peer co-locates the right vitest per project. See https://github.com/betagouv/fondation/pull/437
@@ -22,6 +25,7 @@ packageExtensions:
     peerDependenciesMeta:
       vitest:
         optional: true
+
 allowBuilds:
   '@nestjs/core': true
   '@prisma/client': false
@@ -34,6 +38,3 @@ allowBuilds:
   puppeteer: false
   unrs-resolver: false
   esbuild: true
-minimumReleaseAgeExclude:
-  # Renovate security update: piscina@5.2.0
-  - piscina@5.2.0
