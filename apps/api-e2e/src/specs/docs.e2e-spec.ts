@@ -5,9 +5,10 @@ import * as seed from '../utils/seed.ts';
 
 test.describe('Docs Service', () => {
   let chairmanId: string;
+  let firstSecretaryId: string;
   let sessionId: string;
 
-  test.beforeEach(async ({ agent, sessions, registerUser, expect }) => {
+  test.beforeEach(async ({ admin, agent, sessions, registerUser, expect }) => {
     const chairman = await registerUser('MEMBRE_DU_PARQUET');
 
     const titleUpdateResponse = await agent.members.updateTitle({
@@ -17,6 +18,14 @@ test.describe('Docs Service', () => {
     expect(titleUpdateResponse.response.status).toBe(204);
 
     chairmanId = chairman.id;
+
+    const firstSecretary = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
+    const roleUpdated = await admin.administration.updateRole({
+      path: { userId: firstSecretary.id },
+      body: { role: 'FIRST_SECRETARY' },
+    });
+    expect(roleUpdated.response.status).toBe(204);
+    firstSecretaryId = firstSecretary.id;
 
     const session = await sessions.createOne({
       createdAt: '23/04/2026',
@@ -64,7 +73,10 @@ test.describe('Docs Service', () => {
     expect(publishRes.response.status).toBe(204);
   });
 
-  test('should prevent creating an agenda with twice the same file', async ({ agent, expect }) => {
+  test('should prevent creating an agenda with a file appearing as VALIDATED in official report', async ({
+    agent,
+    expect,
+  }) => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundFiles.response.status).toBe(200);
     expect(foundFiles.data!.items).toHaveLength(2);
@@ -90,6 +102,30 @@ test.describe('Docs Service', () => {
     });
     expect(agenda.response.status).toBe(201);
     expect(agenda.data).toEqual({ id: expect.any(String) });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    expect(justiceContact.response.status).toBe(201);
+
+    const todayDate = new Date();
+    const today = { day: todayDate.getDate(), month: todayDate.getMonth() + 1, year: todayDate.getFullYear() };
+
+    const firstOfficialReport = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agenda.data!.id],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: today,
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(firstOfficialReport.response.status).toBe(201);
 
     const foundAfter = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundAfter.data!.items).toHaveLength(1);
