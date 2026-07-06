@@ -11,11 +11,7 @@ import { StorablePath } from './storable.types';
 @Injectable()
 export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
   readonly client: S3;
-
   private readonly bucketName: string;
-  private readonly expiresInSeconds: number;
-
-  private readonly hasSse: boolean = false;
   private readonly sseHeaders:
     | {
         SSECustomerKey: string;
@@ -36,7 +32,6 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
         .update(Buffer.from(SSECustomerKey, 'base64'))
         .digest('base64');
 
-      this.hasSse = true;
       this.sseHeaders = {
         SSECustomerKey,
         SSECustomerKeyMD5,
@@ -44,7 +39,6 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
       };
     }
 
-    this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
     this.bucketName = config.s3.bucket;
     this.client = new S3({
       maxAttempts: 3,
@@ -68,7 +62,10 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
       };
     }) => T,
   ): T {
-    return builder({ key: S3Client.buildKey, command: { Bucket: this.bucketName, ...this.sseHeaders } });
+    return builder({
+      key: (x) => S3Client.buildKey(x),
+      command: { Bucket: this.bucketName, ...this.sseHeaders },
+    });
   }
 
   private static buildKey(stored: { path: StorablePath }): string {

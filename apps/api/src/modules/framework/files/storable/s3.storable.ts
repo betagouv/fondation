@@ -62,7 +62,7 @@ export class S3Storage implements Storage {
   ): Promise<StorageResult<{ id: string }>> {
     if (objects.some((object) => !object.path)) {
       this.logger.warn(`some objects have no path`);
-      return new StorageResult<{ id: string }>().fail(...objects);
+      return new StorageResult<{ id: string }>(this.logger).fail(...objects);
     }
 
     const objectsWithPath = objects as readonly { id: string; path: StorablePath }[];
