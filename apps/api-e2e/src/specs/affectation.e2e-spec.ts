@@ -34,7 +34,7 @@ test.describe('Session Affectations E2E', () => {
     sessionId = session.id;
 
     const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
-    expect(files.response.status).toBe(200);
+    expect(files.response?.status).toBe(200);
     nominationFileId = files.data!.items[0]!.id;
   });
 
@@ -78,7 +78,7 @@ test.describe('Session Affectations E2E', () => {
     const publishedAffectationsResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
       path: { sessionId },
     });
-    expect(publishedAffectationsResponse.response.status).toBe(204);
+    expect(publishedAffectationsResponse.response?.status).toBe(204);
 
     const unaffected = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(unaffected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: false }));

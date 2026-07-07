@@ -15,7 +15,7 @@ test.describe('Docs Service', () => {
       path: { userId: chairman.id },
       body: { title: 'PRESIDENT_PARQUET' },
     });
-    expect(titleUpdateResponse.response.status).toBe(204);
+    expect(titleUpdateResponse.response?.status).toBe(204);
 
     chairmanId = chairman.id;
 
@@ -24,7 +24,7 @@ test.describe('Docs Service', () => {
       path: { userId: firstSecretary.id },
       body: { role: 'FIRST_SECRETARY' },
     });
-    expect(roleUpdated.response.status).toBe(204);
+    expect(roleUpdated.response?.status).toBe(204);
     firstSecretaryId = firstSecretary.id;
 
     const session = await sessions.createOne({
@@ -65,12 +65,12 @@ test.describe('Docs Service', () => {
     sessionId = session.id;
 
     const validateRes = await agent.sessions.validateSession({ path: { sessionId } });
-    expect(validateRes.response.status).toBe(204);
+    expect(validateRes.response?.status).toBe(204);
 
     const publishRes = await agent.sessions.publishNominationSessionAffectationsVersion({
       path: { sessionId },
     });
-    expect(publishRes.response.status).toBe(204);
+    expect(publishRes.response?.status).toBe(204);
   });
 
   test('should prevent creating an agenda with a file appearing as VALIDATED in official report', async ({
@@ -78,7 +78,7 @@ test.describe('Docs Service', () => {
     expect,
   }) => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
-    expect(foundFiles.response.status).toBe(200);
+    expect(foundFiles.response?.status).toBe(200);
     expect(foundFiles.data!.items).toHaveLength(2);
 
     for (const { id } of foundFiles.data!.items) {
@@ -86,7 +86,7 @@ test.describe('Docs Service', () => {
         path: { sessionId, nominationFileId: id },
         body: { comment: null, outcome: 'VALIDATED' },
       });
-      expect(outcomeRes.response.status).toBe(204);
+      expect(outcomeRes.response?.status).toBe(204);
     }
 
     const firstFileId = foundFiles.data!.items[0]!.id;
@@ -100,13 +100,13 @@ test.describe('Docs Service', () => {
         nominationFileIds: [firstFileId],
       },
     });
-    expect(agenda.response.status).toBe(201);
+    expect(agenda.response?.status).toBe(201);
     expect(agenda.data).toEqual({ id: expect.any(String) });
 
     const justiceContact = await agent.docs.createJusticeContact({
       body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
     });
-    expect(justiceContact.response.status).toBe(201);
+    expect(justiceContact.response?.status).toBe(201);
 
     const todayDate = new Date();
     const today = { day: todayDate.getDate(), month: todayDate.getMonth() + 1, year: todayDate.getFullYear() };
@@ -125,7 +125,7 @@ test.describe('Docs Service', () => {
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
       },
     });
-    expect(firstOfficialReport.response.status).toBe(201);
+    expect(firstOfficialReport.response?.status).toBe(201);
 
     const foundAfter = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundAfter.data!.items).toHaveLength(1);
@@ -139,6 +139,6 @@ test.describe('Docs Service', () => {
         nominationFileIds: [firstFileId],
       },
     });
-    expect(duplicateAgenda.response.status).toBe(400);
+    expect(duplicateAgenda.response?.status).toBe(400);
   });
 });

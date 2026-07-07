@@ -378,7 +378,7 @@ export type PaginatedNominationFiles = {
                 month: number;
                 day: number;
             };
-            followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+            followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
             followUpComment: string | null;
             hasDescription: boolean;
             hasUserComment: boolean;
@@ -481,6 +481,7 @@ export type ListedNominationFileAttachmentDto = {
     items: Array<{
         id: string;
         name: string;
+        size: number | null;
     }>;
 };
 
@@ -745,23 +746,6 @@ export type DetailedMemberSessionDto = {
         currentPosition: string | null;
         targettedPosition: string;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        /**
-         * legacy observations from LODAM. Prefer observations
-         *
-         * @deprecated
-         */
-        observers: Array<string>;
-        /**
-         * prefer observations
-         *
-         * @deprecated
-         */
-        observationMagistrat: Array<{
-            id: string;
-            firstName: string;
-            lastName: string;
-            observationId: string;
-        }>;
         observations: Array<{
             id: string;
             hasDescription: boolean;
@@ -784,7 +768,6 @@ export type DetailedMemberSessionDto = {
     session: {
         id: string;
         isArchived: boolean;
-        sessionImportId: string;
         formation: string;
         transparency: string;
         dateTransparence: {
@@ -1290,6 +1273,7 @@ export type ListObservationsResponseDto = {
         id: string;
         dateReception: string;
         description: string;
+        followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
         magistrat: {
             id: string;
             firstName: string;
@@ -1336,7 +1320,7 @@ export type GetObservationDetailsResponseDto = {
         proposedPosition: string | null;
     };
     description: string;
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+    followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     followUpComment: string | null;
     files: Array<{
         id: string;
@@ -1402,7 +1386,7 @@ export type WriteMemberCommentDto = {
 };
 
 export type FollowUpOnObservationDto = {
-    followUp: 'REFERENCE' | 'ALERT' | 'INTERESTING' | null;
+    followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     comment: string | null;
 };
 
@@ -1465,7 +1449,9 @@ export type GetFileByFileUrlData = {
     path: {
         fileUrlId: string;
     };
-    query?: never;
+    query: {
+        download: string;
+    };
     url: '/api/files/v1/{fileUrlId}';
 };
 
@@ -2612,9 +2598,7 @@ export type FindAgendaNominationFilesData = {
     path: {
         sessionId: string;
     };
-    query?: {
-        ignoreAgendaId?: string;
-    };
+    query?: never;
     url: '/api/docs/v1/sessions/{sessionId}/files';
 };
 

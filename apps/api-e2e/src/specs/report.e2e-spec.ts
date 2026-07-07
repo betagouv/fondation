@@ -33,7 +33,7 @@ test.describe('Report E2E', () => {
     const filesResponse = await agent.sessions.listNominationFiles({
       path: { sessionId: session.id },
     });
-    expect(filesResponse.response.status).toBe(200);
+    expect(filesResponse.response?.status).toBe(200);
 
     const nominationFileId: string = filesResponse.data!.items[0]!.id;
 
@@ -41,12 +41,12 @@ test.describe('Report E2E', () => {
       path: { sessionId: session.id },
       body: { items: [{ nominationFileId, reporterIds: [member['@user']!.id], priorities: [] }] },
     });
-    expect(affectResponse.response.status).toBe(204);
+    expect(affectResponse.response?.status).toBe(204);
 
     const publishResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
       path: { sessionId: session.id },
     });
-    expect(publishResponse.response.status).toBe(204);
+    expect(publishResponse.response?.status).toBe(204);
 
     const memberId = member['@user']!.id;
     const reportsRes = await member.members.detailsMemberSession({
@@ -64,10 +64,10 @@ test.describe('Report E2E', () => {
       body: { files: [file] },
       query: { usage: 'ATTACHMENT' },
     });
-    expect(attachmentRes.response.status).toBe(204);
+    expect(attachmentRes.response?.status).toBe(204);
 
     const responseBody = await member.reports.detailReport({ path: { reportId } });
-    expect(responseBody.response.status).toBe(200);
+    expect(responseBody.response?.status).toBe(200);
     expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
   });
 
@@ -81,7 +81,7 @@ test.describe('Report E2E', () => {
       body: { files: [file1, file2] },
       query: { usage: 'ATTACHMENT' },
     });
-    expect(attachmentRes.response.status).toBe(204);
+    expect(attachmentRes.response?.status).toBe(204);
 
     const reportResBefore = await member.reports.detailReport({ path: { reportId } });
     expect(reportResBefore.data?.attachments).toHaveLength(2);
@@ -90,7 +90,7 @@ test.describe('Report E2E', () => {
       path: { reportId },
       query: { fileNames: file1.name },
     });
-    expect(deleteAttachmentRes.response.status).toBe(204);
+    expect(deleteAttachmentRes.response?.status).toBe(204);
 
     const reportResAfter = await member.reports.detailReport({ path: { reportId } });
     expect(reportResAfter.data?.attachments).toHaveLength(1);

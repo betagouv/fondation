@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
@@ -22,7 +24,7 @@ export default defineConfig({
     },
     {
       name: '@hey-api/client-fetch',
-      runtimeConfigPath: '../../utils/http.config.ts',
+      runtimeConfigPath: fileURLToPath(import.meta.resolve('./src/utils/http.config.ts')),
       throwOnError: false,
     },
     {
