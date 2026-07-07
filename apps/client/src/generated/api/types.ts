@@ -749,23 +749,6 @@ export type DetailedMemberSessionDto = {
         currentPosition: string | null;
         targettedPosition: string;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        /**
-         * legacy observations from LODAM. Prefer observations
-         *
-         * @deprecated
-         */
-        observers: Array<string>;
-        /**
-         * prefer observations
-         *
-         * @deprecated
-         */
-        observationMagistrat: Array<{
-            id: string;
-            firstName: string;
-            lastName: string;
-            observationId: string;
-        }>;
         observations: Array<{
             id: string;
             hasDescription: boolean;
@@ -788,7 +771,6 @@ export type DetailedMemberSessionDto = {
     session: {
         id: string;
         isArchived: boolean;
-        sessionImportId: string;
         formation: string;
         transparency: string;
         dateTransparence: {
@@ -2619,9 +2601,7 @@ export type FindAgendaNominationFilesData = {
     path: {
         sessionId: string;
     };
-    query?: {
-        ignoreAgendaId?: string;
-    };
+    query?: never;
     url: '/api/docs/v1/sessions/{sessionId}/files';
 };
 

@@ -87,11 +87,11 @@ test.describe('Session E2E', () => {
         },
       });
 
-      if (response.response.status === 400) {
+      if (response.response?.status === 400) {
         // oxlint-disable-next-line no-console
         console.error(response.error);
       }
-      expect(response.response.status).toBe(201);
+      expect(response.response?.status).toBe(201);
 
       const sessionId = response.data!.id;
       expect(sessionId).toBeDefined();
@@ -210,12 +210,12 @@ test.describe('Session E2E', () => {
         path: { sessionId, nominationFileId },
         body: { files: [fileToAttach] },
       });
-      expect(uploadRes.response.status).toBe(204);
+      expect(uploadRes.response?.status).toBe(204);
 
       const attachments = await agent.sessions.listNominationFileAttachments({
         path: { sessionId, nominationFileId },
       });
-      expect(attachments.response.status).toBe(200);
+      expect(attachments.response?.status).toBe(200);
       expect(attachments.data!.items).toEqual([
         { id: expect.any(String), name: fileToAttach.name, size: fileToAttach.size },
       ]);
@@ -239,14 +239,14 @@ test.describe('Session E2E', () => {
       const createRes = await agent.summaries.createSummary({
         path: { sessionId: session.id, nominationFileId },
       });
-      expect(createRes.response.status).toBe(201);
+      expect(createRes.response?.status).toBe(201);
       expect(await summaryOf(nominationFileId)).toBeNull();
 
       const writeRes = await agent.summaries.writeSummary({
         path: { sessionId: session.id, nominationFileId },
         body: { content: 'Une vraie synthèse' },
       });
-      expect(writeRes.response.status).toBe(204);
+      expect(writeRes.response?.status).toBe(204);
       expect(await summaryOf(nominationFileId)).toEqual({
         id: nominationFileId,
         canRead: true,
@@ -268,20 +268,20 @@ test.describe('Session E2E', () => {
       const nominationFileId = initial.data!.items[0]!.id;
       const summaryPath = { sessionId: session.id, nominationFileId };
 
-      expect((await agent.summaries.createSummary({ path: summaryPath })).response.status).toBe(201);
-      expect((await other.summaries.createSummary({ path: summaryPath })).response.status).toBe(201);
+      expect((await agent.summaries.createSummary({ path: summaryPath })).response?.status).toBe(201);
+      expect((await other.summaries.createSummary({ path: summaryPath })).response?.status).toBe(201);
 
       const firstWrite = await other.summaries.writeSummary({
         path: summaryPath,
         body: { content: 'Synthèse rédigée en premier' },
       });
-      expect(firstWrite.response.status).toBe(204);
+      expect(firstWrite.response?.status).toBe(204);
 
       const concurrentWrite = await agent.summaries.writeSummary({
         path: summaryPath,
         body: { content: 'tentative concurrente' },
       });
-      expect(concurrentWrite.response.status).toBe(403);
+      expect(concurrentWrite.response?.status).toBe(403);
     }, 10_000);
   });
 });
