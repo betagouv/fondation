@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@faker-js/faker':
-      specifier: 9.9.0
-      version: 9.9.0
+      specifier: 10.5.0
+      version: 10.5.0
     '@hey-api/openapi-ts':
       specifier: 0.99.0
       version: 0.99.0
@@ -154,7 +154,7 @@ importers:
     devDependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 9.9.0
+        version: 10.5.0
       '@nestjs/cli':
         specifier: 11.0.23
         version: 11.0.23(@swc/core@1.15.41)(@types/node@26.0.1)(esbuild@0.27.7)(prettier@3.8.3)
@@ -220,7 +220,7 @@ importers:
     devDependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 9.9.0
+        version: 10.5.0
       '@hey-api/openapi-ts':
         specifier: 'catalog:'
         version: 0.99.0(typescript@5.9.3)
@@ -368,7 +368,7 @@ importers:
         version: 9.39.4
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 9.9.0
+        version: 10.5.0
       '@formatjs/unplugin':
         specifier: 1.1.10
         version: 1.1.10(esbuild@0.27.7)(vite@8.0.16(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1))(webpack@5.106.2(esbuild@0.27.7))
@@ -470,7 +470,7 @@ importers:
     dependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 9.9.0
+        version: 10.5.0
       date-fns:
         specifier: 4.2.1
         version: 4.2.1
@@ -1048,9 +1048,9 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@faker-js/faker@9.9.0':
-    resolution: {integrity: sha512-OEl393iCOoo/z8bMezRlJu+GlRGlsKbUAN7jKB6LhnKoqKve5DXRpalbItIIcwnCjs1k/FOPjFzcA6Qn+H+YbA==}
-    engines: {node: '>=18.0.0', npm: '>=9.0.0'}
+  '@faker-js/faker@10.5.0':
+    resolution: {integrity: sha512-bsxD8WLS5lIj7aaoCx1YJkktqYj5vlBUE6HWzu2Q51ksrGJ0H737ECCKlFU7Yf8Br45z9t99frBp/J7kzbMPAg==}
+    engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
 
   '@fastify/otel@0.18.0':
     resolution: {integrity: sha512-3TASCATfw+ctICSb4ymrv7iCm0qJ0N9CarB+CZ7zIJ7KqNbwI5JjyDL1/sxoC0ccTO1Zyd1iQ+oqncPg5FJXaA==}
@@ -7243,7 +7243,7 @@ snapshots:
 
   '@exodus/bytes@1.15.1': {}
 
-  '@faker-js/faker@9.9.0': {}
+  '@faker-js/faker@10.5.0': {}
 
   '@fastify/otel@0.18.0(@opentelemetry/api@1.9.1)':
     dependencies:
