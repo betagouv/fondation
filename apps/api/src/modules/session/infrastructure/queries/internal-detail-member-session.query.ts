@@ -149,6 +149,7 @@ export class InternalDetailMemberSessionQuery {
           targettedPosition: d.targetedPosition ?? '',
           targetedGrade: d.targetedGrade,
 
+          observers: d.observers,
           observations: (observations || []).filter(isDefined).map((o) => ({
             id: o.id,
             hasDescription: o.description.length > 0,
@@ -166,18 +167,6 @@ export class InternalDetailMemberSessionQuery {
                 }
               : null,
           })),
-
-          /** @deprecated */
-          observers: d.observers,
-          /** @deprecated */
-          observationMagistrats: (observations ?? [])
-            .filter((obs) => obs && obs.magistrat)
-            .map((obs) => ({
-              id: obs!.magistrat!.id,
-              firstName: obs!.magistrat!.firstName,
-              lastName: obs!.magistrat!.lastName,
-              observationId: obs!.id,
-            })),
         };
       }),
       pagination: query.pagination,
@@ -219,6 +208,9 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     targettedPosition: z.string(),
     targetedGrade: z.enum(Magistrat.Grade),
 
+    observers: z
+      .array(z.string())
+      .describe(`LODAM observers, we need to keep them until we recover data from LODAM`),
     observations: z.array(
       z.object({
         id: z.string(),
