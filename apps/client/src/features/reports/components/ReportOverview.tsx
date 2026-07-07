@@ -2,7 +2,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { formatBiography, formatObservers } from '@/features/reports/utils/formatters';
+import { formatBiography } from '@/features/reports/utils/formatters';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
@@ -50,7 +50,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     navigate,
   );
 
-  const formattedObservers = formatObservers(retrievedReport.observers);
   const formattedBiography = formatBiography(retrievedReport.biography);
 
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
@@ -119,7 +118,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             />
             <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
             <Observers
-              observers={formattedObservers}
+              observers={retrievedReport.observers}
               observations={retrievedReport.observations}
               sessionId={retrievedReport.sessionId}
               nominationFileId={retrievedReport.nominationFileId}
