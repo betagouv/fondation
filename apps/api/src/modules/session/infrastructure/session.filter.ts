@@ -9,6 +9,7 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
+  NominationFileCannotBeAuditioned,
   NominationFileOutcomeRequiresComment,
   UnknownNominationFileOutcome,
 } from '../domain/nomination-file-outcome';
@@ -100,6 +101,14 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof SessionTransparenceIsArchived) {
             return new ForbiddenException({
               validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
+            });
+          }
+
+          if (err instanceof NominationFileCannotBeAuditioned) {
+            return new BadRequestException({
+              validationErrors: [
+                `impossible de programmer une audition sur un dossier dont la décision est déjà prise`,
+              ],
             });
           }
 

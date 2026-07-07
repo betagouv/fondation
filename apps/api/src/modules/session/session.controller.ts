@@ -316,7 +316,7 @@ export class SessionController {
   }
 
   @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
-  @Patch('/:sessionId/files/:nominationFileId/audition-date')
+  @Put('/:sessionId/files/:nominationFileId/audition/schedule')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateNominationFileAuditionDate(
@@ -327,7 +327,8 @@ export class SessionController {
     await this.sessions.updateNominationFileAuditionDate({
       sessionId,
       nominationFileId,
-      auditionDate: body.auditionDate,
+      auditionDate: body.auditionDate ? DateOnly.fromJson(body.auditionDate) : null,
+      auditionTime: body.auditionTime,
     });
   }
 

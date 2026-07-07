@@ -51,6 +51,10 @@ export class NominationFileOutcome {
     return [...NON_FINAL_OUTCOMES];
   }
 
+  static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
+    return outcome === null || !(FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
+  }
+
   private constructor(
     readonly outcome: NominationFileOutcomeEnum,
     readonly comment: string | null,
@@ -94,6 +98,12 @@ export class UnknownNominationFileOutcome extends Error {
 }
 
 export class NominationFileOutcomeRequiresComment extends Error {
+  constructor(readonly outcome: NominationFileOutcomeEnum) {
+    super();
+  }
+}
+
+export class NominationFileCannotBeAuditioned extends Error {
   constructor(readonly outcome: NominationFileOutcomeEnum) {
     super();
   }

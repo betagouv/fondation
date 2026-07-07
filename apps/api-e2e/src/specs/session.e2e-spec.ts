@@ -109,6 +109,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionTime: null,
         isArchived: false,
         content: {
           numeroDeDossier: 1,
@@ -152,6 +153,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionTime: null,
         id: expect.any(String),
         isArchived: false,
         observations: [],

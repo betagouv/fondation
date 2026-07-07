@@ -369,7 +369,16 @@ export type PaginatedNominationFiles = {
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
         };
         comment: string | null;
-        auditionDate: string | null;
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -456,7 +465,16 @@ export type UpdateCommentDto = {
 };
 
 export type UpdateAuditionDateDto = {
-    auditionDate: string | null;
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    } | null;
 };
 
 export type DefineNominationFileOutcomeDto = {
@@ -582,6 +600,7 @@ export type DetailedSummaryDto = {
     id: string;
     sessionId: string;
     isArchived: boolean;
+    canScheduleAudition: boolean;
     name: string | null;
     rank: string | null;
     formation: 'PARQUET' | 'SIEGE';
@@ -591,7 +610,16 @@ export type DetailedSummaryDto = {
         month: number;
         day: number;
     } | null;
-    auditionDate: string | null;
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    } | null;
     grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     position: string | null;
     targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
@@ -1996,7 +2024,7 @@ export type UpdateNominationFileAuditionDateData = {
         nominationFileId: string;
     };
     query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition-date';
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition/schedule';
 };
 
 export type UpdateNominationFileAuditionDateResponses = {

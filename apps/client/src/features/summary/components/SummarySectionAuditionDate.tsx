@@ -9,7 +9,7 @@ import { SummarySectionCard } from './SummarySectionCard';
 export function SummarySectionAuditionDate() {
   const { summary, sessionId, nominationFileId } = useSummary();
   const isSg = useIsSg();
-  const editable = isSg && !summary.isArchived;
+  const editable = isSg && summary.canScheduleAudition;
 
   if (!editable && !summary.auditionDate) return null;
 
@@ -21,6 +21,7 @@ export function SummarySectionAuditionDate() {
       <SummaryAuditionDate
         editable={editable}
         initialAuditionDate={summary.auditionDate}
+        initialAuditionTime={summary.auditionTime}
         nominationFileId={nominationFileId}
         sessionId={sessionId}
       />

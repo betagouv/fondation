@@ -1,11 +1,15 @@
-import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
 import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
 
 import { LodamNominationFile } from '../domain/nomination-file';
-import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
-import { SessionTransparence } from '../domain/session-transparence';
+import {
+  NominationFileCannotBeAuditioned,
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from '../domain/nomination-file-outcome';
+import { SessionTransparence, SessionTransparenceIsArchived } from '../domain/session-transparence';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
@@ -14,6 +18,7 @@ import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
@@ -246,14 +251,27 @@ export class SessionService {
   async updateNominationFileAuditionDate(command: {
     sessionId: string;
     nominationFileId: string;
-    auditionDate: string | null;
+    auditionDate: DateOnly | null;
+    auditionTime: TimeOnly | null;
   }): Promise<void> {
-    await this.prisma.dossierDeNomination.update({
-      where: {
-        id: command.nominationFileId,
-        sessionId: command.sessionId,
-      },
-      data: { auditionDate: command.auditionDate },
+    await this.prisma.$transaction(async (tx) => {
+      const dossier = await tx.dossierDeNomination.findFirst({
+        where: { id: command.nominationFileId, sessionId: command.sessionId },
+        select: { outcome: true, session: { select: { archivedAt: true } } },
+      });
+      if (!dossier) throw new NotFoundException();
+      if (dossier.session.archivedAt) throw new SessionTransparenceIsArchived(command.sessionId);
+      if (command.auditionDate !== null && !NominationFileOutcome.allowsAudition(dossier.outcome)) {
+        throw new NominationFileCannotBeAuditioned(dossier.outcome as NominationFileOutcomeEnum);
+      }
+
+      await tx.dossierDeNomination.update({
+        where: { id: command.nominationFileId, sessionId: command.sessionId },
+        data: {
+          auditionDate: command.auditionDate?.toDate() ?? null,
+          auditionTime: command.auditionTime ? timeOnlyToDate(command.auditionTime) : null,
+        },
+      });
     });
   }
 

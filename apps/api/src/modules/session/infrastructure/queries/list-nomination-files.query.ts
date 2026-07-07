@@ -22,6 +22,7 @@ import {
 import { DateOnly } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -160,7 +161,8 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
-        auditionDate: x.auditionDate?.toISOString() ?? null,
+        auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
+        auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
@@ -268,6 +270,7 @@ const RawListedNominationFiles = z.array(
     priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPrioriteEnum)),
     comment: z.string().nullable(),
     auditionDate: z.date().nullable(),
+    auditionTime: z.date().nullable(),
     biography: z.string().nullable(),
     birthDate: z.date().nullable(),
     currentPosition: z.string().nullable(),
@@ -341,7 +344,8 @@ const NominationFileAffectationItemSchema = z.object({
   priorities: z.array(z.enum(PrioriteEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
-  auditionDate: z.iso.datetime().nullable(),
+  auditionDate: dateOnlyJsonSchema.nullable(),
+  auditionTime: timeOnlySchema.nullable(),
   reporters: z.array(
     z.object({
       id: z.string(),

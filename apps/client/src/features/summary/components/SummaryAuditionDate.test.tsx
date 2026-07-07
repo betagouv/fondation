@@ -3,19 +3,33 @@ import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { frFormat } from '@/i18n/formats';
+import type { DetailedSummaryDto } from '@api/types';
+
 import { SummaryAuditionDate } from './SummaryAuditionDate';
 
-const mutateAsync = vi.fn<(input: { auditionDate: string | null }) => Promise<void>>();
+const mutateAsync =
+  vi.fn<
+    (input: {
+      auditionDate: DetailedSummaryDto['auditionDate'];
+      auditionTime: DetailedSummaryDto['auditionTime'];
+    }) => Promise<void>
+  >();
 vi.mock('@queries/members.queries', () => ({
   useUpdateNominationFileAuditionDateMutation: () => ({ mutateAsync }),
 }));
 
-function renderAuditionDate(props: { editable: boolean; initialAuditionDate: string | null }) {
+function renderAuditionDate(props: {
+  editable: boolean;
+  initialAuditionDate: DetailedSummaryDto['auditionDate'];
+  initialAuditionTime: DetailedSummaryDto['auditionTime'];
+}) {
   return render(
-    <IntlProvider defaultLocale="fr" locale="fr">
+    <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
       <SummaryAuditionDate
         editable={props.editable}
         initialAuditionDate={props.initialAuditionDate}
+        initialAuditionTime={props.initialAuditionTime}
         nominationFileId="nomination-file"
         sessionId="session-1"
       />
@@ -38,35 +52,39 @@ afterEach(() => {
 
 describe('SummaryAuditionDate read-only', () => {
   it('renders the scheduled date and time', () => {
-    const iso = new Date('2026-09-15T14:30').toISOString();
-    renderAuditionDate({ editable: false, initialAuditionDate: iso });
+    renderAuditionDate({
+      editable: false,
+      initialAuditionDate: { year: 2026, month: 9, day: 15 },
+      initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
+    });
 
-    expect(screen.getByText('15/09/2026 à 14h30')).toBeInTheDocument();
+    expect(screen.getByText('15/09/2026 à 14:30')).toBeInTheDocument();
   });
 
   it('shows an empty state when no audition is scheduled', () => {
-    renderAuditionDate({ editable: false, initialAuditionDate: null });
+    renderAuditionDate({ editable: false, initialAuditionDate: null, initialAuditionTime: null });
 
     expect(screen.getByText("Aucune date et heure d'audition")).toBeInTheDocument();
   });
 });
 
 describe('SummaryAuditionDate edition', () => {
-  it('saves the audition as an ISO string built from date and time', () => {
-    renderAuditionDate({ editable: true, initialAuditionDate: null });
+  it('saves the audition as a date-only and time-only pair', () => {
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fillAuditionDate('2026-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     expect(mutateAsync).toHaveBeenCalledWith({
-      auditionDate: new Date('2026-09-15T14:30').toISOString(),
+      auditionDate: { year: 2026, month: 9, day: 15 },
+      auditionTime: { hours: 14, minutes: 30, seconds: 0 },
       nominationFileId: 'nomination-file',
       sessionId: 'session-1',
     });
   });
 
   it('asks for the time when only the date is filled', () => {
-    renderAuditionDate({ editable: true, initialAuditionDate: null });
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-15' } });
     fireEvent.blur(screen.getByLabelText('Date'));
@@ -76,7 +94,7 @@ describe('SummaryAuditionDate edition', () => {
   });
 
   it('asks for the date when only the time is filled', () => {
-    renderAuditionDate({ editable: true, initialAuditionDate: null });
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fireEvent.change(screen.getByLabelText('Heure'), { target: { value: '14:30' } });
     fireEvent.blur(screen.getByLabelText('Heure'));
@@ -86,17 +104,25 @@ describe('SummaryAuditionDate edition', () => {
   });
 
   it('clears the audition when reset', async () => {
-    const iso = new Date('2026-09-15T14:30').toISOString();
-    renderAuditionDate({ editable: true, initialAuditionDate: iso });
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: { year: 2026, month: 9, day: 15 },
+      initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
+    });
 
     await userEvent.click(screen.getByRole('button', { name: 'Réinitialiser' }));
 
-    expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ auditionDate: null }));
+    expect(mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ auditionDate: null, auditionTime: null }),
+    );
   });
 
   it('does not save again when the value is unchanged', () => {
-    const iso = new Date('2026-09-15T14:30').toISOString();
-    renderAuditionDate({ editable: true, initialAuditionDate: iso });
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: { year: 2026, month: 9, day: 15 },
+      initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
+    });
 
     fillAuditionDate('2026-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
@@ -106,7 +132,7 @@ describe('SummaryAuditionDate edition', () => {
 
   it('reports the failure and retries the same value after a rejected save', async () => {
     mutateAsync.mockRejectedValueOnce(new Error('network'));
-    renderAuditionDate({ editable: true, initialAuditionDate: null });
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fillAuditionDate('2026-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));

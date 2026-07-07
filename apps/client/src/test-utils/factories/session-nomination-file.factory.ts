@@ -34,6 +34,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
     id: 'nomination-file',
     comment: null,
     auditionDate: null,
+    auditionTime: null,
     content: { ...baseContent, ...content },
     hasAttachment: false,
     isArchived: false,

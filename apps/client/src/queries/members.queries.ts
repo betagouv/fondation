@@ -4,13 +4,15 @@ import type { PrioriteEnum, ReportStatusEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
+  DetailedSummaryDto,
   ListedMemberSessionsDto,
   ListMembersData,
   PaginatedNominationFiles,
+  UpdateAuditionDateDto,
 } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
-import { sessionKeys } from './nomination-sessions.queries';
+import { sessionKeys, type SessionNominationFile } from './nomination-sessions.queries';
 import { summaryKeys } from './summary.queries';
 
 export const memberKeys = {
@@ -224,32 +226,30 @@ export function useUpdateNominationFileAuditionDateMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (mutation: {
-      sessionId: string;
-      nominationFileId: string;
-      auditionDate: string | null;
-    }) => {
+    mutationFn: async (mutation: UpdateAuditionDateDto & { sessionId: string; nominationFileId: string }) => {
       await $api.sessions.updateNominationFileAuditionDate({
         path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        body: { auditionDate: mutation.auditionDate },
+        body: { auditionDate: mutation.auditionDate, auditionTime: mutation.auditionTime },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId, auditionDate }) => {
+    onSuccess: (_, { sessionId, nominationFileId, auditionDate, auditionTime }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: { items: { id: string; auditionDate?: string | null }[] } | undefined) => {
+        (old: { items: SessionNominationFile[] } | undefined) => {
           if (!old) return old;
 
           return {
             ...old,
-            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, auditionDate } : file)),
+            items: old.items.map((file) =>
+              file.id === nominationFileId ? { ...file, auditionDate, auditionTime } : file,
+            ),
           };
         },
       );
 
       queryClient.setQueryData(
         summaryKeys.detailsSummary({ sessionId, nominationFileId }),
-        (old: { auditionDate: string | null } | undefined) => (old ? { ...old, auditionDate } : old),
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
     },
   });

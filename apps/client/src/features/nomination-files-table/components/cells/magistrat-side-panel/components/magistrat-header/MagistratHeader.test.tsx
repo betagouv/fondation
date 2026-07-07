@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { format } from 'date-fns';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -190,15 +189,20 @@ describe('MagistratHeader edition', () => {
 
 describe('MagistratHeader audition date', () => {
   it('announces the scheduled audition, date and time', () => {
-    const auditionDate = '2026-09-15T14:30:00.000Z';
-    renderHeader({ nominationFile: makeSessionNominationFile({ auditionDate }) });
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        auditionDate: { year: 2026, month: 9, day: 15 },
+        auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+      }),
+    });
 
-    const label = format(new Date(auditionDate), "dd/MM/yyyy 'à' HH'h'mm");
-    expect(screen.getByText(`Une audition est prévue le ${label}`)).toBeInTheDocument();
+    expect(screen.getByText('Une audition est prévue le 15/09/2026 à 14:30')).toBeInTheDocument();
   });
 
   it('says nothing about an audition when none is scheduled', () => {
-    renderHeader({ nominationFile: makeSessionNominationFile({ auditionDate: null }) });
+    renderHeader({
+      nominationFile: makeSessionNominationFile({ auditionDate: null, auditionTime: null }),
+    });
 
     expect(screen.queryByText(/Une audition est prévue/)).not.toBeInTheDocument();
   });
