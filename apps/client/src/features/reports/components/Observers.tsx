@@ -12,17 +12,17 @@ export const Observers = ({
   nominationFileId,
   reportId,
 }: {
-  observers: string[] | null;
+  observers: string[];
   observations?: DetailedReportDto['observations'];
   sessionId?: string;
   nominationFileId?: string;
   reportId?: string;
 }) => {
-  const hasObservers = observers && observers.length > 0;
+  const hasLegacyObservers = observers.length > 0;
   const hasObservations = observations && observations.length > 0 && sessionId && nominationFileId;
 
   // Ne rien afficher si ni observateurs ni observations
-  if (!hasObservers && !hasObservations) return null;
+  if (!hasLegacyObservers && !hasObservations) return null;
 
   return (
     <section
@@ -31,19 +31,25 @@ export const Observers = ({
     >
       <h2>Observant(s)</h2>
 
-      {hasObservers && (
+      {hasLegacyObservers && (
         <div
           aria-labelledby={reportHtmlIds.overview.observers}
           className={clsx('flex w-full flex-col gap-2 whitespace-pre-line')}
         >
-          {observers.map(([observerName, ...observerInformation]) => (
-            <div key={observerName} className={cx('fr-mb-4v')}>
-              <div key={observerName} className={cx('fr-text--bold', 'fr-mb-1v')}>
-                {observerName}
+          {observers.map((o) => {
+            const [observerName, ...observerInformations] = o.split(/\n/);
+            return (
+              <div key={observerName} className={clsx(cx('fr-mb-4v'))}>
+                <div className={cx('fr-mb-1v')}>
+                  <span className="fr-text--bold">{observerName}</span>
+                  <span className={cx('fr-ml-1v')}>(via LODAM)</span>
+                </div>
+                {observerInformations.map((info) => (
+                  <div key={info}>{info}</div>
+                ))}
               </div>
-              <ObserverInformation observerInformation={observerInformation} />
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -65,15 +71,5 @@ export const Observers = ({
         </>
       )}
     </section>
-  );
-};
-
-const ObserverInformation = ({ observerInformation }: { observerInformation: string[] }) => {
-  return (
-    <div aria-labelledby="observers" className="w-full whitespace-pre-line">
-      {observerInformation.map((info) => (
-        <div key={info}>{info}</div>
-      ))}
-    </div>
   );
 };

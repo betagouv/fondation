@@ -7,6 +7,7 @@
     "format:check": "oxfmt --check",
     "types:check": "pnpm run -r types:check",
     "test:all": "pnpm run -r test:all",
+    "openapi:generate": "pnpm run -r openapi:generate",
     "build": "pnpm run -r build",
     "preinstall": "./scripts/sheetjs.sh",
     "prepush": "pnpm --filter shared-models build; pnpm --filter lolfi build; pnpm lint:check; pnpm --filter client lint:colors; pnpm format:check; pnpm types:check",

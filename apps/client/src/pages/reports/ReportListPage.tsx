@@ -91,8 +91,7 @@ function useReportListColumns(sessionId: string) {
               name: row.original.name,
               id: row.original.nominationFileId,
               observations: row.original.observations,
-              // FIXME: disappeared from DTO
-              legacyObservers: [],
+              legacyObservers: row.original.observers,
             }}
           />
         ),
