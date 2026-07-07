@@ -26,6 +26,7 @@ CREATE SCHEMA IF NOT EXISTS "reports_context";
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
 -- CreateTextSearchConfiguration
+DROP TEXT SEARCH CONFIGURATION IF EXISTS unaccent_fr;
 CREATE TEXT SEARCH CONFIGURATION unaccent_fr ( COPY = french );
 
 ALTER TEXT SEARCH CONFIGURATION unaccent_fr
