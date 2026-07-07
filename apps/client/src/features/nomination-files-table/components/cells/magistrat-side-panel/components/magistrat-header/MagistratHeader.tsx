@@ -72,7 +72,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
               />
             </h2>
             {auditionDateLabel && (
-              <p className="fr-mb-0 flex items-center gap-2 text-sm text-(--text-default-grey) italic">
+              <p className="fr-mb-0 flex items-center gap-1.5 text-sm text-(--text-default-grey) italic">
                 <span aria-hidden className="fr-icon-speak-line fr-icon--sm" />
                 <FormattedMessage
                   defaultMessage="Une audition est prévue le {date}"

@@ -35,10 +35,10 @@ export function Summary() {
           <div className="flex flex-col gap-y-8">
             <SummarySectionMagistrat />
             <SummarySectionBiography />
-            <SummarySectionAuditionDate />
             <SummarySectionObservations />
             <SummarySectionContent />
             <SummarySectionAttachments />
+            <SummarySectionAuditionDate />
           </div>
         </div>
       </div>

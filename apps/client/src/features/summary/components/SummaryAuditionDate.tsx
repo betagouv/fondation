@@ -14,7 +14,8 @@ function toInputValues(iso: string | null | undefined): { date: string; time: st
 
 function toIsoString(date: string, time: string): string | null {
   if (!date || !time) return null;
-  return new Date(`${date}T${time}`).toISOString();
+  const parsed = new Date(`${date}T${time}`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 export function SummaryAuditionDate(props: {
@@ -30,12 +31,18 @@ export function SummaryAuditionDate(props: {
   const [{ date, time }, setValues] = useState(toInputValues(initialAuditionDate));
   const [savedIso, setSavedIso] = useState(() => toIsoString(date, time));
   const [missing, setMissing] = useState<'date' | 'time' | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const save = async (nextDate: string, nextTime: string) => {
     const auditionDate = toIsoString(nextDate, nextTime);
     if (auditionDate === savedIso) return;
-    setSavedIso(auditionDate);
-    await mutateAsync({ auditionDate, nominationFileId, sessionId });
+    try {
+      await mutateAsync({ auditionDate, nominationFileId, sessionId });
+      setSavedIso(auditionDate);
+      setSaveFailed(false);
+    } catch {
+      setSaveFailed(true);
+    }
   };
 
   const commit = (nextDate: string, nextTime: string) => {
@@ -94,6 +101,11 @@ export function SummaryAuditionDate(props: {
               {missing === 'date'
                 ? formatMessage({ defaultMessage: 'La date est à renseigner' })
                 : formatMessage({ defaultMessage: "L'heure est à renseigner" })}
+            </p>
+          )}
+          {saveFailed && (
+            <p className="fr-error-text fr-mt-2v" role="alert">
+              {formatMessage({ defaultMessage: "L'enregistrement de la date d'audition a échoué" })}
             </p>
           )}
         </div>

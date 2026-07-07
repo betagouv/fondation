@@ -2,11 +2,11 @@ import React from 'react';
 
 export const SUMMARY_SECTION_ANCHORS = [
   { id: 'magistrat', label: 'Magistrat' },
-  { id: 'audition', label: 'Audition' },
   { id: 'biographie', label: 'Biographie' },
   { id: 'observants', label: 'Observants' },
   { id: 'synthese', label: 'Synthèse' },
   { id: 'pieces-jointes', label: 'Pièces jointes' },
+  { id: 'audition', label: 'Audition' },
 ] as const;
 
 export type SummarySectionAnchor = (typeof SUMMARY_SECTION_ANCHORS)[number]['id'];
