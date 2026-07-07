@@ -366,6 +366,7 @@ export type PaginatedNominationFiles = {
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
         };
         comment: string | null;
+        auditionDate: string | null;
         reporters: Array<{
             id: string;
             firstName: string;
