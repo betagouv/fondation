@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "husky": "9.1.7",
-    "oxfmt": "0.47.0",
+    "oxfmt": "0.55.0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:"
   },
