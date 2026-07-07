@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "catalog:",
-    "@hey-api/openapi-ts": "0.93.0",
+    "@hey-api/openapi-ts": "catalog:",
     "@types/node": "24.12.4",
     "lolfi": "workspace:*",
     "postgres": "^3.4.9",

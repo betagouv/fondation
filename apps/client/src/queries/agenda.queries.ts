@@ -161,7 +161,7 @@ export function useGenerateAgendaPdfMutation(mutation: {
           query: { force: mutation.force },
           parseAs: 'stream',
         })
-        .then(({ response }) => response.body?.cancel()),
+        .then(({ response }) => response?.body?.cancel()),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -186,7 +186,6 @@ export const useFindAgendaNominationFilesQuery = (query: {
       $api.docs
         .findAgendaNominationFiles({
           path: { sessionId: query.sessionId },
-          query: { ignoreAgendaId: query.ignoreAgendaId ?? undefined },
         })
         .then(({ data = null }) => data),
   });
@@ -370,7 +369,7 @@ export function useGenerateOfficialReportPdfMutation(mutation: {
           query: { force: mutation.force },
           parseAs: 'stream',
         })
-        .then(({ response }) => response.body?.cancel()),
+        .then(({ response }) => response?.body?.cancel()),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -604,7 +603,7 @@ export function useJusticePresentationPlanPdfMutation(mutation: {
           query: { force: mutation.force },
           parseAs: 'stream',
         })
-        .then(({ response }) => response.body?.cancel()),
+        .then(({ response }) => response?.body?.cancel()),
 
     onSuccess: mutation.onSuccess,
   });

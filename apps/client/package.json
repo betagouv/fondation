@@ -70,7 +70,7 @@
     "@eslint/js": "9.39.4",
     "@faker-js/faker": "catalog:",
     "@formatjs/unplugin": "1.1.10",
-    "@hey-api/openapi-ts": "0.93.0",
+    "@hey-api/openapi-ts": "catalog:",
     "@playwright/test": "1.60.0",
     "@sentry/vite-plugin": "5.2.1",
     "@storybook/addon-a11y": "10.4.2",

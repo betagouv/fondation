@@ -9,6 +9,7 @@ catalog:
   'oxlint-tsgolint': 0.23.0
   typescript: 5.9.3
   '@types/node': 26.0.1
+  '@hey-api/openapi-ts': 0.99.0
 
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
@@ -38,3 +39,6 @@ allowBuilds:
   puppeteer: false
   unrs-resolver: false
   esbuild: true
+minimumReleaseAgeExclude:
+  # Renovate security update: @hey-api/openapi-ts@0.97.3
+  - '@hey-api/openapi-ts@0.97.3'

@@ -34,7 +34,7 @@ test.describe('Members E2E', () => {
       });
 
       const jurisdictions = await agent.jurisdictions.search({ query: { search: 'LYON' } });
-      expect(jurisdictions.response.status).toBe(200);
+      expect(jurisdictions.response?.status).toBe(200);
       jurisdictionIds = jurisdictions.data!.items.map((j) => j.id).slice(0, 1);
 
       const member = await registerUser('MEMBRE_COMMUN');
@@ -51,7 +51,7 @@ test.describe('Members E2E', () => {
         path: { userId: memberId },
         body: { jurisdictionIds },
       });
-      expect(updateRes.response.status).toBe(204);
+      expect(updateRes.response?.status).toBe(204);
 
       const detailedMemberAfter = await agent.members.detailsMember({ path: { userId: memberId } });
       expect(detailedMemberAfter.data?.excludedJurisdictions).toEqual([

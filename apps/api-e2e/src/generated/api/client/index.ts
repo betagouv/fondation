@@ -10,6 +10,8 @@ export {
 } from '../core/bodySerializer.ts';
 export { buildClientParams } from '../core/params.ts';
 export { serializeQueryKeyValue } from '../core/queryKeySerializer.ts';
+export type { ServerSentEventsResult } from '../core/serverSentEvents.ts';
+export type { ClientMeta } from '../core/types.ts';
 export { createClient } from './client.ts';
 export type {
   Client,
