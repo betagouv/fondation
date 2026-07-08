@@ -43,8 +43,8 @@ export class DocsFilter implements NestInterceptor {
             return new BadRequestException({
               validationError:
                 err.fileIds.length > 1
-                  ? `1 dossier apparaît déjà dans un PV`
-                  : `${err.fileIds.length} dossiers apparaissent déjà dans un PV`,
+                  ? `${err.fileIds.length} dossiers apparaissent déjà dans un PV`
+                  : `1 dossier apparaît déjà dans un PV`,
             });
           }
 
