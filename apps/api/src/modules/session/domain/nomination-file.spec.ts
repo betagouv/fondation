@@ -17,6 +17,7 @@ describe('UpdatableNominationFile', () => {
         outcome,
         id: `file-id-1`,
         docs: [],
+        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -35,6 +36,7 @@ describe('UpdatableNominationFile', () => {
             officialReport: { id: 'or-1', outcome: 'SUSPENDED' },
           },
         ],
+        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -50,9 +52,13 @@ describe('UpdatableNominationFile', () => {
         docs: [
           {
             agenda: { id: 'agenda-1', outcome: 'SUSPENDED' },
-            officialReport: { id: 'or-1', outcome: outcome === 'REMOVED' ? 'WITHDRAWN' : outcome },
+            officialReport: {
+              id: 'or-1',
+              outcome: outcome === 'REMOVED' ? 'WITHDRAWN' : outcome,
+            },
           },
         ],
+        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(false);

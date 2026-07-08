@@ -114,6 +114,7 @@ export class ListNominationFilesQuery {
             id: file.id,
             outcome: file.outcome,
             docs,
+            scheduledAuditionAt: null,
           });
 
           return {
@@ -161,6 +162,7 @@ export class ListNominationFilesQuery {
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
         comment: x.comment,
+        canScheduleAudition: !isArchived && NominationFileOutcome.allowsAudition(x.outcome),
         auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
@@ -319,7 +321,11 @@ const RawListedNominationFiles = z.array(
             .nullish()
             .transform((x) => x || ''),
           dateReception: z.coerce.date(),
-          magistrat: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+          magistrat: z.object({
+            id: z.string(),
+            firstName: z.string(),
+            lastName: z.string(),
+          }),
           memberComments: z.array(z.object({ comment: z.string().nullable() })),
         }),
       )
@@ -344,6 +350,7 @@ const NominationFileAffectationItemSchema = z.object({
   priorities: z.array(z.enum(PrioriteEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
+  canScheduleAudition: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionTime: timeOnlySchema.nullable(),
   reporters: z.array(

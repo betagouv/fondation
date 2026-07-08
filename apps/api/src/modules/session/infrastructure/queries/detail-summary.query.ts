@@ -133,8 +133,6 @@ export class DetailSummaryQuery {
       id: nominationFile.id,
       sessionId: session.id,
       isArchived: !!session.archivedAt,
-      canScheduleAudition:
-        !session.archivedAt && NominationFileOutcome.allowsAudition(nominationFile.outcome),
       name: nominationFile.name,
       number: nominationFile.number,
       position: nominationFile.currentPosition,
@@ -222,7 +220,6 @@ export class DetailedSummaryDto extends createZodDto(
     id: z.string(),
     sessionId: z.string(),
     isArchived: z.boolean(),
-    canScheduleAudition: z.boolean(),
     name: z.string().nullable(),
     rank: z.string().nullable(),
     formation: z.enum(Magistrat.Formation),

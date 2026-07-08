@@ -1,7 +1,7 @@
 import z from 'zod';
 
 export const timeOnlySchema = z.object({
-  hours: z.number().int().gte(1).lte(23),
+  hours: z.number().int().gte(0).lte(23),
   minutes: z.number().int().gte(0).lte(59).default(0),
   seconds: z.number().int().gte(0).lte(59).default(0),
 });

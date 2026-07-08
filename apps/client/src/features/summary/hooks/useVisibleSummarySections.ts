@@ -6,7 +6,6 @@ export const SUMMARY_SECTION_ANCHORS = [
   { id: 'observants', label: 'Observants' },
   { id: 'synthese', label: 'Synthèse' },
   { id: 'pieces-jointes', label: 'Pièces jointes' },
-  { id: 'audition', label: 'Audition' },
 ] as const;
 
 export type SummarySectionAnchor = (typeof SUMMARY_SECTION_ANCHORS)[number]['id'];

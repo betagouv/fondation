@@ -187,27 +187,6 @@ describe('MagistratHeader edition', () => {
   });
 });
 
-describe('MagistratHeader audition date', () => {
-  it('announces the scheduled audition, date and time', () => {
-    renderHeader({
-      nominationFile: makeSessionNominationFile({
-        auditionDate: { year: 2026, month: 9, day: 15 },
-        auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-      }),
-    });
-
-    expect(screen.getByText('Une audition est prévue le 15/09/2026 à 14:30')).toBeInTheDocument();
-  });
-
-  it('says nothing about an audition when none is scheduled', () => {
-    renderHeader({
-      nominationFile: makeSessionNominationFile({ auditionDate: null, auditionTime: null }),
-    });
-
-    expect(screen.queryByText(/Une audition est prévue/)).not.toBeInTheDocument();
-  });
-});
-
 describe('MagistratHeader accessibility', () => {
   it('passes basic accessibility checks', async () => {
     const { container } = renderHeader({

@@ -10,7 +10,7 @@ export function SummarySectionBiography() {
       <h2>Biographie</h2>
 
       {summary.biography ? (
-        <ul className="list-['-_']">
+        <ul className="list-inside list-['-_'] space-y-2">
           {summary.biography
             .trim()
             .split('- ')

@@ -14,7 +14,7 @@ import {
   formTimeOnlyCodec,
   timeOnlyToDate,
   timeOnlyToString,
-  type TimeOnly,
+  type PlainTimeOnly,
 } from '@/utils/time-only.util';
 import { usePresentPlanMutation } from '@queries/agenda.queries';
 
@@ -82,7 +82,7 @@ function PresentPlanForm(props: {
   useIsModalOpen(presentPlanModal, { onConceal: () => reset({ endTime: '' }) });
 
   const onSubmit = React.useCallback(
-    ({ endTime: { hours = 0, minutes = 0 } }: { endTime: TimeOnly }) => {
+    ({ endTime: { hours, minutes } }: { endTime: PlainTimeOnly }) => {
       if (!props.planId) return;
 
       presentPlanMutation.mutate(

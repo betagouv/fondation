@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import React from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation/use-magistrat-affectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
@@ -19,21 +19,8 @@ import { MagistratPrioritySelect, MagistratReporterSelect } from './MagistratAff
 export function MagistratHeader(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
   const { user } = useUser();
-  const intl = useIntl();
   const { isEditable } = useNominationFilesTable();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
-
-  const { auditionDate, auditionTime } = nominationFile;
-  const auditionScheduledAt =
-    auditionDate && auditionTime
-      ? new Date(
-          auditionDate.year,
-          auditionDate.month - 1,
-          auditionDate.day,
-          auditionTime.hours,
-          auditionTime.minutes,
-        )
-      : null;
 
   const [isEditing, setIsEditing] = React.useState(false);
 
@@ -69,29 +56,15 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
           ) : (
             <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
-          <div className="flex flex-col gap-3">
-            <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
-              {nomMagistrat}
-              <LolfiMagistratLink
-                name={nomMagistrat}
-                nominationFileId={nominationFile.id}
-                sessionId={sessionId}
-                small
-              />
-            </h2>
-            {auditionScheduledAt && (
-              <p className="fr-mb-0 flex items-center gap-1.5 text-sm text-(--text-default-grey) italic">
-                <span aria-hidden className="fr-icon-speak-line fr-icon--sm" />
-                <FormattedMessage
-                  defaultMessage="Une audition est prévue le {date} à {time}"
-                  values={{
-                    date: intl.formatDate(auditionScheduledAt, { format: 'dateOnlyShort' }),
-                    time: intl.formatTime(auditionScheduledAt, { format: 'timeOnlyShort' }),
-                  }}
-                />
-              </p>
-            )}
-          </div>
+          <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
+            {nomMagistrat}
+            <LolfiMagistratLink
+              name={nomMagistrat}
+              nominationFileId={nominationFile.id}
+              sessionId={sessionId}
+              small
+            />
+          </h2>
         </div>
         {canEdit &&
           (isEditing ? (

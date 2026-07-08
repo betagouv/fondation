@@ -6,7 +6,6 @@ import { SummaryBreadcrumb } from './SummaryBreadcrumb';
 import { SummaryOutcomeNotice } from './SummaryOutcomeNotice';
 import { SummaryReaderSelector } from './SummaryReaderSelector';
 import { SummarySectionAttachments } from './SummarySectionAttachments';
-import { SummarySectionAuditionDate } from './SummarySectionAuditionDate';
 import { SummarySectionBiography } from './SummarySectionBiography';
 import { SummarySectionContent } from './SummarySectionContent';
 import { SummarySectionMagistrat } from './SummarySectionMagistrat';
@@ -38,7 +37,6 @@ export function Summary() {
             <SummarySectionObservations />
             <SummarySectionContent />
             <SummarySectionAttachments />
-            <SummarySectionAuditionDate />
           </div>
         </div>
       </div>

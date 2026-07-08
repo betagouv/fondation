@@ -52,7 +52,14 @@ export type UpdatableNominationFileState = {
   id: string;
   outcome: NominationFileOutcomeEnum | null;
   docs: readonly UpdatableNominationFileDoc[];
+  scheduledAuditionAt: Date | null;
 };
+
+export class AuditionAlreadyOccurred extends Error {
+  constructor() {
+    super("L'audition a déjà eu lieu et ne peut plus être modifiée");
+  }
+}
 
 // FIXME: improve naming
 export class UpdatableNominationFile {
@@ -64,10 +71,11 @@ export class UpdatableNominationFile {
     readonly id: string,
     private readonly outcome: NominationFileOutcomeEnum | null,
     private readonly docs: readonly UpdatableNominationFileDoc[],
+    private readonly scheduledAuditionAt: Date | null,
   ) {}
 
   static from(props: UpdatableNominationFileState): UpdatableNominationFile {
-    return new UpdatableNominationFile(props.id, props.outcome, props.docs);
+    return new UpdatableNominationFile(props.id, props.outcome, props.docs, props.scheduledAuditionAt);
   }
 
   isUpdatable(): boolean {
@@ -79,6 +87,12 @@ export class UpdatableNominationFile {
 
   assertAllowsAudition(): void {
     NominationFileOutcome.assertAllowsAudition(this.outcome);
+  }
+
+  assertAuditionIsEditable(now: Date): void {
+    if (this.scheduledAuditionAt !== null && this.scheduledAuditionAt.getTime() < now.getTime()) {
+      throw new AuditionAlreadyOccurred();
+    }
   }
 
   status(): NominationSessionFileStatusEnum {

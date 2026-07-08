@@ -69,7 +69,7 @@ function MagistratOutcomeComment(props: {
       <Button
         className="relative -top-2 min-h-9! shrink-0 px-3.5! py-1.5! text-[0.9375rem]!"
         onClick={edit}
-        priority="tertiary no outline"
+        priority="secondary"
         size="small"
       >
         {props.comment ? (

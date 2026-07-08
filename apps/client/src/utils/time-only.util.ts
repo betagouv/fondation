@@ -5,13 +5,13 @@ export type PlainTimeOnly = { hours: number; minutes: number; seconds: number };
 export const formTimeOnlyCodec = z.codec(
   z.string().regex(/\d\d:\d\d(?::\d\d)?/, `Format incorrect. Heure au format HH:MM attendue`),
   z.object({
-    hours: z.number().int().gte(0).lte(23).default(0).optional(),
-    minutes: z.number().int().gte(0).lte(59).default(0).optional(),
-    seconds: z.number().int().gte(0).lte(59).default(0).optional(),
+    hours: z.number().int().gte(0).lte(23),
+    minutes: z.number().int().gte(0).lte(59),
+    seconds: z.number().int().gte(0).lte(59).default(0),
   }),
   {
     encode(timeOnly, ctx) {
-      const value = timeOnlyToString({ hours: 0, minutes: 0, seconds: 0, ...timeOnly }, 'HH:mm');
+      const value = timeOnlyToString(timeOnly, 'HH:mm');
       if (!value) {
         ctx.issues.push({ code: 'custom', input: timeOnly, continue: false, message: `heure invalide` });
         return z.NEVER;
@@ -33,17 +33,13 @@ export const formTimeOnlyCodec = z.codec(
   },
 );
 
-export type TimeOnly = z.infer<typeof formTimeOnlyCodec>;
-
-export function timeOnlyToDate(timeOnly: TimeOnly): Date | null {
-  const { hours, minutes, seconds } = timeOnly;
-  if (hours === undefined && minutes === undefined && seconds === undefined) return null;
-
-  const date = new Date(2026, 0, 10, hours ?? 0, minutes ?? 0, seconds ?? 0);
+export function timeOnlyToDate(timeOnly: { hours: number; minutes: number; seconds?: number }): Date | null {
+  const { hours, minutes, seconds = 0 } = timeOnly;
+  const date = new Date(2026, 0, 10, hours, minutes, seconds);
   return Number.isFinite(date.getTime()) ? date : null;
 }
 
-export function dateToTimeOnly(date: Date): { hours: number; minutes: number; seconds: number } | null {
+export function dateToTimeOnly(date: Date): PlainTimeOnly | null {
   if (!Number.isFinite(date.getTime())) return null;
 
   const [hours, minutes, seconds] = [date.getHours(), date.getMinutes(), date.getSeconds()];

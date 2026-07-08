@@ -52,7 +52,6 @@ function makeSummaryDetail(props: {
     grade: 'I',
     id: 'summary-1',
     isArchived: props.isArchived,
-    canScheduleAudition: !props.isArchived,
     lastPositionDate: null,
     lastRankingDate: null,
     name: 'Camille DURAND',

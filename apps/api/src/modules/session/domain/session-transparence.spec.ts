@@ -5,7 +5,7 @@ import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
-import { LodamNominationFile } from './nomination-file';
+import { AuditionAlreadyOccurred, LodamNominationFile } from './nomination-file';
 import {
   NominationFileCannotBeAuditioned,
   NominationFileOutcome,
@@ -42,6 +42,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -82,6 +83,7 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or1', outcome: 'VALIDATED' },
             },
           ],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -109,6 +111,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -148,6 +151,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -175,6 +179,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -207,6 +212,7 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -229,6 +235,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -303,42 +310,47 @@ describe('SessionTransparence', () => {
         userId: randomUUID(),
 
         // oxfmt-ignore
-        formationMembers: [{ fullName: 'BOURDIEU Pierre', id: '51176c69-4f03-4973-9d25-0f83c7ad6931' }],
+        formationMembers: [
+            {
+              fullName: "BOURDIEU Pierre",
+              id: "51176c69-4f03-4973-9d25-0f83c7ad6931",
+            },
+          ],
         // oxfmt-ignore
         files: [
-          {
-            fileNumber: 1,
-            name: 'ARENDT HANNAH',
-            reporters: ['BOURDIEU Pierre'],
-            grade: Magistrat.Grade.HH,
-            targetedGrade: Magistrat.Grade.HH,
-            targetedPosition: 'Procureur de la République TJ GRASSE',
-            currentPosition: 'Procureur de la République TJ NARBONNE',
-            lastPositionDate: new DateOnly(2020, 9, 1),
-            lastRankingDate: new DateOnly(2010, 12, 17),
-            rank: '(10 sur une liste de 12)',
-            biography: null,
-            birthDate: new DateOnly(1968, 4, 9),
-            careerInformation: null,
-            observers: [],
-          },
-          {
-            fileNumber: 2,
-            name: 'GRAMSCI ANTONIO',
-            reporters: ['BOURDIEU Pierre'],
-            grade: Magistrat.Grade.I,
-            targetedGrade: Magistrat.Grade.I,
-            targetedPosition: 'Vice-président TJ  CAHORS',
-            currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION',
-            lastPositionDate: new DateOnly(2019, 9, 1),
-            lastRankingDate: new DateOnly(2019, 12, 7),
-            rank: '(2 sur une liste de 2)',
-            biography: null,
-            birthDate: new DateOnly(1991, 12, 23),
-            careerInformation: null,
-            observers: [],
-          },
-        ],
+            {
+              fileNumber: 1,
+              name: "ARENDT HANNAH",
+              reporters: ["BOURDIEU Pierre"],
+              grade: Magistrat.Grade.HH,
+              targetedGrade: Magistrat.Grade.HH,
+              targetedPosition: "Procureur de la République TJ GRASSE",
+              currentPosition: "Procureur de la République TJ NARBONNE",
+              lastPositionDate: new DateOnly(2020, 9, 1),
+              lastRankingDate: new DateOnly(2010, 12, 17),
+              rank: "(10 sur une liste de 12)",
+              biography: null,
+              birthDate: new DateOnly(1968, 4, 9),
+              careerInformation: null,
+              observers: [],
+            },
+            {
+              fileNumber: 2,
+              name: "GRAMSCI ANTONIO",
+              reporters: ["BOURDIEU Pierre"],
+              grade: Magistrat.Grade.I,
+              targetedGrade: Magistrat.Grade.I,
+              targetedPosition: "Vice-président TJ  CAHORS",
+              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
+              lastPositionDate: new DateOnly(2019, 9, 1),
+              lastRankingDate: new DateOnly(2019, 12, 7),
+              rank: "(2 sur une liste de 2)",
+              biography: null,
+              birthDate: new DateOnly(1991, 12, 23),
+              careerInformation: null,
+              observers: [],
+            },
+          ],
       });
 
       expect(session.messages[0]).toEqual(
@@ -365,15 +377,15 @@ describe('SessionTransparence', () => {
             {
               id: expect.any(String),
               fileNumber: 1,
-              name: 'ARENDT HANNAH',
-              reporters: ['BOURDIEU Pierre'],
+              name: "ARENDT HANNAH",
+              reporters: ["BOURDIEU Pierre"],
               grade: Magistrat.Grade.HH,
               targetedGrade: Magistrat.Grade.HH,
-              targetedPosition: 'Procureur de la République TJ GRASSE',
-              currentPosition: 'Procureur de la République TJ NARBONNE',
+              targetedPosition: "Procureur de la République TJ GRASSE",
+              currentPosition: "Procureur de la République TJ NARBONNE",
               lastPositionDate: new DateOnly(2020, 9, 1),
               lastRankingDate: new DateOnly(2010, 12, 17),
-              rank: '(10 sur une liste de 12)',
+              rank: "(10 sur une liste de 12)",
               biography: null,
               birthDate: new DateOnly(1968, 4, 9),
               careerInformation: null,
@@ -382,15 +394,15 @@ describe('SessionTransparence', () => {
             {
               id: expect.any(String),
               fileNumber: 2,
-              name: 'GRAMSCI ANTONIO',
-              reporters: ['BOURDIEU Pierre'],
+              name: "GRAMSCI ANTONIO",
+              reporters: ["BOURDIEU Pierre"],
               grade: Magistrat.Grade.I,
               targetedGrade: Magistrat.Grade.I,
-              targetedPosition: 'Vice-président TJ  CAHORS',
-              currentPosition: 'Juge TJ  SAINT PIERRE DE LA REUNION',
+              targetedPosition: "Vice-président TJ  CAHORS",
+              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
               lastPositionDate: new DateOnly(2019, 9, 1),
               lastRankingDate: new DateOnly(2019, 12, 7),
-              rank: '(2 sur une liste de 2)',
+              rank: "(2 sur une liste de 2)",
               biography: null,
               birthDate: new DateOnly(1991, 12, 23),
               careerInformation: null,
@@ -406,8 +418,14 @@ describe('SessionTransparence', () => {
           null,
           // oxfmt-ignore
           [
-            { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] },
-            { nominationFileId: expect.any(String), reporterIds: ['51176c69-4f03-4973-9d25-0f83c7ad6931'] },
+            {
+              nominationFileId: expect.any(String),
+              reporterIds: ["51176c69-4f03-4973-9d25-0f83c7ad6931"],
+            },
+            {
+              nominationFileId: expect.any(String),
+              reporterIds: ["51176c69-4f03-4973-9d25-0f83c7ad6931"],
+            },
           ],
         ),
       );
@@ -429,8 +447,8 @@ describe('SessionTransparence', () => {
           formationMembers: [],
           // oxfmt-ignore
           files: [
-            { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
-            { fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
+            { fileNumber: 1, reporters: ["BOURDIEU Pierre"] },
+            { fileNumber: 2, reporters: ["BOURDIEU Pierre"] },
           ] as LodamNominationFile[],
         });
 
@@ -456,6 +474,7 @@ describe('SessionTransparence', () => {
           id: 'nf-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -504,6 +523,7 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -526,6 +546,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -554,6 +575,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -582,6 +604,7 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -600,7 +623,14 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
     });
 
     const auditionDate = new DateOnly(2026, 7, 10);
@@ -610,6 +640,7 @@ describe('SessionTransparence', () => {
       nominationFileId: 'nomination-file-id-1',
       auditionDate,
       auditionTime,
+      now: new Date('2026-07-01T00:00:00Z'),
     });
 
     expect(session.messages).toEqual([
@@ -627,7 +658,14 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFiles: [{ id: 'nomination-file-id-1', outcome: 'VALIDATED', docs: [] }],
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
     });
 
     expect(() =>
@@ -635,8 +673,34 @@ describe('SessionTransparence', () => {
         nominationFileId: 'nomination-file-id-1',
         auditionDate: new DateOnly(2026, 7, 10),
         auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+        now: new Date('2026-07-01T00:00:00Z'),
       }),
     ).toThrow(NominationFileCannotBeAuditioned);
+  });
+
+  it('should throw when modifying an audition that already occurred', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+          scheduledAuditionAt: new Date('2026-07-10T14:30:00Z'),
+        },
+      ],
+    });
+
+    expect(() =>
+      session.scheduleAudition({
+        nominationFileId: 'nomination-file-id-1',
+        auditionDate: null,
+        auditionTime: null,
+        now: new Date('2026-07-10T14:31:00Z'),
+      }),
+    ).toThrow(AuditionAlreadyOccurred);
   });
 
   it('should clear the audition without checking the outcome when no date is provided', () => {
@@ -644,13 +708,21 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFiles: [{ id: 'nomination-file-id-1', outcome: 'VALIDATED', docs: [] }],
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
     });
 
     session.scheduleAudition({
       nominationFileId: 'nomination-file-id-1',
       auditionDate: null,
       auditionTime: null,
+      now: new Date('2026-07-01T00:00:00Z'),
     });
 
     expect(session.messages).toEqual([
@@ -663,7 +735,14 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
     });
 
     session.addNominationFileAttachments({
@@ -672,8 +751,12 @@ describe('SessionTransparence', () => {
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', { id: 'file-1' }),
-      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', { id: 'file-2' }),
+      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', {
+        id: 'file-1',
+      }),
+      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', {
+        id: 'file-2',
+      }),
     ]);
   });
 
@@ -682,7 +765,14 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       formation: Magistrat.Formation.SIEGE,
       version: null,
-      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
     });
 
     session.removeNominationFileAttachment({
@@ -710,6 +800,7 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
+          scheduledAuditionAt: null,
         },
       ],
     });
@@ -737,6 +828,7 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
+          scheduledAuditionAt: null,
         },
       ],
     });

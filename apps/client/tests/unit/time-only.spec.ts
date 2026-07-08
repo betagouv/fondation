@@ -39,7 +39,7 @@ test.describe('TimeOnly', () => {
     });
 
     test('should convert timeOnly to string', () => {
-      const result = formTimeOnlyCodec.encode({ hours: 10, minutes: 11 });
+      const result = formTimeOnlyCodec.encode({ hours: 10, minutes: 11, seconds: 0 });
       test.expect(result).toBe('10:11');
     });
   });

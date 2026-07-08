@@ -369,6 +369,7 @@ export type PaginatedNominationFiles = {
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
         };
         comment: string | null;
+        canScheduleAudition: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -600,7 +601,6 @@ export type DetailedSummaryDto = {
     id: string;
     sessionId: string;
     isArchived: boolean;
-    canScheduleAudition: boolean;
     name: string | null;
     rank: string | null;
     formation: 'PARQUET' | 'SIEGE';

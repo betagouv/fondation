@@ -33,6 +33,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
   return {
     id: 'nomination-file',
     comment: null,
+    canScheduleAudition: true,
     auditionDate: null,
     auditionTime: null,
     content: { ...baseContent, ...content },

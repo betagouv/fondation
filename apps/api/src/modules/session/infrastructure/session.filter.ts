@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { AuditionAlreadyOccurred } from '../domain/nomination-file';
 import {
   NominationFileCannotBeAuditioned,
   NominationFileOutcomeRequiresComment,
@@ -109,6 +110,12 @@ export class SessionExceptionFilter implements NestInterceptor {
               validationErrors: [
                 `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
               ],
+            });
+          }
+
+          if (err instanceof AuditionAlreadyOccurred) {
+            return new ForbiddenException({
+              validationErrors: [`l'audition a déjà eu lieu et ne peut plus être modifiée`],
             });
           }
 
