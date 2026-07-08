@@ -69,15 +69,20 @@ function ReactTableCheckbox<Data extends RowData>(props: { table: Table<Data>; r
       } else {
         const { index: lastRowIndex } = table.getRow(lastSelected);
         const [min, max] = [lastRowIndex, row.index].sort((a, b) => a - b);
-        const nextSelectionEntries = table
+        const rowIds = table
           .getRowModel()
           .rows.slice(min, max + 1)
-          .map((r) => [r.id, shouldSelect]);
+          .filter((r) => r.getCanSelect())
+          .map((r) => r.id);
 
-        table.setRowSelection((selection) => ({
-          ...selection,
-          ...Object.fromEntries(nextSelectionEntries),
-        }));
+        table.setRowSelection((selection) => {
+          const next = { ...selection };
+          for (const id of rowIds) {
+            if (shouldSelect) next[id] = true;
+            else delete next[id];
+          }
+          return next;
+        });
       }
 
       setLastSelected(row.id);
