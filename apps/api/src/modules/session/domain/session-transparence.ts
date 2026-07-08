@@ -148,6 +148,12 @@ export class SessionTransparenceAuditionScheduled {
   ) {}
 }
 
+export class AuditionRequiresDateAndTime extends Error {
+  constructor() {
+    super("La date et l'heure d'audition doivent être renseignées ensemble");
+  }
+}
+
 export class SessionTransparenceFileMemberMemoWritten {
   constructor(
     readonly userId: string,
@@ -525,12 +531,18 @@ export class SessionTransparence {
     auditionTime: TimeOnly | null;
     now: Date;
   }) {
+    const hasDate = command.auditionDate !== null;
+    const hasTime = command.auditionTime !== null;
+    if (hasDate !== hasTime) {
+      throw new AuditionRequiresDateAndTime();
+    }
+
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     const nominationFile = this.nominationFiles.get(command.nominationFileId)!;
     nominationFile.assertAuditionIsEditable(command.now);
 
-    const willHaveAudition = command.auditionDate !== null;
+    const willHaveAudition = hasDate && hasTime;
     if (willHaveAudition) {
       nominationFile.assertAllowsAudition();
     }

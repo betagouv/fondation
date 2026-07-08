@@ -3,7 +3,7 @@ import { useIntl } from 'react-intl';
 
 import { AuditionBanner } from '@/shared/components/audition-banner';
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import type { PlainTimeOnly } from '@/utils/time-only.util';
+import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 
 import { AUDITION_SECTION_ID } from './MagistratAuditionDate';
 import { AUDITION_DATE_INPUT_ID } from './MagistratAuditionDateForm';
@@ -18,15 +18,7 @@ export function MagistratAuditionNotice(props: {
 
   if (!auditionDate || !auditionTime) return null;
 
-  const scheduledAt = new Date(
-    auditionDate.year,
-    auditionDate.month - 1,
-    auditionDate.day,
-    auditionTime.hours,
-    auditionTime.minutes,
-    auditionTime.seconds,
-  );
-  const isPast = scheduledAt.getTime() < Date.now();
+  const isPast = isPastSchedule(auditionDate, auditionTime);
 
   const goToDateField = () => {
     document.getElementById(AUDITION_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });

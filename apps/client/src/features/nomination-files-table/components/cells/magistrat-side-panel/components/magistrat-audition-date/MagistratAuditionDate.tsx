@@ -1,6 +1,5 @@
 import { FormattedMessage } from 'react-intl';
 
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -8,12 +7,10 @@ import { MagistratAuditionDateForm } from './MagistratAuditionDateForm';
 
 export const AUDITION_SECTION_ID = 'magistrat-audition-section';
 
-export function MagistratAuditionDate(props: { nominationFile: SessionNominationFile }) {
-  const { nominationFile } = props;
+export function MagistratAuditionDate(props: { editable: boolean; nominationFile: SessionNominationFile }) {
+  const { editable, nominationFile } = props;
   const { sessionId } = useNominationFilesTable();
-  const isSg = useIsSgNavigation();
 
-  const editable = isSg && nominationFile.canScheduleAudition;
   if (!editable && !nominationFile.auditionDate) return null;
 
   return (

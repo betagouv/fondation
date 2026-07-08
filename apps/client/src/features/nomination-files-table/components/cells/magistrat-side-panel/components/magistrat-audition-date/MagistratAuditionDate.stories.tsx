@@ -9,19 +9,14 @@ import { MagistratAuditionDate } from './MagistratAuditionDate';
 const SESSION_ID = 'session-1';
 
 const SG_ROUTE = { initialEntries: [`/secretariat-general/session/${SESSION_ID}`] };
-const MEMBER_ROUTE = { initialEntries: [`/transparences/session/${SESSION_ID}`] };
 
 const UPCOMING_AT = new Date('2029-06-15T14:30').getTime();
 const PAST_AT = new Date('2020-01-10T14:30').getTime();
 
-function MagistratAuditionDateStory(props: {
-  canScheduleAudition: boolean;
-  auditionDateTime: number | null;
-}) {
+function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
   const at = props.auditionDateTime ? new Date(props.auditionDateTime) : null;
 
   const nominationFile = makeSessionNominationFile({
-    canScheduleAudition: props.canScheduleAudition,
     auditionDate: at ? { year: at.getFullYear(), month: at.getMonth() + 1, day: at.getDate() } : null,
     auditionTime: at ? { hours: at.getHours(), minutes: at.getMinutes(), seconds: 0 } : null,
   });
@@ -32,7 +27,8 @@ function MagistratAuditionDateStory(props: {
         value={{ sessionId: SESSION_ID, formation: 'SIEGE', isEditable: true, edition: undefined }}
       >
         <MagistratAuditionDate
-          key={`${props.canScheduleAudition}-${props.auditionDateTime}`}
+          editable={props.editable}
+          key={`${props.editable}-${props.auditionDateTime}`}
           nominationFile={nominationFile}
         />
       </NominationFilesTableContext>
@@ -46,10 +42,10 @@ const meta = {
   parameters: { layout: 'padded', router: SG_ROUTE },
   tags: ['autodocs'],
   argTypes: {
-    canScheduleAudition: { control: 'boolean' },
+    editable: { control: 'boolean' },
     auditionDateTime: { control: 'date' },
   },
-  args: { canScheduleAudition: true, auditionDateTime: null },
+  args: { editable: true, auditionDateTime: null },
 } satisfies Meta<typeof MagistratAuditionDateStory>;
 
 export default meta;
@@ -67,11 +63,9 @@ export const PastLocked: Story = {
 };
 
 export const ReadonlyMemberUpcoming: Story = {
-  args: { auditionDateTime: UPCOMING_AT },
-  parameters: { router: MEMBER_ROUTE },
+  args: { auditionDateTime: UPCOMING_AT, editable: false },
 };
 
 export const ReadonlyMemberPast: Story = {
-  args: { auditionDateTime: PAST_AT },
-  parameters: { router: MEMBER_ROUTE },
+  args: { auditionDateTime: PAST_AT, editable: false },
 };

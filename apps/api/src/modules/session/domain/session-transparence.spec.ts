@@ -12,6 +12,7 @@ import {
   NominationFileOutcomeEnum,
 } from './nomination-file-outcome';
 import {
+  AuditionRequiresDateAndTime,
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   NonFormationMemberDefinedAsReporter,
@@ -728,6 +729,35 @@ describe('SessionTransparence', () => {
     expect(session.messages).toEqual([
       new SessionTransparenceAuditionScheduled('session-id', 'nomination-file-id-1', null, null),
     ]);
+  });
+
+  it.each([
+    { auditionDate: new DateOnly(2026, 7, 10), auditionTime: null, missing: 'time' },
+    { auditionDate: null, auditionTime: { hours: 14, minutes: 30, seconds: 0 }, missing: 'date' },
+  ])('should throw when scheduling an audition without its $missing', ({ auditionDate, auditionTime }) => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+          scheduledAuditionAt: null,
+        },
+      ],
+    });
+
+    expect(() =>
+      session.scheduleAudition({
+        nominationFileId: 'nomination-file-id-1',
+        auditionDate,
+        auditionTime,
+        now: new Date('2026-07-01T00:00:00Z'),
+      }),
+    ).toThrow(AuditionRequiresDateAndTime);
+    expect(session.messages).toEqual([]);
   });
 
   it('should add attachments to a nomination file', () => {

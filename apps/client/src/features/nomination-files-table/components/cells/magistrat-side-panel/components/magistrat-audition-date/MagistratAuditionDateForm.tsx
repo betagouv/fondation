@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import type { PlainTimeOnly } from '@/utils/time-only.util';
+import { isPastSchedule, toScheduledDate, type PlainTimeOnly } from '@/utils/time-only.util';
 import { useUpdateNominationFileAuditionDateMutation } from '@queries/members.queries';
 
 export const AUDITION_DATE_INPUT_ID = 'magistrat-audition-date-input';
@@ -105,12 +105,14 @@ export function MagistratAuditionDateForm(props: {
   });
 
   const clear = () => {
-    resetForm({ date: '', time: '' });
-    mutate({ auditionDate: null, auditionTime: null, nominationFileId, sessionId });
+    mutate(
+      { auditionDate: null, auditionTime: null, nominationFileId, sessionId },
+      { onSuccess: () => resetForm({ date: '', time: '' }) },
+    );
   };
 
-  const scheduledAt = initialDate && initialTime ? new Date(`${initialDate}T${initialTime}`) : null;
-  const isPast = scheduledAt !== null && scheduledAt.getTime() < Date.now();
+  const scheduledAt = toScheduledDate(initialAuditionDate, initialAuditionTime);
+  const isPast = isPastSchedule(initialAuditionDate, initialAuditionTime);
 
   if (!editable) {
     return (

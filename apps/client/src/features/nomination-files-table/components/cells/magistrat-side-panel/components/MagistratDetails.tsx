@@ -47,7 +47,11 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
         sessionId={sessionId}
       />
       <MagistratSummary nominationFile={nominationFile} sessionId={sessionId} />
-      <MagistratAuditionDate key={`${nominationFile.id}-audition`} nominationFile={nominationFile} />
+      <MagistratAuditionDate
+        editable={auditionEditable}
+        key={`${nominationFile.id}-audition`}
+        nominationFile={nominationFile}
+      />
     </div>
   );
 }

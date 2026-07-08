@@ -1,6 +1,22 @@
 import z from 'zod';
 
+import type { PlainDateOnly } from './date-only.util';
+
 export type PlainTimeOnly = { hours: number; minutes: number; seconds: number };
+
+export function toScheduledDate(date: PlainDateOnly | null, time: PlainTimeOnly | null): Date | null {
+  if (!date || !time) return null;
+  return new Date(date.year, date.month - 1, date.day, time.hours, time.minutes, time.seconds);
+}
+
+export function isPastSchedule(
+  date: PlainDateOnly | null,
+  time: PlainTimeOnly | null,
+  now = new Date(),
+): boolean {
+  const scheduledAt = toScheduledDate(date, time);
+  return scheduledAt !== null && scheduledAt.getTime() < now.getTime();
+}
 
 export const formTimeOnlyCodec = z.codec(
   z.string().regex(/\d\d:\d\d(?::\d\d)?/, `Format incorrect. Heure au format HH:MM attendue`),

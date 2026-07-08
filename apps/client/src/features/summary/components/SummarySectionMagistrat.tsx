@@ -96,12 +96,12 @@ function BirthDate(props: { date: { day: number; month: number; year: number } |
 }
 
 function List(props: { children: React.ReactNode }) {
-  return <div className="flex flex-col gap-2">{props.children}</div>;
+  return <dl className="m-0 flex flex-col gap-2 p-0">{props.children}</dl>;
 }
 
-List.ItemContent = (props: { children: React.ReactNode }) => <span>{props.children}</span>;
+List.ItemContent = (props: { children: React.ReactNode }) => <dd className="p-0">{props.children}</dd>;
 List.ItemTitle = (props: { children: React.ReactNode }) => (
-  <span className="font-bold">{props.children}&nbsp;:&nbsp;</span>
+  <dt className="p-0 font-bold">{props.children}&nbsp;:&nbsp;</dt>
 );
 List.Item = function Item(props: { className?: string; isVisible?: boolean; children: React.ReactNode }) {
   if (props.isVisible === false) return null;

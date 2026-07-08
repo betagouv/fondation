@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import type { PlainTimeOnly } from '@/utils/time-only.util';
+import { isPastSchedule, toScheduledDate, type PlainTimeOnly } from '@/utils/time-only.util';
 
 export function AuditionBanner(props: {
   children?: ReactNode;
@@ -13,17 +13,10 @@ export function AuditionBanner(props: {
 }) {
   const { formatDate, formatTime } = useIntl();
 
-  if (!props.date || !props.time) return null;
+  const scheduledAt = toScheduledDate(props.date, props.time);
+  if (!scheduledAt) return null;
 
-  const scheduledAt = new Date(
-    props.date.year,
-    props.date.month - 1,
-    props.date.day,
-    props.time.hours,
-    props.time.minutes,
-    props.time.seconds,
-  );
-  const isPast = scheduledAt.getTime() < Date.now();
+  const isPast = isPastSchedule(props.date, props.time);
   const values = {
     date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
     time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),

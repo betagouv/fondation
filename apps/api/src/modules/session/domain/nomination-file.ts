@@ -3,6 +3,7 @@ import { Magistrat, PrioriteEnum } from 'shared-models';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { toParisWallClock } from 'src/utils/paris-wall-clock';
 
 import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 
@@ -90,7 +91,10 @@ export class UpdatableNominationFile {
   }
 
   assertAuditionIsEditable(now: Date): void {
-    if (this.scheduledAuditionAt !== null && this.scheduledAuditionAt.getTime() < now.getTime()) {
+    if (
+      this.scheduledAuditionAt !== null &&
+      this.scheduledAuditionAt.getTime() < toParisWallClock(now).getTime()
+    ) {
       throw new AuditionAlreadyOccurred();
     }
   }
