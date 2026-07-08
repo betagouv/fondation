@@ -194,10 +194,11 @@ function content(ctx: {
         </p>`
       : ''}
     <p>
-      À ${sessionMeetingTime}, ${fullname(ctx.chairman)}, ${presidentTitle}, déclare la séance ouverte.
-      ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis émis par le Conseil sur les
-      propositions figurant à l'ordre du jour arrêté le ${date(ctx.agendaDate, 'do MMMM yyyy')} sur la
-      circulaire de transparence du ${date(ctx.sessionDate, 'do MMMM yyyy')}&nbsp;:
+      À ${sessionMeetingTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''},
+      déclare la séance ouverte. ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis émis
+      par le Conseil sur les propositions figurant à l'ordre du jour arrêté le
+      ${date(ctx.agendaDate, 'do MMMM yyyy')} sur la circulaire de transparence du
+      ${date(ctx.sessionDate, 'do MMMM yyyy')}&nbsp;:
     </p>
     ${outcomes}
   `;
