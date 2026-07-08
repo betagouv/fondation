@@ -366,6 +366,7 @@ export type PaginatedNominationFiles = {
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
         };
         comment: string | null;
+        canScheduleAudition: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -597,7 +598,6 @@ export type DetailedSummaryDto = {
     id: string;
     sessionId: string;
     isArchived: boolean;
-    canScheduleAudition: boolean;
     name: string | null;
     rank: string | null;
     formation: 'PARQUET' | 'SIEGE';
@@ -780,6 +780,10 @@ export type DetailedMemberSessionDto = {
         currentPosition: string | null;
         targettedPosition: string;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        /**
+         * LODAM observers, we need to keep them until we recover data from LODAM
+         */
+        observers: Array<string>;
         observations: Array<{
             id: string;
             hasDescription: boolean;

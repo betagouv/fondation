@@ -110,6 +110,7 @@ test.describe('Session E2E', () => {
         comment: null,
         auditionDate: null,
         auditionTime: null,
+        canScheduleAudition: true,
         isArchived: false,
         content: {
           numeroDeDossier: 1,
@@ -154,6 +155,7 @@ test.describe('Session E2E', () => {
         comment: null,
         auditionDate: null,
         auditionTime: null,
+        canScheduleAudition: true,
         id: expect.any(String),
         isArchived: false,
         observations: [],
