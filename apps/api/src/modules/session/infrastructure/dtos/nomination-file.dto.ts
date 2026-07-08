@@ -98,7 +98,12 @@ export class UpdateAuditionDateDto extends createZodDto(
       auditionDate: dateOnlyJsonSchema.nullable(),
       auditionTime: timeOnlySchema.nullable(),
     })
-    .refine((value) => !value.auditionDate === !value.auditionTime, {
-      error: "La date et l'heure d'audition doivent être renseignées ensemble",
-    }),
+    .refine(
+      ({ auditionDate, auditionTime }) => {
+        const bothSet = auditionDate !== null && auditionTime !== null;
+        const bothCleared = auditionDate === null && auditionTime === null;
+        return bothSet || bothCleared;
+      },
+      { error: "La date et l'heure d'audition doivent être renseignées ensemble" },
+    ),
 ) {}
