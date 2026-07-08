@@ -64,7 +64,7 @@ export default async function renderPdf(html: string): Promise<Uint8Array> {
       (signal) => reject(signal.reason),
       async () => {
         await promise;
-        return page.pdf({ format: 'A4', printBackground: true });
+        return page.pdf({ format: 'A4', printBackground: true, tagged: true });
       },
     );
   });
