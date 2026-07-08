@@ -107,7 +107,7 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof NominationFileCannotBeAuditioned) {
             return new BadRequestException({
               validationErrors: [
-                `impossible de programmer une audition sur un dossier dont la décision est déjà prise`,
+                `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
               ],
             });
           }

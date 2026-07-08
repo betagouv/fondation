@@ -6,7 +6,11 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
 import { LodamNominationFile } from './nomination-file';
-import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
+import {
+  NominationFileCannotBeAuditioned,
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from './nomination-file-outcome';
 import {
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
@@ -15,6 +19,7 @@ import {
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceAffectationVersionCreated,
   SessionTransparenceAffectationVersionPublished,
+  SessionTransparenceAuditionScheduled,
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
@@ -588,6 +593,69 @@ describe('SessionTransparence', () => {
 
     const messages = session.messages;
     expect(messages).toEqual([new SessionTransparenceOutcomeDefined('nomination-file-id-1', null, null)]);
+  });
+
+  it('should schedule an audition on a pending nomination file', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [{ id: 'nomination-file-id-1', outcome: null, docs: [] }],
+    });
+
+    const auditionDate = new DateOnly(2026, 7, 10);
+    const auditionTime = { hours: 14, minutes: 30, seconds: 0 };
+
+    session.scheduleAudition({
+      nominationFileId: 'nomination-file-id-1',
+      auditionDate,
+      auditionTime,
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceAuditionScheduled(
+        'session-id',
+        'nomination-file-id-1',
+        auditionDate,
+        auditionTime,
+      ),
+    ]);
+  });
+
+  it('should throw when scheduling an audition on a file whose decision is final', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [{ id: 'nomination-file-id-1', outcome: 'VALIDATED', docs: [] }],
+    });
+
+    expect(() =>
+      session.scheduleAudition({
+        nominationFileId: 'nomination-file-id-1',
+        auditionDate: new DateOnly(2026, 7, 10),
+        auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+      }),
+    ).toThrow(NominationFileCannotBeAuditioned);
+  });
+
+  it('should clear the audition without checking the outcome when no date is provided', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: Magistrat.Formation.SIEGE,
+      version: null,
+      nominationFiles: [{ id: 'nomination-file-id-1', outcome: 'VALIDATED', docs: [] }],
+    });
+
+    session.scheduleAudition({
+      nominationFileId: 'nomination-file-id-1',
+      auditionDate: null,
+      auditionTime: null,
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceAuditionScheduled('session-id', 'nomination-file-id-1', null, null),
+    ]);
   });
 
   it('should add attachments to a nomination file', () => {

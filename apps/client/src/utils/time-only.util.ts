@@ -1,5 +1,7 @@
 import z from 'zod';
 
+export type PlainTimeOnly = { hours: number; minutes: number; seconds: number };
+
 export const formTimeOnlyCodec = z.codec(
   z.string().regex(/\d\d:\d\d(?::\d\d)?/, `Format incorrect. Heure au format HH:MM attendue`),
   z.object({

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { frFormat } from '@/i18n/formats';
 import type { DetailedSummaryDto } from '@api/types';
 
-import { SummaryAuditionDate } from './SummaryAuditionDate';
+import { AuditionDateForm } from './SummarySectionAuditionDate';
 
 const mutateAsync =
   vi.fn<
@@ -26,7 +26,7 @@ function renderAuditionDate(props: {
 }) {
   return render(
     <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-      <SummaryAuditionDate
+      <AuditionDateForm
         editable={props.editable}
         initialAuditionDate={props.initialAuditionDate}
         initialAuditionTime={props.initialAuditionTime}
@@ -50,7 +50,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('SummaryAuditionDate read-only', () => {
+describe('AuditionDateForm read-only', () => {
   it('renders the scheduled date and time', () => {
     renderAuditionDate({
       editable: false,
@@ -68,38 +68,40 @@ describe('SummaryAuditionDate read-only', () => {
   });
 });
 
-describe('SummaryAuditionDate edition', () => {
-  it('saves the audition as a date-only and time-only pair', () => {
+describe('AuditionDateForm edition', () => {
+  it('saves the audition as a date-only and time-only pair', async () => {
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fillAuditionDate('2026-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
-    expect(mutateAsync).toHaveBeenCalledWith({
-      auditionDate: { year: 2026, month: 9, day: 15 },
-      auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-      nominationFileId: 'nomination-file',
-      sessionId: 'session-1',
-    });
+    await waitFor(() =>
+      expect(mutateAsync).toHaveBeenCalledWith({
+        auditionDate: { year: 2026, month: 9, day: 15 },
+        auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+        nominationFileId: 'nomination-file',
+        sessionId: 'session-1',
+      }),
+    );
   });
 
-  it('asks for the time when only the date is filled', () => {
+  it('asks for the time when only the date is filled', async () => {
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-15' } });
     fireEvent.blur(screen.getByLabelText('Date'));
 
-    expect(screen.getByRole('alert')).toHaveTextContent("L'heure est à renseigner");
+    expect(await screen.findByRole('alert')).toHaveTextContent("L'heure est à renseigner");
     expect(mutateAsync).not.toHaveBeenCalled();
   });
 
-  it('asks for the date when only the time is filled', () => {
+  it('asks for the date when only the time is filled', async () => {
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
     fireEvent.change(screen.getByLabelText('Heure'), { target: { value: '14:30' } });
     fireEvent.blur(screen.getByLabelText('Heure'));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('La date est à renseigner');
+    expect(await screen.findByRole('alert')).toHaveTextContent('La date est à renseigner');
     expect(mutateAsync).not.toHaveBeenCalled();
   });
 
@@ -115,6 +117,19 @@ describe('SummaryAuditionDate edition', () => {
     expect(mutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({ auditionDate: null, auditionTime: null }),
     );
+  });
+
+  it('does not save again after a successful save of the same value', async () => {
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
+
+    fillAuditionDate('2026-09-15', '14:30');
+    fireEvent.blur(screen.getByLabelText('Heure'));
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(1));
+
+    fireEvent.blur(screen.getByLabelText('Heure'));
+
+    expect(mutateAsync).toHaveBeenCalledTimes(1);
   });
 
   it('does not save again when the value is unchanged', () => {
@@ -141,6 +156,6 @@ describe('SummaryAuditionDate edition', () => {
 
     fireEvent.blur(screen.getByLabelText('Heure'));
 
-    expect(mutateAsync).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledTimes(2));
   });
 });

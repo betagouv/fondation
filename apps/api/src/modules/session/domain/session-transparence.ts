@@ -7,6 +7,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
+import { TimeOnly } from 'src/utils/time-only';
 
 import {
   LodamNominationFile,
@@ -138,6 +139,15 @@ export class SessionTransparenceOutcomeDefined {
   ) {}
 }
 
+export class SessionTransparenceAuditionScheduled {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly auditionDate: DateOnly | null,
+    readonly auditionTime: TimeOnly | null,
+  ) {}
+}
+
 export class SessionTransparenceFileMemberMemoWritten {
   constructor(
     readonly userId: string,
@@ -178,6 +188,7 @@ export class SessionTransparenceArchived {
 type NominationSessionEvent =
   | LodamSessionTransparenceFilesCreated
   | SessionTransparenceFileAlertHidden
+  | SessionTransparenceAuditionScheduled
   | SessionTransparenceFileMemberMemoWritten
   | SessionTransparenceOutcomeDefined
   | SessionTransparenceLolfiFilesAssociated
@@ -503,6 +514,27 @@ export class SessionTransparence {
         command.nominationFileId,
         command.outcome?.outcome ?? null,
         command.outcome?.comment ?? null,
+      ),
+    );
+  }
+
+  scheduleAudition(command: {
+    nominationFileId: string;
+    auditionDate: DateOnly | null;
+    auditionTime: TimeOnly | null;
+  }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    if (command.auditionDate !== null) {
+      this.nominationFiles.get(command.nominationFileId)!.assertAllowsAudition();
+    }
+
+    this.#messages.push(
+      new SessionTransparenceAuditionScheduled(
+        this.id,
+        command.nominationFileId,
+        command.auditionDate,
+        command.auditionTime,
       ),
     );
   }

@@ -52,7 +52,11 @@ export class NominationFileOutcome {
   }
 
   static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
-    return outcome === null || !(FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
+    return outcome === null || (NON_FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
+  }
+
+  static assertAllowsAudition(outcome: NominationFileOutcomeEnum | null): void {
+    if (!this.allowsAudition(outcome)) throw new NominationFileCannotBeAuditioned(outcome!);
   }
 
   private constructor(

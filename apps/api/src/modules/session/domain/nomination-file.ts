@@ -77,6 +77,10 @@ export class UpdatableNominationFile {
     return canUpdateNominationFile;
   }
 
+  assertAllowsAudition(): void {
+    NominationFileOutcome.assertAllowsAudition(this.outcome);
+  }
+
   status(): NominationSessionFileStatusEnum {
     const hasMissingOfficialReport = this.docs.some((doc) => !isDefined(doc.officialReport));
     if (hasMissingOfficialReport) return 'DSJ_PLANNED';
