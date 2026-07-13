@@ -4,11 +4,17 @@
 @import 'tailwindcss/utilities.css' layer(utilities) important;
 
 @theme {
+  --text-sm-plus: 0.9375rem;
+
   --breakpoint-sm: 36rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 62rem;
   --breakpoint-xl: 78rem;
   --breakpoint-2xl: 94rem;
+}
+
+@utility btn-compact {
+  @apply min-h-9! px-3.5! py-1.5! text-sm-plus!;
 }
 
 /*

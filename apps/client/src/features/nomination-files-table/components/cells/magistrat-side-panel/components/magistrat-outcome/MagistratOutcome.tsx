@@ -67,7 +67,7 @@ function MagistratOutcomeComment(props: {
         {props.comment || <FormattedMessage defaultMessage="Aucun commentaire" />}
       </p>
       <Button
-        className="relative -top-2 min-h-9! shrink-0 px-3.5! py-1.5! text-[0.9375rem]!"
+        className="relative -top-2 btn-compact shrink-0"
         onClick={edit}
         priority="secondary"
         size="small"

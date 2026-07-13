@@ -70,7 +70,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
           (isEditing ? (
             <div className="flex items-center gap-2">
               <Button
-                className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+                className="btn-compact"
                 disabled={affectation.isPending}
                 onClick={stopEditing}
                 priority="secondary"
@@ -79,7 +79,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
                 <FormattedMessage defaultMessage="Annuler" />
               </Button>
               <Button
-                className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+                className="btn-compact"
                 disabled={affectation.isPending}
                 onClick={affectation.save}
                 priority="primary"
@@ -89,12 +89,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
               </Button>
             </div>
           ) : (
-            <Button
-              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
-              onClick={startEditing}
-              priority="secondary"
-              size="small"
-            >
+            <Button className="btn-compact" onClick={startEditing} priority="secondary" size="small">
               <FormattedMessage defaultMessage="Modifier" />
             </Button>
           ))}

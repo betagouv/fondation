@@ -1,46 +1,69 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FormattedMessage } from 'react-intl';
-import { useDebounce } from 'use-debounce';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
 import { Mandatory } from '@/shared/ui/Mandatory';
-import { toFullName } from '@/utils/user.utils';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
-  useSearchMagistratsQuery,
   useUpdateObservationMutation,
   type MagistratSearchResult,
   type Observation,
 } from '@queries/observations.queries';
 
+import { MagistratCombobox } from './MagistratCombobox';
+import { ObservationExistingFiles } from './ObservationExistingFiles';
+import { ObservationLinkableAttachments } from './ObservationLinkableAttachments';
+
 const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 
-const observationFormSchema = z.object({
-  magistratId: z.string().min(1, 'Champ obligatoire'),
-  dateReception: z.string().min(1, 'Champ obligatoire'),
-  description: z.string().optional(),
-  files: z.array(z.instanceof(File)).optional(),
-  linkedFiles: z
-    .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
-    .optional(),
-});
+const observationFormSchema = z
+  .object({
+    magistratId: z.string().min(1, 'Champ obligatoire'),
+    dateReception: z.string().min(1, 'Champ obligatoire'),
+    description: z.string().optional(),
+    files: z.array(z.instanceof(File)).optional(),
+    linkedFiles: z
+      .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
+      .optional(),
+    keptFileIds: z.array(z.string()).optional(),
+  })
+  .superRefine((values, ctx) => {
+    const hasContent =
+      !!values.description?.trim() ||
+      !!values.files?.length ||
+      !!values.linkedFiles?.length ||
+      !!values.keptFileIds?.length;
+
+    if (!hasContent) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['description'],
+        message: "Renseignez l'historique observant ou joignez une pièce jointe",
+      });
+    }
+  });
 
 type FormSchema = z.infer<typeof observationFormSchema>;
 
-export const ObservationForm: FC<{
-  sessionId: string;
+export function ObservationForm({
+  nominationFileId,
+  observation,
+  onPending,
+  onSuccess,
+  sessionId,
+}: {
   nominationFileId: string;
-  nominationFileName: string;
   observation?: Observation;
-  onSuccess?: () => void;
   onPending: (isPending: boolean) => unknown;
-}> = ({ sessionId, nominationFileId, observation, onSuccess, onPending }) => {
+  onSuccess?: () => void;
+  sessionId: string;
+}) {
+  const intl = useIntl();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!observation;
 
@@ -49,7 +72,6 @@ export const ObservationForm: FC<{
     handleSubmit: handleFormSubmit,
     reset,
     setValue,
-    getValues,
     watch,
     formState: { errors },
   } = useForm<FormSchema>({
@@ -60,18 +82,18 @@ export const ObservationForm: FC<{
       description: observation?.description,
       files: [],
       linkedFiles: [],
+      keptFileIds: observation?.files.map(({ id }) => id) ?? [],
     },
     mode: 'onChange',
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch] = useDebounce(searchTerm, 400);
   const [selectedMagistrat, setSelectedMagistrat] = useState<MagistratSearchResult | null>(null);
-  const [showResults, setShowResults] = useState(false);
-  const [existingFiles, setExistingFiles] = useState<Observation['files']>(observation?.files ?? []);
-  const [filesToDetach, setFilesToDetach] = useState<string[]>([]);
 
-  const { data: displayedMagistrats, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
+  const keptFileIds = watch('keptFileIds') ?? [];
+  const attachedFiles = observation?.files ?? [];
+  const existingFiles = attachedFiles.filter(({ id }) => keptFileIds.includes(id));
+  const filesToDetach = attachedFiles.filter(({ id }) => !keptFileIds.includes(id));
+
   const { data: observationsAttachments } = useListObservationsAttachments({
     sessionId,
     excludeObservationId: observation?.id,
@@ -101,22 +123,25 @@ export const ObservationForm: FC<{
         grade: null,
         currentPosition: observation.magistrat.currentPosition ?? null,
       });
-      setSearchTerm(`${observation.magistrat.lastName} ${observation.magistrat.firstName}`);
     }
   }, [observation]);
 
+  const handleMagistratChange = (magistrat: MagistratSearchResult | null) => {
+    setSelectedMagistrat(magistrat);
+    setValue('magistratId', magistrat?.id ?? '', { shouldValidate: true });
+  };
+
   const handleRemoveExistingFile = (fileId: string) => {
-    setExistingFiles((prev) => prev.filter((f) => f.id !== fileId));
-    setFilesToDetach((prev) => [...prev, fileId]);
+    setValue(
+      'keptFileIds',
+      keptFileIds.filter((id) => id !== fileId),
+      { shouldValidate: true },
+    );
   };
 
   const resetForm = () => {
     reset();
-    setSearchTerm('');
     setSelectedMagistrat(null);
-    setShowResults(false);
-    setExistingFiles([]);
-    setFilesToDetach([]);
     resetCreateMutation();
     resetUpdateMutation();
     if (fileInputRef.current) {
@@ -136,7 +161,7 @@ export const ObservationForm: FC<{
           dateReception: data.dateReception,
           description: data.description,
           files: data.files,
-          detachFileIds: filesToDetach,
+          detachFileIds: filesToDetach.map(({ id }) => id),
           linkedObservationsAttachments: (data.linkedFiles ?? []).map(({ observationId, fileId }) => ({
             observationId,
             fileId,
@@ -179,233 +204,109 @@ export const ObservationForm: FC<{
     }
   };
 
-  const handleMagistratSelect = (magistrat: MagistratSearchResult) => {
-    setSelectedMagistrat(magistrat);
-    setValue('magistratId', magistrat.id);
-    setSearchTerm(`${magistrat.lastName} ${magistrat.firstName}`);
-    setShowResults(false);
-  };
-
-  const handleMagistratClear = () => {
-    setSelectedMagistrat(null);
-    setValue('magistratId', '');
-    setSearchTerm('');
-  };
-
-  const linkedFiles = watch('linkedFiles');
-  const viewObservationAttachments = React.useMemo(() => {
-    return ([] as { observationId: string; fileId: string; name: string }[]).concat(
-      observationsAttachments?.items ?? [],
-      (linkedFiles ?? []).filter((value) => {
-        const items = observationsAttachments?.items ?? [];
-        return !items.some(
-          (item) => item.observationId === value.observationId && item.fileId === value.fileId,
-        );
-      }),
-    );
-  }, [linkedFiles, observationsAttachments]);
-
-  const onLinkFileClicked = React.useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-
-      const fileId = e.currentTarget.dataset.fileId;
-      const observationId = e.currentTarget.dataset.observationId;
-      const name = e.currentTarget.dataset.name;
-
-      if (!fileId || !observationId || !name) return;
-
-      const current = getValues('linkedFiles') ?? [];
-      const isPressed = e.currentTarget.getAttribute('aria-pressed') !== 'false';
-      if (isPressed) {
-        setValue('linkedFiles', current.concat({ fileId, observationId, name }));
-      } else {
-        setValue(
-          'linkedFiles',
-          current.filter((x) => x.fileId !== fileId && x.observationId !== observationId),
-        );
-      }
-    },
-    [getValues, setValue],
-  );
+  const linkedFiles = watch('linkedFiles') ?? [];
+  const searchedAttachments = observationsAttachments?.items ?? [];
+  const linkableAttachments = [
+    ...searchedAttachments,
+    ...linkedFiles.filter(
+      (linked) =>
+        !searchedAttachments.some(
+          (attachment) =>
+            attachment.observationId === linked.observationId && attachment.fileId === linked.fileId,
+        ),
+    ),
+  ];
 
   return (
-    <form id="observation-form" onSubmit={handleFormSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form className="flex flex-col gap-6" id="observation-form" onSubmit={handleFormSubmit(onSubmit)}>
       {createError || updateError ? (
         <p className="fr-mb-0 text-(--text-default-error)">
           {createError?.message ||
             updateError?.message ||
-            (isEditing ? `Erreur pendant la mise à jour` : `Erreur à la création`)}
+            (isEditing ? (
+              <FormattedMessage defaultMessage="Erreur pendant la mise à jour" />
+            ) : (
+              <FormattedMessage defaultMessage="Erreur à la création" />
+            ))}
         </p>
       ) : null}
+      <MagistratCombobox
+        errorMessage={errors.magistratId?.message}
+        magistrat={selectedMagistrat}
+        onChange={handleMagistratChange}
+      />
+
       <Controller
-        name="dateReception"
         control={control}
+        name="dateReception"
         render={({ field }) => (
           <Input
+            classes={{ root: 'fr-mb-0' }}
             label={
               <Mandatory>
                 <FormattedMessage defaultMessage="Date de réception" />
               </Mandatory>
             }
-            state={errors.dateReception || updateError || createError ? 'error' : 'default'}
-            stateRelatedMessage={errors.dateReception?.message}
-            classes={{ root: 'fr-mb-0' }}
             nativeInputProps={{
+              'aria-required': true,
+              onChange: field.onChange,
               type: 'date',
               value: field.value,
-              onChange: field.onChange,
-              required: true,
             }}
+            state={errors.dateReception ? 'error' : 'default'}
+            stateRelatedMessage={errors.dateReception?.message}
           />
         )}
       />
 
-      <div className="relative">
-        <Input
-          label={
-            <Mandatory>
-              <FormattedMessage defaultMessage="Magistrat observant" />
-            </Mandatory>
-          }
-          classes={{ root: 'fr-mb-0' }}
-          iconId="fr-icon-search-line"
-          hintText="Nom, Prénom ou Adresse email pro"
-          state={errors.magistratId || updateError || createError ? 'error' : 'default'}
-          stateRelatedMessage={errors.magistratId ? errors.magistratId.message : null}
-          nativeInputProps={{
-            type: 'search',
-            role: 'combobox',
-            value: searchTerm,
-            onFocus: () => setShowResults(true),
-            placeholder: 'Rechercher un magistrat',
-            'aria-expanded': showResults && debouncedSearch.length >= 2,
-            'aria-controls': 'magistrat-listbox',
-            'aria-autocomplete': 'list',
-            onChange: (e) => {
-              setSearchTerm(e.target.value);
-              setShowResults(true);
-              if (e.target.value === '') {
-                setSelectedMagistrat(null);
-                setValue('magistratId', '');
-              }
-            },
-          }}
-        />
-        {showResults && debouncedSearch.length >= 2 && (
-          <div
-            id="magistrat-listbox"
-            role="listbox"
-            className="fr-mt-1v absolute max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey) shadow-lg"
-            style={{ zIndex: 9999 }}
-          >
-            {isSearching ? (
-              <div className="fr-p-3v text-sm text-(--text-mention-grey)">Recherche...</div>
-            ) : (displayedMagistrats ?? []).length === 0 ? (
-              <div className="fr-p-3v text-sm text-(--text-mention-grey)">Aucun résultat</div>
-            ) : (
-              (displayedMagistrats ?? []).map((magistrat) => (
-                <button
-                  key={magistrat.id}
-                  type="button"
-                  role="option"
-                  aria-selected={selectedMagistrat?.id === magistrat.id}
-                  className="fr-p-3v w-full cursor-pointer border-b text-left hover:bg-(--background-default-grey-hover)"
-                  onClick={() => handleMagistratSelect(magistrat)}
-                >
-                  <div className="font-medium">{toFullName(magistrat)}</div>
-                  <div className="text-xs text-(--text-mention-grey)">
-                    {[magistrat.grade, magistrat.currentPosition]
-                      .flatMap((x) => {
-                        const trimmed = x?.trim();
-                        return trimmed ? [trimmed] : [];
-                      })
-                      .join(' - ')}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        )}
-        {selectedMagistrat && (
-          <div className="fr-mt-2v fr-p-2v flex items-center gap-2">
-            <Tag dismissible nativeButtonProps={{ onClick: handleMagistratClear }} as="button">
-              {toFullName(selectedMagistrat)}
-              {selectedMagistrat.currentPosition && ` - ${selectedMagistrat.currentPosition}`}
-            </Tag>
-          </div>
-        )}
-      </div>
-
       {isEditing && existingFiles.length > 0 && (
-        <div>
-          <label className="fr-label fr-mb-2v block">
-            <FormattedMessage
-              values={{ count: existingFiles.length }}
-              defaultMessage={`{count, plural,
-                one {Fichier existant}  
-                other {Fichiers existants}  
-              }`}
-            />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {existingFiles.map((file) => (
-              <div
-                key={file.id}
-                className="fr-px-3v fr-py-2v flex items-center gap-2 rounded-sm bg-(--background-contrast-grey)"
-              >
-                <i className="ri-file-line" />
-                <span className="text-sm">{file.name}</span>
-                <button
-                  type="button"
-                  className="fr-ml-2v text-(--text-default-error) hover:text-(--text-default-error)"
-                  onClick={() => handleRemoveExistingFile(file.id)}
-                  title="Supprimer ce fichier"
-                >
-                  <i className="ri-close-line" />
-                </button>
-              </div>
-            ))}
-          </div>
-          {filesToDetach.length > 0 && (
-            <div className="fr-mt-2v text-sm text-(--text-default-warning)">
-              {filesToDetach.length > 1
-                ? `${filesToDetach.length} fichiers seront supprimés`
-                : `1 fichier sera supprimé`}
-            </div>
-          )}
-        </div>
+        <ObservationExistingFiles
+          detachedFiles={filesToDetach}
+          files={existingFiles}
+          onRemove={handleRemoveExistingFile}
+        />
       )}
 
       <Controller
-        name="description"
         control={control}
+        name="description"
         render={({ field }) => (
           <Input
-            textArea
             classes={{ root: 'fr-mb-0' }}
-            label="Historique observant"
-            nativeTextAreaProps={{ value: field.value as string, onChange: field.onChange }}
+            hintText={intl.formatMessage({
+              defaultMessage: "Renseignez le texte de l'observation ou joignez une pièce jointe ci-dessous",
+            })}
+            label={<FormattedMessage defaultMessage="Historique observant" />}
+            nativeTextAreaProps={{ onChange: field.onChange, value: field.value as string }}
+            state={errors.description ? 'error' : 'default'}
+            stateRelatedMessage={errors.description?.message}
+            textArea
           />
         )}
       />
 
       <Controller
-        name="files"
         control={control}
+        name="files"
         render={({ field }) => (
           <Upload
-            label={isEditing ? 'Ajouter des fichiers' : 'Pièces jointes'}
-            hint="Formats acceptés: JPEG, PNG, PDF, Word"
+            hint={intl.formatMessage({ defaultMessage: 'Formats acceptés : JPEG, PNG, PDF, Word' })}
+            label={
+              isEditing ? (
+                <FormattedMessage defaultMessage="Ajouter des fichiers" />
+              ) : (
+                <FormattedMessage defaultMessage="Pièces jointes" />
+              )
+            }
             nativeInputProps={{
-              ref: fileInputRef,
-              multiple: true,
               accept: ACCEPTED_FILE_TYPES,
+              multiple: true,
               onChange: (e) => {
                 if (e.target.files) {
                   field.onChange(Array.from(e.target.files));
                 }
               },
+              ref: fileInputRef,
             }}
           />
         )}
@@ -413,44 +314,26 @@ export const ObservationForm: FC<{
       {files.length > 0 && (
         <div className="text-sm text-(--text-mention-grey)">
           <FormattedMessage
-            values={{ count: files.length }}
             defaultMessage={`{count, plural,
               one {{count} nouveau fichier sélectionné}
               other {{count} nouveaux fichiers sélectionnés}
             }`}
+            values={{ count: files.length }}
           />
         </div>
       )}
 
       <Controller
-        name="linkedFiles"
         control={control}
+        name="linkedFiles"
         render={({ field }) => (
-          <ul className="fr-m-0 fr-p-0 flex list-none flex-row flex-wrap gap-x-2">
-            <li></li>
-            {viewObservationAttachments.map((item) => (
-              <li key={`${item.observationId}_${item.fileId}`}>
-                <Tag
-                  small
-                  title={`Lier "${item.name}"`}
-                  iconId="fr-icon-file-fill"
-                  nativeButtonProps={{
-                    onClick: onLinkFileClicked,
-                    'data-name': item.name,
-                    'data-file-id': item.fileId,
-                    'data-observation-id': item.observationId,
-                  }}
-                  pressed={field.value?.some(
-                    (x) => x.observationId === item.observationId && x.fileId === item.fileId,
-                  )}
-                >
-                  {item.name}
-                </Tag>
-              </li>
-            ))}
-          </ul>
+          <ObservationLinkableAttachments
+            attachments={linkableAttachments}
+            linked={field.value ?? []}
+            onToggle={field.onChange}
+          />
         )}
       />
     </form>
   );
-};
+}

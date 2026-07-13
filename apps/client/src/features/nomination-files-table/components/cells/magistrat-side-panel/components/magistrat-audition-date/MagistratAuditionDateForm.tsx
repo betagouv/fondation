@@ -196,7 +196,7 @@ export function MagistratAuditionDateForm(props: {
         />
         {!isPast && (date || time) && (
           <Button
-            className="ml-auto min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+            className="ml-auto btn-compact"
             onClick={clear}
             priority="secondary"
             size="small"

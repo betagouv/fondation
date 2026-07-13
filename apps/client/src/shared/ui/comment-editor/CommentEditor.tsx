@@ -100,7 +100,7 @@ export function CommentEditor(props: {
         <div className="overflow-hidden">
           <div className="flex justify-end gap-2">
             <Button
-              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+              className="btn-compact"
               disabled={!isDirty || isPending}
               onClick={cancel}
               priority="secondary"
@@ -109,7 +109,7 @@ export function CommentEditor(props: {
               <FormattedMessage defaultMessage="Annuler" />
             </Button>
             <Button
-              className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
+              className="btn-compact"
               disabled={!isDirty || isPending}
               onClick={save}
               priority="primary"
