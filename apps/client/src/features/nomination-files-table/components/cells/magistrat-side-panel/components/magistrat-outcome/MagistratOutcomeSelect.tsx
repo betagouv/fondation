@@ -1,6 +1,6 @@
 import { FormattedMessage } from 'react-intl';
 
-import { useSortedNominationFileOutcomes } from '../../../nomination-file-outcome/nomination-file-outcome-badge.utils';
+import { outcomeRequiresComment } from '../../../nomination-file-outcome/nomination-file-outcome.utils';
 import { NominationFileOutcomeBadge } from '../../../nomination-file-outcome/NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
 import { useObservationFollowUpReminderModal } from '../../../observation-follow-up/useObservationFollowUpReminderModal.hook';
@@ -13,8 +13,7 @@ import {
 } from '@queries/nomination-sessions.queries';
 
 export function MagistratOutcomeSelect(props: { nominationFile: SessionNominationFile }) {
-  const { formation, sessionId } = useNominationFilesTable();
-  const outcomes = useSortedNominationFileOutcomes();
+  const { formation, sessionId, outcomes } = useNominationFilesTable();
   const { waitForOutcomeComment } = useOutcomeCommentDialog();
   const observationFollowUps = useObservationFollowUpReminderModal();
   const { mutate, reset } = useDefineNominationFileOutcomeMutation({
@@ -24,9 +23,24 @@ export function MagistratOutcomeSelect(props: { nominationFile: SessionNominatio
 
   const current = props.nominationFile.content.outcome?.value ?? null;
 
+  const save = (outcome: NominationFileOutcomeEnum, comment: string | null) => {
+    mutate(
+      { comment, outcome },
+      {
+        onSettled: () => reset(),
+        onSuccess: () => observationFollowUps.remindOfObservationFollowUpIfNecessary(props.nominationFile),
+      },
+    );
+  };
+
   const select = async (next: NominationFileOutcomeEnum | null) => {
     if (next === null) {
       mutate({ comment: null, outcome: null });
+      return;
+    }
+
+    if (!outcomeRequiresComment(outcomes, next)) {
+      save(next, null);
       return;
     }
 
@@ -36,16 +50,10 @@ export function MagistratOutcomeSelect(props: { nominationFile: SessionNominatio
       return;
     }
 
-    mutate(
-      { comment: event.value, outcome: next },
-      {
-        onSettled: () => reset(),
-        onSuccess: () => observationFollowUps.remindOfObservationFollowUpIfNecessary(props.nominationFile),
-      },
-    );
+    save(next, event.value);
   };
 
-  const options = outcomes.map((value) => ({
+  const options = outcomes.map(({ value }) => ({
     value,
     label: <NominationFileOutcomeBadge formation={formation} outcome={value} small={false} />,
   }));

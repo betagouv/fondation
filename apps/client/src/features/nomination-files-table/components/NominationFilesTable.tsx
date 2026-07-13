@@ -1,11 +1,11 @@
 import type { Row } from '@tanstack/react-table';
-import React from 'react';
+import { useCallback, useEffect, useMemo, type PropsWithChildren } from 'react';
 
 import './NominationFilesTable.css';
 
 import { defineMessage } from 'react-intl';
 
-import { useNominationFilesTable } from '../context/files-table.context';
+import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
 import { FilesAffectationsProvider } from '../context/FilesAffectationsProvider';
 import { FilesSelectionProvider } from '../context/FilesSelectionProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
@@ -30,10 +30,10 @@ import { NominationFilesTableActionsBar } from './NominationFilesActionsBar';
 import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';
 import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 
-function NominationFilesTableInner(props: React.PropsWithChildren) {
+function NominationFilesTableInner(props: PropsWithChildren) {
   const isSg = useIsSgNavigation();
 
-  const { sessionId, formation, edition } = useNominationFilesTable();
+  const { sessionId, edition } = useNominationFilesTable();
   const columns = useNominationFilesTableColumns();
   const [tableState, setTableState] = useQueryDataTableState({
     globalFilter: '',
@@ -43,7 +43,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
     rowSelection: {},
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!edition?.isEditing && Object.keys(tableState.rowSelection).length > 0) {
       setTableState((state) => ({ ...state, rowSelection: {} }));
     }
@@ -61,13 +61,13 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
         ?.value as (NominationFileOutcomeEnum | null)[],
     },
   });
-  const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
-  const onPageChange = React.useCallback(
+  const nominationFiles = useMemo(() => data?.items ?? [], [data]);
+  const onPageChange = useCallback(
     (pageIndex: number) =>
       setTableState((state) => ({ ...state, pagination: { ...state.pagination, pageIndex } })),
     [setTableState],
   );
-  const enableRowSelection = React.useMemo(
+  const enableRowSelection = useMemo(
     () => !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable),
     [edition],
   );
@@ -100,7 +100,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
         pagination={tableState.pagination}
         totalCount={data?.totalCount ?? 0}
       >
-        <NominationFileOutcomeCommentModalProvider formation={formation}>
+        <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
             <ObservationFollowUpCommentProvider>
               <ObservationFollowUpReminderProvider>
@@ -110,7 +110,7 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                     <AlertsProvider>
                       <div className="fr-container fr-mb-4v flex flex-col gap-y-4">
                         <div className="self-center">
-                          <AlertsProvider.Alerts small className="shrink-0" />
+                          <AlertsProvider.Alerts className="shrink-0" small />
                         </div>
 
                         {isSg ? (
@@ -128,10 +128,10 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
                           content:
                             'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
                         }}
-                        table={table}
                         placeholder={
                           isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
                         }
+                        table={table}
                       >
                         {props.children}
 
@@ -150,10 +150,11 @@ function NominationFilesTableInner(props: React.PropsWithChildren) {
 }
 
 export function NominationFilesTable(
-  props: React.PropsWithChildren<{
-    isEditable?: boolean;
-    sessionId: string;
+  props: PropsWithChildren<{
     formation: FormationEnum;
+    isEditable?: boolean;
+    outcomes: readonly SessionOutcome[];
+    sessionId: string;
   }>,
 ) {
   return (

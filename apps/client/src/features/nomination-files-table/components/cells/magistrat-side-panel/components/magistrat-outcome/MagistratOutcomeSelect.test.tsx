@@ -14,14 +14,17 @@ const mocks = vi.hoisted(() => ({
   remind: vi.fn(),
 }));
 
-vi.mock('@/features/nomination-files-table/context/files-table.context', () => ({
-  useNominationFilesTable: () => ({ formation: 'SIEGE', sessionId: 'session-1' }),
-}));
+vi.mock('@/features/nomination-files-table/context/files-table.context', async () => {
+  const { makeSessionOutcomes } = await import('@/test-utils/factories/session-outcomes.factory');
 
-vi.mock('../../../nomination-file-outcome/nomination-file-outcome-badge.utils', async (orig) => ({
-  ...(await orig<object>()),
-  useSortedNominationFileOutcomes: () => ['VALIDATED', 'NON_VALIDATED'],
-}));
+  return {
+    useNominationFilesTable: () => ({
+      formation: 'SIEGE',
+      sessionId: 'session-1',
+      outcomes: makeSessionOutcomes('SIEGE'),
+    }),
+  };
+});
 
 vi.mock('../../../nomination-file-outcome/OutcomeCommentModalContext', () => ({
   useOutcomeCommentDialog: () => ({ waitForOutcomeComment: mocks.waitForOutcomeComment }),
@@ -66,8 +69,7 @@ describe('MagistratOutcomeSelect', () => {
     expect(mocks.mutate).toHaveBeenCalledWith({ comment: null, outcome: null });
   });
 
-  it('saves the outcome and reminds about follow-up when a comment is confirmed', async () => {
-    mocks.waitForOutcomeComment.mockResolvedValue({ type: 'comment', value: 'Bien' });
+  it('saves an outcome that needs no comment without opening the comment dialog', async () => {
     const user = userEvent.setup();
     renderSelect();
 
@@ -75,7 +77,26 @@ describe('MagistratOutcomeSelect', () => {
     await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
-    expect(mocks.mutate).toHaveBeenCalledWith({ comment: 'Bien', outcome: 'VALIDATED' }, expect.anything());
+    expect(mocks.waitForOutcomeComment).not.toHaveBeenCalled();
+    expect(mocks.mutate).toHaveBeenCalledWith({ comment: null, outcome: 'VALIDATED' }, expect.anything());
+    expect(mocks.remind).toHaveBeenCalledTimes(1);
+    expect(mocks.reset).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves the outcome and reminds about follow-up when a required comment is confirmed', async () => {
+    mocks.waitForOutcomeComment.mockResolvedValue({ type: 'comment', value: 'Bien' });
+    const user = userEvent.setup();
+    renderSelect();
+
+    await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
+    await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
+
+    await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
+    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED');
+    expect(mocks.mutate).toHaveBeenCalledWith(
+      { comment: 'Bien', outcome: 'NON_VALIDATED' },
+      expect.anything(),
+    );
     expect(mocks.remind).toHaveBeenCalledTimes(1);
     expect(mocks.reset).toHaveBeenCalledTimes(1);
   });
@@ -86,7 +107,7 @@ describe('MagistratOutcomeSelect', () => {
     renderSelect();
 
     await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
-    await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.reset).toHaveBeenCalledTimes(1));
     expect(mocks.mutate).not.toHaveBeenCalled();

@@ -39,6 +39,24 @@ const FINAL_OUTCOMES = Object.freeze(
   ),
 );
 
+const OUTCOMES_IN_SELECTION_ORDER = Object.freeze(
+  Object.values({
+    VALIDATED: 'VALIDATED',
+    NON_VALIDATED: 'NON_VALIDATED',
+    SUSPENDED: 'SUSPENDED',
+    WAITING_DSJ: 'WAITING_DSJ',
+    ASSESSING: 'ASSESSING',
+    WITHDRAWN: 'WITHDRAWN',
+    REMOVED: 'REMOVED',
+  } satisfies { [K in NominationFileOutcomeEnum]: K }),
+);
+
+export type SelectableNominationFileOutcome = {
+  value: NominationFileOutcomeEnum;
+  label: string;
+  commentRequired: boolean;
+};
+
 export class NominationFileOutcome {
   /** @internal exposed for DTOs definitions  */
   static readonly enum = NOMINATION_FILE_OUTCOMES;
@@ -53,6 +71,18 @@ export class NominationFileOutcome {
 
   static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
     return outcome === null || (NON_FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
+  }
+
+  static commentRequired(outcome: NominationFileOutcomeEnum): boolean {
+    return outcome === 'NON_VALIDATED';
+  }
+
+  static selectableOutcomes(formation: Magistrat.Formation): SelectableNominationFileOutcome[] {
+    return OUTCOMES_IN_SELECTION_ORDER.map((value) => ({
+      value,
+      label: nominationFileOutcomeLabel({ outcome: value, formation }),
+      commentRequired: NominationFileOutcome.commentRequired(value),
+    }));
   }
 
   static assertAllowsAudition(outcome: NominationFileOutcomeEnum | null): void {
@@ -87,7 +117,7 @@ export class NominationFileOutcome {
     comment: string | null;
   }): string | null {
     const comment = props.comment?.trim() || null;
-    if (props.outcome === 'NON_VALIDATED' && !isDefined(comment)) {
+    if (NominationFileOutcome.commentRequired(props.outcome) && !isDefined(comment)) {
       throw new NominationFileOutcomeRequiresComment(props.outcome);
     }
 

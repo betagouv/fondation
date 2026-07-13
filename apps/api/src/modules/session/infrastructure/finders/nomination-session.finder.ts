@@ -1,11 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+
+import { Magistrat } from 'shared-models';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 @Injectable()
 export class NominationSessionFinder {
   constructor(private readonly prisma: PrismaService) {}
+
+  async formation(query: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<Magistrat.Formation> {
+    const session = await (query.tx ?? this.prisma).session.findUnique({
+      where: { id: query.sessionId },
+      select: { formation: true },
+    });
+    if (!session) throw new NotFoundException();
+
+    return prismaFormationEnumToFormationEnum(session.formation);
+  }
 
   async attachmentsCount(query: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<number> {
     if (!query.tx) {

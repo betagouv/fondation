@@ -1,3 +1,5 @@
+import { Magistrat } from 'shared-models';
+
 import {
   NominationFileOutcome,
   NominationFileOutcomeRequiresComment,
@@ -47,6 +49,50 @@ describe('NominationFileOutcome', () => {
     });
 
     expect(outcome.comment).toBeNull();
+  });
+
+  describe('commentRequired', () => {
+    it('requires a comment for an unfavorable outcome', () => {
+      expect(NominationFileOutcome.commentRequired('NON_VALIDATED')).toBe(true);
+    });
+
+    it.each([
+      'VALIDATED',
+      'SUSPENDED',
+      'REMOVED',
+      'WITHDRAWN',
+      'ASSESSING',
+      'WAITING_DSJ',
+    ] satisfies NominationFileOutcomeEnum[])('leaves the comment optional for %s', (outcome) => {
+      expect(NominationFileOutcome.commentRequired(outcome)).toBe(false);
+    });
+  });
+
+  describe('selectableOutcomes', () => {
+    it('exposes every outcome in selection order with its label and comment requirement', () => {
+      const outcomes = NominationFileOutcome.selectableOutcomes(Magistrat.Formation.PARQUET);
+
+      expect(outcomes).toEqual([
+        { value: 'VALIDATED', label: 'avis favorable', commentRequired: false },
+        { value: 'NON_VALIDATED', label: 'avis défavorable', commentRequired: true },
+        { value: 'SUSPENDED', label: 'sursis à statuer', commentRequired: false },
+        { value: 'WAITING_DSJ', label: 'en attente complément DSJ', commentRequired: false },
+        { value: 'ASSESSING', label: 'en attente évaluation', commentRequired: false },
+        { value: 'WITHDRAWN', label: 'retrait (désistement)', commentRequired: false },
+        { value: 'REMOVED', label: 'retrait', commentRequired: false },
+      ]);
+    });
+
+    it('labels the decision outcomes according to the formation', () => {
+      const outcomes = NominationFileOutcome.selectableOutcomes(Magistrat.Formation.SIEGE);
+
+      expect(outcomes[0]).toEqual({ value: 'VALIDATED', label: 'avis conforme', commentRequired: false });
+      expect(outcomes[1]).toEqual({
+        value: 'NON_VALIDATED',
+        label: 'avis non conforme',
+        commentRequired: true,
+      });
+    });
   });
 
   describe('allowsAudition', () => {

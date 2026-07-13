@@ -1,7 +1,7 @@
 import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
-import React from 'react';
+import { useMemo } from 'react';
 
-import { type FormationEnum, NominationFileOutcomeEnum, outcomeLabel } from '@/types/enums.types';
+import { type FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
 import type { IconClassName } from '@/types/icons.types';
 
 const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
@@ -70,13 +70,12 @@ export const useNominationFileOutcome = (outcome: {
   formation: FormationEnum;
   outcome: NominationFileOutcomeEnum | null;
 }) =>
-  React.useMemo(
+  useMemo(
     () =>
       outcome.outcome === null
         ? {
             badge: '',
             acronym: '',
-            label: '',
             icon: undefined,
             severity: undefined,
           }
@@ -85,22 +84,6 @@ export const useNominationFileOutcome = (outcome: {
             acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.outcome],
             icon: NOMINATION_FILE_OUTCOME_ICON[outcome.outcome],
             severity: NOMINATION_FILE_OUTCOME_SEVERITY[outcome.outcome],
-            label: outcomeLabel({ value: outcome.outcome, formation: outcome.formation }),
           },
     [outcome],
-  );
-
-export const useSortedNominationFileOutcomes = (): readonly NominationFileOutcomeEnum[] =>
-  React.useMemo(
-    () =>
-      [
-        'VALIDATED',
-        'NON_VALIDATED',
-        'SUSPENDED',
-        'WAITING_DSJ',
-        'ASSESSING',
-        'WITHDRAWN',
-        'REMOVED',
-      ] as const satisfies NominationFileOutcomeEnum[],
-    [],
   );

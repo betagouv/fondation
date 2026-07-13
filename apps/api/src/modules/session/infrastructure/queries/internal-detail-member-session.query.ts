@@ -11,6 +11,7 @@ import {
   TypeDeSaisine,
 } from 'shared-models';
 
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
 import {
   internalCountTotalDetailsMemberSessionRawQuery,
@@ -21,6 +22,7 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
@@ -179,6 +181,9 @@ export class InternalDetailMemberSessionQuery {
         id: session.id,
         isArchived: !!session.archivedAt,
         formation: session.formation,
+        outcomes: NominationFileOutcome.selectableOutcomes(
+          prismaFormationEnumToFormationEnum(session.formation),
+        ),
         transparency: session.name,
         dateTransparence: DateOnly.fromDate(session.date).toJson(),
         dateSeance: DateOnly.fromOptionalDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
@@ -232,6 +237,13 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
       id: z.string(),
       isArchived: z.boolean(),
       formation: z.string(),
+      outcomes: z.array(
+        z.object({
+          commentRequired: z.boolean(),
+          label: z.string(),
+          value: z.enum(NominationFileOutcome.enum),
+        }),
+      ),
       transparency: z.string(),
       dateTransparence: dateOnlyJsonSchema,
       dateSeance: dateOnlyJsonSchema.nullable(),

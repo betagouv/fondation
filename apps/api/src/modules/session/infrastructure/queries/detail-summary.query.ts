@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, PrioriteEnum } from 'shared-models';
 
-import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
+import { NominationFileOutcome, nominationFileOutcomeLabel } from '../../domain/nomination-file-outcome';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
@@ -166,6 +166,10 @@ export class DetailSummaryQuery {
       outcome: nominationFile.outcome
         ? {
             value: nominationFile.outcome,
+            label: nominationFileOutcomeLabel({
+              outcome: nominationFile.outcome,
+              formation: prismaFormationEnumToFormationEnum(session.formation),
+            }),
             comment: nominationFile.outcomeComment,
           }
         : null,
@@ -253,6 +257,7 @@ export class DetailedSummaryDto extends createZodDto(
     outcome: z
       .object({
         value: z.enum(NominationFileOutcome.enum),
+        label: z.string(),
         comment: z.string().nullable(),
       })
       .nullable(),

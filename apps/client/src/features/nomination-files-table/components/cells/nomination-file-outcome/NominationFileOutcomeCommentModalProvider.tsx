@@ -1,14 +1,11 @@
 import { useCallback, useState, type ReactNode } from 'react';
 
-import type { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
 import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
 import { OutcomeCommentModalContext, type OutcomeCommentCallback } from './OutcomeCommentModalContext';
 
-export function NominationFileOutcomeCommentModalProvider(props: {
-  children: ReactNode;
-  formation: FormationEnum;
-}) {
+export function NominationFileOutcomeCommentModalProvider(props: { children: ReactNode }) {
   const [outcome, setOutcome] = useState<NominationFileOutcomeEnum | null>(null);
   const [initialComment, setInitialComment] = useState<string | null>(null);
   const [commentCallback, setCommentCallback] = useState<OutcomeCommentCallback | null>(null);
@@ -43,11 +40,7 @@ export function NominationFileOutcomeCommentModalProvider(props: {
         setOutcome,
       }}
     >
-      <NominationFileOutcomeCommentModal
-        formation={props.formation}
-        onChange={onCommentChange}
-        onDrop={onDrop}
-      />
+      <NominationFileOutcomeCommentModal onChange={onCommentChange} onDrop={onDrop} />
 
       {props.children}
     </OutcomeCommentModalContext>

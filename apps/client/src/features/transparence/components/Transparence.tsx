@@ -69,9 +69,10 @@ export function Transparence() {
           </div>
           <div className="fr-mb-8v">
             <NominationFilesTable
-              sessionId={sessionId!}
               formation={transparence.formation}
               isEditable={!transparence.isArchived}
+              outcomes={transparence.outcomes}
+              sessionId={sessionId!}
             />
           </div>
         </div>

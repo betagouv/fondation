@@ -1,4 +1,9 @@
-import { NominationFileOutcomeEnum } from 'src/modules/session/domain/nomination-file-outcome';
+import { Magistrat } from 'shared-models';
+
+import {
+  NominationFileOutcomeEnum,
+  nominationFileOutcomeLabel,
+} from 'src/modules/session/domain/nomination-file-outcome';
 import { assertNever } from 'src/utils/assert-never';
 
 export const DOC_NOMINATION_FILE_OUTCOME_ENUM = [
@@ -30,5 +35,25 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
 
     default:
       return assertNever(value);
+  }
+}
+
+export function docNominationFileOutcomeLabel(props: {
+  outcome: DocNominationFileOutcomeEnum;
+  formation: Magistrat.Formation;
+}): string {
+  switch (props.outcome) {
+    case 'VALIDATED':
+    case 'NON_VALIDATED':
+      return nominationFileOutcomeLabel(props);
+
+    case 'SUSPENDED':
+      return 'sursis à statuer';
+
+    case 'WITHDRAWN':
+      return 'retrait';
+
+    default:
+      return assertNever(props.outcome);
   }
 }
