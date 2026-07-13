@@ -223,19 +223,6 @@ describe('ObservationForm', () => {
     );
   });
 
-  it('stops the submission when the last file is removed and no text is left', async () => {
-    const user = userEvent.setup();
-    renderForm({ ...OBSERVATION, description: '', files: [{ id: 'file-1', name: 'courrier.pdf' }] });
-
-    await user.click(removeFileButton('courrier.pdf'));
-    await user.click(screen.getByRole('button', { name: 'Envoyer' }));
-
-    expect(updateObservation).not.toHaveBeenCalled();
-    expect(
-      screen.getByText("Renseignez l'historique observant ou joignez une pièce jointe"),
-    ).toBeInTheDocument();
-  });
-
   it('accepts an observation carrying only an attachment', async () => {
     const user = userEvent.setup();
     renderForm({ ...OBSERVATION, description: '' });
@@ -243,5 +230,18 @@ describe('ObservationForm', () => {
     await user.click(screen.getByRole('button', { name: 'Envoyer' }));
 
     expect(updateObservation).toHaveBeenCalled();
+  });
+
+  it('accepts an observation left without text nor attachment as the domain allows it', async () => {
+    const user = userEvent.setup();
+    renderForm({ ...OBSERVATION, description: '', files: [{ id: 'file-1', name: 'courrier.pdf' }] });
+
+    await user.click(removeFileButton('courrier.pdf'));
+    await user.click(screen.getByRole('button', { name: 'Envoyer' }));
+
+    expect(updateObservation).toHaveBeenCalledWith(
+      expect.objectContaining({ detachFileIds: ['file-1'] }),
+      expect.anything(),
+    );
   });
 });

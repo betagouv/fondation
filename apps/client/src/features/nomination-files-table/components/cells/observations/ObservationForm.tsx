@@ -21,32 +21,16 @@ import { ObservationLinkableAttachments } from './ObservationLinkableAttachments
 
 const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 
-const observationFormSchema = z
-  .object({
-    magistratId: z.string().min(1, 'Champ obligatoire'),
-    dateReception: z.string().min(1, 'Champ obligatoire'),
-    description: z.string().optional(),
-    files: z.array(z.instanceof(File)).optional(),
-    linkedFiles: z
-      .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
-      .optional(),
-    keptFileIds: z.array(z.string()).optional(),
-  })
-  .superRefine((values, ctx) => {
-    const hasContent =
-      !!values.description?.trim() ||
-      !!values.files?.length ||
-      !!values.linkedFiles?.length ||
-      !!values.keptFileIds?.length;
-
-    if (!hasContent) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['description'],
-        message: "Renseignez l'historique observant ou joignez une pièce jointe",
-      });
-    }
-  });
+const observationFormSchema = z.object({
+  magistratId: z.string().min(1, 'Champ obligatoire'),
+  dateReception: z.string().min(1, 'Champ obligatoire'),
+  description: z.string().optional(),
+  files: z.array(z.instanceof(File)).optional(),
+  linkedFiles: z
+    .array(z.object({ observationId: z.string(), fileId: z.string(), name: z.string() }))
+    .optional(),
+  keptFileIds: z.array(z.string()).optional(),
+});
 
 type FormSchema = z.infer<typeof observationFormSchema>;
 
@@ -278,8 +262,6 @@ export function ObservationForm({
             })}
             label={<FormattedMessage defaultMessage="Historique observant" />}
             nativeTextAreaProps={{ onChange: field.onChange, value: field.value as string }}
-            state={errors.description ? 'error' : 'default'}
-            stateRelatedMessage={errors.description?.message}
             textArea
           />
         )}
