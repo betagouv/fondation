@@ -96,6 +96,26 @@ jobs:
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
+      - name: Check generated OpenAPI clients are up-to-date
+        shell: bash
+        run: |
+          setsid pnpm --filter api start:e2e &
+          SERVER_PID=$!
+          trap 'kill -- -$SERVER_PID 2>/dev/null || true' EXIT
+
+          timeout 90 bash -c 'until curl -sf http://localhost:3000/openapi/root.json > /dev/null; do sleep 1; done'
+
+          pnpm run openapi:generate
+
+          if [ -n "$(git status --porcelain -- apps/client/src/generated apps/api-e2e/src/generated)" ]; then
+            git status --porcelain -- apps/client/src/generated apps/api-e2e/src/generated
+            git diff -- apps/client/src/generated apps/api-e2e/src/generated
+            echo "::error::Generated OpenAPI clients are out of date. Start the API then run 'pnpm run openapi:generate' and commit the result."
+            exit 1
+          fi
+        env:
+          PORT: '3000'
+
       - name: Test Api
         run: pnpm --filter api test
 
