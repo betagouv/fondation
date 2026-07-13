@@ -783,6 +783,10 @@ export type DetailedMemberSessionDto = {
         currentPosition: string | null;
         targettedPosition: string;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        /**
+         * LODAM observers, we need to keep them until we recover data from LODAM
+         */
+        observers: Array<string>;
         observations: Array<{
             id: string;
             hasDescription: boolean;
