@@ -1,19 +1,19 @@
-import Card from '@codegouvfr/react-dsfr/Card';
+import Button from '@codegouvfr/react-dsfr/Button';
 import * as Sentry from '@sentry/react';
 import { useMemo, type ReactNode } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryReaderSelector } from '@/features/summary/components/SummaryReaderSelector';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { useSummaryQuery } from '@queries/summary.queries';
+import { useGenerateSummaryAttachmentPublicUrlMutation, useSummaryQuery } from '@queries/summary.queries';
 
 import { MagistratSummaryButton } from './MagistratSummaryButton';
+import { toPlainText } from './summary-text';
 
 export function MagistratSummary(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   return (
@@ -95,33 +95,46 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
     >
       <SummarySection
         action={
-          <SummaryReaderSelector
-            className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
-            priority="secondary"
-            rounded={false}
-            size="small"
-            withCount={false}
-          />
+          <div className="flex shrink-0 items-center gap-2">
+            <SummaryReaderSelector
+              className="btn-compact"
+              priority="tertiary"
+              rounded={false}
+              size="small"
+              withCount={false}
+            />
+            <Button className="btn-compact" linkProps={{ to: link }} priority="secondary" size="small">
+              {canWriteSummary ? (
+                <FormattedMessage defaultMessage="Modifier" />
+              ) : (
+                <FormattedMessage defaultMessage="Ouvrir" />
+              )}
+            </Button>
+          </div>
         }
+        mention={<SharedWithMention count={data.summary.readers.length} />}
       >
-        <SummaryPreviewCard
+        <SummaryText
+          attachments={data.summary.attachments}
           content={data.summary.content}
-          link={link}
-          name={nominationFile.content.nomMagistrat}
-          readers={data.summary.readers}
+          nominationFileId={nominationFile.id}
+          sessionId={sessionId}
         />
       </SummarySection>
     </SummaryContext>
   );
 }
 
-function SummarySection(props: { action?: ReactNode; children: ReactNode }) {
+function SummarySection(props: { action?: ReactNode; children: ReactNode; mention?: ReactNode }) {
   return (
     <div>
-      <div className="fr-mb-4v flex items-center justify-between gap-2">
-        <h3 className="fr-mb-0 text-xl font-semibold">
-          <FormattedMessage defaultMessage="Synthèse" />
-        </h3>
+      <div className="fr-mb-4v flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <h3 className="fr-mb-0 text-xl font-semibold">
+            <FormattedMessage defaultMessage="Synthèse" />
+          </h3>
+          {props.mention}
+        </div>
         {props.action}
       </div>
       {props.children}
@@ -129,43 +142,89 @@ function SummarySection(props: { action?: ReactNode; children: ReactNode }) {
   );
 }
 
-function SummaryPreviewCard(props: {
-  name: string | null;
-  content: string;
-  readers: readonly { firstName: string; lastName: string }[];
-  link: string;
-}) {
-  const intl = useIntl();
-  const excerpt = useMemo(() => {
-    const el = document.createElement('div');
-    el.innerHTML = props.content;
-    return (el.textContent ?? '').trim();
-  }, [props.content]);
-
-  const sharedWith = useMemo(() => {
-    if (props.readers.length === 0) return null;
-    const names = props.readers.map(
-      (reader) =>
-        `${capitalize(reader.firstName.toLowerCase())} ${capitalize(reader.lastName.toLowerCase())}`,
-    );
-    return new Intl.ListFormat('fr', { type: 'conjunction' }).format(names);
-  }, [props.readers]);
+function SharedWithMention(props: { count: number }) {
+  if (props.count === 0) return null;
 
   return (
-    <Card
-      desc={excerpt ? <span className="line-clamp-2 text-base">{excerpt}</span> : undefined}
-      enlargeLink
-      linkProps={{ to: props.link }}
-      size="small"
-      start={
-        sharedWith ? (
-          <p className="fr-mb-2v flex items-center gap-2 text-sm text-(--text-mention-grey)">
-            <span aria-hidden className="fr-icon-user-star-line fr-icon--sm" />
-            <FormattedMessage defaultMessage="Partagée à {sharedWith}" values={{ sharedWith }} />
-          </p>
-        ) : undefined
-      }
-      title={intl.formatMessage({ defaultMessage: 'Proposition de {name}' }, { name: props.name ?? '' })}
-    />
+    <p className="fr-mb-0 flex items-center gap-2 text-sm-plus text-(--text-mention-grey)">
+      <span aria-hidden className="fr-icon-user-star-line fr-icon--sm" />
+      <FormattedMessage
+        defaultMessage="Partagée à {count, plural, one {# membre} other {# membres}}"
+        values={{ count: props.count }}
+      />
+    </p>
+  );
+}
+
+function SummaryText(props: {
+  attachments: readonly { id: string; name: string; type: string }[];
+  content: string;
+  nominationFileId: string;
+  sessionId: string;
+}) {
+  const text = useMemo(() => toPlainText(props.content), [props.content]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {text ? (
+        <p className="fr-mb-0 line-clamp-6 leading-7 whitespace-pre-line text-(--text-default-grey)">
+          {text}
+        </p>
+      ) : (
+        <p className="fr-mb-0 text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Aucune synthèse rédigée" />
+        </p>
+      )}
+
+      {props.attachments.length > 0 && (
+        <SummaryAttachments
+          attachments={props.attachments}
+          nominationFileId={props.nominationFileId}
+          sessionId={props.sessionId}
+        />
+      )}
+    </div>
+  );
+}
+
+function attachmentIcon(type: string) {
+  if (type === 'application/pdf') return 'ri-file-pdf-2-line' as const;
+  if (type.startsWith('image/')) return 'ri-file-image-line' as const;
+  return 'ri-file-line' as const;
+}
+
+function SummaryAttachments(props: {
+  attachments: readonly { id: string; name: string; type: string }[];
+  nominationFileId: string;
+  sessionId: string;
+}) {
+  const { mutate: openAttachment, isPending } = useGenerateSummaryAttachmentPublicUrlMutation();
+  const { nominationFileId, sessionId } = props;
+
+  return (
+    <div>
+      <div className="fr-mb-2v fr-text--sm fr-text--bold">
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Pièce jointe de la synthèse :} other {Pièces jointes de la synthèse :}}"
+          values={{ count: props.attachments.length }}
+        />
+      </div>
+      <ul className="fr-raw-list flex flex-col items-start">
+        {props.attachments.map(({ id, name, type }) => (
+          <li key={id}>
+            <Button
+              className="px-0!"
+              disabled={isPending}
+              iconId={attachmentIcon(type)}
+              onClick={() => openAttachment({ sessionId, nominationFileId, fileId: id })}
+              priority="tertiary no outline"
+              size="small"
+            >
+              {name}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

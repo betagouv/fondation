@@ -29,7 +29,7 @@ export function MagistratAuditionNotice(props: {
     <AuditionBanner date={auditionDate} time={auditionTime} className="-mx-8 -mt-10 px-8 py-4">
       {editable && !isPast && (
         <Button
-          className="ml-auto whitespace-nowrap underline underline-offset-2 hover:bg-transparent! hover:decoration-2"
+          className="ml-auto whitespace-nowrap text-(--text-default-info)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
           onClick={goToDateField}
           priority="tertiary no outline"
           size="small"

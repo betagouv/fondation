@@ -249,7 +249,6 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
           ) : (
             <ObservationForm
               nominationFileId={state.file.id}
-              nominationFileName={state.file.name}
               observation={state.status === 'edit' ? state.observation : undefined}
               onPending={onPendingChange}
               onSuccess={() => dispatch({ type: 'exit' })}

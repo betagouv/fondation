@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
+import { useEffect, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import {
@@ -57,33 +58,33 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
   });
 
   return (
-    <div className="relative row-span-3 grid grid-rows-subgrid border border-(--border-default-grey) bg-(--background-default-grey) px-6 pt-6 pb-4">
-      {observation.followUp && (
-        <Tag
-          className={`absolute top-0 right-0 rounded-none! font-medium! ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
-          small
-        >
-          {ObservationFollowUpEnumLabels[observation.followUp]}
-        </Tag>
-      )}
-      <div className="fr-mb-4v -mx-6 -mt-6 flex flex-col gap-1.5 bg-(--background-alt-grey) px-6 py-4">
+    <div className="row-span-2 grid snap-start grid-rows-subgrid gap-y-0 border border-(--border-default-grey) bg-(--background-default-grey) px-6 pt-6 pb-4">
+      <div className="fr-mb-4v -mx-6 -mt-6 flex flex-col items-start gap-1.5 bg-(--background-alt-grey) px-6 py-4">
+        {observation.followUp && (
+          <Tag
+            className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
+            small
+          >
+            {ObservationFollowUpEnumLabels[observation.followUp]}
+          </Tag>
+        )}
         <div className="text-lg font-bold">{magistratName}</div>
         {observation.magistrat?.currentPosition && (
           <div className="text-xs text-(--text-mention-grey)">{observation.magistrat.currentPosition}</div>
         )}
       </div>
-      <div>
-        <div className="flex flex-col gap-1 text-[0.9375rem] text-(--text-default-grey)">
+      <div className="flex flex-col">
+        <div className="flex flex-col gap-1 text-sm-plus text-(--text-default-grey)">
           <div>
             <FormattedMessage
-              defaultMessage="{date, date, dateOnlyShort} : observation reçue"
+              defaultMessage="Reçue le {date, date, dateOnlyShort}"
               values={{ date: new Date(observation.dateReception) }}
             />
           </div>
           {observation.createdBy && (
-            <div>
+            <div className="text-xs text-(--text-mention-grey)">
               <FormattedMessage
-                defaultMessage="{date, date, dateOnlyShort} : saisie par {lastName} {firstName}"
+                defaultMessage="Saisie par {lastName} {firstName} le {date, date, dateOnlyShort}"
                 values={{
                   date: new Date(observation.createdAt),
                   lastName: observation.createdBy.lastName,
@@ -95,7 +96,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
         </div>
 
         {observation.files.length > 0 && (
-          <div className="fr-mt-4v fr-pt-4v border-t">
+          <div>
             <div className="fr-mb-2v fr-text--sm fr-text--bold">
               <FormattedMessage
                 defaultMessage="{count, plural, one {Pièce jointe :} other {Pièces jointes :}}"
@@ -119,43 +120,38 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
             </ul>
           </div>
         )}
-      </div>
 
-      <div
-        className={clsx(
-          '-mr-2 flex justify-end gap-1',
-          observation.files.length > 0 ? 'fr-pt-3v' : 'fr-pt-8v',
-        )}
-      >
-        <Button
-          iconId="ri-eye-line"
-          linkProps={{ to: detailPath }}
-          priority="tertiary no outline"
-          size="small"
-          title={detailTitle}
-        />
-        {isSg && (
-          <>
-            <Button
-              iconId="ri-edit-line"
-              onClick={() => edit(observation, file)}
-              priority="tertiary no outline"
-              size="small"
-              title={intl.formatMessage({
-                defaultMessage: "Éditer l'observation",
-              })}
-            />
-            <Button
-              iconId="ri-delete-bin-line"
-              onClick={() => requestDelete(observation, file)}
-              priority="tertiary no outline"
-              size="small"
-              title={intl.formatMessage({
-                defaultMessage: "Supprimer l'observation",
-              })}
-            />
-          </>
-        )}
+        <div className="fr-pt-3v mt-auto -mr-2 flex justify-end gap-1">
+          <Button
+            iconId="ri-eye-line"
+            linkProps={{ to: detailPath }}
+            priority="tertiary no outline"
+            size="small"
+            title={detailTitle}
+          />
+          {isSg && (
+            <>
+              <Button
+                iconId="ri-edit-line"
+                onClick={() => edit(observation, file)}
+                priority="tertiary no outline"
+                size="small"
+                title={intl.formatMessage({
+                  defaultMessage: "Éditer l'observation",
+                })}
+              />
+              <Button
+                iconId="ri-delete-bin-line"
+                onClick={() => requestDelete(observation, file)}
+                priority="tertiary no outline"
+                size="small"
+                title={intl.formatMessage({
+                  defaultMessage: "Supprimer l'observation",
+                })}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -168,6 +164,7 @@ export function MagistratObservations({
   nominationFile: SessionNominationFile;
   sessionId: string;
 }) {
+  const intl = useIntl();
   const isSg = useIsSgNavigation();
   const { open } = useObservationsModal();
   const { observants } = nominationFile.content;
@@ -177,6 +174,27 @@ export function MagistratObservations({
     nominationFileId: nominationFile.id,
   });
   const observations = data?.observations ?? [];
+  const isScrollable = observations.length > 2;
+
+  const scroller = useRef<HTMLDivElement>(null);
+  const [{ atStart, atEnd }, setEdges] = useState({ atStart: true, atEnd: true });
+
+  const refreshEdges = () => {
+    const element = scroller.current;
+    if (!element) return;
+    setEdges({
+      atStart: element.scrollLeft <= 0,
+      atEnd: Math.ceil(element.scrollLeft + element.clientWidth) >= element.scrollWidth,
+    });
+  };
+
+  useEffect(refreshEdges, [observations.length]);
+
+  const scrollByCard = (direction: 1 | -1) =>
+    scroller.current?.scrollBy({
+      left: direction * scroller.current.clientWidth * 0.5,
+      behavior: 'smooth',
+    });
 
   const file: ActiveFile = {
     sessionId,
@@ -197,16 +215,39 @@ export function MagistratObservations({
             values={{ count: observersCount }}
           />
         </h3>
-        {isSg && (
-          <Button
-            className="min-h-9! px-3.5! py-1.5! text-[0.9375rem]!"
-            onClick={() => open(file, 'create')}
-            priority="secondary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Ajouter" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {isScrollable && (
+            <>
+              <Button
+                disabled={atStart}
+                iconId="fr-icon-arrow-left-s-line"
+                onClick={() => scrollByCard(-1)}
+                priority="tertiary"
+                size="small"
+                title={intl.formatMessage({ defaultMessage: 'Observations précédentes' })}
+              />
+              <Button
+                className="fr-mr-1v"
+                disabled={atEnd}
+                iconId="fr-icon-arrow-right-s-line"
+                onClick={() => scrollByCard(1)}
+                priority="tertiary"
+                size="small"
+                title={intl.formatMessage({ defaultMessage: 'Observations suivantes' })}
+              />
+            </>
+          )}
+          {isSg && (
+            <Button
+              className="btn-compact"
+              onClick={() => open(file, 'create')}
+              priority="secondary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Ajouter" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {formattedObservers && (
@@ -220,7 +261,19 @@ export function MagistratObservations({
       )}
 
       {observations.length > 0 && (
-        <div className={clsx('grid grid-cols-1 gap-4 md:grid-cols-2', 'fr-mt-2v')}>
+        <div
+          aria-label={intl.formatMessage({ defaultMessage: 'Observations reçues' })}
+          className={clsx(
+            'fr-mt-2v grid grid-rows-[auto_1fr] gap-4',
+            isScrollable
+              ? 'snap-x scrollbar-none auto-cols-[85%] grid-flow-col overflow-x-auto md:auto-cols-[46%]'
+              : 'grid-cols-1 md:grid-cols-2',
+          )}
+          onScroll={refreshEdges}
+          ref={scroller}
+          role="group"
+          tabIndex={isScrollable ? 0 : undefined}
+        >
           {observations.map((observation) => (
             <MagistratObservationCard key={observation.id} observation={observation} file={file} />
           ))}

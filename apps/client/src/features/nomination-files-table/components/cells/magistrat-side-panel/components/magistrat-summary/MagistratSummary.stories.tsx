@@ -36,6 +36,12 @@ const READERS = [
   { firstName: 'Paul', id: 'reader-2', lastName: 'Durand' },
 ];
 
+const ATTACHMENTS = [
+  { id: 'attachment-1', name: 'PV - 01/06/2026 - Commission.pdf', type: 'application/pdf' },
+  { id: 'attachment-2', name: 'entretien-camille-durand.docx', type: 'application/msword' },
+  { id: 'attachment-3', name: 'organigramme-juridiction.png', type: 'image/png' },
+];
+
 const VIEWS = ['sg', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
@@ -80,6 +86,7 @@ function makeSummaryDetail(props: {
 }
 
 function MagistratSummaryStory(props: {
+  attachments: boolean;
   hasSummary: boolean;
   isArchived: boolean;
   readers: boolean;
@@ -99,6 +106,7 @@ function MagistratSummaryStory(props: {
         makeSummaryDetail({
           isArchived: props.isArchived,
           summary: {
+            attachments: props.attachments ? ATTACHMENTS : [],
             author:
               props.view === 'sg'
                 ? { firstName: SG_USER.firstName, id: SG_USER.id, lastName: SG_USER.lastName }
@@ -111,7 +119,10 @@ function MagistratSummaryStory(props: {
   };
 
   return (
-    <StoryQueryClient key={`${props.view}-${props.hasSummary}-${props.readers}`} seed={seed}>
+    <StoryQueryClient
+      key={`${props.view}-${props.hasSummary}-${props.readers}-${props.attachments}`}
+      seed={seed}
+    >
       <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
         <MagistratSummary nominationFile={nominationFile} sessionId={SESSION_ID} />
       </ArchivedSessionContext>
@@ -125,12 +136,13 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
+    attachments: { control: 'boolean' },
     hasSummary: { control: 'boolean' },
     isArchived: { control: 'boolean' },
     readers: { control: 'boolean' },
     view: { control: 'inline-radio', options: VIEWS },
   },
-  args: { hasSummary: true, isArchived: false, readers: false, view: 'sg' },
+  args: { attachments: false, hasSummary: true, isArchived: false, readers: false, view: 'sg' },
 } satisfies Meta<typeof MagistratSummaryStory>;
 
 export default meta;
@@ -140,6 +152,10 @@ type Story = StoryObj<typeof meta>;
 export const Readable: Story = {};
 
 export const Shared: Story = { args: { readers: true } };
+
+export const WithAttachments: Story = { args: { attachments: true } };
+
+export const SharedWithAttachments: Story = { args: { attachments: true, readers: true } };
 
 export const Member: Story = { args: { view: 'member' } };
 
