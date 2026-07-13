@@ -4,13 +4,16 @@ import type { PrioriteEnum, ReportStatusEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
+  DetailedSummaryDto,
   ListedMemberSessionsDto,
   ListMembersData,
   PaginatedNominationFiles,
+  UpdateAuditionDateDto,
 } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
-import { sessionKeys } from './nomination-sessions.queries';
+import { sessionKeys, type SessionNominationFile } from './nomination-sessions.queries';
+import { summaryKeys } from './summary.queries';
 
 export const memberKeys = {
   listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
@@ -214,6 +217,39 @@ export function useUpdateNominationFileCommentMutation() {
             items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file)),
           };
         },
+      );
+    },
+  });
+}
+
+export function useUpdateNominationFileAuditionDateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: UpdateAuditionDateDto & { sessionId: string; nominationFileId: string }) => {
+      await $api.sessions.updateNominationFileAuditionDate({
+        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
+        body: { auditionDate: mutation.auditionDate, auditionTime: mutation.auditionTime },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, auditionDate, auditionTime }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        (old: { items: SessionNominationFile[] } | undefined) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            items: old.items.map((file) =>
+              file.id === nominationFileId ? { ...file, auditionDate, auditionTime } : file,
+            ),
+          };
+        },
+      );
+
+      queryClient.setQueryData(
+        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
     },
   });

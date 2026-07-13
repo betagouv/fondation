@@ -9,8 +9,8 @@ import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const agendaKeys = {
-  findAgendaNominationFiles: (query: { sessionId: string; ignoreAgendaId?: string }) =>
-    ['agenda', 'findAgendaNominationFiles', query.sessionId, query.ignoreAgendaId] as const,
+  findAgendaNominationFiles: (query: { sessionId: string }) =>
+    ['agenda', 'findAgendaNominationFiles', query.sessionId] as const,
   agendaHtml: (id: string) => ['agenda', 'agendaHtml', id] as const,
   findSessionDocs: (sessionId: string) => ['agenda', 'findSessionDocs', sessionId] as const,
   isSessionReadyForDocGeneration: (sessionId: string) =>
@@ -173,20 +173,12 @@ export function useGenerateAgendaPdfMutation(mutation: {
   });
 }
 
-export const useFindAgendaNominationFilesQuery = (query: {
-  sessionId: string;
-  ignoreAgendaId: string | null;
-}) =>
+export const useFindAgendaNominationFilesQuery = (query: { sessionId: string }) =>
   useQuery({
-    queryKey: agendaKeys.findAgendaNominationFiles({
-      sessionId: query.sessionId,
-      ignoreAgendaId: query.ignoreAgendaId ?? undefined,
-    }),
+    queryKey: agendaKeys.findAgendaNominationFiles({ sessionId: query.sessionId }),
     queryFn: () =>
       $api.docs
-        .findAgendaNominationFiles({
-          path: { sessionId: query.sessionId },
-        })
+        .findAgendaNominationFiles({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data),
   });
 

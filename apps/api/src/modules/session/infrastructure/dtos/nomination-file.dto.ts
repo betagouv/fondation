@@ -1,10 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrioriteEnum } from 'shared-models';
+import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { timeOnlySchema } from 'src/utils/time-only';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
@@ -89,4 +90,20 @@ export class UpdateCommentDto extends createZodDto(
   z.object({
     comment: z.string().max(50000).nullable(),
   }),
+) {}
+
+export class UpdateAuditionDateDto extends createZodDto(
+  z
+    .object({
+      auditionDate: dateOnlyJsonSchema.nullable(),
+      auditionTime: timeOnlySchema.nullable(),
+    })
+    .refine(
+      ({ auditionDate, auditionTime }) => {
+        const bothSet = auditionDate !== null && auditionTime !== null;
+        const bothCleared = auditionDate === null && auditionTime === null;
+        return bothSet || bothCleared;
+      },
+      { error: "La date et l'heure d'audition doivent être renseignées ensemble" },
+    ),
 ) {}

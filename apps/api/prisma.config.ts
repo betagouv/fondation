@@ -11,6 +11,5 @@ export default defineConfig({
   engine: 'classic',
   datasource: {
     url: env('DATABASE_URL'),
-    shadowDatabaseUrl: 'postgresql://fondation:secret@localhost:5435/fondation_shadow',
   },
 });

@@ -16,6 +16,7 @@ import {
   SessionTransparenceArchived,
   SessionTransparenceAttachmentAdded,
   SessionTransparenceAttachmentRemoved,
+  SessionTransparenceAuditionScheduled,
   SessionTransparenceCreated,
   SessionTransparenceDeleted,
   SessionTransparenceFileAlertHidden,
@@ -46,6 +47,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
+import { timeOnlyToDate } from 'src/utils/time-only';
 
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
@@ -174,6 +176,8 @@ export class NominationSessionRepository {
         await this.persistSessionTransparenceUpdated(tx, message);
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
         await this.persistSessionTransparenceOutcomeDefined(tx, message);
+      } else if (message instanceof SessionTransparenceAuditionScheduled) {
+        await this.persistSessionTransparenceAuditionScheduled(tx, message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
         await this.persistSessionTransparenceFileMemberMemoWritten(tx, message);
       } else if (message instanceof SessionTransparenceFileAlertHidden) {
@@ -559,6 +563,19 @@ export class NominationSessionRepository {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
       data: { outcome: message.outcome, outcomeComment: message.comment },
+    });
+  }
+
+  private async persistSessionTransparenceAuditionScheduled(
+    tx: Prisma.TransactionClient,
+    message: SessionTransparenceAuditionScheduled,
+  ) {
+    await tx.dossierDeNomination.update({
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
+      data: {
+        auditionDate: message.auditionDate?.toDate() ?? null,
+        auditionTime: message.auditionTime ? timeOnlyToDate(message.auditionTime) : null,
+      },
     });
   }
 

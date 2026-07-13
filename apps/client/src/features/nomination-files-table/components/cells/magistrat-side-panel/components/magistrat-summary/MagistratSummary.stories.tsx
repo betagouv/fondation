@@ -46,6 +46,8 @@ function makeSummaryDetail(props: {
   return {
     biography: '',
     birthDate: null,
+    auditionDate: null,
+    auditionTime: null,
     formation: 'SIEGE',
     grade: 'I',
     id: 'summary-1',

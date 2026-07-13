@@ -7,6 +7,7 @@ import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -14,6 +15,7 @@ import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/nomination-session.dto';
@@ -87,6 +89,7 @@ export class SessionService {
   constructor(
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
+    private readonly clock: Clock,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
@@ -224,7 +227,10 @@ export class SessionService {
         .findMembers({ tx, formation: session.formation, ids: undefined })
         .then((ids) => new Set(ids));
 
-      session.autoAffectNominationFileReporters({ autoAffectations, formationMemberIds });
+      session.autoAffectNominationFileReporters({
+        autoAffectations,
+        formationMemberIds,
+      });
       await this.nominationSessionRepository.persist(session, tx);
     });
   }
@@ -241,6 +247,26 @@ export class SessionService {
       },
       data: { comment: command.comment },
     });
+  }
+
+  async updateNominationFileAuditionDate(command: {
+    sessionId: string;
+    nominationFileId: string;
+    auditionDate: DateOnly | null;
+    auditionTime: TimeOnly | null;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+
+    session.scheduleAudition({
+      nominationFileId: command.nominationFileId,
+      auditionDate: command.auditionDate,
+      auditionTime: command.auditionTime,
+      now: this.clock.now(),
+    });
+
+    await this.nominationSessionRepository.persist(session);
   }
 
   async createNominationSessionFromLodam(command: {

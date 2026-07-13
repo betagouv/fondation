@@ -7,6 +7,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
+import { TimeOnly } from 'src/utils/time-only';
 
 import {
   LodamNominationFile,
@@ -138,6 +139,21 @@ export class SessionTransparenceOutcomeDefined {
   ) {}
 }
 
+export class SessionTransparenceAuditionScheduled {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly auditionDate: DateOnly | null,
+    readonly auditionTime: TimeOnly | null,
+  ) {}
+}
+
+export class AuditionRequiresDateAndTime extends Error {
+  constructor() {
+    super("La date et l'heure d'audition doivent être renseignées ensemble");
+  }
+}
+
 export class SessionTransparenceFileMemberMemoWritten {
   constructor(
     readonly userId: string,
@@ -178,6 +194,7 @@ export class SessionTransparenceArchived {
 type NominationSessionEvent =
   | LodamSessionTransparenceFilesCreated
   | SessionTransparenceFileAlertHidden
+  | SessionTransparenceAuditionScheduled
   | SessionTransparenceFileMemberMemoWritten
   | SessionTransparenceOutcomeDefined
   | SessionTransparenceLolfiFilesAssociated
@@ -364,6 +381,7 @@ export class SessionTransparence {
           id: x.id,
           outcome: null,
           docs: [],
+          scheduledAuditionAt: null,
         }),
       ]),
     );
@@ -503,6 +521,38 @@ export class SessionTransparence {
         command.nominationFileId,
         command.outcome?.outcome ?? null,
         command.outcome?.comment ?? null,
+      ),
+    );
+  }
+
+  scheduleAudition(command: {
+    nominationFileId: string;
+    auditionDate: DateOnly | null;
+    auditionTime: TimeOnly | null;
+    now: Date;
+  }) {
+    const hasDate = command.auditionDate !== null;
+    const hasTime = command.auditionTime !== null;
+    if (hasDate !== hasTime) {
+      throw new AuditionRequiresDateAndTime();
+    }
+
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    const nominationFile = this.nominationFiles.get(command.nominationFileId)!;
+    nominationFile.assertAuditionIsEditable(command.now);
+
+    const willHaveAudition = hasDate && hasTime;
+    if (willHaveAudition) {
+      nominationFile.assertAllowsAudition();
+    }
+
+    this.#messages.push(
+      new SessionTransparenceAuditionScheduled(
+        this.id,
+        command.nominationFileId,
+        command.auditionDate,
+        command.auditionTime,
       ),
     );
   }

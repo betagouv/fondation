@@ -3,6 +3,7 @@ import { Magistrat, PrioriteEnum } from 'shared-models';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { toParisWallClock } from 'src/utils/paris-wall-clock';
 
 import { NominationFileOutcome, NominationFileOutcomeEnum } from './nomination-file-outcome';
 
@@ -52,7 +53,14 @@ export type UpdatableNominationFileState = {
   id: string;
   outcome: NominationFileOutcomeEnum | null;
   docs: readonly UpdatableNominationFileDoc[];
+  scheduledAuditionAt: Date | null;
 };
+
+export class AuditionAlreadyOccurred extends Error {
+  constructor() {
+    super("L'audition a déjà eu lieu et ne peut plus être modifiée");
+  }
+}
 
 // FIXME: improve naming
 export class UpdatableNominationFile {
@@ -64,10 +72,11 @@ export class UpdatableNominationFile {
     readonly id: string,
     private readonly outcome: NominationFileOutcomeEnum | null,
     private readonly docs: readonly UpdatableNominationFileDoc[],
+    private readonly scheduledAuditionAt: Date | null,
   ) {}
 
   static from(props: UpdatableNominationFileState): UpdatableNominationFile {
-    return new UpdatableNominationFile(props.id, props.outcome, props.docs);
+    return new UpdatableNominationFile(props.id, props.outcome, props.docs, props.scheduledAuditionAt);
   }
 
   isUpdatable(): boolean {
@@ -75,6 +84,19 @@ export class UpdatableNominationFile {
       this.isOutcomeIgnored() || !this.isLinkedToOfficialReportWithFinalOutcome();
 
     return canUpdateNominationFile;
+  }
+
+  assertAllowsAudition(): void {
+    NominationFileOutcome.assertAllowsAudition(this.outcome);
+  }
+
+  assertAuditionIsEditable(now: Date): void {
+    if (
+      this.scheduledAuditionAt !== null &&
+      this.scheduledAuditionAt.getTime() < toParisWallClock(now).getTime()
+    ) {
+      throw new AuditionAlreadyOccurred();
+    }
   }
 
   status(): NominationSessionFileStatusEnum {

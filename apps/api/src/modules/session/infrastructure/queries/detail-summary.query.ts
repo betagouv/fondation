@@ -13,6 +13,7 @@ import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailSummaryQuery {
@@ -42,6 +43,8 @@ export class DetailSummaryQuery {
             name: true,
             outcome: true,
             outcomeComment: true,
+            auditionDate: true,
+            auditionTime: true,
             targetedGrade: true,
             targetedPosition: true,
             lastPositionDate: true,
@@ -140,6 +143,8 @@ export class DetailSummaryQuery {
       grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
       targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
       birthDate: DateOnly.fromOptionalDate(nominationFile.birthDate)?.toJson() ?? null,
+      auditionDate: DateOnly.fromOptionalDate(nominationFile.auditionDate)?.toJson() ?? null,
+      auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
       lastRankingDate: DateOnly.fromOptionalDate(nominationFile.lastRankingDate)?.toJson() ?? null,
       lastPositionDate: DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ?? null,
       priorities: nominationFile.priorities.map(prismaPrioriteEnumToPrioriteEnum),
@@ -220,6 +225,8 @@ export class DetailedSummaryDto extends createZodDto(
     formation: z.enum(Magistrat.Formation),
     number: z.number().int().gte(1).nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
+    auditionDate: dateOnlyJsonSchema.nullable(),
+    auditionTime: timeOnlySchema.nullable(),
     grade: z.enum(Magistrat.Grade).nullable(),
     position: z.string().nullable(),
     targetedGrade: z.enum(Magistrat.Grade).nullable(),

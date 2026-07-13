@@ -24,10 +24,7 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const down = useScrollDownIndicator({ root: scrollRef });
 
-  const { data } = useFindAgendaNominationFilesQuery({
-    sessionId: session.id,
-    ignoreAgendaId: agendaId ?? null,
-  });
+  const { data } = useFindAgendaNominationFilesQuery({ sessionId: session.id });
 
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 

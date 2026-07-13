@@ -1,11 +1,11 @@
 import type { FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import type { TimeOnly } from '@/utils/time-only.util';
+import type { PlainTimeOnly } from '@/utils/time-only.util';
 
 export type OfficialReport = {
   sessionMeetingDate: PlainDateOnly;
-  sessionMeetingStartingTime: TimeOnly;
-  sessionMeetingEndingTime: TimeOnly;
+  sessionMeetingStartingTime: PlainTimeOnly;
+  sessionMeetingEndingTime: PlainTimeOnly;
   hasRenunciation: boolean;
   justiceContactId: string;
   chairmanId: string;

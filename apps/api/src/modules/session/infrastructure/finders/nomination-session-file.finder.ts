@@ -53,7 +53,12 @@ export class NominationSessionFileFinder {
       (query.nominationFileIds?.size ?? 0) > 0 ? { in: [...(query.nominationFileIds ?? [])] } : undefined;
     const updatableNominationFiles = await query.tx.dossierDeNomination.findMany({
       where: { id: inIds, sessionId: query.sessionId },
-      select: { id: true, outcome: true },
+      select: {
+        id: true,
+        outcome: true,
+        auditionDate: true,
+        auditionTime: true,
+      },
     });
 
     const { items: withDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
@@ -61,9 +66,28 @@ export class NominationSessionFileFinder {
       nominationFileIds: new Set(updatableNominationFiles.map(({ id }) => id)),
     });
 
-    return updatableNominationFiles.map((file) => {
+    return updatableNominationFiles.map(({ auditionDate, auditionTime, ...file }) => {
       const docs = withDocs.get(file.id) ?? [];
-      return { ...file, docs };
+      return {
+        ...file,
+        docs,
+        scheduledAuditionAt: scheduledAuditionAt(auditionDate, auditionTime),
+      };
     });
   }
+}
+
+function scheduledAuditionAt(date: Date | null, time: Date | null): Date | null {
+  if (!date || !time) return null;
+
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      time.getUTCHours(),
+      time.getUTCMinutes(),
+      time.getUTCSeconds(),
+    ),
+  );
 }

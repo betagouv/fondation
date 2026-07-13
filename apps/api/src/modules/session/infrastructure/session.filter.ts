@@ -8,11 +8,14 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { AuditionAlreadyOccurred } from '../domain/nomination-file';
 import {
+  NominationFileCannotBeAuditioned,
   NominationFileOutcomeRequiresComment,
   UnknownNominationFileOutcome,
 } from '../domain/nomination-file-outcome';
 import {
+  AuditionRequiresDateAndTime,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
   SessionTransparenceAffectationHasUnknownReporter,
@@ -100,6 +103,26 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof SessionTransparenceIsArchived) {
             return new ForbiddenException({
               validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
+            });
+          }
+
+          if (err instanceof NominationFileCannotBeAuditioned) {
+            return new BadRequestException({
+              validationErrors: [
+                `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
+              ],
+            });
+          }
+
+          if (err instanceof AuditionRequiresDateAndTime) {
+            return new BadRequestException({
+              validationErrors: [`la date et l'heure d'audition doivent être renseignées ensemble`],
+            });
+          }
+
+          if (err instanceof AuditionAlreadyOccurred) {
+            return new ForbiddenException({
+              validationErrors: [`l'audition a déjà eu lieu et ne peut plus être modifiée`],
             });
           }
 

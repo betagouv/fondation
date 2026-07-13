@@ -60,46 +60,43 @@ export class IngestService {
     const start = this.clock.now();
     const result = await this.lolfiArchiveIngestor.ingest(archive, options);
 
-    return this.prisma.$transaction(async (tx) => {
-      const jobId = await this.prepareJob({ tx, result, start });
+    const jobId = await this.prisma.$transaction((tx) => this.prepareJob({ tx, result, start }));
 
-      if (!result.success) {
-        return { id: jobId, status: 'FAILED', errors: result.errors };
-      }
+    if (!result.success) {
+      return { id: jobId, status: 'FAILED', errors: result.errors };
+    }
 
-      try {
-        // TODO: check that starting a detached one-off is fast enough to fit in the Tx timeout
-        const metadata = await this.jobs.runDetached(jobId);
-        await tx.ingestionJob
-          .update({
-            where: { id: jobId },
-            data: { metadata: metadata.toJSON() },
-          })
-          .catch((error) => {
-            this.logger.error(`Failed recording metadata for job #${jobId}`, error);
-          });
-      } catch (e) {
-        await tx.ingestionJob
-          .update({
-            where: { id: jobId },
-            data: {
-              status: 'FAILED',
-              errors: { create: { error: inspect(e) } },
-            },
-          })
-          .catch((prismaError) => {
-            this.logger.error(`Failed failing job #${jobId}`, prismaError);
-          });
+    try {
+      const metadata = await this.jobs.runDetached(jobId);
+      await this.prisma.ingestionJob
+        .update({
+          where: { id: jobId },
+          data: { metadata: metadata.toJSON() },
+        })
+        .catch((error) => {
+          this.logger.error(`Failed recording metadata for job #${jobId}`, error);
+        });
+    } catch (e) {
+      await this.prisma.ingestionJob
+        .update({
+          where: { id: jobId },
+          data: {
+            status: 'FAILED',
+            errors: { create: { error: inspect(e) } },
+          },
+        })
+        .catch((prismaError) => {
+          this.logger.error(`Failed failing job #${jobId}`, prismaError);
+        });
 
-        return {
-          id: jobId,
-          status: 'FAILED',
-          errors: [{ type: 'Unknown', message: `Erreur technique` }],
-        };
-      }
+      return {
+        id: jobId,
+        status: 'FAILED',
+        errors: [{ type: 'Unknown', message: `Erreur technique` }],
+      };
+    }
 
-      return { id: jobId, status: 'STARTED' };
-    });
+    return { id: jobId, status: 'STARTED' };
   }
 
   private async prepareJob(props: {

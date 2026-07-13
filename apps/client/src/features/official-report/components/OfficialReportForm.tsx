@@ -90,10 +90,10 @@ export function OfficialReportForm() {
     () => ({
       sessionMeetingDate: format(dateOnlyToDate(metadata?.sessionMeetingDate) ?? new Date(), 'yyyy-MM-dd'),
       sessionMeetingStartingTime: metadata?.sessionMeetingStartingTime
-        ? (timeOnlyToString({ hours: 0, minutes: 0, ...metadata.sessionMeetingStartingTime }, 'HH:mm') ?? '')
+        ? (timeOnlyToString(metadata.sessionMeetingStartingTime, 'HH:mm') ?? '')
         : '',
       sessionMeetingEndingTime: metadata?.sessionMeetingEndingTime
-        ? (timeOnlyToString({ hours: 0, minutes: 0, ...metadata.sessionMeetingEndingTime }, 'HH:mm') ?? '')
+        ? (timeOnlyToString(metadata.sessionMeetingEndingTime, 'HH:mm') ?? '')
         : '',
       hasRenunciation: metadata?.hasRenunciation ?? true,
       justiceContactId: metadata?.justiceContactId ?? '',

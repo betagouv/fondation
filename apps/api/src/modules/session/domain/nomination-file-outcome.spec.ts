@@ -48,4 +48,24 @@ describe('NominationFileOutcome', () => {
 
     expect(outcome.comment).toBeNull();
   });
+
+  describe('allowsAudition', () => {
+    it('allows an audition when no outcome is defined yet', () => {
+      expect(NominationFileOutcome.allowsAudition(null)).toBe(true);
+    });
+
+    it.each(['SUSPENDED', 'ASSESSING', 'WAITING_DSJ'] satisfies NominationFileOutcomeEnum[])(
+      'allows an audition while the outcome is still pending (%s)',
+      (outcome) => {
+        expect(NominationFileOutcome.allowsAudition(outcome)).toBe(true);
+      },
+    );
+
+    it.each(['VALIDATED', 'NON_VALIDATED', 'REMOVED', 'WITHDRAWN'] satisfies NominationFileOutcomeEnum[])(
+      'forbids an audition once the decision is final (%s)',
+      (outcome) => {
+        expect(NominationFileOutcome.allowsAudition(outcome)).toBe(false);
+      },
+    );
+  });
 });

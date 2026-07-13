@@ -1,6 +1,9 @@
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { MagistratAttachments } from './magistrat-attachments/MagistratAttachments';
+import { MagistratAuditionDate } from './magistrat-audition-date/MagistratAuditionDate';
+import { MagistratAuditionNotice } from './magistrat-audition-date/MagistratAuditionNotice';
 import { MagistratBiography } from './magistrat-biography/MagistratBiography';
 import { MagistratCareerInfo } from './magistrat-career-info/MagistratCareerInfo';
 import { MagistratHeader } from './magistrat-header/MagistratHeader';
@@ -13,10 +16,16 @@ import { SgComment } from './sg-comment/SgComment';
 export function MagistratDetails(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
   const { historique } = nominationFile.content;
+  const auditionEditable = useIsSgNavigation() && nominationFile.canScheduleAudition;
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 pb-10">
       <MagistratHeader key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
+      <MagistratAuditionNotice
+        auditionDate={nominationFile.auditionDate}
+        auditionTime={nominationFile.auditionTime}
+        editable={auditionEditable}
+      />
       <MagistratOutcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <MagistratCareerInfo content={nominationFile.content} />
       <MagistratBiography historique={historique} />
@@ -38,6 +47,11 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
         sessionId={sessionId}
       />
       <MagistratSummary nominationFile={nominationFile} sessionId={sessionId} />
+      <MagistratAuditionDate
+        editable={auditionEditable}
+        key={`${nominationFile.id}-audition`}
+        nominationFile={nominationFile}
+      />
     </div>
   );
 }

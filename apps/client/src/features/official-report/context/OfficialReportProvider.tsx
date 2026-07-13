@@ -49,8 +49,8 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
       ...s,
       agendaId: officialReportMetadata.agendas[0],
       sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
-      sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime ?? {},
-      sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime ?? {},
+      sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime,
+      sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime,
       hasRenunciation: officialReportMetadata.hasRenunciation,
       justiceContactId: officialReportMetadata.justiceDepartmentContactId ?? '',
       chairmanId: officialReportMetadata.chairmanId ?? '',
@@ -110,8 +110,8 @@ export function OfficialReportProvider(props: React.PropsWithChildren) {
 
       const payload = {
         sessionMeetingDate: metadata.sessionMeetingDate,
-        sessionMeetingTime: { hours: 0, minutes: 0, ...metadata.sessionMeetingStartingTime },
-        sessionMeetingEndingTime: { hours: 0, minutes: 0, ...metadata.sessionMeetingEndingTime },
+        sessionMeetingTime: metadata.sessionMeetingStartingTime,
+        sessionMeetingEndingTime: metadata.sessionMeetingEndingTime,
         hasRenunciation: metadata.hasRenunciation,
         justiceDepartmentContactId: metadata.justiceContactId,
         chairmanId: metadata.chairmanId,

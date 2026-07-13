@@ -54,6 +54,8 @@ model DossierDeNomination {
   priorite       PrismaPrioriteEnum?              @ignore
   priorities     PrismaPrioriteEnum[]             @default([])
   comment        String?                          @map("comment") @db.Text
+  auditionDate   DateTime?                        @map("audition_date") @db.Date
+  auditionTime   DateTime?                        @map("audition_time") @db.Time(0)
   outcome        PrismaNominationFileOutcomeEnum?
   outcomeComment String?                          @map("outcome_comment")
 
@@ -154,7 +156,7 @@ model Session {
   /// @deprecated - unused to delete
   version                 Int       @default(1) @ignore
   /// @deprecated - unused to delete
-  sessionImportId         String    @unique(map: "session_session_import_id_unique") @default(dbgenerated("gen_random_uuid()::text")) @map("session_import_id") @ignore
+  sessionImportId         String    @unique(map: "session_session_import_id_unique") @default(dbgenerated("(gen_random_uuid())::text")) @map("session_import_id") @ignore
   /// @deprecated - see SessionTransparenceGds.observationsClosingDate
   observationsClosingDate DateTime? @map("observations_closing_date") @ignore @db.Date
   /// @deprecated - see SessionTransparenceGds.dueDate

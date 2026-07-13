@@ -366,6 +366,17 @@ export type PaginatedNominationFiles = {
             status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
         };
         comment: string | null;
+        canScheduleAudition: boolean;
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -449,6 +460,19 @@ export type AutoAffectationDto = {
 
 export type UpdateCommentDto = {
     comment: string | null;
+};
+
+export type UpdateAuditionDateDto = {
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    } | null;
 };
 
 export type DefineNominationFileOutcomeDto = {
@@ -582,6 +606,16 @@ export type DetailedSummaryDto = {
         year: number;
         month: number;
         day: number;
+    } | null;
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
     } | null;
     grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     position: string | null;
@@ -1983,6 +2017,22 @@ export type UpdateNominationFileCommentResponses = {
 };
 
 export type UpdateNominationFileCommentResponse = UpdateNominationFileCommentResponses[keyof UpdateNominationFileCommentResponses];
+
+export type UpdateNominationFileAuditionDateData = {
+    body: UpdateAuditionDateDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition/schedule';
+};
+
+export type UpdateNominationFileAuditionDateResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileAuditionDateResponse = UpdateNominationFileAuditionDateResponses[keyof UpdateNominationFileAuditionDateResponses];
 
 export type DefineNominationFileOutcomeData = {
     body: DefineNominationFileOutcomeDto;
