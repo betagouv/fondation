@@ -6,27 +6,28 @@ import { FormationEnum, type NominationFileOutcomeEnum } from '@/types/enums.typ
 import { useNominationFileOutcome } from './nomination-file-outcome-badge.utils';
 
 function InnerNominationFileOutcomeBadge(props: {
+  acronym?: boolean;
   formation: FormationEnum;
+  label?: string;
   outcome: NominationFileOutcomeEnum | null;
-  short?: boolean;
   small?: boolean;
 }) {
-  const { badge, acronym, icon, severity, label } = useNominationFileOutcome(props);
+  const { badge, acronym, icon, severity } = useNominationFileOutcome(props);
 
-  const badgeLabel = props.short === true ? acronym : badge.toUpperCase();
+  const badgeLabel = props.acronym === true ? acronym : badge.toUpperCase();
 
   if (props.outcome === null) return '-';
 
   // ts hack to add the title
-  const badgeProps = { title: props.short ? label : undefined };
+  const badgeProps = { title: props.acronym ? props.label : undefined };
   return (
     <Badge
       {...badgeProps}
-      small={props.small ?? true}
-      severity={severity}
-      noIcon
       as="span"
       className="text-nowrap"
+      noIcon
+      severity={severity}
+      small={props.small ?? true}
     >
       {icon && (
         <i className={`fr-mr-1v leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
@@ -37,8 +38,8 @@ function InnerNominationFileOutcomeBadge(props: {
 }
 
 export const NominationFileOutcomeBadge = React.memo(InnerNominationFileOutcomeBadge, (prev, props) =>
-  (['formation', 'outcome', 'short', 'small'] as const).every((prop) =>
-    prop === 'short' || prop === 'small'
+  (['acronym', 'formation', 'label', 'outcome', 'small'] as const).every((prop) =>
+    prop === 'acronym' || prop === 'small'
       ? !!prev[prop] === !!props[prop]
       : Object.is(prev[prop], props[prop]),
   ),

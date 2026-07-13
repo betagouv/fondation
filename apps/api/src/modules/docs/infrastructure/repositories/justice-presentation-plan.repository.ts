@@ -90,24 +90,28 @@ export class JusticePresentationPlanRepository {
         id: true,
         sessionId: true,
         sessionName: true,
+        formation: true,
         officialReportId: true,
         nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
       },
     });
 
     const nominationFiles = await Promise.all(
-      agendas.map(async ({ id: agendaId, officialReportId, sessionId, sessionName, nominationFiles }) => {
-        const { items } = await this.docsNominationFilesFinder.findNonReported({
-          tx,
-          sessionId,
-          ignoreOfficialReportId: officialReportId ?? undefined,
-          ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
-        });
+      agendas.map(
+        async ({ id: agendaId, officialReportId, sessionId, sessionName, formation, nominationFiles }) => {
+          const { items } = await this.docsNominationFilesFinder.findNonReported({
+            tx,
+            sessionId,
+            formation: prismaFormationEnumToFormationEnum(formation),
+            ignoreOfficialReportId: officialReportId ?? undefined,
+            ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
+          });
 
-        return items
-          .filter((file) => JusticePresentationPlanRepository.hasOutcome(file))
-          .map((f) => ({ ...f, agendaId, sessionId, sessionName }));
-      }),
+          return items
+            .filter((file) => JusticePresentationPlanRepository.hasOutcome(file))
+            .map((f) => ({ ...f, agendaId, sessionId, sessionName }));
+        },
+      ),
     ).then((result) => result.flat());
 
     const nominationFilesCreateMany = nominationFiles.map((f) => ({

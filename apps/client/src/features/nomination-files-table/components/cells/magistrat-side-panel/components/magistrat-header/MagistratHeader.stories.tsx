@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { authKeys } from '@queries/auth.queries';
@@ -87,6 +88,7 @@ function MagistratHeaderStory(props: {
       <NominationFilesTableProvider
         formation={FormationEnum.SIEGE}
         isEditable={isEditable}
+        outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
         sessionId={SESSION_ID}
       >
         <MagistratHeader nominationFile={nominationFile} sessionId={SESSION_ID} />
@@ -107,8 +109,8 @@ const meta = {
     view: { control: 'inline-radio', options: VIEWS },
   },
   args: {
-    nomMagistrat: 'Camille DURAND',
     auditionScheduled: true,
+    nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
     reporters: 'you',
     view: 'sg',

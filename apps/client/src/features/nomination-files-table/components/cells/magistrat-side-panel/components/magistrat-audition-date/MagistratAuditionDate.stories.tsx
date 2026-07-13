@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { NominationFilesTableContext } from '@/features/nomination-files-table/context/files-table.context';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 
 import { MagistratAuditionDate } from './MagistratAuditionDate';
 
@@ -24,7 +25,13 @@ function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime
   return (
     <StoryQueryClient>
       <NominationFilesTableContext
-        value={{ sessionId: SESSION_ID, formation: 'SIEGE', isEditable: true, edition: undefined }}
+        value={{
+          edition: undefined,
+          formation: 'SIEGE',
+          isEditable: true,
+          outcomes: makeSessionOutcomes('SIEGE'),
+          sessionId: SESSION_ID,
+        }}
       >
         <MagistratAuditionDate
           editable={props.editable}

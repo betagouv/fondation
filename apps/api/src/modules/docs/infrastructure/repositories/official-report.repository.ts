@@ -82,6 +82,7 @@ export class OfficialReportRepository {
       where: { id: { in: message.agendaIds as string[] } },
       select: {
         sessionId: true,
+        formation: true,
         nominationFiles: {
           select: { nominationFileId: true },
           where: { nominationFileId: { not: null } },
@@ -94,6 +95,7 @@ export class OfficialReportRepository {
         this.nominationFilesFinder.findNonReported({
           tx,
           sessionId: agenda.sessionId,
+          formation: prismaFormationEnumToFormationEnum(agenda.formation),
           ignoreOfficialReportId: message.id,
           ids: agenda.nominationFiles.flatMap((nf) => (nf.nominationFileId ? [nf.nominationFileId] : [])),
         }),

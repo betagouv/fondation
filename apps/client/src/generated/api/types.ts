@@ -522,6 +522,11 @@ export type DetailedNominationSessionDto = {
     id: string;
     name: string;
     formation: 'PARQUET' | 'SIEGE';
+    outcomes: Array<{
+        commentRequired: boolean;
+        label: string;
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+    }>;
     date: {
         year: number;
         month: number;
@@ -654,6 +659,7 @@ export type DetailedSummaryDto = {
     }>;
     outcome: {
         value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+        label: string;
         comment: string | null;
     } | null;
     summary: {
@@ -810,6 +816,11 @@ export type DetailedMemberSessionDto = {
         id: string;
         isArchived: boolean;
         formation: string;
+        outcomes: Array<{
+            commentRequired: boolean;
+            label: string;
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+        }>;
         transparency: string;
         dateTransparence: {
             year: number;
@@ -892,6 +903,7 @@ export type FoundDocsNominationFiles = {
         }>;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'WITHDRAWN';
+            label: string;
             comment: string | null;
         } | null;
         magistrat: {

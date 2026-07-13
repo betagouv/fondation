@@ -543,6 +543,13 @@ export class SessionService {
     );
   }
 
+  internalGetSessionFormation(query: {
+    sessionId: string;
+    tx?: Prisma.TransactionClient;
+  }): Promise<Magistrat.Formation> {
+    return this.sessionsFinder.formation(query);
+  }
+
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const session = await this.nominationSessionRepository.find(command.sessionId, { tx });

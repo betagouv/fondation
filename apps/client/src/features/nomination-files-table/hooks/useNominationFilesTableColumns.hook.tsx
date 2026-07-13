@@ -1,15 +1,14 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import React from 'react';
+import { useMemo } from 'react';
 
 import { MagistratPanelTrigger } from '../components/cells/magistrat-side-panel/components/MagistratPanelTrigger';
-import { useSortedNominationFileOutcomes } from '../components/cells/nomination-file-outcome/nomination-file-outcome-badge.utils';
 import { NominationFilesOutcomeCell } from '../components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from '../components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from '../components/cells/observations/ObservantsCell';
 import { ReportersCell } from '../components/cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from '../components/cells/targeted-position/NominationFileTargetPositionCell';
 import { useNominationFilesTable } from '../context/files-table.context';
-import { outcomeLabel, PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { toFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import {
@@ -19,10 +18,9 @@ import {
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
-  const { sessionId, formation } = useNominationFilesTable();
-  const outcomes = useSortedNominationFileOutcomes();
+  const { sessionId, outcomes } = useNominationFilesTable();
 
-  return React.useMemo(
+  return useMemo(
     () => [
       h.accessor('content.numeroDeDossier', {
         id: 'fileNumber',
@@ -112,18 +110,16 @@ export const useNominationFilesTableColumns = () => {
             label: 'Issue(s)',
             type: 'enum',
             values: [{ id: 'null', label: 'Aucune' }].concat(
-              outcomes.map((value) => {
-                let label = outcomeLabel({ formation, value });
-                label = label[0].toUpperCase() + label.slice(1);
-
-                return { id: value, label };
-              }),
+              outcomes.map(({ value, label }) => ({
+                id: value,
+                label: label[0].toUpperCase() + label.slice(1),
+              })),
             ),
           },
         },
       }),
     ],
-    [formation, outcomes, sessionId],
+    [outcomes, sessionId],
   );
 };
 

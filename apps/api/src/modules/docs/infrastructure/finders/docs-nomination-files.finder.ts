@@ -6,6 +6,7 @@ import { Gender, Magistrat } from 'shared-models';
 
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
+  docNominationFileOutcomeLabel,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
@@ -24,6 +25,7 @@ export class DocsNominationFilesFinder {
 
   async find(query: {
     sessionId: string;
+    formation?: Magistrat.Formation;
     ids?: readonly string[];
     tx?: Prisma.TransactionClient;
   }): Promise<FoundDocsNominationFiles> {
@@ -34,10 +36,15 @@ export class DocsNominationFilesFinder {
     })) as FoundDocsNominationFiles;
     if (sessionNominationFiles.length === 0) return { items: [] };
 
+    const formation =
+      query.formation ??
+      (await this.sessions.internalGetSessionFormation({ tx: query.tx, sessionId: query.sessionId }));
+
     const items = sessionNominationFiles.map((file) => {
       if (!file.outcome) return file;
 
       file.outcome.value = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
+      file.outcome.label = docNominationFileOutcomeLabel({ outcome: file.outcome.value, formation });
       return file;
     });
 
@@ -46,6 +53,7 @@ export class DocsNominationFilesFinder {
 
   async findNonReported(query: {
     sessionId: string;
+    formation?: Magistrat.Formation;
     ignoreOfficialReportId?: string;
     ids?: readonly string[];
     tx?: Prisma.TransactionClient;
@@ -91,6 +99,7 @@ export class FoundDocsNominationFiles extends createZodDto(
         outcome: z
           .object({
             value: z.enum(DOC_NOMINATION_FILE_OUTCOME_ENUM),
+            label: z.string(),
             comment: z.string().nullable(),
           })
           .nullable(),

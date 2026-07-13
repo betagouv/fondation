@@ -11,35 +11,29 @@ import type { FormationEnum } from '@/types/enums.types';
 import type { FoundDocsNominationFiles } from '@api/types';
 
 export function AgendaNominationFile(props: {
+  checked: boolean;
   file: FoundDocsNominationFiles['items'][number];
   formation: FormationEnum;
-  search: string;
-  checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  search: string;
 }) {
   return (
     <Checkbox
-      small
       className="anf fr-m-0"
       options={[
         {
-          nativeInputProps: {
-            onChange: props.onChange,
-            value: props.file.id,
-            checked: props.checked,
-          },
           label: (
             <div className="fr-py-4v flex w-full items-start gap-1">
               <div className="w-[3ch] shrink-0">{props.file.number}</div>
               <div className="hidden w-[10%] md:block">
-                <UserAvatarList users={props.file.reporters} max={2} size="sm" />
+                <UserAvatarList max={2} size="sm" users={props.file.reporters} />
               </div>
               <div
                 className="fr-pl-2v w-1/3 shrink-0 cursor-help"
                 title={[props.file.magistrat.position.grade, props.file.magistrat.position.label].join(' - ')}
               >
                 <div className="truncate">
-                  <Marked value={props.file.magistrat.name} search={props.search} />
+                  <Marked search={props.search} value={props.file.magistrat.name} />
                 </div>
                 <div className="cursor-help truncate text-xs">
                   {[
@@ -73,16 +67,23 @@ export function AgendaNominationFile(props: {
               <div className="hidden md:block">
                 {props.file.outcome && (
                   <NominationFileOutcomeBadge
-                    short
+                    acronym
                     formation={props.formation}
+                    label={props.file.outcome.label}
                     outcome={props.file.outcome.value}
                   />
                 )}
               </div>
             </div>
           ),
+          nativeInputProps: {
+            checked: props.checked,
+            onChange: props.onChange,
+            value: props.file.id,
+          },
         },
       ]}
+      small
     />
   );
 }

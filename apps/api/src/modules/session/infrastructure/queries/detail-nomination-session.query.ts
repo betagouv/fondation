@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
 
+import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { UnreportedSessionFilesCountFinder } from '../finders/count-unreported-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
@@ -72,10 +73,13 @@ export class DetailNominationSessionQuery {
     });
     const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
 
+    const formation = prismaFormationEnumToFormationEnum(session.formation);
+
     return {
       id: session.id,
       name: session.name,
-      formation: prismaFormationEnumToFormationEnum(session.formation),
+      formation,
+      outcomes: NominationFileOutcome.selectableOutcomes(formation),
       observationsClosingDate: DateOnly.fromDate(
         assertIsDefined(
           session.transparenceGds?.observationsClosingDate,
@@ -100,6 +104,13 @@ export class DetailedNominationSessionDto extends createZodDto(
     id: z.string(),
     name: z.string(),
     formation: z.enum(Magistrat.Formation),
+    outcomes: z.array(
+      z.object({
+        commentRequired: z.boolean(),
+        label: z.string(),
+        value: z.enum(NominationFileOutcome.enum),
+      }),
+    ),
     date: dateOnlyJsonSchema,
     observationsClosingDate: dateOnlyJsonSchema,
     dueDate: dateOnlyJsonSchema.nullable(),

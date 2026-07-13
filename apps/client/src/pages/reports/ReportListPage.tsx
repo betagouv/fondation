@@ -1,7 +1,7 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { type FC } from 'react';
+import { useCallback, useMemo, type FC } from 'react';
 import { defineMessage } from 'react-intl';
 import { generatePath, useParams } from 'react-router';
 
@@ -28,7 +28,7 @@ import { useUser } from '@queries/auth.queries';
 import { useDetailedMemberGdsSession } from '@queries/members.queries';
 
 function useReportListColumns(sessionId: string) {
-  return React.useMemo(() => {
+  return useMemo(() => {
     const h = createColumnHelper<DetailedMemberSessionDto['items'][number]>();
     return [
       h.accessor('folderNumber', {
@@ -184,7 +184,7 @@ export const ReportListPage: FC = () => {
     },
   });
 
-  const onChange = React.useCallback(() => {
+  const onChange = useCallback(() => {
     setTableState((state) => ({
       ...state,
       sorting: [],
@@ -207,8 +207,9 @@ export const ReportListPage: FC = () => {
 
         {focus === 'general' ? (
           <ReportsDnVueGenerale
-            sessionId={detailedGdsSession.session.id}
             formation={detailedGdsSession.session.formation as FormationEnum}
+            outcomes={detailedGdsSession.session.outcomes}
+            sessionId={detailedGdsSession.session.id}
           >
             <ReportListViewToggle />
           </ReportsDnVueGenerale>

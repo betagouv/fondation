@@ -97,34 +97,6 @@ export const NominationFileOutcomeEnum = {
   WAITING_DSJ: 'WAITING_DSJ',
 } as const satisfies Record<NominationFileOutcomeEnum, NominationFileOutcomeEnum>;
 
-const NOMINATION_FILE_OUTCOME_LABELS = {
-  PARQUET: {
-    VALIDATED: 'avis favorable',
-    NON_VALIDATED: 'avis défavorable',
-    SUSPENDED: 'sursis à statuer',
-    REMOVED: 'retrait',
-    WITHDRAWN: 'retrait (désistement)',
-    ASSESSING: 'en attente évaluation',
-    WAITING_DSJ: 'en attente complément DSJ',
-  },
-  SIEGE: {
-    VALIDATED: 'avis conforme',
-    NON_VALIDATED: 'avis non conforme',
-    SUSPENDED: 'sursis à statuer',
-    REMOVED: 'retrait',
-    WITHDRAWN: 'retrait (désistement)',
-    ASSESSING: 'en attente évaluation',
-    WAITING_DSJ: 'en attente complément DSJ',
-  },
-} as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
-
-export function outcomeLabel(outcome: {
-  formation: FormationEnum;
-  value: NominationFileOutcomeEnum;
-}): string {
-  return NOMINATION_FILE_OUTCOME_LABELS[outcome.formation][outcome.value];
-}
-
 export type ObservationFollowupEnum = NonNullable<FollowUpOnObservationDto['followUp']>;
 export const ObservationFollowUpEnum = {
   ALERT: 'ALERT',

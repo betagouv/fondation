@@ -1,36 +1,29 @@
-import React from 'react';
+import { useMemo, useState, type PropsWithChildren } from 'react';
 
 import type { FormationEnum } from '@/types/enums.types';
 
-import { NominationFilesTableContext, type NominationFilesTableContextType } from './files-table.context';
+import { NominationFilesTableContext, type SessionOutcome } from './files-table.context';
 
 export function NominationFilesTableProvider(
-  props: React.PropsWithChildren<{
-    sessionId: string;
+  props: PropsWithChildren<{
     formation: FormationEnum;
     isEditable?: boolean;
+    outcomes: readonly SessionOutcome[];
+    sessionId: string;
   }>,
 ) {
-  const [isEditing, setEditing] = React.useState<boolean>(false);
-  const [totalRowsCount, setTotalRowsCount] = React.useState<number>(0);
+  const [isEditing, setEditing] = useState<boolean>(false);
 
-  const ctx = React.useMemo(() => {
-    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-    const ctxValue: any = {
-      sessionId: props.sessionId,
+  const ctx = useMemo(
+    () => ({
+      edition: props.isEditable !== false ? { isEditing, setEditing } : undefined,
       formation: props.formation,
       isEditable: props.isEditable !== false,
-      totalRowsCount,
-      setTotalRowsCount,
-      edition: undefined,
-    };
-
-    if (props.isEditable !== false) {
-      ctxValue.edition = { isEditing, setEditing };
-    }
-
-    return ctxValue as NominationFilesTableContextType;
-  }, [props, isEditing, setEditing, totalRowsCount, setTotalRowsCount]);
+      outcomes: props.outcomes,
+      sessionId: props.sessionId,
+    }),
+    [props.formation, props.isEditable, props.outcomes, props.sessionId, isEditing],
+  );
 
   return <NominationFilesTableContext value={ctx}>{props.children}</NominationFilesTableContext>;
 }

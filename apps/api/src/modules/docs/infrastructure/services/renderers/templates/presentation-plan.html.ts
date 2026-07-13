@@ -5,7 +5,10 @@ import { format } from 'date-fns';
 import { Magistrat, TypeDeSaisine } from 'shared-models';
 
 import { date, fullname, requiresElision } from '../helpers';
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
+import {
+  DocNominationFileOutcomeEnum,
+  docNominationFileOutcomeLabel,
+} from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -82,23 +85,7 @@ function displayOutcome(ctx: {
   formation: Magistrat.Formation;
   outcome: Extract<DocNominationFileOutcomeEnum, 'VALIDATED' | 'NON_VALIDATED'>;
 }): string {
-  switch (ctx.outcome) {
-    case 'NON_VALIDATED':
-      switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
-          return 'avis défavorable';
-        default:
-          return 'avis non conforme';
-      }
-
-    case 'VALIDATED':
-      switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
-          return 'avis favorable';
-        default:
-          return 'avis conforme';
-      }
-  }
+  return docNominationFileOutcomeLabel(ctx);
 }
 
 function nominationFileParagraph(file: AgendaNominationFile): string {

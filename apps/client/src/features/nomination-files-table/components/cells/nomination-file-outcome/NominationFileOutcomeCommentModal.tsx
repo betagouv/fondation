@@ -4,8 +4,9 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import type { FormationEnum } from '@/types/enums.types';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 
+import { outcomeRequiresComment, sessionOutcomeLabel } from './nomination-file-outcome.utils';
 import { OutcomeCommentModalContext } from './OutcomeCommentModalContext';
 
 export const nominationFileOutcomeCommentModal = createModal({
@@ -14,25 +15,25 @@ export const nominationFileOutcomeCommentModal = createModal({
 });
 
 export function NominationFileOutcomeCommentModal(props: {
-  formation: FormationEnum;
   onChange: (comment: string | null) => unknown;
   onDrop: () => unknown;
 }) {
   const { formatMessage } = useIntl();
   const { outcome, initialComment } = useContext(OutcomeCommentModalContext);
+  const { outcomes } = useNominationFilesTable();
 
   const [hasError, setError] = useState(false);
   const [comment, setComment] = useState<string | null>(null);
   const [closedByUser, setClosedByUser] = useState(true);
 
-  const isCommentRequired = useMemo(() => outcome === 'NON_VALIDATED', [outcome]);
+  const isCommentRequired = useMemo(() => outcomeRequiresComment(outcomes, outcome), [outcomes, outcome]);
 
   const isCommentValid = (comment?.trim().length ?? 0) > 0;
   const isUnchanged = (comment?.trim() || null) === initialComment;
-  const hint =
-    props.formation === 'PARQUET'
-      ? formatMessage({ defaultMessage: 'Les avis défavorables nécessitent un commentaire' })
-      : formatMessage({ defaultMessage: 'Les avis non conformes nécessitent un commentaire' });
+  const hint = formatMessage(
+    { defaultMessage: `L'issue "{label}" nécessite un commentaire` },
+    { label: (outcome && sessionOutcomeLabel(outcomes, outcome)) ?? '' },
+  );
 
   const isOpen = useIsModalOpen(nominationFileOutcomeCommentModal, {
     onConceal() {
