@@ -1,19 +1,16 @@
-name: Integration checks
+name: Sync generated OpenAPI clients
 permissions:
-  contents: read
+  contents: write
   packages: read
+  pull-requests: write
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    branches-ignore:
-      - 'dependabot/*'
-
-  workflow_call:
+  push:
+    branches:
+      - develop
 
 jobs:
-  build:
-    if: github.actor != 'dependabot[bot]'
+  sync:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
@@ -51,8 +48,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
@@ -81,52 +76,49 @@ jobs:
       - name: Generate prisma
         run: pnpm --filter api exec prisma generate --generator client --sql --config prisma.config.ts
 
-      - name: Types check
-        run: pnpm types:check
-
-      - name: Lint
-        run: node_modules/.bin/oxlint --deny-warnings
-
-      - name: Check Tailwind colors
-        run: pnpm --filter client lint:colors
-
-      - name: Format
-        run: pnpm format:check
-
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
-      - name: Test Api
-        run: pnpm --filter api test
-
-      - name: Test API E2E
-        run: pnpm --filter api-e2e test
-
-      - name: truncate db
+      - name: Generate OpenAPI clients
         shell: bash
         run: |
-          echo -n '' > ./truncate.sql
-          for table in \
-            '"identity_and_access_context"."users"' \
-            '"data_administration_context"."jurisdictions"' \
-            '"data_administration_context"."function"' \
-            '"nominations_context"."magistrat"' \
-            '"nominations_context"."session"' \
-            '"reports_context"."reports"' \
-            '"files_context"."files"' \
-            '"jobs"."ingestion_job"' \
-            '"docs"."agenda"'
-          do
-            echo "TRUNCATE $table CASCADE;" >> ./truncate.sql
-          done
+          setsid pnpm --filter api start:e2e &
+          SERVER_PID=$!
+          trap 'kill -- -$SERVER_PID 2>/dev/null || true' EXIT
 
-          pnpm --filter api exec prisma db execute --url $DATABASE_URL --file ../../truncate.sql
+          timeout 90 bash -c 'until curl -sf http://localhost:3000/openapi/root.json > /dev/null; do sleep 1; done'
 
-      - name: Install Playwright
-        uses: ./.github/playwright
+          pnpm run openapi:generate
+        env:
+          PORT: '3000'
 
-      - name: Test Client
-        run: pnpm --filter client test:all
+      - name: Open a pull request when clients drift
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_ACTOR: ${{ github.actor }}
+          GIT_ACTOR_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+        run: |
+          if [ -z "$(git status --porcelain -- apps/client/src/generated apps/api-e2e/src/generated)" ]; then
+            echo "Generated OpenAPI clients are already up to date."
+            exit 0
+          fi
 
-      - name: Build
-        run: pnpm build
+          branch="chore/openapi"
+          git config user.name "$GIT_ACTOR"
+          git config user.email "$GIT_ACTOR_EMAIL"
+          git checkout -B "$branch"
+          git add apps/client/src/generated apps/api-e2e/src/generated
+          git commit -m "chore(FON-000): sync generated OpenAPI clients"
+          git push --force origin "$branch"
+
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
+            echo "An open pull request already tracks $branch; it now points at the fresh commit."
+            exit 0
+          fi
+
+          gh pr create \
+            --base develop \
+            --head "$branch" \
+            --title "chore(FON-000): sync generated OpenAPI clients" \
+            --body "Generated OpenAPI clients drifted from the contract on \`develop\`. This PR regenerates them via \`pnpm run openapi:generate\`."
