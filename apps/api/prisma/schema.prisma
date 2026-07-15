@@ -2,7 +2,6 @@ generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
   previewFeatures = ["relationJoins", "typedSql"]
-  engineType      = "client"
 }
 
 generator rotateRoles {
@@ -11,6 +10,5 @@ generator rotateRoles {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
   schemas  = ["data_administration_context", "docs", "files_context", "identity_and_access_context", "jobs", "nominations_context", "public", "reports_context", "shared_kernel_context"]
 }
