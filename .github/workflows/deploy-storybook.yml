@@ -1,0 +1,72 @@
+name: Deploy Storybook on scalingo
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'apps/client/**'
+      - '.github/workflows/deploy-storybook.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-storybook:
+    name: Build and deploy Storybook
+    environment: staging
+    runs-on: ubuntu-latest
+    concurrency: storybook
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
+        with:
+          version: 11.5.0
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24.12.0'
+          cache: 'pnpm'
+
+      - name: install sheetjs
+        shell: bash
+        run: ./scripts/sheetjs.sh
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build internal dependencies
+        run: pnpm --filter shared-models --filter lolfi build
+
+      - name: Build Storybook
+        run: pnpm --filter client build-storybook
+
+      - name: Create Archive
+        run: |
+          # In Scalingo dashboard, we set the PROJECT_DIR environment variable to storybook
+          mkdir -p scalingo/storybook
+          cp -r apps/client/storybook-static "$_"
+          cp -r apps/client/.storybook/scalingo/* "$_"
+          cp apps/client/.storybook/scalingo/.buildpacks "$_"
+          tar -czf storybook-scalingo.tar.gz scalingo
+
+      - name: Install scalingo CLI
+        run: |
+          curl -O https://cli-dl.scalingo.com/install && bash install
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Login to scalingo
+        run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Deploy Storybook
+        run: |
+          echo "Deploying storybook on app ${VARS_SCALINGO_STORYBOOK_APP_NAME}"
+          scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_STORYBOOK_APP_NAME} deploy storybook-scalingo.tar.gz
+        env:
+          VARS_SCALINGO_STORYBOOK_APP_NAME: ${{ vars.SCALINGO_STORYBOOK_APP_NAME }}
+          VARS_SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
