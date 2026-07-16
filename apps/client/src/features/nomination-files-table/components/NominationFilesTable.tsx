@@ -11,7 +11,6 @@ import { FilesSelectionProvider } from '../context/FilesSelectionProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useNominationFilesTableColumns } from '../hooks/useNominationFilesTableColumns.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { AlertsProvider } from '@/shared/context/alerts';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
@@ -23,7 +22,6 @@ import {
 import { MagistratPanel } from './cells/magistrat-side-panel/components/MagistratPanel';
 import { MagistratPanelProvider } from './cells/magistrat-side-panel/context/MagistratPanelProvider';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
-import { ObservationFollowUpReminderProvider } from './cells/observation-follow-up/ObservationFollowUpReminderProvider';
 import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 import { NominationFilesTableActionsBar } from './NominationFilesActionsBar';
@@ -102,46 +100,42 @@ function NominationFilesTableInner(props: PropsWithChildren) {
       >
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
-            <ObservationFollowUpCommentProvider>
-              <ObservationFollowUpReminderProvider>
-                <MagistratPanel sessionId={sessionId} />
-                <FilesSelectionProvider selection={tableState.rowSelection}>
-                  <FilesAffectationsProvider files={nominationFiles}>
-                    <AlertsProvider>
-                      <div className="fr-container fr-mb-4v flex flex-col gap-y-4">
-                        <div className="self-center">
-                          <AlertsProvider.Alerts className="shrink-0" small />
-                        </div>
+            <MagistratPanel sessionId={sessionId} />
+            <FilesSelectionProvider selection={tableState.rowSelection}>
+              <FilesAffectationsProvider files={nominationFiles}>
+                <AlertsProvider>
+                  <div className="fr-container fr-mb-4v flex flex-col gap-y-4">
+                    <div className="self-center">
+                      <AlertsProvider.Alerts className="shrink-0" small />
+                    </div>
 
-                        {isSg ? (
-                          <div className="flex items-center">
-                            <NominationFilesAffectationsStatus />
-                            <NominationFilesStatusBadges className="fr-ml-4v fr-pl-4v border-y-0 border-r-0 border-l border-solid border-l-gray-200" />
-                          </div>
-                        ) : null}
+                    {isSg ? (
+                      <div className="flex items-center">
+                        <NominationFilesAffectationsStatus />
+                        <NominationFilesStatusBadges className="fr-ml-4v fr-pl-4v border-y-0 border-r-0 border-l border-solid border-l-gray-200" />
                       </div>
+                    ) : null}
+                  </div>
 
-                      <DataTable
-                        classNames={{
-                          filters:
-                            'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
-                          content:
-                            'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
-                        }}
-                        placeholder={
-                          isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
-                        }
-                        table={table}
-                      >
-                        {props.children}
+                  <DataTable
+                    classNames={{
+                      filters:
+                        'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
+                      content:
+                        'max-w-screen-full xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) mx-auto',
+                    }}
+                    placeholder={
+                      isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'
+                    }
+                    table={table}
+                  >
+                    {props.children}
 
-                        <NominationFilesTableActionsBar />
-                      </DataTable>
-                    </AlertsProvider>
-                  </FilesAffectationsProvider>
-                </FilesSelectionProvider>
-              </ObservationFollowUpReminderProvider>
-            </ObservationFollowUpCommentProvider>
+                    <NominationFilesTableActionsBar />
+                  </DataTable>
+                </AlertsProvider>
+              </FilesAffectationsProvider>
+            </FilesSelectionProvider>
           </NominationFileTargetPositionProvider>
         </NominationFileOutcomeCommentModalProvider>
       </MagistratPanelProvider>

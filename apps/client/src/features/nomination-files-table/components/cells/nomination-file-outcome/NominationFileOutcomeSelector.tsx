@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { useObservationFollowUpReminderModal } from '../observation-follow-up/useObservationFollowUpReminderModal.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { DropdownSelect } from '@/shared/ui/DropdownSelect';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
@@ -23,7 +22,6 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
 
   const { sessionId, formation, outcomes } = useNominationFilesTable();
   const outcomeCommentDialog = useOutcomeCommentDialog();
-  const observationFollowUps = useObservationFollowUpReminderModal();
   const { mutate, reset, isPending } = useDefineNominationFileOutcomeMutation({
     sessionId,
     nominationFileId,
@@ -36,11 +34,6 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
           ? { outcome: changedOutcome.value, comment: changedOutcome.comment }
           : { outcome: null, comment: null },
         {
-          onSuccess() {
-            if (changedOutcome.value === null) return;
-
-            observationFollowUps.remindOfObservationFollowUpIfNecessary(props.nominationFile);
-          },
           onSettled() {
             reset();
           },
@@ -50,7 +43,7 @@ export function NominationFileOutcomeSelector(props: { nominationFile: SessionNo
         },
       );
     },
-    [mutate, reset, observationFollowUps, props.nominationFile],
+    [mutate, reset],
   );
 
   const onOutcomeChange = useCallback(

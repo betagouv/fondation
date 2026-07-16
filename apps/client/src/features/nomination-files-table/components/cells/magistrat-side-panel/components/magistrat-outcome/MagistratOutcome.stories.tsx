@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NominationFileOutcomeCommentModalProvider } from '../../../nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
-import { ObservationFollowUpReminderProvider } from '../../../observation-follow-up/ObservationFollowUpReminderProvider';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
@@ -32,9 +31,7 @@ function MagistratOutcomeStory(props: {
         sessionId={SESSION_ID}
       >
         <NominationFileOutcomeCommentModalProvider>
-          <ObservationFollowUpReminderProvider>
-            <MagistratOutcome nominationFile={nominationFile} />
-          </ObservationFollowUpReminderProvider>
+          <MagistratOutcome nominationFile={nominationFile} />
         </NominationFileOutcomeCommentModalProvider>
       </NominationFilesTableProvider>
     </StoryQueryClient>

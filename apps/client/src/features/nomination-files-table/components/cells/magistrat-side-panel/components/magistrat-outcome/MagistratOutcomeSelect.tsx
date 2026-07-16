@@ -3,7 +3,6 @@ import { FormattedMessage } from 'react-intl';
 import { outcomeRequiresComment } from '../../../nomination-file-outcome/nomination-file-outcome.utils';
 import { NominationFileOutcomeBadge } from '../../../nomination-file-outcome/NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
-import { useObservationFollowUpReminderModal } from '../../../observation-follow-up/useObservationFollowUpReminderModal.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { Dropdown } from '@/shared/ui/dropdown';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
@@ -15,7 +14,6 @@ import {
 export function MagistratOutcomeSelect(props: { nominationFile: SessionNominationFile }) {
   const { formation, sessionId, outcomes } = useNominationFilesTable();
   const { waitForOutcomeComment } = useOutcomeCommentDialog();
-  const observationFollowUps = useObservationFollowUpReminderModal();
   const { mutate, reset } = useDefineNominationFileOutcomeMutation({
     nominationFileId: props.nominationFile.id,
     sessionId,
@@ -24,13 +22,7 @@ export function MagistratOutcomeSelect(props: { nominationFile: SessionNominatio
   const current = props.nominationFile.content.outcome?.value ?? null;
 
   const save = (outcome: NominationFileOutcomeEnum, comment: string | null) => {
-    mutate(
-      { comment, outcome },
-      {
-        onSettled: () => reset(),
-        onSuccess: () => observationFollowUps.remindOfObservationFollowUpIfNecessary(props.nominationFile),
-      },
-    );
+    mutate({ comment, outcome }, { onSettled: () => reset() });
   };
 
   const select = async (next: NominationFileOutcomeEnum | null) => {
