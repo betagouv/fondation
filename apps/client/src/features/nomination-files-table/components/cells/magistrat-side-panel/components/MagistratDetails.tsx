@@ -7,7 +7,7 @@ import { MagistratAuditionNotice } from './magistrat-audition-date/MagistratAudi
 import { MagistratBiography } from './magistrat-biography/MagistratBiography';
 import { MagistratCareerInfo } from './magistrat-career-info/MagistratCareerInfo';
 import { MagistratHeader } from './magistrat-header/MagistratHeader';
-import { MagistratObservationsInbox } from './magistrat-observations/MagistratObservationsInbox';
+import { MagistratObservations } from './magistrat-observations/MagistratObservations';
 import { MagistratOutcome } from './magistrat-outcome/MagistratOutcome';
 import { MagistratSummary } from './magistrat-summary/MagistratSummary';
 import { MemberMemo } from './member-memo/MemberMemo';
@@ -29,7 +29,7 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
       <MagistratOutcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <MagistratCareerInfo content={nominationFile.content} />
       <MagistratBiography historique={historique} />
-      <MagistratObservationsInbox nominationFile={nominationFile} sessionId={sessionId} />
+      <MagistratObservations nominationFile={nominationFile} sessionId={sessionId} />
       <SgComment
         key={`${nominationFile.id}-comment`}
         initialComment={nominationFile.comment}

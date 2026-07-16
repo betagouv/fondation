@@ -16,7 +16,16 @@ vi.mock('../../../observations/context/ObservationsModalContext', () => ({
   useObservationsModal: () => ({ open, edit: vi.fn(), requestDelete: vi.fn() }),
 }));
 
-let observations: { id: string }[] = [];
+const makeObservation = (id: string) => ({
+  id,
+  description: null,
+  dateReception: '2025-01-10',
+  followUp: null,
+  magistrat: null,
+  files: [],
+});
+
+let observations: ReturnType<typeof makeObservation>[] = [];
 vi.mock('@queries/observations.queries', () => ({
   useObservationsQuery: () => ({ data: { observations } }),
   useGetObservationFileUrlMutation: () => ({ mutate: vi.fn(), isPending: false }),
@@ -46,14 +55,22 @@ describe('MagistratObservations', () => {
     expect(screen.getByText('Aucun observant sur cette proposition')).toBeInTheDocument();
   });
 
-  it('uses the singular heading for a single observer', () => {
+  it('uses the singular heading with the count for a single observation', () => {
+    observations = [makeObservation('obs-1')];
     renderObservations({ observants: ['Tribunal de Lyon'] });
 
-    expect(screen.getByRole('heading', { name: 'Observant' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Observant (1)' })).toBeInTheDocument();
     expect(screen.getByText('Tribunal de Lyon')).toBeInTheDocument();
   });
 
-  it('uses the plural heading when several observers are present', () => {
+  it('uses the plural heading with the count for several observations', () => {
+    observations = [makeObservation('obs-1'), makeObservation('obs-2')];
+    renderObservations({ observants: ['Tribunal de Lyon'] });
+
+    expect(screen.getByRole('heading', { name: 'Observants (2)' })).toBeInTheDocument();
+  });
+
+  it('uses the plural heading without count when no observation is received yet', () => {
     renderObservations({ observants: ['Tribunal de Lyon', 'Cour de Paris'] });
 
     expect(screen.getByRole('heading', { name: 'Observants' })).toBeInTheDocument();

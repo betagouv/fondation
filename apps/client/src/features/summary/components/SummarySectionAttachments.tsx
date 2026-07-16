@@ -26,8 +26,8 @@ export function SummarySectionAttachments() {
       <div className="fr-mt-4v">
         {attachmentsCount ? (
           <ul>
-            {summary.summary.attachments.map(({ id, name, type }) => (
-              <SummaryAttachment key={id} fileId={id} name={name} type={type} />
+            {summary.summary.attachments.map(({ id, name }) => (
+              <SummaryAttachment key={id} fileId={id} name={name} />
             ))}
           </ul>
         ) : canWriteSummary ? null : (
@@ -75,7 +75,7 @@ function SummaryAttachmentInput() {
   );
 }
 
-function SummaryAttachment(props: { fileId: string; name: string; type: string }) {
+function SummaryAttachment(props: { fileId: string; name: string }) {
   const { canWriteSummary, sessionId, nominationFileId } = useSummary();
 
   const { mutate: openAttachment, isPending: isGenerating } = useGenerateSummaryAttachmentPublicUrlMutation();
@@ -107,13 +107,7 @@ function SummaryAttachment(props: { fileId: string; name: string; type: string }
         className="text-ellipsis"
         disabled={isGenerating}
         onClick={onOpenAttachment}
-        iconId={
-          props.type === 'application/pdf'
-            ? 'ri-file-pdf-2-line'
-            : props.type.startsWith('image/')
-              ? 'ri-file-image-line'
-              : 'ri-file-line'
-        }
+        iconId="ri-file-text-line"
       >
         {props.name}
       </Button>

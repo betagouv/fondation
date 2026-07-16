@@ -62,7 +62,7 @@ export function MagistratAttachments(props: {
     <div>
       <p className="fr-mb-4v text-xl font-semibold" id={labelId}>
         <FormattedMessage
-          defaultMessage="{count, plural, one {Pièce jointe du dossier} other {Pièces jointes du dossier}}"
+          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes}}"
           values={{ count: attachments.length }}
         />
       </p>
