@@ -5,7 +5,7 @@ import z from 'zod';
 import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
-import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
+import { PrismaPrioriteEnum, PrismaReportStateEnum } from 'src/generated/prisma/enums';
 import {
   internalCountTotalDetailsMemberSessionRawQuery,
   internalDetailsMemberSessionRawQuery,
@@ -123,7 +123,7 @@ export class InternalDetailMemberSessionQuery {
         const { id, state } = assertIsDefined(reports[0]);
 
         const priorities = Array.isArray(d.priorities)
-          ? d.priorities.map(prismaPrioriteEnumToPrioriteEnum)
+          ? d.priorities.map((x) => prismaPrioriteEnumToPrioriteEnum(x as PrismaPrioriteEnum))
           : [];
         // TODO: remove once filePriority removed
         const filePriority = priorities[0] ?? null;

@@ -18,7 +18,6 @@ export function ReactTableFilterSearch<Data extends RowData>(props: { table: Tab
   }, 600);
 
   const focus = React.useCallback(() => {
-    // @ts-expect-error this definitely exist
     inputRef.current?.focus({ focusVisible: true });
   }, [inputRef]);
 

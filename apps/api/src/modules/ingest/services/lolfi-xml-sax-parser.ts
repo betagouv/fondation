@@ -176,7 +176,7 @@ export class LolfiXmlSaxParser extends Transform {
 
       callback();
     } catch (error) {
-      callback(error);
+      callback(new Error(undefined, { cause: error }));
     }
   }
 
@@ -187,7 +187,7 @@ export class LolfiXmlSaxParser extends Transform {
 
       callback();
     } catch (error) {
-      callback(error);
+      callback(new Error(undefined, { cause: error }));
     }
   }
 }
