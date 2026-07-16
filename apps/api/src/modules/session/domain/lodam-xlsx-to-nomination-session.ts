@@ -70,7 +70,7 @@ export async function lodamToNominationFiles(
 
   return {
     success: true,
-    files: lineResults.map((result: LineResultSuccess) => result.value),
+    files: lineResults.filter((result) => result.success).map((result) => result.value),
   };
 }
 

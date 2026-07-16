@@ -510,10 +510,7 @@ export function commonDocumentCss(): string {
   `;
 }
 
-type LayoutContext = Record<
-  'css' | 'header' | 'content' | 'footer',
-  TemplateFunction<Record<string, unknown>>
->;
+type LayoutContext = Record<'css' | 'header' | 'content' | 'footer', TemplateFunction<never>>;
 
 type MergedCtx<Fns> = Pretty<
   UnionToIntersection<
@@ -521,13 +518,14 @@ type MergedCtx<Fns> = Pretty<
   >
 >;
 
-export function documentLayout<const T extends LayoutContext>({
-  css,
-  header,
-  content,
-  footer,
-}: T): Template<MergedCtx<T[keyof T]>> {
+export function documentLayout<const T extends LayoutContext>(layout: T): Template<MergedCtx<T[keyof T]>> {
   return new Template(function (ctx: MergedCtx<T[keyof T]>) {
+    // FIXME: once we refactored all docs.
+    const { css, header, content, footer } = layout as Record<
+      'css' | 'header' | 'content' | 'footer',
+      TemplateFunction<any>
+    >;
+
     return /* html */ `
       <!doctype html>
       <html lang="fr">
