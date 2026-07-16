@@ -1,9 +1,8 @@
-import { Magistrat } from 'shared-models';
-
 import {
   NominationFileOutcomeEnum,
   nominationFileOutcomeLabel,
 } from 'src/modules/session/domain/nomination-file-outcome';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export const DOC_NOMINATION_FILE_OUTCOME_ENUM = [
@@ -40,7 +39,7 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
 
 export function docNominationFileOutcomeLabel(props: {
   outcome: DocNominationFileOutcomeEnum;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 }): string {
   switch (props.outcome) {
     case 'VALIDATED':

@@ -11,6 +11,7 @@ import {
 } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 import { ReportedNominationFilesFinder } from './reported-nomination-files.finder';
 
@@ -25,7 +26,7 @@ export class DocsNominationFilesFinder {
 
   async find(query: {
     sessionId: string;
-    formation?: Magistrat.Formation;
+    formation?: FormationEnum;
     ids?: readonly string[];
     tx?: Prisma.TransactionClient;
   }): Promise<FoundDocsNominationFiles> {
@@ -53,7 +54,7 @@ export class DocsNominationFilesFinder {
 
   async findNonReported(query: {
     sessionId: string;
-    formation?: Magistrat.Formation;
+    formation?: FormationEnum;
     ignoreOfficialReportId?: string;
     ids?: readonly string[];
     tx?: Prisma.TransactionClient;

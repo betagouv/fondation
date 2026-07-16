@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { format } from 'date-fns';
 
-import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { SessionTransparence } from 'src/modules/session/domain/session-transparence';
 import { LolfiNominationFilesFinder } from 'src/modules/session/infrastructure/finders/lolfi-nomination-files.finder';
 import { NominationSessionRepository } from 'src/modules/session/infrastructure/repositories/nomination-session.repository';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class LolfiNominationSessionFinder {
     const nominationFiles = await this.lolfiNominationFiles.find(props.id);
 
     const output: SessionTransparence[] = [];
-    for (const formation of Object.values(Magistrat.Formation)) {
+    for (const formation of Object.values(FormationEnum)) {
       const existingSession = sessions[formation];
       if (existingSession?.isArchived) continue;
 

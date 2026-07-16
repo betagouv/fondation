@@ -36,7 +36,7 @@ describe('SessionTransparence', () => {
   it('should affect reporters to nomination files', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -72,7 +72,7 @@ describe('SessionTransparence', () => {
   it('should throw when trying to affect on files linked to docs', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -105,7 +105,7 @@ describe('SessionTransparence', () => {
   it('should create a new version when the version is already published', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: false },
       nominationFiles: [
         {
@@ -145,7 +145,7 @@ describe('SessionTransparence', () => {
   it('should throw when trying to affect a non formation member', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -173,7 +173,7 @@ describe('SessionTransparence', () => {
   it('should define a nomination file priority', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -201,7 +201,7 @@ describe('SessionTransparence', () => {
   it('should throw when defining a priority on a file linked to docs', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -229,7 +229,7 @@ describe('SessionTransparence', () => {
   it('should unset a nomination file priority', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [
         {
@@ -255,7 +255,7 @@ describe('SessionTransparence', () => {
   it('should publish a draft version', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: true },
       nominationFiles: [],
     });
@@ -271,7 +271,7 @@ describe('SessionTransparence', () => {
   it('should NOT publish a published version', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: { id: 'version-id', version: 3, isDraft: false },
       nominationFiles: [],
     });
@@ -285,7 +285,7 @@ describe('SessionTransparence', () => {
   it('should publish an unknown version', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [],
     });
@@ -304,7 +304,7 @@ describe('SessionTransparence', () => {
         name: 'TEST transparence LODAM PARQUET',
         date: new DateOnly(2025, 1, 1),
         observationClosingDate: new DateOnly(2025, 2, 1),
-        formation: Magistrat.Formation.PARQUET,
+        formation: 'PARQUET',
         typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
         dueDate: null,
         positionStartDate: null,
@@ -359,7 +359,7 @@ describe('SessionTransparence', () => {
           session.id,
           'TEST transparence LODAM PARQUET',
           TypeDeSaisine.TRANSPARENCE_GDS,
-          Magistrat.Formation.PARQUET,
+          'PARQUET',
           new DateOnly(2025, 1, 1),
           new DateOnly(2025, 2, 1),
           null,
@@ -438,7 +438,7 @@ describe('SessionTransparence', () => {
           name: 'TEST transparence LODAM PARQUET',
           date: new DateOnly(2025, 1, 1),
           observationClosingDate: new DateOnly(2025, 2, 1),
-          formation: Magistrat.Formation.PARQUET,
+          formation: 'PARQUET',
           typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
           dueDate: null,
           positionStartDate: null,
@@ -468,7 +468,7 @@ describe('SessionTransparence', () => {
   it('should update observers', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -496,7 +496,7 @@ describe('SessionTransparence', () => {
   it('should throw when updating observers, but file number is unknown', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [],
     });
@@ -512,7 +512,7 @@ describe('SessionTransparence', () => {
   it('should throw when updating observers on files linked to docs', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -540,7 +540,7 @@ describe('SessionTransparence', () => {
   it('should define the nomination file outcome', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -569,7 +569,7 @@ describe('SessionTransparence', () => {
   it('should define another nomination file outcome', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -598,7 +598,7 @@ describe('SessionTransparence', () => {
   it('should reset the nomination file outcome', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -622,7 +622,7 @@ describe('SessionTransparence', () => {
   it('should schedule an audition on a pending nomination file', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -657,7 +657,7 @@ describe('SessionTransparence', () => {
   it('should throw when scheduling an audition on a file whose decision is final', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -682,7 +682,7 @@ describe('SessionTransparence', () => {
   it('should throw when modifying an audition that already occurred', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -707,7 +707,7 @@ describe('SessionTransparence', () => {
   it('should clear the audition without checking the outcome when no date is provided', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -737,7 +737,7 @@ describe('SessionTransparence', () => {
   ])('should throw when scheduling an audition without its $missing', ({ auditionDate, auditionTime }) => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -763,7 +763,7 @@ describe('SessionTransparence', () => {
   it('should add attachments to a nomination file', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -793,7 +793,7 @@ describe('SessionTransparence', () => {
   it('should remove an attachment from a nomination file', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -818,7 +818,7 @@ describe('SessionTransparence', () => {
   it('should throw when adding an attachment on a file linked to docs', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -846,7 +846,7 @@ describe('SessionTransparence', () => {
   it('should throw when removing an attachment on a file linked to docs', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [
         {
@@ -874,7 +874,7 @@ describe('SessionTransparence', () => {
   it('should throw when attaching to a nomination file that does not belong to the session', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       version: null,
       nominationFiles: [],
     });

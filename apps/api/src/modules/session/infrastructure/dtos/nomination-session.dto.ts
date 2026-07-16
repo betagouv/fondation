@@ -1,11 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -16,7 +15,7 @@ const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
     .max(5 * 1_024 * 1_024 /* 5MB */),
   form: z.object({
     name: z.string().trim().nonempty(),
-    formation: z.enum(Magistrat.Formation),
+    formation: z.enum(FormationEnum),
     date: z.iso.date().transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
     observationClosingDate: z.iso.date().transform((x) => DateOnly.fromString(x, 'yyyy-MM-dd')),
     dueDate: z.iso
@@ -88,7 +87,7 @@ export class ListGdsNominationSessionsQueryDto extends createSortableDto(
     formations: z
       .preprocess(
         (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
-        z.array(z.enum(Magistrat.Formation)).optional(),
+        z.array(z.enum(FormationEnum)).optional(),
       )
       .optional(),
   }),

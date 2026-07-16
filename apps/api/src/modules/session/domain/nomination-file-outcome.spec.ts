@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import {
   NominationFileOutcome,
   NominationFileOutcomeRequiresComment,
@@ -70,7 +68,7 @@ describe('NominationFileOutcome', () => {
 
   describe('selectableOutcomes', () => {
     it('exposes every outcome in selection order with its label and comment requirement', () => {
-      const outcomes = NominationFileOutcome.selectableOutcomes(Magistrat.Formation.PARQUET);
+      const outcomes = NominationFileOutcome.selectableOutcomes('PARQUET');
 
       expect(outcomes).toEqual([
         { value: 'VALIDATED', label: 'avis favorable', commentRequired: false },
@@ -84,7 +82,7 @@ describe('NominationFileOutcome', () => {
     });
 
     it('labels the decision outcomes according to the formation', () => {
-      const outcomes = NominationFileOutcome.selectableOutcomes(Magistrat.Formation.SIEGE);
+      const outcomes = NominationFileOutcome.selectableOutcomes('SIEGE');
 
       expect(outcomes[0]).toEqual({ value: 'VALIDATED', label: 'avis conforme', commentRequired: false });
       expect(outcomes[1]).toEqual({

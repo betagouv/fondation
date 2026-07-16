@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import { NominationFileOutcomeEnum } from 'src/modules/session/domain/nomination-file-outcome';
 
 import {
@@ -9,27 +7,23 @@ import {
 
 describe('docNominationFileOutcomeLabel', () => {
   it('labels the decision outcomes according to the formation', () => {
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'VALIDATED', formation: Magistrat.Formation.PARQUET }),
-    ).toBe('avis favorable');
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'VALIDATED', formation: Magistrat.Formation.SIEGE }),
-    ).toBe('avis conforme');
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'NON_VALIDATED', formation: Magistrat.Formation.PARQUET }),
-    ).toBe('avis défavorable');
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'NON_VALIDATED', formation: Magistrat.Formation.SIEGE }),
-    ).toBe('avis non conforme');
+    expect(docNominationFileOutcomeLabel({ outcome: 'VALIDATED', formation: 'PARQUET' })).toBe(
+      'avis favorable',
+    );
+    expect(docNominationFileOutcomeLabel({ outcome: 'VALIDATED', formation: 'SIEGE' })).toBe('avis conforme');
+    expect(docNominationFileOutcomeLabel({ outcome: 'NON_VALIDATED', formation: 'PARQUET' })).toBe(
+      'avis défavorable',
+    );
+    expect(docNominationFileOutcomeLabel({ outcome: 'NON_VALIDATED', formation: 'SIEGE' })).toBe(
+      'avis non conforme',
+    );
   });
 
   it('labels the grouped outcomes with the official documents vocabulary', () => {
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'SUSPENDED', formation: Magistrat.Formation.SIEGE }),
-    ).toBe('sursis à statuer');
-    expect(
-      docNominationFileOutcomeLabel({ outcome: 'WITHDRAWN', formation: Magistrat.Formation.SIEGE }),
-    ).toBe('retrait');
+    expect(docNominationFileOutcomeLabel({ outcome: 'SUSPENDED', formation: 'SIEGE' })).toBe(
+      'sursis à statuer',
+    );
+    expect(docNominationFileOutcomeLabel({ outcome: 'WITHDRAWN', formation: 'SIEGE' })).toBe('retrait');
   });
 
   it.each([
@@ -42,9 +36,7 @@ describe('docNominationFileOutcomeLabel', () => {
     (outcome, label) => {
       const docOutcome = nominationFileOutcomeToDocNominationFileOutcome(outcome);
 
-      expect(
-        docNominationFileOutcomeLabel({ outcome: docOutcome, formation: Magistrat.Formation.SIEGE }),
-      ).toBe(label);
+      expect(docNominationFileOutcomeLabel({ outcome: docOutcome, formation: 'SIEGE' })).toBe(label);
     },
   );
 });

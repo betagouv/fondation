@@ -17,6 +17,7 @@ import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
@@ -279,7 +280,7 @@ export class DetailedReportDto extends createZodDto(
     nominationFileId: z.string(),
     name: z.string(),
     comment: z.string().nullable(),
-    formation: z.enum(Magistrat.Formation),
+    formation: z.enum(FormationEnum),
     state: z.enum(NominationFile.ReportState),
     isArchived: z.boolean(),
     folderNumber: z.number().nullable(),

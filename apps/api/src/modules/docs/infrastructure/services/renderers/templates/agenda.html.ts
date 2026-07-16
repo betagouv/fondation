@@ -1,20 +1,21 @@
 import { stripIndent } from 'common-tags';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { conjunctionList, date, requiresElision, titled } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import type { Pretty } from 'src/utils/types';
 
 import { commonDocumentCss, documentLayout } from './common.html';
 
 const html = stripIndent;
 
-function agendaHeader(ctx: { sessionMeetingDate: Date; formation: Magistrat.Formation }): string {
+function agendaHeader(ctx: { sessionMeetingDate: Date; formation: FormationEnum }): string {
   return html`
     <h1>Avis du Conseil supérieur de la magistrature</h1>
     <p class="formation">
-      ${ctx.formation === Magistrat.Formation.SIEGE
+      ${ctx.formation === 'SIEGE'
         ? `Formation compétente à l'égard des magistrats du siège`
         : `Formation compétente à l'égard des magistrats du parquet`}
     </p>

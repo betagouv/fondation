@@ -1,9 +1,8 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
 import { LolfiNominationFile } from '../../domain/nomination-file';
 import { IngestService } from 'src/modules/ingest/infrastructure/ingest.service';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -14,7 +13,7 @@ export class LolfiNominationFilesFinder {
     private readonly ingest: IngestService,
   ) {}
 
-  async find(sessionId: number): Promise<Record<Magistrat.Formation, { items: LolfiNominationFile[] }>> {
+  async find(sessionId: number): Promise<Record<FormationEnum, { items: LolfiNominationFile[] }>> {
     const { items: files } = await this.ingest.internalDetailsLolfiSession(sessionId);
 
     const parquet: LolfiNominationFile[] = [];
@@ -47,7 +46,7 @@ export class LolfiNominationFilesFinder {
         detectedJurisdictionId: file.detectedJurisdictionId,
       };
 
-      if (file.formation === Magistrat.Formation.PARQUET) {
+      if (file.formation === 'PARQUET') {
         nominationFile.fileNumber = parquet.length + 1;
         parquet.push(nominationFile);
       } else {
@@ -57,8 +56,8 @@ export class LolfiNominationFilesFinder {
     }
 
     return {
-      [Magistrat.Formation.PARQUET]: { items: parquet },
-      [Magistrat.Formation.SIEGE]: { items: siege },
+      ['PARQUET']: { items: parquet },
+      ['SIEGE']: { items: siege },
     };
   }
 }

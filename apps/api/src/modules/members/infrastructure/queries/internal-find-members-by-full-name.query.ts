@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
 import { formationToMemberRole } from '../../../shared/formation-to-member-role';
 import { PrismaService } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    formation: Magistrat.Formation | undefined;
+    formation: FormationEnum | undefined;
     fullNames: readonly string[];
   }): Promise<FoundMemberByFullName[]> {
     const roles = formationToMemberRole(query.formation);

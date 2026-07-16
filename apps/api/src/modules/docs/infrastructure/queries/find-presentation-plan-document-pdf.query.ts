@@ -7,8 +7,6 @@ import {
 } from '@nestjs/common';
 import { formatDate } from 'date-fns';
 
-import { Magistrat } from 'shared-models';
-
 import { PresentationPlanRenderer } from '../services/renderers/presentation-plan.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
@@ -66,7 +64,7 @@ export class FindPresentationPlanDocumentPdfQuery {
     const html = await this.findPresentationPlanDocumentQuery.handle(query);
     const buffer = await this.presentationPlanRenderer.pdf(html);
 
-    const name = `Notice de restitution - ${file.formation === Magistrat.Formation.SIEGE ? 'Siège' : 'Parquet'} - ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
+    const name = `Notice de restitution - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} - ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
     const fileId = makeId('FileId');
     const path = `docs/${fileId}.pdf`;
 

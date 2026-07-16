@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
@@ -58,7 +59,7 @@ export class ListedNonPresentedPlansDto extends createZodDto(
         id: z.string(),
         time: timeOnlySchema,
         date: dateOnlyJsonSchema,
-        formation: z.enum(Magistrat.Formation),
+        formation: z.enum(FormationEnum),
         chairman: z.object({ firstName: z.string(), lastName: z.string() }),
       }),
     ),

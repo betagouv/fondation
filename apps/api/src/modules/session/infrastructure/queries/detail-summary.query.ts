@@ -8,6 +8,7 @@ import { NominationFileOutcome, nominationFileOutcomeLabel } from '../../domain/
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
@@ -226,7 +227,7 @@ export class DetailedSummaryDto extends createZodDto(
     isArchived: z.boolean(),
     name: z.string().nullable(),
     rank: z.string().nullable(),
-    formation: z.enum(Magistrat.Formation),
+    formation: z.enum(FormationEnum),
     number: z.number().int().gte(1).nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),

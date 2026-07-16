@@ -1,5 +1,4 @@
-import { Magistrat } from 'shared-models';
-
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -77,7 +76,7 @@ export class NominationFileOutcome {
     return outcome === 'NON_VALIDATED';
   }
 
-  static selectableOutcomes(formation: Magistrat.Formation): SelectableNominationFileOutcome[] {
+  static selectableOutcomes(formation: FormationEnum): SelectableNominationFileOutcome[] {
     return OUTCOMES_IN_SELECTION_ORDER.map((value) => ({
       value,
       label: nominationFileOutcomeLabel({ outcome: value, formation }),
@@ -145,14 +144,14 @@ export class NominationFileCannotBeAuditioned extends Error {
 
 export function nominationFileOutcomeLabel(props: {
   outcome: NominationFileOutcomeEnum;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
 }): string {
   switch (props.outcome) {
     case 'VALIDATED': {
       switch (props.formation) {
-        case Magistrat.Formation.PARQUET:
+        case 'PARQUET':
           return 'avis favorable';
-        case Magistrat.Formation.SIEGE:
+        case 'SIEGE':
           return 'avis conforme';
         default:
           return assertNever(props.formation);
@@ -161,9 +160,9 @@ export function nominationFileOutcomeLabel(props: {
 
     case 'NON_VALIDATED': {
       switch (props.formation) {
-        case Magistrat.Formation.PARQUET:
+        case 'PARQUET':
           return 'avis défavorable';
-        case Magistrat.Formation.SIEGE:
+        case 'SIEGE':
           return 'avis non conforme';
         default:
           return assertNever(props.formation);

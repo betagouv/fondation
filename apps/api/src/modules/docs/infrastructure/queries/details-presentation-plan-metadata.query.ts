@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { PrismaService } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -67,7 +68,7 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     date: dateOnlyJsonSchema,
     isPresented: z.boolean(),
     isManuallyEdited: z.boolean(),
-    formation: z.enum(Magistrat.Formation),
+    formation: z.enum(FormationEnum),
     agendas: z.array(z.object({ id: z.string(), comment: z.string().nullable() })),
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),

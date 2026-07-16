@@ -1,9 +1,10 @@
 import { isBefore } from 'date-fns';
 
-import { Gender, Magistrat, Role } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -88,14 +89,14 @@ export class OfficialReport {
 
   private constructor(
     readonly id: Id<'OfficialReportId'>,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
   ) {}
 
   get messages(): readonly OfficialReportEvent[] {
     return this.#messages;
   }
 
-  static from(props: { id: string; formation: Magistrat.Formation }) {
+  static from(props: { id: string; formation: FormationEnum }) {
     return new OfficialReport(makeId('OfficialReportId', props.id), props.formation);
   }
 
@@ -109,7 +110,7 @@ export class OfficialReport {
     secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
-      formation: Magistrat.Formation;
+      formation: FormationEnum;
       officialReportId: string | null;
       session: { id: string };
     }[];
@@ -131,8 +132,8 @@ export class OfficialReport {
     }
 
     if (
-      (props.chairman.role === Role.MEMBRE_DU_PARQUET && this.formation === Magistrat.Formation.SIEGE) ||
-      (props.chairman.role === Role.MEMBRE_DU_SIEGE && this.formation === Magistrat.Formation.PARQUET)
+      (props.chairman.role === Role.MEMBRE_DU_PARQUET && this.formation === 'SIEGE') ||
+      (props.chairman.role === Role.MEMBRE_DU_SIEGE && this.formation === 'PARQUET')
     ) {
       throw new InvalidChairmanFormation();
     }
@@ -196,14 +197,14 @@ export class OfficialReport {
     secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
-      formation: Magistrat.Formation;
+      formation: FormationEnum;
       session: { id: string };
       officialReportId: string | null;
     }[];
     members: readonly OfficialReportUser[];
     absentMembers: Set<string>;
     authorId: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
   }): OfficialReport {
     const report = new OfficialReport(makeId('OfficialReportId'), props.formation);
 
@@ -238,7 +239,7 @@ export class OfficialReport {
     secretary: Omit<OfficialReportUser, 'sort'>;
     agendas: readonly {
       id: string;
-      formation: Magistrat.Formation;
+      formation: FormationEnum;
       session: { id: string };
       officialReportId: string | null;
     }[];

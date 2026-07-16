@@ -1,14 +1,15 @@
 import { Magistrat } from 'shared-models';
 
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { AffectableMember, AutoAffectationMember } from './auto-affectation-member';
 import { AutoAffectationNominationFile } from './auto-affectation-nomination-file';
 
 describe('auto affectation member', () => {
-  const session = {
+  const session: { date: DateOnly; formation: FormationEnum } = {
     date: DateOnly.fromJson({ day: 1, month: 1, year: 2026 }),
-    formation: Magistrat.Formation.SIEGE,
+    formation: 'SIEGE',
   };
 
   it('should sort members', () => {
@@ -44,7 +45,7 @@ describe('auto affectation member', () => {
 
   describe('affectable member', () => {
     it('should not allow an affectation from an excluded jurisdiction', () => {
-      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -61,7 +62,7 @@ describe('auto affectation member', () => {
     });
 
     it('should check affectation on a list of files', () => {
-      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
       const files = ['CA  STRASBOURG', 'CA  NANTES'].map(
         // oxfmt-ignore
@@ -72,7 +73,7 @@ describe('auto affectation member', () => {
     });
 
     it('should not allow an affectation from another formation', () => {
-      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -83,7 +84,7 @@ describe('auto affectation member', () => {
             targetedJurisdiction: 'CA  STRASBOURG',
             currentJurisdiction: 'CA  LYON',
             session: {
-              formation: Magistrat.Formation.PARQUET,
+              formation: 'PARQUET',
               date: session.date,
             },
           }),
@@ -92,7 +93,7 @@ describe('auto affectation member', () => {
     });
 
     it('should allow an affectation', () => {
-      const member = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
       expect(
         member.canReportOn(
@@ -109,9 +110,9 @@ describe('auto affectation member', () => {
     });
 
     it('should exchange files with another member', () => {
-      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member1 = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
-      const member2 = new AffectableMember(3, 'member-2', Magistrat.Formation.SIEGE, new Set());
+      const member2 = new AffectableMember(3, 'member-2', 'SIEGE', new Set());
 
       member2.affect([
         AutoAffectationNominationFile.from({
@@ -121,7 +122,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  LYON',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -132,7 +133,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  LYON',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -146,7 +147,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -161,14 +162,9 @@ describe('auto affectation member', () => {
     });
 
     it('should NOT exchange files with another not compatible member', () => {
-      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member1 = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
-      const member2 = new AffectableMember(
-        3,
-        'member-2',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  STRASBOURG']),
-      );
+      const member2 = new AffectableMember(3, 'member-2', 'SIEGE', new Set(['CA  STRASBOURG']));
 
       member2.affect([
         AutoAffectationNominationFile.from({
@@ -178,7 +174,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -189,7 +185,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -203,7 +199,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -213,14 +209,9 @@ describe('auto affectation member', () => {
     });
 
     it('should NOT exchange files with a member without affectations', () => {
-      const member1 = new AffectableMember(3, 'member-1', Magistrat.Formation.SIEGE, new Set(['CA  NANTES']));
+      const member1 = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 
-      const member2 = new AffectableMember(
-        3,
-        'member-2',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  STRASBOURG']),
-      );
+      const member2 = new AffectableMember(3, 'member-2', 'SIEGE', new Set(['CA  STRASBOURG']));
 
       const exchanged = member2.exchangeLastAffectationWith(member1, [
         AutoAffectationNominationFile.from({
@@ -230,7 +221,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -240,14 +231,9 @@ describe('auto affectation member', () => {
     });
 
     it('should NOT exchange files with a member without affectations when files are not compatible', () => {
-      const member1 = new AffectableMember(
-        3,
-        'member-1',
-        Magistrat.Formation.SIEGE,
-        new Set(['CA  NANTES', 'CA  LYON']),
-      );
+      const member1 = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES', 'CA  LYON']));
 
-      const member2 = new AffectableMember(3, 'member-2', Magistrat.Formation.SIEGE, new Set());
+      const member2 = new AffectableMember(3, 'member-2', 'SIEGE', new Set());
 
       member2.affect([
         AutoAffectationNominationFile.from({
@@ -257,7 +243,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),
@@ -271,7 +257,7 @@ describe('auto affectation member', () => {
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             date: session.date,
           },
         }),

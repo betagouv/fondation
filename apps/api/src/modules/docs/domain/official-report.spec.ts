@@ -1,4 +1,4 @@
-import { Gender, Magistrat, Role } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 
@@ -23,7 +23,7 @@ describe('OfficialReport', () => {
           title: 'PRESIDENT_SIEGE',
           sort: 1,
         },
-        formation: Magistrat.Formation.SIEGE,
+        formation: 'SIEGE',
         hasRenunciation: true,
         justiceDepartmentContactId: 'contact-1',
         secretary: {
@@ -41,7 +41,7 @@ describe('OfficialReport', () => {
         sessionMeetingEndingTime: { hours: 10, minutes: 10, seconds: 0 },
         agendas: [
           {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             id: 'agenda-1',
             officialReportId: null,
             session: { id: 'session-1' },
@@ -81,7 +81,7 @@ describe('OfficialReport', () => {
           title: 'PRESIDENT_SIEGE',
           sort: 1,
         },
-        formation: Magistrat.Formation.SIEGE,
+        formation: 'SIEGE',
         hasRenunciation: true,
         justiceDepartmentContactId: 'contact-1',
         secretary: {
@@ -99,7 +99,7 @@ describe('OfficialReport', () => {
         sessionMeetingEndingTime: { hours: 10, minutes: 10, seconds: 0 },
         agendas: [
           {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             id: 'agenda-1',
             officialReportId: null,
             session: { id: 'session-1' },
@@ -110,7 +110,7 @@ describe('OfficialReport', () => {
   });
 
   it('should prevent updating an official report without members', () => {
-    const report = OfficialReport.from({ formation: Magistrat.Formation.SIEGE, id: 'official-report-1' });
+    const report = OfficialReport.from({ formation: 'SIEGE', id: 'official-report-1' });
     expect(() =>
       report.update({
         members: [],
@@ -145,7 +145,7 @@ describe('OfficialReport', () => {
         sessionMeetingEndingTime: { hours: 10, minutes: 10, seconds: 0 },
         agendas: [
           {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             id: 'agenda-1',
             officialReportId: null,
             session: { id: 'session-1' },
@@ -156,7 +156,7 @@ describe('OfficialReport', () => {
   });
 
   it('should prevent updating an official report without present members', () => {
-    const report = OfficialReport.from({ formation: Magistrat.Formation.SIEGE, id: 'official-report-1' });
+    const report = OfficialReport.from({ formation: 'SIEGE', id: 'official-report-1' });
     expect(() =>
       report.update({
         members: [
@@ -203,7 +203,7 @@ describe('OfficialReport', () => {
         sessionMeetingEndingTime: { hours: 10, minutes: 10, seconds: 0 },
         agendas: [
           {
-            formation: Magistrat.Formation.SIEGE,
+            formation: 'SIEGE',
             id: 'agenda-1',
             officialReportId: null,
             session: { id: 'session-1' },

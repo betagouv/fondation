@@ -5,6 +5,7 @@ import { Magistrat, PrioriteEnum } from 'shared-models';
 
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -77,7 +78,7 @@ export type DetailedLolfiSession = {
     rank: string;
     lastRankingDate: Date | null;
     lastPositionDate: Date | null;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     targetedPosition: string | null;
     targetedGrade: Magistrat.Grade;
     sortableTargetedGrade: number;

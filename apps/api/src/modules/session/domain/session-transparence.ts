@@ -1,8 +1,9 @@
 import { addWeeks } from 'date-fns';
 
-import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectation/auto-affectations';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
@@ -57,7 +58,7 @@ export class SessionTransparenceCreated {
     readonly sessionId: string,
     readonly name: string,
     readonly typeDeSaisine: TypeDeSaisine,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
     readonly date: DateOnly,
     readonly observationClosingDate: DateOnly,
     readonly dueDate: DateOnly | null,
@@ -269,14 +270,14 @@ export class SessionTransparenceIsArchived extends Error {
 export class SessionTransparence {
   private constructor(
     readonly id: string,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
     readonly version: SessionTransparenceAffectationVersion | null,
     private nominationFiles: Map<string, UpdatableNominationFile>,
   ) {}
 
   static from(props: {
     id: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     version: SessionTransparenceAffectationVersion | null;
     nominationFiles: readonly UpdatableNominationFileState[];
   }) {
@@ -291,7 +292,7 @@ export class SessionTransparence {
   static create(command: {
     name: string;
     typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     date: DateOnly;
     observationClosingDate: DateOnly | null;
     dueDate: DateOnly | null;
@@ -641,7 +642,7 @@ export type CreateLodamSessionTransparenceCommand = {
   observationClosingDate: DateOnly;
   dueDate: DateOnly | null;
   positionStartDate: DateOnly | null;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   formationMembers: readonly { id: string; fullName: string }[];
   userId: string | null;
 };

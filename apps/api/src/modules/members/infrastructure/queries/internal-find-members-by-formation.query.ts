@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender, Magistrat, Role } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 
 import { isMember } from '../member.utils';
 import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import {
   prismaRoleEnumToRoleEnum,
@@ -19,7 +20,7 @@ export class InternalFindMembersByFormationQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     tx?: Prisma.TransactionClient;
   }): Promise<InternalMemberListDto[]> {
     if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));

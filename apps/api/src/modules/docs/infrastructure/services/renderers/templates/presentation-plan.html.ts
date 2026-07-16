@@ -2,13 +2,14 @@ import { load } from 'cheerio';
 import { html } from 'common-tags';
 import { format } from 'date-fns';
 
-import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { date, fullname, requiresElision } from '../helpers';
 import {
   DocNominationFileOutcomeEnum,
   docNominationFileOutcomeLabel,
 } from 'src/modules/docs/domain/doc-nomination-file-outcome';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -48,11 +49,7 @@ function css(): string {
   `;
 }
 
-function header(ctx: {
-  date: DateOnly;
-  typeDeSaisine: TypeDeSaisine;
-  formation: Magistrat.Formation;
-}): string {
+function header(ctx: { date: DateOnly; typeDeSaisine: TypeDeSaisine; formation: FormationEnum }): string {
   const saisineTitle = assertIsDefined(
     (
       {
@@ -62,7 +59,7 @@ function header(ctx: {
     `Le type de saisine n'est pas supporté: "${ctx.typeDeSaisine}"`,
   );
 
-  const formation = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
+  const formation = ctx.formation === 'PARQUET' ? 'parquet' : 'siège';
 
   return html`
     <h1>${saisineTitle}</h1>
@@ -82,7 +79,7 @@ export type AgendaNominationFile = {
 };
 
 function displayOutcome(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   outcome: Extract<DocNominationFileOutcomeEnum, 'VALIDATED' | 'NON_VALIDATED'>;
 }): string {
   return docNominationFileOutcomeLabel(ctx);
@@ -122,7 +119,7 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readon
 }
 
 function nonValidatedParagraph(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   nominationFiles: readonly AgendaNominationFile[];
 }): string {
   const paragraphs = ctx.nominationFiles
@@ -164,7 +161,7 @@ function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0
 }
 
 function chairmanBlock(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   chairman: { firstName: string; lastName: string };
   nominationFiles: readonly AgendaNominationFile[];
 }): string {
@@ -210,7 +207,7 @@ function chairmanBlock(ctx: {
 function presentationPlanSessionSection(ctx: {
   id: string;
   name: string;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   agendas: readonly {
     comments: readonly string[];
     chairman: { firstName: string; lastName: string };
@@ -259,7 +256,7 @@ function content(ctx: {
     id: string;
     name: string;
     typeDeSaisine: TypeDeSaisine;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     agendas: readonly {
       comments: readonly string[];
       chairman: { firstName: string; lastName: string };
