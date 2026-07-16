@@ -168,7 +168,7 @@ export function useDeleteObservationMutation() {
     }): Promise<void> => {
       await $api.observations.deleteObservation({
         path: {
-          sessionId: mutation.nominationFileId,
+          sessionId: mutation.sessionId,
           nominationFileId: mutation.nominationFileId,
           observationId: mutation.observationId,
         },

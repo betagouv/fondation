@@ -2,6 +2,7 @@ import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
+import { isRouteErrorResponse, useRouteError } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { PageLayout } from '@/layout/PageLayout';
@@ -12,6 +13,7 @@ import { useUser } from '@queries/auth.queries';
 export function ErrorPage() {
   const { user } = useUser();
   const isSg = useIsSg();
+  const error = useRouteError();
 
   const buttons: ButtonProps[] = [];
 
@@ -61,7 +63,9 @@ export function ErrorPage() {
         >
           <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
             <h1>Erreur inattendue</h1>
-            <p className={cx('fr-text--sm', 'fr-mb-6v')}>Erreur 500</p>
+            <p className={cx('fr-text--sm', 'fr-mb-6v')}>
+              {isRouteErrorResponse(error) ? `Erreur ${error.status}` : 'Erreur applicative'}
+            </p>
             <p className={cx('fr-text--lead', 'fr-mb-6v')}>
               Désolé, le service rencontre un problème, nous travaillons pour le résoudre le plus rapidement
               possible.

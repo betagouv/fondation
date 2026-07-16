@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+import pkg from './package.json' with { type: 'json' };
+
 process.env.VITE_FAVICON = process.env.VITE_DEPLOY_ENV === 'production' ? 'favicon' : 'favicon.staging';
 
 // https://vite.dev/config/
@@ -30,6 +32,14 @@ export default defineConfig({
     formatjs({ ast: true }),
   ],
   css: { lightningcss: { errorRecovery: true } },
+  // TipTap is only reached through lazy routes: pre-bundling it avoids a mid-session
+  // re-optimization (504 "Outdated Optimize Dep" on navigation). @tiptap/pm is
+  // excluded because it only has subpath exports
+  optimizeDeps: {
+    include: Object.keys(pkg.dependencies).filter(
+      (dep) => dep.startsWith('@tiptap/') && dep !== '@tiptap/pm',
+    ),
+  },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
