@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -15,8 +13,8 @@ describe('auto affectation member', () => {
   it('should sort members', () => {
     // oxfmt-ignore
     const members = [
-      AutoAffectationMember.from({ session, id: 'member-1', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 1]]) }),
-      AutoAffectationMember.from({ session, id: 'member-2', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([[Magistrat.Grade.G3, 1]]) }),
+      AutoAffectationMember.from({ session, id: 'member-1', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([['G1', 1]]) }),
+      AutoAffectationMember.from({ session, id: 'member-2', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map([['G3', 1]]) }),
       AutoAffectationMember.from({ session, id: 'member-3', excludedJurisdictions: new Set(), affectationCountPerGrade: new Map() }),
     ];
 
@@ -32,7 +30,7 @@ describe('auto affectation member', () => {
       session,
       id: 'member-1',
       excludedJurisdictions: new Set(),
-      affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 1]]),
+      affectationCountPerGrade: new Map([['G1', 1]]),
     });
 
     const affectableMemberBuilder = member.prepare(4);
@@ -53,7 +51,7 @@ describe('auto affectation member', () => {
             session,
             number: 1,
             id: 'file-1',
-            targetedGrade: Magistrat.Grade.G2,
+            targetedGrade: 'G2',
             targetedJurisdiction: 'CA  NANTES',
             currentJurisdiction: 'CA  LYON',
           }),
@@ -66,7 +64,7 @@ describe('auto affectation member', () => {
 
       const files = ['CA  STRASBOURG', 'CA  NANTES'].map(
         // oxfmt-ignore
-        (targetedJurisdiction, i) => AutoAffectationNominationFile.from({ number: i + 1, id: `file-${i + 1}`, targetedGrade: Magistrat.Grade.G2, currentJurisdiction: 'CA  LYON', targetedJurisdiction, session }),
+        (targetedJurisdiction, i) => AutoAffectationNominationFile.from({ number: i + 1, id: `file-${i + 1}`, targetedGrade: 'G2', currentJurisdiction: 'CA  LYON', targetedJurisdiction, session }),
       );
 
       expect(member.canReportOn(files)).toBe(false);
@@ -80,7 +78,7 @@ describe('auto affectation member', () => {
           AutoAffectationNominationFile.from({
             number: 1,
             id: 'file-1',
-            targetedGrade: Magistrat.Grade.G2,
+            targetedGrade: 'G2',
             targetedJurisdiction: 'CA  STRASBOURG',
             currentJurisdiction: 'CA  LYON',
             session: {
@@ -101,7 +99,7 @@ describe('auto affectation member', () => {
             session,
             number: 1,
             id: 'file-1',
-            targetedGrade: Magistrat.Grade.G2,
+            targetedGrade: 'G2',
             targetedJurisdiction: 'CA  STRASBOURG',
             currentJurisdiction: 'CA  LYON',
           }),
@@ -118,7 +116,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 1,
           id: 'file-1',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  LYON',
           session: {
@@ -129,7 +127,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 2,
           id: 'file-2',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  LYON',
           session: {
@@ -143,7 +141,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 3,
           id: 'file-3',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
@@ -170,7 +168,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 1,
           id: 'file-1',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
@@ -181,7 +179,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 2,
           id: 'file-2',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
@@ -195,7 +193,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 3,
           id: 'file-3',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
@@ -217,7 +215,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 3,
           id: 'file-3',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {
@@ -239,7 +237,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 1,
           id: 'file-1',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  RENNES',
           currentJurisdiction: 'CA  LYON',
           session: {
@@ -253,7 +251,7 @@ describe('auto affectation member', () => {
         AutoAffectationNominationFile.from({
           number: 3,
           id: 'file-3',
-          targetedGrade: Magistrat.Grade.G2,
+          targetedGrade: 'G2',
           targetedJurisdiction: 'CA  STRASBOURG',
           currentJurisdiction: 'CA  NANTES',
           session: {

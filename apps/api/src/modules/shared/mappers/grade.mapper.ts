@@ -1,6 +1,6 @@
-import { Magistrat } from 'shared-models';
+import { GradeEnum } from '../grade.enum';
 
-const GRADES = new Set<unknown>(Object.values(Magistrat.Grade));
-export function isGrade(value: unknown): value is Magistrat.Grade {
+const GRADES = new Set<unknown>(Object.values(GradeEnum));
+export function isGrade(value: unknown): value is GradeEnum {
   return GRADES.has(value);
 }

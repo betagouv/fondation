@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 
-import { Magistrat, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 
@@ -41,14 +41,14 @@ const baseCtx = {
               name: 'MME Simonne Mathieu',
               number: 1,
               agendaId: `a-1`,
-              targetedGrade: Magistrat.Grade.G3,
+              targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Grenoble`,
               outcome: 'VALIDATED',
               outcomeComment: null,
             },
             {
               name: 'MME Marcelle Henry',
-              targetedGrade: Magistrat.Grade.G3,
+              targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Reims`,
               outcome: 'NON_VALIDATED',
               outcomeComment: `Sa dernière évaluation ne permet pas de confirmer sa proposition`,
@@ -60,13 +60,13 @@ const baseCtx = {
               number: 3,
               agendaId: `a-1`,
               outcomeComment: `Sans évaluation il n'est pas possible de confirmer la proposition`,
-              targetedGrade: Magistrat.Grade.G3,
+              targetedGrade: 'G3',
               targetedPosition: `président à la cour d'appel de Riom`,
               outcome: 'NON_VALIDATED',
             },
             {
               name: 'MME Mélinée MANOUCHIAN',
-              targetedGrade: Magistrat.Grade.G3,
+              targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Marseille`,
               outcome: 'SUSPENDED',
               number: 4,
@@ -78,7 +78,7 @@ const baseCtx = {
               number: 5,
               agendaId: 'a-1',
               outcomeComment: null,
-              targetedGrade: Magistrat.Grade.G3,
+              targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Dijon`,
               outcome: 'WITHDRAWN',
             },

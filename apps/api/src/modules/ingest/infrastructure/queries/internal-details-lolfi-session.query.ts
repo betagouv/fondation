@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Magistrat, PrioriteEnum } from 'shared-models';
+import { PrioriteEnum } from 'shared-models';
 
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -19,7 +20,7 @@ export class InternalDetailsLolfiSessionQuery {
     const nominationFiles = await this.prisma.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
     const perPositionId = Map.groupBy(nominationFiles, (file) => file.detectedTargetedPositionId);
 
-    const GradeSchema = z.enum(Magistrat.Grade);
+    const GradeSchema = z.enum(GradeEnum);
     const items: DetailedLolfiSession['items'] = [];
     for (const [positionId, files] of perPositionId) {
       const designatedFiles = files.filter(({ isDesignated }) => isDesignated);
@@ -80,7 +81,7 @@ export type DetailedLolfiSession = {
     lastPositionDate: Date | null;
     formation: FormationEnum;
     targetedPosition: string | null;
-    targetedGrade: Magistrat.Grade;
+    targetedGrade: GradeEnum;
     sortableTargetedGrade: number;
     detectedTargetedPositionId: number | null;
     detectedTargetedFunctionId: string | null;
@@ -92,7 +93,7 @@ export type DetailedLolfiSession = {
       name: string;
       birthDate: Date | null;
       biography: string | null;
-      grade: Magistrat.Grade;
+      grade: GradeEnum;
       currentPosition: string | null;
     };
   }[];

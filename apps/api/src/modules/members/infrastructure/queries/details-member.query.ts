@@ -2,12 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
 import { isMember, MEMBER_ROLES } from '../member.utils';
 import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class DetailsMemberQuery {
@@ -34,7 +33,7 @@ export class DetailsMemberQuery {
         }),
       ),
       stats: ((user.stats as any[]) ?? []).map(
-        (stat: { year: number; count: number; targetedGrade: Magistrat.Grade }) => ({
+        (stat: { year: number; count: number; targetedGrade: GradeEnum }) => ({
           year: stat.year,
           count: stat.count,
           targetedGrade: stat.targetedGrade,
@@ -61,7 +60,7 @@ export class DetailedMemberDto extends createZodDto(
       z.object({
         count: z.number().int().gte(0),
         year: z.number().int().gte(1900),
-        targetedGrade: z.enum(Magistrat.Grade),
+        targetedGrade: z.enum(GradeEnum),
       }),
     ),
   }),

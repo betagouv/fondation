@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { isMember, MEMBER_ROLES } from '../member.utils';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { listMembersRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class ListMembersQuery {
@@ -76,7 +75,7 @@ const MemberListItemDtoSchema = z.object({
     z.object({
       year: z.number().int().gt(1),
       count: z.number().int().gte(0),
-      targetedGrade: z.enum(Magistrat.Grade),
+      targetedGrade: z.enum(GradeEnum),
     }),
   ),
 });

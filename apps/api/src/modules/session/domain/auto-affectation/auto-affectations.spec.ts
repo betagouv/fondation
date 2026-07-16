@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -18,13 +16,13 @@ describe('automated affectation', () => {
       AutoAffectationMember.from({
         session,
         excludedJurisdictions: new Set(['CA  RENNES']),
-        affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 10]]),
+        affectationCountPerGrade: new Map([['G1', 10]]),
         id: 'memberId',
       }),
       AutoAffectationMember.from({
         session,
         excludedJurisdictions: new Set(['CA  STRASBOURG']),
-        affectationCountPerGrade: new Map([[Magistrat.Grade.G1, 5]]),
+        affectationCountPerGrade: new Map([['G1', 5]]),
         id: 'memberId2',
       }),
       AutoAffectationMember.from({
@@ -39,7 +37,7 @@ describe('automated affectation', () => {
       session,
       id: 'nominationSessionFileId',
       targetedJurisdiction: 'TGI  NANTES',
-      targetedGrade: Magistrat.Grade.G2,
+      targetedGrade: 'G2',
       currentJurisdiction: 'TGI NANTES',
       number: 1,
     });
@@ -75,14 +73,14 @@ describe('automated affectation', () => {
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3SUP, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3SUP, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3sup', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: 'G3sup', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G3', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
 
-      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
-      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 6, session }),
-      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
+      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: 'G2', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
+      AutoAffectationNominationFile.from({ id: 'file-6', targetedGrade: 'G2', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 6, session }),
+      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: 'G2', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -114,21 +112,21 @@ describe('automated affectation', () => {
         session,
         id: 'memberId2',
         excludedJurisdictions: null,
-        affectationCountPerGrade: new Map([[Magistrat.Grade.G3SUP, 3]]),
+        affectationCountPerGrade: new Map([['G3sup', 3]]),
       }),
     ];
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: 'G3', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 3, session }),
 
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
-      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G2', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-5', targetedGrade: 'G2', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 5, session }),
 
-      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
-      AutoAffectationNominationFile.from({ id: 'file-8', targetedGrade: Magistrat.Grade.G1, targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 8, session }),
+      AutoAffectationNominationFile.from({ id: 'file-7', targetedGrade: 'G1', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 7, session }),
+      AutoAffectationNominationFile.from({ id: 'file-8', targetedGrade: 'G1', targetedJurisdiction: 'CA  RENNES', currentJurisdiction: 'CA  RENNES', number: 8, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -166,7 +164,7 @@ describe('automated affectation', () => {
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 1, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -193,10 +191,10 @@ describe('automated affectation', () => {
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: 'G3', targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -227,10 +225,10 @@ describe('automated affectation', () => {
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: 'G3', targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -262,10 +260,10 @@ describe('automated affectation', () => {
 
     // oxfmt-ignore
     const files: AutoAffectationNominationFile[] = [
-      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
-      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
-      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
-      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: Magistrat.Grade.G3, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', targetedGrade: 'G3', targetedJurisdiction: 'CA  NANTES', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  STRASBOURG', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
     ];
 
     const autoAffectations = AutoAffectations.from({ members, files });
@@ -291,7 +289,7 @@ describe('automated affectation', () => {
 
     const files = Array.from({ length: 65 }).map((_, i) =>
       // oxfmt-ignore
-      AutoAffectationNominationFile.from({ id: `file-${i + 1}`, targetedGrade: Magistrat.Grade.G2, targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  LYON', number: i + 1, session }),
+      AutoAffectationNominationFile.from({ id: `file-${i + 1}`, targetedGrade: 'G2', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  LYON', number: i + 1, session }),
     );
 
     const autoAffectations = AutoAffectations.from({ members, files });

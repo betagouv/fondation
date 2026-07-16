@@ -4,8 +4,7 @@ import { inspect } from 'node:util';
 import { Logger } from '@nestjs/common';
 import * as xlsx from 'node-xlsx';
 
-import { Magistrat } from 'shared-models';
-
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { LodamNominationFile } from './nomination-file';
@@ -156,7 +155,7 @@ export function parseLodamXlsxLine(
 
   const splitted = targetedPositionAndGrade.split(/\s+-\s+/);
   const targetedGrade = splitted.at(-1)?.trim() ?? '';
-  const isGrade = Object.values(Magistrat.Grade).includes(targetedGrade as any);
+  const isGrade = Object.values(GradeEnum).includes(targetedGrade as any);
   if (!isGrade) {
     errors.push(`Grade inconnu: "${targetedGrade}"`);
   }
@@ -175,14 +174,14 @@ export function parseLodamXlsxLine(
       grade = (() => {
         switch (targetedGrade) {
           case 'G3sup':
-            return Magistrat.Grade.G3;
+            return 'G3';
           case 'G3':
-            return Magistrat.Grade.G2;
+            return 'G2';
           case 'G2':
-            return Magistrat.Grade.G1;
+            return 'G1';
           case 'G1':
           default:
-            return Magistrat.Grade.G1;
+            return 'G1';
         }
       })();
     } else {
@@ -190,11 +189,11 @@ export function parseLodamXlsxLine(
       grade = (() => {
         switch (targetedGrade) {
           case 'HH':
-            return Magistrat.Grade.I;
+            return 'I';
           case 'I':
           case 'II':
           default:
-            return Magistrat.Grade.II;
+            return 'II';
         }
       })();
     }

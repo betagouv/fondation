@@ -2,14 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import {
-  dateOnlyJsonSchema,
-  Magistrat,
-  NominationFile,
-  PrioriteEnum,
-  Role,
-  TypeDeSaisine,
-} from 'shared-models';
+import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
@@ -22,6 +15,7 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { DateOnly } from 'src/utils/date-only';
@@ -211,7 +205,7 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     grade: z.string(),
     currentPosition: z.string().nullable(),
     targettedPosition: z.string(),
-    targetedGrade: z.enum(Magistrat.Grade),
+    targetedGrade: z.enum(GradeEnum),
 
     observers: z
       .array(z.string())

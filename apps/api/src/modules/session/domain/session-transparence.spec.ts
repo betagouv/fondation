@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { Magistrat, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -323,8 +323,8 @@ describe('SessionTransparence', () => {
               fileNumber: 1,
               name: "ARENDT HANNAH",
               reporters: ["BOURDIEU Pierre"],
-              grade: Magistrat.Grade.HH,
-              targetedGrade: Magistrat.Grade.HH,
+              grade: 'HH',
+              targetedGrade: 'HH',
               targetedPosition: "Procureur de la République TJ GRASSE",
               currentPosition: "Procureur de la République TJ NARBONNE",
               lastPositionDate: new DateOnly(2020, 9, 1),
@@ -339,8 +339,8 @@ describe('SessionTransparence', () => {
               fileNumber: 2,
               name: "GRAMSCI ANTONIO",
               reporters: ["BOURDIEU Pierre"],
-              grade: Magistrat.Grade.I,
-              targetedGrade: Magistrat.Grade.I,
+              grade: 'I',
+              targetedGrade: 'I',
               targetedPosition: "Vice-président TJ  CAHORS",
               currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
               lastPositionDate: new DateOnly(2019, 9, 1),
@@ -380,8 +380,8 @@ describe('SessionTransparence', () => {
               fileNumber: 1,
               name: "ARENDT HANNAH",
               reporters: ["BOURDIEU Pierre"],
-              grade: Magistrat.Grade.HH,
-              targetedGrade: Magistrat.Grade.HH,
+              grade: 'HH',
+              targetedGrade: 'HH',
               targetedPosition: "Procureur de la République TJ GRASSE",
               currentPosition: "Procureur de la République TJ NARBONNE",
               lastPositionDate: new DateOnly(2020, 9, 1),
@@ -397,8 +397,8 @@ describe('SessionTransparence', () => {
               fileNumber: 2,
               name: "GRAMSCI ANTONIO",
               reporters: ["BOURDIEU Pierre"],
-              grade: Magistrat.Grade.I,
-              targetedGrade: Magistrat.Grade.I,
+              grade: 'I',
+              targetedGrade: 'I',
               targetedPosition: "Vice-président TJ  CAHORS",
               currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
               lastPositionDate: new DateOnly(2019, 9, 1),

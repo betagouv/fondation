@@ -1,6 +1,5 @@
-import { Magistrat } from 'shared-models';
-
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
@@ -12,7 +11,7 @@ export class AutoAffectationNominationFile {
     readonly currentJurisdiction: string | null,
     readonly targetedJurisdiction: string | null,
     readonly formation: FormationEnum,
-    readonly targetedGrade: Magistrat.Grade,
+    readonly targetedGrade: GradeEnum,
     readonly workload: AutoAffectationWorkload,
   ) {}
 
@@ -21,7 +20,7 @@ export class AutoAffectationNominationFile {
     number: number;
     currentJurisdiction: string | null;
     targetedJurisdiction: string | null;
-    targetedGrade: Magistrat.Grade;
+    targetedGrade: GradeEnum;
     session: { formation: FormationEnum; date: DateOnly };
   }): AutoAffectationNominationFile {
     return new AutoAffectationNominationFile(
@@ -41,12 +40,9 @@ export class AutoAffectationNominationFile {
   static group(
     iterable: Iterable<AutoAffectationNominationFile>,
   ): IteratorObject<AutoAffectationNominationFile[]> {
-    const map = new Map<Magistrat.Grade, AutoAffectationNominationFile[]>();
+    const map = new Map<GradeEnum, AutoAffectationNominationFile[]>();
     for (const file of iterable) {
-      const key =
-        file.targetedGrade === Magistrat.Grade.G3 || file.targetedGrade === Magistrat.Grade.G3SUP
-          ? Magistrat.Grade.G3
-          : file.targetedGrade;
+      const key = file.targetedGrade === 'G3' || file.targetedGrade === 'G3sup' ? 'G3' : file.targetedGrade;
 
       const list = map.get(key);
       if (list) list.push(file);
