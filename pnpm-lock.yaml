@@ -9,15 +9,6 @@ catalogs:
     '@faker-js/faker':
       specifier: 10.5.0
       version: 10.5.0
-    '@hey-api/openapi-ts':
-      specifier: 0.99.0
-      version: 0.99.0
-    oxlint:
-      specifier: 1.72.0
-      version: 1.72.0
-    oxlint-tsgolint:
-      specifier: 0.23.0
-      version: 0.23.0
     typescript:
       specifier: 6.0.3
       version: 6.0.3
@@ -84,7 +75,7 @@ importers:
         version: 7.8.0
       '@prisma/client':
         specifier: 7.8.0
-        version: 7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)
+        version: 7.8.0(prisma@7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)
       '@sentry/node':
         specifier: 10.53.1
         version: 10.53.1
@@ -139,9 +130,6 @@ importers:
       sax:
         specifier: 1.6.0
         version: 1.6.0
-      shared-models:
-        specifier: workspace:*
-        version: link:../../packages/shared-models
       unzipper:
         specifier: 0.12.3
         version: 0.12.3
@@ -157,7 +145,7 @@ importers:
         version: 10.5.0
       '@nestjs/cli':
         specifier: 11.0.23
-        version: 11.0.23(@swc/core@1.15.41)(@types/node@26.0.1)(esbuild@0.27.7)(prettier@3.8.3)
+        version: 11.0.23(@types/node@26.0.1)(prettier@3.8.3)
       '@nestjs/schematics':
         specifier: 11.1.0
         version: 11.1.0(chokidar@4.0.3)(prettier@3.8.3)(typescript@6.0.3)
@@ -208,13 +196,13 @@ importers:
         version: link:../../packages/lolfi
       prisma:
         specifier: 7.8.0
-        version: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+        version: 7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@26.0.1)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@26.0.1)(vite@8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1))
 
   apps/api-e2e:
     devDependencies:
@@ -7877,7 +7865,7 @@ snapshots:
       axios: 1.16.1
       rxjs: 7.8.2
 
-  '@nestjs/cli@11.0.23(@swc/core@1.15.41)(@types/node@26.0.1)(esbuild@0.27.7)(prettier@3.8.3)':
+  '@nestjs/cli@11.0.23(@types/node@26.0.1)(prettier@3.8.3)':
     dependencies:
       '@angular-devkit/core': 19.2.27(chokidar@4.0.3)
       '@angular-devkit/schematics': 19.2.27(chokidar@4.0.3)
@@ -7888,17 +7876,15 @@ snapshots:
       chokidar: 4.0.3
       cli-table3: 0.6.5
       commander: 4.1.1
-      fork-ts-checker-webpack-plugin: 9.1.0(typescript@5.9.3)(webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7))
+      fork-ts-checker-webpack-plugin: 9.1.0(typescript@5.9.3)(webpack@5.106.2)
       glob: 13.0.6
       node-emoji: 1.11.0
       ora: 5.4.1
       tsconfig-paths: 4.2.0
       tsconfig-paths-webpack-plugin: 4.2.0
       typescript: 5.9.3
-      webpack: 5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)
+      webpack: 5.106.2
       webpack-node-externals: 3.0.0
-    optionalDependencies:
-      '@swc/core': 1.15.41
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/css'
@@ -8577,11 +8563,11 @@ snapshots:
 
   '@prisma/client-runtime-utils@7.8.0': {}
 
-  '@prisma/client@7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)':
+  '@prisma/client@7.8.0(prisma@7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
       '@prisma/client-runtime-utils': 7.8.0
     optionalDependencies:
-      prisma: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      prisma: 7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       typescript: 6.0.3
 
   '@prisma/config@7.8.0':
@@ -8672,9 +8658,9 @@ snapshots:
       env-paths: 3.0.0
       proper-lockfile: 4.1.2
 
-  '@prisma/studio-core@0.27.3(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@prisma/studio-core@0.27.3(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@radix-ui/react-toggle': 1.1.10(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@radix-ui/react-toggle': 1.1.10(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@types/react': 19.2.16
       chart.js: 4.5.1
       react: 19.2.7
@@ -8695,14 +8681,13 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.16
 
-  '@radix-ui/react-primitive@2.1.3(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@radix-ui/react-primitive@2.1.3(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@radix-ui/react-slot': 1.2.3(@types/react@19.2.16)(react@19.2.7)
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
     optionalDependencies:
       '@types/react': 19.2.16
-      '@types/react-dom': 19.2.3(@types/react@19.2.16)
 
   '@radix-ui/react-slot@1.2.3(@types/react@19.2.16)(react@19.2.7)':
     dependencies:
@@ -8711,16 +8696,15 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.16
 
-  '@radix-ui/react-toggle@1.1.10(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@radix-ui/react-toggle@1.1.10(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@radix-ui/primitive': 1.1.3
-      '@radix-ui/react-primitive': 2.1.3(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@radix-ui/react-primitive': 2.1.3(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@radix-ui/react-use-controllable-state': 1.2.2(@types/react@19.2.16)(react@19.2.7)
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
     optionalDependencies:
       '@types/react': 19.2.16
-      '@types/react-dom': 19.2.3(@types/react@19.2.16)
 
   '@radix-ui/react-use-controllable-state@1.2.2(@types/react@19.2.16)(react@19.2.7)':
     dependencies:
@@ -9833,13 +9817,13 @@ snapshots:
     optionalDependencies:
       vite: 8.0.16(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1)
 
-  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1))':
+  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1))':
     dependencies:
       '@vitest/spy': 4.1.9
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1)
+      vite: 8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -10870,7 +10854,7 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
-  fork-ts-checker-webpack-plugin@9.1.0(typescript@5.9.3)(webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)):
+  fork-ts-checker-webpack-plugin@9.1.0(typescript@5.9.3)(webpack@5.106.2):
     dependencies:
       '@babel/code-frame': 7.29.0
       chalk: 4.1.2
@@ -10885,7 +10869,7 @@ snapshots:
       semver: 7.8.0
       tapable: 2.3.3
       typescript: 5.9.3
-      webpack: 5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)
+      webpack: 5.106.2
 
   form-data@4.0.5:
     dependencies:
@@ -11880,12 +11864,12 @@ snapshots:
       ansi-styles: 5.2.0
       react-is: 17.0.2
 
-  prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
+  prisma@7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
     dependencies:
       '@prisma/config': 7.8.0
       '@prisma/dev': 0.24.3(typescript@6.0.3)
       '@prisma/engines': 7.8.0
-      '@prisma/studio-core': 0.27.3(@types/react-dom@19.2.3(@types/react@19.2.16))(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@prisma/studio-core': 0.27.3(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       mysql2: 3.15.3
       postgres: 3.4.7
     optionalDependencies:
@@ -12437,17 +12421,6 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terser-webpack-plugin@5.6.0(@swc/core@1.15.41)(esbuild@0.27.7)(webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      terser: 5.47.1
-      webpack: 5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)
-    optionalDependencies:
-      '@swc/core': 1.15.41
-      esbuild: 0.27.7
-
   terser-webpack-plugin@5.6.0(esbuild@0.27.7)(webpack@5.106.2(esbuild@0.27.7)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -12458,6 +12431,14 @@ snapshots:
     optionalDependencies:
       esbuild: 0.27.7
     optional: true
+
+  terser-webpack-plugin@5.6.0(webpack@5.106.2):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      jest-worker: 27.5.1
+      schema-utils: 4.3.3
+      terser: 5.47.1
+      webpack: 5.106.2
 
   terser@5.47.1:
     dependencies:
@@ -12651,7 +12632,7 @@ snapshots:
       jiti: 2.7.0
       terser: 5.47.1
 
-  vite@8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1):
+  vite@8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -12660,7 +12641,6 @@ snapshots:
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 26.0.1
-      esbuild: 0.27.7
       fsevents: 2.3.3
       jiti: 2.7.0
       terser: 5.47.1
@@ -12704,10 +12684,10 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.9(@opentelemetry/api@1.9.1)(@types/node@26.0.1)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1)):
+  vitest@4.1.9(@opentelemetry/api@1.9.1)(@types/node@26.0.1)(vite@8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1)):
     dependencies:
       '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1))
+      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1))
       '@vitest/pretty-format': 4.1.9
       '@vitest/runner': 4.1.9
       '@vitest/snapshot': 4.1.9
@@ -12724,12 +12704,11 @@ snapshots:
       tinyexec: 1.1.2
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@26.0.1)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1)
+      vite: 8.0.16(@types/node@26.0.1)(jiti@2.7.0)(terser@5.47.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@types/node': 26.0.1
-      jsdom: 29.1.1
     transitivePeerDependencies:
       - msw
 
@@ -12760,7 +12739,7 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
-  webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7):
+  webpack@5.106.2:
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.9
@@ -12783,7 +12762,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.0(@swc/core@1.15.41)(esbuild@0.27.7)(webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7))
+      terser-webpack-plugin: 5.6.0(webpack@5.106.2)
       watchpack: 2.5.1
       webpack-sources: 3.4.1
     transitivePeerDependencies:
