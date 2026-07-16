@@ -1,7 +1,14 @@
 import { isValid, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import z from 'zod';
 
-import { DateOnlyJson } from 'shared-models';
+export const dateOnlyJsonSchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12),
+  day: z.number().min(1).max(31),
+});
+
+export type DateOnlyJson = z.infer<typeof dateOnlyJsonSchema>;
 
 export class DateOnly {
   private readonly value: Date;

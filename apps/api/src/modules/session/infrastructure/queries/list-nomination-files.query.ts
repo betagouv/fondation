@@ -2,8 +2,6 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
@@ -22,6 +20,7 @@ import {
 } from 'src/modules/shared/mappers/priorite.mapper';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
