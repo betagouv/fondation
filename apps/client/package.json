@@ -16,7 +16,7 @@
     "test": "vitest",
     "test:watch": "vitest",
     "update-icons": "react-dsfr update-icons",
-    "predev": "pnpm run update-icons && node -e \"fs.rmSync('node_modules/.vite-app', { recursive: true, force: true })\"",
+    "predev": "pnpm run update-icons && rm -rf node_modules/.vite-app",
     "prebuild": "pnpm run update-icons",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
