@@ -4,8 +4,6 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { NominationFile } from 'shared-models';
-
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -19,8 +17,7 @@ import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/m
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
@@ -49,14 +46,6 @@ export class DetailReportQuery {
           select: {
             usage: true,
             file: { select: { id: true, name: true, path: true } },
-          },
-        },
-        reportRules: {
-          select: {
-            id: true,
-            ruleGroup: true,
-            ruleName: true,
-            validated: true,
           },
         },
         nominationFile: {
@@ -130,8 +119,6 @@ export class DetailReportQuery {
     });
 
     if (!report) throw new NotFoundException();
-
-    const rulesByRuleName = new Map(report.reportRules.map((r) => [r.ruleName, r]));
 
     const reportFiles = report.files.map(({ usage, file }) => ({
       id: file.id,
@@ -215,24 +202,6 @@ export class DetailReportQuery {
       formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
-
-      rules: {
-        [NominationFile.RuleGroup.MANAGEMENT]: Object.fromEntries(
-          Object.values(NominationFile.ManagementRule)
-            .map((ruleName) => [ruleName, rulesByRuleName.get(ruleName)])
-            .filter(isDefined),
-        ),
-        [NominationFile.RuleGroup.QUALITATIVE]: Object.fromEntries(
-          Object.values(NominationFile.QualitativeRule)
-            .map((ruleName) => [ruleName, rulesByRuleName.get(ruleName)])
-            .filter(isDefined),
-        ),
-        [NominationFile.RuleGroup.STATUTORY]: Object.fromEntries(
-          Object.values(NominationFile.StatutoryRule)
-            .map((ruleName) => [ruleName, rulesByRuleName.get(ruleName)])
-            .filter(isDefined),
-        ),
-      },
 
       observations: report.nominationFile.observations.map((obs) => ({
         id: obs.id,
@@ -330,21 +299,6 @@ export class DetailedReportDto extends createZodDto(
         ),
       })
       .nullable(),
-
-    rules: z.object({
-      [NominationFile.RuleGroup.MANAGEMENT]: z.record(
-        z.enum(NominationFile.ManagementRule),
-        z.object({ id: z.string(), validated: z.boolean() }),
-      ),
-      [NominationFile.RuleGroup.QUALITATIVE]: z.record(
-        z.enum(NominationFile.QualitativeRule),
-        z.object({ id: z.string(), validated: z.boolean() }),
-      ),
-      [NominationFile.RuleGroup.STATUTORY]: z.record(
-        z.enum(NominationFile.StatutoryRule),
-        z.object({ id: z.string(), validated: z.boolean() }),
-      ),
-    }),
 
     observations: z.array(
       z.object({

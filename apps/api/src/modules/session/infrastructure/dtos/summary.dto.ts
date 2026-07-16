@@ -27,15 +27,19 @@ export class DetachSummaryFilesQueryDto extends createZodDto(
 ) {}
 
 export class IncludeFilesInSummaryContentDto extends createZodDto(
+  // hack for the openapi schema, and keep the content-type validation
   z.object({
     files: z
-      .array(
-        z
-          .file()
-          .max(5 * 1_024 * 1_024)
-          .mime([FILE_MIME_TYPES.jpg, FILE_MIME_TYPES.png, FILE_MIME_TYPES.heic, FILE_MIME_TYPES.webp]),
-      )
-      .nonempty(),
+      .array(z.file())
+      .nonempty()
+      .pipe(
+        z.array(
+          z
+            .file()
+            .max(5 * 1_024 * 1_024)
+            .mime([FILE_MIME_TYPES.jpg, FILE_MIME_TYPES.png, FILE_MIME_TYPES.heic, FILE_MIME_TYPES.webp]),
+        ),
+      ),
   }),
 ) {}
 

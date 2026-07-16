@@ -42,17 +42,21 @@ export class UpdateReportRuleValidationDto extends createZodDto(
 ) {}
 
 export class AttachScreenshotsDto extends createZodDto(
+  // hack for the openapi schema, and keep the content-type validation
   z.object({
-    files: z.array(
-      z
-        .file()
-        .mime([
-          FILE_MIME_TYPES.jpg,
-          FILE_MIME_TYPES.png,
-          FILE_MIME_TYPES.gif,
-          FILE_MIME_TYPES.webp,
-          FILE_MIME_TYPES.heic,
-        ]),
+    files: z.array(z.file()).pipe(
+      z.array(
+        z
+          .file()
+          .max(5 * 1_024 * 1_024)
+          .mime([
+            FILE_MIME_TYPES.jpg,
+            FILE_MIME_TYPES.png,
+            FILE_MIME_TYPES.gif,
+            FILE_MIME_TYPES.webp,
+            FILE_MIME_TYPES.heic,
+          ]),
+      ),
     ),
   }),
 ) {}
