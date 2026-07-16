@@ -2,10 +2,9 @@ import { type QuestionMap } from 'inquirer';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import z from 'zod';
 
-import { Role } from 'shared-models';
-
 import { SimpleAuthService } from '../../simple-auth.service';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { RoleEnum } from 'src/modules/shared/role.enum';
 
 const RegisterUserKey = {
   gender: 'gender',
@@ -18,7 +17,7 @@ const RegisterUserKey = {
 
 type RegisterUserOptions = {
   [RegisterUserKey.gender]: GenderEnum;
-  [RegisterUserKey.role]: Role;
+  [RegisterUserKey.role]: RoleEnum;
   [RegisterUserKey.firstName]: string;
   [RegisterUserKey.lastName]: string;
   [RegisterUserKey.email]: string;
@@ -40,7 +39,7 @@ export class RegisterUserCliCommand extends CommandRunner {
         {
           type: 'list',
           name: 'role',
-          choices: Object.values(Role),
+          choices: Object.values(RoleEnum),
           message: 'role:',
         },
         {
@@ -74,7 +73,7 @@ export class RegisterUserCliCommand extends CommandRunner {
     ).filter((prompt) => !(options as any)[prompt.name]);
 
     const answers = await this.inquirer.inquirer.prompt<{
-      role: Role;
+      role: RoleEnum;
       gender: GenderEnum;
       email: string;
       firstName: string;
@@ -85,11 +84,11 @@ export class RegisterUserCliCommand extends CommandRunner {
   }
 
   @Option({
-    choices: Object.values(Role),
+    choices: Object.values(RoleEnum),
     flags: '-r, --role <role>',
     name: RegisterUserKey.role,
   })
-  parseRole(role: Role) {
+  parseRole(role: RoleEnum) {
     return role;
   }
 

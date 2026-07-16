@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { Role } from 'shared-models';
-
 import { Clock } from '../framework/clock';
 import { Prisma } from 'src/generated/prisma/client';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
@@ -66,7 +65,7 @@ export class SimpleAuthService {
 
   listUsers(query: {
     search?: string;
-    roles?: readonly Role[];
+    roles?: readonly RoleEnum[];
     includeIds?: readonly string[];
     excludeIds?: readonly string[];
     includeIdsOnly?: true;
@@ -92,7 +91,7 @@ export class SimpleAuthService {
     lastName: string;
     email: string;
     password: string;
-    role: Role;
+    role: RoleEnum;
     gender: GenderEnum;
   }): Promise<{ id: string }> {
     const user = await AuthUser.register(command);

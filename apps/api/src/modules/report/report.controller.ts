@@ -15,9 +15,8 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
 import {
@@ -118,7 +117,7 @@ export class ReportController {
   @ZodResponse({ type: DetailedReportDto, status: HttpStatus.OK })
   async detailReport(
     @Param('reportId') reportId: string,
-    @AuthedUser() user: { id: string; role: Role },
+    @AuthedUser() user: { id: string; role: RoleEnum },
   ): Promise<DetailedReportDto> {
     return this.reports.detailReport({ user, reportId });
   }

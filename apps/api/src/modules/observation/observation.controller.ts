@@ -16,8 +16,6 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from 'src/modules/framework/files';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 
@@ -47,7 +45,7 @@ export class ObservationController {
   constructor(private readonly observations: ObservationService) {}
 
   @Post()
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
     schema: CreateObservationDto,
     destination: ({ request, id, mimetype }) =>
@@ -127,7 +125,7 @@ export class ObservationController {
   }
 
   @Delete('/:observationId')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteObservation(
     @Param('observationId') observationId: string,
@@ -140,7 +138,7 @@ export class ObservationController {
   }
 
   @Patch('/:observationId')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
     schema: UpdateObservationDto,
     destination: ({ request, id, mimetype }) =>
@@ -212,7 +210,7 @@ export class ObservationController {
   }
 
   @Put('/:observationId/follow-up')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async followUpOnObservation(

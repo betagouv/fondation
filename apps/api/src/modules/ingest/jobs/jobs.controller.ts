@@ -2,8 +2,6 @@ import { Controller, Get, HttpStatus, Param, ParseIntPipe, Query, UsePipes } fro
 import { ApiQuery } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
@@ -18,7 +16,7 @@ export class JobsController {
   constructor(private readonly jobs: JobsService) {}
 
   @Get()
-  @HasRole(Role.ADMIN)
+  @HasRole('ADMIN')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ApiQuery({
@@ -37,7 +35,7 @@ export class JobsController {
   }
 
   @Get('/:jobId')
-  @HasRole(Role.ADMIN)
+  @HasRole('ADMIN')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedJobDto })
   detailsJob(@Param('jobId', ParseIntPipe) jobId: number): Promise<DetailedJobDto> {
     return this.jobs.detailsJob({ jobId });

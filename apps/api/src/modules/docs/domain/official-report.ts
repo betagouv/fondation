@@ -1,11 +1,10 @@
 import { isBefore } from 'date-fns';
 
-import { Role } from 'shared-models';
-
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -15,7 +14,7 @@ export type OfficialReportUser = {
   firstName: string;
   lastName: string;
   gender: GenderEnum;
-  role: Role;
+  role: RoleEnum;
   displayTitle: string | null;
   title: UserTitleEnum | null;
   duty: UserDutyEnum | null;
@@ -128,20 +127,20 @@ export class OfficialReport {
       throw new OfficialReportEndingTimeIsBeforeStatingTime();
     }
 
-    if (props.chairman.role === Role.ADMIN || props.chairman.role === Role.ADJOINT_SECRETAIRE_GENERAL) {
+    if (props.chairman.role === 'ADMIN' || props.chairman.role === 'ADJOINT_SECRETAIRE_GENERAL') {
       throw new ChairmanIsNotMember();
     }
 
     if (
-      (props.chairman.role === Role.MEMBRE_DU_PARQUET && this.formation === 'SIEGE') ||
-      (props.chairman.role === Role.MEMBRE_DU_SIEGE && this.formation === 'PARQUET')
+      (props.chairman.role === 'MEMBRE_DU_PARQUET' && this.formation === 'SIEGE') ||
+      (props.chairman.role === 'MEMBRE_DU_SIEGE' && this.formation === 'PARQUET')
     ) {
       throw new InvalidChairmanFormation();
     }
 
     if (
       props.secretary.duty !== PrismaUserDutyEnum.SECRETARY ||
-      (props.secretary.role !== Role.ADJOINT_SECRETAIRE_GENERAL && props.secretary.role !== Role.ADMIN)
+      (props.secretary.role !== 'ADJOINT_SECRETAIRE_GENERAL' && props.secretary.role !== 'ADMIN')
     ) {
       throw new InvalidSecretaryDuty();
     }

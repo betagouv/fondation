@@ -19,10 +19,11 @@ import {
 import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, UseMultipartBody, type Multipart } from '../framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -72,7 +73,7 @@ import { SessionService } from './infrastructure/sessions.service';
 export class SessionController {
   constructor(private readonly sessions: SessionService) {}
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/garde-des-sceaux')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
@@ -90,14 +91,14 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/new/count')
   @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
   countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
     return this.sessions.countUsersNewSessions();
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/validation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async validateSession(
@@ -107,7 +108,7 @@ export class SessionController {
     await this.sessions.validateSession({ sessionId, userId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/archive')
   @HttpCode(HttpStatus.NO_CONTENT)
   archiveSession(
@@ -117,7 +118,7 @@ export class SessionController {
     return this.sessions.archiveSession({ sessionId, userId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam')
   @UseMultipartBody({
     overrideFiles: false,
@@ -145,7 +146,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam/:sessionId/observers')
   @UseMultipartBody({
     overrideFiles: false,
@@ -165,7 +166,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/files/reporters')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -179,7 +180,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Header('Content-Type', FILE_MIME_TYPES.xlsx)
   @Get('/:sessionId/files.xlsx')
   listNominationFilesAsExcel(@Param('sessionId', ParseUUIDPipe) sessionId: string): Promise<StreamableFile> {
@@ -195,7 +196,7 @@ export class SessionController {
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @AuthedUser() user: { id: string; role: Role },
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @QueryPagination() pagination: Pagination,
     @Query(ZodValidationPipe) query: ListNominationFilesQueryDto,
   ) {
@@ -213,7 +214,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/last')
   @ApiExtraModels(SomeAffectationVersion, NoneAffectationVersion)
   @ApiOkResponse({
@@ -234,7 +235,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/last/unaffected-count')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: CountedUnaffectedFilesDto, status: HttpStatus.OK })
@@ -248,7 +249,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/status-counts')
   @ZodResponse({ type: NominationFilesStatusCountDto, status: HttpStatus.OK })
   countNominationFilesByStatus(
@@ -271,7 +272,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/files/reporters/versions')
   @HttpCode(HttpStatus.NO_CONTENT)
   publishNominationSessionAffectationsVersion(
@@ -284,7 +285,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/:sessionId/auto-affectation')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -299,7 +300,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/:sessionId/files/:nominationFileId/comment')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -315,7 +316,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/files/:nominationFileId/audition/schedule')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -332,7 +333,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/files/:nominationFileId/outcome')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -349,7 +350,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/:sessionId/file/:nominationFileId/alert')
   @HttpCode(HttpStatus.NO_CONTENT)
   async hideNominationFileAlert(
@@ -359,7 +360,7 @@ export class SessionController {
     await this.sessions.hideAlert({ sessionId, nominationFileId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/multiattachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
@@ -377,7 +378,7 @@ export class SessionController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/:sessionId/attachments/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeSessionAttachment(@Param('sessionId') sessionId: string, @Param('fileId') fileId: string) {
@@ -413,7 +414,7 @@ export class SessionController {
     return this.sessions.detailAttachment({ sessionId, fileId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/files/:nominationFileId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
@@ -429,7 +430,7 @@ export class SessionController {
     await this.sessions.addNominationFileAttachments({ sessionId, nominationFileId, files });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/:sessionId/files/:nominationFileId/attachments/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeNominationFileAttachment(
@@ -477,7 +478,7 @@ export class SessionController {
     return this.sessions.details({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -511,7 +512,7 @@ export class SessionController {
   }
 
   @Delete('/:sessionId')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteNominationSession(
     @Param('sessionId') id: string,

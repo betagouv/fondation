@@ -2,8 +2,6 @@ import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/com
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { HasRole } from '../simple-auth';
 
 import { ListObservationsAttachmentsQueryDto } from './infrastructure/dtos/observation.dto';
@@ -16,7 +14,7 @@ export class ObservationAttachmentsController {
   constructor(private readonly observations: ObservationService) {}
 
   @Get('/attachments')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
     status: HttpStatus.OK,

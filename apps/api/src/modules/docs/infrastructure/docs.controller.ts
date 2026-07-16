@@ -30,8 +30,6 @@ import {
 } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { DocsService } from '../docs.service';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
@@ -78,7 +76,7 @@ import { ListedSecretariesGeneralDto } from './queries/list-secretaries-general.
 export class DocsController {
   constructor(private readonly docs: DocsService) {}
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/chairmen')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: FoundChairmenDto, status: HttpStatus.OK })
@@ -89,7 +87,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/secretaries-general')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -99,7 +97,7 @@ export class DocsController {
     return this.docs.listSecretariesGeneral();
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/sessions/:sessionId/agendas')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: CreatedAgendaDto, status: HttpStatus.CREATED })
@@ -118,7 +116,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/agendas/:agendaId')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -137,21 +135,21 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/files')
   @ZodResponse({ type: FoundDocsNominationFiles, status: HttpStatus.OK })
   findAgendaNominationFiles(@Param('sessionId') sessionId: string): Promise<FoundDocsNominationFiles> {
     return this.docs.findAgendaNominationFiles({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/docs')
   @ZodResponse({ type: FoundSessionDocsDto, status: HttpStatus.OK })
   findSessionDocs(@Param('sessionId') sessionId: string): Promise<FoundSessionDocsDto> {
     return this.docs.findSessionDocs({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/agendas/:agendaId')
   @ZodResponse({ type: DetailedSessionAgenda, status: HttpStatus.OK })
   detailsSessionAgenda(
@@ -161,7 +159,7 @@ export class DocsController {
     return this.docs.detailsSessionAgenda({ sessionId, agendaId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/official-reports/:officialReportId')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -176,7 +174,7 @@ export class DocsController {
 
   // TODO: Remove
   @ApiOperation({ deprecated: true })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/docs/:agendaId')
   @ZodResponse({ type: DetailedSessionDoc, status: HttpStatus.OK })
   detailsSessionDoc(
@@ -186,7 +184,7 @@ export class DocsController {
     return this.detailsSessionAgenda(sessionId, agendaId);
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/readiness')
   @ZodResponse({
     type: DocGenerationSessionReadinessDto,
@@ -198,7 +196,7 @@ export class DocsController {
     return this.docs.isSessionReadyForDocGeneration({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId.html')
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
@@ -212,7 +210,7 @@ export class DocsController {
     return this.docs.getOrCreateAgendaDocument({ id: agendaId, forceNew });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId.pdf')
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
   @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
@@ -224,21 +222,21 @@ export class DocsController {
     return this.docs.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaMetadata })
   detailsAgendaMetadata(@Param('agendaId') agendaId: string): Promise<DetailedAgendaMetadata> {
     return this.docs.detailsAgendaMetadata({ agendaId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId/files')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaFilesDto })
   detailsAgendaFiles(@Param('agendaId') agendaId: string): Promise<DetailedAgendaFilesDto> {
     return this.docs.detailsAgendaFiles({ agendaId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/agendas/:agendaId/html')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiConsumes('multipart/form-data')
@@ -265,21 +263,21 @@ export class DocsController {
     return this.docs.updateAgendaHtml({ id: agendaId, html: file.buffer });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/agendas/:agendaId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetAgendaDocument(@Param('agendaId') agendaId: string): Promise<void> {
     return this.docs.resetAgendaDocument({ id: agendaId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/agendas/:agendaId')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAgenda(@Param('agendaId') agendaId: string): Promise<void> {
     return this.docs.deleteAgenda({ agendaId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/sessions/:sessionId/official-reports')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: CreatedOfficialReportDto, status: HttpStatus.CREATED })
@@ -304,7 +302,7 @@ export class DocsController {
   }
 
   @ApiOperation({ deprecated: true, description: 'prefer generic query searchJusticeContact' })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/official-reports/justice-contacts')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: FoundJusticeContactsDto, status: HttpStatus.OK })
@@ -315,7 +313,7 @@ export class DocsController {
   }
 
   @ApiOperation({ deprecated: true, description: 'prefer generic query createJusticeContact' })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/official-reports/justice-contacts')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
@@ -329,7 +327,7 @@ export class DocsController {
     return this.docs.createJusticeContact({ name, authorId: user.id });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/justice-contacts')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: FoundJusticeContactsDto, status: HttpStatus.OK })
@@ -337,7 +335,7 @@ export class DocsController {
     return this.docs.searchJusticeContacts({ search: query.search });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/justice-contacts')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
@@ -351,7 +349,7 @@ export class DocsController {
     return this.docs.createJusticeContact({ name, authorId: user.id });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/new-official-reports/agendas')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -368,7 +366,7 @@ export class DocsController {
   }
 
   @ApiOperation({ deprecated: true, description: 'prefer find members by formation' })
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/new-official-reports/members')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -380,7 +378,7 @@ export class DocsController {
     return this.docs.listMembersForNewOfficialReport({ sessionId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
@@ -396,7 +394,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ApiProduces(FILE_MIME_TYPES.pdf)
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
@@ -412,7 +410,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/official-reports/:officialReportId')
   @ZodResponse({
     type: DetailedOfficialReportMetadataDto,
@@ -424,7 +422,7 @@ export class DocsController {
     return this.docs.detailsOfficialReportMetadata({ officialReportId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -448,7 +446,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/official-reports/:officialReportId/html')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiConsumes('multipart/form-data')
@@ -475,14 +473,14 @@ export class DocsController {
     return this.docs.updateOfficialReportHtml({ id: officialReportId, html: file.buffer });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetOfficialReportDocument(@Param('officialReportId') officialReportId: string): Promise<void> {
     return this.docs.resetOfficialReportDocument({ id: officialReportId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
@@ -499,7 +497,7 @@ export class DocsController {
     return this.docs.findPresentationPlanAgendas({ ignorePlanId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/:planId.html')
   @ApiProduces('text/html')
   @ApiResponse({ content: { 'text/html': {} } })
@@ -515,7 +513,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/:planId.pdf')
   @ApiProduces(FILE_MIME_TYPES.pdf)
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
@@ -530,7 +528,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/presented')
   @ApiPaginated()
   @ZodResponse({ type: ListedPresentedPlansDto, status: HttpStatus.OK })
@@ -538,7 +536,7 @@ export class DocsController {
     return this.docs.listPresentedPlans({ pagination });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/:planId')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -550,7 +548,7 @@ export class DocsController {
     return this.docs.detailsPresentationPlanMetadata({ id: planId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/presentation-plans')
   @ZodResponse({
     status: HttpStatus.CREATED,
@@ -564,7 +562,7 @@ export class DocsController {
     return this.docs.createPresentationPlan({ ...body, authorId: user.id });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/presentation-plans/:planId')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -581,7 +579,7 @@ export class DocsController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/:planId/url')
   @ZodResponse({
     status: HttpStatus.OK,
@@ -593,7 +591,7 @@ export class DocsController {
     return this.docs.detailsPresentationPlanPdfDocument({ id: planId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/presentation-plans/:planId/html')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiConsumes('multipart/form-data')
@@ -620,28 +618,28 @@ export class DocsController {
     return this.docs.updatePresentationPlanHtml({ id: planId, html: file.buffer });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/presentation-plans/:planId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetPresentationPlanDocument(@Param('planId') planId: string): Promise<void> {
     return this.docs.resetPresentationPlanDocument({ id: planId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/presentation-plans/:planId')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteJusticePresentationPlan(@Param('planId') planId: string): Promise<void> {
     return this.docs.deletePresentationPlan({ id: planId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans')
   @ZodResponse({ type: ListedNonPresentedPlansDto, status: HttpStatus.OK })
   listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {
     return this.docs.listNonPresentedPlans();
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/presentation-plans/:planId/presentation')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -649,14 +647,14 @@ export class DocsController {
     return this.docs.presentPlan({ id: planId, endTime: body.endTime });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/presentation-plans/:planId/presentation')
   @HttpCode(HttpStatus.NO_CONTENT)
   unPresentPlan(@Param('planId') planId: string): Promise<void> {
     return this.docs.unPresentPlan({ id: planId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/members')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.OK, type: FoundDocsMembersDto })
