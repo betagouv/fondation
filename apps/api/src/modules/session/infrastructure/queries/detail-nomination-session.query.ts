@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
@@ -12,6 +12,7 @@ import { PrismaService } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -116,7 +117,7 @@ export class DetailedNominationSessionDto extends createZodDto(
     observationsClosingDate: dateOnlyJsonSchema,
     dueDate: dateOnlyJsonSchema.nullable(),
     positionStartDate: dateOnlyJsonSchema.nullable(),
-    typeDeSaisine: z.enum(TypeDeSaisine),
+    typeDeSaisine: z.enum(TypeDeSaisineEnum),
     isValidated: z.boolean(),
     isDeletable: z.boolean(),
     isArchived: z.boolean(),

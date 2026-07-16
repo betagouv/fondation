@@ -6,8 +6,6 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { docFileName } from '../../domain/doc-file-name';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
 import { PrismaService } from 'src/modules/framework/database';
@@ -68,7 +66,7 @@ export class FindOfficialReportDocumentPdfQuery {
       formation: agenda.formation,
       date: file.sessionMeetingDate,
       sessionName: file.agendas[0]!.sessionName,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
       chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
     });
     const path = `sessions/${agenda.sessionId}/official-reports/${query.id}.pdf`;

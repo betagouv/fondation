@@ -1,7 +1,6 @@
-import { PrioriteEnum } from 'shared-models';
-
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { toParisWallClock } from 'src/utils/paris-wall-clock';
@@ -31,7 +30,7 @@ export type LodamNominationFile = InternalNominationFile & {
 export type LodamNominationFileEntity = LodamNominationFile & { id: string };
 
 export type NominationFile = InternalNominationFile & {
-  priorities: PrioriteEnum[];
+  priorities: PriorityEnum[];
   sortableTargetedGrade: number;
   detectedMagistratId: string | null;
   detectedJurisdictionId: string | null;

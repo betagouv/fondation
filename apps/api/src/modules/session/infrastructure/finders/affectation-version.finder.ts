@@ -6,7 +6,7 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { StatutAffectationEnum } from 'src/modules/session/domain/statut-affectation.enum';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 
 @Injectable()
@@ -113,7 +113,7 @@ export class SomeAffectationVersion extends createZodDto(
   z.object({
     '@type': z.literal('fr.csm.fondation.affectations.version.some'),
     id: z.uuid(),
-    status: z.enum(StatutAffectation),
+    status: z.enum(StatutAffectationEnum),
     version: z.number().int().gte(1),
     publicationDate: z.iso.datetime().nullable(),
     author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),

@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { NominationFileOutcome, nominationFileOutcomeLabel } from '../../domain/nomination-file-outcome';
 import { PrismaService } from 'src/modules/framework/database';
@@ -12,7 +12,8 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
@@ -149,9 +150,9 @@ export class DetailSummaryQuery {
       auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
       lastRankingDate: DateOnly.fromOptionalDate(nominationFile.lastRankingDate)?.toJson() ?? null,
       lastPositionDate: DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ?? null,
-      priorities: nominationFile.priorities.map(prismaPrioriteEnumToPrioriteEnum),
+      priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: nominationFile.priorities[0]
-        ? prismaPrioriteEnumToPrioriteEnum(nominationFile.priorities[0])
+        ? prismaPrioriteEnumToPriorityEnum(nominationFile.priorities[0])
         : null,
 
       observers: nominationFile.observers,
@@ -237,8 +238,8 @@ export class DetailedSummaryDto extends createZodDto(
     position: z.string().nullable(),
     targetedGrade: z.enum(GradeEnum).nullable(),
     targetedPosition: z.string().nullable(),
-    priorities: z.array(z.enum(PrioriteEnum)),
-    priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
+    priorities: z.array(z.enum(PriorityEnum)),
+    priority: z.enum(PriorityEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
     biography: z.string(),
     lastRankingDate: dateOnlyJsonSchema.nullable(),
     lastPositionDate: dateOnlyJsonSchema.nullable(),

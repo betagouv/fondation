@@ -1,10 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { timeOnlySchema } from 'src/utils/time-only';
 
 export class AffectReportersDto extends createZodDto(
@@ -13,9 +14,9 @@ export class AffectReportersDto extends createZodDto(
       z
         .object({
           nominationFileId: z.uuid(),
-          priorities: z.array(z.enum(PrioriteEnum)).optional(),
+          priorities: z.array(z.enum(PriorityEnum)).optional(),
           priority: z
-            .enum(PrioriteEnum)
+            .enum(PriorityEnum)
             .nullish()
             .meta({ deprecated: true, description: 'prefer priorities' }),
           reporterIds: z.array(z.uuid()),
@@ -32,7 +33,7 @@ export class AffectReportersDto extends createZodDto(
         .pipe(
           z.object({
             nominationFileId: z.uuid(),
-            priorities: z.array(z.enum(PrioriteEnum)),
+            priorities: z.array(z.enum(PriorityEnum)),
             reporterIds: z.array(z.uuid()),
           }),
         ),
@@ -66,10 +67,10 @@ export class ListNominationFilesQueryDto extends createSortableDto(
     priorities: z
       .preprocess(
         (x) => (x === undefined ? x : ([] as unknown[]).concat(x)),
-        z.array(z.enum([...Object.values(PrioriteEnum), 'null'])).optional(),
+        z.array(z.enum([...Object.values(PriorityEnum), 'null'])).optional(),
       )
       .optional()
-      .transform((x) => (x === undefined ? x : x.map((y) => (y === 'null' ? null : (y as PrioriteEnum))))),
+      .transform((x) => (x === undefined ? x : x.map((y) => (y === 'null' ? null : (y as PriorityEnum))))),
 
     reporterIds: z
       .preprocess(

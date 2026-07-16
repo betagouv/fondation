@@ -1,27 +1,27 @@
 import { PrismaStatutAffectationEnum } from 'src/generated/prisma/enums';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { StatutAffectationEnum } from 'src/modules/session/domain/statut-affectation.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export function prismaStatutAffectationEnumToStatutAffectationEnum(
   value: PrismaStatutAffectationEnum,
-): StatutAffectation {
+): StatutAffectationEnum {
   switch (value) {
     case 'BROUILLON':
-      return StatutAffectation.BROUILLON;
+      return 'BROUILLON';
     case 'PUBLIEE':
-      return StatutAffectation.PUBLIEE;
+      return 'PUBLIEE';
     default:
       return assertNever(value);
   }
 }
 
 export function statutAffectationEnumToPrismaStatutAffectationEnum(
-  value: StatutAffectation,
+  value: StatutAffectationEnum,
 ): PrismaStatutAffectationEnum {
   switch (value) {
-    case StatutAffectation.BROUILLON:
+    case 'BROUILLON':
       return 'BROUILLON';
-    case StatutAffectation.PUBLIEE:
+    case 'PUBLIEE':
       return 'PUBLIEE';
     default:
       return assertNever(value);

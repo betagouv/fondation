@@ -19,8 +19,6 @@ import {
 import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, UseMultipartBody, type Multipart } from '../framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
@@ -87,7 +85,7 @@ export class SessionController {
       search: query.search || null,
       formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
     });
   }
 

@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AffectationVersionFinder, FoundAffectationVersion } from '../finders/affectation-version.finder';
 import { PrismaService } from 'src/modules/framework/database';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 
 @Injectable()
 export class DetailNominationSessionAffectationVersionQuery {
@@ -11,12 +10,9 @@ export class DetailNominationSessionAffectationVersionQuery {
     private readonly versionFinder: AffectationVersionFinder,
   ) {}
 
-  async handle(query: {
-    sessionId: string;
-    version?: StatutAffectation.PUBLIEE;
-  }): Promise<FoundAffectationVersion> {
+  async handle(query: { sessionId: string; version?: 'PUBLIEE' }): Promise<FoundAffectationVersion> {
     const version = await this.prisma.$transaction((tx) =>
-      query.version === StatutAffectation.PUBLIEE
+      query.version === 'PUBLIEE'
         ? this.versionFinder.lastPublished({ sessionId: query.sessionId, tx })
         : this.versionFinder.last({ sessionId: query.sessionId, tx }),
     );

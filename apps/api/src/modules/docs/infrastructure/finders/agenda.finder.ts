@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
@@ -11,6 +11,7 @@ import {
   formationEnumToPrismaFormationEnum,
   prismaFormationEnumToFormationEnum,
 } from 'src/modules/shared/mappers/formation.mapper';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
@@ -122,7 +123,7 @@ export class AgendaFinder {
         session: {
           id: item.sessionId,
           name: item.sessionName,
-          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromDate(item.sessionMeetingDate).toJson(),
@@ -158,7 +159,7 @@ export class FoundAgendasDto extends createZodDto(
         formation: z.enum(FormationEnum),
         chairman: z.object({ id: z.string().nullable(), firstName: z.string(), lastName: z.string() }),
         officialReportId: z.string().nullable(),
-        session: z.object({ id: z.string(), name: z.string(), typeDeSaisine: z.enum(TypeDeSaisine) }),
+        session: z.object({ id: z.string(), name: z.string(), typeDeSaisine: z.enum(TypeDeSaisineEnum) }),
         presentationPlan: z
           .object({
             id: z.string(),

@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
@@ -17,9 +17,10 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
-  prioriteEnumToPrismaPrioriteEnum,
-  prismaPrioriteEnumToPrioriteEnum,
+  priorityEnumToPrismaPrioriteEnum,
+  prismaPrioriteEnumToPriorityEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
@@ -44,7 +45,7 @@ export class ListNominationFilesQuery {
     filters: {
       search: string | null;
       reporterIds: readonly (string | null)[];
-      priorities: readonly (PrioriteEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
@@ -162,7 +163,7 @@ export class ListNominationFilesQuery {
           isUpdatable: x.isUpdatable,
           status: x.status,
         },
-        priorities: x.priorities.map(prismaPrioriteEnumToPrioriteEnum),
+        priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         comment: x.comment,
         canScheduleAudition: !isArchived && NominationFileOutcome.allowsAudition(x.outcome),
         auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
@@ -215,7 +216,7 @@ export class ListNominationFilesQuery {
     filters: {
       search: string | null;
       reporterIds: readonly (string | null)[];
-      priorities: readonly (PrioriteEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     },
     lastVersion: OptionalAffectationVersion,
@@ -228,7 +229,7 @@ export class ListNominationFilesQuery {
       versionId: lastVersion.optionalId,
       reporterIds: reporterIds.length > 0 ? reporterIds : null,
       hasNoReporters: hasNoReporters.length > 0,
-      priorities: priorities.length > 0 ? priorities.map(prioriteEnumToPrismaPrioriteEnum) : null,
+      priorities: priorities.length > 0 ? priorities.map(priorityEnumToPrismaPrioriteEnum) : null,
       hasNoPriorities: hasNoPriorities.length > 0,
       outcomes: outcomes.length > 0 ? outcomes : null,
       hasNoOutcome: hasNoOutcome.length > 0,
@@ -271,7 +272,7 @@ const NominationFileContentSchema = z.object({
 const RawListedNominationFiles = z.array(
   z.object({
     id: z.uuid(),
-    priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPrioriteEnum)),
+    priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPriorityEnum)),
     comment: z.string().nullable(),
     auditionDate: z.date().nullable(),
     auditionTime: z.date().nullable(),
@@ -349,7 +350,7 @@ const RawListedNominationFiles = z.array(
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
   isArchived: z.boolean(),
-  priorities: z.array(z.enum(PrioriteEnum)),
+  priorities: z.array(z.enum(PriorityEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
   canScheduleAudition: z.boolean(),

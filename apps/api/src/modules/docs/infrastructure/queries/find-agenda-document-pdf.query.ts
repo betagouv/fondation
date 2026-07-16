@@ -6,8 +6,6 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { docFileName } from '../../domain/doc-file-name';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 import { PrismaService } from 'src/modules/framework/database';
@@ -67,7 +65,7 @@ export class FindAgendaDocumentPdfQuery {
       formation: file.formation,
       date: file.sessionMeetingDate,
       sessionName: file.sessionName,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
       chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
     });
 

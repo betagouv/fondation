@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { NominationFile, ReportFileUsage } from 'shared-models';
-
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
+import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -26,7 +26,7 @@ export class ReportService {
 
   async attachFiles(command: {
     userId: string;
-    fileUsage: ReportFileUsage | undefined;
+    fileUsage: ReportFileUsageEnum | undefined;
     reportId: string;
     files: readonly { id: string }[];
   }): Promise<void> {
@@ -36,7 +36,7 @@ export class ReportService {
     });
     report.attachFiles({
       reporterId: command.userId,
-      fileUsage: command.fileUsage ?? ReportFileUsage.ATTACHMENT,
+      fileUsage: command.fileUsage ?? 'ATTACHMENT',
       files: command.files,
     });
     await this.reportRepository.persist(report);
@@ -67,7 +67,7 @@ export class ReportService {
       userId: command.userId,
       reportId: command.reportId,
       files: command.files,
-      fileUsage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+      fileUsage: 'EMBEDDED_SCREENSHOT',
     });
 
     const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
@@ -107,7 +107,7 @@ export class ReportService {
     reportId: string;
     reporterId: string;
     data: {
-      status: NominationFile.ReportState | undefined;
+      status: ReportStateEnum | undefined;
       comment: string | undefined;
     };
   }) {

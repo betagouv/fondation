@@ -2,8 +2,6 @@ import { Controller, Get, HttpStatus, Query, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
 
@@ -30,7 +28,7 @@ export class ArchivedSessionsController {
       search: query.search || null,
       formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
     });
   }
 }
