@@ -128,7 +128,7 @@ export const ConfigSchema = z.object({
               z.string(),
               process.env.S3_ENCRYPTION_KEY || /** @deprecated */ process.env.SCW_ENCRYPTION_KEY!,
             )
-          : z.undefined(),
+          : z.undefined().optional(),
     }),
   ),
 });
