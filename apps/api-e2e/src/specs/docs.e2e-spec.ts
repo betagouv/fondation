@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import { test } from '../fixtures.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -37,12 +35,12 @@ test.describe('Docs Service', () => {
           position: {
             function: seed.functions.PR,
             jurisdiction: seed.jurisdictions['CA  AMIENS'],
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
           },
           targetPosition: {
             function: seed.functions.PR,
             jurisdiction: seed.jurisdictions['CA  REIMS'],
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
           },
         },
         {
@@ -52,12 +50,12 @@ test.describe('Docs Service', () => {
           position: {
             function: seed.functions.PR,
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
           },
           targetPosition: {
             function: seed.functions.PR,
             jurisdiction: seed.jurisdictions['CA  LYON'],
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
           },
         },
       ],

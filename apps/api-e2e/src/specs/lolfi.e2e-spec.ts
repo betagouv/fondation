@@ -1,7 +1,6 @@
 import * as crypto from 'node:crypto';
 
 import type { LolfiData } from 'lolfi';
-import { Magistrat } from 'shared-models';
 
 import { test } from '../fixtures.ts';
 import * as seed from '../utils/seed.ts';
@@ -16,12 +15,12 @@ test.describe('lolfi', () => {
           firstName: 'ETIENNE',
           lastName: 'TREVOUX',
           position: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  LYON'],
             function: seed.functions.PR,
           },
           targetPosition: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
             function: seed.functions.PR,
           },
@@ -42,12 +41,12 @@ test.describe('lolfi', () => {
           firstName: 'ETIENNE',
           lastName: 'TREVOUX',
           position: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  LYON'],
             function: seed.functions.PR,
           },
           targetPosition: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
             profile: 'profil assise',
             profileId: null,
@@ -74,12 +73,12 @@ test.describe('lolfi', () => {
           firstName: 'ETIENNE',
           lastName: 'TREVOUX',
           position: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  LYON'],
             function: seed.functions.PR,
           },
           targetPosition: {
-            grade: Magistrat.Grade.G3,
+            grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
             function: seed.functions.PR,
           },

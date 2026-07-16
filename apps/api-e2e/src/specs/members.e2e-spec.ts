@@ -1,7 +1,5 @@
 import { randomUUID } from 'node:crypto';
 
-import { Magistrat } from 'shared-models';
-
 import { test } from '../fixtures.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -20,12 +18,12 @@ test.describe('Members E2E', () => {
             firstName: 'ETIENNE',
             lastName: 'TREVOUX',
             position: {
-              grade: Magistrat.Grade.G3,
+              grade: 'G3',
               jurisdiction: seed.jurisdictions['CA  LYON'],
               function: seed.functions.PR,
             },
             targetPosition: {
-              grade: Magistrat.Grade.G3,
+              grade: 'G3',
               jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
               function: seed.functions.PR,
             },
