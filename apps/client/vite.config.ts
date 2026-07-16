@@ -32,6 +32,10 @@ export default defineConfig({
     formatjs({ ast: true }),
   ],
   css: { lightningcss: { errorRecovery: true } },
+  // react-dsfr update-icons (predev / prestorybook hook) deletes node_modules/.vite:
+  // keep the dev server cache out of its reach so launching storybook does not
+  // corrupt a running dev server (predev clears this cache instead)
+  cacheDir: 'node_modules/.vite-app',
   // TipTap is only reached through lazy routes: pre-bundling it avoids a mid-session
   // re-optimization (504 "Outdated Optimize Dep" on navigation). @tiptap/pm is
   // excluded because it only has subpath exports

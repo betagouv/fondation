@@ -5,7 +5,8 @@ import viteConfig from './vite.config';
 export default mergeConfig(
   viteConfig,
   defineConfig({
-    // Two Vite processes sharing node_modules/.vite corrupt each other's optimized deps
+    // Without this override vitest inherits the dev server cacheDir and two Vite
+    // processes sharing a cache corrupt each other's optimized deps
     cacheDir: 'node_modules/.vitest',
     test: {
       globals: true,
