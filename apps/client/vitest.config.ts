@@ -5,6 +5,8 @@ import viteConfig from './vite.config';
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    // Two Vite processes sharing node_modules/.vite corrupt each other's optimized deps
+    cacheDir: 'node_modules/.vitest',
     test: {
       globals: true,
       environment: 'jsdom',
