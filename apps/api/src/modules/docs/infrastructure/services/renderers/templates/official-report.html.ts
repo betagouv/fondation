@@ -1,10 +1,11 @@
 import { stripIndent } from 'common-tags';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { conjunctionList, date, displayTitled, fullname, requiresElision } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';
 
@@ -12,14 +13,14 @@ import { commonDocumentCss, documentLayout } from './common.html';
 
 const html = stripIndent;
 
-function header(ctx: { formation: Magistrat.Formation; sessionMeetingDate: DateOnly }): string {
+function header(ctx: { formation: FormationEnum; sessionMeetingDate: DateOnly }): string {
   return html`
     <h1>
       Procès-verbal de restitution de la séance du ${date(ctx.sessionMeetingDate, 'dd/MM/yyyy')} tenue à Paris
       au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
-      ${ctx.formation === Magistrat.Formation.SIEGE
+      ${ctx.formation === 'SIEGE'
         ? `Formation compétente à l'égard des magistrats du siège`
         : `Formation compétente à l'égard des magistrats du parquet`}
     </p>
@@ -37,7 +38,7 @@ type OfficialReportNominationFile = {
 };
 
 function officialReportNominationParagraph(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   file: OfficialReportNominationFile;
 }): string {
   const currentPosition = ctx.file.currentPosition
@@ -55,7 +56,7 @@ function officialReportNominationParagraph(ctx: {
 }
 
 function displayPresidentTitle(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   chairman: {
     firstName: string;
     lastName: string;
@@ -66,7 +67,7 @@ function displayPresidentTitle(ctx: {
 }): string | null {
   if (!ctx.chairman.title) return null;
 
-  const formationLabel = ctx.formation === Magistrat.Formation.PARQUET ? 'parquet' : 'siège';
+  const formationLabel = ctx.formation === 'PARQUET' ? 'parquet' : 'siège';
   const presidentTitle =
     ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
       ? ctx.chairman.gender === Gender.M
@@ -81,7 +82,7 @@ function displayPresidentTitle(ctx: {
 
 function content(ctx: {
   hasRenouncement: boolean;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   justiceDepartmentContact: string;
   agendaDate: DateOnly;
   sessionDate: DateOnly;
@@ -205,7 +206,7 @@ function content(ctx: {
 }
 
 function footer(ctx: {
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   sessionMeetingEndTime: { hours: number; minutes: number };
   secretary: {
     id: string | null;
@@ -364,13 +365,13 @@ export const officialReportTemplate = documentLayout({
 
 function displayOutcomeTitle(ctx: {
   count: number;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   outcome: DocNominationFileOutcomeEnum;
 }): string {
   switch (ctx.outcome) {
     case 'NON_VALIDATED':
       switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
+        case 'PARQUET':
           return ctx.count > 1 ? 'Avis défavorables' : 'Avis défavorable';
         default:
           return ctx.count > 1 ? 'Avis non conformes' : 'Avis non conforme';
@@ -378,7 +379,7 @@ function displayOutcomeTitle(ctx: {
 
     case 'VALIDATED':
       switch (ctx.formation) {
-        case Magistrat.Formation.PARQUET:
+        case 'PARQUET':
           return ctx.count > 1 ? 'Avis favorables' : 'Avis favorable';
         default:
           return ctx.count > 1 ? 'Avis conformes' : 'Avis conforme';
@@ -394,7 +395,7 @@ function displayOutcomeTitle(ctx: {
 
 function outcomeSectionIntro(ctx: {
   outcome: DocNominationFileOutcomeEnum;
-  formation: Magistrat.Formation;
+  formation: FormationEnum;
   filesCount: number;
 }): string {
   switch (ctx.outcome) {

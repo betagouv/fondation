@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 
 import { Magistrat } from 'shared-models';
 
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
@@ -10,7 +11,7 @@ import { AutoAffectationNominationFile } from './auto-affectation-nomination-fil
 export class AutoAffectationMember {
   private constructor(
     readonly id: string,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
     readonly excludedJurisdictions: Set<string> | null,
     private readonly pastWorkload: AutoAffectationWorkload,
   ) {}
@@ -32,7 +33,7 @@ export class AutoAffectationMember {
 
   static from(props: {
     id: string;
-    session: { date: DateOnly; formation: Magistrat.Formation };
+    session: { date: DateOnly; formation: FormationEnum };
     affectationCountPerGrade: Map<Magistrat.Grade, number>;
     excludedJurisdictions: Set<string> | null;
   }): AutoAffectationMember {
@@ -68,7 +69,7 @@ export class AffectableMember {
   constructor(
     readonly take: number,
     private readonly id: string,
-    private readonly formation: Magistrat.Formation,
+    private readonly formation: FormationEnum,
     private readonly excludedJurisdictions: Set<string> | null,
   ) {
     this.logger = new Logger(`${AffectableMember.name}#${id}`);

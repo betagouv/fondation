@@ -10,7 +10,7 @@ describe('agendaTemplate', () => {
       chairman: { firstName: `léon`, lastName: 'blum', gender: Gender.M, title: 'PRESIDENT_SIEGE' },
       date: new Date('2026-07-01'),
       sessionMeetingDate: new Date('2026-07-01'),
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       nominationFiles: [
         {
           name: `MME Simone Veil`,

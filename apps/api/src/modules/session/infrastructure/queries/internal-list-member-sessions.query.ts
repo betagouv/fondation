@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Magistrat, Role, TypeDeSaisine } from 'shared-models';
+import { Role, TypeDeSaisine } from 'shared-models';
 
 import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 
@@ -60,7 +61,7 @@ export class ListedMemberSessionsDto extends createZodDto(
         createdAt: z.iso.datetime(),
         isAffected: z.boolean(),
         fileCount: z.number(),
-        formation: z.enum(Magistrat.Formation),
+        formation: z.enum(FormationEnum),
         typeDeSaisine: z.enum(TypeDeSaisine),
       }),
     ),

@@ -1,6 +1,7 @@
-import { Gender, Magistrat, Role } from 'shared-models';
+import { Gender, Role } from 'shared-models';
 
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -9,7 +10,7 @@ export class JusticePresentationPlanCreated {
   constructor(
     readonly id: Id<'JusticePresentationPlanId'>,
     readonly authorId: string,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
     readonly state: JusticePresentationPlanState,
   ) {}
 }
@@ -60,15 +61,11 @@ export class JusticePresentationPlan {
 
   private constructor(
     readonly id: Id<'JusticePresentationPlanId'>,
-    readonly formation: Magistrat.Formation,
+    readonly formation: FormationEnum,
     readonly startTime: TimeOnly,
   ) {}
 
-  static from(props: {
-    id: string;
-    formation: Magistrat.Formation;
-    startTime: TimeOnly;
-  }): JusticePresentationPlan {
+  static from(props: { id: string; formation: FormationEnum; startTime: TimeOnly }): JusticePresentationPlan {
     return new JusticePresentationPlan(
       makeId('JusticePresentationPlanId', props.id),
       props.formation,
@@ -131,11 +128,11 @@ export class JusticePresentationPlan {
   private assertsChairman(user: PlanUser): asserts user is Chairman {
     if (user.role === Role.MEMBRE_COMMUN) return;
 
-    if (this.formation === Magistrat.Formation.PARQUET && user.role !== Role.MEMBRE_DU_PARQUET) {
+    if (this.formation === 'PARQUET' && user.role !== Role.MEMBRE_DU_PARQUET) {
       throw new UnknownPresentationPlanChairman();
     }
 
-    if (this.formation === Magistrat.Formation.SIEGE && user.role !== Role.MEMBRE_DU_SIEGE) {
+    if (this.formation === 'SIEGE' && user.role !== Role.MEMBRE_DU_SIEGE) {
       throw new UnknownPresentationPlanChairman();
     }
   }
@@ -149,7 +146,7 @@ export class JusticePresentationPlan {
   private assertsAgendas(
     agendas: readonly {
       presentationPlan: { id: string } | null;
-      formation: Magistrat.Formation;
+      formation: FormationEnum;
     }[],
   ): asserts agendas {
     if (agendas.length === 0) throw new EmptyAgendaList();
@@ -175,9 +172,7 @@ export class JusticePresentationPlan {
     return allMembers;
   }
 
-  private static extractFormation(
-    agendas: readonly { formation: Magistrat.Formation }[],
-  ): Magistrat.Formation {
+  private static extractFormation(agendas: readonly { formation: FormationEnum }[]): FormationEnum {
     const allFormations = new Set(agendas.map(({ formation }) => formation));
 
     if (allFormations.size === 0) throw new EmptyAgendaList();
@@ -221,7 +216,7 @@ export type JusticePresentationPlanState = {
   hasRenunciation: boolean;
   agendas: readonly {
     id: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     comment: string | null;
   }[];
   members: readonly { id: string; isAbsent: boolean }[];
@@ -237,7 +232,7 @@ export type CreateJusticePresentationPlanCommand = {
   hasRenunciation: boolean;
   agendas: readonly {
     id: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     comment: string | null;
     session: { id: string; name: string };
     presentationPlan: { id: string } | null;
@@ -256,7 +251,7 @@ export type UpdateJusticePresentationPlanCommand = {
   hasRenunciation: boolean;
   agendas: readonly {
     id: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     comment: string | null;
     session: { id: string; name: string };
     presentationPlan: { id: string } | null;

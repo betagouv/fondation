@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Magistrat, PrioriteEnum } from 'shared-models';
+import { PrioriteEnum } from 'shared-models';
 
 import {
   LodamSessionTransparenceFilesCreated,
@@ -43,6 +43,7 @@ import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
@@ -117,7 +118,7 @@ export class NominationSessionRepository {
   }
 
   async findByLolfiSessionId(lolfiSessionId: number): Promise<{
-    [K in Magistrat.Formation]?: { isArchived: false; session: SessionTransparence } | { isArchived: true };
+    [K in FormationEnum]?: { isArchived: false; session: SessionTransparence } | { isArchived: true };
   }> {
     return this.prisma.$transaction(async (tx) => {
       const sessions = await tx.sessionTransparenceGds.findMany({

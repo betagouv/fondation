@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { LolfiJob } from '../lolfi-job.type';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
@@ -80,11 +78,7 @@ const RawFunctionSchema = z.object({
       error: (iss) => `0, 1 ou 2 attendu. ${JSON.stringify(iss.input)} fourni`,
     })
     .transform((x) =>
-      x === '0'
-        ? null
-        : formationEnumToPrismaFormationEnum(
-            x === '1' ? Magistrat.Formation.SIEGE : Magistrat.Formation.PARQUET,
-          ),
+      x === '0' ? null : formationEnumToPrismaFormationEnum(x === '1' ? 'SIEGE' : 'PARQUET'),
     ),
 
   fonction_m: z.string().trim().nonempty().nullable(),

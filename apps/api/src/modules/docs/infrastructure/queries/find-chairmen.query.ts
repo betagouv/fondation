@@ -2,20 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { formationToUserTitle } from 'src/modules/shared/formation-to-user-title';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { roleEnumToPrismaRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
 export class FindChairmenQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: { formation: Magistrat.Formation | undefined }): Promise<FoundChairmenDto> {
+  async handle(query: { formation: FormationEnum | undefined }): Promise<FoundChairmenDto> {
     const users = await this.prisma.user.findMany({
       where: {
         duty: 'PRESIDENT',
@@ -50,14 +49,14 @@ type TitledPrismaUser = { duty: PrismaUserDutyEnum | null; title: PrismaUserTitl
 
 type Chairman<User> = User & { title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'>; duty: 'PRESIDENT' };
 
-function isUserChairman(formation: Magistrat.Formation | undefined) {
+function isUserChairman(formation: FormationEnum | undefined) {
   const titles = formationToUserTitle(formation);
   return <U extends TitledPrismaUser>(user: U): user is Chairman<U> =>
     user.duty === 'PRESIDENT' && titles.includes(user.title);
 }
 
 export class SearchChairmenQueryDto extends createZodDto(
-  z.object({ formation: z.enum(Magistrat.Formation).optional() }),
+  z.object({ formation: z.enum(FormationEnum).optional() }),
 ) {}
 
 export class FoundChairmenDto extends createZodDto(

@@ -9,7 +9,7 @@ import { officialReportTemplate } from './official-report.html';
 describe('officialReportTemplate', () => {
   const baseSession = {
     agendaDate: DateOnly.fromJson({ day: 1, month: 7, year: 2026 }),
-    formation: Magistrat.Formation.SIEGE,
+    formation: 'SIEGE',
     hasRenouncement: true,
     justiceDepartmentContact: 'MME Lucie AUBRAC, représentante de la DSJ',
     chairman: {

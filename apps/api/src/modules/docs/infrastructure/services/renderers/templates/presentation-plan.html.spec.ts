@@ -11,7 +11,7 @@ import {
 
 const baseCtx = {
   date: DateOnly.fromJson({ day: 1, month: 7, year: 2026 }),
-  formation: Magistrat.Formation.SIEGE,
+  formation: 'SIEGE',
   hasRenunciation: true,
   justiceContactName: 'MME Lucie AUBRAC, représentante de la DSJ',
   secretary: {
@@ -23,7 +23,7 @@ const baseCtx = {
   sessions: [
     {
       id: 'session-1',
-      formation: Magistrat.Formation.SIEGE,
+      formation: 'SIEGE',
       name: `Transparence annuelle`,
       typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
       agendas: [

@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import { Magistrat, PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
+import { PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
 
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
@@ -13,6 +13,7 @@ import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
@@ -276,7 +277,7 @@ export class SessionService {
     observationClosingDate: DateOnly;
     dueDate: DateOnly | null;
     positionStartDate: DateOnly | null;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     userId: string;
   }): Promise<{ id: string }> {
     const fullNames = command.files.flatMap(({ reporters }) => reporters);
@@ -418,7 +419,7 @@ export class SessionService {
     search: string | null;
     pagination: Pagination;
     typeDeSaisine: TypeDeSaisine;
-    formations: readonly Magistrat.Formation[] | undefined;
+    formations: readonly FormationEnum[] | undefined;
     sorting: Sortable<ListGdsNominationSessionsQueryDto>;
   }): Promise<ListedNominationSessionsDto> {
     return this.listNominationSessionsQuery.handle(query);
@@ -546,7 +547,7 @@ export class SessionService {
   internalGetSessionFormation(query: {
     sessionId: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<Magistrat.Formation> {
+  }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
   }
 

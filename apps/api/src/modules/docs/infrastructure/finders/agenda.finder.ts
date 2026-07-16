@@ -2,10 +2,11 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema, TypeDeSaisine } from 'shared-models';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import {
   formationEnumToPrismaFormationEnum,
   prismaFormationEnumToFormationEnum,
@@ -22,7 +23,7 @@ export class AgendaFinder {
   async findNonIncludedInOfficialReport(query: {
     ids?: Set<string>;
     sessionId?: string;
-    formation?: Magistrat.Formation;
+    formation?: FormationEnum;
     ignoreOfficialReportId?: string;
     tx?: Prisma.TransactionClient;
   }): Promise<FoundAgendasDto> {
@@ -154,7 +155,7 @@ export class FoundAgendasDto extends createZodDto(
         id: z.string(),
         date: dateOnlyJsonSchema,
         sessionMeetingDate: dateOnlyJsonSchema,
-        formation: z.enum(Magistrat.Formation),
+        formation: z.enum(FormationEnum),
         chairman: z.object({ id: z.string().nullable(), firstName: z.string(), lastName: z.string() }),
         officialReportId: z.string().nullable(),
         session: z.object({ id: z.string(), name: z.string(), typeDeSaisine: z.enum(TypeDeSaisine) }),

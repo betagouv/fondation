@@ -8,7 +8,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { DateOnlyJson, Magistrat } from 'shared-models';
+import { DateOnlyJson } from 'shared-models';
 
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
@@ -17,6 +17,7 @@ import { SessionService } from '../session/infrastructure/sessions.service';
 import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
 import { Files } from 'src/modules/framework/files';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
@@ -145,7 +146,7 @@ export class DocsService {
   ) {}
 
   /** @deprecated prefer {@link findDocsMembers} */
-  searchChairmen(query: { formation: Magistrat.Formation | undefined }): Promise<FoundChairmenDto> {
+  searchChairmen(query: { formation: FormationEnum | undefined }): Promise<FoundChairmenDto> {
     return this.findChairmenQuery.handle(query);
   }
 
@@ -391,7 +392,7 @@ export class DocsService {
     return this.findMembersForNewOfficialReportQuery.handle(query);
   }
 
-  async findDocsMembers(query: { formation: Magistrat.Formation }): Promise<FoundDocsMembersDto> {
+  async findDocsMembers(query: { formation: FormationEnum }): Promise<FoundDocsMembersDto> {
     const items = await this.members.internalFindMembersByFormation(query);
     return { items: items.map(({ role: _r, ...m }) => m) };
   }

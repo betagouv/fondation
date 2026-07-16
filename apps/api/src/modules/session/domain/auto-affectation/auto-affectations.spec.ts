@@ -1,5 +1,6 @@
 import { Magistrat } from 'shared-models';
 
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { AutoAffectationMember } from './auto-affectation-member';
@@ -7,8 +8,8 @@ import { AutoAffectationNominationFile } from './auto-affectation-nomination-fil
 import { AutoAffectations } from './auto-affectations';
 
 describe('automated affectation', () => {
-  const session = {
-    formation: Magistrat.Formation.PARQUET,
+  const session: { formation: FormationEnum; date: DateOnly } = {
+    formation: 'PARQUET',
     date: new DateOnly(2025, 12, 10),
   };
 

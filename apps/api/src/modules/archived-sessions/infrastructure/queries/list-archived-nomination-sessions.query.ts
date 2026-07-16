@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema, TypeDeSaisine } from 'shared-models';
 
 import { ListArchivedNominationSessionsQueryDto } from '../../archived-sessions.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
@@ -22,7 +23,7 @@ export class ListArchivedNominationSessionsQuery {
   async handle(query: {
     search: string | null;
     typeDeSaisine: TypeDeSaisine;
-    formations: readonly Magistrat.Formation[] | undefined;
+    formations: readonly FormationEnum[] | undefined;
     sorting: Sortable<ListArchivedNominationSessionsQueryDto>;
     pagination: Pagination;
   }): Promise<ListedArchivedNominationSessionsDto> {
@@ -89,7 +90,7 @@ export class ListedArchivedNominationSessionsDto extends createPaginatedZodDto(
   z.object({
     id: z.string(),
     name: z.string(),
-    formation: z.enum(Magistrat.Formation),
+    formation: z.enum(FormationEnum),
     date: dateOnlyJsonSchema,
     dueDate: dateOnlyJsonSchema.nullable(),
     typeDeSaisine: z.enum(TypeDeSaisine),

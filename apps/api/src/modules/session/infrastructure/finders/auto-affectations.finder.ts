@@ -11,6 +11,7 @@ import {
   AutoAffectationNominationFile,
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectation';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { DateOnly } from 'src/utils/date-only';
@@ -85,7 +86,7 @@ export class AutoAffectationsFinder {
       targetedJurisdiction: string | null;
       number: number | null;
     }[],
-    session: { formation: Magistrat.Formation; date: DateOnly },
+    session: { formation: FormationEnum; date: DateOnly },
   ): AutoAffectationNominationFile[] {
     return nominationFiles
       .map(({ id, number, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
@@ -112,7 +113,7 @@ export class AutoAffectationsFinder {
   private async findMembers(session: {
     date: DateOnly;
     sessionId: string;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     excludedMemberIds: readonly string[] | undefined;
     tx?: Prisma.TransactionClient;
   }): Promise<AutoAffectationMember[]> {

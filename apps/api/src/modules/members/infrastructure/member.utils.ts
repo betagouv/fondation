@@ -1,5 +1,6 @@
-import { Magistrat, Role } from 'shared-models';
+import { Role } from 'shared-models';
 
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export const MEMBER_ROLES = [
@@ -10,16 +11,16 @@ export const MEMBER_ROLES = [
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 
 /** @return undefined means no restriction on the formation */
-export function roleToFormation(role: Role): Magistrat.Formation | undefined {
+export function roleToFormation(role: Role): FormationEnum | undefined {
   switch (role) {
     case Role.MEMBRE_COMMUN:
     case Role.ADJOINT_SECRETAIRE_GENERAL:
     case Role.ADMIN:
       return undefined;
     case Role.MEMBRE_DU_PARQUET:
-      return Magistrat.Formation.PARQUET;
+      return 'PARQUET';
     case Role.MEMBRE_DU_SIEGE:
-      return Magistrat.Formation.SIEGE;
+      return 'SIEGE';
     default:
       return assertNever(role);
   }
