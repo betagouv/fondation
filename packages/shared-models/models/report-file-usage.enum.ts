@@ -1,4 +1,0 @@
-export enum ReportFileUsage {
-  ATTACHMENT = 'ATTACHMENT',
-  EMBEDDED_SCREENSHOT = 'EMBEDDED_SCREENSHOT',
-}

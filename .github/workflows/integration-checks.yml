@@ -69,7 +69,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Build internal dependencies
-        run: pnpm --filter shared-models --filter lolfi build
+        run: pnpm --filter lolfi build
 
       - name: Migrate Prisma
         run: pnpm --filter api exec prisma migrate deploy
