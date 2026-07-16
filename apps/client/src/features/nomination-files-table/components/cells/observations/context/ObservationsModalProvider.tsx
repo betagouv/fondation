@@ -152,19 +152,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
         {...modalProps}
         buttons={
           mode === 'view'
-            ? [
-                {
-                  children: intl.formatMessage({ defaultMessage: 'Ajouter' }),
-                  disabled: isPending,
-                  doClosesModal: false,
-                  onClick: () => dispatch({ type: 'goCreate' }),
-                  priority: 'secondary' as const,
-                },
-                {
-                  children: intl.formatMessage({ defaultMessage: 'Fermer' }),
-                  doClosesModal: true,
-                },
-              ]
+            ? undefined
             : mode === 'create'
               ? [
                   {
@@ -232,6 +220,7 @@ export const ObservationsModalProvider: FC<PropsWithChildren> = ({ children }) =
           (state.status === 'view' ? (
             <ObservationsList
               nominationFileId={state.file.id}
+              onAdd={() => dispatch({ type: 'goCreate' })}
               onEdit={(observation) => dispatch({ type: 'edit', observation })}
               onRequestDelete={(observation) => dispatch({ type: 'requestDelete', observation })}
               sessionId={state.file.sessionId}
