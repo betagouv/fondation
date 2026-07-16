@@ -40,15 +40,27 @@ function reportersFor(scenario: ReporterScenario) {
   return OTHER_REPORTERS;
 }
 
-function seedQueries(client: QueryClient) {
-  client.setQueryData(authKeys.introspectSession(), {
-    civility: 'Monsieur PETIT',
-    firstName: 'Jean',
-    id: CURRENT_USER_ID,
-    isImpersonated: false,
-    lastName: 'Petit',
-    role: 'MEMBRE_DU_SIEGE',
-  });
+function seedQueries(client: QueryClient, view: View) {
+  client.setQueryData(
+    authKeys.introspectSession(),
+    view === 'member'
+      ? {
+          civility: 'Monsieur PETIT',
+          firstName: 'Jean',
+          id: CURRENT_USER_ID,
+          isImpersonated: false,
+          lastName: 'Petit',
+          role: 'MEMBRE_DU_SIEGE',
+        }
+      : {
+          civility: 'Madame ROCHE',
+          firstName: 'Anne',
+          id: 'sg-user',
+          isImpersonated: false,
+          lastName: 'Roche',
+          role: 'ADJOINT_SECRETAIRE_GENERAL',
+        },
+  );
 
   const memberListOptions = {
     formations: ['COMMUN', FormationEnum.SIEGE],
@@ -79,12 +91,13 @@ function MagistratHeaderStory(props: {
     auditionDate: props.auditionScheduled ? { year: 2026, month: 9, day: 15 } : null,
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     content: { nomMagistrat: props.nomMagistrat },
+    myReportId: props.view === 'member' && props.reporters === 'you' ? 'report-1' : null,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
   });
 
   return (
-    <StoryQueryClient seed={seedQueries}>
+    <StoryQueryClient key={props.view} seed={(client) => seedQueries(client, props.view)}>
       <NominationFilesTableProvider
         formation={FormationEnum.SIEGE}
         isEditable={isEditable}
@@ -112,7 +125,7 @@ const meta = {
     auditionScheduled: true,
     nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
-    reporters: 'you',
+    reporters: 'others',
     view: 'sg',
   },
 } satisfies Meta<typeof MagistratHeaderStory>;

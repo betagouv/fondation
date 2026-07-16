@@ -380,6 +380,7 @@ export type PaginatedNominationFiles = {
             } | null;
         }>;
         memo: string | null;
+        myReportId: string | null;
         summary: {
             id: string;
             canRead: boolean;

@@ -50,6 +50,7 @@ SELECT
 
   summaries."summary" AS summary,
   member_memo.memo AS "memberMemo",
+  my_report.id AS "myReportId",
 
   COALESCE(observations.observations, ARRAY[]::JSON[]) AS observations,
   COALESCE(reporters.reporters, ARRAY[]::JSON[]) AS reporters
@@ -109,6 +110,17 @@ FROM
     WHERE member_memo.nomination_file_id = ddn.id AND member_memo.user_id = /* userId */$2::UUID
     GROUP BY member_memo.nomination_file_id
   ) AS member_memo ON TRUE
+
+  LEFT JOIN LATERAL (
+    SELECT reports.id
+    FROM reports_context.reports
+    WHERE
+      reports.nomination_file_id = ddn.id
+      AND reports.reporter_id = /* userId */$2::UUID
+      AND reports.is_deleted = FALSE
+    ORDER BY reports.created_at DESC
+    LIMIT 1
+  ) AS my_report ON TRUE
 
   LEFT JOIN LATERAL (
     SELECT (ARRAY_AGG(sub_summaries.summary))[1] AS summary

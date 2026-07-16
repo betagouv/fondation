@@ -11,7 +11,7 @@ import { frFormat } from '@/i18n/formats';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys } from '@queries/members.queries';
@@ -95,6 +95,24 @@ describe('MagistratHeader reporter status', () => {
     expect(screen.getByText('Vous êtes rapporteur')).toBeInTheDocument();
     expect(screen.queryByText('avec')).not.toBeInTheDocument();
     expect(screen.queryByText('Jean PETIT')).not.toBeInTheDocument();
+  });
+
+  it('links to the report of the current user when they have one', () => {
+    renderHeader({
+      isSg: false,
+      nominationFile: makeSessionNominationFile({ myReportId: 'report-1', reporters: [CURRENT_USER] }),
+    });
+
+    expect(screen.getByRole('link', { name: 'Voir mon dossier' })).toHaveAttribute(
+      'href',
+      getGdsReportPath('report-1'),
+    );
+  });
+
+  it('hides the report link when the current user has no report', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
+
+    expect(screen.queryByRole('link', { name: 'Voir mon dossier' })).not.toBeInTheDocument();
   });
 });
 
@@ -192,7 +210,10 @@ describe('MagistratHeader edition', () => {
 describe('MagistratHeader accessibility', () => {
   it('passes basic accessibility checks', async () => {
     const { container } = renderHeader({
-      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER, OTHER_REPORTER] }),
+      nominationFile: makeSessionNominationFile({
+        myReportId: 'report-1',
+        reporters: [CURRENT_USER, OTHER_REPORTER],
+      }),
     });
 
     expect(await axe(container)).toHaveNoViolations();

@@ -140,6 +140,7 @@ test.describe('Session E2E', () => {
         observations: [],
         priorities: [],
         memo: null,
+        myReportId: null,
         summary: null,
         reporters: [
           expect.objectContaining({
@@ -185,6 +186,7 @@ test.describe('Session E2E', () => {
         },
         priorities: [],
         memo: null,
+        myReportId: null,
         summary: null,
         reporters: expect.arrayContaining([
           expect.objectContaining({
