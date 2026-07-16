@@ -11,7 +11,6 @@ const mocks = vi.hoisted(() => ({
   waitForOutcomeComment: vi.fn(),
   mutate: vi.fn(),
   reset: vi.fn(),
-  remind: vi.fn(),
 }));
 
 vi.mock('@/features/nomination-files-table/context/files-table.context', async () => {
@@ -28,12 +27,6 @@ vi.mock('@/features/nomination-files-table/context/files-table.context', async (
 
 vi.mock('../../../nomination-file-outcome/OutcomeCommentModalContext', () => ({
   useOutcomeCommentDialog: () => ({ waitForOutcomeComment: mocks.waitForOutcomeComment }),
-}));
-
-vi.mock('../../../observation-follow-up/useObservationFollowUpReminderModal.hook', () => ({
-  useObservationFollowUpReminderModal: () => ({
-    remindOfObservationFollowUpIfNecessary: mocks.remind,
-  }),
 }));
 
 vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
@@ -79,11 +72,10 @@ describe('MagistratOutcomeSelect', () => {
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
     expect(mocks.waitForOutcomeComment).not.toHaveBeenCalled();
     expect(mocks.mutate).toHaveBeenCalledWith({ comment: null, outcome: 'VALIDATED' }, expect.anything());
-    expect(mocks.remind).toHaveBeenCalledTimes(1);
     expect(mocks.reset).toHaveBeenCalledTimes(1);
   });
 
-  it('saves the outcome and reminds about follow-up when a required comment is confirmed', async () => {
+  it('saves the outcome when a required comment is confirmed', async () => {
     mocks.waitForOutcomeComment.mockResolvedValue({ type: 'comment', value: 'Bien' });
     const user = userEvent.setup();
     renderSelect();
@@ -97,7 +89,6 @@ describe('MagistratOutcomeSelect', () => {
       { comment: 'Bien', outcome: 'NON_VALIDATED' },
       expect.anything(),
     );
-    expect(mocks.remind).toHaveBeenCalledTimes(1);
     expect(mocks.reset).toHaveBeenCalledTimes(1);
   });
 
