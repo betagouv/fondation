@@ -34,8 +34,8 @@
     "@nestjs/event-emitter": "3.1.0",
     "@nestjs/platform-express": "11.1.27",
     "@nestjs/swagger": "11.4.4",
-    "@prisma/adapter-pg": "6.19.3",
-    "@prisma/client": "6.19.3",
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
     "@sentry/node": "10.53.1",
     "axios": "1.16.1",
     "axios-retry": "4.5.0",
@@ -64,7 +64,7 @@
     "@nestjs/cli": "11.0.23",
     "@nestjs/schematics": "11.1.0",
     "@nestjs/testing": "11.1.27",
-    "@prisma/generator-helper": "6.19.3",
+    "@prisma/generator-helper": "7.8.0",
     "@sentry/cli": "3.6.0",
     "@types/bcrypt": "6.0.0",
     "@types/common-tags": "1.8.4",
@@ -78,7 +78,7 @@
     "@types/unzipper": "0.10.11",
     "jszip": "3.10.1",
     "lolfi": "workspace:*",
-    "prisma": "6.19.2",
+    "prisma": "7.8.0",
     "typescript": "catalog:",
     "vitest": "4.1.9"
   }

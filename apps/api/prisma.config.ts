@@ -8,7 +8,6 @@ export default defineConfig({
   typedSql: {
     path: 'prisma/sql',
   },
-  engine: 'classic',
   datasource: {
     url: env('DATABASE_URL'),
   },

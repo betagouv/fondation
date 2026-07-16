@@ -116,7 +116,7 @@ jobs:
             echo "TRUNCATE $table CASCADE;" >> ./truncate.sql
           done
 
-          pnpm --filter api exec prisma db execute --url $DATABASE_URL --file ../../truncate.sql
+          pnpm --filter api exec prisma db execute --file ../../truncate.sql
 
       - name: Install Playwright
         uses: ./.github/playwright
