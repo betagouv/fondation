@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -28,17 +27,17 @@ export class AutoAffectationWorkload {
 
   static fromMultiple(props: {
     sessionDate: DateOnly;
-    grade: Magistrat.Grade;
+    grade: GradeEnum;
     count: number;
   }): AutoAffectationWorkload {
     return new AutoAffectationWorkload(this.from(props).value * props.count);
   }
 
-  static from(props: { sessionDate: DateOnly; grade: Magistrat.Grade }): AutoAffectationWorkload {
+  static from(props: { sessionDate: DateOnly; grade: GradeEnum }): AutoAffectationWorkload {
     return new AutoAffectationWorkload(this.compute(props));
   }
 
-  private static compute(file: { sessionDate: DateOnly; grade: Magistrat.Grade }): number {
+  private static compute(file: { sessionDate: DateOnly; grade: GradeEnum }): number {
     const logger = new Logger(AutoAffectations.name);
 
     /* istanbul ignore next */
@@ -51,27 +50,27 @@ export class AutoAffectationWorkload {
     }
 
     switch (file.grade) {
-      case Magistrat.Grade.G1:
+      case 'G1':
         return 1;
-      case Magistrat.Grade.G2:
+      case 'G2':
         return 2;
 
-      case Magistrat.Grade.G3:
-      case Magistrat.Grade.G3SUP:
+      case 'G3':
+      case 'G3sup':
         return 3;
 
-      case Magistrat.Grade.I: {
+      case 'I': {
         logger.warn(`Received grade ${file.grade} for nomination session newer than 2025-12-01`);
         return 2;
       }
 
-      case Magistrat.Grade.II: {
+      case 'II': {
         logger.warn(`Received grade ${file.grade} for nomination session newer than 2025-12-01`);
         return 1;
       }
 
-      case Magistrat.Grade.III:
-      case Magistrat.Grade.HH: {
+      case 'III':
+      case 'HH': {
         logger.warn(`Received grade ${file.grade} for nomination session newer than 2025-12-01`);
         return 3;
       }
@@ -85,7 +84,7 @@ export class AutoAffectationWorkload {
     return file.sessionDate.toDate().getTime() < Date.UTC(2025, 11, 1);
   }
 
-  private static getDeprecatedGrading(file: { grade: Magistrat.Grade }): number {
+  private static getDeprecatedGrading(file: { grade: GradeEnum }): number {
     const logger = new Logger(AutoAffectations.name);
 
     /* istanbul ignore next */
@@ -94,24 +93,24 @@ export class AutoAffectationWorkload {
     }
 
     switch (file.grade) {
-      case Magistrat.Grade.II:
+      case 'II':
         return 1;
-      case Magistrat.Grade.I:
+      case 'I':
         return 2;
-      case Magistrat.Grade.HH:
+      case 'HH':
         return 3;
 
-      case Magistrat.Grade.G1: {
+      case 'G1': {
         logger.warn(`Received grade ${file.grade} for nomination session older than 2025-12-01`);
         return 1;
       }
-      case Magistrat.Grade.G2: {
+      case 'G2': {
         logger.warn(`Received grade ${file.grade} for nomination session older than 2025-12-01`);
         return 2;
       }
-      case Magistrat.Grade.G3:
-      case Magistrat.Grade.G3SUP:
-      case Magistrat.Grade.III: {
+      case 'G3':
+      case 'G3sup':
+      case 'III': {
         logger.warn(`Received grade ${file.grade} for nomination session older than 2025-12-01`);
         return 3;
       }

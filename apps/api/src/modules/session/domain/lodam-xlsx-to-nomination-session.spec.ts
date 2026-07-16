@@ -4,8 +4,6 @@ import * as path from 'node:path';
 
 import { faker } from '@faker-js/faker';
 
-import { Magistrat } from 'shared-models';
-
 import {
   lodamToNominationFiles,
   lodamXlsxToNominationFiles,
@@ -280,7 +278,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.HH);
+      expect(result.files[0]?.grade).toEqual('HH');
     });
 
     it('should parse the targeted position and the grade when the title contains a dash', async () => {
@@ -295,7 +293,7 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.I);
+      expect(result.files[0]?.grade).toEqual('I');
       expect(result.files[0]?.targetedPosition).toEqual(
         'Vice-président chargé des fonctions de juge des libertés et de la détention TJ  AUCH',
       );
@@ -313,8 +311,8 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.G2);
-      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.G3);
+      expect(result.files[0]?.grade).toEqual('G2');
+      expect(result.files[0]?.targetedGrade).toEqual('G3');
     });
 
     it('should parse the current and target according to advancement column and the old system', async () => {
@@ -329,8 +327,8 @@ describe('lodamXlsxToNominationSession', () => {
       );
 
       assert.ok(result.success);
-      expect(result.files[0]?.grade).toEqual(Magistrat.Grade.I);
-      expect(result.files[0]?.targetedGrade).toEqual(Magistrat.Grade.HH);
+      expect(result.files[0]?.grade).toEqual('I');
+      expect(result.files[0]?.targetedGrade).toEqual('HH');
     });
 
     it('should fail when the grade is unknown', async () => {

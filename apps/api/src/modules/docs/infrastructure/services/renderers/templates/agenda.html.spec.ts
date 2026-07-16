@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { agendaTemplate } from './agenda.html';
 
@@ -14,10 +14,10 @@ describe('agendaTemplate', () => {
       nominationFiles: [
         {
           name: `MME Simone Veil`,
-          currentGrade: Magistrat.Grade.G3,
+          currentGrade: 'G3',
           currentPosition: "présidente à la cour d'appel de Lyon",
           targetedPosition: "présidente à la cour d'appel de Grenoble",
-          targetedGrade: Magistrat.Grade.G3,
+          targetedGrade: 'G3',
           reporters: ['M. Michel FOUCAULT'],
         },
       ],

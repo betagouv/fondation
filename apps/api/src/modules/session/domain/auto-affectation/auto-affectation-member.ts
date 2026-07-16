@@ -1,8 +1,7 @@
 import { Logger } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
@@ -34,7 +33,7 @@ export class AutoAffectationMember {
   static from(props: {
     id: string;
     session: { date: DateOnly; formation: FormationEnum };
-    affectationCountPerGrade: Map<Magistrat.Grade, number>;
+    affectationCountPerGrade: Map<GradeEnum, number>;
     excludedJurisdictions: Set<string> | null;
   }): AutoAffectationMember {
     const pastWorkload = Array.from(props.affectationCountPerGrade.entries()).reduce(

@@ -1,7 +1,5 @@
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
 import { Prisma } from 'src/generated/prisma/client';
 import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
@@ -12,6 +10,7 @@ import {
   AutoAffectations,
 } from 'src/modules/session/domain/auto-affectation';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { DateOnly } from 'src/utils/date-only';
@@ -156,7 +155,7 @@ export class AutoAffectationsFinder {
         map.set(reporterId, byGrade);
         return map;
       },
-      new Map<string, Map<Magistrat.Grade, number>>(),
+      new Map<string, Map<GradeEnum, number>>(),
     );
 
     const excludedJurisdictionIdByMemberId = new Map(
@@ -168,7 +167,7 @@ export class AutoAffectationsFinder {
     return memberIds.map((id) => {
       const excludedJurisdictions = new Set<string>(excludedJurisdictionIdByMemberId.get(id) ?? []);
       const affectationCountPerGrade =
-        affectationCountByMemberIdAndGrade.get(id) ?? new Map<Magistrat.Grade, number>();
+        affectationCountByMemberIdAndGrade.get(id) ?? new Map<GradeEnum, number>();
 
       return AutoAffectationMember.from({
         id,

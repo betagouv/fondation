@@ -1,6 +1,7 @@
-import { Magistrat, PrioriteEnum } from 'shared-models';
+import { PrioriteEnum } from 'shared-models';
 
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { toParisWallClock } from 'src/utils/paris-wall-clock';
@@ -11,8 +12,8 @@ type InternalNominationFile = {
   fileNumber: number;
   name: string;
   rank: string | null;
-  grade: Magistrat.Grade;
-  targetedGrade: Magistrat.Grade;
+  grade: GradeEnum;
+  targetedGrade: GradeEnum;
   targetedPosition: string;
   birthDate: DateOnly | null;
   currentPosition: string;

@@ -4,20 +4,14 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import {
-  dateOnlyJsonSchema,
-  Magistrat,
-  NominationFile,
-  PrioriteEnum,
-  ReportFileUsage,
-  Role,
-} from 'shared-models';
+import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, ReportFileUsage, Role } from 'shared-models';
 
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
@@ -199,7 +193,7 @@ export class DetailReportQuery {
       currentPosition: report.nominationFile.currentPosition,
       dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
       folderNumber: report.nominationFile.number,
-      grade: z.enum(Magistrat.Grade).parse(report.nominationFile.grade),
+      grade: z.enum(GradeEnum).parse(report.nominationFile.grade),
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
@@ -289,7 +283,7 @@ export class DetailedReportDto extends createZodDto(
     birthDate: dateOnlyJsonSchema.nullable(),
     transparency: z.string(),
     dateTransparence: dateOnlyJsonSchema,
-    grade: z.enum(Magistrat.Grade),
+    grade: z.enum(GradeEnum),
     currentPosition: z.string().nullable(),
     targettedPosition: z.string().nullable(),
     rank: z.string().nullable(),

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -26,10 +26,10 @@ describe('Agenda', () => {
         number: 1,
         reporters: [],
         currentPosition: faker.lorem.sentence(10),
-        grade: Magistrat.Grade.G3,
+        grade: 'G3',
         name: faker.person.fullName(),
         outcome: { value: 'VALIDATED', comment: null },
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: faker.lorem.sentence(10),
       },
     ],

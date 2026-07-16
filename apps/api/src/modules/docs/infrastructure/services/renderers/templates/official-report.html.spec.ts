@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { DateOnly } from 'src/utils/date-only';
 
@@ -55,46 +55,46 @@ describe('officialReportTemplate', () => {
     files: [
       {
         name: 'MME Simonne Mathieu',
-        currentGrade: Magistrat.Grade.G3,
+        currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lyon",
         reporters: ['MME Rose VALLAND'],
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Grenoble`,
         outcome: 'VALIDATED',
       },
       {
         name: 'MME Marcelle Henry',
-        currentGrade: Magistrat.Grade.G3,
+        currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Amiens",
         reporters: ['MME Germaine TILLON'],
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Reims`,
         outcome: 'NON_VALIDATED',
       },
       {
         name: 'M. Léon BLUM',
-        currentGrade: Magistrat.Grade.G3,
+        currentGrade: 'G3',
         currentPosition: "président à la cour d'Appel de Valence",
         reporters: ['MME Rose VALLAND'],
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: `président à la cour d'appel de Riom`,
         outcome: 'NON_VALIDATED',
       },
       {
         name: 'MME Mélinée MANOUCHIAN',
-        currentGrade: Magistrat.Grade.G3,
+        currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lille",
         reporters: ['MME Simone MICHEL-LEVY'],
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Marseille`,
         outcome: 'SUSPENDED',
       },
       {
         name: 'MME Mélinée MANOUCHIAN',
-        currentGrade: Magistrat.Grade.G3,
+        currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Strasbourg",
         reporters: ['MME Germaine TILLON'],
-        targetedGrade: Magistrat.Grade.G3,
+        targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Dijon`,
         outcome: 'WITHDRAWN',
       },

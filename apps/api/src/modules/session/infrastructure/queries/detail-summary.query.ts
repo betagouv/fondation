@@ -2,13 +2,14 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat, PrioriteEnum } from 'shared-models';
+import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
 
 import { NominationFileOutcome, nominationFileOutcomeLabel } from '../../domain/nomination-file-outcome';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
@@ -232,9 +233,9 @@ export class DetailedSummaryDto extends createZodDto(
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),
     auditionTime: timeOnlySchema.nullable(),
-    grade: z.enum(Magistrat.Grade).nullable(),
+    grade: z.enum(GradeEnum).nullable(),
     position: z.string().nullable(),
-    targetedGrade: z.enum(Magistrat.Grade).nullable(),
+    targetedGrade: z.enum(GradeEnum).nullable(),
     targetedPosition: z.string().nullable(),
     priorities: z.array(z.enum(PrioriteEnum)),
     priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),

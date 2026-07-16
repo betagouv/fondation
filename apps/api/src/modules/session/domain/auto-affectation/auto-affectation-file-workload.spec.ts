@@ -1,5 +1,3 @@
-import { Magistrat } from 'shared-models';
-
 import { DateOnly } from 'src/utils/date-only';
 
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
@@ -12,10 +10,10 @@ describe(`auto affectation workload`, () => {
   });
 
   it.each`
-    grade                 | expected
-    ${Magistrat.Grade.G1} | ${1}
-    ${Magistrat.Grade.G2} | ${2}
-    ${Magistrat.Grade.G3} | ${3}
+    grade   | expected
+    ${'G1'} | ${1}
+    ${'G2'} | ${2}
+    ${'G3'} | ${3}
   `('workload for $grade should be $expected', ({ grade, expected }) => {
     const workload = AutoAffectationWorkload.from({
       grade,
@@ -26,10 +24,10 @@ describe(`auto affectation workload`, () => {
   });
 
   it.each`
-    grade                 | expected
-    ${Magistrat.Grade.I}  | ${2}
-    ${Magistrat.Grade.II} | ${1}
-    ${Magistrat.Grade.HH} | ${3}
+    grade   | expected
+    ${'I'}  | ${2}
+    ${'II'} | ${1}
+    ${'HH'} | ${3}
   `('workload for legacy $grade should be $expected', ({ grade, expected }) => {
     const workload = AutoAffectationWorkload.from({
       grade,
@@ -40,14 +38,14 @@ describe(`auto affectation workload`, () => {
   });
 
   it.each`
-    grade                  | sessionDate     | expected
-    ${Magistrat.Grade.II}  | ${'2026-01-01'} | ${1}
-    ${Magistrat.Grade.I}   | ${'2026-01-01'} | ${2}
-    ${Magistrat.Grade.III} | ${'2026-01-01'} | ${3}
-    ${Magistrat.Grade.HH}  | ${'2026-01-01'} | ${3}
-    ${Magistrat.Grade.G1}  | ${'2025-01-01'} | ${1}
-    ${Magistrat.Grade.G2}  | ${'2025-01-01'} | ${2}
-    ${Magistrat.Grade.G3}  | ${'2025-01-01'} | ${3}
+    grade    | sessionDate     | expected
+    ${'II'}  | ${'2026-01-01'} | ${1}
+    ${'I'}   | ${'2026-01-01'} | ${2}
+    ${'III'} | ${'2026-01-01'} | ${3}
+    ${'HH'}  | ${'2026-01-01'} | ${3}
+    ${'G1'}  | ${'2025-01-01'} | ${1}
+    ${'G2'}  | ${'2025-01-01'} | ${2}
+    ${'G3'}  | ${'2025-01-01'} | ${3}
   `('workload for incoherent $grade for $date should be $expected', ({ grade, sessionDate, expected }) => {
     const workload = AutoAffectationWorkload.from({
       grade,
@@ -60,7 +58,7 @@ describe(`auto affectation workload`, () => {
     const workload = AutoAffectationWorkload.fromMultiple({
       sessionDate: startOf2026,
       count: 3,
-      grade: Magistrat.Grade.G1,
+      grade: 'G1',
     });
 
     expect(workload.toNumber()).toBe(3);
@@ -69,11 +67,11 @@ describe(`auto affectation workload`, () => {
   it('should add between workloads', () => {
     const workload = AutoAffectationWorkload.from({
       sessionDate: startOf2026,
-      grade: Magistrat.Grade.G1,
+      grade: 'G1',
     }).add(
       AutoAffectationWorkload.from({
         sessionDate: startOf2026,
-        grade: Magistrat.Grade.G1,
+        grade: 'G1',
       }),
     );
 
@@ -83,11 +81,11 @@ describe(`auto affectation workload`, () => {
   it('should sub between workloads', () => {
     const workload = AutoAffectationWorkload.from({
       sessionDate: startOf2026,
-      grade: Magistrat.Grade.G1,
+      grade: 'G1',
     }).sub(
       AutoAffectationWorkload.from({
         sessionDate: startOf2026,
-        grade: Magistrat.Grade.G1,
+        grade: 'G1',
       }),
     );
 

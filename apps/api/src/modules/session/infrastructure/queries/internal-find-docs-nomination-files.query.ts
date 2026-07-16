@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender, Magistrat } from 'shared-models';
+import { Gender } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
@@ -10,6 +10,7 @@ import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
@@ -73,7 +74,7 @@ const SqlNominationFilesSchema = z
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().trim().nullable(),
     targetPosition: z.object({
-      grade: z.enum(Magistrat.Grade),
+      grade: z.enum(GradeEnum),
       jurisdiction: SqlJurisdictionSchema,
       arrondissement: SqlJurisdictionSchema.nullable(),
       function: SqlFunctionSchema,
@@ -88,7 +89,7 @@ const SqlNominationFilesSchema = z
       externalId: z.number().int().gt(0),
 
       position: z.object({
-        grade: z.enum(Magistrat.Grade),
+        grade: z.enum(GradeEnum),
         jurisdiction: SqlJurisdictionSchema,
         arrondissement: SqlJurisdictionSchema.nullable(),
         function: SqlFunctionSchema.nullable(),
@@ -182,7 +183,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
           name: z.string(),
           position: z.object({
             label: z.string().nullable(),
-            grade: z.enum(Magistrat.Grade),
+            grade: z.enum(GradeEnum),
             functionId: z.string().nullable(),
             jurisdictionId: z.string().nullable(),
           }),
@@ -190,7 +191,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
 
         targetPosition: z.object({
           label: z.string().nullable(),
-          grade: z.enum(Magistrat.Grade),
+          grade: z.enum(GradeEnum),
           functionId: z.string().nullable(),
           jurisdictionId: z.string().nullable(),
         }),

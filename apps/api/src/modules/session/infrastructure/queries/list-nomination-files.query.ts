@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, Magistrat, PrioriteEnum, Role } from 'shared-models';
+import { dateOnlyJsonSchema, PrioriteEnum, Role } from 'shared-models';
 
 import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
@@ -15,6 +15,7 @@ import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
@@ -136,10 +137,10 @@ export class ListNominationFilesQuery {
           version: 2,
           numeroDeDossier: x.number,
           nomMagistrat: x.name,
-          grade: x.grade as Magistrat.Grade,
+          grade: x.grade as GradeEnum,
           posteActuel: x.currentPosition,
           posteCible: x.targetedPosition,
-          gradeCible: x.targetedGrade as Magistrat.Grade,
+          gradeCible: x.targetedGrade as GradeEnum,
           rang: x.rank,
           historique: x.biography,
           observants: x.observers,
@@ -241,10 +242,10 @@ const NominationFileContentSchema = z.object({
   nomMagistrat: z.string(),
   numeroDeDossier: z.number().nullable(),
   dateEchéance: dateOnlyJsonSchema.nullable(),
-  grade: z.enum(Magistrat.Grade).nullable(),
+  grade: z.enum(GradeEnum).nullable(),
   posteActuel: z.string().nullable(),
   posteCible: z.string().nullable(),
-  gradeCible: z.enum(Magistrat.Grade),
+  gradeCible: z.enum(GradeEnum),
   rang: z.string().nullable(),
   dateDeNaissance: dateOnlyJsonSchema.nullable(),
   historique: z.string().nullable(),
@@ -276,7 +277,7 @@ const RawListedNominationFiles = z.array(
     biography: z.string().nullable(),
     birthDate: z.date().nullable(),
     currentPosition: z.string().nullable(),
-    grade: z.enum(Magistrat.Grade),
+    grade: z.enum(GradeEnum),
     lastPositionDate: z.date().nullable(),
     lastRankingDate: z.date().nullable(),
     name: z.string(),
@@ -284,7 +285,7 @@ const RawListedNominationFiles = z.array(
     observers: z.array(z.string()),
     rank: z.string().nullable(),
     targetedPosition: z.string().nullable(),
-    targetedGrade: z.enum(Magistrat.Grade).nullable(),
+    targetedGrade: z.enum(GradeEnum).nullable(),
     dueDate: z.date().nullable(),
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().nullable(),
