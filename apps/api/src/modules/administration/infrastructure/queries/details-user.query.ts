@@ -2,11 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender } from 'shared-models';
-
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
@@ -55,7 +54,7 @@ export class DetailedAdminUserDto extends createZodDto(
     lastName: z.string(),
     email: z.string(),
     role: z.enum(ADMIN_USER_ROLES_ENUM),
-    gender: z.enum(Gender),
+    gender: z.enum(GenderEnum),
     displayTitle: z.string().nullable(),
     isAdmin: z.boolean(),
   }),

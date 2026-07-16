@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender, Role } from 'shared-models';
+import { Role } from 'shared-models';
 
 import { isMember } from '../member.utils';
 import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import {
   prismaRoleEnumToRoleEnum,
@@ -60,7 +61,7 @@ export class InternalMemberListDto extends createZodDto(
     id: z.string(),
     firstName: z.string(),
     lastName: z.string(),
-    gender: z.enum(Gender),
+    gender: z.enum(GenderEnum),
     role: z.enum(Role),
     title: z.enum(PrismaUserTitleEnum).nullable(),
     displayTitle: z.string().nullable(),

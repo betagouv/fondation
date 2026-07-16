@@ -1,11 +1,10 @@
 import { stripIndent } from 'common-tags';
 
-import { Gender } from 'shared-models';
-
 import { conjunctionList, date, displayTitled, fullname, requiresElision } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';
 
@@ -60,7 +59,7 @@ function displayPresidentTitle(ctx: {
   chairman: {
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'> | null;
     displayTitle: string | null;
   };
@@ -70,10 +69,10 @@ function displayPresidentTitle(ctx: {
   const formationLabel = ctx.formation === 'PARQUET' ? 'parquet' : 'siège';
   const presidentTitle =
     ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === Gender.M
+      ? ctx.chairman.gender === GenderEnum.MALE
         ? `président suppléant de la formation ${formationLabel}`
         : `présidente suppléante de la formation ${formationLabel}`
-      : ctx.chairman.gender === Gender.M
+      : ctx.chairman.gender === GenderEnum.MALE
         ? `président de la formation ${formationLabel}`
         : `présidente de la formation ${formationLabel}`;
 
@@ -91,7 +90,7 @@ function content(ctx: {
     id: string | null;
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     displayTitle: string | null;
     title: 'FIRST_SECRETARY' | null;
   };
@@ -99,7 +98,7 @@ function content(ctx: {
     id: string | null;
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     displayTitle: string | null;
     isAbsent: boolean;
     sort: number;
@@ -108,7 +107,7 @@ function content(ctx: {
     id: string | null;
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'> | null;
     displayTitle: string | null;
   };
@@ -175,12 +174,12 @@ function content(ctx: {
     <p><strong>En présence de&nbsp;:</strong></p>
     <ul>
       <li>
-        ${ctx.secretary.gender === Gender.M ? `M.&nbsp;` : `Mme&nbsp;`}${fullname(ctx.secretary)},
+        ${ctx.secretary.gender === GenderEnum.MALE ? `M.&nbsp;` : `Mme&nbsp;`}${fullname(ctx.secretary)},
         ${ctx.secretary.title === 'FIRST_SECRETARY'
-          ? ctx.secretary.gender === Gender.M
+          ? ctx.secretary.gender === GenderEnum.MALE
             ? `secrétaire général`
             : `secrétaire générale`
-          : ctx.secretary.gender === Gender.M
+          : ctx.secretary.gender === GenderEnum.MALE
             ? `secrétaire général adjoint`
             : `secrétaire générale adjointe`}
       </li>
@@ -196,8 +195,8 @@ function content(ctx: {
       : ''}
     <p>
       À ${sessionMeetingTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''},
-      déclare la séance ouverte. ${ctx.chairman.gender === Gender.M ? 'Il' : 'Elle'} fait part des avis émis
-      par le Conseil sur les propositions figurant à l'ordre du jour arrêté le
+      déclare la séance ouverte. ${ctx.chairman.gender === GenderEnum.MALE ? 'Il' : 'Elle'} fait part des avis
+      émis par le Conseil sur les propositions figurant à l'ordre du jour arrêté le
       ${date(ctx.agendaDate, 'do MMMM yyyy')} sur la circulaire de transparence du
       ${date(ctx.sessionDate, 'do MMMM yyyy')}&nbsp;:
     </p>
@@ -212,7 +211,7 @@ function footer(ctx: {
     id: string | null;
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     displayTitle: string | null;
     title: 'FIRST_SECRETARY' | null;
   };
@@ -220,7 +219,7 @@ function footer(ctx: {
     id: string | null;
     firstName: string;
     lastName: string;
-    gender: Gender;
+    gender: GenderEnum;
     title: Exclude<UserTitleEnum, 'FIRST_SECRETARY'> | null;
     displayTitle: string | null;
   };
@@ -233,20 +232,20 @@ function footer(ctx: {
 
   const secretary =
     ctx.secretary.title === 'FIRST_SECRETARY'
-      ? ctx.secretary.gender === Gender.M
+      ? ctx.secretary.gender === GenderEnum.MALE
         ? `le secrétaire général,`
         : `la secrétaire générale,`
-      : ctx.secretary.gender === Gender.M
+      : ctx.secretary.gender === GenderEnum.MALE
         ? `le secrétaire général adjoint,`
         : `la secrétaire générale adjointe,`;
 
   const president =
     ctx.chairman.title === 'PRESIDENT_PARQUET' || ctx.chairman.title === 'PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === Gender.M
+      ? ctx.chairman.gender === GenderEnum.MALE
         ? `le président,`
         : `la présidente,`
       : ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-        ? ctx.chairman.gender === Gender.M
+        ? ctx.chairman.gender === GenderEnum.MALE
           ? `le président suppléant,`
           : `la présidente suppléante,`
         : '';

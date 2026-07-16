@@ -2,11 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { Gender } from 'shared-models';
-
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { roleEnumToPrismaRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
@@ -65,7 +64,7 @@ export class FoundMembersForNewOfficialReportDto extends createZodDto(
         id: z.string(),
         firstName: z.string(),
         lastName: z.string(),
-        gender: z.enum(Gender),
+        gender: z.enum(GenderEnum),
         title: z.enum(PrismaUserTitleEnum).nullable(),
         displayTitle: z.string().nullable(),
         duty: z.enum(PrismaUserDutyEnum).nullable(),

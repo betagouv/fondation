@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Gender } from 'shared-models';
-
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
@@ -15,7 +14,7 @@ describe('Agenda', () => {
       id: 'chairman-1',
       title: null,
       displayTitle: null,
-      gender: Gender.M,
+      gender: GenderEnum.MALE,
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
     },

@@ -1,7 +1,8 @@
-import { Gender, Role } from 'shared-models';
+import { Role } from 'shared-models';
 
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -189,7 +190,7 @@ type PlanUser = {
   firstName: string;
   lastName: string;
   role: Role;
-  gender: Gender;
+  gender: GenderEnum;
   title: UserTitleEnum | null;
   duty: UserDutyEnum | null;
   displayTitle: string | null;

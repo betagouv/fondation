@@ -1,10 +1,11 @@
 import { isBefore } from 'date-fns';
 
-import { Gender, Role } from 'shared-models';
+import { Role } from 'shared-models';
 
 import { PrismaUserDutyEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -13,7 +14,7 @@ export type OfficialReportUser = {
   id: string;
   firstName: string;
   lastName: string;
-  gender: Gender;
+  gender: GenderEnum;
   role: Role;
   displayTitle: string | null;
   title: UserTitleEnum | null;
@@ -45,7 +46,7 @@ export class OfficialReportCreated {
       id: string;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: string | null;
       isAbsent: boolean;
       sort: number;
@@ -73,7 +74,7 @@ export class OfficialReportUpdated {
       id: string;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: string | null;
       isAbsent: boolean;
       sort: number;

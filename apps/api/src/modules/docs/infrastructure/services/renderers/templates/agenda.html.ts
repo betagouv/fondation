@@ -1,10 +1,9 @@
 import { stripIndent } from 'common-tags';
 
-import { Gender } from 'shared-models';
-
 import { conjunctionList, date, requiresElision, titled } from '../helpers';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { Pretty } from 'src/utils/types';
 
 import { commonDocumentCss, documentLayout } from './common.html';
@@ -64,7 +63,7 @@ function agendaFooter(ctx: {
     firstName: string;
     lastName: string;
     title: UserTitleEnum | null;
-    gender: Gender;
+    gender: GenderEnum;
   };
 }): string {
   return html`
