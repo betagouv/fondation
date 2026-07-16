@@ -2,8 +2,7 @@
 
 [[ -n "$DATABASE_URL" ]] || { echo "Missing DATABASE_URL"; exit 1; }
 
-./scripts/sheetjs.sh && \
-  pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
+pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
   pnpm --filter api exec prisma migrate --config prisma.config.ts deploy && \
   pnpm --filter api exec prisma generate --config prisma.config.ts --generator client --sql && \
   pnpm --filter api... run build
