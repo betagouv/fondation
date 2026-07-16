@@ -10,8 +10,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { MulterFile } from 'src/modules/framework/files/multipart/multipart.types';
 import { HasRole } from 'src/modules/simple-auth';
@@ -24,7 +22,7 @@ export class IngestController {
   constructor(private readonly ingest: IngestService) {}
 
   @Post('/lolfi')
-  @HasRole(Role.ADMIN, 'MACHINE')
+  @HasRole('ADMIN', 'MACHINE')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

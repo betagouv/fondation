@@ -1,5 +1,3 @@
-import { Role } from 'shared-models';
-
 import { AuthPassword } from 'src/modules/simple-auth/domain/auth-password';
 
 import { AdminUserRole } from './admin-user-role';
@@ -107,9 +105,9 @@ export class User {
   }
 
   promoteAdmin(): void {
-    if (this.role.role === Role.ADMIN) return;
+    if (this.role.role === 'ADMIN') return;
 
-    if (this.role.role !== Role.ADJOINT_SECRETAIRE_GENERAL) {
+    if (this.role.role !== 'ADJOINT_SECRETAIRE_GENERAL') {
       throw new CantPromoteMemberToAdmin();
     }
 
@@ -117,7 +115,7 @@ export class User {
   }
 
   demoteAdmin(): void {
-    if (this.role.role !== Role.ADMIN) throw new CantDemoteFromAdmin();
+    if (this.role.role !== 'ADMIN') throw new CantDemoteFromAdmin();
 
     this.#messages.push(new UserDemotedFromAdmin(this.id));
   }

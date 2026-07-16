@@ -1,6 +1,5 @@
-import { Role } from 'shared-models';
-
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export const USER_TITLES = [
@@ -93,29 +92,29 @@ export function adminUserRoleEnumToDuty(role: AdminUserRoleEnum): UserDutyEnum |
   }
 }
 
-export function adminUserRoleEnumToIdentityRoles(role: AdminUserRoleEnum): Role[] {
+export function adminUserRoleEnumToIdentityRoles(role: AdminUserRoleEnum): RoleEnum[] {
   switch (role) {
     case 'DEPUTY_PRESIDENT_PARQUET':
     case 'PRESIDENT_PARQUET':
-      return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_PARQUET];
+      return ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET'];
 
     case 'DEPUTY_PRESIDENT_SIEGE':
     case 'PRESIDENT_SIEGE':
-      return [Role.MEMBRE_COMMUN, Role.MEMBRE_DU_SIEGE];
+      return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE'];
 
     case 'MEMBRE_PARQUET':
-      return [Role.MEMBRE_DU_PARQUET];
+      return ['MEMBRE_DU_PARQUET'];
 
     case 'MEMBRE_SIEGE':
-      return [Role.MEMBRE_DU_SIEGE];
+      return ['MEMBRE_DU_SIEGE'];
 
     case 'MEMBRE_COMMUN':
-      return [Role.MEMBRE_COMMUN];
+      return ['MEMBRE_COMMUN'];
 
     case 'FIRST_SECRETARY':
     case 'SECRETARY':
     case 'OFFICER':
-      return [Role.ADMIN, Role.ADJOINT_SECRETAIRE_GENERAL];
+      return ['ADMIN', 'ADJOINT_SECRETAIRE_GENERAL'];
 
     default:
       return assertNever(role);

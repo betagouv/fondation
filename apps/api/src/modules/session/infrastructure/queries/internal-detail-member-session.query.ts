@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, Role, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, TypeDeSaisine } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaPrioriteEnum, PrismaReportStateEnum } from 'src/generated/prisma/enums';
@@ -18,6 +18,7 @@ import { roleToFormation } from 'src/modules/members/infrastructure/member.utils
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
@@ -26,7 +27,7 @@ export class InternalDetailMemberSessionQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    user: { id: string; role: Role };
+    user: { id: string; role: RoleEnum };
     status: NominationFile.ReportState[] | undefined;
     priorities: (PrioriteEnum | null)[] | undefined;
     sessionId: string;

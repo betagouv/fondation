@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, ReportFileUsage, Role } from 'shared-models';
+import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, ReportFileUsage } from 'shared-models';
 
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
@@ -16,6 +16,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -27,8 +28,11 @@ export class DetailReportQuery {
     private readonly prisma: PrismaService,
   ) {}
 
-  async handle(query: { user: { id: string; role: Role }; reportId: string }): Promise<DetailedReportDto> {
-    const reporterId = query.user.role !== Role.ADJOINT_SECRETAIRE_GENERAL ? query.user.id : undefined;
+  async handle(query: {
+    user: { id: string; role: RoleEnum };
+    reportId: string;
+  }): Promise<DetailedReportDto> {
+    const reporterId = query.user.role !== 'ADJOINT_SECRETAIRE_GENERAL' ? query.user.id : undefined;
 
     const report = await this.prisma.report.findUnique({
       where: { id: query.reportId, reporterId, isDeleted: false },

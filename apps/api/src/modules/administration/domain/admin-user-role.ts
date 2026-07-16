@@ -1,5 +1,4 @@
-import { Role } from 'shared-models';
-
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -14,19 +13,19 @@ import {
 } from './user-enum';
 
 export class AdminUserRole {
-  get role(): Role {
+  get role(): RoleEnum {
     const output = adminUserRoleEnumToIdentityRoles(this._role);
 
     if (output.length === 1) return assertIsDefined(output[0]);
 
     if (
-      (this.identityRole === Role.ADMIN || this.identityRole === Role.MEMBRE_COMMUN) &&
+      (this.identityRole === 'ADMIN' || this.identityRole === 'MEMBRE_COMMUN') &&
       output.includes(this.identityRole)
     ) {
       return this.identityRole;
     }
 
-    const [filtered] = output.filter((role) => role !== Role.ADMIN && role !== Role.MEMBRE_COMMUN);
+    const [filtered] = output.filter((role) => role !== 'ADMIN' && role !== 'MEMBRE_COMMUN');
     return assertIsDefined(filtered);
   }
 
@@ -40,7 +39,7 @@ export class AdminUserRole {
 
   private constructor(
     private readonly _role: AdminUserRoleEnum,
-    private readonly identityRole: Role | null,
+    private readonly identityRole: RoleEnum | null,
   ) {}
 
   toString(): AdminUserRoleEnum {
@@ -54,10 +53,14 @@ export class AdminUserRole {
     return new AdminUserRole(target, this.identityRole);
   }
 
-  static from(props: { role: Role; duty: UserDutyEnum | null; title: UserTitleEnum | null }): AdminUserRole {
+  static from(props: {
+    role: RoleEnum;
+    duty: UserDutyEnum | null;
+    title: UserTitleEnum | null;
+  }): AdminUserRole {
     switch (props.role) {
-      case Role.ADMIN:
-      case Role.ADJOINT_SECRETAIRE_GENERAL: {
+      case 'ADMIN':
+      case 'ADJOINT_SECRETAIRE_GENERAL': {
         switch (props.title) {
           case 'FIRST_SECRETARY':
             return new AdminUserRole('FIRST_SECRETARY', props.role);
@@ -75,7 +78,7 @@ export class AdminUserRole {
         }
       }
 
-      case Role.MEMBRE_COMMUN: {
+      case 'MEMBRE_COMMUN': {
         switch (props.title) {
           case null:
           case 'FIRST_SECRETARY':
@@ -86,7 +89,7 @@ export class AdminUserRole {
         }
       }
 
-      case Role.MEMBRE_DU_SIEGE: {
+      case 'MEMBRE_DU_SIEGE': {
         switch (props.title) {
           case null:
           case 'FIRST_SECRETARY':
@@ -97,7 +100,7 @@ export class AdminUserRole {
         }
       }
 
-      case Role.MEMBRE_DU_PARQUET: {
+      case 'MEMBRE_DU_PARQUET': {
         switch (props.title) {
           case null:
           case 'FIRST_SECRETARY':

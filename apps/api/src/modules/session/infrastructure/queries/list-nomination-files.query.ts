@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, PrioriteEnum, Role } from 'shared-models';
+import { dateOnlyJsonSchema, PrioriteEnum } from 'shared-models';
 
 import { NOMINATION_SESSION_FILE_STATUSES, UpdatableNominationFile } from '../../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../domain/nomination-file-outcome';
@@ -20,6 +20,7 @@ import {
   prioriteEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPrioriteEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
@@ -37,7 +38,7 @@ export class ListNominationFilesQuery {
 
   async handle(query: {
     sessionId: string;
-    user: { id: string; role: Role };
+    user: { id: string; role: RoleEnum };
     pagination: Pagination;
     sorting: Sortable<ListNominationFilesQueryDto>;
     filters: {
@@ -48,7 +49,7 @@ export class ListNominationFilesQuery {
     };
   }): Promise<PaginatedNominationFiles> {
     const [totalCount, files, sessionArchivedAt] = await this.prisma.$transaction(async (tx) => {
-      const isSG = [Role.ADJOINT_SECRETAIRE_GENERAL, Role.ADMIN].includes(query.user.role);
+      const isSG = (['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as RoleEnum[]).includes(query.user.role);
       const lastVersion = isSG
         ? await this.versionFinder.last({
             tx,

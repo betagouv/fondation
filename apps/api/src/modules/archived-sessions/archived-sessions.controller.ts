@@ -2,7 +2,7 @@ import { Controller, Get, HttpStatus, Query, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
@@ -17,7 +17,7 @@ export class ArchivedSessionsController {
   constructor(private readonly archivedSessions: ArchivedSessionsService) {}
 
   @Get()
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({ type: ListedArchivedNominationSessionsDto, status: HttpStatus.OK })

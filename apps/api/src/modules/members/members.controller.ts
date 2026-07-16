@@ -15,12 +15,13 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role, TypeDeSaisine } from 'shared-models';
+import { TypeDeSaisine } from 'shared-models';
 
 import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
@@ -45,7 +46,7 @@ export class MembersController {
     private readonly sessions: SessionService,
   ) {}
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get()
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
@@ -64,14 +65,14 @@ export class MembersController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:userId')
   @ZodResponse({ type: DetailedMemberDto, status: HttpStatus.OK })
   detailsMember(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedMemberDto> {
     return this.members.detailsMember({ userId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/excluded-jurisdictions')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -82,7 +83,7 @@ export class MembersController {
     return this.members.excludeJurisdictions({ userId, jurisdictionIds });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/display-title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -93,7 +94,7 @@ export class MembersController {
     return this.members.updateDisplayTitle({ userId, displayTitle });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -106,7 +107,7 @@ export class MembersController {
   @ZodResponse({ type: ListedMemberSessionsDto, status: HttpStatus.OK })
   listMemberSessions(
     @Param('userId') userId: string,
-    @AuthedUser() authUser: { id: string; role: Role },
+    @AuthedUser() authUser: { id: string; role: RoleEnum },
   ): Promise<ListedMemberSessionsDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 
@@ -125,7 +126,7 @@ export class MembersController {
     @Param('sessionId') sessionId: string,
     @QueryPagination() pagination: Pagination,
     @Query(ZodValidationPipe) query: DetailsMemberSessionQueryDto,
-    @AuthedUser() authUser: { id: string; role: Role },
+    @AuthedUser() authUser: { id: string; role: RoleEnum },
   ): Promise<DetailedMemberSessionDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 

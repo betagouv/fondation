@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import { PrioriteEnum, NominationFile as Reports, Role, TypeDeSaisine } from 'shared-models';
+import { PrioriteEnum, NominationFile as Reports, TypeDeSaisine } from 'shared-models';
 
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
@@ -14,6 +14,7 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
@@ -120,7 +121,7 @@ export class SessionService {
 
   /** @internal */
   listMemberSessions(query: {
-    user: { id: string; role: Role };
+    user: { id: string; role: RoleEnum };
     typeDeSaisine: TypeDeSaisine;
   }): Promise<ListedMemberSessionsDto> {
     return this.internalListMemberSessionsQuery.handle(query);
@@ -128,7 +129,7 @@ export class SessionService {
 
   /** @internal */
   detailMemberSession(query: {
-    user: { id: string; role: Role };
+    user: { id: string; role: RoleEnum };
     pagination: Pagination;
     sessionId: string;
     typeDeSaisine: TypeDeSaisine;
@@ -182,7 +183,7 @@ export class SessionService {
     pagination: Pagination;
     sorting: Sortable<ListNominationFilesQueryDto>;
     sessionId: string;
-    user: { role: Role; id: string };
+    user: { role: RoleEnum; id: string };
     filters: {
       reporterIds: readonly (string | null)[];
       priorities: readonly (PrioriteEnum | null)[];

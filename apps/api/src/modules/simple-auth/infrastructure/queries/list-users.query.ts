@@ -2,14 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Role } from 'shared-models';
-
 import { PrismaRoleEnum } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
   roleEnumToPrismaRoleEnum,
 } from 'src/modules/shared/mappers/role-enum.mapper';
+import { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListUsersQuery {
@@ -17,7 +16,7 @@ export class ListUsersQuery {
 
   async handle(query: {
     search?: string;
-    roles?: readonly Role[];
+    roles?: readonly RoleEnum[];
     excludeIds?: readonly string[];
     includeIds?: readonly string[];
     includeIdsOnly?: true;
@@ -91,7 +90,7 @@ export class ListedUsersDto extends createZodDto(
         id: z.string(),
         firstName: z.string(),
         lastName: z.string(),
-        role: z.enum(Role),
+        role: z.enum(RoleEnum),
       }),
     ),
   }),

@@ -2,8 +2,6 @@ import { Controller, Get, HttpStatus, Query, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { PrismaService } from '../framework/database';
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import { HasRole } from '../simple-auth';
@@ -23,7 +21,7 @@ export class MagistratController {
   ) {}
 
   @Get()
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({

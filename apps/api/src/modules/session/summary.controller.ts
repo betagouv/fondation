@@ -16,8 +16,6 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from 'src/modules/framework/files';
 import { AuthedUser, HasRole, SimpleAuthService } from 'src/modules/simple-auth';
 
@@ -49,7 +47,7 @@ export class SummaryController {
   ) {}
 
   @Post()
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ZodResponse({ status: HttpStatus.CREATED, type: CreatedSummaryDto })
   createSummary(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -59,7 +57,7 @@ export class SummaryController {
   }
 
   @Post('/attachments')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
     schema: AttachSummaryFilesDto,
@@ -79,7 +77,7 @@ export class SummaryController {
   }
 
   @Delete('/attachments')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async detachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -94,7 +92,7 @@ export class SummaryController {
   }
 
   @Post('/screenshots')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
     schema: IncludeFilesInSummaryContentDto,
     destination: ({ request, id, mimetype }) =>
@@ -117,7 +115,7 @@ export class SummaryController {
   }
 
   @Put('/content')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async writeSummary(
@@ -135,7 +133,7 @@ export class SummaryController {
   }
 
   @Put('/readers')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateSummaryReadersList(

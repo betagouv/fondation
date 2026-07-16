@@ -1,9 +1,8 @@
 import z from 'zod';
 
-import { Role } from 'shared-models';
-
 import { OpenIdProvider } from '../openid';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { Id, makeId } from 'src/utils/id';
 
 import { AuthImpersonation } from './auth-impersonation';
@@ -16,7 +15,7 @@ export class AuthUserRegistered {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
-  readonly role: Role;
+  readonly role: RoleEnum;
   readonly email: string;
   readonly password: string;
   readonly gender: GenderEnum;
@@ -25,7 +24,7 @@ export class AuthUserRegistered {
     id: string;
     firstName: string;
     lastName: string;
-    role: Role;
+    role: RoleEnum;
     email: string;
     password: AuthPassword;
     gender: GenderEnum;
@@ -129,7 +128,7 @@ export class AuthUser {
   static async register(props: {
     firstName: string;
     lastName: string;
-    role: Role;
+    role: RoleEnum;
     email: string;
     password: string;
     gender: GenderEnum;

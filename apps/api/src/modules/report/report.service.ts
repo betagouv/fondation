@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { ReportFileUsage, Role, NominationFile } from 'shared-models';
+import { NominationFile, ReportFileUsage } from 'shared-models';
 
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { isDefined } from 'src/utils/is-defined';
 
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
@@ -95,7 +96,10 @@ export class ReportService {
     return this.getReportFileUrlsQuery.handle(query);
   }
 
-  detailReport(query: { user: { id: string; role: Role }; reportId: string }): Promise<DetailedReportDto> {
+  detailReport(query: {
+    user: { id: string; role: RoleEnum };
+    reportId: string;
+  }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
   }
 

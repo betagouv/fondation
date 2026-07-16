@@ -1,8 +1,7 @@
-import { Role } from 'shared-models';
-
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { TimeOnly } from 'src/utils/time-only';
@@ -127,13 +126,13 @@ export class JusticePresentationPlan {
   }
 
   private assertsChairman(user: PlanUser): asserts user is Chairman {
-    if (user.role === Role.MEMBRE_COMMUN) return;
+    if (user.role === 'MEMBRE_COMMUN') return;
 
-    if (this.formation === 'PARQUET' && user.role !== Role.MEMBRE_DU_PARQUET) {
+    if (this.formation === 'PARQUET' && user.role !== 'MEMBRE_DU_PARQUET') {
       throw new UnknownPresentationPlanChairman();
     }
 
-    if (this.formation === 'SIEGE' && user.role !== Role.MEMBRE_DU_SIEGE) {
+    if (this.formation === 'SIEGE' && user.role !== 'MEMBRE_DU_SIEGE') {
       throw new UnknownPresentationPlanChairman();
     }
   }
@@ -189,7 +188,7 @@ type PlanUser = {
   id: string;
   firstName: string;
   lastName: string;
-  role: Role;
+  role: RoleEnum;
   gender: GenderEnum;
   title: UserTitleEnum | null;
   duty: UserDutyEnum | null;
