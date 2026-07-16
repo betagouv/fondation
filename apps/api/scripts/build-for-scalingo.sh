@@ -18,7 +18,7 @@
 postinstall="bash apps/api/scripts/postinstall.sh" && \
 temp=$(basename $(mktemp -d)) && \
   mkdir -p "$temp" && \
-  find {apps/api,packages/shared-models}/dist \
+  find apps/api/dist \
     -iname '*.d.ts' -type f -delete \
     -or -iname '*.map' -type f -delete \
     -or -iname '*.tsbuildinfo' -type f -delete && \
@@ -27,10 +27,7 @@ temp=$(basename $(mktemp -d)) && \
   mkdir -p "$temp/apps/api/scripts" && \
   mv apps/api/dist "$temp/apps/api" && \
   mv apps/api/scripts/postinstall.sh $temp/apps/api/scripts && \
-  mkdir -p "$temp/packages/shared-models" && \
-  mv packages/shared-models/dist "$temp/packages/shared-models" && \
   jq ".scripts = {build: \"$postinstall\"} | del(.jest)" package.json > "$temp/package.json" && \
   jq 'del(.scripts,.jest)' apps/api/package.json > "$temp/apps/api/package.json" && \
-  jq 'del(.scripts,.types)' packages/shared-models/package.json > "$temp/packages/shared-models/package.json" && \
   mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"

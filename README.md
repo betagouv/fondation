@@ -174,7 +174,6 @@ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 4. Générer le code
 
 ```bash
-pnpm --filter shared-models build         # types partagés (requis par le back)
 pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
 ```
 
