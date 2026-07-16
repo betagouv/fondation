@@ -54,7 +54,6 @@
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "sax": "1.6.0",
-    "shared-models": "workspace:*",
     "unzipper": "0.12.3",
     "xlsx": "file:../../vendor/xlsx-0.20.3.tgz",
     "zod": "catalog:"
