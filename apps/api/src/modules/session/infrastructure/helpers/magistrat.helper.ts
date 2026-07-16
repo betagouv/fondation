@@ -1,10 +1,9 @@
-import { Gender } from 'shared-models';
-
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { capitalize } from 'src/utils/capitalize';
 import { isDefined } from 'src/utils/is-defined';
 
-export function buildMemberName(member: { gender: Gender; firstName: string; lastName: string }): string {
-  return `${member.gender === Gender.F ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
+export function buildMemberName(member: { gender: GenderEnum; firstName: string; lastName: string }): string {
+  return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 
 type CivilityEnum = 'M.' | 'MME';

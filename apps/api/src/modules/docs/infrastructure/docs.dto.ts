@@ -1,10 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { dateOnlyJsonSchema, Gender } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { timeOnlySchema } from 'src/utils/time-only';
 
 export class CreateOrUpdateAgendaDto extends createZodDto(
@@ -116,7 +117,7 @@ export class FoundDocsMembersDto extends createZodDto(
         id: z.string(),
         firstName: z.string(),
         lastName: z.string(),
-        gender: z.enum(Gender),
+        gender: z.enum(GenderEnum),
         title: z.enum(PrismaUserTitleEnum).nullable(),
         displayTitle: z.string().nullable(),
         duty: z.enum(PrismaUserDutyEnum).nullable(),

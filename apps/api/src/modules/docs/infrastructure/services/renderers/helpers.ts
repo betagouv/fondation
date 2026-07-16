@@ -1,9 +1,10 @@
 import { formatDate } from 'date-fns';
 import { fr as dateLocaleFr } from 'date-fns/locale/fr';
 
-import { DateOnlyJson, Gender } from 'shared-models';
+import { DateOnlyJson } from 'shared-models';
 
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { capitalize } from 'src/utils/capitalize';
 import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';
@@ -16,17 +17,17 @@ export function titled(props: {
   title: UserTitleEnum | null;
   firstName: string;
   lastName: string;
-  gender: Gender;
+  gender: GenderEnum;
 }): string {
   if (!props.title || props.title === 'FIRST_SECRETARY') return fullname(props);
 
   if (props.title === 'PRESIDENT_PARQUET' || props.title === 'PRESIDENT_SIEGE') {
-    return props.gender === Gender.M
+    return props.gender === GenderEnum.MALE
       ? `Le président, ${fullname(props)}`
       : `La présidente, ${fullname(props)}`;
   }
 
-  return props.gender === Gender.M
+  return props.gender === GenderEnum.MALE
     ? `Le président suppléant, ${fullname(props)}`
     : `La présidente suppléante, ${fullname(props)}`;
 }
@@ -35,10 +36,10 @@ export function displayTitled(props: {
   firstName: string;
   lastName: string;
   displayTitle: string | null;
-  gender: Gender;
+  gender: GenderEnum;
 }): string {
   const title = props.displayTitle?.trim() || null;
-  const output = props.gender === Gender.M ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;
+  const output = props.gender === GenderEnum.MALE ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;
 
   if (!title) return output;
   return `${output}, ${title[0]!.toLowerCase() + title.slice(1)}`;

@@ -2,11 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender } from 'shared-models';
-
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { PrismaService } from 'src/modules/framework/database';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 
 @Injectable()
@@ -61,7 +60,7 @@ export class ListedSecretariesGeneralDto extends createZodDto(
         displayTitle: z.string().nullable(),
         title: z.enum(['FIRST_SECRETARY'] satisfies UserTitleEnum[]).nullable(),
         duty: z.enum(['SECRETARY'] satisfies UserDutyEnum[]),
-        gender: z.enum(Gender),
+        gender: z.enum(GenderEnum),
       }),
     ),
   }),

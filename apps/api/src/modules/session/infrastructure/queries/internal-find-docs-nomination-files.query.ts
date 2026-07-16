@@ -2,14 +2,13 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender } from 'shared-models';
-
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
@@ -102,7 +101,7 @@ const SqlNominationFilesSchema = z
           id: z.uuid(),
           firstName: z.string().trim().nonempty(),
           lastName: z.string().trim().nonempty(),
-          gender: z.enum(Gender),
+          gender: z.enum(GenderEnum),
         }),
       ),
     ),
@@ -198,7 +197,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
 
         reporters: z.array(
           z.object({
-            gender: z.enum(Gender),
+            gender: z.enum(GenderEnum),
             firstName: z.string().trim().nonempty(),
             lastName: z.string().trim().nonempty(),
             fullTitledName: z.string().trim().nonempty(),

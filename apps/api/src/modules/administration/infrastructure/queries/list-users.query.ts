@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { Gender } from 'shared-models';
-
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   ADMIN_USER_ROLES_ENUM,
@@ -16,6 +14,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -105,7 +104,7 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
-    gender: z.enum(Gender),
+    gender: z.enum(GenderEnum),
     role: z.enum(ADMIN_USER_ROLES_ENUM),
   }),
 ) {}

@@ -1,13 +1,13 @@
 import { load } from 'cheerio';
 
-import { Gender } from 'shared-models';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 
 import { agendaTemplate } from './agenda.html';
 
 describe('agendaTemplate', () => {
   it('should render', () => {
     const content = agendaTemplate.render({
-      chairman: { firstName: `léon`, lastName: 'blum', gender: Gender.M, title: 'PRESIDENT_SIEGE' },
+      chairman: { firstName: `léon`, lastName: 'blum', gender: GenderEnum.MALE, title: 'PRESIDENT_SIEGE' },
       date: new Date('2026-07-01'),
       sessionMeetingDate: new Date('2026-07-01'),
       formation: 'SIEGE',

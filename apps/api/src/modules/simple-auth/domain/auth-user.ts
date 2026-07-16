@@ -1,8 +1,9 @@
 import z from 'zod';
 
-import { Gender, Role } from 'shared-models';
+import { Role } from 'shared-models';
 
 import { OpenIdProvider } from '../openid';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { Id, makeId } from 'src/utils/id';
 
 import { AuthImpersonation } from './auth-impersonation';
@@ -18,7 +19,7 @@ export class AuthUserRegistered {
   readonly role: Role;
   readonly email: string;
   readonly password: string;
-  readonly gender: Gender;
+  readonly gender: GenderEnum;
 
   constructor(props: {
     id: string;
@@ -27,7 +28,7 @@ export class AuthUserRegistered {
     role: Role;
     email: string;
     password: AuthPassword;
-    gender: Gender;
+    gender: GenderEnum;
   }) {
     this.id = props.id;
     this.firstName = props.firstName;
@@ -131,7 +132,7 @@ export class AuthUser {
     role: Role;
     email: string;
     password: string;
-    gender: Gender;
+    gender: GenderEnum;
   }) {
     const password = await AuthPassword.create(props.password);
     const email = await z.email().toLowerCase().parseAsync(props.email);

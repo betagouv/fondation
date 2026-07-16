@@ -1,4 +1,4 @@
-import { Gender } from 'shared-models';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 
 import { buildMemberName, buildName, buildPosition } from './magistrat.helper';
 
@@ -15,9 +15,9 @@ describe('magistrat helpers', () => {
 
   describe('buildMemberName', () => {
     it.each`
-      magistrat                                                             | expected
-      ${{ gender: Gender.M, firstName: 'JEAN-CHARLES', lastName: 'HENRI' }} | ${'M.\u00A0Jean-Charles\u00A0HENRI'}
-      ${{ gender: Gender.F, firstName: 'MARIE', lastName: 'SKŁODOWSKA' }}   | ${'Mme\u00A0Marie\u00A0SKŁODOWSKA'}
+      magistrat                                                                    | expected
+      ${{ gender: GenderEnum.MALE, firstName: 'JEAN-CHARLES', lastName: 'HENRI' }} | ${'M.\u00A0Jean-Charles\u00A0HENRI'}
+      ${{ gender: GenderEnum.FEMALE, firstName: 'MARIE', lastName: 'SKŁODOWSKA' }} | ${'Mme\u00A0Marie\u00A0SKŁODOWSKA'}
     `(`should render as $expected`, ({ magistrat, expected }) => {
       expect(buildMemberName(magistrat)).toBe(expected);
     });

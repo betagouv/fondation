@@ -1,6 +1,5 @@
-import { Gender } from 'shared-models';
-
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 
@@ -16,7 +15,7 @@ export class AgendaCreated {
       id: Id<'ChairmanId'>;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: UserTitleEnum | null;
       displayTitle: string | null;
     },
@@ -34,7 +33,7 @@ export class AgendaUpdated {
       id: Id<'ChairmanId'>;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: UserTitleEnum | null;
       displayTitle: string | null;
     },
@@ -88,7 +87,7 @@ export class Agenda {
       id: string;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: UserTitleEnum | null;
       displayTitle: string | null;
     };
@@ -130,7 +129,7 @@ export class Agenda {
       id: string;
       firstName: string;
       lastName: string;
-      gender: Gender;
+      gender: GenderEnum;
       title: UserTitleEnum | null;
       displayTitle: string | null;
     };

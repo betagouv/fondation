@@ -2,8 +2,6 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Gender } from 'shared-models';
-
 import {
   DOC_NOMINATION_FILE_OUTCOME_ENUM,
   docNominationFileOutcomeLabel,
@@ -12,6 +10,7 @@ import {
 import { Prisma } from 'src/generated/prisma/client';
 import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 import { ReportedNominationFilesFinder } from './reported-nomination-files.finder';
@@ -91,7 +90,7 @@ export class FoundDocsNominationFiles extends createZodDto(
         reporters: z.array(
           z.object({
             id: z.string(),
-            gender: z.enum(Gender),
+            gender: z.enum(GenderEnum),
             firstName: z.string(),
             lastName: z.string(),
             fullTitledName: z.string(),

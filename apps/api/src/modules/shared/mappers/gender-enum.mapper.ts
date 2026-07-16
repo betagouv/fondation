@@ -1,24 +1,23 @@
-import { Gender } from 'shared-models';
-
 import { PrismaGenderEnum } from 'src/generated/prisma/enums';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { assertNever } from 'src/utils/assert-never';
 
-export function prismaGenderEnumToGenderEnum(value: PrismaGenderEnum): Gender {
+export function prismaGenderEnumToGenderEnum(value: PrismaGenderEnum): GenderEnum {
   switch (value) {
     case PrismaGenderEnum.MALE:
-      return Gender.M;
+      return GenderEnum.MALE;
     case PrismaGenderEnum.FEMALE:
-      return Gender.F;
+      return GenderEnum.FEMALE;
     default:
       return assertNever(value);
   }
 }
 
-export function genderEnumToPrismaGenderEnum(value: Gender): PrismaGenderEnum {
+export function genderEnumToPrismaGenderEnum(value: GenderEnum): PrismaGenderEnum {
   switch (value) {
-    case Gender.M:
+    case GenderEnum.MALE:
       return PrismaGenderEnum.MALE;
-    case Gender.F:
+    case GenderEnum.FEMALE:
       return PrismaGenderEnum.FEMALE;
     default:
       return assertNever(value);

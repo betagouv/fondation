@@ -1,7 +1,6 @@
 import { load } from 'cheerio';
 
-import { Gender } from 'shared-models';
-
+import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 import { officialReportTemplate } from './official-report.html';
@@ -17,7 +16,7 @@ describe('officialReportTemplate', () => {
       firstName: 'simone',
       lastName: 'michel-levy',
       displayTitle: 'co-fondatrice du réseau Action PTT',
-      gender: Gender.F,
+      gender: GenderEnum.FEMALE,
       title: 'PRESIDENT_SIEGE',
     },
     members: [
@@ -27,7 +26,7 @@ describe('officialReportTemplate', () => {
         firstName: 'rose',
         lastName: 'valland',
         displayTitle: 'conservatrice du musée du Jeu de Paume',
-        gender: Gender.F,
+        gender: GenderEnum.FEMALE,
         isAbsent: false,
       },
       {
@@ -36,12 +35,12 @@ describe('officialReportTemplate', () => {
         firstName: 'germaine',
         lastName: 'tillon',
         displayTitle: null,
-        gender: Gender.F,
+        gender: GenderEnum.FEMALE,
         isAbsent: false,
       },
     ],
     secretary: {
-      gender: Gender.F,
+      gender: GenderEnum.FEMALE,
       displayTitle: null,
       title: 'FIRST_SECRETARY',
       id: 's1',
