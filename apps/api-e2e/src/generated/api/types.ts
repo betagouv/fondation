@@ -73,7 +73,7 @@ export type DetailedReportDto = {
     nominationFileId: string;
     name: string;
     comment: string | null;
-    formation: 'PARQUET' | 'SIEGE';
+    formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
     isArchived: boolean;
     folderNumber: number | null;
@@ -133,26 +133,6 @@ export type DetailedReportDto = {
             url: string;
         }>;
     } | null;
-    rules: {
-        management: {
-            [key: string]: {
-                id: string;
-                validated: boolean;
-            };
-        };
-        qualitative: {
-            [key: string]: {
-                id: string;
-                validated: boolean;
-            };
-        };
-        statutory: {
-            [key: string]: {
-                id: string;
-                validated: boolean;
-            };
-        };
-    };
     observations: Array<{
         id: string;
         dateReception: {
@@ -253,7 +233,7 @@ export type ListedNominationSessionsDto = {
     items: Array<{
         id: string;
         name: string;
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         date: {
             year: number;
             month: number;
@@ -285,7 +265,7 @@ export type ImportNominationSessionFromLodamXlsxDto = {
     file: Blob | File;
     form: {
         name: string;
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         date: string;
         observationClosingDate: string;
         dueDate?: string | null;
@@ -481,7 +461,7 @@ export type DefineNominationFileOutcomeDto = {
 };
 
 export type UploadSessionAttachmentsDto = {
-    files: Array<Blob | File>;
+    files?: Array<Blob | File>;
 };
 
 export type ListedNominationSessionAttachmentDto = {
@@ -498,7 +478,7 @@ export type DetailedNominationSessionAttachmentDto = {
 };
 
 export type UploadNominationFileAttachmentsDto = {
-    files: Array<Blob | File>;
+    files?: Array<Blob | File>;
 };
 
 export type ListedNominationFileAttachmentDto = {
@@ -518,7 +498,7 @@ export type DetailedNominationFileAttachmentDto = {
 export type DetailedNominationSessionDto = {
     id: string;
     name: string;
-    formation: 'PARQUET' | 'SIEGE';
+    formation: 'SIEGE' | 'PARQUET';
     outcomes: Array<{
         commentRequired: boolean;
         label: string;
@@ -605,7 +585,7 @@ export type DetailedSummaryDto = {
     isArchived: boolean;
     name: string | null;
     rank: string | null;
-    formation: 'PARQUET' | 'SIEGE';
+    formation: 'SIEGE' | 'PARQUET';
     number: number | null;
     birthDate: {
         year: number;
@@ -756,7 +736,7 @@ export type ListedMemberSessionsDto = {
         createdAt: string;
         isAffected: boolean;
         fileCount: number;
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         typeDeSaisine: 'TRANSPARENCE_GDS';
     }>;
 };
@@ -1052,7 +1032,7 @@ export type FoundAgendasDto = {
             month: number;
             day: number;
         };
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         chairman: {
             id: string | null;
             firstName: string;
@@ -1135,7 +1115,7 @@ export type ListedPresentedPlansDto = {
             month: number;
             day: number;
         };
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         chairman: {
             firstName: string;
             lastName: string;
@@ -1165,7 +1145,7 @@ export type DetailedPresentationPlanMetadataDto = {
     };
     isPresented: boolean;
     isManuallyEdited: boolean;
-    formation: 'PARQUET' | 'SIEGE';
+    formation: 'SIEGE' | 'PARQUET';
     agendas: Array<{
         id: string;
         comment: string | null;
@@ -1226,7 +1206,7 @@ export type ListedNonPresentedPlansDto = {
             month: number;
             day: number;
         };
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         chairman: {
             firstName: string;
             lastName: string;
@@ -1258,7 +1238,7 @@ export type ListedArchivedNominationSessionsDto = {
     items: Array<{
         id: string;
         name: string;
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
         date: {
             year: number;
             month: number;
@@ -1775,7 +1755,7 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
     query?: {
         search?: string;
         sortBy?: 'date' | 'dueDate';
-        formations?: Array<'PARQUET' | 'SIEGE'>;
+        formations?: Array<'SIEGE' | 'PARQUET'>;
         /**
          * true
          */
@@ -2305,8 +2285,8 @@ export type DetachSummaryFilesData = {
         sessionId: string;
         nominationFileId: string;
     };
-    query: {
-        fileIds: Array<string>;
+    query?: {
+        fileIds?: Array<string>;
     };
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments';
 };
@@ -2420,11 +2400,11 @@ export type GenerateAttachmentPublicUrlResponse = GenerateAttachmentPublicUrlRes
 export type ListMembersData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         sortBy?: 'firstName' | 'lastName';
         sortDirection?: 'asc' | 'desc';
         search?: string;
-        formations: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
         page?: number;
         limit?: number;
     };
@@ -2575,7 +2555,7 @@ export type SearchChairmenData = {
     body?: never;
     path?: never;
     query?: {
-        formation?: 'PARQUET' | 'SIEGE';
+        formation?: 'SIEGE' | 'PARQUET';
     };
     url: '/api/docs/v1/chairmen';
 };
@@ -3256,7 +3236,7 @@ export type FindDocsMembersData = {
     body?: never;
     path?: never;
     query: {
-        formation: 'PARQUET' | 'SIEGE';
+        formation: 'SIEGE' | 'PARQUET';
     };
     url: '/api/docs/v1/members';
 };
@@ -3273,7 +3253,7 @@ export type ListArchivedSessionsData = {
     query?: {
         search?: string;
         sortBy?: 'date' | 'dueDate';
-        formations?: Array<'PARQUET' | 'SIEGE'>;
+        formations?: Array<'SIEGE' | 'PARQUET'>;
         /**
          * true
          */
