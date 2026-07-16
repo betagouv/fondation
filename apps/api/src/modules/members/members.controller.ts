@@ -15,8 +15,6 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
@@ -113,7 +111,7 @@ export class MembersController {
 
     return this.sessions.listMemberSessions({
       user: authUser,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
     });
   }
 
@@ -135,7 +133,7 @@ export class MembersController {
       priorities: query.priorities,
       status: query.status ?? undefined,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
       pagination,
       sessionId,
     });

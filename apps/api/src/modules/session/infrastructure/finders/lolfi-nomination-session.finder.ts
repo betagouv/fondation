@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { format } from 'date-fns';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { SessionTransparence } from 'src/modules/session/domain/session-transparence';
 import { LolfiNominationFilesFinder } from 'src/modules/session/infrastructure/finders/lolfi-nomination-files.finder';
 import { NominationSessionRepository } from 'src/modules/session/infrastructure/repositories/nomination-session.repository';
@@ -35,7 +33,7 @@ export class LolfiNominationSessionFinder {
           formation,
           lolfiSessionId: props.id,
           date: props.creationDate,
-          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
           name: props.name ?? `Transparence du ${format(props.creationDate.toDate(), 'dd/MM/yyyy')}`,
 
           dueDate: null,

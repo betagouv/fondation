@@ -6,7 +6,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { PrismaService } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { PrioriteEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
+import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { capitalize } from 'src/utils/capitalize';
 
 @Injectable()
@@ -90,7 +90,7 @@ export class ListNominationFilesAsExcelQuery {
         )
         .concat(nf.observers || [])
         .join(','),
-      nf.priorities.map((x) => PrioriteEnumLabels[x]).join(', '),
+      nf.priorities.map((x) => PriorityEnumLabels[x]).join(', '),
       nf.outcome
         ? capitalize(
             nominationFileOutcomeLabel({

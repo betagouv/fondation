@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, ReportFileUsage } from 'shared-models';
+import { dateOnlyJsonSchema, NominationFile } from 'shared-models';
 
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
@@ -13,9 +13,11 @@ import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -138,13 +140,12 @@ export class DetailReportQuery {
     }));
 
     const attachments = reportFiles.filter(
-      (x): x is typeof x & { usage: ReportFileUsage.ATTACHMENT } => x.usage === ReportFileUsage.ATTACHMENT,
+      (x): x is typeof x & { usage: 'ATTACHMENT' } => x.usage === 'ATTACHMENT',
     );
 
     const screenshots = await this.withUrls(
       reportFiles.filter(
-        (x): x is typeof x & { usage: ReportFileUsage.EMBEDDED_SCREENSHOT } =>
-          x.usage === ReportFileUsage.EMBEDDED_SCREENSHOT,
+        (x): x is typeof x & { usage: 'EMBEDDED_SCREENSHOT' } => x.usage === 'EMBEDDED_SCREENSHOT',
       ),
     );
 
@@ -202,9 +203,9 @@ export class DetailReportQuery {
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
       targettedPosition: report.nominationFile.targetedPosition,
-      priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPrioriteEnum),
+      priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: report.nominationFile.priorities[0]
-        ? prismaPrioriteEnumToPrioriteEnum(report.nominationFile.priorities[0])
+        ? prismaPrioriteEnumToPriorityEnum(report.nominationFile.priorities[0])
         : null,
 
       dateTransparence: DateOnly.fromDate(report.nominationFile.session.date).toJson(),
@@ -279,7 +280,7 @@ export class DetailedReportDto extends createZodDto(
     name: z.string(),
     comment: z.string().nullable(),
     formation: z.enum(FormationEnum),
-    state: z.enum(NominationFile.ReportState),
+    state: z.enum(ReportStateEnum),
     isArchived: z.boolean(),
     folderNumber: z.number().nullable(),
     biography: z.string().nullable(),
@@ -293,13 +294,13 @@ export class DetailedReportDto extends createZodDto(
     rank: z.string().nullable(),
     observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
-    priorities: z.array(z.enum(PrioriteEnum)),
-    priority: z.enum(PrioriteEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
+    priorities: z.array(z.enum(PriorityEnum)),
+    priority: z.enum(PriorityEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
     fileComment: z.string().nullable(),
 
     screenshots: z.array(
       z.object({
-        usage: z.enum([ReportFileUsage.EMBEDDED_SCREENSHOT]),
+        usage: z.enum(['EMBEDDED_SCREENSHOT']),
         name: z.string(),
         fileId: z.string(),
         url: z.url(),
@@ -308,7 +309,7 @@ export class DetailedReportDto extends createZodDto(
 
     attachments: z.array(
       z.object({
-        usage: z.enum([ReportFileUsage.ATTACHMENT]),
+        usage: z.enum(['ATTACHMENT']),
         name: z.string(),
         fileId: z.string(),
       }),

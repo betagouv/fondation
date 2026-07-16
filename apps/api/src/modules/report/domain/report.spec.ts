@@ -1,7 +1,5 @@
 import { randomUUID } from 'node:crypto';
 
-import { ReportFileUsage } from 'shared-models';
-
 import { Report, ReportFilesAttached, ReportFilesDetached } from './report';
 
 describe('Report', () => {
@@ -17,7 +15,7 @@ describe('Report', () => {
     const reporterId = randomUUID();
     report.attachFiles({
       reporterId,
-      fileUsage: ReportFileUsage.ATTACHMENT,
+      fileUsage: 'ATTACHMENT',
       files: [{ id: 'file-id' }],
     });
 
@@ -27,7 +25,7 @@ describe('Report', () => {
     expect(filesAttached).toMatchObject({
       id: reportId,
       reporterId,
-      usage: ReportFileUsage.ATTACHMENT,
+      usage: 'ATTACHMENT',
       files: [{ id: 'file-id' }],
     });
   });
@@ -42,7 +40,7 @@ describe('Report', () => {
 
     report.attachFiles({
       reporterId: randomUUID(),
-      fileUsage: ReportFileUsage.ATTACHMENT,
+      fileUsage: 'ATTACHMENT',
       files: [],
     });
     expect(report.messages).toHaveLength(0);

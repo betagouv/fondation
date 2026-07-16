@@ -1,8 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import { PrioriteEnum, NominationFile as Reports, TypeDeSaisine } from 'shared-models';
-
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
@@ -14,7 +12,10 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
@@ -122,7 +123,7 @@ export class SessionService {
   /** @internal */
   listMemberSessions(query: {
     user: { id: string; role: RoleEnum };
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedMemberSessionsDto> {
     return this.internalListMemberSessionsQuery.handle(query);
   }
@@ -132,10 +133,10 @@ export class SessionService {
     user: { id: string; role: RoleEnum };
     pagination: Pagination;
     sessionId: string;
-    typeDeSaisine: TypeDeSaisine;
-    status: Reports.ReportState[] | undefined;
+    typeDeSaisine: TypeDeSaisineEnum;
+    status: ReportStateEnum[] | undefined;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
-    priorities: (PrioriteEnum | null)[] | undefined;
+    priorities: (PriorityEnum | null)[] | undefined;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
   }
@@ -144,7 +145,7 @@ export class SessionService {
     sessionId: string;
     affectations: readonly {
       nominationFileId: string;
-      priorities: PrioriteEnum[];
+      priorities: PriorityEnum[];
       reporterIds: readonly string[];
     }[];
   }): Promise<void> {
@@ -186,7 +187,7 @@ export class SessionService {
     user: { role: RoleEnum; id: string };
     filters: {
       reporterIds: readonly (string | null)[];
-      priorities: readonly (PrioriteEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
       search: string | null;
     };
@@ -290,7 +291,7 @@ export class SessionService {
     const session = SessionTransparence.createLodamNominationTreeAndAffectMembers({
       ...command,
       formationMembers: members,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
     });
     await this.nominationSessionRepository.persist(session);
 
@@ -419,7 +420,7 @@ export class SessionService {
   listNominationSessions(query: {
     search: string | null;
     pagination: Pagination;
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
     formations: readonly FormationEnum[] | undefined;
     sorting: Sortable<ListGdsNominationSessionsQueryDto>;
   }): Promise<ListedNominationSessionsDto> {

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, NominationFile, PrioriteEnum, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaPrioriteEnum, PrismaReportStateEnum } from 'src/generated/prisma/enums';
@@ -17,8 +17,11 @@ import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaPrioriteEnumToPrioriteEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
@@ -28,10 +31,10 @@ export class InternalDetailMemberSessionQuery {
 
   async handle(query: {
     user: { id: string; role: RoleEnum };
-    status: NominationFile.ReportState[] | undefined;
-    priorities: (PrioriteEnum | null)[] | undefined;
+    status: ReportStateEnum[] | undefined;
+    priorities: (PriorityEnum | null)[] | undefined;
     sessionId: string;
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
     pagination: Pagination;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
   }): Promise<DetailedMemberSessionDto> {
@@ -124,7 +127,7 @@ export class InternalDetailMemberSessionQuery {
         const { id, state } = assertIsDefined(reports[0]);
 
         const priorities = Array.isArray(d.priorities)
-          ? d.priorities.map((x) => prismaPrioriteEnumToPrioriteEnum(x as PrismaPrioriteEnum))
+          ? d.priorities.map((x) => prismaPrioriteEnumToPriorityEnum(x as PrismaPrioriteEnum))
           : [];
         // TODO: remove once filePriority removed
         const filePriority = priorities[0] ?? null;
@@ -195,10 +198,10 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     state: z.string(),
     formation: z.string(),
     folderNumber: z.number().nullable(),
-    priorities: z.array(z.enum(PrioriteEnum)),
+    priorities: z.array(z.enum(PriorityEnum)),
     /** @deprecated */
     filePriority: z
-      .enum(PrioriteEnum)
+      .enum(PriorityEnum)
       .nullable()
       .meta({ deprecated: true, description: 'prefer priorities' }),
     dueDate: dateOnlyJsonSchema.nullable(),

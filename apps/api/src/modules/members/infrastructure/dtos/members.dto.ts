@@ -1,9 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { NominationFile, PrioriteEnum } from 'shared-models';
-
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import { isDefined } from 'src/utils/is-defined';
 
 export class ListMembersQueryDto extends createZodDto(
@@ -35,7 +35,7 @@ export class DetailsMemberSessionQueryDto extends createSortableDto(
           return [];
         }),
       )
-      .pipe(z.array(z.enum(PrioriteEnum).nullable())),
+      .pipe(z.array(z.enum(PriorityEnum).nullable())),
 
     status: z
       .string()
@@ -45,7 +45,7 @@ export class DetailsMemberSessionQueryDto extends createSortableDto(
           .map((x) => x.trim())
           .filter((x) => !!x),
       )
-      .pipe(z.array(z.enum(NominationFile.ReportState)))
+      .pipe(z.array(z.enum(ReportStateEnum)))
       .nullish(),
   }),
 ) {}

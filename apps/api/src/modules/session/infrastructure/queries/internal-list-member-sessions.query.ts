@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
@@ -11,13 +9,14 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 
 @Injectable()
 export class InternalListMemberSessionsQuery {
   constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: {
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
     user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionsDto> {
     const userFormationRestriction = roleToFormation(query.user.role) ?? null;
@@ -63,7 +62,7 @@ export class ListedMemberSessionsDto extends createZodDto(
         isAffected: z.boolean(),
         fileCount: z.number(),
         formation: z.enum(FormationEnum),
-        typeDeSaisine: z.enum(TypeDeSaisine),
+        typeDeSaisine: z.enum(TypeDeSaisineEnum),
       }),
     ),
   }),

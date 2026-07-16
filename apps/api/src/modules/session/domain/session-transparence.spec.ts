@@ -1,7 +1,5 @@
 import { randomUUID } from 'node:crypto';
 
-import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
-
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
@@ -187,14 +185,12 @@ describe('SessionTransparence', () => {
 
     session.setNominationFilePriority({
       nominationFileId: 'nomination-file-id-1',
-      priorities: [PrioriteEnum.OUTRE_MER],
+      priorities: ['OUTRE_MER'],
     });
 
     const { messages } = session;
     expect(messages).toEqual([
-      new SessionTransparenceFilePrioritiesUpdated('session-id', 'nomination-file-id-1', [
-        PrioriteEnum.OUTRE_MER,
-      ]),
+      new SessionTransparenceFilePrioritiesUpdated('session-id', 'nomination-file-id-1', ['OUTRE_MER']),
     ]);
   });
 
@@ -221,7 +217,7 @@ describe('SessionTransparence', () => {
     expect(() =>
       session.setNominationFilePriority({
         nominationFileId: 'nomination-file-id-1',
-        priorities: [PrioriteEnum.OUTRE_MER],
+        priorities: ['OUTRE_MER'],
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
@@ -305,7 +301,7 @@ describe('SessionTransparence', () => {
         date: new DateOnly(2025, 1, 1),
         observationClosingDate: new DateOnly(2025, 2, 1),
         formation: 'PARQUET',
-        typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+        typeDeSaisine: 'TRANSPARENCE_GDS',
         dueDate: null,
         positionStartDate: null,
         userId: randomUUID(),
@@ -358,7 +354,7 @@ describe('SessionTransparence', () => {
         new SessionTransparenceCreated(
           session.id,
           'TEST transparence LODAM PARQUET',
-          TypeDeSaisine.TRANSPARENCE_GDS,
+          'TRANSPARENCE_GDS',
           'PARQUET',
           new DateOnly(2025, 1, 1),
           new DateOnly(2025, 2, 1),
@@ -439,7 +435,7 @@ describe('SessionTransparence', () => {
           date: new DateOnly(2025, 1, 1),
           observationClosingDate: new DateOnly(2025, 2, 1),
           formation: 'PARQUET',
-          typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
           dueDate: null,
           positionStartDate: null,
           userId: randomUUID(),

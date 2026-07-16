@@ -6,8 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { PrioriteEnum } from 'shared-models';
-
 import {
   LodamSessionTransparenceFilesCreated,
   SessionTransparence,
@@ -42,9 +40,9 @@ import {
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { StatutAffectation } from 'src/modules/session/domain/statut-affectation.enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
@@ -112,7 +110,7 @@ export class NominationSessionRepository {
       version: optionalVersion.map(({ id, status, version }) => ({
         id,
         version,
-        isDraft: status === StatutAffectation.BROUILLON,
+        isDraft: status === 'BROUILLON',
       })),
     });
   }
@@ -248,7 +246,7 @@ export class NominationSessionRepository {
   ) {
     return tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
-      data: { priorities: message.priorities as PrioriteEnum[] },
+      data: { priorities: message.priorities as PriorityEnum[] },
     });
   }
 

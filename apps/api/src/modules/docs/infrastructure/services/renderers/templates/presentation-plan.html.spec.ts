@@ -1,7 +1,5 @@
 import { load } from 'cheerio';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { DateOnly } from 'src/utils/date-only';
 
 import {
@@ -19,13 +17,13 @@ const baseCtx = {
     lastName: 'dior',
   },
   time: { hours: 18, minutes: 0, seconds: 0 },
-  typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+  typeDeSaisine: 'TRANSPARENCE_GDS',
   sessions: [
     {
       id: 'session-1',
       formation: 'SIEGE',
       name: `Transparence annuelle`,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
       agendas: [
         {
           chairman: {

@@ -1,7 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import {
   PresentationPlanRenderContext,
@@ -9,6 +7,7 @@ import {
 } from '../services/renderers/presentation-plan.renderer';
 import { PrismaService } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
@@ -125,7 +124,7 @@ export class FindPresentationPlanDocumentQuery {
             id: sessionId,
             name: sessionName,
             // TODO: change when other are available
-            typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
+            typeDeSaisine: TypeDeSaisineEnum.TRANSPARENCE_GDS,
             formation: prismaFormationEnumToFormationEnum(formation),
           };
         })

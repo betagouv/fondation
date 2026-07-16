@@ -1,9 +1,9 @@
 import { addWeeks } from 'date-fns';
 
-import { PrioriteEnum, TypeDeSaisine } from 'shared-models';
-
 import { AutoAffectations } from 'src/modules/session/domain/auto-affectation/auto-affectations';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
@@ -34,7 +34,7 @@ export class SessionTransparenceFilePrioritiesUpdated {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
-    readonly priorities: readonly PrioriteEnum[],
+    readonly priorities: readonly PriorityEnum[],
   ) {}
 }
 
@@ -57,7 +57,7 @@ export class SessionTransparenceCreated {
   constructor(
     readonly sessionId: string,
     readonly name: string,
-    readonly typeDeSaisine: TypeDeSaisine,
+    readonly typeDeSaisine: TypeDeSaisineEnum,
     readonly formation: FormationEnum,
     readonly date: DateOnly,
     readonly observationClosingDate: DateOnly,
@@ -291,7 +291,7 @@ export class SessionTransparence {
 
   static create(command: {
     name: string;
-    typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS;
+    typeDeSaisine: 'TRANSPARENCE_GDS';
     formation: FormationEnum;
     date: DateOnly;
     observationClosingDate: DateOnly | null;
@@ -403,7 +403,7 @@ export class SessionTransparence {
     this.#messages.push(new SessionTransparenceLolfiFilesAssociated(this.id, command.files));
   }
 
-  setNominationFilePriority(props: { nominationFileId: string; priorities: PrioriteEnum[] }) {
+  setNominationFilePriority(props: { nominationFileId: string; priorities: PriorityEnum[] }) {
     this.assertsCanUpdateFiles(props.nominationFileId);
 
     this.#messages.push(
@@ -635,7 +635,7 @@ export class SessionTransparence {
 }
 
 export type CreateLodamSessionTransparenceCommand = {
-  typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS;
+  typeDeSaisine: 'TRANSPARENCE_GDS';
   files: readonly LodamNominationFile[];
   name: string;
   date: DateOnly;

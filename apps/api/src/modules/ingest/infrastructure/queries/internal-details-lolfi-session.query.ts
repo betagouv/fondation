@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { PrioriteEnum } from 'shared-models';
-
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
@@ -52,9 +51,9 @@ export class InternalDetailsLolfiSessionQuery {
           targetedPosition: file.targetedPosition,
           formation: prismaFormationEnumToFormationEnum(file.formation),
           rank: `(${file.rank} sur une liste de ${files.length})`,
-          priorities: ([] as PrioriteEnum[]).concat(
-            file.isOutreMer ? [PrioriteEnum.OUTRE_MER] : [],
-            file.isProfiled ? [PrioriteEnum.PROFILE] : [],
+          priorities: ([] as PriorityEnum[]).concat(
+            file.isOutreMer ? ['OUTRE_MER'] : [],
+            file.isProfiled ? ['PROFILE'] : [],
           ),
           magistrat: {
             id: file.magistratId,
@@ -86,7 +85,7 @@ export type DetailedLolfiSession = {
     detectedTargetedPositionId: number | null;
     detectedTargetedFunctionId: string | null;
     detectedJurisdictionId: string | null;
-    priorities: PrioriteEnum[];
+    priorities: PriorityEnum[];
     magistrat: {
       id: string;
       externalId: number;

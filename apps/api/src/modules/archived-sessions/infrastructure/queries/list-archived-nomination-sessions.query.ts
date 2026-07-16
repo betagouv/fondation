@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, TypeDeSaisine } from 'shared-models';
+import { dateOnlyJsonSchema } from 'shared-models';
 
 import { ListArchivedNominationSessionsQueryDto } from '../../archived-sessions.dto';
 import { Prisma } from 'src/generated/prisma/client';
@@ -11,6 +11,7 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY'] as const;
@@ -22,7 +23,7 @@ export class ListArchivedNominationSessionsQuery {
 
   async handle(query: {
     search: string | null;
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
     formations: readonly FormationEnum[] | undefined;
     sorting: Sortable<ListArchivedNominationSessionsQueryDto>;
     pagination: Pagination;
@@ -93,7 +94,7 @@ export class ListedArchivedNominationSessionsDto extends createPaginatedZodDto(
     formation: z.enum(FormationEnum),
     date: dateOnlyJsonSchema,
     dueDate: dateOnlyJsonSchema.nullable(),
-    typeDeSaisine: z.enum(TypeDeSaisine),
+    typeDeSaisine: z.enum(TypeDeSaisineEnum),
     status: z.enum(SESSION_STATUSES),
   }),
 ) {}

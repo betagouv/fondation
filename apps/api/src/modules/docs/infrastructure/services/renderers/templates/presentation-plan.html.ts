@@ -2,14 +2,13 @@ import { load } from 'cheerio';
 import { html } from 'common-tags';
 import { format } from 'date-fns';
 
-import { TypeDeSaisine } from 'shared-models';
-
 import { date, fullname, requiresElision } from '../helpers';
 import {
   DocNominationFileOutcomeEnum,
   docNominationFileOutcomeLabel,
 } from 'src/modules/docs/domain/doc-nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
@@ -49,12 +48,12 @@ function css(): string {
   `;
 }
 
-function header(ctx: { date: DateOnly; typeDeSaisine: TypeDeSaisine; formation: FormationEnum }): string {
+function header(ctx: { date: DateOnly; typeDeSaisine: TypeDeSaisineEnum; formation: FormationEnum }): string {
   const saisineTitle = assertIsDefined(
     (
       {
-        [TypeDeSaisine.TRANSPARENCE_GDS]: `Proposition du Garde des sceaux`,
-      } satisfies Record<TypeDeSaisine, string>
+        ['TRANSPARENCE_GDS']: `Proposition du Garde des sceaux`,
+      } satisfies Record<TypeDeSaisineEnum, string>
     )[ctx.typeDeSaisine],
     `Le type de saisine n'est pas supporté: "${ctx.typeDeSaisine}"`,
   );
@@ -255,7 +254,7 @@ function content(ctx: {
   sessions: readonly {
     id: string;
     name: string;
-    typeDeSaisine: TypeDeSaisine;
+    typeDeSaisine: TypeDeSaisineEnum;
     formation: FormationEnum;
     agendas: readonly {
       comments: readonly string[];
