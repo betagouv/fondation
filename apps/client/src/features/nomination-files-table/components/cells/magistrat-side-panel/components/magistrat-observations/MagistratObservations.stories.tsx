@@ -211,20 +211,20 @@ type Story = StoryObj<typeof meta>;
 
 export const SecretaireGeneral: Story = {};
 
-export const Membre: Story = { args: { view: 'member' } };
+export const Member: Story = { args: { view: 'member' } };
 
 export const ObserversOnly: Story = { args: { observations: false } };
 
 export const Empty: Story = { args: { observers: 0, observations: false } };
 
-export const TexteSeul: Story = { args: { view: 'sg', data: TEXT_ONLY } };
+export const TextOnly: Story = { args: { view: 'sg', data: TEXT_ONLY } };
 
-export const UnePieceJointe: Story = { args: { view: 'sg', data: ONE_FILE } };
+export const OneAttachment: Story = { args: { view: 'sg', data: ONE_FILE } };
 
-export const TexteEtPlusieursPiecesJointes: Story = { args: { view: 'sg', data: MANY_FILES } };
+export const TextWithSeveralAttachments: Story = { args: { view: 'sg', data: MANY_FILES } };
 
-export const MembrePieceJointe: Story = { args: { view: 'member', data: ONE_FILE } };
+export const MemberWithAttachment: Story = { args: { view: 'member', data: ONE_FILE } };
 
 export const Qualifications: Story = { args: { view: 'sg', data: QUALIFIED_OBSERVATIONS } };
 
-export const SansTag: Story = { args: { view: 'sg', followUp: NO_TAG } };
+export const WithoutTag: Story = { args: { view: 'sg', followUp: NO_TAG } };
