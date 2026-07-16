@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema, NominationFile } from 'shared-models';
+import { NominationFile } from 'shared-models';
 
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
@@ -19,6 +19,7 @@ import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/m
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 

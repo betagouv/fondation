@@ -2,8 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { load } from 'cheerio';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { PrismaPrioriteEnum, PrismaReportStateEnum } from 'src/generated/prisma/enums';
 import {
@@ -22,6 +20,7 @@ import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 

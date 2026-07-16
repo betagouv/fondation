@@ -1,11 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { NominationFileOutcome } from '../../domain/nomination-file-outcome';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { timeOnlySchema } from 'src/utils/time-only';
 
 export class AffectReportersDto extends createZodDto(

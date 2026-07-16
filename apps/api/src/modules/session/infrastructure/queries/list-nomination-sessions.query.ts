@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { ListGdsNominationSessionsQueryDto } from '../dtos/nomination-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
@@ -13,6 +11,7 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;

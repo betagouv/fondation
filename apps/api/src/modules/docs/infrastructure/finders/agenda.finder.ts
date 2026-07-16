@@ -2,8 +2,6 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -12,6 +10,7 @@ import {
   prismaFormationEnumToFormationEnum,
 } from 'src/modules/shared/mappers/formation.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 

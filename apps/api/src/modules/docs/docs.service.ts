@@ -8,8 +8,6 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { DateOnlyJson } from 'shared-models';
-
 import { PrismaService } from '../framework/database';
 import { Pagination } from '../framework/pagination';
 import { MembersService } from '../members';
@@ -18,6 +16,7 @@ import { SimpleAuthService } from '../simple-auth';
 import { Prisma } from 'src/generated/prisma/client';
 import { Files } from 'src/modules/framework/files';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { DateOnlyJson } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';

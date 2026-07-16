@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
 import { PrismaService } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
