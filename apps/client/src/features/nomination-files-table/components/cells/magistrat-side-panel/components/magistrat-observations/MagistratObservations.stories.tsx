@@ -103,29 +103,9 @@ const OBSERVATIONS: Observation[] = [
   makeObservation({ description: LONG_TEXT, id: 'texte-seul', magistrat: MAGISTRATS[3] }),
   makeObservation({ files: makeFiles(3), followUp: 'ALERT', id: 'pieces-seules', magistrat: MAGISTRATS[2] }),
   makeObservation({ id: 'minimal', magistrat: null }),
-];
-
-const TEXT_ONLY: Observation[] = [
-  makeObservation({ description: LONG_TEXT, id: 'texte-seul', magistrat: MAGISTRATS[4] }),
-];
-
-const ONE_FILE: Observation[] = [
-  makeObservation({
-    files: makeFiles(1),
-    followUp: 'INTERESTING',
-    id: 'une-piece',
-    magistrat: MAGISTRATS[1],
-  }),
-];
-
-const MANY_FILES: Observation[] = [
-  makeObservation({
-    description: LONG_TEXT,
-    files: makeFiles(6),
-    followUp: 'ALERT',
-    id: 'plusieurs-pieces',
-    magistrat: MAGISTRATS[5],
-  }),
+  makeObservation({ id: 'sans-contenu-1', magistrat: MAGISTRATS[1] }),
+  makeObservation({ id: 'sans-contenu-2', magistrat: MAGISTRATS[4] }),
+  makeObservation({ followUp: 'INTERESTING', id: 'sans-contenu-3', magistrat: MAGISTRATS[5] }),
 ];
 
 const QUALIFIED_OBSERVATIONS: Observation[] = (['ALERT', 'INTERESTING', 'REFERENCE'] as const).map(
@@ -153,10 +133,12 @@ function seed(observations: Observation[]) {
 }
 
 function MagistratObservationsStory(props: {
-  observers: number;
-  observations: boolean;
   view: View;
+  observationsCount: number;
+  observationText?: boolean;
+  filesCount?: number;
   followUp?: FollowUpControl;
+  observers: number;
   data?: Observation[];
 }) {
   const navigate = useNavigate();
@@ -164,21 +146,24 @@ function MagistratObservationsStory(props: {
     navigate(props.view === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
   }, [props.view, navigate]);
 
-  const { followUp } = props;
-  const base = props.data ?? (props.observations ? OBSERVATIONS : []);
-  const observations = followUp
-    ? base.map((observation) => ({
-        ...observation,
-        followUp: followUp === NO_TAG ? null : followUp,
-      }))
-    : base;
+  const { filesCount, followUp, observationText } = props;
+  const base = (props.data ?? OBSERVATIONS).slice(0, props.observationsCount);
+  const observations = base.map((observation) => ({
+    ...observation,
+    ...(filesCount !== undefined && { files: makeFiles(filesCount) }),
+    ...(followUp !== undefined && { followUp: followUp === NO_TAG ? null : followUp }),
+    ...(observationText !== undefined && { description: observationText ? LONG_TEXT : '' }),
+  }));
   const nominationFile = makeSessionNominationFile({
     id: NOMINATION_FILE_ID,
     content: { observants: props.observers > 0 ? OBSERVERS.slice(0, props.observers) : null },
   });
 
   return (
-    <StoryQueryClient key={`${observations.length}-${followUp ?? 'none'}`} seed={seed(observations)}>
+    <StoryQueryClient
+      key={`${observations.length}-${followUp ?? 'none'}-${filesCount ?? 'none'}-${observationText ?? 'none'}`}
+      seed={seed(observations)}
+    >
       <ObservationsModalProvider>
         <MagistratObservations nominationFile={nominationFile} sessionId={SESSION_ID} />
       </ObservationsModalProvider>
@@ -192,17 +177,19 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    observers: { control: { type: 'range', min: 0, max: OBSERVERS.length, step: 1 } },
-    observations: { control: 'boolean' },
     view: { control: 'inline-radio', options: VIEWS },
+    observationsCount: { control: { type: 'range', min: 0, max: OBSERVATIONS.length, step: 1 } },
+    observationText: { control: 'boolean' },
+    filesCount: { control: { type: 'range', min: 0, max: 6, step: 1 } },
     followUp: {
       control: 'inline-radio',
       options: [NO_TAG, 'ALERT', 'INTERESTING', 'REFERENCE'] satisfies FollowUpControl[],
       labels: { [NO_TAG]: 'Aucun', ...ObservationFollowUpEnumLabels },
     },
+    observers: { control: { type: 'range', min: 0, max: OBSERVERS.length, step: 1 } },
     data: { control: false },
   },
-  args: { observers: 1, observations: true, view: 'sg' },
+  args: { view: 'sg', observationsCount: 1, observers: 0 },
 } satisfies Meta<typeof MagistratObservationsStory>;
 
 export default meta;
@@ -213,18 +200,24 @@ export const SecretaireGeneral: Story = {};
 
 export const Member: Story = { args: { view: 'member' } };
 
-export const ObserversOnly: Story = { args: { observations: false } };
+export const List: Story = { args: { observationsCount: OBSERVATIONS.length } };
 
-export const Empty: Story = { args: { observers: 0, observations: false } };
+export const TextOnly: Story = { args: { filesCount: 0, observationText: true } };
 
-export const TextOnly: Story = { args: { view: 'sg', data: TEXT_ONLY } };
+export const OneAttachment: Story = { args: { filesCount: 1, observationText: false } };
 
-export const OneAttachment: Story = { args: { view: 'sg', data: ONE_FILE } };
+export const TextWithSeveralAttachments: Story = { args: { filesCount: 6, observationText: true } };
 
-export const TextWithSeveralAttachments: Story = { args: { view: 'sg', data: MANY_FILES } };
+export const MemberWithAttachment: Story = {
+  args: { view: 'member', filesCount: 1, observationText: false },
+};
 
-export const MemberWithAttachment: Story = { args: { view: 'member', data: ONE_FILE } };
+export const Qualifications: Story = {
+  args: { data: QUALIFIED_OBSERVATIONS, observationsCount: QUALIFIED_OBSERVATIONS.length },
+};
 
-export const Qualifications: Story = { args: { view: 'sg', data: QUALIFIED_OBSERVATIONS } };
+export const WithoutTag: Story = { args: { followUp: NO_TAG } };
 
-export const WithoutTag: Story = { args: { view: 'sg', followUp: NO_TAG } };
+export const ObserversOnly: Story = { args: { observationsCount: 0, observers: 3 } };
+
+export const Empty: Story = { args: { observationsCount: 0 } };
