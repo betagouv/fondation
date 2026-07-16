@@ -7,13 +7,14 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryReaderSelector } from '@/features/summary/components/SummaryReaderSelector';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { useArchivedSession } from '@/shared/context/archived-session';
+import { ExpandableText } from '@/shared/ui/expandable-text';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useGenerateSummaryAttachmentPublicUrlMutation, useSummaryQuery } from '@queries/summary.queries';
 
 import { MagistratSummaryButton } from './MagistratSummaryButton';
-import { toPlainText } from './summary-text';
+import { containsImage, toPlainText } from './summary-text';
 
 export function MagistratSummary(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   return (
@@ -167,8 +168,10 @@ function SummaryText(props: {
   return (
     <div className="flex flex-col gap-6">
       {text ? (
-        <p className="fr-mb-0 line-clamp-6 leading-7 whitespace-pre-line text-(--text-default-grey)">
-          {text}
+        <ExpandableText className="leading-7 text-(--text-default-grey)" text={text} />
+      ) : containsImage(props.content) ? (
+        <p className="fr-mb-0 text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Des images sont présentes dans la synthèse" />
         </p>
       ) : (
         <p className="fr-mb-0 text-(--text-mention-grey)">
@@ -185,12 +188,6 @@ function SummaryText(props: {
       )}
     </div>
   );
-}
-
-function attachmentIcon(type: string) {
-  if (type === 'application/pdf') return 'ri-file-pdf-2-line' as const;
-  if (type.startsWith('image/')) return 'ri-file-image-line' as const;
-  return 'ri-file-line' as const;
 }
 
 function SummaryAttachments(props: {
@@ -210,12 +207,12 @@ function SummaryAttachments(props: {
         />
       </div>
       <ul className="fr-raw-list flex flex-col items-start">
-        {props.attachments.map(({ id, name, type }) => (
+        {props.attachments.map(({ id, name }) => (
           <li key={id}>
             <Button
               className="px-0!"
               disabled={isPending}
-              iconId={attachmentIcon(type)}
+              iconId="ri-file-text-line"
               onClick={() => openAttachment({ sessionId, nominationFileId, fileId: id })}
               priority="tertiary no outline"
               size="small"

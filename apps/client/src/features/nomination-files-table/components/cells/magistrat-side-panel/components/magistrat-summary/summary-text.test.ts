@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { toPlainText } from './summary-text';
+import { containsImage, toPlainText } from './summary-text';
 
 describe('toPlainText', () => {
   it('keeps paragraphs on separate lines', () => {
@@ -29,5 +29,27 @@ describe('toPlainText', () => {
 
   it('is empty when the summary holds no text', () => {
     expect(toPlainText('<p></p>')).toBe('');
+  });
+
+  it('is empty when the summary only holds images', () => {
+    expect(toPlainText('<p><img src="blob:profil" alt="" /></p>')).toBe('');
+  });
+});
+
+describe('containsImage', () => {
+  it('detects an image in the summary', () => {
+    expect(containsImage('<p><img src="blob:profil" alt="" /></p>')).toBe(true);
+  });
+
+  it('detects nothing in a text-only summary', () => {
+    expect(containsImage('<p>Magistrate expérimentée.</p>')).toBe(false);
+  });
+
+  it('detects nothing in an empty summary', () => {
+    expect(containsImage('')).toBe(false);
+  });
+
+  it('is not fooled by the word image in the text', () => {
+    expect(containsImage('<p>Une image vaut mille mots</p>')).toBe(false);
   });
 });

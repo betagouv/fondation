@@ -21,52 +21,121 @@ const OBSERVERS = [
   'Conférence nationale des procureurs',
 ];
 
-const OBSERVATIONS: Observation[] = [
+const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
   {
-    createdAt: '2026-03-11',
-    createdBy: { firstName: 'Anne', id: 'user-1', lastName: 'Roy' },
-    dateReception: '2026-03-10',
-    description: 'Observation transmise par un magistrat concurrent.',
-    files: [{ id: 'file-1', name: 'observation-martin.pdf' }],
-    followUp: 'REFERENCE',
-    id: 'observation-1',
-    magistrat: {
-      currentPosition: 'Juge au tribunal judiciaire de Nantes',
-      firstName: 'Léa',
-      id: 'magistrat-1',
-      lastName: 'Martin',
-      usedName: null,
-    },
+    currentPosition: 'Juge au tribunal judiciaire de Nantes',
+    firstName: 'Léa',
+    id: 'magistrat-martin',
+    lastName: 'Martin',
+    usedName: null,
   },
   {
-    createdAt: '2026-03-14',
-    createdBy: null,
-    dateReception: '2026-03-14',
-    description: 'Observation sans pièce jointe.',
-    files: [],
-    followUp: null,
-    id: 'observation-2',
-    magistrat: null,
+    currentPosition: 'Conseillère à la cour d’appel de Lyon',
+    firstName: 'Mariame',
+    id: 'magistrat-konate',
+    lastName: 'Konaté',
+    usedName: null,
+  },
+  {
+    currentPosition: 'Substitute générale près la cour d’appel de Douai',
+    firstName: 'Amélie',
+    id: 'magistrat-rousseau',
+    lastName: 'Rousseau',
+    usedName: null,
+  },
+  {
+    currentPosition: 'Vice-procureur au tribunal judiciaire de Marseille',
+    firstName: 'Karim',
+    id: 'magistrat-benali',
+    lastName: 'Benali',
+    usedName: null,
+  },
+  {
+    currentPosition: 'Première vice-présidente au tribunal judiciaire de Bordeaux',
+    firstName: 'Sophie',
+    id: 'magistrat-nguyen',
+    lastName: 'Nguyen',
+    usedName: null,
+  },
+  {
+    currentPosition: 'Conseiller référendaire à la Cour de cassation',
+    firstName: 'Étienne',
+    id: 'magistrat-lefebvre',
+    lastName: 'Lefebvre',
+    usedName: null,
   },
 ];
 
-const QUALIFIED_OBSERVATIONS: Observation[] = (['ALERT', 'INTERESTING', 'REFERENCE'] as const).map(
-  (followUp, index) => ({
+function makeObservation(overrides: Partial<Observation> & { id: string }): Observation {
+  return {
     createdAt: '2026-03-11',
     createdBy: { firstName: 'Anne', id: 'user-1', lastName: 'Roy' },
     dateReception: '2026-03-10',
-    description: 'Observation qualifiée.',
+    description: '',
     files: [],
-    followUp,
-    id: `observation-qualified-${index}`,
-    magistrat: {
-      currentPosition: 'Juge au tribunal judiciaire de Nantes',
-      firstName: 'Léa',
-      id: `magistrat-${index}`,
-      lastName: 'Martin',
-      usedName: null,
-    },
+    followUp: null,
+    magistrat: MAGISTRATS[0]!,
+    ...overrides,
+  };
+}
+
+function makeFiles(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `file-${index}`,
+    name: `piece-jointe-${index + 1}.pdf`,
+  }));
+}
+
+const LONG_TEXT = [
+  'Observation transmise par un magistrat concurrent.',
+  '',
+  'Le magistrat souligne plusieurs points de vigilance sur la proposition.',
+].join('\n');
+
+const OBSERVATIONS: Observation[] = [
+  makeObservation({
+    description: LONG_TEXT,
+    files: makeFiles(1),
+    followUp: 'REFERENCE',
+    id: 'texte-et-piece',
+    magistrat: MAGISTRATS[0],
   }),
+  makeObservation({ description: LONG_TEXT, id: 'texte-seul', magistrat: MAGISTRATS[3] }),
+  makeObservation({ files: makeFiles(3), followUp: 'ALERT', id: 'pieces-seules', magistrat: MAGISTRATS[2] }),
+  makeObservation({ id: 'minimal', magistrat: null }),
+];
+
+const TEXT_ONLY: Observation[] = [
+  makeObservation({ description: LONG_TEXT, id: 'texte-seul', magistrat: MAGISTRATS[4] }),
+];
+
+const ONE_FILE: Observation[] = [
+  makeObservation({
+    files: makeFiles(1),
+    followUp: 'INTERESTING',
+    id: 'une-piece',
+    magistrat: MAGISTRATS[1],
+  }),
+];
+
+const MANY_FILES: Observation[] = [
+  makeObservation({
+    description: LONG_TEXT,
+    files: makeFiles(6),
+    followUp: 'ALERT',
+    id: 'plusieurs-pieces',
+    magistrat: MAGISTRATS[5],
+  }),
+];
+
+const QUALIFIED_OBSERVATIONS: Observation[] = (['ALERT', 'INTERESTING', 'REFERENCE'] as const).map(
+  (followUp, index) =>
+    makeObservation({
+      description: 'Observation qualifiée.',
+      followUp,
+      id: `qualified-${index}`,
+      magistrat: MAGISTRATS[index],
+    }),
 );
 
 const VIEWS = ['sg', 'member'] as const;
@@ -148,4 +217,14 @@ export const ObserversOnly: Story = { args: { observations: false } };
 
 export const Empty: Story = { args: { observers: 0, observations: false } };
 
+export const TexteSeul: Story = { args: { view: 'sg', data: TEXT_ONLY } };
+
+export const UnePieceJointe: Story = { args: { view: 'sg', data: ONE_FILE } };
+
+export const TexteEtPlusieursPiecesJointes: Story = { args: { view: 'sg', data: MANY_FILES } };
+
+export const MembrePieceJointe: Story = { args: { view: 'member', data: ONE_FILE } };
+
 export const Qualifications: Story = { args: { view: 'sg', data: QUALIFIED_OBSERVATIONS } };
+
+export const SansTag: Story = { args: { view: 'sg', followUp: NO_TAG } };

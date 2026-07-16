@@ -42,6 +42,12 @@ const ATTACHMENTS = [
   { id: 'attachment-3', name: 'organigramme-juridiction.png', type: 'image/png' },
 ];
 
+const LONG_CONTENT = [
+  '<p>Magistrate au parcours confirmé dont la candidature est portée par une expérience solide en juridiction, sur des fonctions civiles comme pénales.</p>',
+  '<p>Elle a exercé successivement comme juge d’instance, juge des contentieux de la protection puis vice-présidente, en administrant plusieurs services et en encadrant des équipes de greffe.</p>',
+  '<p>Les observations reçues soulignent une grande rigueur, un sens de l’écoute et une capacité à conduire des projets de juridiction, tout en maintenant une charge d’audiencement élevée.</p>',
+].join('');
+
 const VIEWS = ['sg', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
@@ -89,6 +95,7 @@ function MagistratSummaryStory(props: {
   attachments: boolean;
   hasSummary: boolean;
   isArchived: boolean;
+  longText: boolean;
   readers: boolean;
   view: View;
 }) {
@@ -112,6 +119,7 @@ function MagistratSummaryStory(props: {
                 ? { firstName: SG_USER.firstName, id: SG_USER.id, lastName: SG_USER.lastName }
                 : { firstName: 'Sophie', id: 'sg-1', lastName: 'Bernard' },
             readers: props.readers ? READERS : [],
+            ...(props.longText ? { content: LONG_CONTENT } : {}),
           },
         }),
       );
@@ -139,10 +147,18 @@ const meta = {
     attachments: { control: 'boolean' },
     hasSummary: { control: 'boolean' },
     isArchived: { control: 'boolean' },
+    longText: { control: 'boolean' },
     readers: { control: 'boolean' },
     view: { control: 'inline-radio', options: VIEWS },
   },
-  args: { attachments: false, hasSummary: true, isArchived: false, readers: false, view: 'sg' },
+  args: {
+    attachments: false,
+    hasSummary: true,
+    isArchived: false,
+    longText: false,
+    readers: false,
+    view: 'sg',
+  },
 } satisfies Meta<typeof MagistratSummaryStory>;
 
 export default meta;
@@ -150,6 +166,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Readable: Story = {};
+
+export const LongText: Story = { args: { longText: true } };
 
 export const Shared: Story = { args: { readers: true } };
 
