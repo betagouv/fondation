@@ -233,9 +233,6 @@ importers:
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
-      shared-models:
-        specifier: workspace:*
-        version: link:../../packages/shared-models
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
