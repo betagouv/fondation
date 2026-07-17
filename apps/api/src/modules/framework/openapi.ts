@@ -21,6 +21,7 @@ export function openapi(app: INestApplication): void {
               type: 'http',
               scheme: 'basic',
             })
+            .addBearerAuth()
             .build(),
           { operationIdFactory: (_, methodKey) => methodKey },
         ),

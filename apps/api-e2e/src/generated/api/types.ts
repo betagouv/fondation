@@ -825,6 +825,40 @@ export type ListedJurisdictions = {
     }>;
 };
 
+export type SearchMagistratAuthorizationDto = {
+    email: string;
+};
+
+export type FoundMagistratAuthorizationDto = {
+    /**
+     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
+     * - `UNKNOWN` we did not find any _Magistrat_ with that email
+     */
+    role: 'MAGISTRAT' | 'UNKNOWN';
+};
+
+export type SearchMagistratAuthorizationInvalidEmailDto = {
+    message: string;
+    path: string;
+    statusCode: 400;
+    timestamp: string;
+    errors: Array<{
+        code: 'invalid_format';
+        format: 'email';
+        message: string;
+        origin: string;
+        path: Array<string>;
+        pattern: string;
+    }>;
+};
+
+export type SearchMagistratAuthorizationUnauthorizedDto = {
+    message: string;
+    path: string;
+    statusCode: 401;
+    timestamp: string;
+};
+
 export type FoundChairmenDto = {
     items: Array<{
         id: string;
@@ -2550,6 +2584,26 @@ export type SearchResponses = {
 };
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type SearchMagistratAuthorizationData = {
+    body: SearchMagistratAuthorizationDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/magistrats/role';
+};
+
+export type SearchMagistratAuthorizationErrors = {
+    400: SearchMagistratAuthorizationInvalidEmailDto;
+    401: SearchMagistratAuthorizationUnauthorizedDto;
+};
+
+export type SearchMagistratAuthorizationError = SearchMagistratAuthorizationErrors[keyof SearchMagistratAuthorizationErrors];
+
+export type SearchMagistratAuthorizationResponses = {
+    200: FoundMagistratAuthorizationDto;
+};
+
+export type SearchMagistratAuthorizationResponse = SearchMagistratAuthorizationResponses[keyof SearchMagistratAuthorizationResponses];
 
 export type SearchChairmenData = {
     body?: never;
