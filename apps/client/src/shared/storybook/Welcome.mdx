@@ -1,0 +1,62 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Guide/Bienvenue" />
+
+# Bienvenue sur le Storybook de Fondation
+
+Ce site est le **catalogue vivant** des écrans et composants de Fondation. Chaque élément que
+vous voyez ici est le **vrai composant** de l'application, présenté
+dans un état précis : vide, avec des pièces jointes, vu par le secrétariat général, vu par un
+membre, etc. Chacun de ces états s'appelle une "story".
+
+À quoi ça sert ? À voir l'interface **avant** qu'elle soit en production, à vérifier tous les
+cas possibles sans avoir à les reproduire dans l'application et à en discuter avec l'équipe.
+
+## Se repérer
+
+- La **colonne de gauche** liste tout le catalogue :
+  - **Shared** : les briques génériques réutilisées un peu partout (cartes, badges, tableaux...)
+  - **Features** : les composants regroupés par fonctionnalité de l'application. Par exemple
+    **Magistrat** rassemble tout ce qui compose la SidePanel : ses observations,
+    sa date d'audition, ses pièces jointes...
+  - **Design Tokens** : les couleurs du projet
+- Cliquez sur un composant pour le déplier : chaque ligne en dessous est un **état** cliquable.
+- La **recherche** en haut de la colonne retrouve n'importe quel composant
+  (raccourci : touche <kbd>/</kbd>).
+- La page **Docs** de chaque composant rassemble sa description et tous ses états sur une
+  seule page.
+
+## Essayer les composants
+
+C'est le grand intérêt de Storybook : **vous pouvez manipuler les composants vous-même**.
+
+1. Ouvrez un état, par exemple [le badge de priorité](?path=/story/shared-prioritybadge--playground).
+2. Sous le composant, ouvrez le panneau **Controls**.
+3. Modifiez ce que vous voulez : un texte, une case à cocher, un choix parmi plusieurs
+   options... Le composant se met à jour **instantanément**.
+4. Pour revenir à l'état d'origine, cliquez sur le bouton de réinitialisation (↺) en haut à
+   droite du panneau.
+
+Vous ne pouvez **rien casser** : rien n'est enregistré, tout se passe dans votre navigateur.
+Recharger la page suffit à tout remettre à zéro.
+
+## Les outils de la barre du haut
+
+Au-dessus du composant, quelques outils utiles :
+
+- **Taille d'écran** : simuler un mobile ou une tablette
+- **Zoom** : agrandir ou réduire l'affichage
+- **Fond** : changer la couleur d'arrière-plan
+- **Plein écran** : voir le composant seul, sans l'interface Storybook
+
+À côté du panneau Controls, l'onglet **Accessibility** signale automatiquement les problèmes
+d'accessibilité détectés (contrastes insuffisants, éléments mal étiquetés...).
+
+## Partager ce que vous voyez
+
+L'adresse de la page (URL) pointe toujours vers l'état exact que vous êtes en train de
+regarder, **y compris vos modifications** dans le panneau Controls.
+
+Pour signaler quelque chose à l'équipe ("ce cas-là ne va pas", "il manque ce texte"),
+copiez simplement l'URL et envoyez-la : la personne qui l'ouvre verra exactement la même
+chose que vous.
