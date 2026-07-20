@@ -68,9 +68,11 @@ class HasRoleGuard implements CanActivate {
 }
 
 export function HasRole(...roles: readonly (RoleEnum | 'MACHINE')[]): MethodDecorator {
-  return applyDecorators(
-    SetMetadata(META_ROLES, roles),
-    UseGuards(mixin(HasRoleGuard)),
-    ApiCookieAuth('sessionId'),
-  );
+  const decorators = [SetMetadata(META_ROLES, roles), UseGuards(mixin(HasRoleGuard))];
+
+  if (roles.length === 0 || roles.filter((x) => x !== 'MACHINE').length > 0) {
+    decorators.push(ApiCookieAuth('sessionId'));
+  }
+
+  return applyDecorators(...decorators);
 }
