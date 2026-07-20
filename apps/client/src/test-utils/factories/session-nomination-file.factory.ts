@@ -10,6 +10,7 @@ const baseContent: SessionNominationFile['content'] = {
   datePassageAuGrade: null,
   datePriseDeFonctionPosteActuel: null,
   detectedJurisdictionId: null,
+  detectedMagistratId: null,
   detectedTargetedFunctionId: null,
   grade: 'I',
   gradeCible: 'HH',

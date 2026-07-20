@@ -1,5 +1,5 @@
-import { Controller, Get, HttpStatus, Query, UsePipes } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/common';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { PrismaService } from '../framework/database';
@@ -10,6 +10,7 @@ import { unaccent } from 'src/utils/unaccent';
 
 import { SearchMagistratsQueryDto } from './infrastructure/dtos/observation.dto';
 import { MagistratService } from './infrastructure/magistrat.service';
+import { DetailedMagistratDto } from './infrastructure/queries/detail-magistrat.query';
 import { SearchMagistratsResponseDto } from './infrastructure/queries/search-magistrats.query';
 
 @ApiTags('Magistrats')
@@ -42,5 +43,16 @@ export class MagistratController {
   @Get('fullname')
   searchFullName(@Query('search') search: string) {
     return this.prisma.$queryRawTyped(findMagistratExternalIdByFullName(unaccent(search.toLowerCase())));
+  }
+
+  @Get('/:magistratId')
+  @HasRole()
+  @ApiParam({ name: 'magistratId', type: 'string', format: 'uuid' })
+  @ZodResponse({
+    type: DetailedMagistratDto,
+    status: HttpStatus.OK,
+  })
+  detailMagistrat(@Param('magistratId') magistratId: string): Promise<DetailedMagistratDto> {
+    return this.magistrats.detailMagistrat({ magistratId });
   }
 }

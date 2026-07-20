@@ -52,6 +52,7 @@ export class DetailReportQuery {
           select: {
             id: true,
             name: true,
+            detectedMagistratId: true,
             biography: true,
             number: true,
             birthDate: true,
@@ -202,6 +203,7 @@ export class DetailReportQuery {
       formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
+      detectedMagistratId: report.nominationFile.detectedMagistratId,
 
       observations: report.nominationFile.observations.map((obs) => ({
         id: obs.id,
@@ -248,6 +250,7 @@ export class DetailedReportDto extends createZodDto(
     sessionId: z.string(),
     nominationFileId: z.string(),
     name: z.string(),
+    detectedMagistratId: z.string().nullable(),
     comment: z.string().nullable(),
     formation: z.enum(FormationEnum),
     state: z.enum(ReportStateEnum),

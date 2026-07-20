@@ -151,6 +151,7 @@ export class ListNominationFilesQuery {
           informationCarrière: null,
           detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
           detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+          detectedMagistratId: x.detectedMagistratId ?? null,
           outcome: x.outcome
             ? {
                 comment: x.outcomeComment,
@@ -255,6 +256,7 @@ const NominationFileContentSchema = z.object({
   informationCarrière: z.string().nullable(),
   detectedJurisdictionId: z.string().nullable(),
   detectedTargetedFunctionId: z.string().nullable(),
+  detectedMagistratId: z.string().nullable(),
   outcome: z
     .object({
       value: z.enum(NominationFileOutcome.enum),
@@ -292,6 +294,7 @@ const RawListedNominationFiles = z.array(
     alertHidden: z.boolean(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
+    detectedMagistratId: z.string().nullable(),
     hasAttachment: z.boolean(),
     queryRank: z.number().nullable(),
 

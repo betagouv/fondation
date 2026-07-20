@@ -96,6 +96,7 @@ export class GetObservationDetailsQuery {
             select: {
               name: true,
               targetedPosition: true,
+              detectedMagistratId: true,
             },
           },
 
@@ -150,6 +151,7 @@ export class GetObservationDetailsQuery {
         observedMagistrat: {
           name: observation.nominationFile.name,
           proposedPosition: observation.nominationFile.targetedPosition,
+          detectedMagistratId: observation.nominationFile.detectedMagistratId,
         },
         files: observation.files.map(({ file }) => ({
           id: file.id,
@@ -279,6 +281,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     observedMagistrat: z.object({
       name: z.string(),
       proposedPosition: z.string().nullable(),
+      detectedMagistratId: z.string().nullable(),
     }),
     description: z.string(),
     followUp: z.enum(ObservationFollowUp.enum).nullable(),
