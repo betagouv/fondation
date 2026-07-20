@@ -56,8 +56,6 @@ export class NominationSessionFileFinder {
       select: {
         id: true,
         outcome: true,
-        auditionDate: true,
-        auditionTime: true,
       },
     });
 
@@ -66,28 +64,9 @@ export class NominationSessionFileFinder {
       nominationFileIds: new Set(updatableNominationFiles.map(({ id }) => id)),
     });
 
-    return updatableNominationFiles.map(({ auditionDate, auditionTime, ...file }) => {
+    return updatableNominationFiles.map((file) => {
       const docs = withDocs.get(file.id) ?? [];
-      return {
-        ...file,
-        docs,
-        scheduledAuditionAt: scheduledAuditionAt(auditionDate, auditionTime),
-      };
+      return { ...file, docs };
     });
   }
-}
-
-function scheduledAuditionAt(date: Date | null, time: Date | null): Date | null {
-  if (!date || !time) return null;
-
-  return new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      time.getUTCHours(),
-      time.getUTCMinutes(),
-      time.getUTCSeconds(),
-    ),
-  );
 }

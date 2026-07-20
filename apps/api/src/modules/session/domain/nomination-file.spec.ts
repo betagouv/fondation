@@ -17,7 +17,6 @@ describe('UpdatableNominationFile', () => {
         outcome,
         id: `file-id-1`,
         docs: [],
-        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -36,7 +35,6 @@ describe('UpdatableNominationFile', () => {
             officialReport: { id: 'or-1', outcome: 'SUSPENDED' },
           },
         ],
-        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(true);
@@ -58,7 +56,6 @@ describe('UpdatableNominationFile', () => {
             },
           },
         ],
-        scheduledAuditionAt: null,
       }).isUpdatable();
 
       expect(isUpdatable).toBe(false);

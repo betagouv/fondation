@@ -1,12 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
+import { useConfirmation } from '@/shared/context/confirmation';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { isPastSchedule, toScheduledDate, type PlainTimeOnly } from '@/utils/time-only.util';
 import { useUpdateNominationFileAuditionDateMutation } from '@queries/members.queries';
@@ -50,7 +51,9 @@ export function MagistratAuditionDateForm(props: {
   const {
     mutate,
     isError: saveFailed,
-    reset: resetSaveError,
+    isSuccess: saveSucceeded,
+    variables: savedValues,
+    reset: resetSaveState,
   } = useUpdateNominationFileAuditionDateMutation();
 
   const initialDate = dateToInput(initialAuditionDate);
@@ -96,6 +99,9 @@ export function MagistratAuditionDateForm(props: {
   const isIncomplete = editable && !!date !== !!time;
   const showIncompleteWarning = useUnsavedGuard('audition-date', isIncomplete);
 
+  const [editingPastAudition, setEditingPastAudition] = useState(false);
+  const { buttonProps, waitForConfirmation } = useConfirmation();
+
   const save = handleSubmit(({ date, time }) => {
     if (!isDirty) return;
     mutate(
@@ -114,35 +120,66 @@ export function MagistratAuditionDateForm(props: {
   const scheduledAt = toScheduledDate(initialAuditionDate, initialAuditionTime);
   const isPast = isPastSchedule(initialAuditionDate, initialAuditionTime);
 
+  const editPastAudition = async () => {
+    if (!scheduledAt) return;
+
+    const { isConfirmed } = await waitForConfirmation({
+      title: formatMessage({ defaultMessage: 'Modifier une audition passée' }),
+      content: (
+        <p>
+          <FormattedMessage
+            defaultMessage="Cette audition a eu lieu le {date} à {time}. Voulez-vous vraiment la modifier ?"
+            values={{
+              date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
+              time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+            }}
+          />
+        </p>
+      ),
+      i18n: {
+        cancel: formatMessage({ defaultMessage: 'Annuler' }),
+        confirm: formatMessage({ defaultMessage: 'Modifier la date' }),
+      },
+    });
+    if (isConfirmed) setEditingPastAudition(true);
+  };
+
   if (!editable) {
     return (
-      <p className="fr-mb-0">
-        {scheduledAt ? (
-          isPast ? (
-            <FormattedMessage
-              defaultMessage="Une audition a eu lieu le {date} à {time}"
-              values={{
-                date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-                time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
-              }}
-            />
+      <div>
+        <h3 className="fr-mb-4v text-xl font-semibold">
+          <FormattedMessage defaultMessage="Audition" />
+        </h3>
+        <p className="fr-mb-0">
+          {scheduledAt ? (
+            isPast ? (
+              <FormattedMessage
+                defaultMessage="Une audition a eu lieu le {date} à {time}"
+                values={{
+                  date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
+                  time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+                }}
+              />
+            ) : (
+              <FormattedMessage
+                defaultMessage="Une audition est prévue le {date} à {time}"
+                values={{
+                  date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
+                  time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+                }}
+              />
+            )
           ) : (
-            <FormattedMessage
-              defaultMessage="Une audition est prévue le {date} à {time}"
-              values={{
-                date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-                time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
-              }}
-            />
-          )
-        ) : (
-          <span className="text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Aucune date et heure d'audition" />
-          </span>
-        )}
-      </p>
+            <span className="text-(--text-mention-grey)">
+              <FormattedMessage defaultMessage="Aucune date et heure d'audition" />
+            </span>
+          )}
+        </p>
+      </div>
     );
   }
+
+  const isLocked = isPast && !editingPastAudition;
 
   const missingFieldMessage = !date
     ? formatMessage({ defaultMessage: 'La date est à renseigner' })
@@ -152,6 +189,34 @@ export function MagistratAuditionDateForm(props: {
 
   return (
     <div>
+      <div className="fr-mb-4v flex items-center justify-between gap-2">
+        <h3 className="fr-mb-0 text-xl font-semibold">
+          <FormattedMessage defaultMessage="Audition" />
+        </h3>
+        {isLocked ? (
+          <Button
+            className="btn-compact"
+            nativeButtonProps={buttonProps}
+            onClick={editPastAudition}
+            priority="secondary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Modifier la date passée" />
+          </Button>
+        ) : (
+          (date || time) && (
+            <Button
+              className="btn-compact"
+              onClick={clear}
+              priority="secondary"
+              size="small"
+              title={formatMessage({ defaultMessage: "Réinitialiser la date et l'heure d'audition" })}
+            >
+              <FormattedMessage defaultMessage="Réinitialiser" />
+            </Button>
+          )
+        )}
+      </div>
       <div className="flex flex-row items-end gap-2">
         <Controller
           control={control}
@@ -159,14 +224,14 @@ export function MagistratAuditionDateForm(props: {
           render={({ field }) => (
             <Input
               className="fr-mb-0"
-              disabled={isPast}
+              disabled={isLocked}
               label={formatMessage({ defaultMessage: 'Date' })}
               nativeInputProps={{
                 id: AUDITION_DATE_INPUT_ID,
                 onBlur: () => void save(),
                 onChange: (event) => {
                   field.onChange(event);
-                  if (saveFailed) resetSaveError();
+                  resetSaveState();
                 },
                 type: 'date',
                 value: field.value,
@@ -180,13 +245,13 @@ export function MagistratAuditionDateForm(props: {
           render={({ field }) => (
             <Input
               className="fr-mb-0"
-              disabled={isPast}
+              disabled={isLocked}
               label={formatMessage({ defaultMessage: 'Heure' })}
               nativeInputProps={{
                 onBlur: () => void save(),
                 onChange: (event) => {
                   field.onChange(event);
-                  if (saveFailed) resetSaveError();
+                  resetSaveState();
                 },
                 type: 'time',
                 value: field.value,
@@ -194,18 +259,14 @@ export function MagistratAuditionDateForm(props: {
             />
           )}
         />
-        {!isPast && (date || time) && (
-          <Button
-            className="ml-auto btn-compact"
-            onClick={clear}
-            priority="secondary"
-            size="small"
-            title={formatMessage({ defaultMessage: "Réinitialiser la date et l'heure d'audition" })}
-          >
-            <FormattedMessage defaultMessage="Réinitialiser" />
-          </Button>
-        )}
       </div>
+      {saveSucceeded && !validationError && (
+        <p className="fr-valid-text fr-mt-2v" role="status">
+          {savedValues?.auditionDate
+            ? formatMessage({ defaultMessage: "Date d'audition enregistrée" })
+            : formatMessage({ defaultMessage: "Date d'audition réinitialisée" })}
+        </p>
+      )}
       {validationError && (
         <p className="fr-error-text fr-mt-2v" role="alert">
           {validationError}

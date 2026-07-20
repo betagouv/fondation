@@ -91,7 +91,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                className="w-fit text-lg font-bold text-(--text-action-high-blue-france)"
+                className="-my-0.5 w-fit py-0.5 text-base font-bold text-(--text-action-high-blue-france) hover:bg-(--background-default-grey-hover) hover:[--underline-hover-width:0]"
                 title={detailTitle}
                 to={detailPath}
               >
@@ -99,7 +99,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
               </Link>
               {observation.followUp && (
                 <Tag
-                  className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
+                  className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
                   small
                 >
                   {ObservationFollowUpEnumLabels[observation.followUp]}
@@ -143,7 +143,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
             <Button
               aria-controls={panelId}
               aria-expanded={expanded}
-              className="[&::after]:ml-1!"
+              className="-mr-3 [&::after]:ml-1!"
               iconId={expanded ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
               iconPosition="right"
               onClick={() => setExpanded((value) => !value)}
@@ -156,7 +156,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
         </div>
 
         {isExpandable && expanded && (
-          <div className="fr-mt-1v flex flex-col gap-4 bg-(--background-alt-grey) px-3 py-3" id={panelId}>
+          <div className="fr-mt-1v flex flex-col gap-4 py-3" id={panelId}>
             {hasDescription && (
               <div>
                 {showHeadings && (
@@ -183,7 +183,7 @@ function MagistratObservationCard({ observation, file }: { observation: Observat
                   {observation.files.map((attachment) => (
                     <li key={attachment.id}>
                       <Button
-                        className="px-0!"
+                        className="px-0! underline underline-offset-3 before:no-underline [&::before]:mr-1!"
                         disabled={isLoadingFile}
                         iconId="ri-file-text-line"
                         onClick={() => handleFileClick(attachment.id)}

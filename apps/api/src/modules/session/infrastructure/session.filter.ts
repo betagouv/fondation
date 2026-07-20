@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { AuditionAlreadyOccurred } from '../domain/nomination-file';
 import {
   NominationFileCannotBeAuditioned,
   NominationFileOutcomeRequiresComment,
@@ -117,12 +116,6 @@ export class SessionExceptionFilter implements NestInterceptor {
           if (err instanceof AuditionRequiresDateAndTime) {
             return new BadRequestException({
               validationErrors: [`la date et l'heure d'audition doivent être renseignées ensemble`],
-            });
-          }
-
-          if (err instanceof AuditionAlreadyOccurred) {
-            return new ForbiddenException({
-              validationErrors: [`l'audition a déjà eu lieu et ne peut plus être modifiée`],
             });
           }
 

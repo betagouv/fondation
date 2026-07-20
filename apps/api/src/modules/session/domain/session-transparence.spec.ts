@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
-import { AuditionAlreadyOccurred, LodamNominationFile } from './nomination-file';
+import { LodamNominationFile } from './nomination-file';
 import {
   NominationFileCannotBeAuditioned,
   NominationFileOutcome,
@@ -41,7 +41,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -82,7 +81,6 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or1', outcome: 'VALIDATED' },
             },
           ],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -110,7 +108,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -150,7 +147,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -178,7 +174,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -209,7 +204,6 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -232,7 +226,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -471,7 +464,6 @@ describe('SessionTransparence', () => {
           id: 'nf-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -520,7 +512,6 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -543,7 +534,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -572,7 +562,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -601,7 +590,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -625,7 +613,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -637,7 +624,6 @@ describe('SessionTransparence', () => {
       nominationFileId: 'nomination-file-id-1',
       auditionDate,
       auditionTime,
-      now: new Date('2026-07-01T00:00:00Z'),
     });
 
     expect(session.messages).toEqual([
@@ -660,7 +646,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -670,34 +655,8 @@ describe('SessionTransparence', () => {
         nominationFileId: 'nomination-file-id-1',
         auditionDate: new DateOnly(2026, 7, 10),
         auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-        now: new Date('2026-07-01T00:00:00Z'),
       }),
     ).toThrow(NominationFileCannotBeAuditioned);
-  });
-
-  it('should throw when modifying an audition that already occurred', () => {
-    const session = SessionTransparence.from({
-      id: 'session-id',
-      formation: 'SIEGE',
-      version: null,
-      nominationFiles: [
-        {
-          id: 'nomination-file-id-1',
-          outcome: null,
-          docs: [],
-          scheduledAuditionAt: new Date('2026-07-10T14:30:00Z'),
-        },
-      ],
-    });
-
-    expect(() =>
-      session.scheduleAudition({
-        nominationFileId: 'nomination-file-id-1',
-        auditionDate: null,
-        auditionTime: null,
-        now: new Date('2026-07-10T14:31:00Z'),
-      }),
-    ).toThrow(AuditionAlreadyOccurred);
   });
 
   it('should clear the audition without checking the outcome when no date is provided', () => {
@@ -710,7 +669,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -719,7 +677,6 @@ describe('SessionTransparence', () => {
       nominationFileId: 'nomination-file-id-1',
       auditionDate: null,
       auditionTime: null,
-      now: new Date('2026-07-01T00:00:00Z'),
     });
 
     expect(session.messages).toEqual([
@@ -740,7 +697,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -750,7 +706,6 @@ describe('SessionTransparence', () => {
         nominationFileId: 'nomination-file-id-1',
         auditionDate,
         auditionTime,
-        now: new Date('2026-07-01T00:00:00Z'),
       }),
     ).toThrow(AuditionRequiresDateAndTime);
     expect(session.messages).toEqual([]);
@@ -766,7 +721,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -796,7 +750,6 @@ describe('SessionTransparence', () => {
           id: 'nomination-file-id-1',
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -826,7 +779,6 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
-          scheduledAuditionAt: null,
         },
       ],
     });
@@ -854,7 +806,6 @@ describe('SessionTransparence', () => {
               officialReport: { id: 'or-1', outcome: 'VALIDATED' },
             },
           ],
-          scheduledAuditionAt: null,
         },
       ],
     });

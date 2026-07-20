@@ -116,7 +116,6 @@ export class ListNominationFilesQuery {
             id: file.id,
             outcome: file.outcome,
             docs,
-            scheduledAuditionAt: null,
           });
 
           return {
