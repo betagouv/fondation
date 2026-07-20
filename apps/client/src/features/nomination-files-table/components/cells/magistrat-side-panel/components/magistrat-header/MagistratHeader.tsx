@@ -14,6 +14,7 @@ import { getGdsReportPath } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { useMyReportQuery } from '@queries/reports.queries';
 
 import { MagistratPrioritySelect, MagistratReporterSelect } from './MagistratAffectationFields';
 
@@ -41,6 +42,10 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const canEdit = isEditable && !!isUpdatable;
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
+  const { data: myReportId } = useMyReportQuery({
+    enabled: isReporter,
+    nominationFileId: nominationFile.id,
+  });
   const surfaceClassName = isReporter
     ? 'bg-(--background-contrast-brown-cafe-creme)'
     : 'bg-(--background-alt-blue-france)';
@@ -111,12 +116,12 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
           {showWarning && reportersDirty && <UnsavedWarning />}
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
           <ReporterStatus currentUserId={user?.id} reporters={nominationFile.reporters} />
-          {nominationFile.myReportId && (
+          {myReportId && (
             <Button
               className="btn-compact"
-              linkProps={{ to: getGdsReportPath(nominationFile.myReportId) }}
+              linkProps={{ to: getGdsReportPath(myReportId) }}
               priority="secondary"
               size="small"
             >

@@ -3,6 +3,7 @@ import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
 test.describe('Report E2E', () => {
+  let nominationFileId: string;
   let reportId: string;
 
   test.beforeEach(async ({ sessions, agent, member, expect }) => {
@@ -33,7 +34,7 @@ test.describe('Report E2E', () => {
     });
     expect(filesResponse.response?.status).toBe(200);
 
-    const nominationFileId: string = filesResponse.data!.items[0]!.id;
+    nominationFileId = filesResponse.data!.items[0]!.id;
 
     const affectResponse = await agent.sessions.affectReporters({
       path: { sessionId: session.id },
@@ -52,6 +53,17 @@ test.describe('Report E2E', () => {
     });
 
     reportId = reportsRes.data!.items[0]!.id;
+  });
+
+  test('should find my report for a nomination file', async ({ logIn, member, expect }) => {
+    const memberRes = await member.reports.searchMyReport({ path: { nominationFileId } });
+    expect(memberRes.response?.status).toBe(200);
+    expect(memberRes.data?.reportId).toBe(reportId);
+
+    const memberWithoutReport = await logIn('MEMBRE_COMMUN');
+    const withoutReportRes = await memberWithoutReport.reports.searchMyReport({ path: { nominationFileId } });
+    expect(withoutReportRes.response?.status).toBe(200);
+    expect(withoutReportRes.data?.reportId).toBeNull();
   });
 
   test('should attach files to a report', async ({ member, expect }) => {

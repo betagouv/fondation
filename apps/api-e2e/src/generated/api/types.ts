@@ -67,6 +67,10 @@ export type GetReportFileUrlsResponseDto = {
     }>;
 };
 
+export type FoundMyReportDto = {
+    reportId: string | null;
+};
+
 export type DetailedReportDto = {
     id: string;
     sessionId: string;
@@ -380,7 +384,6 @@ export type PaginatedNominationFiles = {
             } | null;
         }>;
         memo: string | null;
-        myReportId: string | null;
         summary: {
             id: string;
             canRead: boolean;
@@ -1687,6 +1690,21 @@ export type GetReportFilesUrlResponses = {
 };
 
 export type GetReportFilesUrlResponse = GetReportFilesUrlResponses[keyof GetReportFilesUrlResponses];
+
+export type SearchMyReportData = {
+    body?: never;
+    path: {
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/nomination-files/{nominationFileId}/mine';
+};
+
+export type SearchMyReportResponses = {
+    200: FoundMyReportDto;
+};
+
+export type SearchMyReportResponse = SearchMyReportResponses[keyof SearchMyReportResponses];
 
 export type DetailReportData = {
     body?: never;

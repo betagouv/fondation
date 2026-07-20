@@ -11,6 +11,7 @@ import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys } from '@queries/members.queries';
+import { reportKeys } from '@queries/reports.queries';
 
 import { MagistratHeader } from './MagistratHeader';
 
@@ -40,7 +41,16 @@ function reportersFor(scenario: ReporterScenario) {
   return OTHER_REPORTERS;
 }
 
-function seedQueries(client: QueryClient, view: View) {
+function seedQueries(
+  client: QueryClient,
+  view: View,
+  myReport: { nominationFileId: string; reportId: string | null },
+) {
+  client.setQueryData(
+    reportKeys.myReport({ nominationFileId: myReport.nominationFileId }),
+    myReport.reportId,
+  );
+
   client.setQueryData(
     authKeys.introspectSession(),
     view === 'member'
@@ -91,13 +101,19 @@ function MagistratHeaderStory(props: {
     auditionDate: props.auditionScheduled ? { year: 2026, month: 9, day: 15 } : null,
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     content: { nomMagistrat: props.nomMagistrat },
-    myReportId: props.view === 'member' && props.reporters === 'you' ? 'report-1' : null,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
   });
 
+  const myReportId = props.view === 'member' && props.reporters === 'you' ? 'report-1' : null;
+
   return (
-    <StoryQueryClient key={props.view} seed={(client) => seedQueries(client, props.view)}>
+    <StoryQueryClient
+      key={`${props.view}-${props.reporters}`}
+      seed={(client) =>
+        seedQueries(client, props.view, { nominationFileId: nominationFile.id, reportId: myReportId })
+      }
+    >
       <NominationFilesTableProvider
         formation={FormationEnum.SIEGE}
         isEditable={isEditable}

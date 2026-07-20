@@ -195,7 +195,6 @@ export class ListNominationFilesQuery {
           };
         }),
         memo: x.memberMemo || null,
-        myReportId: x.myReportId,
         summary: x.summary
           ? {
               id: x.id,
@@ -299,8 +298,6 @@ const RawListedNominationFiles = z.array(
 
     memberMemo: z.string().nullable(),
 
-    myReportId: z.uuid().nullable(),
-
     reporters: z
       .array(
         z.object({
@@ -377,7 +374,6 @@ const NominationFileAffectationItemSchema = z.object({
     }),
   ),
   memo: z.string().nullable(),
-  myReportId: z.string().nullable(),
   summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
   hasAttachment: z.boolean(),
 });

@@ -13,6 +13,7 @@ import {
   GetReportFileUrlsQuery,
   type GetReportFileUrlsResponseDto,
 } from './infrastructure/queries/get-report-file-urls.query';
+import { type FoundMyReportDto, SearchMyReportQuery } from './infrastructure/queries/search-my-report.query';
 import { ReportRepository } from './infrastructure/report.repository';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class ReportService {
     private readonly reportRepository: ReportRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
+    private readonly searchMyReportQuery: SearchMyReportQuery,
     private readonly files: Files,
   ) {}
 
@@ -101,6 +103,10 @@ export class ReportService {
     reportId: string;
   }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
+  }
+
+  searchMyReport(query: { nominationFileId: string; userId: string }): Promise<FoundMyReportDto> {
+    return this.searchMyReportQuery.handle(query);
   }
 
   async updateReport(command: {
