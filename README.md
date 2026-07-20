@@ -2,140 +2,52 @@
 
 Donner au CSM (Conseil Supérieur de la Magistrature) les moyens d'un travail efficace et de qualité afin de concourir à la continuité du fonctionnement de l'institution judiciaire et de contribuer à une RH vertueuse du corps de la magistrature.
 
+## Organisation du monorepo
+
+Le projet est un workspace [pnpm](https://pnpm.io) composé de :
+
+- [apps/api](./apps/api) : le back-end Nest.js + Prisma
+- [apps/client](./apps/client) : le front-end React + Vite
+- [apps/api-e2e](./apps/api-e2e) : les tests bout-en-bout de l'api
+- [packages/lolfi](./packages/lolfi) : générateur d'archives LOLFI, partagé entre les tests de l'api et le front
+
 ## Architecture
 
 ```mermaid
----
-config:
-  theme: base
-  themeCSS: |
-    .node rect,
-    .node polygon {
-      fill: #ffffff !important;
-      rx: 4px !important;
-      ry: 4px !important;
-      filter:
-        drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))
-        drop-shadow(0 1px 2px rgba(0, 0, 0, 0.24));
-    }
-
-    .cluster rect {
-      fill: rgb(0 0 0 / 0.5%);
-    }
-
-    .node .label {
-      font-weight: 500;
-      fill: rgba(0, 0, 0, 0.87) !important;
-      font-size: 14px;
-    }
-
-  themeVariables:
-    background: '#ffffff'
-    primaryColor: '#ffffff'
-    primaryTextColor: 'rgba(0, 0, 0, 0.87)'
-    primaryBorderColor: '#e0e0e0'
-    lineColor: '#757575'
-    secondaryColor: '#ffffff'
-    tertiaryColor: '#ffffff'
-
-  flowchart:
-    curve: stepBefore
----
 flowchart LR
-  direction LR
-  user[fa:fa-user Utilisateur]
+  user([Utilisateur])
 
-  user -- https --> client
-  user -- https --> api
-  RIE -- https --> api
-
-  subgraph client[Scalingo NGINX]
-    nginx[React.js]
+  subgraph rie[RIE - Réseau Interministériel de l'État]
+    sdv["Serveur SDV<br/>extractions LOLFI"]
   end
 
-  subgraph RIE
-    SDV[serveur SDV]
+  subgraph scalingo[Scalingo]
+    front["Client React<br/>servi par NGINX"]
+    back[API Nest.js]
+    db[(PostgreSQL)]
+    pdf[["Workers PDF<br/>puppeteer"]]
+    oneoff[["One-off<br/>ingestion XML"]]
   end
 
+  storage[(Stockage objet S3)]
 
-  subgraph api[Scalingo Node.js]
-    back[Nest.js]
-    db[PG Scalingo]
-
-    back -- prisma --> db
-    back <-- piscina --> graph_pdf
-    back --> graph_oneoff
-    graph_oneoff --> db
-
-    subgraph graph_oneoff[One-off scalingo]
-      oneoff[Ingestion XML]
-    end
-
-    subgraph graph_pdf[PDF]
-      pdf_1@{shape: subproc, label: "PDF puppeteer #1" }
-      pdf_2@{shape: subproc, label: "PDF puppeteer #2" }
-    end
-  end
+  user -- https --> front
+  user -- https --> back
+  sdv -- https --> back
+  back -- prisma --> db
+  back <-- piscina --> pdf
+  back -- lance --> oneoff
+  oneoff --> db
+  back -- s3 --> storage
 ```
 
-## Bonnes pratiques
+LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats : ses
+extractions XML sont la source des données de nomination. Le stockage objet S3 contient les
+pièces jointes et les PDF générés. En local, il est émulé par MinIO (voir l'installation).
 
-PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml):
+## Installation et lancement
 
-```yaml
-preferFrozenLockfile: true # n'installe que les dépendances du lockfile
-minimumReleaseAge: 10080 # attend au moins 7 jours avant de proposer une dépendance
-allowBuilds: # liste blanche des paquets autorisés à exécuter un script d'install
-  '@nestjs/core': true
-  bcrypt: true # compilation native nécessaire
-  prisma: false # généré manuellement (voir installation) car requiert une base lancée
-  '@prisma/client': false
-  puppeteer: false
-```
-
-Tout paquet absent de `allowBuilds` est empêché d'exécuter ses scripts d'installation
-(`postinstall`, etc.), pour se protéger des attaques par supply chain
-(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). On n'autorise
-que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur compilation native.
-
-> [!WARNING]
-> Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
-> Chaque installation de dépendance doit être justifiée.
-
-> [!NOTE]
-> `prisma` est volontairement à `false` : le client est généré manuellement avec
-> `prisma generate --sql`, qui doit se connecter à une base déjà lancée (voir l'étape
-> d'installation).
-
-## Contribution
-
-> [!NOTE]
-> Le fichier [CLAUDE.md](./CLAUDE.md) contient de nombreuses informations relatives au style
-> utilisé dans le projet. Il est valable pour les LLMs, mais aussi très utile pour les humains.
->
-> Autrement, ne pas hésiter à se référer à ce document:
-> [https://github.com/zakirullin/cognitive-load/blob/main/README.md](https://github.com/zakirullin/cognitive-load/blob/main/README.md)
-
-Les projets front et back utilisent des conventions légèrement différentes. Pour les expliciter
-eslint et prettier ont chacun une configuration définie dans chaque projet.
-
-Pour chaque pull request, on vérifie que le code proposé respecte ces conventions. Pour éviter des cycles de CI
-inutiles, on peut utiliser le hook [husky](https://typicode.github.io/husky) `prepush` dans l'application en
-utilisant `npx husky` pour l'installer.
-
-Autrement à la racine du projet:
-
-```ts
-$ pnpm run prepush
-$ pnpm run types:check; pnpm run lint:check; pnpm run format:check;
-```
-
-Globalement, configurer son IDE pour utiliser ces configuration est le mieux, mais le workspace PNPM
-peut provoquer des conflits parfois.
-
-## Procédure d'installation de l'application Back
-
-Sauf indication contraire, les commandes se lancent depuis le dossier `apps/api`.
+Les commandes ci-dessous se lancent depuis `apps/api`, sauf mention de la racine ou usage de `--filter` (qui fonctionne depuis n'importe où).
 
 1. Installation des dépendances (depuis la racine)
 
@@ -161,20 +73,21 @@ docker compose --file ./test/docker-compose-test.yaml up -d   # Postgres :5435 +
 pnpm run prisma migrate deploy
 ```
 
-Pour la base de test:
+Pour la base de test :
 
 ```bash
 npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 ```
 
 > [!WARNING]
-> Pour le moment, il est très facile de lancer les tests sur la base locale, le mieux
-> est d'utiliser le script dans le fichier package.json.
+> Il est très facile de lancer les tests sur la base locale par erreur. Toujours passer
+> par les scripts du package.json de l'api (comme `start:e2e`), qui chargent `.env.e2e`
+> avant `.env` pour cibler la base de test.
 
 4. Générer le code
 
 ```bash
-pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
+pnpm --filter api prisma generate --generator client --sql   # client Prisma + requêtes TypedSQL (même commande qu'en CI)
 ```
 
 > [!IMPORTANT]
@@ -209,7 +122,7 @@ password: *****
 repeat password: *****
 ```
 
-Le CLI est interactif et demandera les informations manquantes si nécessaires.
+Le CLI est interactif et demandera les informations manquantes si nécessaire.
 Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
 `ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#L80)).
 Il est recommandé de créer un membre commun et un agent du secrétariat général.
@@ -220,7 +133,7 @@ Il est recommandé de créer un membre commun et un agent du secrétariat géné
 
 Les tests playwright exécutent l'application dans un mode particulier pour faciliter les tests, sans trop s'éloigner du comportement de production.
 
-Il faut déjà démarrer l'application back des tests. Playwright est capable de l'exécuter, mais s'il y a un bug les logs seront plus lisibles dans un processus séparé
+Il faut déjà démarrer l'application back des tests. Playwright est capable de l'exécuter lui-même. S'il y a un bug, les logs seront cependant plus lisibles dans un processus séparé.
 
 ```
 $ pnpm --filter api start:e2e
@@ -250,7 +163,7 @@ La spécification est générée directement depuis nos contrôleurs nest, grâc
 
 Swagger UI est exposé par défaut sur [/openapi](http://localhost:3000/openapi).
 
-Le SDK front est généré avec [@hey-api/openapi-ts](https://heyapi.dev/openapi-ts), et ces plugins:
+Le SDK front est généré avec [@hey-api/openapi-ts](https://heyapi.dev/openapi-ts) et ces plugins :
 
 - [typescript](https://heyapi.dev/openapi-ts/plugins/typescript)
 - [sdk](https://heyapi.dev/openapi-ts/plugins/sdk)
@@ -270,7 +183,7 @@ cd apps/api
 pnpm run dev
 ```
 
-Une fois disponible, on peut lancer le script de génération:
+Une fois disponible, on peut lancer le script de génération :
 
 ```
 cd apps/client
@@ -282,36 +195,79 @@ openapi-ts utilise directement la spécification exposée par nest.
 > [!NOTE]
 > Le code généré est directement embarqué dans le dépôt de code pour faciliter les choses.
 
-L'api est exploité dans des hooks custom qui retournent la `Query` ou la `Mutation`
+L'api est exploitée dans des hooks custom qui retournent la `Query` ou la `Mutation`
 de @tanstack/react-query dans le dossier [apps/client/src/queries](./apps/client/src/queries).
+Les types générés sont importables depuis `@api/types` et les conventions d'écriture de ces
+hooks sont décrites dans [CLAUDE.md](./CLAUDE.md).
 
-```ts
-// apps/client/src/queries/auth.queries.ts
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+## Storybook
 
-/** convention d'utiliser $api en mode namespace */
-import * as $api from '@api/sdk';
+Le catalogue des composants du front est construit avec [Storybook](https://storybook.js.org/) :
 
-/** On expose un dictionnaire de fonctions pour générer les clés */
-export const authKeys = {
-  introspectSession: () => ['introspectSession'],
-};
-
-/** L'implémentation est laissée libre */
-export function useLogout() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => $api.auth.logout(),
-    onSuccess: () => queryClient.removeQueries({ queryKey: authKeys.introspectSession() }),
-  });
-}
+```
+$ pnpm --filter client storybook
 ```
 
-Enfin, les types générés peuvent être utilisés au niveau des composants depuis `@api/types`.
+Il est accessible sur [localhost:6006](http://localhost:6006). Une version en ligne est
+déployée sur Scalingo à chaque push sur `develop` (lien disponible en interne).
 
-```tsx
-// apps/client/src/components/secretariat-general/membres/details/DetailsMember.tsx
-import type { DetailedMemberDto } from '@api/types';
-// ...
+Pour créer une story, voir le [guide Storybook](./apps/client/docs/storybook.md). Un guide
+d'utilisation à destination du métier est intégré au Storybook (page "Guide / Bienvenue").
+
+## Contribution
+
+> [!NOTE]
+> Le fichier [CLAUDE.md](./CLAUDE.md) contient de nombreuses informations relatives au style
+> utilisé dans le projet. Il s'adresse aux LLMs mais sert aussi de référence aux développeurs.
+>
+> Autrement, ne pas hésiter à se référer à ce document :
+> [https://github.com/zakirullin/cognitive-load/blob/main/README.md](https://github.com/zakirullin/cognitive-load/blob/main/README.md)
+
+Les projets front et back utilisent des conventions légèrement différentes. Pour les expliciter,
+[oxlint](https://oxc.rs/docs/guide/usage/linter) et [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
+ont chacun une configuration définie dans chaque projet (`.oxlintrc.json`, `.oxfmtrc.json`).
+
+Pour chaque pull request, on vérifie que le code proposé respecte ces conventions. Pour éviter des
+cycles de CI inutiles, on peut lancer les mêmes vérifications en local depuis la racine :
+
+```sh
+$ pnpm run prepush
 ```
+
+Le hook [husky](https://typicode.github.io/husky) `prepush` peut automatiser ce lancement avant
+chaque push (installation avec `npx husky`).
+
+Globalement, configurer son IDE pour utiliser ces configurations est le mieux. Le workspace PNPM
+peut cependant parfois provoquer des conflits.
+
+## Sécurité des dépendances
+
+PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml) :
+
+```yaml
+preferFrozenLockfile: true # n'installe que les dépendances du lockfile
+minimumReleaseAge: 10080 # attend au moins 7 jours avant de proposer une dépendance
+allowBuilds: # liste blanche des paquets autorisés à exécuter un script d'install
+  '@nestjs/core': true
+  '@prisma/client': false
+  '@swc/core': true # compilation native nécessaire
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  '@sentry/cli': false
+  bcrypt: true # compilation native nécessaire
+  prisma: false # généré manuellement (voir installation) car requiert une base lancée
+```
+
+Tout paquet absent de `allowBuilds` est empêché d'exécuter ses scripts d'installation
+(`postinstall`, etc.), pour se protéger des attaques par supply chain
+(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). On n'autorise
+que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur compilation native.
+
+> [!WARNING]
+> Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
+> Chaque installation de dépendance doit être justifiée.
+
+> [!NOTE]
+> `prisma` est volontairement à `false` : le client est généré manuellement avec
+> `prisma generate --sql`, qui doit se connecter à une base déjà lancée (voir la section
+> [Installation et lancement](#installation-et-lancement)).

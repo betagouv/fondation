@@ -32,6 +32,9 @@ const preview: Preview = {
     controls: {
       matchers: { color: /(background|color)$/i, date: /Date$/i },
     },
+    options: {
+      storySort: { order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
+    },
   },
 };
 
