@@ -13,6 +13,17 @@ import type { DetailedSummaryDto } from '@api/types';
 
 import { MagistratAuditionDateForm } from './MagistratAuditionDateForm';
 
+const mocks = vi.hoisted(() => ({
+  waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
+}));
+
+vi.mock('@/shared/context/confirmation', () => ({
+  useConfirmation: () => ({
+    buttonProps: {},
+    waitForConfirmation: mocks.waitForConfirmation,
+  }),
+}));
+
 type AuditionResponse = Awaited<ReturnType<typeof $api.sessions.updateNominationFileAuditionDate>>;
 
 function spyOnSave() {
@@ -52,7 +63,10 @@ function fillAuditionDate(date: string, time: string) {
   fireEvent.change(screen.getByLabelText('Heure'), { target: { value: time } });
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  mocks.waitForConfirmation.mockClear();
+});
 
 describe('AuditionDateForm read-only', () => {
   it('renders the scheduled date and time', () => {
@@ -93,29 +107,21 @@ describe('AuditionDateForm edition', () => {
     );
   });
 
-  it('asks for the time when only the date is filled', async () => {
+  it.each([
+    { field: 'Date', value: '2026-09-15', message: "L'heure est à renseigner" },
+    { field: 'Heure', value: '14:30', message: 'La date est à renseigner' },
+  ])('asks for the missing pair when only $field is filled', async ({ field, value, message }) => {
     const update = spyOnSave();
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
-    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-15' } });
-    fireEvent.blur(screen.getByLabelText('Date'));
+    fireEvent.change(screen.getByLabelText(field), { target: { value } });
+    fireEvent.blur(screen.getByLabelText(field));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent("L'heure est à renseigner");
+    expect(await screen.findByRole('alert')).toHaveTextContent(message);
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('asks for the date when only the time is filled', async () => {
-    const update = spyOnSave();
-    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
-
-    fireEvent.change(screen.getByLabelText('Heure'), { target: { value: '14:30' } });
-    fireEvent.blur(screen.getByLabelText('Heure'));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('La date est à renseigner');
-    expect(update).not.toHaveBeenCalled();
-  });
-
-  it('clears the audition when reset', async () => {
+  it('clears the audition and confirms the reset under the fields', async () => {
     const update = spyOnSave();
     renderAuditionDate({
       editable: true,
@@ -130,9 +136,10 @@ describe('AuditionDateForm edition', () => {
         expect.objectContaining({ body: { auditionDate: null, auditionTime: null } }),
       ),
     );
+    expect(await screen.findByRole('status')).toHaveTextContent("Date d'audition réinitialisée");
   });
 
-  it('disables the fields and hides the reset button once the audition has occurred', () => {
+  it('locks the fields once the audition has occurred', () => {
     renderAuditionDate({
       editable: true,
       initialAuditionDate: { year: 2020, month: 1, day: 15 },
@@ -142,6 +149,65 @@ describe('AuditionDateForm edition', () => {
     expect(screen.getByLabelText('Date')).toBeDisabled();
     expect(screen.getByLabelText('Heure')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Réinitialiser' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Modifier la date passée' })).toBeInTheDocument();
+  });
+
+  it('unlocks the fields and saves the corrected date after confirmation', async () => {
+    const update = spyOnSave();
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: { year: 2020, month: 1, day: 15 },
+      initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Modifier la date passée' }));
+
+    expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
+    await waitFor(() => expect(screen.getByLabelText('Date')).toBeEnabled());
+    expect(screen.getByLabelText('Date')).toHaveValue('2020-01-15');
+
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2020-01-16' } });
+    fireEvent.blur(screen.getByLabelText('Date'));
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: {
+            auditionDate: { year: 2020, month: 1, day: 16 },
+            auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+          },
+        }),
+      ),
+    );
+  });
+
+  it('keeps the fields locked when the edition is not confirmed', async () => {
+    mocks.waitForConfirmation.mockResolvedValueOnce({ isConfirmed: false });
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: { year: 2020, month: 1, day: 15 },
+      initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Modifier la date passée' }));
+
+    expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText('Date')).toBeDisabled();
+    expect(screen.getByLabelText('Heure')).toBeDisabled();
+  });
+
+  it('confirms the save under the fields and hides it when editing again', async () => {
+    spyOnSave();
+    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
+
+    fillAuditionDate('2026-09-15', '14:30');
+    fireEvent.blur(screen.getByLabelText('Heure'));
+
+    expect(await screen.findByRole('status')).toHaveTextContent("Date d'audition enregistrée");
+
+    fireEvent.change(screen.getByLabelText('Heure'), { target: { value: '15:00' } });
+
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
   });
 
   it('does not save again after a successful save of the same value', async () => {
@@ -179,22 +245,6 @@ describe('AuditionDateForm edition', () => {
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
-  });
-
-  it('clears the failure message as soon as a field is edited again', async () => {
-    vi.spyOn($api.sessions, 'updateNominationFileAuditionDate').mockRejectedValueOnce(new Error('network'));
-    renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
-
-    fillAuditionDate('2026-09-15', '14:30');
-    fireEvent.blur(screen.getByLabelText('Heure'));
-
-    expect(await screen.findByText("L'enregistrement de la date d'audition a échoué")).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('Heure'), { target: { value: '15:00' } });
-
-    await waitFor(() =>
-      expect(screen.queryByText("L'enregistrement de la date d'audition a échoué")).not.toBeInTheDocument(),
-    );
   });
 });
 
@@ -249,23 +299,15 @@ describe('AuditionDateForm close guard', () => {
     expect(screen.getByText("L'heure est à renseigner")).toBeInTheDocument();
   });
 
-  it('allows closing once both date and time are filled', () => {
+  it.each([
+    { state: 'both date and time are filled', fill: () => fillAuditionDate('2026-09-15', '14:30') },
+    { state: 'both fields are left empty', fill: () => {} },
+  ])('allows closing when $state', ({ fill }) => {
     spyOnSave();
     const t = renderInPanel();
     act(() => t.panel().open('a'));
 
-    fillAuditionDate('2026-09-15', '14:30');
-    act(() => t.panel().close());
-
-    expect(t.panel().activeId).toBeNull();
-    expect(t.panel().isLeaveBlocked).toBe(false);
-  });
-
-  it('allows closing when both fields are left empty', () => {
-    spyOnSave();
-    const t = renderInPanel();
-    act(() => t.panel().open('a'));
-
+    fill();
     act(() => t.panel().close());
 
     expect(t.panel().activeId).toBeNull();

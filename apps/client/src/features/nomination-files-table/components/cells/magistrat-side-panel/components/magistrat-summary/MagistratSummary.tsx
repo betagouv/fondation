@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import * as Sentry from '@sentry/react';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -99,17 +99,21 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
           <div className="flex shrink-0 items-center gap-2">
             <SummaryReaderSelector
               className="btn-compact"
+              iconId="fr-icon-lock-line"
               priority="tertiary"
               rounded={false}
               size="small"
               withCount={false}
             />
-            <Button className="btn-compact" linkProps={{ to: link }} priority="secondary" size="small">
-              {canWriteSummary ? (
-                <FormattedMessage defaultMessage="Modifier" />
-              ) : (
-                <FormattedMessage defaultMessage="Ouvrir" />
-              )}
+            <Button
+              className="btn-compact"
+              iconId="fr-icon-arrow-right-line"
+              iconPosition="right"
+              linkProps={{ to: link }}
+              priority="secondary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Ouvrir" />
             </Button>
           </div>
         }
@@ -166,7 +170,7 @@ function SummaryText(props: {
   const text = useMemo(() => toPlainText(props.content), [props.content]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       {text ? (
         <ExpandableText className="leading-7 text-(--text-default-grey)" text={text} />
       ) : containsImage(props.content) ? (
@@ -197,31 +201,45 @@ function SummaryAttachments(props: {
 }) {
   const { mutate: openAttachment, isPending } = useGenerateSummaryAttachmentPublicUrlMutation();
   const { nominationFileId, sessionId } = props;
+  const [expanded, setExpanded] = useState(false);
+  const count = props.attachments.length;
+  const panelId = `summary-attachments-${nominationFileId}`;
 
   return (
     <div>
-      <div className="fr-mb-2v fr-text--sm fr-text--bold">
+      <Button
+        aria-controls={panelId}
+        aria-expanded={expanded}
+        className="px-0! [&::after]:ml-1!"
+        iconId={expanded ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+        iconPosition="right"
+        onClick={() => setExpanded((value) => !value)}
+        priority="tertiary no outline"
+        size="small"
+      >
         <FormattedMessage
-          defaultMessage="{count, plural, one {Pièce jointe de la synthèse :} other {Pièces jointes de la synthèse :}}"
-          values={{ count: props.attachments.length }}
+          defaultMessage="{count, plural, one {Voir la pièce jointe de la synthèse} other {Voir les # pièces jointes de la synthèse}}"
+          values={{ count }}
         />
-      </div>
-      <ul className="fr-raw-list flex flex-col items-start">
-        {props.attachments.map(({ id, name }) => (
-          <li key={id}>
-            <Button
-              className="px-0!"
-              disabled={isPending}
-              iconId="ri-file-text-line"
-              onClick={() => openAttachment({ sessionId, nominationFileId, fileId: id })}
-              priority="tertiary no outline"
-              size="small"
-            >
-              {name}
-            </Button>
-          </li>
-        ))}
-      </ul>
+      </Button>
+      {expanded && (
+        <ul className="fr-raw-list fr-mt-1v flex flex-col items-start" id={panelId}>
+          {props.attachments.map(({ id, name }) => (
+            <li key={id}>
+              <Button
+                className="px-0! underline underline-offset-3 before:no-underline [&::before]:mr-1!"
+                disabled={isPending}
+                iconId="ri-file-text-line"
+                onClick={() => openAttachment({ sessionId, nominationFileId, fileId: id })}
+                priority="tertiary no outline"
+                size="small"
+              >
+                {name}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

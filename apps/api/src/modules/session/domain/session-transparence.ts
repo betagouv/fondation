@@ -382,7 +382,6 @@ export class SessionTransparence {
           id: x.id,
           outcome: null,
           docs: [],
-          scheduledAuditionAt: null,
         }),
       ]),
     );
@@ -530,7 +529,6 @@ export class SessionTransparence {
     nominationFileId: string;
     auditionDate: DateOnly | null;
     auditionTime: TimeOnly | null;
-    now: Date;
   }) {
     const hasDate = command.auditionDate !== null;
     const hasTime = command.auditionTime !== null;
@@ -540,12 +538,9 @@ export class SessionTransparence {
 
     this.assertsCanUpdateFiles(command.nominationFileId);
 
-    const nominationFile = this.nominationFiles.get(command.nominationFileId)!;
-    nominationFile.assertAuditionIsEditable(command.now);
-
     const willHaveAudition = hasDate && hasTime;
     if (willHaveAudition) {
-      nominationFile.assertAllowsAudition();
+      this.nominationFiles.get(command.nominationFileId)!.assertAllowsAudition();
     }
 
     this.#messages.push(
