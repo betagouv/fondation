@@ -6,7 +6,7 @@ catalog:
   zod: 4.4.3
   '@faker-js/faker': 10.5.0
   oxlint: 1.72.0
-  'oxlint-tsgolint': 0.23.0
+  'oxlint-tsgolint': 0.24.0
   typescript: 6.0.3
   '@types/node': 26.1.0
   '@hey-api/openapi-ts': 0.99.0
