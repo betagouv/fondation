@@ -18,8 +18,10 @@ flowchart LR
   user([Utilisateur])
 
   subgraph rie[RIE - Réseau Interministériel de l'État]
-    sdv["Serveur SDV<br/>extractions LOLFI"]
+    lolfi["LOLFI<br/>SIRH du Ministère de la Justice"]
   end
+
+  sdv["Serveur relais SDV<br/>raccordé au RIE et à Internet"]
 
   subgraph scalingo[Scalingo]
     front["Client React<br/>servi par NGINX"]
@@ -29,10 +31,13 @@ flowchart LR
     oneoff[["One-off<br/>ingestion XML"]]
   end
 
-  storage[(Stockage objet S3)]
+  subgraph scaleway[Scaleway]
+    storage[(Stockage objet S3)]
+  end
 
   user -- https --> front
   user -- https --> back
+  lolfi --> sdv
   sdv -- https --> back
   back -- prisma --> db
   back <-- piscina --> pdf
@@ -42,8 +47,11 @@ flowchart LR
 ```
 
 LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats : ses
-extractions XML sont la source des données de nomination. Le stockage objet S3 contient les
-pièces jointes et les PDF générés. En local, il est émulé par MinIO (voir l'installation).
+extractions XML sont la source des données de nomination. Le RIE n'étant pas connecté à
+Internet, un serveur relais fourni par le prestataire SDV, raccordé aux deux réseaux,
+transmet ces fichiers chiffrés à l'api. Le stockage objet, hébergé chez Scaleway et compatible
+S3, contient les pièces jointes et les PDF générés. En local, il est émulé par MinIO (voir
+l'installation).
 
 ## Installation et lancement
 
