@@ -15,10 +15,10 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
-import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
+import { DetailedMemberSessionDto } from '../session/transparence/infrastructure/queries/internal-detail-member-session.query';
+import { ListedMemberSessionsDto } from '../session/transparence/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
@@ -40,8 +40,8 @@ import { PaginatedMemberListItemDto } from './infrastructure/queries/list-member
 export class MembersController {
   constructor(
     private readonly members: MembersService,
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

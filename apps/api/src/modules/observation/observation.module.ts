@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { SessionModule } from '../session/session.module';
+import { TransparenceModule } from '../session/transparence/transparence.module';
 
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import { MagistratService } from './infrastructure/magistrat.service';
@@ -16,7 +16,7 @@ import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
 @Module({
-  imports: [SessionModule],
+  imports: [TransparenceModule],
   controllers: [MagistratController, ObservationController, ObservationAttachmentsController],
   exports: [ObservationService, MagistratService],
   providers: [

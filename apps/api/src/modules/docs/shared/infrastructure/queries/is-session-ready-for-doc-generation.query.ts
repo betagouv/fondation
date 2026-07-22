@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
+import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 
 @Injectable()
 export class IsSessionReadyForDocGenerationQuery {

@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { MembersModule } from 'src/modules/members';
-import { SessionModule } from 'src/modules/session/session.module';
+import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
 import { SimpleAuthModule } from 'src/modules/simple-auth';
 
 import { AgendasController } from './agenda/agendas.controller';
@@ -47,7 +47,7 @@ import { IsSessionReadyForDocGenerationQuery } from './shared/infrastructure/que
 import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/list-secretaries-general.query';
 
 @Module({
-  imports: [SimpleAuthModule, forwardRef(() => SessionModule), forwardRef(() => MembersModule)],
+  imports: [SimpleAuthModule, forwardRef(() => TransparenceModule), forwardRef(() => MembersModule)],
   controllers: [DocsController, AgendasController, OfficialReportsController, PresentationPlansController],
   providers: [
     AgendaFinder,

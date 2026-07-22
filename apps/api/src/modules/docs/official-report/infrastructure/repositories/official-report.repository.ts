@@ -39,7 +39,7 @@ import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-repor
 import { Prisma, PrismaDocsFileOutcomeEnum } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { assertNever } from 'src/utils/assert-never';
@@ -56,8 +56,8 @@ export class OfficialReportRepository {
     private readonly nominationFilesFinder: DocsNominationFilesFinder,
     private readonly files: Files,
 
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   async find(query: { id: string; tx?: Prisma.TransactionClient }): Promise<OfficialReport> {
