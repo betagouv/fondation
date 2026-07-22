@@ -1,13 +1,13 @@
-import { useIntl } from 'react-intl';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { DocumentPreviewLayout } from '@/shared/ui/document-preview';
+import { OfficialReportDocumentEditor } from '@/shared/ui/document-preview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useGenerateOfficialReportPdfMutation,
-  useOfficialReportHtmlQuery,
-  useUpdateOfficialReportHtmlMutation,
+  useOfficialReportDocumentQuery,
 } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -21,20 +21,20 @@ export function OfficialReportPreviewPage() {
   }>();
 
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
-
-  const { data: html, isPending } = useOfficialReportHtmlQuery({
+  const { data: document, isFetchedAfterMount } = useOfficialReportDocumentQuery({
     id: officialReportId,
   });
 
-  const updateHtml = useUpdateOfficialReportHtmlMutation(officialReportId!);
   const generatePdf = useGenerateOfficialReportPdfMutation({
-    force: false,
+    force: true,
     sessionId: sessionId!,
     officialReportId: officialReportId!,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
   });
 
   const title = formatMessage({ defaultMessage: `PV de restitution` });
+  const blocks = document?.blocks ?? [];
+  const hasPendingRevalidation = blocks.some((block) => block.kind === 'file' && block.outdated);
 
   return (
     <>
@@ -55,13 +55,53 @@ export function OfficialReportPreviewPage() {
           }}
         />
       </div>
-      <DocumentPreviewLayout
-        html={html}
-        title={title}
-        isPending={isPending}
-        updateContentMutation={updateHtml}
-        validateMutation={generatePdf}
-      />
+
+      <div className="fr-pt-5v mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+          <h1 className="fr-mb-0">{title}</h1>
+          <Button
+            size="small"
+            priority="secondary"
+            iconId="ri-edit-fill"
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+                officialReportId: officialReportId!,
+                sessionId: sessionId!,
+              }),
+            }}
+          >
+            <FormattedMessage defaultMessage="Métadonnées" />
+          </Button>
+        </div>
+
+        <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
+          {!isFetchedAfterMount || !officialReportId ? (
+            <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
+          ) : (
+            <OfficialReportDocumentEditor
+              sessionId={sessionId!}
+              officialReportId={officialReportId}
+              blocks={blocks}
+            />
+          )}
+        </div>
+
+        <div className="fr-px-4v fr-py-6v flex flex-col items-center gap-2 bg-(--background-default-grey)">
+          {hasPendingRevalidation && (
+            <p className="fr-mb-0 text-(--text-default-warning)">
+              <FormattedMessage defaultMessage="Des dossiers ont changé de statut et attendent une revalidation." />
+            </p>
+          )}
+          <Button
+            disabled={generatePdf.isPending || hasPendingRevalidation}
+            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            iconPosition="right"
+            onClick={() => generatePdf.mutate()}
+          >
+            <FormattedMessage defaultMessage="Valider le document" />
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

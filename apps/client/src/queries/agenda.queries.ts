@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useTab } from '@/shared/hooks/useTab';
-import type { FormationEnum } from '@/types/enums.types';
+import type { DocNominationFileOutcomeEnum, FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
@@ -247,12 +247,15 @@ export function useDeleteAgenda(sessionId: string) {
 }
 
 export const officialReportKeys = {
-  listAgendas: (sessionId: string) => ['officialReport', 'listAgendas', sessionId] as const,
-  listMembers: (sessionId: string) => ['officialReport', 'listMembers', sessionId] as const,
-  listSecretaries: () => ['officialReport', 'listSecretaries'] as const,
-  officialReportHtml: (id: string) => ['officialReport', 'officialReportHtml', id] as const,
-  details: (officialReportId: string | undefined | null) =>
-    ['officialReport', 'details', officialReportId ?? undefined] as const,
+  all: <const T extends unknown[]>(...parts: T) => ['officialReport', ...parts] as const,
+
+  listSecretaries: () => officialReportKeys.all('listSecretaries'),
+  listAgendas: (sessionId: string) => officialReportKeys.all(sessionId, 'listAgendas'),
+  listMembers: (sessionId: string) => officialReportKeys.all(sessionId, 'listMembers'),
+
+  details: (id: string | null | undefined) => officialReportKeys.all(id),
+  document: (id: string) => officialReportKeys.all(id, 'document'),
+  html: (id: string) => officialReportKeys.all(id, 'html'),
 };
 
 export const useListAgendasForNewOfficialReportQuery = (query: {
@@ -319,7 +322,7 @@ export function useCreateOfficialReportMutation() {
 export const useOfficialReportHtmlQuery = (query: { id: string | undefined; force?: boolean }) =>
   useQuery({
     enabled: !!query.id,
-    queryKey: officialReportKeys.officialReportHtml(query.id ?? ''),
+    queryKey: officialReportKeys.html(query.id ?? ''),
     queryFn: () =>
       $api.docs
         .generateOfficialReportHtml({
@@ -330,20 +333,98 @@ export const useOfficialReportHtmlQuery = (query: { id: string | undefined; forc
         .then(({ data }) => (data ?? null) as string | null),
   });
 
-export function useUpdateOfficialReportHtmlMutation(officialReportId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationKey: htmlMutationKeys.officialReportHtml,
-    mutationFn: ({ html }: { html: string }) =>
-      $api.docs.updateOfficialReportHtml({
-        path: { officialReportId },
-        body: { html: new Blob([html], { type: 'text/html' }) },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(officialReportId) });
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-    },
+export const useOfficialReportDocumentQuery = (query: { id: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.id,
+    queryKey: officialReportKeys.document(query.id ?? ''),
+    queryFn: () =>
+      $api.docs
+        .detailsOfficialReportDocument({ path: { officialReportId: query.id! } })
+        .then(({ data = null }) => data),
   });
+
+export function useOfficialReportBlockMutations(officialReportId: string) {
+  const queryClient = useQueryClient();
+
+  const reloadDocument = async () =>
+    queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
+
+  const editIntro = useMutation({
+    mutationFn: ({ html, outdated }: { html: string; outdated: boolean }) =>
+      $api.docs.editOfficialReportIntro({ path: { officialReportId }, body: { html, outdated } }),
+    onSuccess: reloadDocument,
+  });
+
+  const resetIntro = useMutation({
+    mutationFn: () => $api.docs.resetOfficialReportIntro({ path: { officialReportId } }),
+    onSuccess: reloadDocument,
+  });
+
+  const editConclusion = useMutation({
+    mutationFn: ({ html, outdated }: { html: string; outdated: boolean }) =>
+      $api.docs.editOfficialReportConclusion({ path: { officialReportId }, body: { html, outdated } }),
+    onSuccess: reloadDocument,
+  });
+
+  const resetConclusion = useMutation({
+    mutationFn: () => $api.docs.resetOfficialReportConclusion({ path: { officialReportId } }),
+    onSuccess: reloadDocument,
+  });
+
+  const editSectionTitle = useMutation({
+    mutationFn: ({ outcome, text }: { outcome: DocNominationFileOutcomeEnum; text: string }) =>
+      $api.docs.editOfficialReportSectionTitle({ path: { officialReportId, outcome }, body: { text } }),
+    onSuccess: reloadDocument,
+  });
+
+  const resetSectionTitle = useMutation({
+    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum }) =>
+      $api.docs.resetOfficialReportSectionTitle({ path: { officialReportId, outcome: mutation.outcome } }),
+    onSuccess: reloadDocument,
+  });
+
+  const editSectionIntro = useMutation({
+    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum; html: string }) =>
+      $api.docs.editOfficialReportSectionIntro({
+        path: { officialReportId, outcome: mutation.outcome },
+        body: { html: mutation.html },
+      }),
+    onSuccess: reloadDocument,
+  });
+
+  const resetSectionIntro = useMutation({
+    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum }) =>
+      $api.docs.resetOfficialReportSectionTitle({ path: { officialReportId, outcome: mutation.outcome } }),
+    onSuccess: reloadDocument,
+  });
+
+  const editFile = useMutation({
+    mutationFn: (mutation: { html: string; nominationFileId: string; outdated: boolean }) =>
+      $api.docs.editOfficialReportFile({
+        path: { officialReportId, nominationFileId: mutation.nominationFileId },
+        body: { html: mutation.html, outdated: mutation.outdated },
+      }),
+    onSuccess: reloadDocument,
+  });
+
+  const resetFile = useMutation({
+    mutationFn: ({ nominationFileId }: { nominationFileId: string }) =>
+      $api.docs.resetOfficialReportFile({ path: { officialReportId, nominationFileId } }),
+    onSuccess: reloadDocument,
+  });
+
+  return {
+    editIntro,
+    resetIntro,
+    editConclusion,
+    resetConclusion,
+    editSectionTitle,
+    resetSectionTitle,
+    editSectionIntro,
+    resetSectionIntro,
+    editFile,
+    resetFile,
+  };
 }
 
 export function useGenerateOfficialReportPdfMutation(mutation: {
@@ -376,10 +457,8 @@ export function useResetOfficialReportDocumentMutation(officialReportId: string)
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => $api.docs.resetOfficialReportDocument({ path: { officialReportId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.officialReportHtml(officialReportId) });
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) }),
   });
 }
 
@@ -424,7 +503,6 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
       justiceDepartmentContactId: string;
       chairmanId: string;
       secretaryId: string;
-      agendas: string[];
       members: string[];
     }) =>
       $api.docs
@@ -438,7 +516,6 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
             justiceDepartmentContactId: command.justiceDepartmentContactId,
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
-            agendas: command.agendas as [string, ...string[]],
             absentMemberIds: command.members as [string, ...string[]],
           },
         })

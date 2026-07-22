@@ -1,4 +1,4 @@
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/domain/doc-nomination-file-outcome';
+import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly } from 'src/utils/date-only';
