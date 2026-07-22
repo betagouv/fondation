@@ -21,6 +21,10 @@ export class DateOnly {
     }
   }
 
+  equals(other: DateOnly): boolean {
+    return this.value.getTime() === other.value.getTime();
+  }
+
   toDate(): Date {
     return this.value;
   }

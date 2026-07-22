@@ -37,6 +37,7 @@ import {
   deleteReportsAfterAffectationPublicationRawQuery,
   insertLodamNominationFilesRawQuery,
 } from 'src/generated/prisma/sql';
+import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -145,8 +146,13 @@ export class NominationSessionRepository {
     });
   }
 
-  async persist(session: SessionTransparence, tx?: Prisma.TransactionClient): Promise<void> {
+  async persist(
+    session: SessionTransparence,
+    tx?: Prisma.TransactionClient,
+  ): Promise<OfficialReportInvalidation[]> {
     if (!tx) return this.prisma.$transaction((tx) => this.persist(session, tx));
+
+    const invalidations: OfficialReportInvalidation[] = [];
 
     for (const message of session.messages) {
       if (message instanceof SessionTransparenceFileReportersAffected) {
@@ -154,7 +160,9 @@ export class NominationSessionRepository {
       } else if (message instanceof SessionTransparenceFilePrioritiesUpdated) {
         await this.persistSessionTransparenceFilePrioritiesUpdated(tx, message);
       } else if (message instanceof SessionTransparenceAffectationVersionPublished) {
-        await this.persistSessionTransparenceAffectationVersionPublished(tx, message);
+        invalidations.push(
+          ...(await this.persistSessionTransparenceAffectationVersionPublished(tx, message)),
+        );
       } else if (message instanceof SessionTransparenceAffectationVersionCreated) {
         await this.persistSessionTransparenceAffectationVersionCreated(tx, message);
       } else if (message instanceof SessionTransparenceCreated) {
@@ -172,9 +180,9 @@ export class NominationSessionRepository {
       } else if (message instanceof SessionTransparenceFileAttachmentRemoved) {
         await this.persistSessionTransparenceFileAttachmentRemoved(tx, message);
       } else if (message instanceof SessionTransparenceUpdated) {
-        await this.persistSessionTransparenceUpdated(tx, message);
+        invalidations.push(...(await this.persistSessionTransparenceUpdated(tx, message)));
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
-        await this.persistSessionTransparenceOutcomeDefined(tx, message);
+        invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(tx, message)));
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
         await this.persistSessionTransparenceAuditionScheduled(tx, message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
@@ -193,6 +201,8 @@ export class NominationSessionRepository {
         assertNever(message);
       }
     }
+
+    return invalidations;
   }
 
   private async persistSessionTransparenceFileReportersAffected(
@@ -253,7 +263,7 @@ export class NominationSessionRepository {
   private async persistSessionTransparenceAffectationVersionPublished(
     tx: Prisma.TransactionClient,
     message: SessionTransparenceAffectationVersionPublished,
-  ) {
+  ): Promise<OfficialReportInvalidation[]> {
     const session = await tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
       select: {
@@ -341,8 +351,15 @@ export class NominationSessionRepository {
       }
     }
 
-    if (!versionId) return;
+    if (!versionId) return [];
+
     await tx.$queryRawTyped(deleteReportsAfterAffectationPublicationRawQuery(message.sessionId, versionId));
+    return [
+      {
+        type: 'SessionAffectationVersionPublished',
+        payload: { sessionId: message.sessionId, versionId },
+      } satisfies OfficialReportInvalidation,
+    ];
   }
 
   private async persistSessionTransparenceAffectationVersionCreated(
@@ -538,6 +555,19 @@ export class NominationSessionRepository {
     tx: Prisma.TransactionClient,
     message: SessionTransparenceUpdated,
   ) {
+    const invalidations: OfficialReportInvalidation[] = [];
+    const old = await tx.session.findUnique({
+      where: { id: message.sessionId },
+      select: { date: true },
+    });
+
+    if (message.data.date.toDate().getTime() !== old?.date.getTime()) {
+      invalidations.push({
+        type: 'SessionDateUpdated',
+        payload: { sessionId: message.sessionId, date: message.data.date.toJson() },
+      });
+    }
+
     await tx.session.update({
       where: { id: message.sessionId },
       data: {
@@ -553,16 +583,29 @@ export class NominationSessionRepository {
         },
       },
     });
+
+    return invalidations;
   }
 
   private async persistSessionTransparenceOutcomeDefined(
     tx: Prisma.TransactionClient,
     message: SessionTransparenceOutcomeDefined,
-  ) {
+  ): Promise<OfficialReportInvalidation[]> {
     await tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
       data: { outcome: message.outcome, outcomeComment: message.comment },
     });
+
+    return [
+      {
+        type: 'NominationFileOutcomeUpdated',
+        payload: {
+          nominationFileId: message.nominationFileId,
+          comment: message.comment,
+          outcome: message.outcome,
+        },
+      },
+    ];
   }
 
   private async persistSessionTransparenceAuditionScheduled(

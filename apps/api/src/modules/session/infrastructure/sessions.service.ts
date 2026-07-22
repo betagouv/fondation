@@ -1,10 +1,12 @@
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
 import { LodamNominationFile } from '../domain/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../domain/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { Prisma } from 'src/generated/prisma/client';
+import { OfficialReportsInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { PrismaService } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -116,6 +118,8 @@ export class SessionService {
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
+
+    private readonly events: EventEmitter2,
   ) {}
 
   /** @internal */
@@ -201,9 +205,18 @@ export class SessionService {
     sessionId: string;
     userId: string;
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(command.sessionId);
-    session.publishAffectationVersion({ userId: command.userId });
-    await this.nominationSessionRepository.persist(session);
+    const invalidations = await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
+      session.publishAffectationVersion({ userId: command.userId });
+      return await this.nominationSessionRepository.persist(session, tx);
+    });
+
+    for (const invalidation of invalidations) {
+      await this.events.emitAsync(
+        OfficialReportsInvalidatedIntegrationEvent.name,
+        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+      );
+    }
   }
 
   async autoAffectation(command: {
@@ -409,9 +422,18 @@ export class SessionService {
       positionStartDate: DateOnly | null;
     };
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(command.sessionId);
-    session.update(command.data);
-    await this.nominationSessionRepository.persist(session);
+    const invalidations = await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
+      session.update(command.data);
+      return await this.nominationSessionRepository.persist(session, tx);
+    });
+
+    for (const invalidation of invalidations) {
+      await this.events.emitAsync(
+        OfficialReportsInvalidatedIntegrationEvent.name,
+        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+      );
+    }
   }
 
   listNominationSessions(query: {
@@ -430,23 +452,33 @@ export class SessionService {
     outcome: NominationFileOutcomeEnum | null;
     comment: string | null;
   }): Promise<void> {
-    const session = await this.nominationSessionRepository.find(command.sessionId, {
-      nominationFileIds: new Set([command.nominationFileId]),
+    const invalidations = await this.prisma.$transaction(async (tx) => {
+      const session = await this.nominationSessionRepository.find(command.sessionId, {
+        tx,
+        nominationFileIds: new Set([command.nominationFileId]),
+      });
+
+      const outcome = isDefined(command.outcome)
+        ? NominationFileOutcome.from({
+            outcome: command.outcome,
+            comment: command.comment,
+          })
+        : null;
+
+      session.defineNominationFileOutcome({
+        outcome,
+        nominationFileId: command.nominationFileId,
+      });
+
+      return await this.nominationSessionRepository.persist(session, tx);
     });
 
-    const outcome = isDefined(command.outcome)
-      ? NominationFileOutcome.from({
-          outcome: command.outcome,
-          comment: command.comment,
-        })
-      : null;
-
-    session.defineNominationFileOutcome({
-      outcome,
-      nominationFileId: command.nominationFileId,
-    });
-
-    await this.nominationSessionRepository.persist(session);
+    for (const invalidation of invalidations) {
+      await this.events.emitAsync(
+        OfficialReportsInvalidatedIntegrationEvent.name,
+        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+      );
+    }
   }
 
   async writeNominationFileMemberMemo(command: {

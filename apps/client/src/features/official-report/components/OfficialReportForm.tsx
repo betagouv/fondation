@@ -191,7 +191,7 @@ export function OfficialReportForm() {
         control={control}
         render={({ field }) => (
           <Select
-            disabled={(agendas?.items ?? []).length === 0}
+            disabled={Boolean(officialReportId) || (agendas?.items ?? []).length === 0}
             state={errors.agendaId ? 'error' : 'default'}
             stateRelatedMessage={errors.agendaId?.message}
             nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
@@ -356,7 +356,11 @@ export function OfficialReportForm() {
           {
             type: 'submit',
             disabled: !isValid,
-            children: <FormattedMessage defaultMessage="Générer le PV" />,
+            children: officialReportId ? (
+              <FormattedMessage defaultMessage="Mettre à jour" />
+            ) : (
+              <FormattedMessage defaultMessage="Générer le PV" />
+            ),
           },
         ]}
       />

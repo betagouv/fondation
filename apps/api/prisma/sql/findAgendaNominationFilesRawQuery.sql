@@ -73,6 +73,7 @@ FROM nominations_context.dossier_de_nomination ddn
           'lastName', u.last_name,
           'gender', u.gender
         )
+        ORDER BY u.sort, u.last_name
       ) AS users
 
     FROM nominations_context.nomination_file_to_reporter AS nfr

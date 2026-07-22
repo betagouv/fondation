@@ -201,6 +201,13 @@ export const router = sentryCreateBrowserRouter([
               ),
           },
           {
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_RENDER,
+            lazy: () =>
+              import('@/pages/documents/official-report/OfficialReportRenderPage').then(
+                ({ OfficialReportRenderPage }) => ({ Component: OfficialReportRenderPage }),
+              ),
+          },
+          {
             lazy: () =>
               import('@/pages/documents/presentations/PresentationsLayout').then(
                 ({ PresentationsLayout }) => ({
