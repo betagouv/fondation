@@ -16,7 +16,8 @@ import { SgComment } from './sg-comment/SgComment';
 export function MagistratDetails(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
   const { historique } = nominationFile.content;
-  const auditionEditable = useIsSgNavigation() && nominationFile.canScheduleAudition;
+  const isSgContext = useIsSgNavigation();
+  const auditionEditable = isSgContext && nominationFile.canScheduleAudition;
 
   return (
     <div className="flex flex-col gap-10 pb-10">
@@ -47,11 +48,13 @@ export function MagistratDetails(props: { nominationFile: SessionNominationFile;
         sessionId={sessionId}
       />
       <MagistratSummary nominationFile={nominationFile} sessionId={sessionId} />
-      <MagistratAuditionDate
-        editable={auditionEditable}
-        key={`${nominationFile.id}-audition`}
-        nominationFile={nominationFile}
-      />
+      {isSgContext && (
+        <MagistratAuditionDate
+          editable={auditionEditable}
+          key={`${nominationFile.id}-audition`}
+          nominationFile={nominationFile}
+        />
+      )}
     </div>
   );
 }
