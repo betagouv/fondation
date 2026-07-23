@@ -4,7 +4,9 @@ import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { BiographyList } from '@/shared/components/biography-list';
+import { DetailsLink } from '@/shared/components/details-link';
+import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { dateOnlyToDate } from '@/utils/date-only.util';
@@ -46,12 +48,6 @@ export function ObservationDetailsContent({
   const candidacy = observant.candidacy;
   const relatedPropositions = observation.relatedPropositions ?? [];
 
-  const biographyItems = observant.biography
-    ?.split('- ')
-    .map((x) => x.trim())
-    .filter((x) => !!x)
-    .map((part, i) => <li key={`observer_biography_${i}`}>{part}</li>);
-
   return (
     <div className="fr-p-8v bg-(--background-default-grey)">
       <div className="fr-mb-8v">
@@ -90,10 +86,15 @@ export function ObservationDetailsContent({
                 <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   {observation.observedMagistrat?.name}
-                  <LolfiMagistratLink
+                  <LolfiLink
                     sessionId={sessionId}
                     nominationFileId={nominationFileId}
                     name={observation.observedMagistrat?.name}
+                    small
+                  />
+                  <DetailsLink
+                    context={context}
+                    magistratId={observation.observedMagistrat?.detectedMagistratId}
                     small
                   />
                 </dd>
@@ -147,7 +148,7 @@ export function ObservationDetailsContent({
                 <div className="fr-grid-row fr-mb-4v">
                   <dt className="fr-col-4 fr-text--bold">Biographie :</dt>
                   <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">
-                    <ul className="fr-p-0 list-['-_']">{biographyItems}</ul>
+                    <BiographyList biography={observant.biography} />
                   </dd>
                 </div>
               )}

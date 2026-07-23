@@ -1,10 +1,8 @@
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { type FC } from 'react';
 
-import { labels } from '@/constants/labels.constants';
-import { FormattedBirthDate } from '@/i18n/components';
-import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { IdentityList } from '@/shared/components/identity-list';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { DetailedReportDto } from '@api/types';
 
 import { Card } from './Card';
@@ -13,8 +11,10 @@ export type MagistratIdentityProps = Pick<
   DetailedReportDto,
   | 'name'
   | 'birthDate'
+  | 'detectedMagistratId'
   | 'grade'
   | 'currentPosition'
+  | 'targetedGrade'
   | 'targettedPosition'
   | 'rank'
   | 'dureeDuPoste'
@@ -26,8 +26,10 @@ export type MagistratIdentityProps = Pick<
 export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   name,
   birthDate,
+  detectedMagistratId,
   grade,
   currentPosition,
+  targetedGrade,
   targettedPosition,
   dureeDuPoste,
   rank,
@@ -38,36 +40,27 @@ export const MagistratIdentity: FC<MagistratIdentityProps> = ({
   return (
     <Card label="Identité du magistrat">
       <header className="fr-mb-6v">
-        <h1 className="fr-mb-0 flex flex-row items-center">
-          <span>{name}</span>
-          <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={name} />
+        <h1 className="fr-mb-0">
+          <TitleNameIcons
+            detailsLink={{
+              context: 'membre',
+              magistratId: detectedMagistratId,
+            }}
+            lolfi={{ sessionId, nominationFileId }}
+            name={name}
+          />
         </h1>
         <PriorityBadgeList priorities={priorities} small={false} />
       </header>
-      <div>
-        <span className={cx('fr-text--bold')}>{`${labels.magistrat.currentPosition} : `}</span>
-        <span>{`${currentPosition} - ${grade}`}</span>
-      </div>
-      {dureeDuPoste && (
-        <div>
-          <span className={cx('fr-text--bold')}>{`${labels.magistrat.dureeDuPoste} : `}</span>
-          <span>{dureeDuPoste}</span>
-        </div>
-      )}
-      <div>
-        <span className={cx('fr-text--bold')}>{`${labels.magistrat.targettedPosition} : `}</span>
-        <span>{`${targettedPosition}`}</span>
-      </div>
-      <div>
-        <span className={cx('fr-text--bold')}>{`${labels.magistrat.rank} : `}</span>
-        <span>{`${rank}`}</span>
-      </div>
-      <div>
-        <span className={cx('fr-text--bold')}>{`${labels.magistrat.birthDate} : `}</span>
-        <span>
-          <FormattedBirthDate value={birthDate} />
-        </span>
-      </div>
+      <IdentityList
+        birthDate={birthDate}
+        currentPosition={currentPosition}
+        grade={grade}
+        positionDuration={dureeDuPoste}
+        rank={rank}
+        targetedGrade={targetedGrade}
+        targetedPosition={targettedPosition}
+      />
     </Card>
   );
 };

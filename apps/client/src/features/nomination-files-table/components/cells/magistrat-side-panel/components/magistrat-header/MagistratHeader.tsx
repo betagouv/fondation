@@ -6,10 +6,11 @@ import { FormattedMessage } from 'react-intl';
 
 import { useMagistratAffectation } from '../../hooks/use-magistrat-affectation/use-magistrat-affectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { toFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -20,6 +21,7 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const { nominationFile, sessionId } = props;
   const { user } = useUser();
   const { isEditable } = useNominationFilesTable();
+  const isSgContext = useIsSgNavigation();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
 
   const [isEditing, setIsEditing] = React.useState(false);
@@ -57,11 +59,13 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
             <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
           <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
-            {nomMagistrat}
-            <LolfiMagistratLink
+            <TitleNameIcons
+              detailsLink={{
+                context: isSgContext ? 'sg' : 'membre',
+                magistratId: nominationFile.content.detectedMagistratId,
+              }}
+              lolfi={{ sessionId, nominationFileId: nominationFile.id }}
               name={nomMagistrat}
-              nominationFileId={nominationFile.id}
-              sessionId={sessionId}
               small
             />
           </h2>

@@ -2,7 +2,6 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { formatBiography } from '@/features/reports/utils/formatters';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
@@ -49,8 +48,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     },
     navigate,
   );
-
-  const formattedBiography = formatBiography(retrievedReport.biography);
 
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ reportId: id, data: { status } });
@@ -100,16 +97,18 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             <MagistratIdentity
               name={retrievedReport.name}
               birthDate={retrievedReport.birthDate}
+              detectedMagistratId={retrievedReport.detectedMagistratId}
               grade={retrievedReport.grade}
-              currentPosition={retrievedReport.currentPosition!}
-              targettedPosition={retrievedReport.targettedPosition!}
-              rank={retrievedReport.rank!}
+              currentPosition={retrievedReport.currentPosition}
+              targetedGrade={retrievedReport.targetedGrade}
+              targettedPosition={retrievedReport.targettedPosition}
+              rank={retrievedReport.rank}
               dureeDuPoste={retrievedReport.dureeDuPoste}
               priorities={retrievedReport.priorities}
               sessionId={retrievedReport.sessionId}
               nominationFileId={retrievedReport.nominationFileId}
             />
-            <Biography biography={formattedBiography} />
+            <Biography biography={retrievedReport.biography} />
             <ReportOverviewFileComment report={retrievedReport} />
             <ReportSummaryCard
               summary={retrievedReport.summary}
