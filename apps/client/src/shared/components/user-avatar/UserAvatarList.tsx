@@ -37,8 +37,10 @@ export function UserAvatarList(props: {
           <Badge
             noIcon
             small={props.size === 'sm'}
-            severity="info"
-            className={clsx(`rounded-full`, userAvatarSizes[props.size ?? 'md'])}
+            className={clsx(
+              'rounded-full bg-(--background-default-grey-active)! text-(--text-default-grey)!',
+              userAvatarSizes[props.size ?? 'md'],
+            )}
           >
             +{users.length - max}
           </Badge>

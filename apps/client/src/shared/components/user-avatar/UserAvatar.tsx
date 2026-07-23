@@ -1,4 +1,3 @@
-import { colors } from '@codegouvfr/react-dsfr';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
@@ -18,9 +17,8 @@ export function UserAvatar(props: {
 
   const content = (
     <div
-      style={{ backgroundColor: colors.decisions.text.title.blueFrance.default }}
       className={clsx(
-        `rounded-full text-center font-medium text-(--text-inverted-grey)`,
+        'rounded-full bg-(--background-default-grey-active) text-center font-medium text-(--text-default-grey)',
         userAvatarSizes[props.size ?? 'md'],
       )}
     >
