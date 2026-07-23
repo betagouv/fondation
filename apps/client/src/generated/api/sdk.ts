@@ -6,7 +6,7 @@
 
 import { client } from './client.ts';
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client/index.ts';
-import type { AffectReportersData, AffectReportersResponses, ArchiveSessionData, ArchiveSessionResponses, AttachFilesData, AttachFilesResponses, AttachMemberCommentScreenshotsData, AttachMemberCommentScreenshotsResponses, AttachScreenshotsData, AttachScreenshotsResponses, AttachSummaryFilesData, AttachSummaryFilesResponses, AutoAffectationData, AutoAffectationResponses, CallbackData, CallbackResponses, CountNominationFilesByStatusData, CountNominationFilesByStatusResponses, CountUnaffectedNominationFilesData, CountUnaffectedNominationFilesResponses, CountUsersNewSessionsData, CountUsersNewSessionsResponses, CreateAgendaData, CreateAgendaResponses, CreateJusticeContactData, CreateJusticeContactResponses, CreateJusticePresentationPlanData, CreateJusticePresentationPlanResponses, CreateNominationFileAttachmentUrlData, CreateNominationFileAttachmentUrlResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateOfficialReportData, CreateOfficialReportJusticeContactData, CreateOfficialReportJusticeContactResponses, CreateOfficialReportResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteAgendaData, DeleteAgendaResponses, DeleteJusticePresentationPlanData, DeleteJusticePresentationPlanResponses, DeleteNominationSessionData, DeleteNominationSessionResponses, DeleteObservationData, DeleteObservationResponses, DeleteOfficialReportData, DeleteOfficialReportResponses, DemoteFromAdminData, DemoteFromAdminResponses, DetachFilesData, DetachFilesResponses, DetachSummaryFilesData, DetachSummaryFilesResponses, DetailMagistratData, DetailMagistratResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsAgendaFilesData, DetailsAgendaFilesResponses, DetailsAgendaMetadataData, DetailsAgendaMetadataResponses, DetailsJobData, DetailsJobResponses, DetailsJusticePresentationPlanPdfDocumentData, DetailsJusticePresentationPlanPdfDocumentResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailsOfficialReportData, DetailsOfficialReportResponses, DetailsPresentationPlanMetadataData, DetailsPresentationPlanMetadataResponses, DetailsSessionAgendaData, DetailsSessionAgendaResponses, DetailsSessionDocData, DetailsSessionDocResponses, DetailsSessionOfficialReportData, DetailsSessionOfficialReportResponses, DetailSummaryData, DetailSummaryResponses, DetailsUserData, DetailsUserResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, FindAgendaNominationFilesData, FindAgendaNominationFilesResponses, FindDocsMembersData, FindDocsMembersResponses, FindSessionDocsData, FindSessionDocsResponses, FollowUpOnObservationData, FollowUpOnObservationResponses, GenerateAgendaHtmlData, GenerateAgendaHtmlResponses, GenerateAgendaPdfData, GenerateAgendaPdfResponses, GenerateAttachmentPublicUrlData, GenerateAttachmentPublicUrlResponses, GenerateOfficialReportHtmlData, GenerateOfficialReportHtmlResponses, GenerateOfficialReportPdfData, GenerateOfficialReportPdfResponses, GeneratePresentationPlanHtmlData, GeneratePresentationPlanHtmlResponses, GeneratePresentationPlanPdfData, GeneratePresentationPlanPdfResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetLolfiMagistratUrlData, GetLolfiMagistratUrlResponses, GetObservationDetailsData, GetObservationDetailsResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, HideNominationFileAlertData, HideNominationFileAlertResponses, ImpersonateData, ImpersonateResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IngestLolfiArchiveData, IngestLolfiArchiveResponses, IntrospectSessionData, IntrospectSessionResponses, IsSessionReadyForDocGenerationData, IsSessionReadyForDocGenerationResponses, ListAgendasForNewOfficialReportData, ListAgendasForNewOfficialReportResponses, ListArchivedSessionsData, ListArchivedSessionsResponses, ListCurrentlyAffectedReportersData, ListCurrentlyAffectedReportersResponses, ListJobsData, ListJobsResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersForNewOfficialReportData, ListMembersForNewOfficialReportResponses, ListMembersResponses, ListNominationFileAttachmentsData, ListNominationFileAttachmentsResponses, ListNominationFilesAsExcelData, ListNominationFilesAsExcelResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListNonPresentedPlansData, ListNonPresentedPlansResponses, ListObservationsAttachmentsData, ListObservationsAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListOpenIdProvidersData, ListOpenIdProvidersResponses, ListPresentationPlanAgendasData, ListPresentationPlanAgendasResponses, ListPresentedPlansData, ListPresentedPlansResponses, ListSecretariesGeneralData, ListSecretariesGeneralResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, ListUsersData, ListUsersResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PrepareOpenIdRequestData, PrepareOpenIdRequestResponses, PresentPlanData, PresentPlanResponses, PromoteToAdminData, PromoteToAdminResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveNominationFileAttachmentData, RemoveNominationFileAttachmentResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, ResetAgendaDocumentData, ResetAgendaDocumentResponses, ResetOfficialReportDocumentData, ResetOfficialReportDocumentResponses, ResetPresentationPlanDocumentData, ResetPresentationPlanDocumentResponses, SearchChairmenData, SearchChairmenResponses, SearchData, SearchFullNameData, SearchFullNameResponses, SearchJusticeContactData, SearchJusticeContactResponses, SearchMagistratAuthorizationData, SearchMagistratAuthorizationErrors, SearchMagistratAuthorizationResponses, SearchMagistratsData, SearchMagistratsResponses, SearchOfficialReportJusticeContactData, SearchOfficialReportJusticeContactResponses, SearchResponses, SearchSummaryReadersData, SearchSummaryReadersResponses, UnPresentPlanData, UnPresentPlanResponses, UpdateAgendaData, UpdateAgendaHtmlData, UpdateAgendaHtmlResponses, UpdateAgendaResponses, UpdateDisplayTitle2Data, UpdateDisplayTitle2Responses, UpdateDisplayTitleData, UpdateDisplayTitleResponses, UpdateEmailData, UpdateEmailResponses, UpdateJusticePresentationPlanData, UpdateJusticePresentationPlanResponses, UpdateNominationFileAuditionDateData, UpdateNominationFileAuditionDateResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdateOfficialReportData, UpdateOfficialReportHtmlData, UpdateOfficialReportHtmlResponses, UpdateOfficialReportResponses, UpdatePasswordData, UpdatePasswordResponses, UpdatePresentationPlanHtmlData, UpdatePresentationPlanHtmlResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateRoleData, UpdateRoleResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UpdateSummaryReadersListData, UpdateSummaryReadersListResponses, UpdateTitleData, UpdateTitleResponses, UploadNominationFileAttachmentsData, UploadNominationFileAttachmentsResponses, UploadSessionAttachmentsData, UploadSessionAttachmentsResponses, ValidateSessionData, ValidateSessionResponses, WriteMemberCommentData, WriteMemberCommentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
+import type { AffectReportersData, AffectReportersResponses, ArchiveSessionData, ArchiveSessionResponses, AttachFilesData, AttachFilesResponses, AttachMemberCommentScreenshotsData, AttachMemberCommentScreenshotsResponses, AttachScreenshotsData, AttachScreenshotsResponses, AttachSummaryFilesData, AttachSummaryFilesResponses, AutoAffectationData, AutoAffectationResponses, CallbackData, CallbackResponses, CountNominationFilesByStatusData, CountNominationFilesByStatusResponses, CountUnaffectedNominationFilesData, CountUnaffectedNominationFilesResponses, CountUsersNewSessionsData, CountUsersNewSessionsResponses, CreateAgendaData, CreateAgendaResponses, CreateJusticeContactData, CreateJusticeContactResponses, CreateJusticePresentationPlanData, CreateJusticePresentationPlanResponses, CreateNominationFileAttachmentUrlData, CreateNominationFileAttachmentUrlResponses, CreateNominationSessionAttachmentUrlData, CreateNominationSessionAttachmentUrlResponses, CreateObservationData, CreateObservationResponses, CreateOfficialReportData, CreateOfficialReportResponses, CreateSessionFromLodamData, CreateSessionFromLodamResponses, CreateSummaryData, CreateSummaryResponses, DefineNominationFileOutcomeData, DefineNominationFileOutcomeResponses, DeleteAgendaData, DeleteAgendaResponses, DeleteJusticePresentationPlanData, DeleteJusticePresentationPlanResponses, DeleteNominationSessionData, DeleteNominationSessionResponses, DeleteObservationData, DeleteObservationResponses, DeleteOfficialReportData, DeleteOfficialReportResponses, DemoteFromAdminData, DemoteFromAdminResponses, DetachFilesData, DetachFilesResponses, DetachSummaryFilesData, DetachSummaryFilesResponses, DetailMagistratData, DetailMagistratResponses, DetailNominationSessionAffectationsVersionData, DetailNominationSessionAffectationsVersionResponses, DetailReportData, DetailReportResponses, DetailsAgendaFilesData, DetailsAgendaFilesResponses, DetailsAgendaMetadataData, DetailsAgendaMetadataResponses, DetailsJobData, DetailsJobResponses, DetailsJusticePresentationPlanPdfDocumentData, DetailsJusticePresentationPlanPdfDocumentResponses, DetailsMemberData, DetailsMemberResponses, DetailsMemberSessionData, DetailsMemberSessionResponses, DetailsNominationSessionData, DetailsNominationSessionResponses, DetailsOfficialReportData, DetailsOfficialReportDocumentData, DetailsOfficialReportDocumentResponses, DetailsOfficialReportResponses, DetailsPresentationPlanMetadataData, DetailsPresentationPlanMetadataResponses, DetailsSessionAgendaData, DetailsSessionAgendaResponses, DetailsSessionOfficialReportData, DetailsSessionOfficialReportResponses, DetailSummaryData, DetailSummaryResponses, DetailsUserData, DetailsUserResponses, EditOfficialReportConclusionData, EditOfficialReportConclusionResponses, EditOfficialReportFileData, EditOfficialReportFileResponses, EditOfficialReportIntroData, EditOfficialReportIntroResponses, EditOfficialReportSectionIntroData, EditOfficialReportSectionIntroResponses, EditOfficialReportSectionTitleData, EditOfficialReportSectionTitleResponses, ExcludeJurisdictionsData, ExcludeJurisdictionsResponses, FindAgendaNominationFilesData, FindAgendaNominationFilesResponses, FindDocsMembersData, FindDocsMembersResponses, FindSessionDocsData, FindSessionDocsResponses, FollowUpOnObservationData, FollowUpOnObservationResponses, GenerateAgendaHtmlData, GenerateAgendaHtmlResponses, GenerateAgendaPdfData, GenerateAgendaPdfResponses, GenerateAttachmentPublicUrlData, GenerateAttachmentPublicUrlResponses, GenerateOfficialReportHtmlData, GenerateOfficialReportHtmlResponses, GenerateOfficialReportPdfData, GenerateOfficialReportPdfResponses, GeneratePresentationPlanHtmlData, GeneratePresentationPlanHtmlResponses, GeneratePresentationPlanPdfData, GeneratePresentationPlanPdfResponses, GetFileByFileUrlData, GetFileByFileUrlResponses, GetLolfiMagistratUrlData, GetLolfiMagistratUrlResponses, GetObservationDetailsData, GetObservationDetailsResponses, GetObservationFileUrlData, GetObservationFileUrlResponses, GetReportFilesUrlData, GetReportFilesUrlResponses, HideNominationFileAlertData, HideNominationFileAlertResponses, ImpersonateData, ImpersonateResponses, IncludeFilesInContentData, IncludeFilesInContentResponses, IngestLolfiArchiveData, IngestLolfiArchiveResponses, IntrospectSessionData, IntrospectSessionResponses, IsSessionReadyForDocGenerationData, IsSessionReadyForDocGenerationResponses, ListAgendasForNewOfficialReportData, ListAgendasForNewOfficialReportResponses, ListArchivedSessionsData, ListArchivedSessionsResponses, ListCurrentlyAffectedReportersData, ListCurrentlyAffectedReportersResponses, ListJobsData, ListJobsResponses, ListMembersData, ListMemberSessionsData, ListMemberSessionsResponses, ListMembersResponses, ListNominationFileAttachmentsData, ListNominationFileAttachmentsResponses, ListNominationFilesAsExcelData, ListNominationFilesAsExcelResponses, ListNominationFilesData, ListNominationFilesResponses, ListNominationSessionAttachmentsData, ListNominationSessionAttachmentsResponses, ListNonPresentedPlansData, ListNonPresentedPlansResponses, ListObservationsAttachmentsData, ListObservationsAttachmentsResponses, ListObservationsData, ListObservationsResponses, ListOpenIdProvidersData, ListOpenIdProvidersResponses, ListPresentationPlanAgendasData, ListPresentationPlanAgendasResponses, ListPresentedPlansData, ListPresentedPlansResponses, ListSecretariesGeneralData, ListSecretariesGeneralResponses, ListSessionsOfTypeGardeDesSceauxData, ListSessionsOfTypeGardeDesSceauxResponses, ListUsersData, ListUsersResponses, LoginData, LoginResponses, LogoutData, LogoutResponses, PrepareOpenIdRequestData, PrepareOpenIdRequestResponses, PresentPlanData, PresentPlanResponses, PromoteToAdminData, PromoteToAdminResponses, PublishNominationSessionAffectationsVersionData, PublishNominationSessionAffectationsVersionResponses, RemoveNominationFileAttachmentData, RemoveNominationFileAttachmentResponses, RemoveSessionAttachmentData, RemoveSessionAttachmentResponses, ResetAgendaDocumentData, ResetAgendaDocumentResponses, ResetOfficialReportConclusionData, ResetOfficialReportConclusionResponses, ResetOfficialReportDocumentData, ResetOfficialReportDocumentResponses, ResetOfficialReportFileData, ResetOfficialReportFileResponses, ResetOfficialReportIntroData, ResetOfficialReportIntroResponses, ResetOfficialReportSectionIntroData, ResetOfficialReportSectionIntroResponses, ResetOfficialReportSectionTitleData, ResetOfficialReportSectionTitleResponses, ResetPresentationPlanDocumentData, ResetPresentationPlanDocumentResponses, SearchData, SearchFullNameData, SearchFullNameResponses, SearchJusticeContactData, SearchJusticeContactResponses, SearchMagistratAuthorizationData, SearchMagistratAuthorizationErrors, SearchMagistratAuthorizationResponses, SearchMagistratsData, SearchMagistratsResponses, SearchResponses, SearchSummaryReadersData, SearchSummaryReadersResponses, UnPresentPlanData, UnPresentPlanResponses, UpdateAgendaData, UpdateAgendaHtmlData, UpdateAgendaHtmlResponses, UpdateAgendaResponses, UpdateDisplayTitle2Data, UpdateDisplayTitle2Responses, UpdateDisplayTitleData, UpdateDisplayTitleResponses, UpdateEmailData, UpdateEmailResponses, UpdateJusticePresentationPlanData, UpdateJusticePresentationPlanResponses, UpdateNominationFileAuditionDateData, UpdateNominationFileAuditionDateResponses, UpdateNominationFileCommentData, UpdateNominationFileCommentResponses, UpdateNominationSessionData, UpdateNominationSessionResponses, UpdateObservationData, UpdateObservationResponses, UpdateOfficialReportData, UpdateOfficialReportResponses, UpdatePasswordData, UpdatePasswordResponses, UpdatePresentationPlanHtmlData, UpdatePresentationPlanHtmlResponses, UpdateReportData, UpdateReportResponses, UpdateReportRuleValidationData, UpdateReportRuleValidationResponses, UpdateRoleData, UpdateRoleResponses, UpdateSessionObserversData, UpdateSessionObserversResponses, UpdateSummaryReadersListData, UpdateSummaryReadersListResponses, UpdateTitleData, UpdateTitleResponses, UploadNominationFileAttachmentsData, UploadNominationFileAttachmentsResponses, UploadSessionAttachmentsData, UploadSessionAttachmentsResponses, ValidateSessionData, ValidateSessionResponses, WriteMemberCommentData, WriteMemberCommentResponses, WriteNominationFileMemberMemoData, WriteNominationFileMemberMemoResponses, WriteSummaryData, WriteSummaryResponses } from './types.ts';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -513,15 +513,39 @@ export class magistrats {
 }
 
 export class docs {
-    /**
-     * prefer find members and use the title
-     */
-    public static searchChairmen<ThrowOnError extends boolean = false>(options?: Options<SearchChairmenData, ThrowOnError>): RequestResult<SearchChairmenResponses, unknown, ThrowOnError> {
-        return (options?.client ?? client).get<SearchChairmenResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/chairmen', ...options });
-    }
-    
     public static listSecretariesGeneral<ThrowOnError extends boolean = false>(options?: Options<ListSecretariesGeneralData, ThrowOnError>): RequestResult<ListSecretariesGeneralResponses, unknown, ThrowOnError> {
         return (options?.client ?? client).get<ListSecretariesGeneralResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/secretaries-general', ...options });
+    }
+    
+    public static searchJusticeContact<ThrowOnError extends boolean = false>(options?: Options<SearchJusticeContactData, ThrowOnError>): RequestResult<SearchJusticeContactResponses, unknown, ThrowOnError> {
+        return (options?.client ?? client).get<SearchJusticeContactResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/justice-contacts', ...options });
+    }
+    
+    public static createJusticeContact<ThrowOnError extends boolean = false>(options: Options<CreateJusticeContactData, ThrowOnError>): RequestResult<CreateJusticeContactResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).post<CreateJusticeContactResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/justice-contacts',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static findDocsMembers<ThrowOnError extends boolean = false>(options: Options<FindDocsMembersData, ThrowOnError>): RequestResult<FindDocsMembersResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<FindDocsMembersResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/members', ...options });
+    }
+    
+    public static findSessionDocs<ThrowOnError extends boolean = false>(options: Options<FindSessionDocsData, ThrowOnError>): RequestResult<FindSessionDocsResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<FindSessionDocsResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/docs', ...options });
+    }
+    
+    public static isSessionReadyForDocGeneration<ThrowOnError extends boolean = false>(options: Options<IsSessionReadyForDocGenerationData, ThrowOnError>): RequestResult<IsSessionReadyForDocGenerationResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<IsSessionReadyForDocGenerationResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/readiness', ...options });
+    }
+    
+    public static findAgendaNominationFiles<ThrowOnError extends boolean = false>(options: Options<FindAgendaNominationFilesData, ThrowOnError>): RequestResult<FindAgendaNominationFilesResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<FindAgendaNominationFilesResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/files', ...options });
     }
     
     public static createAgenda<ThrowOnError extends boolean = false>(options: Options<CreateAgendaData, ThrowOnError>): RequestResult<CreateAgendaResponses, unknown, ThrowOnError> {
@@ -554,31 +578,8 @@ export class docs {
         });
     }
     
-    public static findAgendaNominationFiles<ThrowOnError extends boolean = false>(options: Options<FindAgendaNominationFilesData, ThrowOnError>): RequestResult<FindAgendaNominationFilesResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<FindAgendaNominationFilesResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/files', ...options });
-    }
-    
-    public static findSessionDocs<ThrowOnError extends boolean = false>(options: Options<FindSessionDocsData, ThrowOnError>): RequestResult<FindSessionDocsResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<FindSessionDocsResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/docs', ...options });
-    }
-    
     public static detailsSessionAgenda<ThrowOnError extends boolean = false>(options: Options<DetailsSessionAgendaData, ThrowOnError>): RequestResult<DetailsSessionAgendaResponses, unknown, ThrowOnError> {
         return (options.client ?? client).get<DetailsSessionAgendaResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/agendas/{agendaId}', ...options });
-    }
-    
-    public static detailsSessionOfficialReport<ThrowOnError extends boolean = false>(options: Options<DetailsSessionOfficialReportData, ThrowOnError>): RequestResult<DetailsSessionOfficialReportResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<DetailsSessionOfficialReportResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/official-reports/{officialReportId}', ...options });
-    }
-    
-    /**
-     * @deprecated
-     */
-    public static detailsSessionDoc<ThrowOnError extends boolean = false>(options: Options<DetailsSessionDocData, ThrowOnError>): RequestResult<DetailsSessionDocResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<DetailsSessionDocResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/docs/{agendaId}', ...options });
-    }
-    
-    public static isSessionReadyForDocGeneration<ThrowOnError extends boolean = false>(options: Options<IsSessionReadyForDocGenerationData, ThrowOnError>): RequestResult<IsSessionReadyForDocGenerationResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<IsSessionReadyForDocGenerationResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/readiness', ...options });
     }
     
     public static generateAgendaHtml<ThrowOnError extends boolean = false>(options: Options<GenerateAgendaHtmlData, ThrowOnError>): RequestResult<GenerateAgendaHtmlResponses, unknown, ThrowOnError> {
@@ -609,6 +610,10 @@ export class docs {
         return (options.client ?? client).delete<ResetAgendaDocumentResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/agendas/{agendaId}/document', ...options });
     }
     
+    public static detailsSessionOfficialReport<ThrowOnError extends boolean = false>(options: Options<DetailsSessionOfficialReportData, ThrowOnError>): RequestResult<DetailsSessionOfficialReportResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<DetailsSessionOfficialReportResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/official-reports/{officialReportId}', ...options });
+    }
+    
     public static createOfficialReport<ThrowOnError extends boolean = false>(options: Options<CreateOfficialReportData, ThrowOnError>): RequestResult<CreateOfficialReportResponses, unknown, ThrowOnError> {
         return (options.client ?? client).post<CreateOfficialReportResponses, unknown, ThrowOnError>({
             url: '/api/docs/v1/sessions/{sessionId}/official-reports',
@@ -620,57 +625,8 @@ export class docs {
         });
     }
     
-    /**
-     * prefer generic query searchJusticeContact
-     *
-     * @deprecated
-     */
-    public static searchOfficialReportJusticeContact<ThrowOnError extends boolean = false>(options?: Options<SearchOfficialReportJusticeContactData, ThrowOnError>): RequestResult<SearchOfficialReportJusticeContactResponses, unknown, ThrowOnError> {
-        return (options?.client ?? client).get<SearchOfficialReportJusticeContactResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/justice-contacts', ...options });
-    }
-    
-    /**
-     * prefer generic query createJusticeContact
-     *
-     * @deprecated
-     */
-    public static createOfficialReportJusticeContact<ThrowOnError extends boolean = false>(options: Options<CreateOfficialReportJusticeContactData, ThrowOnError>): RequestResult<CreateOfficialReportJusticeContactResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).post<CreateOfficialReportJusticeContactResponses, unknown, ThrowOnError>({
-            url: '/api/docs/v1/official-reports/justice-contacts',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    public static searchJusticeContact<ThrowOnError extends boolean = false>(options?: Options<SearchJusticeContactData, ThrowOnError>): RequestResult<SearchJusticeContactResponses, unknown, ThrowOnError> {
-        return (options?.client ?? client).get<SearchJusticeContactResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/justice-contacts', ...options });
-    }
-    
-    public static createJusticeContact<ThrowOnError extends boolean = false>(options: Options<CreateJusticeContactData, ThrowOnError>): RequestResult<CreateJusticeContactResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).post<CreateJusticeContactResponses, unknown, ThrowOnError>({
-            url: '/api/docs/v1/justice-contacts',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
     public static listAgendasForNewOfficialReport<ThrowOnError extends boolean = false>(options: Options<ListAgendasForNewOfficialReportData, ThrowOnError>): RequestResult<ListAgendasForNewOfficialReportResponses, unknown, ThrowOnError> {
         return (options.client ?? client).get<ListAgendasForNewOfficialReportResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/agendas', ...options });
-    }
-    
-    /**
-     * prefer find members by formation
-     *
-     * @deprecated
-     */
-    public static listMembersForNewOfficialReport<ThrowOnError extends boolean = false>(options: Options<ListMembersForNewOfficialReportData, ThrowOnError>): RequestResult<ListMembersForNewOfficialReportResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<ListMembersForNewOfficialReportResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/sessions/{sessionId}/new-official-reports/members', ...options });
     }
     
     public static generateOfficialReportHtml<ThrowOnError extends boolean = false>(options: Options<GenerateOfficialReportHtmlData, ThrowOnError>): RequestResult<GenerateOfficialReportHtmlResponses, unknown, ThrowOnError> {
@@ -700,13 +656,80 @@ export class docs {
         });
     }
     
-    public static updateOfficialReportHtml<ThrowOnError extends boolean = false>(options: Options<UpdateOfficialReportHtmlData, ThrowOnError>): RequestResult<UpdateOfficialReportHtmlResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).patch<UpdateOfficialReportHtmlResponses, unknown, ThrowOnError>({
-            ...formDataBodySerializer,
-            url: '/api/docs/v1/official-reports/{officialReportId}/html',
+    public static detailsOfficialReportDocument<ThrowOnError extends boolean = false>(options: Options<DetailsOfficialReportDocumentData, ThrowOnError>): RequestResult<DetailsOfficialReportDocumentResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<DetailsOfficialReportDocumentResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks', ...options });
+    }
+    
+    public static resetOfficialReportIntro<ThrowOnError extends boolean = false>(options: Options<ResetOfficialReportIntroData, ThrowOnError>): RequestResult<ResetOfficialReportIntroResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).delete<ResetOfficialReportIntroResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks/intro', ...options });
+    }
+    
+    public static editOfficialReportIntro<ThrowOnError extends boolean = false>(options: Options<EditOfficialReportIntroData, ThrowOnError>): RequestResult<EditOfficialReportIntroResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).patch<EditOfficialReportIntroResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/official-reports/{officialReportId}/blocks/intro',
             ...options,
             headers: {
-                'Content-Type': null,
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static resetOfficialReportConclusion<ThrowOnError extends boolean = false>(options: Options<ResetOfficialReportConclusionData, ThrowOnError>): RequestResult<ResetOfficialReportConclusionResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).delete<ResetOfficialReportConclusionResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks/conclusion', ...options });
+    }
+    
+    public static editOfficialReportConclusion<ThrowOnError extends boolean = false>(options: Options<EditOfficialReportConclusionData, ThrowOnError>): RequestResult<EditOfficialReportConclusionResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).patch<EditOfficialReportConclusionResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/official-reports/{officialReportId}/blocks/conclusion',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static resetOfficialReportSectionTitle<ThrowOnError extends boolean = false>(options: Options<ResetOfficialReportSectionTitleData, ThrowOnError>): RequestResult<ResetOfficialReportSectionTitleResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).delete<ResetOfficialReportSectionTitleResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/title', ...options });
+    }
+    
+    public static editOfficialReportSectionTitle<ThrowOnError extends boolean = false>(options: Options<EditOfficialReportSectionTitleData, ThrowOnError>): RequestResult<EditOfficialReportSectionTitleResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).patch<EditOfficialReportSectionTitleResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/title',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static resetOfficialReportSectionIntro<ThrowOnError extends boolean = false>(options: Options<ResetOfficialReportSectionIntroData, ThrowOnError>): RequestResult<ResetOfficialReportSectionIntroResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).delete<ResetOfficialReportSectionIntroResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/intro', ...options });
+    }
+    
+    public static editOfficialReportSectionIntro<ThrowOnError extends boolean = false>(options: Options<EditOfficialReportSectionIntroData, ThrowOnError>): RequestResult<EditOfficialReportSectionIntroResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).patch<EditOfficialReportSectionIntroResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/intro',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    public static resetOfficialReportFile<ThrowOnError extends boolean = false>(options: Options<ResetOfficialReportFileData, ThrowOnError>): RequestResult<ResetOfficialReportFileResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).delete<ResetOfficialReportFileResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}', ...options });
+    }
+    
+    public static editOfficialReportFile<ThrowOnError extends boolean = false>(options: Options<EditOfficialReportFileData, ThrowOnError>): RequestResult<EditOfficialReportFileResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).patch<EditOfficialReportFileResponses, unknown, ThrowOnError>({
+            url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
                 ...options.headers
             }
         });
@@ -799,10 +822,6 @@ export class docs {
                 ...options.headers
             }
         });
-    }
-    
-    public static findDocsMembers<ThrowOnError extends boolean = false>(options: Options<FindDocsMembersData, ThrowOnError>): RequestResult<FindDocsMembersResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).get<FindDocsMembersResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/members', ...options });
     }
 }
 

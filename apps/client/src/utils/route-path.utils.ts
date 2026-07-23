@@ -30,6 +30,8 @@ export const ROUTE_PATHS = {
     OFFICIAL_REPORT_NEW: '/secretariat-general/session/:sessionId/docs/pv',
     OFFICIAL_REPORT_UPDATE: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId',
     OFFICIAL_REPORT_PREVIEW: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation',
+    OFFICIAL_REPORT_RENDER:
+      '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation/apercu',
 
     PRESENTATIONS_READY: '/secretariat-general/restitutions/a-restituer',
     PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees',
