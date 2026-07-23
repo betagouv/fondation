@@ -172,7 +172,7 @@ function MagistratObservationsStory(props: {
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratObservations',
+  title: 'Features/SidePanel/MagistratObservations',
   component: MagistratObservationsStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

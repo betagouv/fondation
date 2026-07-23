@@ -61,7 +61,9 @@ Points clés :
 - `satisfies Meta<typeof Card>` + `StoryObj<typeof meta>` : les `args` sont **typés d'après
   les vraies props** du composant. Si une prop change, la story ne compile plus.
 - Le nom de l'export devient le nom affiché (`Default`, `EditableEmpty` => "Editable Empty").
-- `title` : `Shared/...` pour les briques génériques, `Features/...` pour les composants métier.
+- `title` : `Shared/...` pour les briques génériques, `Features/<Écran>/...` pour les composants
+  métier, où `<Écran>` est l'endroit où le composant vit (`SidePanel`, `Details`...). Inutile de
+  répéter `Magistrat` : tout le domaine l'est.
 - `tags: ['autodocs']` : toujours, c'est la convention du projet.
 
 ## Args et Controls
@@ -170,7 +172,7 @@ function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratAuditionDate',
+  title: 'Features/SidePanel/MagistratAuditionDate',
   component: MagistratAuditionDateStory, // le wrapper, pas le composant nu
   // ...
 } satisfies Meta<typeof MagistratAuditionDateStory>;

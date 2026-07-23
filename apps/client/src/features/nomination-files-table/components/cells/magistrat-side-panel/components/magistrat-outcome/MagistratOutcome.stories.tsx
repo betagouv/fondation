@@ -39,7 +39,7 @@ function MagistratOutcomeStory(props: {
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratOutcome',
+  title: 'Features/SidePanel/MagistratOutcome',
   component: MagistratOutcomeStory,
   parameters: {
     layout: 'padded',

@@ -98,7 +98,7 @@ function MagistratHeaderStory(props: {
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratHeader',
+  title: 'Features/SidePanel/MagistratHeader',
   component: MagistratHeaderStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

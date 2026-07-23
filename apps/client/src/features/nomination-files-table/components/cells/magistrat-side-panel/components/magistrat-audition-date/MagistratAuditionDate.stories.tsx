@@ -47,7 +47,7 @@ function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratAuditionDate',
+  title: 'Features/SidePanel/MagistratAuditionDate',
   component: MagistratAuditionDateStory,
   parameters: { layout: 'padded', router: SG_ROUTE },
   tags: ['autodocs'],

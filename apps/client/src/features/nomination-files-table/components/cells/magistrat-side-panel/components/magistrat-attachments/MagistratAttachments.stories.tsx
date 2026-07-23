@@ -51,7 +51,7 @@ function MagistratAttachmentsStory(props: { hasFiles: boolean; isArchived: boole
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratAttachments',
+  title: 'Features/SidePanel/MagistratAttachments',
   component: MagistratAttachmentsStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
