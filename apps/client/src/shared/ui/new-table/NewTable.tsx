@@ -1,6 +1,6 @@
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 
 import { useTableVirtualizer } from './hooks/useTableVirtualizer';
 
@@ -13,7 +13,7 @@ function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
   );
 }
 
-function HeaderCell<Data extends RowData>(props: { header: Header<Data, unknown> }) {
+function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Header<Data, unknown> }) {
   const { header } = props;
   const sticky = header.column.columnDef.meta?.sticky;
   const canSort = header.column.getCanSort();
@@ -24,15 +24,19 @@ function HeaderCell<Data extends RowData>(props: { header: Header<Data, unknown>
     <div
       aria-sort={canSort ? ariaSort : undefined}
       className={clsx(
-        'flex h-12 items-center overflow-hidden px-4 text-sm leading-6 font-bold text-ellipsis whitespace-nowrap text-(--text-default-grey)',
+        'flex h-12 items-center overflow-hidden px-4 leading-6 font-bold text-ellipsis whitespace-nowrap text-(--text-default-grey)',
         sticky && 'sticky left-0 z-3 border-r border-(--border-default-grey) bg-(--background-contrast-grey)',
       )}
       role="columnheader"
-      style={{ width: header.getSize() }}
+      style={
+        props.fluid
+          ? { flexBasis: header.getSize(), flexGrow: header.getSize(), minWidth: 0 }
+          : { width: header.getSize() }
+      }
     >
       {canSort ? (
         <button
-          className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-sm leading-6 font-bold text-(--text-default-grey) hover:text-(--text-action-high-blue-france)"
+          className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 leading-6 font-bold text-(--text-default-grey) hover:text-(--text-action-high-blue-france)"
           onClick={header.column.getToggleSortingHandler()}
           type="button"
         >
@@ -47,13 +51,18 @@ function HeaderCell<Data extends RowData>(props: { header: Header<Data, unknown>
 }
 
 export function NewTable<Data extends RowData>(props: {
+  className?: string;
   emptyLabel?: ReactNode;
+  fluid?: boolean;
   isLoading?: boolean;
   onEndReached?: () => void;
   rowTint?: (row: Row<Data>) => string | undefined;
+  rowTooltip?: (row: Row<Data>) => string | undefined;
   table: Table<Data>;
+  wrap?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const tooltipId = useId();
   const { onEndReached, table } = props;
 
   const rows = table.getRowModel().rows;
@@ -72,7 +81,11 @@ export function NewTable<Data extends RowData>(props: {
 
   return (
     <div
-      className="relative size-full overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)"
+      className={clsx(
+        'relative overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)',
+        props.wrap ? 'w-full' : 'size-full',
+        props.className,
+      )}
       ref={scrollRef}
       tabIndex={0}
     >
@@ -81,52 +94,70 @@ export function NewTable<Data extends RowData>(props: {
           {table.getHeaderGroups().map((group) => (
             <div className="flex w-full border-b border-(--border-default-grey)" key={group.id} role="row">
               {group.headers.map((header) => (
-                <HeaderCell header={header} key={header.id} />
+                <HeaderCell fluid={props.fluid} header={header} key={header.id} />
               ))}
             </div>
           ))}
         </div>
 
-        <div className="relative grid" role="rowgroup" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+        <div
+          className="relative grid"
+          role="rowgroup"
+          style={props.wrap ? undefined : { height: `${virtualizer.getTotalSize()}px` }}
+        >
           {isEmpty ? (
             <div className="p-8 text-center text-(--text-mention-grey)" role="row">
               <div role="cell">{props.emptyLabel ?? 'Aucune donnée'}</div>
             </div>
           ) : null}
 
-          {virtualRows.map((virtualRow) => {
+          {(props.wrap ? rows.map((_, index) => ({ index, start: 0 })) : virtualRows).map((virtualRow) => {
             const row = rows[virtualRow.index];
+            const rowTooltip = props.rowTooltip?.(row);
+            const rowTooltipId = `${tooltipId}-${row.id}`;
             return (
               <div
+                aria-describedby={rowTooltip ? rowTooltipId : undefined}
                 aria-rowindex={virtualRow.index + 1}
                 aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
                 className={clsx(
-                  'absolute flex h-12 w-full border-b border-(--border-default-grey)',
+                  'flex w-full border-b border-(--border-default-grey)',
+                  props.wrap ? 'min-h-12' : 'absolute h-12',
                   props.rowTint?.(row) ??
                     'hover:bg-(--background-alt-grey-hover) aria-selected:bg-(--background-open-blue-france)',
                 )}
                 data-index={virtualRow.index}
                 key={row.id}
-                ref={virtualizer.measureElement}
+                ref={props.wrap ? undefined : virtualizer.measureElement}
                 role="row"
-                style={{ transform: `translateY(${virtualRow.start}px)` }}
+                style={props.wrap ? undefined : { transform: `translateY(${virtualRow.start}px)` }}
               >
                 {row.getVisibleCells().map((cell) => {
                   const sticky = cell.column.columnDef.meta?.sticky;
                   return (
                     <div
                       className={clsx(
-                        'flex items-center overflow-hidden px-4 py-2 text-ellipsis whitespace-nowrap',
+                        'flex items-center overflow-hidden px-4 py-2',
+                        props.wrap ? 'wrap-break-word' : 'text-ellipsis whitespace-nowrap',
                         sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey) bg-inherit',
                       )}
                       key={cell.id}
                       role="cell"
-                      style={{ width: cell.column.getSize() }}
+                      style={
+                        props.fluid
+                          ? { flexBasis: cell.column.getSize(), flexGrow: cell.column.getSize(), minWidth: 0 }
+                          : { width: cell.column.getSize() }
+                      }
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>
                   );
                 })}
+                {rowTooltip ? (
+                  <span className="fr-tooltip fr-placement" id={rowTooltipId} role="tooltip">
+                    {rowTooltip}
+                  </span>
+                ) : null}
               </div>
             );
           })}
