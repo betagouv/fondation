@@ -100,6 +100,7 @@ export type DetailedReportDto = {
     };
     grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
     currentPosition: string | null;
+    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     targettedPosition: string | null;
     rank: string | null;
     observers: Array<string>;
@@ -1327,12 +1328,38 @@ export type DetailedMagistratDto = {
     firstName: string;
     lastName: string;
     usedName: string | null;
+    birthDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
     grade: string | null;
+    gradeDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    nominationDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    installationDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    professionalEmail: string | null;
     currentPosition: string | null;
     careerHistory: string | null;
     externalUrl: string;
     propositions: Array<{
         nominationFileId: string;
+        number: number | null;
+        reporters: Array<{
+            firstName: string;
+            lastName: string;
+        }>;
         sessionId: string;
         sessionName: string;
         formation: 'SIEGE' | 'PARQUET';
@@ -1341,6 +1368,17 @@ export type DetailedMagistratDto = {
             month: number;
             day: number;
         };
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        targetedGrade: string | null;
         targetedPosition: string | null;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
@@ -1351,17 +1389,46 @@ export type DetailedMagistratDto = {
         isSessionReported: boolean;
     }>;
     observations: Array<{
+        nominationFileId: string;
+        number: number | null;
+        reporters: Array<{
+            firstName: string;
+            lastName: string;
+        }>;
+        sessionId: string;
+        sessionName: string;
+        formation: 'SIEGE' | 'PARQUET';
+        dateTransparence: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        targetedGrade: string | null;
+        targetedPosition: string | null;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            label: string;
+            comment: string | null;
+        } | null;
+        isArchived: boolean;
+        isSessionReported: boolean;
         id: string;
         dateReception: {
             year: number;
             month: number;
             day: number;
         };
-        sessionId: string;
-        sessionName: string;
-        nominationFileId: string;
         magistratName: string;
-        targetedPosition: string | null;
     }>;
 };
 

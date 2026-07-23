@@ -72,6 +72,7 @@ export type DetailedReportDto = {
     sessionId: string;
     nominationFileId: string;
     name: string;
+    detectedMagistratId: string | null;
     comment: string | null;
     formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
@@ -337,6 +338,7 @@ export type PaginatedNominationFiles = {
             informationCarrière: string | null;
             detectedJurisdictionId: string | null;
             detectedTargetedFunctionId: string | null;
+            detectedMagistratId: string | null;
             outcome: {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
                 comment: string | null;
@@ -584,6 +586,7 @@ export type DetailedSummaryDto = {
     sessionId: string;
     isArchived: boolean;
     name: string | null;
+    detectedMagistratId: string | null;
     rank: string | null;
     formation: 'SIEGE' | 'PARQUET';
     number: number | null;
@@ -1315,6 +1318,116 @@ export type SearchMagistratsResponseDto = {
     };
 };
 
+export type DetailedMagistratDto = {
+    id: string;
+    civilite: string;
+    firstName: string;
+    lastName: string;
+    usedName: string | null;
+    birthDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    grade: string | null;
+    gradeDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    nominationDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    installationDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    professionalEmail: string | null;
+    currentPosition: string | null;
+    careerHistory: string | null;
+    externalUrl: string;
+    propositions: Array<{
+        nominationFileId: string;
+        number: number | null;
+        reporters: Array<{
+            firstName: string;
+            lastName: string;
+        }>;
+        sessionId: string;
+        sessionName: string;
+        formation: 'SIEGE' | 'PARQUET';
+        dateTransparence: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        targetedGrade: string | null;
+        targetedPosition: string | null;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            label: string;
+            comment: string | null;
+        } | null;
+        isArchived: boolean;
+        isSessionReported: boolean;
+    }>;
+    observations: Array<{
+        nominationFileId: string;
+        number: number | null;
+        reporters: Array<{
+            firstName: string;
+            lastName: string;
+        }>;
+        sessionId: string;
+        sessionName: string;
+        formation: 'SIEGE' | 'PARQUET';
+        dateTransparence: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        targetedGrade: string | null;
+        targetedPosition: string | null;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            label: string;
+            comment: string | null;
+        } | null;
+        isArchived: boolean;
+        isSessionReported: boolean;
+        id: string;
+        dateReception: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        magistratName: string;
+    }>;
+};
+
 export type CreateObservationDto = {
     files?: Array<Blob | File>;
     form: {
@@ -1382,6 +1495,7 @@ export type GetObservationDetailsResponseDto = {
     observedMagistrat: {
         name: string;
         proposedPosition: string | null;
+        detectedMagistratId: string | null;
     };
     description: string;
     followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
@@ -3354,6 +3468,21 @@ export type SearchFullNameData = {
 export type SearchFullNameResponses = {
     200: unknown;
 };
+
+export type DetailMagistratData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}';
+};
+
+export type DetailMagistratResponses = {
+    200: DetailedMagistratDto;
+};
+
+export type DetailMagistratResponse = DetailMagistratResponses[keyof DetailMagistratResponses];
 
 export type ListObservationsData = {
     body?: never;

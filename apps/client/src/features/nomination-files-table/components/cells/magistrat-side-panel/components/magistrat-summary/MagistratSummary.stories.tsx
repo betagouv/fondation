@@ -60,6 +60,7 @@ function makeSummaryDetail(props: {
     birthDate: null,
     auditionDate: null,
     auditionTime: null,
+    detectedMagistratId: null,
     formation: 'SIEGE',
     grade: 'I',
     id: 'summary-1',
@@ -139,7 +140,7 @@ function MagistratSummaryStory(props: {
 }
 
 const meta = {
-  title: 'Features/Magistrat/MagistratSummary',
+  title: 'Features/SidePanel/MagistratSummary',
   component: MagistratSummaryStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

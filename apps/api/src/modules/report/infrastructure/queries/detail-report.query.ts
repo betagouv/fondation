@@ -58,6 +58,7 @@ export class DetailReportQuery {
             birthDate: true,
             grade: true,
             currentPosition: true,
+            targetedGrade: true,
             targetedPosition: true,
             rank: true,
             observers: true,
@@ -191,6 +192,7 @@ export class DetailReportQuery {
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
+      targetedGrade: z.enum(GradeEnum).nullable().parse(report.nominationFile.targetedGrade),
       targettedPosition: report.nominationFile.targetedPosition,
       priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: report.nominationFile.priorities[0]
@@ -263,6 +265,7 @@ export class DetailedReportDto extends createZodDto(
     dateTransparence: dateOnlyJsonSchema,
     grade: z.enum(GradeEnum),
     currentPosition: z.string().nullable(),
+    targetedGrade: z.enum(GradeEnum).nullable(),
     targettedPosition: z.string().nullable(),
     rank: z.string().nullable(),
     observers: z.array(z.string()),
