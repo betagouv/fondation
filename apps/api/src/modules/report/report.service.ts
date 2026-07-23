@@ -13,6 +13,10 @@ import {
   GetReportFileUrlsQuery,
   type GetReportFileUrlsResponseDto,
 } from './infrastructure/queries/get-report-file-urls.query';
+import {
+  type FoundNominationFileMembersReportDto,
+  SearchNominationFileMembersReportQuery,
+} from './infrastructure/queries/search-nomination-file-members-report.query';
 import { ReportRepository } from './infrastructure/report.repository';
 
 @Injectable()
@@ -21,6 +25,7 @@ export class ReportService {
     private readonly reportRepository: ReportRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
+    private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
     private readonly files: Files,
   ) {}
 
@@ -101,6 +106,14 @@ export class ReportService {
     reportId: string;
   }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
+  }
+
+  internalSearchNominationFileMembersReport(query: {
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<FoundNominationFileMembersReportDto> {
+    return this.searchNominationFileMembersReportQuery.handle(query);
   }
 
   async updateReport(command: {

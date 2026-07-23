@@ -3,7 +3,9 @@ import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
 test.describe('Report E2E', () => {
+  let nominationFileId: string;
   let reportId: string;
+  let sessionId: string;
 
   test.beforeEach(async ({ sessions, agent, member, expect }) => {
     // Create a session and assign the member so a report is created automatically
@@ -33,7 +35,8 @@ test.describe('Report E2E', () => {
     });
     expect(filesResponse.response?.status).toBe(200);
 
-    const nominationFileId: string = filesResponse.data!.items[0]!.id;
+    nominationFileId = filesResponse.data!.items[0]!.id;
+    sessionId = session.id;
 
     const affectResponse = await agent.sessions.affectReporters({
       path: { sessionId: session.id },
@@ -52,6 +55,26 @@ test.describe('Report E2E', () => {
     });
 
     reportId = reportsRes.data!.items[0]!.id;
+  });
+
+  test('should find my report for a nomination file', async ({ logIn, member, expect }) => {
+    const memberRes = await member.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: member['@user']!.id },
+    });
+    expect(memberRes.response?.status).toBe(200);
+    expect(memberRes.data?.reportId).toBe(reportId);
+
+    const memberWithoutReport = await logIn('MEMBRE_COMMUN');
+    const withoutReportRes = await memberWithoutReport.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(withoutReportRes.response?.status).toBe(200);
+    expect(withoutReportRes.data?.reportId).toBeNull();
+
+    const otherMemberRes = await member.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(otherMemberRes.response?.status).toBe(403);
   });
 
   test('should attach files to a report', async ({ member, expect }) => {
