@@ -9,7 +9,6 @@ import {
   nominationFileOutcomeLabel,
   type NominationFileOutcomeEnum,
 } from 'src/modules/session/shared/types/nomination-file-outcome';
-import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
@@ -18,10 +17,7 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailMagistratQuery {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async handle(query: { magistratId: string }): Promise<DetailedMagistratDto> {
     return this.prisma.$transaction(async (tx) => {
@@ -53,7 +49,6 @@ export class DetailMagistratQuery {
               targetedGrade: true,
               targetedPosition: true,
               outcome: true,
-              outcomeComment: true,
               reporterIds: {
                 where: { version: { statut: 'PUBLIEE' } },
                 select: {
@@ -89,7 +84,6 @@ export class DetailMagistratQuery {
                   targetedGrade: true,
                   targetedPosition: true,
                   outcome: true,
-                  outcomeComment: true,
                   reporterIds: {
                     where: { version: { statut: 'PUBLIEE' } },
                     select: {
@@ -127,11 +121,15 @@ export class DetailMagistratQuery {
         : [];
       const reportedIds = new Set(reportedRows.map(({ id }) => id));
 
-      const publishedVersionIds = new Map<string, string>();
-      for (const sessionId of sessionIds) {
-        const version = await this.affectationVersionFinder.lastPublished({ tx, sessionId });
-        if (version.optionalId) publishedVersionIds.set(sessionId, version.optionalId);
-      }
+      const publishedVersions = sessionIds.length
+        ? await tx.affectationVersion.findMany({
+            where: { sessionId: { in: sessionIds }, statut: 'PUBLIEE' },
+            orderBy: { version: 'desc' },
+            distinct: ['sessionId'],
+            select: { id: true, sessionId: true },
+          })
+        : [];
+      const publishedVersionIds = new Map(publishedVersions.map(({ sessionId, id }) => [sessionId, id]));
 
       return {
         id: magistrat.id,
@@ -176,7 +174,6 @@ export class DetailMagistratQuery {
       targetedGrade: string | null;
       targetedPosition: string | null;
       outcome: NominationFileOutcomeEnum | null;
-      outcomeComment: string | null;
       reporterIds: { versionId: string; user: { firstName: string; lastName: string } }[];
       session: {
         id: string;
@@ -212,11 +209,10 @@ export class DetailMagistratQuery {
         ? {
             value: dossier.outcome,
             label: nominationFileOutcomeLabel({ outcome: dossier.outcome, formation }),
-            comment: dossier.outcomeComment,
           }
         : null,
       isArchived: !!dossier.session.archivedAt,
-      isSessionReported: reportedIds.has(dossier.session.id),
+      isSessionOngoing: !dossier.session.archivedAt && !reportedIds.has(dossier.session.id),
     };
   }
 }
@@ -237,11 +233,10 @@ const MagistratPropositionSchema = z.object({
     .object({
       value: z.enum(NominationFileOutcome.enum),
       label: z.string(),
-      comment: z.string().nullable(),
     })
     .nullable(),
   isArchived: z.boolean(),
-  isSessionReported: z.boolean(),
+  isSessionOngoing: z.boolean(),
 });
 
 const MagistratObservationSchema = MagistratPropositionSchema.extend({

@@ -1421,10 +1421,9 @@ export type DetailedMagistratDto = {
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
             label: string;
-            comment: string | null;
         } | null;
         isArchived: boolean;
-        isSessionReported: boolean;
+        isSessionOngoing: boolean;
     }>;
     observations: Array<{
         nominationFileId: string;
@@ -1456,10 +1455,9 @@ export type DetailedMagistratDto = {
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
             label: string;
-            comment: string | null;
         } | null;
         isArchived: boolean;
-        isSessionReported: boolean;
+        isSessionOngoing: boolean;
         id: string;
         dateReception: {
             year: number;
