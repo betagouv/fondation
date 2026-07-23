@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -263,22 +264,24 @@ describe('AuditionDateForm close guard', () => {
     render(
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
         <QueryClientProvider client={client}>
-          <MagistratPanelProvider
-            isFetching={false}
-            nominationFiles={makeSessionNominationFileList(['a', 'b'])}
-            onPageChange={vi.fn()}
-            pagination={{ pageIndex: 0, pageSize: 2 }}
-            totalCount={2}
-          >
-            <Consumer />
-            <MagistratAuditionDateForm
-              editable
-              initialAuditionDate={null}
-              initialAuditionTime={null}
-              nominationFileId="nomination-file"
-              sessionId="session-1"
-            />
-          </MagistratPanelProvider>
+          <NuqsTestingAdapter hasMemory>
+            <MagistratPanelProvider
+              isFetching={false}
+              nominationFiles={makeSessionNominationFileList(['a', 'b'])}
+              onPageChange={vi.fn()}
+              pagination={{ pageIndex: 0, pageSize: 2 }}
+              totalCount={2}
+            >
+              <Consumer />
+              <MagistratAuditionDateForm
+                editable
+                initialAuditionDate={null}
+                initialAuditionTime={null}
+                nominationFileId="nomination-file"
+                sessionId="session-1"
+              />
+            </MagistratPanelProvider>
+          </NuqsTestingAdapter>
         </QueryClientProvider>
       </IntlProvider>,
     );

@@ -1,4 +1,5 @@
 import { act, render } from '@testing-library/react';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { describe, expect, it, vi } from 'vitest';
 
 import { makeSessionNominationFileList } from '@/test-utils/factories/session-nomination-file.factory';
@@ -15,7 +16,7 @@ type ProviderProps = {
   totalCount: number;
 };
 
-function renderProvider(initialProps: ProviderProps) {
+function renderProvider(initialProps: ProviderProps, searchParams?: string) {
   const ref: { current: MagistratPanelContextValue | null } = { current: null };
 
   function Consumer() {
@@ -24,9 +25,11 @@ function renderProvider(initialProps: ProviderProps) {
   }
 
   const view = render(
-    <MagistratPanelProvider {...initialProps}>
-      <Consumer />
-    </MagistratPanelProvider>,
+    <NuqsTestingAdapter hasMemory searchParams={searchParams}>
+      <MagistratPanelProvider {...initialProps}>
+        <Consumer />
+      </MagistratPanelProvider>
+    </NuqsTestingAdapter>,
   );
 
   return {
@@ -36,9 +39,11 @@ function renderProvider(initialProps: ProviderProps) {
     },
     rerender: (props: ProviderProps) =>
       view.rerender(
-        <MagistratPanelProvider {...props}>
-          <Consumer />
-        </MagistratPanelProvider>,
+        <NuqsTestingAdapter hasMemory>
+          <MagistratPanelProvider {...props}>
+            <Consumer />
+          </MagistratPanelProvider>
+        </NuqsTestingAdapter>,
       ),
   };
 }
@@ -164,10 +169,30 @@ describe('MagistratPanelProvider', () => {
     expect(view.panel.activeFile).toBeNull();
   });
 
-  it('stays open when the active file drops out of the refreshed list', () => {
+  it('drops a dossier deep link that matches no loaded file', async () => {
+    const view = renderProvider(baseProps(), '?dossier=ghost');
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(view.panel.activeId).toBeNull();
+    expect(view.panel.isOpen).toBe(false);
+  });
+
+  it('keeps a dossier deep link while the list is still fetching', () => {
+    const view = renderProvider(baseProps({ isFetching: true, nominationFiles: [] }), '?dossier=ghost');
+
+    expect(view.panel.activeId).toBe('ghost');
+  });
+
+  it('stays open when the active file drops out of the refreshed list', async () => {
     const view = renderProvider(baseProps());
 
-    act(() => view.panel.open('a'));
+    await act(async () => {
+      view.panel.open('a');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     expect(view.panel.isOpen).toBe(true);
 
     view.rerender(baseProps({ nominationFiles: makeSessionNominationFileList(['b']) }));
