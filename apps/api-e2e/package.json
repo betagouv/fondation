@@ -12,11 +12,11 @@
   "devDependencies": {
     "@faker-js/faker": "catalog:",
     "@hey-api/openapi-ts": "catalog:",
-    "@types/node": "24.12.4",
+    "@types/node": "24.13.2",
     "lolfi": "workspace:*",
-    "postgres": "^3.4.9",
+    "postgres": "3.4.9",
     "typescript": "catalog:",
-    "undici-types": "^8.5.0",
-    "vitest": "4.1.8"
+    "undici-types": "8.5.0",
+    "vitest": "4.1.10"
   }
 }

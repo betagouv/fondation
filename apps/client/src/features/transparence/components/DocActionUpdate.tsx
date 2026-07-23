@@ -25,7 +25,7 @@ export function DocActionUpdate(props: {
     }
 
     return {
-      to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+      to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
         sessionId,
         officialReportId: doc.id,
       }),

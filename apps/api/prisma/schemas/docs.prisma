@@ -1,3 +1,29 @@
+model JusticeDepartmentContact {
+  id   BigInt @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  authorId  String?  @map("author_id") @db.Uuid
+
+  officialReports          OfficialReport[]
+  author                   User?                     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  justicePresentationPlans JusticePresentationPlan[]
+
+  @@map("justice_department_contact")
+  @@schema("docs")
+}
+
+enum PrismaDocsFileOutcomeEnum {
+  VALIDATED
+  NON_VALIDATED
+  SUSPENDED
+  WITHDRAWN
+
+  @@map("agenda_file_outcome_enum")
+  @@schema("docs")
+}
+
+// #region Agenda
 model Agenda {
   id                        String              @id @db.Uuid
   sessionId                 String              @map("session_id") @db.Uuid
@@ -35,16 +61,6 @@ model Agenda {
   @@schema("docs")
 }
 
-enum PrismaDocsFileOutcomeEnum {
-  VALIDATED
-  NON_VALIDATED
-  SUSPENDED
-  WITHDRAWN
-
-  @@map("agenda_file_outcome_enum")
-  @@schema("docs")
-}
-
 model AgendaNominationFile {
   id               BigInt  @id @default(autoincrement())
   agendaId         String  @map("agenda_id") @db.Uuid
@@ -70,6 +86,9 @@ model AgendaNominationFile {
   @@schema("docs")
 }
 
+// #endregion Agenda
+
+// #region OfficialReport
 model OfficialReport {
   id                         String   @id @db.Uuid
   sessionMeetingDate         DateTime @map("session_meeting_date") @db.Date
@@ -79,6 +98,12 @@ model OfficialReport {
   html                       String?
   isManuallyEdited           Boolean  @default(false) @map("is_manually_edited")
   pdfId                      String?  @map("pdf_id") @db.Uuid
+
+  outdated           Boolean @default(false)
+  introHtml          String? @map("intro_html")
+  introOutdated      Boolean @default(false) @map("intro_outdated")
+  conclusionHtml     String? @map("conclusion_html")
+  conclusionOutdated Boolean @default(false) @map("conclusion_outdated")
 
   createdAt DateTime @default(now()) @map("created_at")
   authorId  String?  @map("author_id") @db.Uuid
@@ -104,6 +129,8 @@ model OfficialReport {
   agendas                  Agenda[]
   members                  OfficialReportMember[]
   nominationFiles          OfficialReportNominationFile[]
+  sectionTitles            OfficialReportSectionTitle[]
+  sectionIntros            OfficialReportSectionIntro[]
   chairman                 User?                          @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_chairman")
   secretary                User?                          @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_secretary")
   author                   User?                          @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_author")
@@ -133,51 +160,6 @@ model OfficialReportMember {
   @@schema("docs")
 }
 
-model JusticeDepartmentContact {
-  id   BigInt @id @default(autoincrement())
-  name String
-
-  createdAt DateTime @default(now()) @map("created_at")
-  authorId  String?  @map("author_id") @db.Uuid
-
-  officialReports          OfficialReport[]
-  author                   User?                     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  justicePresentationPlans JusticePresentationPlan[]
-
-  @@map("justice_department_contact")
-  @@schema("docs")
-}
-
-model JusticePresentationPlanNominationFile {
-  id     BigInt @id @default(autoincrement())
-  planId String @map("plan_id") @db.Uuid
-
-  nominationFileId String? @map("nomination_file_id") @db.Uuid
-  agendaId         String  @map("agenda_id") @db.Uuid
-  sessionId        String  @map("session_id") @db.Uuid
-  sessionName      String  @map("session_name")
-
-  number           Int
-  name             String
-  grade            String
-  position         String?
-  targetedPosition String?                   @map("targeted_position")
-  targetedGrade    String                    @map("targeted_grade")
-  outcome          PrismaDocsFileOutcomeEnum
-  outcomeComment   String?                   @map("outcome_comment")
-  reporters        String[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  plan           JusticePresentationPlan @relation(fields: [planId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  nominationFile DossierDeNomination?    @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  agenda         Agenda                  @relation(fields: [agendaId], references: [id], onDelete: Restrict, onUpdate: NoAction)
-
-  @@map("justice_presentation_plan_nomination_file")
-  @@schema("docs")
-}
-
 model OfficialReportNominationFile {
   id               BigInt @id @default(autoincrement())
   officialReportId String @map("official_report_id") @db.Uuid
@@ -194,6 +176,9 @@ model OfficialReportNominationFile {
   outcomeComment   String?                   @map("outcome_comment")
   reporters        String[]
 
+  htmlEdited   String? @map("html_edited")
+  htmlOutdated Boolean @default(false) @map("html_outdated")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -204,6 +189,35 @@ model OfficialReportNominationFile {
   @@schema("docs")
 }
 
+model OfficialReportSectionTitle {
+  officialReportId String                    @map("official_report_id") @db.Uuid
+  outcome          PrismaDocsFileOutcomeEnum
+  title            String?
+
+  officialReport OfficialReport @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([officialReportId, outcome], name: "primaryKey")
+  @@map("official_report_section_title")
+  @@schema("docs")
+}
+
+model OfficialReportSectionIntro {
+  officialReportId String                    @map("official_report_id") @db.Uuid
+  outcome          PrismaDocsFileOutcomeEnum
+  html             String
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  updatedAt        DateTime                  @updatedAt @map("updated_at")
+
+  officialReport OfficialReport @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([officialReportId, outcome], name: "primaryKey")
+  @@map("official_report_section_intro")
+  @@schema("docs")
+}
+
+// #endregion OfficialReport
+
+// #region JusticePresentationPlan
 model JusticePresentationPlan {
   id               String    @id @db.Uuid
   date             DateTime  @db.Date
@@ -250,6 +264,36 @@ model JusticePresentationPlan {
   @@schema("docs")
 }
 
+model JusticePresentationPlanNominationFile {
+  id     BigInt @id @default(autoincrement())
+  planId String @map("plan_id") @db.Uuid
+
+  nominationFileId String? @map("nomination_file_id") @db.Uuid
+  agendaId         String  @map("agenda_id") @db.Uuid
+  sessionId        String  @map("session_id") @db.Uuid
+  sessionName      String  @map("session_name")
+
+  number           Int
+  name             String
+  grade            String
+  position         String?
+  targetedPosition String?                   @map("targeted_position")
+  targetedGrade    String                    @map("targeted_grade")
+  outcome          PrismaDocsFileOutcomeEnum
+  outcomeComment   String?                   @map("outcome_comment")
+  reporters        String[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  plan           JusticePresentationPlan @relation(fields: [planId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  nominationFile DossierDeNomination?    @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  agenda         Agenda                  @relation(fields: [agendaId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@map("justice_presentation_plan_nomination_file")
+  @@schema("docs")
+}
+
 model JusticePresentationPlanToAgenda {
   planId   String @map("plan_id") @db.Uuid
   agendaId String @unique @map("agenda_id") @db.Uuid
@@ -276,3 +320,5 @@ model JusticePresentationPlanMember {
   @@map("justice_presentation_plan_member")
   @@schema("docs")
 }
+
+// #endregion JusticePresentationPlan

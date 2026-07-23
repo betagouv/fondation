@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`officialReportTemplate > should include non president members in end-time 1`] = `"<em>À 18:10, Simone&nbsp;MICHEL-LEVY, clôture la séance.</em>"`;
+
+exports[`officialReportTemplate > should render 1`] = `
+"
+            <div class="header"><h1> Procès-verbal de restitution de la séance du 01/07/2026 tenue à Paris au Conseil supérieur de la magistrature </h1> <p class="formation"> Formation compétente à l'égard des magistrats du siège </p></div>
+
+            <footer>
+              <div class="drapeau"></div>
+            </footer>
+
+            <div class="content" data-editable-content=""><p>Sous la présidence de Simone&nbsp;MICHEL-LEVY, co-fondatrice du réseau Action PTT, présidente de la formation siège, en présence des membres du Conseil supérieur de la magistrature suivants&nbsp;:</p><ul> <li>Mme Rose&nbsp;VALLAND, conservatrice du musée du Jeu de Paume</li><li>Mme Germaine&nbsp;TILLON</li> </ul><p><strong>En présence de&nbsp;:</strong></p><ul> <li>Mme&nbsp;Catherine&nbsp;DIOR, secrétaire générale</li> <li>MME Lucie AUBRAC, représentante de la DSJ</li> </ul><p> MME Lucie AUBRAC, représentante de la DSJ, indique renoncer au délai de convocation de huit jours prévus par l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la magistrature. </p><p> À 18:00, Simone&nbsp;MICHEL-LEVY, présidente de la formation siège, déclare la séance ouverte. Elle fait part des avis émis par le Conseil sur les propositions figurant à l'ordre du jour arrêté le 1<sup>er</sup> juillet 2026 sur la circulaire de transparence du 22 juin 2026&nbsp;: </p> <h2>Retrait</h2> <p>Le Conseil constate le retrait de la proposition de nomination suivante&nbsp;:</p> <ol> <li><strong>MME Mélinée MANOUCHIAN</strong>, actuellement présidente à la cour d'Appel de Strasbourg (G3), au poste de présidente à la cour d'appel de Dijon (G3), au rapport de MME Germaine TILLON.</li> </ol> <h2>Sursis</h2> <p>Le Conseil sursoit à statuer sur la proposition de nomination suivante&nbsp;:</p> <ol> <li><strong>MME Mélinée MANOUCHIAN</strong>, actuellement présidente à la cour d'Appel de Lille (G3), au poste de présidente à la cour d'appel de Marseille (G3), au rapport de MME Simone MICHEL-LEVY.</li> </ol> <h2>Avis non conformes</h2> <p>Le Conseil a émis un avis non conforme sur les propositions de nomination suivantes&nbsp;:</p> <ol> <li><strong>MME Marcelle Henry</strong>, actuellement présidente à la cour d'Appel de Amiens (G3), au poste de présidente à la cour d'appel de Reims (G3), au rapport de MME Germaine TILLON.</li> <li><strong>M. Léon BLUM</strong>, actuellement président à la cour d'Appel de Valence (G3), au poste de président à la cour d'appel de Riom (G3), au rapport de MME Rose VALLAND.</li> </ol> <h2>Avis conforme</h2> <p>Le Conseil a émis un avis conforme sur la proposition de nomination suivante&nbsp;:</p> <ol> <li><strong>MME Simonne Mathieu</strong>, actuellement présidente à la cour d'Appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rose VALLAND.</li> </ol></div>
+
+            <div class="footer"><p class="end-time"><em>À 18:10, Simone&nbsp;MICHEL-LEVY, présidente de la formation siège, clôture la séance.</em></p>
+<section class="signatures"> <div> <p class="secretary-general">la secrétaire générale,</p> <p class="secretary-general">Catherine&nbsp;DIOR</p> </div> <div> <p class="president">la présidente,</p> <p class="president">Simone&nbsp;MICHEL-LEVY</p> </div> </section></div>
+          "
+`;

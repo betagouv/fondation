@@ -9,7 +9,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { MembersModule } from './members';
 import { ObservationModule } from './observation/observation.module';
 import { ReportModule } from './report/report.module';
-import { SessionModule } from './session/session.module';
+import { TransparenceModule } from './session/transparence/transparence.module';
 import { SimpleAuthModule } from './simple-auth';
 
 @Module({
@@ -17,7 +17,7 @@ import { SimpleAuthModule } from './simple-auth';
     SimpleAuthModule,
     ReportModule,
     IngestModule,
-    SessionModule,
+    TransparenceModule,
     ArchivedSessionsModule,
     MembersModule,
     MaintenanceModule,

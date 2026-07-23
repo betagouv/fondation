@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { ClockModule } from './clock';
 import { ConfigModule } from './config';
@@ -9,6 +10,7 @@ import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
 import { ObservabilityModule } from './observability';
+import { PdfModule } from './pdf';
 
 @Global()
 @Module({
@@ -22,7 +24,17 @@ import { ObservabilityModule } from './observability';
     HealthModule.register(),
     HttpModule.register(),
     ObservabilityModule,
+    PdfModule,
+    EventEmitterModule.forRoot(),
   ],
-  exports: [ClockModule, ConfigModule, DatabaseModule, FilesModule, HttpModule, ObservabilityModule],
+  exports: [
+    ClockModule,
+    ConfigModule,
+    DatabaseModule,
+    FilesModule,
+    HttpModule,
+    ObservabilityModule,
+    PdfModule,
+  ],
 })
 export class FrameworkModule {}

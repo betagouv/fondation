@@ -1,0 +1,72 @@
+import {
+  NominationFileOutcomeEnum,
+  nominationFileOutcomeLabel,
+} from 'src/modules/session/shared/types/nomination-file-outcome';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { assertNever } from 'src/utils/assert-never';
+
+export const FinalDocNominationFileOutcomeEnum = {
+  VALIDATED: 'VALIDATED',
+  NON_VALIDATED: 'NON_VALIDATED',
+  WITHDRAWN: 'WITHDRAWN',
+} as const;
+export type FinalDocNominationFileOutcomeEnum =
+  (typeof FinalDocNominationFileOutcomeEnum)[keyof typeof FinalDocNominationFileOutcomeEnum];
+
+export const DocNominationFileOutcomeEnum = {
+  ...FinalDocNominationFileOutcomeEnum,
+  SUSPENDED: 'SUSPENDED',
+} as const;
+
+export type DocNominationFileOutcomeEnum =
+  (typeof DocNominationFileOutcomeEnum)[keyof typeof DocNominationFileOutcomeEnum];
+
+export function nominationFileOutcomeToDocNominationFileOutcome(
+  value: NominationFileOutcomeEnum,
+): DocNominationFileOutcomeEnum {
+  switch (value) {
+    case 'ASSESSING':
+    case 'WAITING_DSJ':
+    case 'SUSPENDED':
+      return 'SUSPENDED';
+
+    case 'NON_VALIDATED':
+      return 'NON_VALIDATED';
+
+    case 'VALIDATED':
+      return 'VALIDATED';
+
+    case 'REMOVED':
+    case 'WITHDRAWN':
+      return 'WITHDRAWN';
+
+    default:
+      return assertNever(value);
+  }
+}
+
+export function isFinalDocNominationFileOutcomeEnum(
+  value: string,
+): value is FinalDocNominationFileOutcomeEnum {
+  return value in FinalDocNominationFileOutcomeEnum;
+}
+
+export function docNominationFileOutcomeLabel(props: {
+  outcome: DocNominationFileOutcomeEnum;
+  formation: FormationEnum;
+}): string {
+  switch (props.outcome) {
+    case 'VALIDATED':
+    case 'NON_VALIDATED':
+      return nominationFileOutcomeLabel(props);
+
+    case 'SUSPENDED':
+      return 'sursis à statuer';
+
+    case 'WITHDRAWN':
+      return 'retrait';
+
+    default:
+      return assertNever(props.outcome);
+  }
+}

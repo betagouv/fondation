@@ -220,26 +220,25 @@ function AttachmentItem(props: {
   return (
     <li className="fr-py-3v">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 gap-2">
+        <div className="grid min-w-0 items-center gap-x-2" style={{ gridTemplateColumns: 'auto 1fr' }}>
           <span
             aria-hidden="true"
-            className="fr-icon-file-line fr-icon--sm fr-mt-1v shrink-0 text-(--text-title-blue-france)"
+            className="fr-icon-file-line fr-icon--sm shrink-0 text-(--text-title-blue-france)"
+            style={{ transform: 'translateY(1px)' }}
           />
-          <div className="flex min-w-0 flex-col">
-            <button
-              className="truncate text-left text-(--text-action-high-blue-france) underline disabled:opacity-50"
-              disabled={isUrlPending || isRemovePending}
-              onClick={onPreview}
-              title={formatMessage(
-                { defaultMessage: 'Ouvrir {name} dans un nouvel onglet' },
-                { name: props.name },
-              )}
-              type="button"
-            >
-              {label}
-            </button>
-            {meta && <span className="text-sm text-(--text-mention-grey)">{meta}</span>}
-          </div>
+          <button
+            className="-mx-1 -my-0.5 truncate border-0 bg-transparent px-1 py-0.5 text-left text-(--text-action-high-blue-france) underline underline-offset-2 hover:bg-(--background-default-grey-hover) disabled:opacity-50"
+            disabled={isUrlPending || isRemovePending}
+            onClick={onPreview}
+            title={formatMessage(
+              { defaultMessage: 'Ouvrir {name} dans un nouvel onglet' },
+              { name: props.name },
+            )}
+            type="button"
+          >
+            {label}
+          </button>
+          {meta && <span className="col-start-2 text-sm text-(--text-mention-grey)">{meta}</span>}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">

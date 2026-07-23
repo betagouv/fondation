@@ -7,7 +7,7 @@ import { LolfiJob } from '../lolfi-job.type';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { PrismaService } from 'src/modules/framework/database';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
@@ -42,8 +42,8 @@ export class LolfiFilesIngestor {
     private readonly candidatesIngestor: LolfiCandidatsIngestor,
     private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
     private readonly nominationsIngestor: LolfiTransparencesIngestor,
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   async ingest(jobId: number, signal: AbortSignal): Promise<{ success: boolean; values?: RawSession[] }> {

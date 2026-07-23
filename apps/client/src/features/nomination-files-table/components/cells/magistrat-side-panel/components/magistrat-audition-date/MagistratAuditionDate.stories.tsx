@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NominationFilesTableContext } from '@/features/nomination-files-table/context/files-table.context';
+import { ConfirmationProvider } from '@/shared/context/confirmation';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
@@ -24,21 +25,23 @@ function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime
 
   return (
     <StoryQueryClient>
-      <NominationFilesTableContext
-        value={{
-          edition: undefined,
-          formation: 'SIEGE',
-          isEditable: true,
-          outcomes: makeSessionOutcomes('SIEGE'),
-          sessionId: SESSION_ID,
-        }}
-      >
-        <MagistratAuditionDate
-          editable={props.editable}
-          key={`${props.editable}-${props.auditionDateTime}`}
-          nominationFile={nominationFile}
-        />
-      </NominationFilesTableContext>
+      <ConfirmationProvider>
+        <NominationFilesTableContext
+          value={{
+            edition: undefined,
+            formation: 'SIEGE',
+            isEditable: true,
+            outcomes: makeSessionOutcomes('SIEGE'),
+            sessionId: SESSION_ID,
+          }}
+        >
+          <MagistratAuditionDate
+            editable={props.editable}
+            key={`${props.editable}-${props.auditionDateTime}`}
+            nominationFile={nominationFile}
+          />
+        </NominationFilesTableContext>
+      </ConfirmationProvider>
     </StoryQueryClient>
   );
 }

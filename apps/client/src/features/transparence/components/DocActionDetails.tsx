@@ -47,6 +47,11 @@ export function DocActionDetails(props: {
             <FormattedMessage defaultMessage={'pv attendu'} />
           </Badge>
         )}
+        {doc.type === 'officialReport' && doc.outdated && (
+          <Badge as="span" small severity="warning" className="fr-mr-1v rounded-full">
+            <FormattedMessage defaultMessage="À vérifier" />
+          </Badge>
+        )}
         {doc.name}
       </>
     </Button>

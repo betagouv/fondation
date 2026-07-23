@@ -1,5 +1,3 @@
-import { FormattedMessage } from 'react-intl';
-
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -14,10 +12,7 @@ export function MagistratAuditionDate(props: { editable: boolean; nominationFile
   if (!editable && !nominationFile.auditionDate) return null;
 
   return (
-    <div className="flex flex-col gap-2" id={AUDITION_SECTION_ID}>
-      <label className="fr-mb-2v block text-xl font-semibold">
-        <FormattedMessage defaultMessage="Audition" />
-      </label>
+    <div id={AUDITION_SECTION_ID}>
       <MagistratAuditionDateForm
         editable={editable}
         initialAuditionDate={nominationFile.auditionDate}
