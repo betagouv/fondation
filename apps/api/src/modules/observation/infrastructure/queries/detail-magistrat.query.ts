@@ -9,6 +9,7 @@ import {
   nominationFileOutcomeLabel,
   type NominationFileOutcomeEnum,
 } from 'src/modules/session/shared/types/nomination-file-outcome';
+import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
@@ -17,7 +18,10 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailMagistratQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async handle(query: { magistratId: string }): Promise<DetailedMagistratDto> {
     return this.prisma.$transaction(async (tx) => {
@@ -121,15 +125,7 @@ export class DetailMagistratQuery {
         : [];
       const reportedIds = new Set(reportedRows.map(({ id }) => id));
 
-      const publishedVersions = sessionIds.length
-        ? await tx.affectationVersion.findMany({
-            where: { sessionId: { in: sessionIds }, statut: 'PUBLIEE' },
-            orderBy: { version: 'desc' },
-            distinct: ['sessionId'],
-            select: { id: true, sessionId: true },
-          })
-        : [];
-      const publishedVersionIds = new Map(publishedVersions.map(({ sessionId, id }) => [sessionId, id]));
+      const publishedVersionIds = await this.affectationVersionFinder.lastPublishedIds({ sessionIds, tx });
 
       return {
         id: magistrat.id,
