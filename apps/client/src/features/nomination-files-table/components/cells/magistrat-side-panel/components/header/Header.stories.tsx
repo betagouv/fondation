@@ -11,6 +11,7 @@ import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys } from '@queries/members.queries';
+import { reportKeys } from '@queries/reports.queries';
 
 import { Header } from './Header';
 
@@ -40,15 +41,36 @@ function reportersFor(scenario: ReporterScenario) {
   return OTHER_REPORTERS;
 }
 
-function seedQueries(client: QueryClient) {
-  client.setQueryData(authKeys.introspectSession(), {
-    civility: 'Monsieur PETIT',
-    firstName: 'Jean',
-    id: CURRENT_USER_ID,
-    isImpersonated: false,
-    lastName: 'Petit',
-    role: 'MEMBRE_DU_SIEGE',
-  });
+function seedQueries(
+  client: QueryClient,
+  view: View,
+  myReport: { nominationFileId: string; reportId: string | null },
+) {
+  client.setQueryData(
+    reportKeys.myReport({ nominationFileId: myReport.nominationFileId }),
+    myReport.reportId,
+  );
+
+  client.setQueryData(
+    authKeys.introspectSession(),
+    view === 'member'
+      ? {
+          civility: 'Monsieur PETIT',
+          firstName: 'Jean',
+          id: CURRENT_USER_ID,
+          isImpersonated: false,
+          lastName: 'Petit',
+          role: 'MEMBRE_DU_SIEGE',
+        }
+      : {
+          civility: 'Madame ROCHE',
+          firstName: 'Anne',
+          id: 'sg-user',
+          isImpersonated: false,
+          lastName: 'Roche',
+          role: 'ADJOINT_SECRETAIRE_GENERAL',
+        },
+  );
 
   const memberListOptions = {
     formations: ['COMMUN', FormationEnum.SIEGE],
@@ -83,8 +105,15 @@ function HeaderStory(props: {
     reporters: reportersFor(props.reporters),
   });
 
+  const myReportId = props.view === 'member' && props.reporters === 'you' ? 'report-1' : null;
+
   return (
-    <StoryQueryClient seed={seedQueries}>
+    <StoryQueryClient
+      key={`${props.view}-${props.reporters}`}
+      seed={(client) =>
+        seedQueries(client, props.view, { nominationFileId: nominationFile.id, reportId: myReportId })
+      }
+    >
       <NominationFilesTableProvider
         formation={FormationEnum.SIEGE}
         isEditable={isEditable}
@@ -112,7 +141,7 @@ const meta = {
     auditionScheduled: true,
     nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
-    reporters: 'you',
+    reporters: 'others',
     view: 'sg',
   },
 } satisfies Meta<typeof HeaderStory>;

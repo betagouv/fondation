@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 
+import { ReportModule } from '../report/report.module';
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
@@ -18,7 +19,7 @@ import { MagistratPublicController } from './magistrat.public.controller';
 import { MembersController } from './members.controller';
 
 @Module({
-  imports: [forwardRef(() => TransparenceModule)],
+  imports: [forwardRef(() => TransparenceModule), ReportModule],
   controllers: [MembersController, JurisdictionsController, MagistratPublicController],
   exports: [MembersService],
   providers: [

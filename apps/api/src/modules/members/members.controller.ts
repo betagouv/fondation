@@ -18,6 +18,8 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { DetailedMemberSessionDto } from '../session/transparence/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/transparence/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import { FoundNominationFileMembersReportDto } from 'src/modules/report/infrastructure/queries/search-nomination-file-members-report.query';
+import { ReportService } from 'src/modules/report/report.service';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
@@ -40,6 +42,7 @@ import { PaginatedMemberListItemDto } from './infrastructure/queries/list-member
 export class MembersController {
   constructor(
     private readonly members: MembersService,
+    private readonly reports: ReportService,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
   ) {}
@@ -136,6 +139,24 @@ export class MembersController {
       typeDeSaisine: 'TRANSPARENCE_GDS',
       pagination,
       sessionId,
+    });
+  }
+
+  @HasRole()
+  @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/reports')
+  @ZodResponse({ type: FoundNominationFileMembersReportDto, status: HttpStatus.OK })
+  searchNominationFileMembersReport(
+    @Param('userId') userId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @AuthedUser() authUser: { id: string },
+  ): Promise<FoundNominationFileMembersReportDto> {
+    if (userId !== authUser.id) throw new ForbiddenException();
+
+    return this.reports.internalSearchNominationFileMembersReport({
+      nominationFileId,
+      sessionId,
+      userId,
     });
   }
 

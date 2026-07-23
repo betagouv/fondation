@@ -11,11 +11,12 @@ import { frFormat } from '@/i18n/formats';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { reportKeys } from '@queries/reports.queries';
 
 import { Header } from './Header';
 
@@ -28,6 +29,7 @@ const OTHER_REPORTER = { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevr
 function renderHeader(options: {
   isEditable?: boolean;
   isSg?: boolean;
+  myReportId?: string;
   nominationFile: SessionNominationFile;
 }) {
   const client = new QueryClient({
@@ -41,6 +43,10 @@ function renderHeader(options: {
   client.setQueryData(memberKeys.listMembers(memberListOptions), {
     items: [CURRENT_USER, OTHER_REPORTER],
   });
+  client.setQueryData(
+    reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
+    options.myReportId ?? null,
+  );
 
   return render(
     <MemoryRouter
@@ -95,6 +101,25 @@ describe('Header reporter status', () => {
     expect(screen.getByText('Vous êtes rapporteur')).toBeInTheDocument();
     expect(screen.queryByText('avec')).not.toBeInTheDocument();
     expect(screen.queryByText('Jean PETIT')).not.toBeInTheDocument();
+  });
+
+  it('links to the report of the current user when they have one', () => {
+    renderHeader({
+      isSg: false,
+      myReportId: 'report-1',
+      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER] }),
+    });
+
+    expect(screen.getByRole('link', { name: 'Voir mon dossier' })).toHaveAttribute(
+      'href',
+      getGdsReportPath('report-1'),
+    );
+  });
+
+  it('hides the report link when the current user has no report', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
+
+    expect(screen.queryByRole('link', { name: 'Voir mon dossier' })).not.toBeInTheDocument();
   });
 });
 
@@ -192,6 +217,7 @@ describe('Header edition', () => {
 describe('Header accessibility', () => {
   it('passes basic accessibility checks', async () => {
     const { container } = renderHeader({
+      myReportId: 'report-1',
       nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER, OTHER_REPORTER] }),
     });
 

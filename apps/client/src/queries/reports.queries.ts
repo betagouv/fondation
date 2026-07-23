@@ -9,7 +9,29 @@ const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const reportKeys = {
   reportById: (props: { reportId: string }) => ['report', props.reportId],
+  myReport: (props: { nominationFileId: string }) => ['report', 'mine', props.nominationFileId],
 };
+
+export const useMyReportQuery = (props: {
+  enabled: boolean;
+  nominationFileId: string;
+  sessionId: string;
+  userId: string | undefined;
+}) =>
+  useQuery({
+    enabled: props.enabled && !!props.userId,
+    queryFn: async () => {
+      const { data } = await $api.members.searchNominationFileMembersReport({
+        path: {
+          nominationFileId: props.nominationFileId,
+          sessionId: props.sessionId,
+          userId: props.userId ?? '',
+        },
+      });
+      return data?.reportId ?? null;
+    },
+    queryKey: reportKeys.myReport({ nominationFileId: props.nominationFileId }),
+  });
 
 export function generateReportFilePublicUrl(props: { reportId: string; fileNames: readonly string[] }) {
   return $api.reports

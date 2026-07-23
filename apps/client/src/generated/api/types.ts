@@ -819,6 +819,10 @@ export type DetailedMemberSessionDto = {
     };
 };
 
+export type FoundNominationFileMembersReportDto = {
+    reportId: string | null;
+};
+
 export type WriteNominationFileMemberMemoDto = {
     memo: string;
 };
@@ -2705,6 +2709,23 @@ export type DetailsMemberSessionResponses = {
 };
 
 export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+
+export type SearchNominationFileMembersReportData = {
+    body?: never;
+    path: {
+        userId: string;
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/reports';
+};
+
+export type SearchNominationFileMembersReportResponses = {
+    200: FoundNominationFileMembersReportDto;
+};
+
+export type SearchNominationFileMembersReportResponse = SearchNominationFileMembersReportResponses[keyof SearchNominationFileMembersReportResponses];
 
 export type WriteNominationFileMemberMemoData = {
     body: WriteNominationFileMemberMemoDto;

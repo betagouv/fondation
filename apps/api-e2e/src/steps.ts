@@ -17,7 +17,13 @@ export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: str
 export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
-  members: Pick<TestSteps['members'], 'listMemberSessions' | 'detailsMemberSession' | 'writeNominationFileMemberMemo'>;
+  members: Pick<
+    TestSteps['members'],
+    | 'detailsMemberSession'
+    | 'listMemberSessions'
+    | 'searchNominationFileMembersReport'
+    | 'writeNominationFileMemberMemo'
+  >;
   observations: Pick<
     TestSteps['observations'],
     'listObservations' | 'getObservationDetails' | 'getObservationFileUrl' | 'listObservationsAttachments'

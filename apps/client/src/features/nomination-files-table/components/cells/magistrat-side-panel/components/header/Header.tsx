@@ -11,9 +11,11 @@ import { ReportersAlert } from '@/features/nomination-files-table/components/cel
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { getGdsReportPath } from '@/utils/route-path.utils';
 import { toFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
 
@@ -42,8 +44,14 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const canEdit = isEditable && !!isUpdatable;
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
+  const { data: myReportId } = useMyReportQuery({
+    enabled: isReporter,
+    nominationFileId: nominationFile.id,
+    sessionId,
+    userId: user?.id,
+  });
   const surfaceClassName = isReporter
-    ? 'bg-(--background-action-low-brown-cafe-creme)'
+    ? 'bg-(--background-contrast-brown-cafe-creme)'
     : 'bg-(--background-alt-blue-france)';
 
   return (
@@ -114,7 +122,19 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           {showWarning && reportersDirty && <UnsavedWarning />}
         </div>
       ) : (
-        <ReporterStatus currentUserId={user?.id} reporters={nominationFile.reporters} />
+        <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
+          <ReporterStatus currentUserId={user?.id} reporters={nominationFile.reporters} />
+          {myReportId && (
+            <Button
+              className="btn-compact"
+              linkProps={{ to: getGdsReportPath(myReportId) }}
+              priority="secondary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Voir mon dossier" />
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
