@@ -62,8 +62,7 @@ Points clés :
   les vraies props** du composant. Si une prop change, la story ne compile plus.
 - Le nom de l'export devient le nom affiché (`Default`, `EditableEmpty` => "Editable Empty").
 - `title` : `Shared/...` pour les briques génériques, `Features/<Écran>/...` pour les composants
-  métier, où `<Écran>` est l'endroit où le composant vit (`SidePanel`, `Details`...). Inutile de
-  répéter `Magistrat` : tout le domaine l'est.
+  métier, où `<Écran>` est l'endroit où le composant vit (`SidePanel`, `Details`...).
 - `tags: ['autodocs']` : toujours, c'est la convention du projet.
 
 ## Args et Controls
@@ -154,28 +153,28 @@ On ne mocke pas le réseau : on **seed le cache** avec
 [`StoryQueryClient`](../src/shared/storybook/StoryQueryClient.tsx) et les factories de
 `src/test-utils/factories/`. Quand le composant a besoin de contexte (provider, données), on
 écrit un petit composant wrapper qui devient le `component` du meta. Voir
-[`MagistratAuditionDate.stories.tsx`](../src/features/nomination-files-table/components/cells/magistrat-side-panel/components/magistrat-audition-date/MagistratAuditionDate.stories.tsx)
+[`AuditionDate.stories.tsx`](../src/features/nomination-files-table/components/cells/magistrat-side-panel/components/audition-date/AuditionDate.stories.tsx)
 pour un exemple complet :
 
 ```tsx
-function MagistratAuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
+function AuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
   const nominationFile = makeSessionNominationFile({
     /* ... */
   });
   return (
     <StoryQueryClient>
       <NominationFilesTableContext value={/* ... */}>
-        <MagistratAuditionDate editable={props.editable} nominationFile={nominationFile} />
+        <AuditionDate editable={props.editable} nominationFile={nominationFile} />
       </NominationFilesTableContext>
     </StoryQueryClient>
   );
 }
 
 const meta = {
-  title: 'Features/SidePanel/MagistratAuditionDate',
-  component: MagistratAuditionDateStory, // le wrapper, pas le composant nu
+  title: 'Features/SidePanel/AuditionDate',
+  component: AuditionDateStory, // le wrapper, pas le composant nu
   // ...
-} satisfies Meta<typeof MagistratAuditionDateStory>;
+} satisfies Meta<typeof AuditionDateStory>;
 ```
 
 Les props du wrapper deviennent les args : on choisit ainsi des controls **métier** simples

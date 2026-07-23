@@ -17,7 +17,7 @@ import {
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
-import { MagistratIdentity } from './MagistratIdentity';
+import { Identity } from './Identity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
 import { ReportOverviewFileComment } from './ReportOverviewFileComment';
@@ -90,7 +90,7 @@ export function ReportOverview({ id }: { id: string }) {
             className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
           >
             <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
-            <MagistratIdentity
+            <Identity
               name={retrievedReport.name}
               birthDate={retrievedReport.birthDate}
               detectedMagistratId={retrievedReport.detectedMagistratId}

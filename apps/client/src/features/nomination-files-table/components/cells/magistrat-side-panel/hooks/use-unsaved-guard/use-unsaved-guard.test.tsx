@@ -2,8 +2,8 @@ import { act, render } from '@testing-library/react';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useMagistratPanel, type MagistratPanelContextValue } from '../../context/magistrat-panel.context';
-import { MagistratPanelProvider } from '../../context/MagistratPanelProvider';
+import { useSidePanel, type SidePanelContextValue } from '../../context/side-panel.context';
+import { SidePanelProvider } from '../../context/SidePanelProvider';
 import { makeSessionNominationFileList } from '@/test-utils/factories/session-nomination-file.factory';
 
 import { useUnsavedGuard } from './use-unsaved-guard.hook';
@@ -17,11 +17,11 @@ function flushQueryState(run: () => void) {
 }
 
 function setup() {
-  const panelRef: { current: MagistratPanelContextValue | null } = { current: null };
+  const panelRef: { current: SidePanelContextValue | null } = { current: null };
   const warnRef: { current: boolean } = { current: false };
 
   function Consumer() {
-    panelRef.current = useMagistratPanel();
+    panelRef.current = useSidePanel();
     return null;
   }
   function Guarded(props: { isDirty: boolean }) {
@@ -31,7 +31,7 @@ function setup() {
 
   const ui = (isDirty: boolean) => (
     <NuqsTestingAdapter hasMemory>
-      <MagistratPanelProvider
+      <SidePanelProvider
         isFetching={false}
         nominationFiles={makeSessionNominationFileList(['a', 'b'])}
         onPageChange={vi.fn()}
@@ -40,7 +40,7 @@ function setup() {
       >
         <Consumer />
         <Guarded isDirty={isDirty} />
-      </MagistratPanelProvider>
+      </SidePanelProvider>
     </NuqsTestingAdapter>
   );
 
@@ -95,9 +95,9 @@ describe('useUnsavedGuard', () => {
   });
 
   it('unregisters its guard and releases the block on unmount', async () => {
-    const panelRef: { current: MagistratPanelContextValue | null } = { current: null };
+    const panelRef: { current: SidePanelContextValue | null } = { current: null };
     function Consumer() {
-      panelRef.current = useMagistratPanel();
+      panelRef.current = useSidePanel();
       return null;
     }
     function Guarded() {
@@ -106,7 +106,7 @@ describe('useUnsavedGuard', () => {
     }
     const ui = (mounted: boolean) => (
       <NuqsTestingAdapter hasMemory>
-        <MagistratPanelProvider
+        <SidePanelProvider
           isFetching={false}
           nominationFiles={makeSessionNominationFileList(['a', 'b'])}
           onPageChange={vi.fn()}
@@ -115,7 +115,7 @@ describe('useUnsavedGuard', () => {
         >
           <Consumer />
           {mounted && <Guarded />}
-        </MagistratPanelProvider>
+        </SidePanelProvider>
       </NuqsTestingAdapter>
     );
     const view = render(ui(false));

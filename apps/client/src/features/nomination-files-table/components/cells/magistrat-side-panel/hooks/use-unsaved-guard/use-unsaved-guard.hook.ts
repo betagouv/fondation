@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
-import { MagistratPanelContext } from '../../context/magistrat-panel.context';
+import { SidePanelContext } from '../../context/side-panel.context';
 
 export function useUnsavedGuard(key: string, isDirty: boolean) {
-  const panel = useContext(MagistratPanelContext);
+  const panel = useContext(SidePanelContext);
   const [warned, setWarned] = useState(false);
 
   const guardRef = useRef<() => boolean>(() => true);

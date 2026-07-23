@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 import { Navigate, useParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { MagistratDetails } from '@/features/magistrats/components/MagistratDetails';
+import { DetailsContent } from '@/features/magistrats/components/DetailsContent';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
@@ -31,5 +31,5 @@ export function MagistratDetailsPage() {
     return <Navigate replace={true} to={fallbackPath} />;
   }
 
-  return <MagistratDetails context={context} magistrat={magistrat} />;
+  return <DetailsContent context={context} magistrat={magistrat} />;
 }
