@@ -16,7 +16,7 @@ export const MemberLayout = () => {
     </PageContentLayout>
   );
 
-  if (pathname.includes('observations')) {
+  if (pathname.includes('observations') || pathname.includes('magistrats')) {
     children = <Outlet />;
   }
 

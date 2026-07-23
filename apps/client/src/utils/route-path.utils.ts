@@ -10,6 +10,7 @@ export const ROUTE_PATHS = {
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',
+    MAGISTRAT_DETAILS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/magistrats/:magistratId',
   },
   SG: {
     DASHBOARD: '/secretariat-general',
@@ -18,6 +19,7 @@ export const ROUTE_PATHS = {
     SESSION_ID_EDIT: '/secretariat-general/session/:sessionId/edit',
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
+    MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
     MANAGE_SESSION: '/secretariat-general/sessions',
     ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
     MANAGE_MEMBERS: '/secretariat-general/membres',
@@ -92,4 +94,12 @@ export const getObservationDetailsPath = (props: {
     nominationFileId,
     observationId,
   });
+};
+
+export const getMagistratDetailsPath = (props: { magistratId: string; context: 'sg' | 'membre' }) => {
+  if (props.context === 'membre') {
+    return generatePath(ROUTE_PATHS.TRANSPARENCES.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
+  }
+
+  return generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
 };
