@@ -12,12 +12,21 @@ export const reportKeys = {
   myReport: (props: { nominationFileId: string }) => ['report', 'mine', props.nominationFileId],
 };
 
-export const useMyReportQuery = (props: { enabled: boolean; nominationFileId: string }) =>
+export const useMyReportQuery = (props: {
+  enabled: boolean;
+  nominationFileId: string;
+  sessionId: string;
+  userId: string | undefined;
+}) =>
   useQuery({
-    enabled: props.enabled,
+    enabled: props.enabled && !!props.userId,
     queryFn: async () => {
-      const { data } = await $api.reports.searchMyReport({
-        path: { nominationFileId: props.nominationFileId },
+      const { data } = await $api.members.searchNominationFileMembersReport({
+        path: {
+          nominationFileId: props.nominationFileId,
+          sessionId: props.sessionId,
+          userId: props.userId ?? '',
+        },
       });
       return data?.reportId ?? null;
     },

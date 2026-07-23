@@ -45,6 +45,8 @@ export function MagistratHeader(props: { nominationFile: SessionNominationFile; 
   const { data: myReportId } = useMyReportQuery({
     enabled: isReporter,
     nominationFileId: nominationFile.id,
+    sessionId,
+    userId: user?.id,
   });
   const surfaceClassName = isReporter
     ? 'bg-(--background-contrast-brown-cafe-creme)'

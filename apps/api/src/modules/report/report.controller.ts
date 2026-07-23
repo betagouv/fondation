@@ -31,7 +31,6 @@ import {
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
 import { GetReportFileUrlsResponseDto } from './infrastructure/queries/get-report-file-urls.query';
-import { FoundMyReportDto } from './infrastructure/queries/search-my-report.query';
 import { ReportService } from './report.service';
 
 @ApiTags('Reports')
@@ -111,16 +110,6 @@ export class ReportController {
       reportId,
       fileNames: query.fileNames,
     });
-  }
-
-  @Get('/nomination-files/:nominationFileId/mine')
-  @HasRole()
-  @ZodResponse({ type: FoundMyReportDto, status: HttpStatus.OK })
-  async searchMyReport(
-    @Param('nominationFileId') nominationFileId: string,
-    @AuthedUserId() userId: string,
-  ): Promise<FoundMyReportDto> {
-    return this.reports.searchMyReport({ nominationFileId, userId });
   }
 
   @Get('/:reportId')

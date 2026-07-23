@@ -3,6 +3,7 @@ title: Les données d'un module sont servies par son API, pas par la requête du
 status: proposé
 author:
   - github.com/jessicakossibale
+  - github.com/jquagliatini
 date: 2026-07-20
 ---
 
@@ -32,48 +33,49 @@ exemples qui font l'inverse. Impossible de deviner la bonne direction en lisant 
 
 - **La requête du tableau ne grossit plus.** On n'y ajoute une donnée que si elle appartient
   au module session et sert le tableau lui-même (lignes, tri, filtres).
-- **Une donnée qui appartient à un autre module est servie par un endpoint de ce module** et
+- **Une donnée qui appartient à un autre module est servie par le service de ce module** et
   chargée seulement quand l'écran en a besoin. Exemple : le lien vers le rapport du membre
-  est servi par le module report (`GET /api/reports/v2/nomination-files/:id/mine`) et chargé
-  à l'ouverture du panneau. C'est le pattern posé par FON-505 et repris par FON-451 : une
-  classe query, un `findFirst` Prisma et un DTO nommé selon la convention (`Search…Dto` en
-  entrée, `Found…Dto` en sortie).
+  est produit par le module report, qui expose la query sur son service
+  (`internalSearchNominationFileMembersReport`). L'endpoint vit dans le contrôleur qui
+  possède le chemin REST
+  (`GET /api/members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/reports`)
+  et il est chargé à l'ouverture du panneau. C'est le pattern posé par FON-505 et repris par
+  FON-451 : une classe query, un `findFirst` Prisma et un DTO nommé selon la convention
+  (`Search...Dto` en entrée, `Found...Dto` en sortie).
+- **La table `users` est la seule lecture cross-module autorisée.** Afficher un nom oblige à
+  lire la table des utilisateurs : sans cette lecture, pas de nom. Tous les modules peuvent
+  la lire directement.
 - Côté client, cette donnée a sa propre query Tanstack, avec sa clé dans le registre et un
   `enabled` pour ne charger qu'à l'usage. Elle ne passe pas par le cache du tableau.
 
-## Dette existante à trancher
+## Cas existants et leur sort
 
-Le code contient des cas qui ne suivent pas cette règle. Ils sont listés ici pour décider,
-cas par cas : on garde ou on corrige ?
+Le code contient des cas qui semblaient contredire cette règle. La review de la PR #500 les
+a tranchés :
 
-| Cas                                                                                                           | Où                                                                                       |
-| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| le tableau contient des données propres à l'utilisateur connecté (`member_memo`, commentaires d'observations) | `listNominationFilesRawQuery`                                                            |
-| le tableau contient un détail d'affichage (`hasAttachment`)                                                   | `listNominationFilesRawQuery`                                                            |
-| le tableau lit les noms des rapporteurs dans les tables du module identity                                    | `listNominationFilesRawQuery`                                                            |
-| le module session lit les tables du module report                                                             | `internalDetailsMemberSessionRawQuery`, `internalCountTotalDetailsMemberSessionRawQuery` |
-| le module session supprime des lignes dans les tables du module report                                        | `deleteReportsAfterAffectationPublicationRawQuery`                                       |
-| le module members lit les tables des modules nominations, report et identity                                  | `detailsMemberRawQuery`, `listMembersRawQuery`                                           |
-| la génération d'agenda lit les tables des modules nominations et identity                                     | `findAgendaNominationFilesRawQuery`                                                      |
-
-Tout n'est pas à corriger. Afficher le nom d'un rapporteur oblige à lire la table des
-utilisateurs : sans cette lecture, pas de nom. La fiche membre est un écran de synthèse,
-elle rassemble forcément des données de plusieurs modules. La liste sert à trier ce qui est
-normal et ce qui est de la dette.
+| Cas                                                                                                           | Où                                                                                       | Décision                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| le tableau contient des données propres à l'utilisateur connecté (`member_memo`, commentaires d'observations) | `listNominationFilesRawQuery`                                                            | on garde : données de l'utilisateur pour le tableau lui-même, pas un franchissement de frontière                       |
+| le tableau contient un détail d'affichage (`hasAttachment`)                                                   | `listNominationFilesRawQuery`                                                            | on garde : sert le tableau, pas de problème identifié                                                                  |
+| le tableau lit les noms des rapporteurs dans les tables du module identity                                    | `listNominationFilesRawQuery`                                                            | on garde : `users` est la lecture cross-module autorisée (voir Décision)                                               |
+| le module session lit les tables du module report                                                             | `internalDetailsMemberSessionRawQuery`, `internalCountTotalDetailsMemberSessionRawQuery` | à trancher dans un ticket dédié                                                                                        |
+| le module session supprime des lignes dans les tables du module report                                        | `deleteReportsAfterAffectationPublicationRawQuery`                                       | dette assumée : choix historique pour éviter une dépendance circulaire. À reprendre avec le socle événementiel à venir |
+| le module members lit les tables des modules nominations, report et identity                                  | `detailsMemberRawQuery`, `listMembersRawQuery`                                           | on garde : écran de synthèse, il rassemble forcément plusieurs modules                                                 |
+| la requête des dossiers pour l'agenda lit les tables des modules nominations et identity                      | `findAgendaNominationFilesRawQuery`                                                      | on garde : la requête vit dans le module session, qui l'expose en interne — c'est le pattern cible                     |
 
 À savoir aussi : les tables des différents modules vivent dans la même base et certaines
 sont liées entre elles (un rapport pointe vers son dossier, avec suppression en cascade).
 Cette règle ne cherche pas à couper ces liens en base. Elle dit seulement que pour obtenir
 la donnée d'un autre module, on passe par son API plutôt que par ses tables.
 
-Chaque cas classé "à corriger" donnera un ticket dédié. Aucun n'est traité dans la PR qui
+Le cas restant "à trancher" donnera un ticket dédié. Aucun n'est traité dans la PR qui
 introduit cet ADR.
 
 ## Conséquences
 
-- FON-451 (PR #500) applique la règle en premier : le lien vers le rapport est servi par le
-  module report et payé seulement par les membres qui ouvrent le panneau. La réponse du
-  tableau ne change pas.
+- FON-451 (PR #500) applique la règle en premier : le lien vers le rapport est produit par
+  le module report, exposé sur le chemin REST du membre et chargé seulement quand un membre
+  ouvre le panneau. La réponse du tableau ne change pas.
 - Créer un petit endpoint dédié (une query, un DTO, une route) est le prix accepté pour
   garder le tableau stable et les modules indépendants.
 - Les cas existants listés plus haut ne deviennent pas interdits du jour au lendemain. Leur

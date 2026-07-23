@@ -67,10 +67,6 @@ export type GetReportFileUrlsResponseDto = {
     }>;
 };
 
-export type FoundMyReportDto = {
-    reportId: string | null;
-};
-
 export type DetailedReportDto = {
     id: string;
     sessionId: string;
@@ -814,6 +810,10 @@ export type DetailedMemberSessionDto = {
             day: number;
         } | null;
     };
+};
+
+export type FoundNominationFileMembersReportDto = {
+    reportId: string | null;
 };
 
 export type WriteNominationFileMemberMemoDto = {
@@ -1729,21 +1729,6 @@ export type GetReportFilesUrlResponses = {
 
 export type GetReportFilesUrlResponse = GetReportFilesUrlResponses[keyof GetReportFilesUrlResponses];
 
-export type SearchMyReportData = {
-    body?: never;
-    path: {
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/reports/v2/nomination-files/{nominationFileId}/mine';
-};
-
-export type SearchMyReportResponses = {
-    200: FoundMyReportDto;
-};
-
-export type SearchMyReportResponse = SearchMyReportResponses[keyof SearchMyReportResponses];
-
 export type DetailReportData = {
     body?: never;
     path: {
@@ -2608,6 +2593,23 @@ export type DetailsMemberSessionResponses = {
 };
 
 export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+
+export type SearchNominationFileMembersReportData = {
+    body?: never;
+    path: {
+        userId: string;
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/reports';
+};
+
+export type SearchNominationFileMembersReportResponses = {
+    200: FoundNominationFileMembersReportDto;
+};
+
+export type SearchNominationFileMembersReportResponse = SearchNominationFileMembersReportResponses[keyof SearchNominationFileMembersReportResponses];
 
 export type WriteNominationFileMemberMemoData = {
     body: WriteNominationFileMemberMemoDto;

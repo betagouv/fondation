@@ -5,15 +5,20 @@ import z from 'zod';
 import { PrismaService } from 'src/modules/framework/database';
 
 @Injectable()
-export class SearchMyReportQuery {
+export class SearchNominationFileMembersReportQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async handle(query: { nominationFileId: string; userId: string }): Promise<FoundMyReportDto> {
+  async handle(query: {
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<FoundNominationFileMembersReportDto> {
     const report = await this.prisma.report.findFirst({
       where: {
         isDeleted: false,
         nominationFileId: query.nominationFileId,
         reporterId: query.userId,
+        sessionId: query.sessionId,
       },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
@@ -23,4 +28,6 @@ export class SearchMyReportQuery {
   }
 }
 
-export class FoundMyReportDto extends createZodDto(z.object({ reportId: z.uuid().nullable() })) {}
+export class FoundNominationFileMembersReportDto extends createZodDto(
+  z.object({ reportId: z.uuid().nullable() }),
+) {}
