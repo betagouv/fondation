@@ -7,7 +7,7 @@ import { ConfirmationProvider } from '@/shared/context/confirmation';
 import { AppFooter } from './AppFooter';
 import { AppHeader } from './header/Header';
 
-export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
+export function PageLayout({ children }: PropsWithChildren) {
   return (
     <ConfirmationProvider>
       <ArchivedSessionProvider>
@@ -23,4 +23,4 @@ export const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
       </ArchivedSessionProvider>
     </ConfirmationProvider>
   );
-};
+}

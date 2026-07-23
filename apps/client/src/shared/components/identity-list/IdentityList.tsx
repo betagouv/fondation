@@ -1,9 +1,18 @@
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import type { ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
 import { FormattedBirthDate } from '@/i18n/components';
-import { TextValue } from '@/shared/ui/TextValue';
 import type { PlainDateOnly } from '@/utils/date-only.util';
+
+function TextValue(props: { label: string; value: ReactNode }) {
+  return (
+    <div>
+      <span className={cx('fr-text--bold')}>{`${props.label} : `}</span>
+      <span>{props.value}</span>
+    </div>
+  );
+}
 
 function withGrade(grade: string | null, position: string | null) {
   return [grade, position].filter(Boolean).join(' - ');

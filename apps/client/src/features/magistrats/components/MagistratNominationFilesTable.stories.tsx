@@ -6,56 +6,56 @@ type NominationFile = Parameters<typeof MagistratNominationFilesTable>[0]['nomin
 
 function makeNominationFile(overrides: Partial<NominationFile>): NominationFile {
   return {
+    auditionDate: null,
+    auditionTime: null,
+    dateTransparence: { year: 2026, month: 2, day: 20 },
+    formation: 'SIEGE',
+    isArchived: false,
+    isSessionReported: false,
     nominationFileId: 'dossier-1',
     number: 12,
+    outcome: null,
     reporters: [
       { firstName: 'Rachel', lastName: 'Bernard' },
       { firstName: 'Antoine', lastName: 'Roche' },
     ],
     sessionId: 'session-1',
     sessionName: 'Transparence Annuelle 2026',
-    formation: 'SIEGE',
-    dateTransparence: { year: 2026, month: 2, day: 20 },
-    auditionDate: null,
-    auditionTime: null,
     targetedGrade: 'G3',
     targetedPosition: 'Président de chambre CA AIX EN PROVENCE',
-    outcome: null,
-    isArchived: false,
-    isSessionReported: false,
     ...overrides,
   };
 }
 
 const nominationFiles: NominationFile[] = [
   makeNominationFile({
-    nominationFileId: 'dossier-2026',
     auditionDate: { year: 2026, month: 9, day: 15 },
     auditionTime: { hours: 14, minutes: 30, seconds: 0 },
     isSessionReported: true,
+    nominationFileId: 'dossier-2026',
   }),
   makeNominationFile({
-    nominationFileId: 'dossier-2021',
-    number: 8,
-    sessionName: 'Transparence Annuelle 2021',
-    dateTransparence: { year: 2021, month: 2, day: 15 },
     auditionDate: { year: 2021, month: 3, day: 18 },
     auditionTime: { hours: 9, minutes: 30, seconds: 0 },
+    dateTransparence: { year: 2021, month: 2, day: 15 },
+    nominationFileId: 'dossier-2021',
+    number: 8,
+    outcome: { comment: null, label: 'avis conforme', value: 'VALIDATED' },
+    reporters: [{ firstName: 'Marie', lastName: 'Lefevre' }],
+    sessionName: 'Transparence Annuelle 2021',
     targetedGrade: 'G2',
     targetedPosition: 'Conseiller CA LYON',
-    outcome: { value: 'VALIDATED', label: 'avis conforme', comment: null },
-    reporters: [{ firstName: 'Marie', lastName: 'Lefevre' }],
   }),
   makeNominationFile({
+    dateTransparence: { year: 2019, month: 3, day: 10 },
+    isArchived: true,
     nominationFileId: 'dossier-2019',
     number: 23,
+    outcome: { comment: null, label: 'retrait (désistement)', value: 'WITHDRAWN' },
     reporters: [],
     sessionName: 'Transparence Annuelle 2019',
-    dateTransparence: { year: 2019, month: 3, day: 10 },
     targetedGrade: 'G2',
     targetedPosition: 'Vice-président TJ GRENOBLE',
-    outcome: { value: 'WITHDRAWN', label: 'retrait (désistement)', comment: null },
-    isArchived: true,
   }),
 ];
 
@@ -123,11 +123,6 @@ export const Playground: StoryObj<PlaygroundArgs> = {
       context="sg"
       nominationFiles={[
         makeNominationFile({
-          sessionName: args.sessionName,
-          number: args.dossierNumber,
-          targetedGrade: args.grade,
-          targetedPosition: args.position,
-          isSessionReported: args.ongoingSession,
           auditionDate:
             args.audition === 'scheduled'
               ? { year: 2030, month: 9, day: 15 }
@@ -135,11 +130,16 @@ export const Playground: StoryObj<PlaygroundArgs> = {
                 ? { year: 2021, month: 3, day: 18 }
                 : null,
           auditionTime: args.audition === 'none' ? null : { hours: 14, minutes: 30, seconds: 0 },
+          isSessionReported: args.ongoingSession,
+          number: args.dossierNumber,
           outcome:
             args.outcome === 'none'
               ? null
-              : { value: args.outcome, label: OUTCOME_LABELS[args.outcome], comment: null },
+              : { comment: null, label: OUTCOME_LABELS[args.outcome], value: args.outcome },
           reporters: REPORTERS.slice(0, args.reportersCount),
+          sessionName: args.sessionName,
+          targetedGrade: args.grade,
+          targetedPosition: args.position,
         }),
       ]}
     />
@@ -158,12 +158,12 @@ export const ManyRows: Story = {
     context: 'sg',
     nominationFiles: Array.from({ length: 10 }, (_, index) =>
       makeNominationFile({
+        dateTransparence: { year: 2026 - index, month: 2, day: 20 },
+        isSessionReported: index === 0,
         nominationFileId: `dossier-${index}`,
         number: index + 3,
+        outcome: index === 0 ? null : { comment: null, label: 'avis conforme', value: 'VALIDATED' },
         sessionName: `Transparence Annuelle ${2026 - index}`,
-        dateTransparence: { year: 2026 - index, month: 2, day: 20 },
-        outcome: index === 0 ? null : { value: 'VALIDATED', label: 'avis conforme', comment: null },
-        isSessionReported: index === 0,
       }),
     ),
   },

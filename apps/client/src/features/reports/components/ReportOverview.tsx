@@ -25,11 +25,7 @@ import { ReportOverviewState } from './ReportOverviewState';
 import { ReportSummaryCard } from './ReportSummaryCard';
 import { Summary } from './Summary';
 
-export type ReportOverviewProps = {
-  id: string;
-};
-
-export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
+export function ReportOverview({ id }: { id: string }) {
   const navigate = useNavigate();
 
   const { data: retrievedReport, isPending, error } = useReportQuery(id);
@@ -135,6 +131,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       </div>
     </ArchiveBannerPortal>
   );
-};
+}
 
 export default ReportOverview;

@@ -2,13 +2,13 @@ import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 
 export function TitleNameIcons(props: {
-  name: string | null;
-  small?: boolean;
   detailsLink?: {
     context: 'sg' | 'membre';
     magistratId: string | null | undefined;
   };
-  lolfi: { href: string } | { sessionId: string; nominationFileId: string };
+  lolfi: { href: string } | { nominationFileId: string; sessionId: string };
+  name: string | null;
+  small?: boolean;
 }) {
   const words = (props.name ?? '').split(' ');
   const tail = words.pop();

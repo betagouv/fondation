@@ -48,8 +48,6 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
   return (
     <>
       <Breadcrumb
-        className="fr-my-0"
-        id="magistrat-details-breadcrumb"
         ariaLabel={formatMessage({
           defaultMessage: "Fil d'Ariane de la fiche magistrat",
         })}
@@ -59,13 +57,15 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
           }),
           segments,
         }}
+        className="fr-my-0"
+        id="magistrat-details-breadcrumb"
       />
       <div className="fr-mt-4v fr-grid-row fr-grid-row--gutters">
         <div className="fr-col-12 fr-col-lg-4">
           <Link
             className="fr-link fr-link--icon-left fr-icon-arrow-left-line fr-mt-1v"
-            to={dashboardPath}
             onClick={goBack}
+            to={dashboardPath}
           >
             <FormattedMessage defaultMessage="Retour" />
           </Link>

@@ -5,22 +5,22 @@ import type { DetailedMagistratDto } from '@api/types';
 import { MagistratDetailsHeader } from './MagistratDetailsHeader';
 
 const magistrat: DetailedMagistratDto = {
-  id: 'magistrat-1',
-  civilite: 'Mme',
-  firstName: 'Clara',
-  lastName: 'Schumann',
-  usedName: null,
   birthDate: { year: 1971, month: 3, day: 24 },
+  careerHistory: null,
+  civilite: 'Mme',
+  currentPosition: 'Conseiller CA LYON',
+  externalUrl: 'https://lolfi.example.fr/magistrat/1',
+  firstName: 'Clara',
   grade: 'G2',
   gradeDate: { year: 2019, month: 8, day: 16 },
-  nominationDate: { year: 2021, month: 7, day: 12 },
+  id: 'magistrat-1',
   installationDate: { year: 2021, month: 9, day: 1 },
-  professionalEmail: 'clara.schumann@justice.gouv.fr',
-  currentPosition: 'Conseiller CA LYON',
-  careerHistory: null,
-  externalUrl: 'https://lolfi.example.fr/magistrat/1',
-  propositions: [],
+  lastName: 'Schumann',
+  nominationDate: { year: 2021, month: 7, day: 12 },
   observations: [],
+  professionalEmail: 'clara.schumann@justice.gouv.fr',
+  propositions: [],
+  usedName: null,
 };
 
 const meta = {

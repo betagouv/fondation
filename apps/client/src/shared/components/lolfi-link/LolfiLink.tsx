@@ -5,7 +5,7 @@ import { generatePath, Link } from 'react-router';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-type LolfiTarget = { href: string } | { sessionId: string; nominationFileId: string; name?: string | null };
+type LolfiTarget = { href: string } | { name?: string | null; nominationFileId: string; sessionId: string };
 
 export function LolfiLink(props: { className?: string; small?: boolean } & LolfiTarget) {
   const { formatMessage } = useIntl();

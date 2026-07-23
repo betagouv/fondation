@@ -8,8 +8,8 @@ import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
   type NominationFileOutcomeEnum,
-} from 'src/modules/session/domain/nomination-file-outcome';
-import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
+} from 'src/modules/session/shared/types/nomination-file-outcome';
+import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
