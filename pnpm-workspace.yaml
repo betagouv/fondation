@@ -44,3 +44,5 @@ minimumReleaseAgeExclude:
   - '@hey-api/openapi-ts@0.97.3'
   # Renovate security update: axios@1.18.0
   - axios@1.18.0
+  # Renovate security update: react-router@8.3.0
+  - react-router@8.3.0
