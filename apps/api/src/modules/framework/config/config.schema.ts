@@ -55,6 +55,13 @@ export const ConfigSchema = z.object({
 
   mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
 
+  gotenberg: z.preprocess(
+    () => ({}),
+    z.object({
+      apiUrl: z.prefault(z.url().regex(/[^/]$/).optional(), process.env.GOTENBERG_API_URL),
+    }),
+  ),
+
   proConnect: z.preprocess(
     () => ({}),
     z

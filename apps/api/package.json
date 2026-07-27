@@ -79,6 +79,7 @@
     "lolfi": "workspace:*",
     "prisma": "7.8.0",
     "typescript": "catalog:",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "vitest-mock-extended": "5.1.0"
   }
 }

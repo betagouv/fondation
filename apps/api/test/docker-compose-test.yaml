@@ -12,6 +12,14 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: fondation
 
+  gotenberg:
+    container_name: gotenberg
+    image: docker.io/gotenberg/gotenberg:8-chromium
+    ports:
+      - '9091:3000'
+    networks:
+      - app_test
+
   minio:
     container_name: minio-test
     image: 'quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z'
