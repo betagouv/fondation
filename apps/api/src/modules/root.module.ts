@@ -5,6 +5,7 @@ import { ArchivedSessionsModule } from './archived-sessions/archived-sessions.mo
 import { DocsModule } from './docs/docs.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
+import { MagistratModule } from './magistrat/magistrat.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { MembersModule } from './members';
 import { ObservationModule } from './observation/observation.module';
@@ -20,6 +21,7 @@ import { SimpleAuthModule } from './simple-auth';
     TransparenceModule,
     ArchivedSessionsModule,
     MembersModule,
+    MagistratModule,
     MaintenanceModule,
     ObservationModule,
     AdministrationModule,

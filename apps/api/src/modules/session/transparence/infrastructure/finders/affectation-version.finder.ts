@@ -30,23 +30,6 @@ export class AffectationVersionFinder {
     });
   }
 
-  /** @warning does not check that the sessions exist */
-  async lastPublishedIds(query: {
-    sessionIds: readonly string[];
-    tx: Prisma.TransactionClient;
-  }): Promise<Map<string, string>> {
-    if (!query.sessionIds.length) return new Map();
-
-    const versions = await query.tx.affectationVersion.findMany({
-      where: { sessionId: { in: [...query.sessionIds] }, statut: 'PUBLIEE' },
-      orderBy: { version: 'desc' },
-      distinct: ['sessionId'],
-      select: { id: true, sessionId: true },
-    });
-
-    return new Map(versions.map(({ sessionId, id }) => [sessionId, id]));
-  }
-
   /** @warning does not check that the session exists */
   async lastPublished(query: { sessionId: string; tx: Prisma.TransactionClient }) {
     const { _max } = await query.tx.affectationVersion.aggregate({

@@ -584,6 +584,21 @@ export class TransparenceService {
     return this.sessionsFinder.formation(query);
   }
 
+  /** @internal */
+  async internalLastPublishedAffectationVersionIds(query: {
+    sessionIds: readonly string[];
+    tx: Prisma.TransactionClient;
+  }): Promise<Map<string, string>> {
+    const versionIds = new Map<string, string>();
+    for (const sessionId of query.sessionIds) {
+      const version = await this.versions.lastPublished({ sessionId, tx: query.tx });
+      const versionId = version.optionalId;
+      if (versionId) versionIds.set(sessionId, versionId);
+    }
+
+    return versionIds;
+  }
+
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
