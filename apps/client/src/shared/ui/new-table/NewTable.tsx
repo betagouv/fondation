@@ -1,6 +1,6 @@
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 
 import { useTableVirtualizer } from './hooks/useTableVirtualizer';
 
@@ -57,12 +57,10 @@ export function NewTable<Data extends RowData>(props: {
   isLoading?: boolean;
   onEndReached?: () => void;
   rowTint?: (row: Row<Data>) => string | undefined;
-  rowTooltip?: (row: Row<Data>) => string | undefined;
   table: Table<Data>;
   wrap?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const tooltipId = useId();
   const { onEndReached, table } = props;
 
   const rows = table.getRowModel().rows;
@@ -113,11 +111,8 @@ export function NewTable<Data extends RowData>(props: {
 
           {(props.wrap ? rows.map((_, index) => ({ index, start: 0 })) : virtualRows).map((virtualRow) => {
             const row = rows[virtualRow.index];
-            const rowTooltip = props.rowTooltip?.(row);
-            const rowTooltipId = `${tooltipId}-${row.id}`;
             return (
               <div
-                aria-describedby={rowTooltip ? rowTooltipId : undefined}
                 aria-rowindex={virtualRow.index + 1}
                 aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
                 className={clsx(
@@ -153,11 +148,6 @@ export function NewTable<Data extends RowData>(props: {
                     </div>
                   );
                 })}
-                {rowTooltip ? (
-                  <span className="fr-tooltip fr-placement" id={rowTooltipId} role="tooltip">
-                    {rowTooltip}
-                  </span>
-                ) : null}
               </div>
             );
           })}

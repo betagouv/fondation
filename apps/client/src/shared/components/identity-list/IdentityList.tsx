@@ -7,7 +7,7 @@ import type { PlainDateOnly } from '@/utils/date-only.util';
 
 function TextValue(props: { label: string; value: ReactNode }) {
   return (
-    <div className="leading-7">
+    <div className="leading-6">
       <span className={cx('fr-text--bold')}>{`${props.label} : `}</span>
       <span>{props.value}</span>
     </div>

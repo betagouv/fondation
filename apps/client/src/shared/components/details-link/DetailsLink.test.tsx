@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { type ComponentProps } from 'react';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
@@ -6,7 +7,7 @@ import { axe } from 'vitest-axe';
 
 import { DetailsLink } from './DetailsLink';
 
-function renderLink(props: Parameters<typeof DetailsLink>[0]) {
+function renderLink(props: ComponentProps<typeof DetailsLink>) {
   return render(
     <MemoryRouter>
       <IntlProvider defaultLocale="fr" locale="fr">

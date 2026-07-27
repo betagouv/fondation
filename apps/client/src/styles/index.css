@@ -156,3 +156,7 @@ li {
 [data-fr-js-tooltip-referent] {
   cursor: pointer;
 }
+
+.fr-tooltip {
+  transition: opacity 0.1s;
+}

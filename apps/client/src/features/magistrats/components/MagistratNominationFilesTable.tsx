@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -11,59 +10,61 @@ import { NewTable } from '@/shared/ui/new-table/NewTable';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { isPastSchedule, toScheduledDate } from '@/utils/time-only.util';
-import type { DetailedMagistratDto } from '@api/types';
+import type { ListedMagistratNominationFilesDto } from '@api/types';
 
-type NominationFile = DetailedMagistratDto['propositions'][number];
+export type MagistratNominationFile = ListedMagistratNominationFilesDto['items'][number];
 
-const columnHelper = createColumnHelper<NominationFile>();
+const columnHelper = createColumnHelper<MagistratNominationFile>();
 
-export function NominationFilesTable({
+export function MagistratNominationFilesTable({
   context,
   nominationFiles,
-  ongoingIndicator = 'tint',
 }: {
   context: 'sg' | 'membre';
-  nominationFiles: NominationFile[];
-  ongoingIndicator?: 'badge' | 'dot' | 'tint';
+  nominationFiles: MagistratNominationFile[];
 }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('sessionName', {
+      columnHelper.accessor((row) => row.session.name, {
+        id: 'session',
         cell: (info) => {
-          const sessionName = info.getValue();
-          const isOngoing = info.row.original.isSessionOngoing;
+          const { session } = info.row.original;
+          const isOngoing = session.status === 'ONGOING';
           const sessionPath =
             context === 'membre'
-              ? getDetailSessionGdsPath({ sessionId: info.row.original.sessionId })
-              : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: info.row.original.sessionId });
+              ? getDetailSessionGdsPath({ sessionId: session.id })
+              : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id });
+          const words = session.name.split(' ');
+          const lastWord = words.pop();
+          const leadingWords = words.join(' ');
 
           return (
-            <span className="flex flex-col items-start">
-              {isOngoing && ongoingIndicator === 'badge' && (
-                <Badge className="mb-3 min-h-0! px-1.5! text-[0.625rem]!" noIcon severity="info" small>
-                  <FormattedMessage defaultMessage="En cours" />
-                </Badge>
-              )}
-              <span>
-                <Link className="fr-link fr-link--sm" to={sessionPath}>
-                  {sessionName}
+            <span className="flex min-w-0 flex-col items-start">
+              <span className="w-full">
+                <Link className="fr-link fr-link--sm fr-reset-link underline-offset-4!" to={sessionPath}>
+                  {leadingWords && `${leadingWords} `}
+                  <span className="whitespace-nowrap">
+                    {lastWord}
+                    {isOngoing && (
+                      <Badge
+                        className="ml-1.5 min-h-0! px-1.5! align-middle text-[0.5625rem]! leading-4! whitespace-nowrap"
+                        noIcon
+                        severity="info"
+                        small
+                      >
+                        <FormattedMessage defaultMessage="En cours" />
+                      </Badge>
+                    )}
+                  </span>
                 </Link>
-                {isOngoing && ongoingIndicator === 'dot' && (
-                  <Tooltip kind="hover" title={formatMessage({ defaultMessage: 'Session en cours' })}>
-                    <span className="relative ml-2.5 inline-flex size-2">
-                      <span className="absolute size-full animate-ping rounded-full bg-(--info-425-625) opacity-75 motion-reduce:hidden" />
-                      <span className="relative size-2 rounded-full bg-(--info-425-625)" />
-                    </span>
-                  </Tooltip>
-                )}
               </span>
               <span className="mt-2 text-xs text-(--text-mention-grey)">
                 {formatMessage(
                   { defaultMessage: 'Publié le {date}' },
                   {
-                    date: formatDate(dateOnlyToDate(info.row.original.dateTransparence), {
+                    date: formatDate(dateOnlyToDate(session.date), {
                       format: 'dateOnlyShort',
                     }),
                   },
@@ -101,8 +102,7 @@ export function NominationFilesTable({
               {outcome ? (
                 <NominationFileOutcomeBadge
                   acronym
-                  formation={info.row.original.formation}
-                  label={outcome.label}
+                  formation={info.row.original.session.formation}
                   outcome={outcome.value}
                 />
               ) : (
@@ -123,7 +123,9 @@ export function NominationFilesTable({
           const { auditionDate, auditionTime } = info.row.original;
           const scheduledAt = toScheduledDate(auditionDate, auditionTime);
           if (!scheduledAt) {
-            return info.row.original.isSessionOngoing ? formatMessage({ defaultMessage: 'À prévoir' }) : '-';
+            return info.row.original.session.status === 'ONGOING'
+              ? formatMessage({ defaultMessage: 'À prévoir' })
+              : '-';
           }
 
           const values = {
@@ -145,7 +147,7 @@ export function NominationFilesTable({
         size: 140,
       }),
     ],
-    [context, formatDate, formatMessage, formatTime, ongoingIndicator],
+    [context, formatDate, formatMessage, formatTime],
   );
 
   const table = useReactTable({
@@ -155,22 +157,5 @@ export function NominationFilesTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return (
-    <NewTable
-      className="max-h-80"
-      fluid
-      rowTint={(row) =>
-        row.original.isSessionOngoing && ongoingIndicator === 'tint'
-          ? 'bg-(--background-contrast-blue-cumulus) hover:bg-(--background-contrast-blue-cumulus-hover) [&>.fr-tooltip]:[--background-overlap-grey:var(--background-contrast-blue-cumulus)]'
-          : undefined
-      }
-      rowTooltip={(row) =>
-        row.original.isSessionOngoing && ongoingIndicator === 'tint'
-          ? formatMessage({ defaultMessage: 'Session en cours' })
-          : undefined
-      }
-      table={table}
-      wrap
-    />
-  );
+  return <NewTable className="max-h-80" fluid table={table} wrap />;
 }

@@ -2,13 +2,18 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { DetailedMagistratDto } from '@api/types';
 
-import { DetailsHeader } from './DetailsHeader';
+import { MagistratDetailsHeader } from './MagistratDetailsHeader';
 
 const magistrat: DetailedMagistratDto = {
   birthDate: { year: 1971, month: 3, day: 24 },
   careerHistory: null,
   civilite: 'Mme',
-  currentPosition: 'Conseiller CA LYON',
+  currentPosition: {
+    id: 1,
+    grade: 'G2',
+    function: { id: 'CONSEILLER', label: 'Conseiller' },
+    jurisdiction: { id: 'CA LYON', label: 'CA Lyon' },
+  },
   externalUrl: 'https://lolfi.example.fr/magistrat/1',
   firstName: 'Clara',
   grade: 'G2',
@@ -17,21 +22,19 @@ const magistrat: DetailedMagistratDto = {
   installationDate: { year: 2021, month: 9, day: 1 },
   lastName: 'Schumann',
   nominationDate: { year: 2021, month: 7, day: 12 },
-  observations: [],
   professionalEmail: 'clara.schumann@justice.gouv.fr',
-  propositions: [],
   usedName: null,
 };
 
 const meta = {
-  title: 'Features/Details/DetailsHeader',
-  component: DetailsHeader,
+  title: 'Features/Details/MagistratDetailsHeader',
+  component: MagistratDetailsHeader,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
     magistrat: { table: { disable: true } },
   },
-} satisfies Meta<typeof DetailsHeader>;
+} satisfies Meta<typeof MagistratDetailsHeader>;
 
 export default meta;
 

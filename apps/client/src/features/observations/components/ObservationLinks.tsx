@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router';
 
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
 
 export function ObservationLinks(props: {
   context?: 'sg' | 'membre';
@@ -45,7 +46,7 @@ export function ObservationLinks(props: {
                     observationId: obs.id,
                   })}
                 >
-                  {obs.magistrat?.firstName} {obs.magistrat?.lastName}
+                  {obs.magistrat ? `${capitalize(obs.magistrat.firstName)} ${obs.magistrat.lastName}` : null}
                   {(obs.hasDescription || obs.hasUserComment) && (
                     <i className={clsx(cx('ri-message-3-line'), 'fr-ml-1v')} />
                   )}

@@ -1,19 +1,23 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate } from 'react-router';
 
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
-type DetailsHeaderProps = {
+type MagistratDetailsHeaderProps = {
   context: 'sg' | 'membre';
   magistrat: DetailedMagistratDto;
 };
 
-export function DetailsHeader({ context, magistrat }: DetailsHeaderProps) {
+export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsHeaderProps) {
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const titleOffset = useSecondBreadcrumbLinkOffset(headerRef);
 
   const dashboardPath = context === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD;
 
@@ -46,7 +50,7 @@ export function DetailsHeader({ context, magistrat }: DetailsHeaderProps) {
   };
 
   return (
-    <>
+    <div ref={headerRef}>
       <Breadcrumb
         ariaLabel={formatMessage({
           defaultMessage: "Fil d'Ariane de la fiche magistrat",
@@ -60,29 +64,56 @@ export function DetailsHeader({ context, magistrat }: DetailsHeaderProps) {
         className="fr-my-0"
         id="magistrat-details-breadcrumb"
       />
-      <div className="fr-mt-4v fr-grid-row fr-grid-row--gutters">
-        <div className="fr-col-12 fr-col-lg-4">
+      <div className="fr-mt-6v flex flex-wrap items-baseline gap-y-2">
+        <div className="min-w-fit shrink-0" style={{ width: titleOffset }}>
           <Link
-            className="fr-link fr-link--icon-left fr-icon-arrow-left-line fr-mt-1v"
+            className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
             onClick={goBack}
             to={dashboardPath}
           >
             <FormattedMessage defaultMessage="Retour" />
           </Link>
         </div>
-        <div className="fr-col-12 fr-col-lg-8">
+        <div>
           <p className="fr-text--lg fr-mb-2v font-medium text-(--text-title-blue-france)">
             <FormattedMessage defaultMessage="Fiche magistrat" />
           </p>
           <h1 className="fr-h2 fr-mb-0">
             <TitleNameIcons
               lolfi={{ href: magistrat.externalUrl }}
-              name={`${magistrat.civilite} ${magistrat.lastName.toUpperCase()} ${magistrat.firstName}`}
+              name={`${capitalize(magistrat.civilite)} ${magistrat.lastName.toUpperCase()} ${capitalize(magistrat.firstName)}`}
               small
             />
           </h1>
         </div>
       </div>
-    </>
+    </div>
   );
+}
+
+const SECOND_BREADCRUMB_LINK = '.fr-breadcrumb__list > li:nth-child(2) .fr-breadcrumb__link';
+
+function useSecondBreadcrumbLinkOffset(headerRef: React.RefObject<HTMLDivElement | null>) {
+  const [offset, setOffset] = useState(0);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const measure = () => {
+      const link = header.querySelector(SECOND_BREADCRUMB_LINK);
+      if (!link) return setOffset(0);
+      setOffset(Math.max(0, link.getBoundingClientRect().left - header.getBoundingClientRect().left));
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    const link = header.querySelector(SECOND_BREADCRUMB_LINK);
+    if (link) observer.observe(link);
+
+    return () => observer.disconnect();
+  }, [headerRef]);
+
+  return offset;
 }

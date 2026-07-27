@@ -4,10 +4,15 @@ import { FormattedMessage } from 'react-intl';
 import { FormattedAge, FormattedPositionDuration } from '@/i18n/components';
 import { DetailsCard } from '@/shared/ui/details';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { capitalize } from '@/utils/string.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
-export function IdentityCard({ magistrat }: { magistrat: DetailedMagistratDto }) {
-  const currentPosition = [magistrat.grade, magistrat.currentPosition].filter(Boolean).join(' - ');
+export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagistratDto }) {
+  const position = magistrat.currentPosition;
+  const positionLabel = position
+    ? [position.function?.label, position.jurisdiction.label].filter(Boolean).join(' ')
+    : null;
+  const currentPosition = [magistrat.grade, positionLabel].filter(Boolean).join(' - ');
 
   return (
     <DetailsCard background="terreBattue">
@@ -18,7 +23,9 @@ export function IdentityCard({ magistrat }: { magistrat: DetailedMagistratDto })
         <InfoItem label={<FormattedMessage defaultMessage="Nom" />}>
           {magistrat.lastName.toUpperCase()}
         </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Prénom" />}>{magistrat.firstName}</InfoItem>
+        <InfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
+          {capitalize(magistrat.firstName)}
+        </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Nom d'usage" />}>
           {magistrat.usedName ? magistrat.usedName.toUpperCase() : '-'}
         </InfoItem>
@@ -54,7 +61,7 @@ export function IdentityCard({ magistrat }: { magistrat: DetailedMagistratDto })
           <InfoDate date={magistrat.gradeDate} />
         </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Email" />}>
-          {magistrat.professionalEmail ?? '-'}
+          {magistrat.professionalEmail?.toLowerCase() ?? '-'}
         </InfoItem>
       </InfoList>
     </DetailsCard>

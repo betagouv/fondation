@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react';
+import { type ComponentProps } from 'react';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import { TitleNameIcons } from './TitleNameIcons';
 
-function renderTitle(props: Parameters<typeof TitleNameIcons>[0]) {
+function renderTitle(props: ComponentProps<typeof TitleNameIcons>) {
   return render(
     <MemoryRouter>
       <IntlProvider defaultLocale="fr" locale="fr">

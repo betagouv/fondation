@@ -1,26 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { NominationFilesTable } from './NominationFilesTable';
+import { type MagistratNominationFile, MagistratNominationFilesTable } from './MagistratNominationFilesTable';
 
-type NominationFile = Parameters<typeof NominationFilesTable>[0]['nominationFiles'][number];
-
-function makeNominationFile(overrides: Partial<NominationFile>): NominationFile {
+function makeNominationFile(overrides: Partial<MagistratNominationFile>): MagistratNominationFile {
   return {
     auditionDate: null,
     auditionTime: null,
-    dateTransparence: { year: 2026, month: 2, day: 20 },
-    formation: 'SIEGE',
-    isArchived: false,
-    isSessionOngoing: false,
-    nominationFileId: 'dossier-1',
+    id: 'dossier-1',
     number: 12,
     outcome: null,
     reporters: [
-      { firstName: 'Rachel', lastName: 'Bernard' },
-      { firstName: 'Antoine', lastName: 'Roche' },
+      { id: 'user-1', firstName: 'Rachel', lastName: 'Bernard' },
+      { id: 'user-2', firstName: 'Antoine', lastName: 'Roche' },
     ],
-    sessionId: 'session-1',
-    sessionName: 'Transparence Annuelle 2026',
+    session: {
+      id: 'session-1',
+      name: 'Transparence Annuelle 2026',
+      formation: 'SIEGE',
+      date: { year: 2026, month: 2, day: 20 },
+      status: 'REPORTED',
+    },
     targetedGrade: 'G3',
     targetedPosition: 'Président de chambre CA AIX EN PROVENCE',
     ...overrides,
@@ -28,34 +27,34 @@ function makeNominationFile(overrides: Partial<NominationFile>): NominationFile 
 }
 
 const meta = {
-  title: 'Features/Details/NominationFilesTable',
-  component: NominationFilesTable,
+  title: 'Features/Details/MagistratNominationFilesTable',
+  component: MagistratNominationFilesTable,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
     context: { table: { disable: true } },
     nominationFiles: { table: { disable: true } },
   },
-} satisfies Meta<typeof NominationFilesTable>;
+} satisfies Meta<typeof MagistratNominationFilesTable>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const OUTCOME_LABELS = {
-  VALIDATED: 'avis conforme',
-  NON_VALIDATED: 'avis non conforme',
-  SUSPENDED: 'suspendu',
-  REMOVED: 'retiré',
-  WITHDRAWN: 'retrait (désistement)',
-  ASSESSING: 'en cours d’instruction',
-  WAITING_DSJ: 'en attente DSJ',
-} as const;
+const OUTCOMES = [
+  'VALIDATED',
+  'NON_VALIDATED',
+  'SUSPENDED',
+  'REMOVED',
+  'WITHDRAWN',
+  'ASSESSING',
+  'WAITING_DSJ',
+] as const;
 
 const REPORTERS = [
-  { firstName: 'Rachel', lastName: 'Bernard' },
-  { firstName: 'Antoine', lastName: 'Roche' },
-  { firstName: 'Marie', lastName: 'Lefevre' },
+  { id: 'user-1', firstName: 'Rachel', lastName: 'Bernard' },
+  { id: 'user-2', firstName: 'Antoine', lastName: 'Roche' },
+  { id: 'user-3', firstName: 'Marie', lastName: 'Lefevre' },
 ];
 
 type PlaygroundArgs = {
@@ -63,7 +62,7 @@ type PlaygroundArgs = {
   dossierNumber: number;
   grade: string;
   ongoingSession: boolean;
-  outcome: keyof typeof OUTCOME_LABELS | 'none';
+  outcome: (typeof OUTCOMES)[number] | 'none';
   position: string;
   reportersCount: number;
   sessionName: string;
@@ -83,11 +82,11 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   },
   argTypes: {
     audition: { control: 'inline-radio', options: ['none', 'scheduled', 'past'] },
-    outcome: { control: 'select', options: ['none', ...Object.keys(OUTCOME_LABELS)] },
+    outcome: { control: 'select', options: ['none', ...OUTCOMES] },
     reportersCount: { control: { type: 'range', min: 0, max: REPORTERS.length, step: 1 } },
   },
   render: (args) => (
-    <NominationFilesTable
+    <MagistratNominationFilesTable
       context="sg"
       nominationFiles={[
         makeNominationFile({
@@ -98,12 +97,16 @@ export const Playground: StoryObj<PlaygroundArgs> = {
                 ? { year: 2021, month: 3, day: 18 }
                 : null,
           auditionTime: args.audition === 'none' ? null : { hours: 14, minutes: 30, seconds: 0 },
-          isSessionOngoing: args.ongoingSession,
           number: args.dossierNumber,
-          outcome:
-            args.outcome === 'none' ? null : { label: OUTCOME_LABELS[args.outcome], value: args.outcome },
+          outcome: args.outcome === 'none' ? null : { comment: null, value: args.outcome },
           reporters: REPORTERS.slice(0, args.reportersCount),
-          sessionName: args.sessionName,
+          session: {
+            id: 'session-1',
+            name: args.sessionName,
+            formation: 'SIEGE',
+            date: { year: 2026, month: 2, day: 20 },
+            status: args.ongoingSession ? 'ONGOING' : 'REPORTED',
+          },
           targetedGrade: args.grade,
           targetedPosition: args.position,
         }),
@@ -117,12 +120,16 @@ export const ManyRows: Story = {
     context: 'sg',
     nominationFiles: Array.from({ length: 10 }, (_, index) =>
       makeNominationFile({
-        dateTransparence: { year: 2026 - index, month: 2, day: 20 },
-        isSessionOngoing: index === 0,
-        nominationFileId: `dossier-${index}`,
+        id: `dossier-${index}`,
         number: index + 3,
-        outcome: index === 0 ? null : { label: 'avis conforme', value: 'VALIDATED' },
-        sessionName: `Transparence Annuelle ${2026 - index}`,
+        outcome: index === 0 ? null : { comment: null, value: 'VALIDATED' },
+        session: {
+          id: `session-${index}`,
+          name: `Transparence Annuelle ${2026 - index}`,
+          formation: 'SIEGE',
+          date: { year: 2026 - index, month: 2, day: 20 },
+          status: index === 0 ? 'ONGOING' : 'REPORTED',
+        },
       }),
     ),
   },

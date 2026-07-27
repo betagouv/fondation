@@ -2,10 +2,14 @@ import { FormattedMessage } from 'react-intl';
 import { Navigate, useParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { DetailsContent } from '@/features/magistrats/components/DetailsContent';
+import { MagistratDetailsContent } from '@/features/magistrats/components/MagistratDetailsContent';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
+import {
+  useMagistratDetailsQuery,
+  useMagistratNominationFilesQuery,
+  useMagistratObservationsQuery,
+} from '@queries/magistrats.queries';
 
 export function MagistratDetailsPage() {
   const { magistratId } = useParams<{ magistratId: string }>();
@@ -14,6 +18,8 @@ export function MagistratDetailsPage() {
   const context = isSgContext ? 'sg' : 'membre';
 
   const { data: magistrat, isLoading, isError } = useMagistratDetailsQuery({ magistratId });
+  const nominationFilesQuery = useMagistratNominationFilesQuery({ magistratId });
+  const observationsQuery = useMagistratObservationsQuery({ magistratId });
 
   if (isLoading) {
     return (
@@ -31,5 +37,24 @@ export function MagistratDetailsPage() {
     return <Navigate replace={true} to={fallbackPath} />;
   }
 
-  return <DetailsContent context={context} magistrat={magistrat} />;
+  return (
+    <MagistratDetailsContent
+      context={context}
+      magistrat={magistrat}
+      nominationFiles={{
+        hasMore: nominationFilesQuery.hasNextPage,
+        isLoading: nominationFilesQuery.isLoading,
+        isLoadingMore: nominationFilesQuery.isFetchingNextPage,
+        items: nominationFilesQuery.data?.pages.flatMap((page) => page?.items ?? []) ?? [],
+        onLoadMore: () => nominationFilesQuery.fetchNextPage(),
+      }}
+      observations={{
+        hasMore: observationsQuery.hasNextPage,
+        isLoading: observationsQuery.isLoading,
+        isLoadingMore: observationsQuery.isFetchingNextPage,
+        items: observationsQuery.data?.pages.flatMap((page) => page?.items ?? []) ?? [],
+        onLoadMore: () => observationsQuery.fetchNextPage(),
+      }}
+    />
+  );
 }

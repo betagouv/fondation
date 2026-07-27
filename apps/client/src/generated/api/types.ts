@@ -1392,23 +1392,41 @@ export type DetailedMagistratDto = {
         day: number;
     } | null;
     professionalEmail: string | null;
-    currentPosition: string | null;
+    currentPosition: {
+        id: number;
+        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+        function: {
+            id: string;
+            label: string;
+        } | null;
+        jurisdiction: {
+            id: string;
+            label: string | null;
+        };
+    } | null;
     careerHistory: string | null;
     externalUrl: string;
-    propositions: Array<{
-        nominationFileId: string;
+};
+
+export type ListedMagistratNominationFilesDto = {
+    items: Array<{
+        id: string;
         number: number | null;
         reporters: Array<{
+            id: string;
             firstName: string;
             lastName: string;
         }>;
-        sessionId: string;
-        sessionName: string;
-        formation: 'SIEGE' | 'PARQUET';
-        dateTransparence: {
-            year: number;
-            month: number;
-            day: number;
+        session: {
+            id: string;
+            name: string;
+            formation: 'SIEGE' | 'PARQUET';
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
         };
         auditionDate: {
             year: number;
@@ -1424,52 +1442,73 @@ export type DetailedMagistratDto = {
         targetedPosition: string | null;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
-            label: string;
+            comment: string | null;
         } | null;
-        isArchived: boolean;
-        isSessionOngoing: boolean;
     }>;
-    observations: Array<{
-        nominationFileId: string;
-        number: number | null;
-        reporters: Array<{
-            firstName: string;
-            lastName: string;
-        }>;
-        sessionId: string;
-        sessionName: string;
-        formation: 'SIEGE' | 'PARQUET';
-        dateTransparence: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        auditionDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        auditionTime: {
-            hours: number;
-            minutes: number;
-            seconds: number;
-        } | null;
-        targetedGrade: string | null;
-        targetedPosition: string | null;
-        outcome: {
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
-            label: string;
-        } | null;
-        isArchived: boolean;
-        isSessionOngoing: boolean;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type ListedMagistratObservationsDto = {
+    items: Array<{
         id: string;
         dateReception: {
             year: number;
             month: number;
             day: number;
         };
-        magistratName: string;
+        nominationFile: {
+            id: string;
+            name: string;
+            number: number | null;
+            reporters: Array<{
+                id: string;
+                firstName: string;
+                lastName: string;
+            }>;
+            session: {
+                id: string;
+                name: string;
+                formation: 'SIEGE' | 'PARQUET';
+                date: {
+                    year: number;
+                    month: number;
+                    day: number;
+                };
+                status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            };
+            auditionDate: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            auditionTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+            targetedGrade: string | null;
+            targetedPosition: string | null;
+            outcome: {
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+                comment: string | null;
+            } | null;
+        };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
 };
 
 export type CreateObservationDto = {
@@ -3624,6 +3663,42 @@ export type DetailMagistratResponses = {
 };
 
 export type DetailMagistratResponse = DetailMagistratResponses[keyof DetailMagistratResponses];
+
+export type ListMagistratNominationFilesData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1/{magistratId}/nomination-files';
+};
+
+export type ListMagistratNominationFilesResponses = {
+    200: ListedMagistratNominationFilesDto;
+};
+
+export type ListMagistratNominationFilesResponse = ListMagistratNominationFilesResponses[keyof ListMagistratNominationFilesResponses];
+
+export type ListMagistratObservationsData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1/{magistratId}/observations';
+};
+
+export type ListMagistratObservationsResponses = {
+    200: ListedMagistratObservationsDto;
+};
+
+export type ListMagistratObservationsResponse = ListMagistratObservationsResponses[keyof ListMagistratObservationsResponses];
 
 export type ListObservationsData = {
     body?: never;

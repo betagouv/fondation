@@ -2,13 +2,18 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { DetailedMagistratDto } from '@api/types';
 
-import { IdentityCard } from './IdentityCard';
+import { MagistratIdentityCard } from './MagistratIdentityCard';
 
 const magistrat: DetailedMagistratDto = {
   birthDate: { year: 1971, month: 3, day: 24 },
   careerHistory: null,
   civilite: 'Mme',
-  currentPosition: 'Conseiller CA LYON',
+  currentPosition: {
+    id: 1,
+    grade: 'G2',
+    function: { id: 'CONSEILLER', label: 'Conseiller' },
+    jurisdiction: { id: 'CA LYON', label: 'CA Lyon' },
+  },
   externalUrl: 'https://lolfi.example.fr/magistrat/1',
   firstName: 'Nathalie',
   grade: 'G2',
@@ -17,21 +22,19 @@ const magistrat: DetailedMagistratDto = {
   installationDate: { year: 2021, month: 9, day: 1 },
   lastName: 'Vasseur',
   nominationDate: { year: 2021, month: 7, day: 12 },
-  observations: [],
   professionalEmail: 'nathalie.roussel@justice.gouv.fr',
-  propositions: [],
   usedName: 'Roussel',
 };
 
 const meta = {
-  title: 'Features/Details/IdentityCard',
-  component: IdentityCard,
+  title: 'Features/Details/MagistratIdentityCard',
+  component: MagistratIdentityCard,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
     magistrat: { table: { disable: true } },
   },
-} satisfies Meta<typeof IdentityCard>;
+} satisfies Meta<typeof MagistratIdentityCard>;
 
 export default meta;
 
@@ -47,7 +50,12 @@ export const AppointedNotYetInstalled: Story = {
       ...magistrat,
       birthDate: { year: 1979, month: 11, day: 8 },
       civilite: 'M.',
-      currentPosition: 'Personnels détachés',
+      currentPosition: {
+        id: 2,
+        grade: 'G3',
+        function: null,
+        jurisdiction: { id: 'DETACHEMENT', label: 'Personnels détachés' },
+      },
       firstName: 'Julien',
       grade: 'G3',
       gradeDate: null,

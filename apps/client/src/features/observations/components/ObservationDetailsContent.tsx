@@ -11,6 +11,7 @@ import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationDescription } from './ObservationDescription';
@@ -113,7 +114,7 @@ export function ObservationDetailsContent({
                 <dt className="fr-col-4 fr-text--bold">NOM Prénom :</dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   <span>
-                    {observant.lastName.toUpperCase()} {observant.firstName}
+                    {observant.lastName.toUpperCase()} {capitalize(observant.firstName)}
                   </span>
                   <Button
                     size="small"
