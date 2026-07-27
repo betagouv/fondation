@@ -5,10 +5,10 @@ packages:
 catalog:
   zod: 4.4.3
   '@faker-js/faker': 10.5.0
-  oxlint: 1.72.0
+  oxlint: 1.73.0
   'oxlint-tsgolint': 0.24.0
   typescript: 6.0.3
-  '@types/node': 26.1.0
+  '@types/node': 26.1.1
   '@hey-api/openapi-ts': 0.99.0
 
 preferFrozenLockfile: true
@@ -44,3 +44,5 @@ minimumReleaseAgeExclude:
   - '@hey-api/openapi-ts@0.97.3'
   # Renovate security update: axios@1.18.0
   - axios@1.18.0
+  # Renovate security update: react-router@8.3.0
+  - react-router@8.3.0

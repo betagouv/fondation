@@ -158,9 +158,7 @@ pour un exemple complet :
 
 ```tsx
 function AuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
-  const nominationFile = makeSessionNominationFile({
-    /* ... */
-  });
+  const nominationFile = makeSessionNominationFile({/* ... */});
   return (
     <StoryQueryClient>
       <NominationFilesTableContext value={/* ... */}>
