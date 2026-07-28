@@ -5,6 +5,7 @@ import { ClockModule } from './clock';
 import { ConfigModule } from './config';
 import { DatabaseModule } from './database';
 import { ExceptionModule } from './exception';
+import { FaviconModule } from './favicon';
 import { FilesModule } from './files';
 import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
@@ -26,6 +27,7 @@ import { PdfModule } from './pdf';
     ObservabilityModule,
     PdfModule,
     EventEmitterModule.forRoot(),
+    FaviconModule,
   ],
   exports: [
     ClockModule,
