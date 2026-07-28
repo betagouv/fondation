@@ -13,8 +13,6 @@ pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
   pnpm run --filter api sentry \
     sourcemaps upload --org betagouv --project fondation_api ./dist
 
-## @see apps/api/package.json#scripts.postinstall
-postinstall="bash apps/api/scripts/postinstall.sh" && \
 temp=$(basename $(mktemp -d)) && \
   mkdir -p "$temp" && \
   find apps/api/dist \
@@ -23,10 +21,8 @@ temp=$(basename $(mktemp -d)) && \
     -or -iname '*.tsbuildinfo' -type f -delete && \
   mv bin pnpm-lock.yaml pnpm-workspace.yaml vendor "$temp" && \
   mkdir -p "$temp/apps/api" && \
-  mkdir -p "$temp/apps/api/scripts" && \
   mv apps/api/dist "$temp/apps/api" && \
-  mv apps/api/scripts/postinstall.sh $temp/apps/api/scripts && \
-  jq ".scripts = {build: \"$postinstall\"} | del(.jest)" package.json > "$temp/package.json" && \
-  jq 'del(.scripts,.jest)' apps/api/package.json > "$temp/apps/api/package.json" && \
-  mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile} "$temp" && \
+  jq 'del(.scripts)' package.json > "$temp/package.json" && \
+  jq 'del(.scripts)' apps/api/package.json > "$temp/apps/api/package.json" && \
+  mv apps/api/scalingo/{.buildpacks,Procfile} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"

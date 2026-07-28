@@ -36,7 +36,6 @@ allowBuilds:
   '@sentry/cli': false
   bcrypt: true
   prisma: false
-  puppeteer: false
   unrs-resolver: false
   esbuild: true
 minimumReleaseAgeExclude:
