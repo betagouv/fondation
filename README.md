@@ -27,9 +27,7 @@ flowchart LR
     front["Client React<br/>servi par NGINX"]
     back[API Nest.js]
     db[(PostgreSQL)]
-    pdf[["Workers PDF<br/>puppeteer"]]
     oneoff[["One-off<br/>ingestion XML"]]
-    deprecated@{ shape: text, label: "Déprécié<br/><em>(sunset: 01/09/2026)</em>" }
     gotenberg[["Gotenberg"]]
     gotenberg_app@{ shape: text, label: "application<br/><em>fondation-gotenberg</em>" }
   end
@@ -43,8 +41,6 @@ flowchart LR
   lolfi --> sdv
   sdv -- https --> back
   back -- prisma --> db
-  back <-- piscina --> pdf
-  pdf -.- deprecated
   back <-- http --> gotenberg
   gotenberg -.- gotenberg_app
   back -- lance --> oneoff

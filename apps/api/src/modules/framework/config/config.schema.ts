@@ -58,7 +58,7 @@ export const ConfigSchema = z.object({
   gotenberg: z.preprocess(
     () => ({}),
     z.object({
-      apiUrl: z.prefault(z.url().regex(/[^/]$/).optional(), process.env.GOTENBERG_API_URL),
+      apiUrl: z.prefault(z.url().regex(/[^/]$/), process.env.GOTENBERG_API_URL!),
     }),
   ),
 
