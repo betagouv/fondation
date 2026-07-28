@@ -29,6 +29,9 @@ flowchart LR
     db[(PostgreSQL)]
     pdf[["Workers PDF<br/>puppeteer"]]
     oneoff[["One-off<br/>ingestion XML"]]
+    deprecated@{ shape: text, label: "Déprécié<br/><em>(sunset: 01/09/2026)</em>" }
+    gotenberg[["Gotenberg"]]
+    gotenberg_app@{ shape: text, label: "application<br/><em>fondation-gotenberg</em>" }
   end
 
   subgraph scaleway[Scaleway]
@@ -41,9 +44,12 @@ flowchart LR
   sdv -- https --> back
   back -- prisma --> db
   back <-- piscina --> pdf
+  pdf -.- deprecated
+  back <-- http --> gotenberg
+  gotenberg -.- gotenberg_app
   back -- lance --> oneoff
   oneoff --> db
-  back -- s3 --> storage
+  back -- s3/https --> storage
 ```
 
 LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats : ses
@@ -77,7 +83,7 @@ déjà présent sur la machine.
 3. Démarrer les services et la base de données
 
 ```bash
-docker compose --file ./test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000
+docker compose --file ./test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000 + Gotenberg :9091
 pnpm run prisma migrate deploy
 ```
 
@@ -95,7 +101,7 @@ npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
 4. Générer le code
 
 ```bash
-pnpm --filter api prisma generate --generator client --sql   # client Prisma + requêtes TypedSQL (même commande qu'en CI)
+pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
 ```
 
 > [!IMPORTANT]
@@ -194,8 +200,7 @@ pnpm run dev
 Une fois disponible, on peut lancer le script de génération :
 
 ```
-cd apps/client
-pnpm run openapi:generate
+pnpm run -r openapi:generate
 ```
 
 openapi-ts utilise directement la spécification exposée par nest.
