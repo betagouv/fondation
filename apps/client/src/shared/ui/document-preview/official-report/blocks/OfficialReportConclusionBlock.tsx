@@ -1,4 +1,3 @@
-import type { Node as PMNode, Schema } from '@tiptap/pm/model';
 import {
   generateJSON,
   mergeAttributes,
@@ -12,16 +11,15 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
+import { useBlockActive } from '../hooks/useBlockActive';
 import { OfficialReportDriftBanner } from '../OfficialReportDriftBanner';
 import {
-  callbacksOf,
-  serializeContent,
-  useBlockActive,
-  type BlockDescriptor,
-  type OfficialReportBlock,
-  type OfficialReportBlockOptions,
-  type OfficialReportMutations,
-} from '../utils';
+  useOfficialReportBlockConclusionEditMutation,
+  useOfficialReportBlockConclusionResetMutation,
+} from '@queries/agenda.queries';
+
+import { type OfficialReportBlock } from './official-report-blocks.type';
+import { tipTapNodeToHtml } from './tiptap-node-to-html';
 
 type JsonOfficialReportConclusionBlock = Extract<OfficialReportBlock, { kind: 'conclusion' }>;
 export const OfficialReportConclusionBlock = {
@@ -32,30 +30,41 @@ export const OfficialReportConclusionBlock = {
     return block.kind === this.block;
   },
 
-  attrsOf(block: JsonOfficialReportConclusionBlock) {
-    return { edited: block.edited, outdated: block.outdated, generatedHtml: block.generatedHtml };
-  },
-
-  map(block: JsonOfficialReportConclusionBlock, extensions: AnyExtension[]): JSONContent[] {
+  map(
+    officialReportId: string,
+    block: JsonOfficialReportConclusionBlock,
+    extensions: AnyExtension[],
+  ): JSONContent[] {
     return [
       {
         type: this.name,
-        attrs: this.attrsOf(block),
+        attrs: {
+          officialReportId,
+          edited: block.edited,
+          outdated: block.outdated,
+          generatedHtml: block.generatedHtml,
+        },
         content: generateJSON(block.html, extensions).content ?? [],
       },
     ];
   },
-
-  nodeKey: (_node: PMNode) => 'conclusion',
-  serialize: (node: PMNode, schema: Schema) => serializeContent(node, schema),
-  save(node: PMNode, content: string, mutations: OfficialReportMutations) {
-    mutations.editConclusion.mutate({ html: content, outdated: Boolean(node.attrs.outdated) });
-  },
-} satisfies BlockDescriptor;
+};
 
 function ConclusionBlockView(props: ReactNodeViewProps) {
-  const callbacks = callbacksOf(props);
+  const { outdated, officialReportId } = props.node.attrs;
   const active = useBlockActive(props);
+
+  const onSuccess = () => props.updateAttributes({ ...props.node.attrs, outdated: false });
+
+  const { mutate: resetConclusion } = useOfficialReportBlockConclusionResetMutation(officialReportId);
+  const onReset = () => resetConclusion(undefined, { onSuccess });
+
+  const { mutate: editConclusion } = useOfficialReportBlockConclusionEditMutation(officialReportId);
+  const onAcknowledge = () => {
+    const html = tipTapNodeToHtml(props.node, props.editor.schema);
+    editConclusion({ html, outdated: false }, { onSuccess });
+  };
+
   return (
     <NodeViewWrapper
       as="div"
@@ -65,10 +74,10 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
       })}
     >
       <NodeViewContent />
-      {props.node.attrs.outdated && callbacks && (
+      {outdated && (
         <OfficialReportDriftBanner
-          onReset={callbacks.resetConclusion}
-          onAcknowledge={callbacks.editConclusion}
+          onReset={onReset}
+          onAcknowledge={onAcknowledge}
           generatedHtml={props.node.attrs.generatedHtml}
         />
       )}
@@ -76,28 +85,28 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
   );
 }
 
-export const OfficialReportConclusionBlockNode = Node.create<OfficialReportBlockOptions>({
+export const OfficialReportConclusionBlockNode = Node.create({
   name: OfficialReportConclusionBlock.name,
   group: 'block',
   content: 'block*',
   isolating: true,
   selectable: false,
-  addOptions() {
-    return { callbacks: null };
-  },
-  addAttributes() {
-    return {
-      edited: { default: false, rendered: false },
-      outdated: { default: false },
-      generatedHtml: { default: null, rendered: false },
-    };
-  },
+
+  addAttributes: () => ({
+    edited: { default: false, rendered: false },
+    outdated: { default: false },
+    generatedHtml: { default: null, rendered: false },
+    officialReportId: { default: null, rendered: false },
+  }),
+
   parseHTML() {
     return [{ tag: 'div[data-block-type="conclusion"]' }];
   },
+
   renderHTML({ HTMLAttributes }) {
     return ['div', mergeAttributes(HTMLAttributes, { 'data-block-type': 'conclusion' }), 0];
   },
+
   addNodeView() {
     return ReactNodeViewRenderer(ConclusionBlockView, { selectedOnTextSelection: true });
   },

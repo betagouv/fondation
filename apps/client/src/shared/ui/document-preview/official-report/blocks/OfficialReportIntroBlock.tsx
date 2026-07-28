@@ -1,4 +1,3 @@
-import type { Node as PMNode, Schema } from '@tiptap/pm/model';
 import {
   generateJSON,
   mergeAttributes,
@@ -12,16 +11,15 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
+import { useBlockActive } from '../hooks/useBlockActive';
 import { OfficialReportDriftBanner } from '../OfficialReportDriftBanner';
 import {
-  callbacksOf,
-  serializeContent,
-  useBlockActive,
-  type BlockDescriptor,
-  type OfficialReportBlock,
-  type OfficialReportBlockOptions,
-  type OfficialReportMutations,
-} from '../utils';
+  useOfficialReportBlockIntroEditMutation,
+  useOfficialReportBlockIntroResetMutation,
+} from '@queries/agenda.queries';
+
+import { type OfficialReportBlock } from './official-report-blocks.type';
+import { tipTapNodeToHtml } from './tiptap-node-to-html';
 
 type JsonOfficialReportIntroBlock = Extract<OfficialReportBlock, { kind: 'intro' }>;
 export const OfficialReportIntroBlock = {
@@ -32,31 +30,41 @@ export const OfficialReportIntroBlock = {
     return block.kind === this.block;
   },
 
-  attrsOf(block: JsonOfficialReportIntroBlock) {
-    return { edited: block.edited, outdated: block.outdated, generatedHtml: block.generatedHtml };
-  },
-
-  map(block: JsonOfficialReportIntroBlock, extensions: AnyExtension[]): JSONContent[] {
+  map(
+    officialReportId: string,
+    block: JsonOfficialReportIntroBlock,
+    extensions: AnyExtension[],
+  ): JSONContent[] {
     return [
       {
         type: this.name,
-        attrs: this.attrsOf(block),
+        attrs: {
+          officialReportId,
+          edited: block.edited,
+          outdated: block.outdated,
+          generatedHtml: block.generatedHtml,
+        },
         content: generateJSON(block.html, extensions).content ?? [],
       },
     ];
   },
-
-  nodeKey: (_node: PMNode) => 'intro',
-  serialize: (node: PMNode, schema: Schema) => serializeContent(node, schema),
-  save(node: PMNode, content: string, mutations: OfficialReportMutations) {
-    mutations.editIntro.mutate({ html: content, outdated: Boolean(node.attrs.outdated) });
-  },
-} satisfies BlockDescriptor;
+};
 
 function IntroBlockView(props: ReactNodeViewProps) {
-  const callbacks = callbacksOf(props);
-  const { edited, outdated, generatedHtml } = props.node.attrs;
+  const { edited, outdated, generatedHtml, officialReportId } = props.node.attrs;
   const active = useBlockActive(props);
+
+  const onSuccess = () => props.updateAttributes({ ...props.node.attrs, outdated: false });
+
+  const { mutate: resetIntro } = useOfficialReportBlockIntroResetMutation(officialReportId);
+  const onReset = () => resetIntro(undefined, { onSuccess });
+
+  const { mutate: editIntro } = useOfficialReportBlockIntroEditMutation(officialReportId);
+  const onAcknowledge = () => {
+    const html = tipTapNodeToHtml(props.node, props.editor.schema);
+    editIntro({ html, outdated: false }, { onSuccess });
+  };
+
   return (
     <NodeViewWrapper
       as="div"
@@ -66,10 +74,10 @@ function IntroBlockView(props: ReactNodeViewProps) {
       })}
     >
       <NodeViewContent />
-      {outdated && callbacks && (
+      {outdated && (
         <OfficialReportDriftBanner
-          onReset={callbacks.resetIntro}
-          onAcknowledge={callbacks.editIntro}
+          onReset={onReset}
+          onAcknowledge={onAcknowledge}
           generatedHtml={generatedHtml}
         />
       )}
@@ -77,20 +85,22 @@ function IntroBlockView(props: ReactNodeViewProps) {
   );
 }
 
-export const OfficialReportIntroBlockNode = Node.create<OfficialReportBlockOptions>({
+export const OfficialReportIntroBlockNode = Node.create({
   name: OfficialReportIntroBlock.name,
   group: 'block',
   content: 'block*',
   isolating: true,
   selectable: false,
 
-  addOptions: () => ({ callbacks: null }),
   addAttributes: () => ({
     edited: { default: false, rendered: false },
     outdated: { default: false },
     generatedHtml: { default: null, rendered: false },
+    officialReportId: { default: null, rendered: false },
   }),
+
   parseHTML: () => [{ tag: 'div[data-block-type="intro"]' }],
+
   renderHTML: ({ HTMLAttributes }) =>
     // oxfmt-ignore
     ['div', mergeAttributes(HTMLAttributes, { 'data-block-type': 'intro' }), 0],

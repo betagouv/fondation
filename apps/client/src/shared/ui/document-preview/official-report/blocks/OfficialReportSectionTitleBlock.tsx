@@ -1,4 +1,3 @@
-import type { Node as PMNode } from '@tiptap/pm/model';
 import {
   mergeAttributes,
   Node,
@@ -10,13 +9,9 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
-import {
-  useBlockActive,
-  type BlockDescriptor,
-  type OfficialReportBlock,
-  type OfficialReportBlockOptions,
-  type OfficialReportMutations,
-} from '../utils';
+import { useBlockActive } from '../hooks/useBlockActive';
+
+import { type OfficialReportBlock } from './official-report-blocks.type';
 
 type JsonOfficialReportSectionTitleBlock = Extract<OfficialReportBlock, { kind: 'section-title' }>;
 export const OfficialReportSectionTitleBlock = {
@@ -27,26 +22,16 @@ export const OfficialReportSectionTitleBlock = {
     return block.kind === this.block;
   },
 
-  attrsOf(block: JsonOfficialReportSectionTitleBlock) {
-    return { outcome: block.outcome, edited: block.edited };
-  },
-
   map(block: JsonOfficialReportSectionTitleBlock): JSONContent[] {
     return [
       {
         type: this.name,
-        attrs: this.attrsOf(block),
+        attrs: { outcome: block.outcome, edited: block.edited },
         content: [{ type: 'text', text: block.text }],
       },
     ];
   },
-
-  nodeKey: (node: PMNode) => (node.attrs.outcome ? `section-title:${node.attrs.outcome}` : null),
-  serialize: (node: PMNode) => node.textContent,
-  save(node: PMNode, content: string, mutations: OfficialReportMutations) {
-    mutations.editSectionTitle.mutate({ outcome: node.attrs.outcome, text: content });
-  },
-} satisfies BlockDescriptor;
+};
 
 function SectionTitleBlockView(props: ReactNodeViewProps) {
   const active = useBlockActive(props);
@@ -63,16 +48,13 @@ function SectionTitleBlockView(props: ReactNodeViewProps) {
   );
 }
 
-export const OfficialReportSectionTitleBlockNode = Node.create<OfficialReportBlockOptions>({
+export const OfficialReportSectionTitleBlockNode = Node.create({
   name: OfficialReportSectionTitleBlock.name,
   group: 'block',
   content: 'inline*',
   marks: '',
   isolating: true,
   selectable: true,
-  addOptions() {
-    return { callbacks: null };
-  },
   addAttributes() {
     return { outcome: { default: null }, edited: { default: false, rendered: false } };
   },
