@@ -55,16 +55,37 @@ function FileBlockView(props: ReactNodeViewProps) {
   const { edited, outdated, nominationFileId, generatedHtml, officialReportId } = props.node.attrs;
   const active = useBlockActive(props);
 
-  const onSuccess = () => props.updateAttributes({ ...props.node.attrs, outdated: false });
-
   const { mutate: resetFile } = useOfficialReportBlockFileResetMutation(officialReportId);
   const { mutate: editFile } = useOfficialReportBlockFileEditMutation(officialReportId);
 
-  const onReset = () => resetFile({ nominationFileId }, { onSuccess });
+  const onReset = () => {
+    resetFile(
+      { nominationFileId },
+      {
+        async onSuccess() {
+          props.updateAttributes({ ...props.node.attrs, outdated: false });
+
+          const pos = props.getPos();
+          if (pos == null) return;
+          props.editor.commands.insertContentAt(
+            { from: pos + 1, to: pos + props.node.nodeSize - 1 },
+            generatedHtml,
+          );
+        },
+      },
+    );
+  };
 
   const onAcknowledge = () => {
     const html = tipTapNodeToHtml(props.node, props.editor.schema);
-    editFile({ html, outdated: false, nominationFileId }, { onSuccess });
+    editFile(
+      { html, outdated: false, nominationFileId },
+      {
+        onSuccess() {
+          props.updateAttributes({ ...props.node.attrs, outdated: false });
+        },
+      },
+    );
   };
 
   return (

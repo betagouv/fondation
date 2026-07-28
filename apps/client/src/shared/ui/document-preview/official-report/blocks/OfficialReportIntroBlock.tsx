@@ -54,15 +54,32 @@ function IntroBlockView(props: ReactNodeViewProps) {
   const { edited, outdated, generatedHtml, officialReportId } = props.node.attrs;
   const active = useBlockActive(props);
 
-  const onSuccess = () => props.updateAttributes({ ...props.node.attrs, outdated: false });
-
   const { mutate: resetIntro } = useOfficialReportBlockIntroResetMutation(officialReportId);
-  const onReset = () => resetIntro(undefined, { onSuccess });
+  const onReset = () =>
+    resetIntro(undefined, {
+      onSuccess() {
+        props.updateAttributes({ ...props.node.attrs, outdated: false });
+
+        const pos = props.getPos();
+        if (pos == null) return;
+        props.editor.commands.insertContentAt(
+          { from: pos + 1, to: pos + props.node.nodeSize - 1 },
+          generatedHtml,
+        );
+      },
+    });
 
   const { mutate: editIntro } = useOfficialReportBlockIntroEditMutation(officialReportId);
   const onAcknowledge = () => {
     const html = tipTapNodeToHtml(props.node, props.editor.schema);
-    editIntro({ html, outdated: false }, { onSuccess });
+    editIntro(
+      { html, outdated: false },
+      {
+        onSuccess() {
+          props.updateAttributes({ ...props.node.attrs, outdated: false });
+        },
+      },
+    );
   };
 
   return (

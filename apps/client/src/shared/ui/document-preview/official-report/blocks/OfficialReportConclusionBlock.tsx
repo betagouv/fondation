@@ -51,18 +51,35 @@ export const OfficialReportConclusionBlock = {
 };
 
 function ConclusionBlockView(props: ReactNodeViewProps) {
-  const { outdated, officialReportId } = props.node.attrs;
+  const { outdated, officialReportId, generatedHtml } = props.node.attrs;
   const active = useBlockActive(props);
 
-  const onSuccess = () => props.updateAttributes({ ...props.node.attrs, outdated: false });
-
   const { mutate: resetConclusion } = useOfficialReportBlockConclusionResetMutation(officialReportId);
-  const onReset = () => resetConclusion(undefined, { onSuccess });
+  const onReset = () =>
+    resetConclusion(undefined, {
+      onSuccess() {
+        props.updateAttributes({ ...props.node.attrs, outdated: false });
+
+        const pos = props.getPos();
+        if (pos == null) return;
+        props.editor.commands.insertContentAt(
+          { from: pos + 1, to: pos + props.node.nodeSize - 1 },
+          generatedHtml,
+        );
+      },
+    });
 
   const { mutate: editConclusion } = useOfficialReportBlockConclusionEditMutation(officialReportId);
   const onAcknowledge = () => {
     const html = tipTapNodeToHtml(props.node, props.editor.schema);
-    editConclusion({ html, outdated: false }, { onSuccess });
+    editConclusion(
+      { html, outdated: false },
+      {
+        onSuccess() {
+          props.updateAttributes({ ...props.node.attrs, outdated: false });
+        },
+      },
+    );
   };
 
   return (
@@ -78,7 +95,7 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
         <OfficialReportDriftBanner
           onReset={onReset}
           onAcknowledge={onAcknowledge}
-          generatedHtml={props.node.attrs.generatedHtml}
+          generatedHtml={generatedHtml}
         />
       )}
     </NodeViewWrapper>
