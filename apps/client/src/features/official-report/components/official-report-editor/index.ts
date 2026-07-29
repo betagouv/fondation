@@ -1,0 +1,1 @@
+export { OfficialReportDocumentEditor } from './OfficialReportDocumentEditor';

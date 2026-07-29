@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { OfficialReportDocumentEditor } from '@/features/official-report/components/official-report-editor/OfficialReportDocumentEditor';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { OfficialReportDocumentEditor } from '@/shared/ui/document-preview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useGenerateOfficialReportPdfMutation,

@@ -42,15 +42,6 @@ const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlo
   },
 });
 
-declare module '@tiptap/core' {
-  interface Commands<ReturnType> {
-    officialReportModel: {
-      resetBlock: (viewProps: ReactNodeViewProps) => ReturnType;
-      acknowledgeBlock: (viewProps: ReactNodeViewProps) => ReturnType;
-    };
-  }
-}
-
 /**
  * Undo/redo restore the block content *and* its `outdated` attribute (tracked by
  * prosemirror-history). `onHistory` lets the model re-persist the restored state so the
