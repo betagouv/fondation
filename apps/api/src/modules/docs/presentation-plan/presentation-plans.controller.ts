@@ -45,6 +45,7 @@ import { PresentationPlansService } from './presentation-plans.service';
 export class PresentationPlansController {
   constructor(private readonly presentationPlans: PresentationPlansService) {}
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/presentation-plans/agendas')
   @ApiQuery({ name: 'ignore', required: false, type: 'string', format: 'uuid' })
   @ZodResponse({ status: HttpStatus.OK, type: FoundAgendasDto })
