@@ -136,14 +136,14 @@ type BlockKey =
   | `section-intro:${DocNominationFileOutcomeEnum}`
   | `file:${string}`;
 
-type OfficialReportEditionBlockState =
+export type OfficialReportEditionBlockState =
   | { kind: 'intro'; key: BlockKey; html: string; outdated: boolean }
   | { kind: 'conclusion'; key: BlockKey; html: string; outdated: boolean }
   | { kind: 'section-title'; key: BlockKey; outcome: DocNominationFileOutcomeEnum; text: string }
   | { kind: 'section-intro'; key: BlockKey; outcome: DocNominationFileOutcomeEnum; html: string }
   | { kind: 'file'; key: BlockKey; nominationFileId: string; html: string; outdated: boolean };
 
-class OfficialReportEditionBlock {
+export class OfficialReportEditionBlock {
   get key(): BlockKey {
     return this.block.key;
   }
@@ -275,7 +275,7 @@ class OfficialReportEditorDiff implements Iterable<OfficialReportEditionBlock> {
   }
 }
 
-class OfficialReportEditionBlockPersistor {
+export class OfficialReportEditionBlockPersistor {
   constructor(private readonly officialReportId: string) {}
 
   async reset({ block }: OfficialReportEditionBlock): Promise<unknown> {
