@@ -9,6 +9,7 @@
     "dist"
   ],
   "scripts": {
+    "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
     "lint:check": "oxlint",
     "lint": "oxlint --fix",
@@ -16,7 +17,7 @@
   },
   "devDependencies": {
     "@swc-node/register": "1.11.1",
-    "@types/node": "24.12.4",
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
