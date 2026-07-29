@@ -68,7 +68,7 @@
     "@types/express": "5.0.6",
     "@types/inquirer": "8.2.13",
     "@types/multer": "2.2.0",
-    "@types/node": "26.1.1",
+    "@types/node": "catalog:",
     "@types/pg": "8.20.0",
     "@types/sax": "1.2.7",
     "@types/unzipper": "0.10.11",
@@ -76,7 +76,7 @@
     "lolfi": "workspace:*",
     "prisma": "7.8.0",
     "typescript": "catalog:",
-    "vitest": "4.1.10",
-    "vitest-mock-extended": "5.1.0"
+    "vitest": "catalog:",
+    "vitest-mock-extended": "catalog:"
   }
 }
