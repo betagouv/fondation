@@ -4,7 +4,7 @@ import { FormattedMessage } from 'react-intl';
 import { FormattedAge, FormattedPositionDuration } from '@/i18n/components';
 import { DetailsCard } from '@/shared/ui/details';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
-import { capitalize } from '@/utils/string.utils';
+import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagistratDto }) {
@@ -24,7 +24,7 @@ export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagist
           {magistrat.lastName.toUpperCase()}
         </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
-          {capitalize(magistrat.firstName)}
+          {capitalizedFirstName(magistrat)}
         </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Nom d'usage" />}>
           {magistrat.usedName ? magistrat.usedName.toUpperCase() : '-'}

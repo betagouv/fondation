@@ -6,6 +6,7 @@ import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { fullNameCapitalized } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 type MagistratDetailsHeaderProps = {
@@ -81,7 +82,7 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
           <h1 className="fr-h2 fr-mb-0">
             <TitleNameIcons
               lolfi={{ href: magistrat.externalUrl }}
-              name={`${capitalize(magistrat.civilite)} ${magistrat.lastName.toUpperCase()} ${capitalize(magistrat.firstName)}`}
+              name={`${capitalize(magistrat.civilite.toLowerCase())} ${fullNameCapitalized(magistrat)}`}
               small
             />
           </h1>

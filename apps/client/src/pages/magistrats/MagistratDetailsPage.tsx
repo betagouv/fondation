@@ -5,11 +5,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { MagistratDetailsContent } from '@/features/magistrats/components/MagistratDetailsContent';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import {
-  useMagistratDetailsQuery,
-  useMagistratNominationFilesQuery,
-  useMagistratObservationsQuery,
-} from '@queries/magistrats.queries';
+import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
 
 export function MagistratDetailsPage() {
   const { magistratId } = useParams<{ magistratId: string }>();
@@ -18,8 +14,6 @@ export function MagistratDetailsPage() {
   const context = isSgContext ? 'sg' : 'membre';
 
   const { data: magistrat, isLoading, isError } = useMagistratDetailsQuery({ magistratId });
-  const nominationFilesQuery = useMagistratNominationFilesQuery({ magistratId });
-  const observationsQuery = useMagistratObservationsQuery({ magistratId });
 
   if (isLoading) {
     return (
@@ -37,24 +31,5 @@ export function MagistratDetailsPage() {
     return <Navigate replace={true} to={fallbackPath} />;
   }
 
-  return (
-    <MagistratDetailsContent
-      context={context}
-      magistrat={magistrat}
-      nominationFiles={{
-        hasMore: nominationFilesQuery.hasNextPage,
-        isLoading: nominationFilesQuery.isLoading,
-        isLoadingMore: nominationFilesQuery.isFetchingNextPage,
-        items: nominationFilesQuery.data?.pages.flatMap((page) => page?.items ?? []) ?? [],
-        onLoadMore: () => nominationFilesQuery.fetchNextPage(),
-      }}
-      observations={{
-        hasMore: observationsQuery.hasNextPage,
-        isLoading: observationsQuery.isLoading,
-        isLoadingMore: observationsQuery.isFetchingNextPage,
-        items: observationsQuery.data?.pages.flatMap((page) => page?.items ?? []) ?? [],
-        onLoadMore: () => observationsQuery.fetchNextPage(),
-      }}
-    />
-  );
+  return <MagistratDetailsContent context={context} magistrat={magistrat} />;
 }

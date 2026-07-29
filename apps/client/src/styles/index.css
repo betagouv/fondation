@@ -49,15 +49,12 @@ li {
 }
 
 :root {
-  --fondation-container-max-width: 86rem;
+  --fondation-details-container-max-width: 86rem;
   --fondation-editor-min-width: 5rem;
 }
 
-.fr-container,
-.fr-container-sm,
-.fr-container-md,
-.fr-container-lg {
-  max-width: var(--fondation-container-max-width);
+.fr-container.fondation-details-container {
+  max-width: var(--fondation-details-container-max-width);
 }
 
 .fr-table__content table tbody td {
