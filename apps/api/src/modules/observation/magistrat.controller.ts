@@ -39,6 +39,7 @@ export class MagistratController {
     });
   }
 
+  @HasRole()
   @Get('fullname')
   searchFullName(@Query('search') search: string) {
     return this.prisma.$queryRawTyped(findMagistratExternalIdByFullName(unaccent(search.toLowerCase())));

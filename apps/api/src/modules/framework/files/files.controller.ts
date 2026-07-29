@@ -1,12 +1,15 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query, Res, StreamableFile } from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
 
+import { HasRole } from 'src/modules/simple-auth';
+
 import { Files } from './files';
 
 @Controller('/api/files/v1')
 export class FilesController {
   constructor(private readonly files: Files) {}
 
+  @HasRole()
   @Get('/:fileUrlId')
   async getFileByFileUrl(
     @Res({ passthrough: true }) res: ExpressResponse,
