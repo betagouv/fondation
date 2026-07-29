@@ -177,11 +177,13 @@ export function usePublishVersionMutation() {
         path: { sessionId: mutation.sessionId },
       });
     },
+
     onSuccess: (_, { sessionId }) =>
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
+          agendaKeys.findAgendaNominationFiles({ sessionId }),
         ),
       }),
   });
@@ -540,6 +542,7 @@ export function useDefineNominationFileOutcomeMutation(input: {
             sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
             sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
+            agendaKeys.findSessionDocs(input.sessionId),
           ),
         }),
       ]),
