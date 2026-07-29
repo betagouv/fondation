@@ -110,7 +110,6 @@ model DossierDeNomination {
   detectedTargetedPosition Position?     @relation(fields: [detectedTargetedPositionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@unique([sessionId, externalId], name: "sessionExternalId")
-  @@index([detectedMagistratId])
   @@index([sessionId, sortableTargetedGrade])
   @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")

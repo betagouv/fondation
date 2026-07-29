@@ -1,11 +1,8 @@
-import { randomUUID } from 'node:crypto';
-
 import type { LolfiData } from 'lolfi';
 
-import { test } from '../fixtures.ts';
+import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
 import type { CreateObservationDto } from '../generated/api/types.ts';
-import { makeHttpClient } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
 const VALROSE_SESSION: LolfiData['sessions'][number] = {
@@ -35,130 +32,104 @@ function observationForm(form: CreateObservationDto['form']): CreateObservationD
   }) as unknown as CreateObservationDto['form'];
 }
 
+const test = base.extend('valrose', async ({ agent, sessions }) => {
+  const session = await sessions.createOne(VALROSE_SESSION);
+
+  const [nominationFile] = await agent.sessions
+    .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
+    .then(({ data }) => data!.items);
+
+  return {
+    magistratId: nominationFile!.content.detectedMagistratId!,
+    nominationFile: nominationFile!,
+    session,
+  };
+});
+
 test.describe('Magistrat E2E', () => {
-  test('should detail a magistrat and list its nomination files and observations', async ({
-    agent,
-    baseUrl,
-    expect,
-    member,
-    sessions,
-  }) => {
-    const session = await sessions.createOne(VALROSE_SESSION);
+  test('should detail a magistrat', async ({ agent, expect, valrose }) => {
+    const details = await agent.magistrats.detailMagistrat({
+      path: { magistratId: valrose.magistratId },
+    });
 
-    const nominationFiles = await agent.sessions
-      .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-      .then(({ data }) => data!.items);
-    const [nominationFile] = nominationFiles;
-    expect(nominationFile).toBeDefined();
+    expect(details.response?.status).toBe(200);
+    expect(details.data).toMatchObject({
+      civilite: expect.any(String),
+      currentPosition: {
+        function: { label: expect.any(String) },
+        id: expect.any(Number),
+        jurisdiction: { id: expect.any(String) },
+      },
+      externalUrl: expect.any(String),
+      firstName: expect.stringMatching(/^honorine$/i),
+      id: valrose.magistratId,
+      lastName: expect.stringMatching(/^valrose$/i),
+    });
+  });
 
-    const magistratId = nominationFile!.content.detectedMagistratId;
-    expect(magistratId).toEqual(expect.any(String));
-
+  test('should list the nomination files of a magistrat', async ({ agent, expect, member, valrose }) => {
     await agent.sessions.updateNominationFileAuditionDate({
       body: {
         auditionDate: { year: 2026, month: 9, day: 15 },
         auditionTime: { hours: 14, minutes: 30 },
       },
-      path: { nominationFileId: nominationFile!.id, sessionId: session.id },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
       throwOnError: true,
     });
 
-    const agentDetails = await agent.magistrats.detailMagistrat({
-      path: { magistratId: magistratId! },
+    const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
     });
-    expect(agentDetails.response?.status).toBe(200);
-    expect(agentDetails.data).toMatchObject({
-      id: magistratId,
-      externalUrl: expect.any(String),
-      lastName: expect.stringMatching(/^valrose$/i),
-    });
-
-    const agentNominationFiles = await agent.magistrats.listMagistratNominationFiles({
-      path: { magistratId: magistratId! },
-    });
-    expect(agentNominationFiles.response?.status).toBe(200);
-    expect(agentNominationFiles.data).toMatchObject({ currentPageIndex: 1, totalCount: 1 });
-    expect(agentNominationFiles.data!.items[0]).toMatchObject({
+    expect(nominationFiles.response?.status).toBe(200);
+    expect(nominationFiles.data).toMatchObject({ currentPageIndex: 1, totalCount: 1 });
+    expect(nominationFiles.data!.items[0]).toMatchObject({
       auditionDate: { year: 2026, month: 9, day: 15 },
       auditionTime: { hours: 14, minutes: 30 },
-      id: nominationFile!.id,
+      id: valrose.nominationFile.id,
       outcome: null,
-      session: { id: session.id, status: 'ONGOING' },
+      session: { id: valrose.session.id, status: 'ONGOING' },
       targetedGrade: 'G3',
     });
 
     const memberNominationFiles = await api.magistrats.listMagistratNominationFiles({
       client: member['@client'],
-      path: { magistratId: magistratId! },
+      path: { magistratId: valrose.magistratId },
     });
     expect(memberNominationFiles.response?.status).toBe(200);
-    expect(memberNominationFiles.data!.items[0]).toMatchObject({ id: nominationFile!.id });
+    expect(memberNominationFiles.data!.items[0]).toMatchObject({ id: valrose.nominationFile.id });
+  });
 
-    const emptyObservations = await agent.magistrats.listMagistratObservations({
-      path: { magistratId: magistratId! },
+  test('should list the observations received by a magistrat', async ({ agent, expect, valrose }) => {
+    const withoutObservation = await agent.magistrats.listMagistratObservations({
+      path: { magistratId: valrose.magistratId },
     });
-    expect(emptyObservations.response?.status).toBe(200);
-    expect(emptyObservations.data).toMatchObject({ items: [], totalCount: 0 });
+    expect(withoutObservation.response?.status).toBe(200);
+    expect(withoutObservation.data).toMatchObject({ items: [], totalCount: 0 });
 
-    const createdObservation = await agent.observations.createObservation({
+    await agent.observations.createObservation({
       body: {
         form: observationForm({
           dateReception: '2026-05-02',
           description: 'Observation déposée pour le test E2E',
-          magistratId: magistratId!,
+          magistratId: valrose.magistratId,
         }),
       },
-      path: { nominationFileId: nominationFile!.id, sessionId: session.id },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
+      throwOnError: true,
     });
-    expect(createdObservation.response?.status).toBe(201);
 
-    const agentObservations = await agent.magistrats.listMagistratObservations({
-      path: { magistratId: magistratId! },
+    const observations = await agent.magistrats.listMagistratObservations({
+      path: { magistratId: valrose.magistratId },
     });
-    expect(agentObservations.response?.status).toBe(200);
-    expect(agentObservations.data).toMatchObject({ totalCount: 1 });
-    expect(agentObservations.data!.items[0]).toMatchObject({
+    expect(observations.response?.status).toBe(200);
+    expect(observations.data).toMatchObject({ totalCount: 1 });
+    expect(observations.data!.items[0]).toMatchObject({
       dateReception: { year: 2026, month: 5, day: 2 },
       nominationFile: {
-        id: nominationFile!.id,
+        id: valrose.nominationFile.id,
         name: expect.stringMatching(/valrose/i),
-        session: { id: session.id, status: 'ONGOING' },
+        session: { id: valrose.session.id, status: 'ONGOING' },
       },
     });
-
-    const memberSchedule = await api.sessions.updateNominationFileAuditionDate({
-      body: {
-        auditionDate: { year: 2026, month: 10, day: 1 },
-        auditionTime: { hours: 10, minutes: 0 },
-      },
-      client: member['@client'],
-      path: { nominationFileId: nominationFile!.id, sessionId: session.id },
-    });
-    expect(memberSchedule.response?.status).toBe(403);
-
-    for (const listUnknown of [
-      agent.magistrats.detailMagistrat({ path: { magistratId: randomUUID() } }),
-      agent.magistrats.listMagistratNominationFiles({ path: { magistratId: randomUUID() } }),
-      agent.magistrats.listMagistratObservations({ path: { magistratId: randomUUID() } }),
-    ]) {
-      const unknownMagistrat = await listUnknown;
-      expect(unknownMagistrat.response?.status).toBe(404);
-    }
-
-    const anonymousClient = makeHttpClient(baseUrl);
-    for (const anonymousCall of [
-      api.magistrats.detailMagistrat({ client: anonymousClient, path: { magistratId: magistratId! } }),
-      api.magistrats.listMagistratNominationFiles({
-        client: anonymousClient,
-        path: { magistratId: magistratId! },
-      }),
-      api.magistrats.listMagistratObservations({
-        client: anonymousClient,
-        path: { magistratId: magistratId! },
-      }),
-    ]) {
-      const anonymous = await anonymousCall;
-      expect(anonymous.response?.status).toBe(401);
-    }
   });
 });

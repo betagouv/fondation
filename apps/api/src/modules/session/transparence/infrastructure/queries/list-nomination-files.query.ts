@@ -195,6 +195,7 @@ export class ListNominationFilesQuery {
                   id: obs.magistrat.id,
                   firstName: obs.magistrat.firstName,
                   lastName: obs.magistrat.lastName,
+                  usedName: obs.magistrat.usedName,
                 }
               : null,
           };
@@ -334,6 +335,7 @@ const RawListedNominationFiles = z.array(
             id: z.string(),
             firstName: z.string(),
             lastName: z.string(),
+            usedName: z.string().nullable(),
           }),
           memberComments: z.array(z.object({ comment: z.string().nullable() })),
         }),
@@ -377,7 +379,14 @@ const NominationFileAffectationItemSchema = z.object({
       followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
-      magistrat: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
+      magistrat: z
+        .object({
+          id: z.string(),
+          firstName: z.string(),
+          lastName: z.string(),
+          usedName: z.string().nullable(),
+        })
+        .nullable(),
     }),
   ),
   memo: z.string().nullable(),

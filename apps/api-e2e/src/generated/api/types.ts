@@ -380,6 +380,7 @@ export type PaginatedNominationFiles = {
                 id: string;
                 firstName: string;
                 lastName: string;
+                usedName: string | null;
             } | null;
         }>;
         memo: string | null;
@@ -3632,19 +3633,6 @@ export type SearchMagistratsResponses = {
 };
 
 export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
-
-export type SearchFullNameData = {
-    body?: never;
-    path?: never;
-    query: {
-        search: string;
-    };
-    url: '/api/magistrats/v1/fullname';
-};
-
-export type SearchFullNameResponses = {
-    200: unknown;
-};
 
 export type DetailMagistratData = {
     body?: never;

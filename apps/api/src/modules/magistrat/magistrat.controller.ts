@@ -2,11 +2,8 @@ import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/com
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { PrismaService } from '../framework/database';
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import { HasRole } from '../simple-auth';
-import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
-import { unaccent } from 'src/utils/unaccent';
 
 import { SearchMagistratsQueryDto } from './infrastructure/dtos/magistrat.dto';
 import { DetailedMagistratDto } from './infrastructure/queries/detail-magistrat.query';
@@ -18,10 +15,7 @@ import { MagistratService } from './magistrat.service';
 @ApiTags('Magistrats')
 @Controller('/api/magistrats/v1')
 export class MagistratController {
-  constructor(
-    private readonly magistrats: MagistratService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly magistrats: MagistratService) {}
 
   @Get()
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -40,11 +34,6 @@ export class MagistratController {
       search: query.search,
       ignoreIds: query.ignore,
     });
-  }
-
-  @Get('fullname')
-  searchFullName(@Query('search') search: string) {
-    return this.prisma.$queryRawTyped(findMagistratExternalIdByFullName(unaccent(search.toLowerCase())));
   }
 
   @Get('/:magistratId')

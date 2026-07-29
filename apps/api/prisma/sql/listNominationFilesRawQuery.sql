@@ -86,7 +86,12 @@ FROM
           'description', obs.description,
           'dateReception', obs.date_reception,
 
-          'magistrat', JSON_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name),
+          'magistrat', JSON_BUILD_OBJECT(
+            'id', m.id,
+            'firstName', m.first_name,
+            'lastName', m.last_name,
+            'usedName', m.used_name
+          ),
           'memberComments', JSON_AGG(
             JSON_BUILD_OBJECT('comment', omc."comment")
           )
