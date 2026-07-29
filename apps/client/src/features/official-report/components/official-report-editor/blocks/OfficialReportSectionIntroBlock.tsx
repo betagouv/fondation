@@ -55,7 +55,10 @@ export const OfficialReportSectionIntroBlockNode = Node.create({
   isolating: true,
   selectable: true,
 
-  addAttributes: () => ({ outcome: { default: null }, edited: { default: false, rendered: false } }),
+  addAttributes: () => ({
+    outcome: { default: null },
+    edited: { default: false, rendered: false },
+  }),
   parseHTML: () => [{ tag: 'div[data-block-type="section-intro"]' }],
   renderHTML: ({ HTMLAttributes }) =>
     // oxfmt-ignore

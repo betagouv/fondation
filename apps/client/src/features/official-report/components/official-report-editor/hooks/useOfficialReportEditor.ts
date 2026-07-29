@@ -9,20 +9,23 @@ import { OfficialReportFileBlock } from '../blocks/OfficialReportFileBlock';
 import { OfficialReportIntroBlock } from '../blocks/OfficialReportIntroBlock';
 import { OfficialReportSectionIntroBlock } from '../blocks/OfficialReportSectionIntroBlock';
 import { OfficialReportSectionTitleBlock } from '../blocks/OfficialReportSectionTitleBlock';
+import { buildOfficialReportExtensions } from '../official-report-tiptap-extensions';
 import { assertNever } from '@/utils/types.util';
 
-import { buildOfficialReportExtensions } from './official-report-tiptap-extensions';
-
 export function useOfficialReportEditor(model: OfficialReportBlocksModel): Editor {
-  const extensions = React.useMemo(
-    () => buildOfficialReportExtensions({ onHistory: (editor: Editor) => model.onEditorUpdate(editor) }),
-    [model],
-  );
+  const extensions = React.useMemo(() => buildOfficialReportExtensions(model), [model]);
 
   const content = modelToDoc(model, extensions);
   const onUpdate = useDebouncedCallback(
     ({ editor }: { editor: Editor }) => model.onEditorUpdate(editor),
     600,
+  );
+
+  React.useEffect(
+    () => () => {
+      onUpdate.flush();
+    },
+    [onUpdate],
   );
 
   return useEditor({

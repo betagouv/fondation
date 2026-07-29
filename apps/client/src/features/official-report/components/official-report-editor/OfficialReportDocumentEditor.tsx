@@ -1,8 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { EditorContent, EditorContext } from '@tiptap/react';
+import { EditorContent, EditorContext, useEditorState } from '@tiptap/react';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
+
+import '@/shared/ui/document-preview/DocumentEditor.css';
 
 import './blocks.css';
 
@@ -11,30 +13,57 @@ import { ItalicButton } from '@/shared/ui/tip-tap-editor/buttons/ItalicButton';
 import { RedoButton } from '@/shared/ui/tip-tap-editor/buttons/RedoButton';
 import { UndoButton } from '@/shared/ui/tip-tap-editor/buttons/UndoButton';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import '../DocumentEditor.css';
 
+import { OfficialReportBlocksModel } from './blocks/official-report-blocks.model';
 import type { OfficialReportBlock } from './blocks/official-report-blocks.type';
+import { OfficialReportFileBlock } from './blocks/OfficialReportFileBlock';
 import { useOfficialReportEditor } from './hooks/useOfficialReportEditor';
 
-export function OfficialReportDocumentEditor(props: { sessionId: string; model: OfficialReport }) {
+export function OfficialReportDocumentEditor(props: {
+  sessionId: string;
+  officialReportId: string;
+  blocks: readonly OfficialReportBlock[];
+  onPendingRevalidationChange?: (pending: boolean) => void;
+}) {
   const navigate = useNavigate();
-  const editor = useOfficialReportEditor(props.model);
+
+  const [model] = React.useState(
+    () => new OfficialReportBlocksModel({ officialReportId: props.officialReportId, blocks: props.blocks }),
+  );
+  const editor = useOfficialReportEditor(model);
+
+  const hasPendingRevalidation = useEditorState({
+    editor,
+    selector: ({ editor }): boolean => {
+      let pending = false;
+      editor?.state.doc.descendants((node) => {
+        if (node.type.name === OfficialReportFileBlock.name && node.attrs.outdated) pending = true;
+        return !pending;
+      });
+      return pending;
+    },
+  });
+
+  const { onPendingRevalidationChange } = props;
+  React.useEffect(() => {
+    onPendingRevalidationChange?.(hasPendingRevalidation);
+  }, [hasPendingRevalidation, onPendingRevalidationChange]);
 
   const [isPersisting, setIsPersisting] = React.useState(false);
   const preview = React.useCallback(async () => {
     try {
       setIsPersisting(true);
-      await props.model.onEditorUpdate(editor);
+      await model.onEditorUpdate(editor);
       return navigate(
         generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_RENDER, {
           sessionId: props.sessionId,
-          officialReportId: props.model.officialReportId,
+          officialReportId: model.officialReportId,
         }),
       );
     } finally {
       setIsPersisting(false);
     }
-  }, [props, editor, navigate, setIsPersisting]);
+  }, [model, props.sessionId, editor, navigate, setIsPersisting]);
 
   return (
     <div className="mx-auto max-w-3xl rounded border border-solid border-(--border-default-grey) bg-(--background-default-grey)">

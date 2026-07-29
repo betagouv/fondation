@@ -11,15 +11,11 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
+import { OfficialReportDriftBanner } from '../components/OfficialReportDriftBanner';
+import { OfficialReportEditedBadge } from '../components/OfficialReportEditedBadge';
 import { useBlockActive } from '../hooks/useBlockActive';
-import { OfficialReportDriftBanner } from '../OfficialReportDriftBanner';
-import {
-  useOfficialReportBlockFileEditMutation,
-  useOfficialReportBlockFileResetMutation,
-} from '@queries/agenda.queries';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
-import { tipTapNodeToHtml } from './tiptap-node-to-html';
 
 type JsonOfficialReportFileBlock = Extract<OfficialReportBlock, { kind: 'file' }>;
 export const OfficialReportFileBlock = {
@@ -39,6 +35,7 @@ export const OfficialReportFileBlock = {
       {
         type: this.name,
         attrs: {
+          isPending: false,
           officialReportId,
           nominationFileId: block.nominationFileId,
           edited: block.edited,
@@ -52,41 +49,8 @@ export const OfficialReportFileBlock = {
 };
 
 function FileBlockView(props: ReactNodeViewProps) {
-  const { edited, outdated, nominationFileId, generatedHtml, officialReportId } = props.node.attrs;
+  const { edited, outdated, nominationFileId } = props.node.attrs;
   const active = useBlockActive(props);
-
-  const { mutate: resetFile } = useOfficialReportBlockFileResetMutation(officialReportId);
-  const { mutate: editFile } = useOfficialReportBlockFileEditMutation(officialReportId);
-
-  const onReset = () => {
-    resetFile(
-      { nominationFileId },
-      {
-        async onSuccess() {
-          props.updateAttributes({ ...props.node.attrs, outdated: false });
-
-          const pos = props.getPos();
-          if (pos == null) return;
-          props.editor.commands.insertContentAt(
-            { from: pos + 1, to: pos + props.node.nodeSize - 1 },
-            generatedHtml,
-          );
-        },
-      },
-    );
-  };
-
-  const onAcknowledge = () => {
-    const html = tipTapNodeToHtml(props.node, props.editor.schema);
-    editFile(
-      { html, outdated: false, nominationFileId },
-      {
-        onSuccess() {
-          props.updateAttributes({ ...props.node.attrs, outdated: false });
-        },
-      },
-    );
-  };
 
   return (
     <NodeViewWrapper
@@ -96,14 +60,11 @@ function FileBlockView(props: ReactNodeViewProps) {
         'doc-block--warning': (edited || outdated) && nominationFileId,
       })}
     >
+      {edited && <OfficialReportEditedBadge />}
+
       <NodeViewContent />
-      {outdated && (
-        <OfficialReportDriftBanner
-          onReset={onReset}
-          onAcknowledge={onAcknowledge}
-          generatedHtml={generatedHtml}
-        />
-      )}
+
+      <OfficialReportDriftBanner {...props} />
     </NodeViewWrapper>
   );
 }
@@ -116,6 +77,7 @@ export const OfficialReportFileBlockNode = Node.create({
   selectable: false,
   draggable: false,
   addAttributes: () => ({
+    isPending: { default: false, rendered: false },
     edited: { default: false, rendered: false },
     outdated: { default: false },
     nominationFileId: { default: null },

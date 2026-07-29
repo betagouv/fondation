@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
@@ -31,8 +32,7 @@ export function OfficialReportPreviewPage() {
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
   });
 
-  const blocks = document?.blocks ?? [];
-  const hasPendingRevalidation = blocks.some((block) => block.kind === 'file' && block.outdated);
+  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
 
   return (
     <>
@@ -78,7 +78,13 @@ export function OfficialReportPreviewPage() {
           {!isFetchedAfterMount || !officialReportId || !document ? (
             <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
           ) : (
-            <OfficialReportDocumentEditor sessionId={sessionId!} model={document} />
+            <OfficialReportDocumentEditor
+              key={officialReportId}
+              sessionId={sessionId!}
+              officialReportId={officialReportId}
+              blocks={document.blocks}
+              onPendingRevalidationChange={setHasPendingRevalidation}
+            />
           )}
         </div>
 

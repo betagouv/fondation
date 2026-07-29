@@ -1,6 +1,8 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
+import { type ReactNodeViewProps } from '@tiptap/react';
+import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 function OfficialReportDriftBannerTooltip() {
@@ -19,19 +21,30 @@ function OfficialReportDriftBannerTooltip() {
   );
 }
 
-export function OfficialReportDriftBanner(props: {
-  onReset: () => void;
-  onAcknowledge: () => void;
-  generatedHtml: string;
-}) {
+export function OfficialReportDriftBanner(props: ReactNodeViewProps) {
+  const { editor, node } = props;
+  const { outdated, generatedHtml, isPending } = node.attrs;
+
+  const disabled = Boolean(isPending);
+
+  const onReset = () => editor.commands.resetBlock(props);
+  const onAcknowledge = () => editor.commands.acknowledgeBlock(props);
+
+  if (!outdated) return null;
+
   return (
-    <div contentEditable={false} className="doc-block__banner doc-block__banner--info">
+    <div
+      contentEditable={false}
+      className={clsx('doc-block__banner doc-block__banner--info', {
+        'bg-(--background-disabled-grey)': Boolean(isPending),
+      })}
+    >
       <Badge as="p" severity="new" small className="fr-mr-1v">
         <FormattedMessage defaultMessage="MODIFICATION" />
       </Badge>
       <Tooltip title={<OfficialReportDriftBannerTooltip />} />
       <div className="fr-mt-1v">
-        <div dangerouslySetInnerHTML={{ __html: props.generatedHtml }} />
+        <div dangerouslySetInnerHTML={{ __html: generatedHtml }} />
       </div>
       <div className="fr-mt-3v">
         <ButtonsGroup
@@ -41,13 +54,15 @@ export function OfficialReportDriftBanner(props: {
           alignment="left"
           buttons={[
             {
+              disabled,
               priority: 'primary',
-              onClick: props.onReset,
+              onClick: onReset,
               children: <FormattedMessage defaultMessage="Accepter" />,
             },
             {
+              disabled,
               priority: 'secondary',
-              onClick: props.onAcknowledge,
+              onClick: onAcknowledge,
               children: <FormattedMessage defaultMessage="Ignorer" />,
             },
           ]}

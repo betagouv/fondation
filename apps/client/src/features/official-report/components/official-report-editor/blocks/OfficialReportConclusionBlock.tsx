@@ -11,15 +11,11 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
+import { OfficialReportDriftBanner } from '../components/OfficialReportDriftBanner';
+import { OfficialReportEditedBadge } from '../components/OfficialReportEditedBadge';
 import { useBlockActive } from '../hooks/useBlockActive';
-import { OfficialReportDriftBanner } from '../OfficialReportDriftBanner';
-import {
-  useOfficialReportBlockConclusionEditMutation,
-  useOfficialReportBlockConclusionResetMutation,
-} from '@queries/agenda.queries';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
-import { tipTapNodeToHtml } from './tiptap-node-to-html';
 
 type JsonOfficialReportConclusionBlock = Extract<OfficialReportBlock, { kind: 'conclusion' }>;
 export const OfficialReportConclusionBlock = {
@@ -39,6 +35,7 @@ export const OfficialReportConclusionBlock = {
       {
         type: this.name,
         attrs: {
+          isPending: false,
           officialReportId,
           edited: block.edited,
           outdated: block.outdated,
@@ -51,53 +48,21 @@ export const OfficialReportConclusionBlock = {
 };
 
 function ConclusionBlockView(props: ReactNodeViewProps) {
-  const { outdated, officialReportId, generatedHtml } = props.node.attrs;
+  const { edited } = props.node.attrs;
   const active = useBlockActive(props);
-
-  const { mutate: resetConclusion } = useOfficialReportBlockConclusionResetMutation(officialReportId);
-  const onReset = () =>
-    resetConclusion(undefined, {
-      onSuccess() {
-        props.updateAttributes({ ...props.node.attrs, outdated: false });
-
-        const pos = props.getPos();
-        if (pos == null) return;
-        props.editor.commands.insertContentAt(
-          { from: pos + 1, to: pos + props.node.nodeSize - 1 },
-          generatedHtml,
-        );
-      },
-    });
-
-  const { mutate: editConclusion } = useOfficialReportBlockConclusionEditMutation(officialReportId);
-  const onAcknowledge = () => {
-    const html = tipTapNodeToHtml(props.node, props.editor.schema);
-    editConclusion(
-      { html, outdated: false },
-      {
-        onSuccess() {
-          props.updateAttributes({ ...props.node.attrs, outdated: false });
-        },
-      },
-    );
-  };
 
   return (
     <NodeViewWrapper
       as="div"
       className={clsx('doc-block doc-block--conclusion', {
         'doc-block--active': active,
-        'doc-block--warning': props.node.attrs.edited,
+        'doc-block--warning': edited,
       })}
     >
+      {edited && <OfficialReportEditedBadge />}
+
       <NodeViewContent />
-      {outdated && (
-        <OfficialReportDriftBanner
-          onReset={onReset}
-          onAcknowledge={onAcknowledge}
-          generatedHtml={generatedHtml}
-        />
-      )}
+      <OfficialReportDriftBanner {...props} />
     </NodeViewWrapper>
   );
 }
@@ -110,8 +75,9 @@ export const OfficialReportConclusionBlockNode = Node.create({
   selectable: false,
 
   addAttributes: () => ({
-    edited: { default: false, rendered: false },
     outdated: { default: false },
+    isPending: { default: false, rendered: false },
+    edited: { default: false, rendered: false },
     generatedHtml: { default: null, rendered: false },
     officialReportId: { default: null, rendered: false },
   }),

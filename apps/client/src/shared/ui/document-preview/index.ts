@@ -1,2 +1,2 @@
 export { DocumentPreviewLayout } from './DocumentPreview';
-export { OfficialReportDocumentEditor } from './official-report/OfficialReportDocumentEditor';
+export { OfficialReportDocumentEditor } from '../../../features/official-report/components/official-report-editor/OfficialReportDocumentEditor';

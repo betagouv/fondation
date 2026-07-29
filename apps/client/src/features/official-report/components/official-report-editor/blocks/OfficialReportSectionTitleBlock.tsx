@@ -56,7 +56,10 @@ export const OfficialReportSectionTitleBlockNode = Node.create({
   isolating: true,
   selectable: true,
   addAttributes() {
-    return { outcome: { default: null }, edited: { default: false, rendered: false } };
+    return {
+      outcome: { default: null },
+      edited: { default: false, rendered: false },
+    };
   },
   parseHTML() {
     return [{ tag: 'h2[data-block-type="section-title"]' }];
