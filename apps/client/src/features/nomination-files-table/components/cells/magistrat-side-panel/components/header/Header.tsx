@@ -12,7 +12,7 @@ import { useNominationFilesTable } from '@/features/nomination-files-table/conte
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { getGdsReportPath } from '@/utils/route-path.utils';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useMyReportQuery } from '@queries/reports.queries';
@@ -173,7 +173,7 @@ function ReporterStatus(props: { currentUserId: string | undefined; reporters: r
             className="bg-(--background-default-grey)! text-(--text-action-high-blue-france)!"
             key={reporter.id}
           >
-            {toFullName(reporter)}
+            {memberFullName(reporter)}
           </Tag>
         ))}
       </div>
@@ -193,7 +193,7 @@ function ReporterStatus(props: { currentUserId: string | undefined; reporters: r
           className="bg-(--background-default-grey)! text-(--text-action-high-blue-france)!"
           key={reporter.id}
         >
-          {toFullName(reporter)}
+          {memberFullName(reporter)}
         </Tag>
       ))}
     </div>

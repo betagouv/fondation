@@ -1,13 +1,13 @@
 import Card from '@codegouvfr/react-dsfr/Card';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { DetailedReportDto } from '@/generated/api/types';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 
 type ObservationCardProps = {
   observation: DetailedReportDto['observations'][number] | SessionNominationFile['observations'][number];
@@ -24,10 +24,11 @@ export function ObservationCard({
   context,
   reportId,
 }: ObservationCardProps) {
+  const { formatMessage } = useIntl();
   const shouldDisplayCommentIcon = observation.hasDescription || observation.hasUserComment;
   const magistratName = observation.magistrat
-    ? `${observation.magistrat.lastName.toUpperCase()} ${capitalize(observation.magistrat.firstName)}`
-    : 'Magistrat inconnu';
+    ? fullNameUpperCase(observation.magistrat)
+    : formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const dateObj = 'dateReception' in observation ? observation.dateReception : observation.date;
 

@@ -4,7 +4,7 @@ import { FormattedMessage } from 'react-intl';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { Dropdown } from '@/shared/ui/dropdown';
 import { PrioriteEnum } from '@/types/enums.types';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 
 const PRIORITY_ITEMS = Object.values(PrioriteEnum);
 
@@ -47,7 +47,7 @@ export function ReporterSelect(props: {
         .sort((a, b) => a.lastName.localeCompare(b.lastName))
         .map((reporter) => ({
           value: reporter.userId,
-          label: <span className={REPORTER_TAG}>{toFullName(reporter)}</span>,
+          label: <span className={REPORTER_TAG}>{memberFullName(reporter)}</span>,
         })),
     [available],
   );

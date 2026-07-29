@@ -18,7 +18,7 @@ import { usePresentationPlan } from '@/features/presentations/context/presentati
 import { Mandatory } from '@/shared/ui/Mandatory';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useDetailsAgendaMetadataQuery, useListSecretariesGeneralQuery } from '@queries/agenda.queries';
 
 const MetadataSchema = z.object({
@@ -172,7 +172,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
             </option>
             {secretaries.map((s) => (
               <option key={s.id} value={s.id}>
-                {toFullName(s)}
+                {memberFullName(s)}
               </option>
             ))}
           </Select>

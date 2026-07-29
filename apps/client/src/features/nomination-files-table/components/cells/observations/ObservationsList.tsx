@@ -2,8 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
-import { toFullName } from '@/utils/user.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
@@ -48,7 +47,7 @@ function ObservationCard(props: {
                 defaultMessage="Observant : {name}"
                 values={{
                   name: [
-                    `${props.observation.magistrat.lastName} ${capitalize(props.observation.magistrat.firstName)}`,
+                    fullNameUpperCase(props.observation.magistrat),
                     props.observation.magistrat.currentPosition,
                   ]
                     .filter(Boolean)
@@ -75,7 +74,7 @@ function ObservationCard(props: {
               props.observation.magistrat
                 ? intl.formatMessage(
                     { defaultMessage: "Voir le détail de l'observation par {name}" },
-                    { name: toFullName(props.observation.magistrat) },
+                    { name: fullNameUpperCase(props.observation.magistrat) },
                   )
                 : intl.formatMessage({ defaultMessage: "Voir le détail de l'observation" })
             }

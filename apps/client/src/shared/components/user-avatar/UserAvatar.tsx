@@ -1,7 +1,7 @@
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
-import { toFullName, toInitials } from '@/utils/user.utils';
+import { memberFullName, toInitials } from '@/utils/user.utils';
 
 import { userAvatarSizes } from './user-avatar.utils';
 
@@ -12,7 +12,7 @@ export function UserAvatar(props: {
 }) {
   if (!props.user) return null;
 
-  const fullName = toFullName(props.user);
+  const fullName = memberFullName(props.user);
   const firstLetters = toInitials(props.user);
 
   const content = (

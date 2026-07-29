@@ -3,7 +3,7 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 
 import { userAvatarSizes } from './user-avatar.utils';
 import { UserAvatar } from './UserAvatar';
@@ -49,6 +49,6 @@ export function UserAvatarList(props: {
     </ul>
   );
 
-  const tooltipTitle = intl.formatList(users.map(toFullName), { type: 'conjunction' });
+  const tooltipTitle = intl.formatList(users.map(memberFullName), { type: 'conjunction' });
   return props.enableTooltip !== false ? <Tooltip title={tooltipTitle}>{content}</Tooltip> : content;
 }

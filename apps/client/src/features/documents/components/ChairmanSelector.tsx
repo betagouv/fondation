@@ -5,7 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { Mandatory } from '@/shared/ui/Mandatory';
 import type { FormationEnum } from '@/types/enums.types';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import type { FoundDocsMembersDto } from '@api/types';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
@@ -74,7 +74,7 @@ export function ChairmanSelector(
           <optgroup label={formatMessage({ defaultMessage: 'Président ou suppléant' })}>
             {chairmen.map((c) => (
               <option key={c.id} value={c.id}>
-                {toFullName(c)}
+                {memberFullName(c)}
               </option>
             ))}
           </optgroup>
@@ -84,7 +84,7 @@ export function ChairmanSelector(
           <optgroup label={formatMessage({ defaultMessage: `Membres` })}>
             {nonChairmen.map((m) => (
               <option key={m.id} value={m.id}>
-                {toFullName(m)}
+                {memberFullName(m)}
               </option>
             ))}
           </optgroup>

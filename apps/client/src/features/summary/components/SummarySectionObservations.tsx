@@ -1,5 +1,7 @@
+import { FormattedMessage } from 'react-intl';
+
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { capitalize } from '@/utils/string.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 
 import { SummarySectionCard } from './SummarySectionCard';
 
@@ -13,7 +15,9 @@ export function SummarySectionObservations() {
 
   return (
     <SummarySectionCard id="observants">
-      <h2>Observant(s)</h2>
+      <h2>
+        <FormattedMessage defaultMessage="Observant(s)" />
+      </h2>
 
       <ul className="list-['-_']">
         {summary.observers.map((observer) => (
@@ -22,15 +26,7 @@ export function SummarySectionObservations() {
 
         {/* TODO: add link to observation detail*/}
         {summary.observations.map(({ magistrat }) => (
-          <li key={magistrat.id}>
-            {[
-              capitalize(magistrat.firstName),
-              magistrat.usedName?.toUpperCase(),
-              magistrat.lastName?.toUpperCase(),
-            ]
-              .filter((x) => !!x?.trim())
-              .join(' ')}
-          </li>
+          <li key={magistrat.id}>{fullNameUpperCase(magistrat)}</li>
         ))}
       </ul>
     </SummarySectionCard>

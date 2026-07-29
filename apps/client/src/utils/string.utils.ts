@@ -9,7 +9,7 @@ export function capitalize(input: string): string {
   let shouldCapitalize = true;
 
   for (let i = 0; i < normalized.length; i++) {
-    const char = input[i]?.toLowerCase();
+    const char = input[i];
     if (!char) continue;
 
     if (shouldCapitalize) {

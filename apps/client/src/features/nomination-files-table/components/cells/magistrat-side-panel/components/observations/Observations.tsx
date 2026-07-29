@@ -12,6 +12,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { formatObservers } from '@/features/reports/utils/formatters';
 import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import {
   useGetObservationFileUrlMutation,
@@ -60,7 +61,7 @@ function ObservationCard({ observation, file }: { observation: Observation; file
           );
 
   const magistratName = observation.magistrat
-    ? `${observation.magistrat.lastName.toUpperCase()} ${observation.magistrat.firstName.toUpperCase()}`
+    ? fullNameUpperCase(observation.magistrat)
     : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const handleFileClick = (fileId: string) =>

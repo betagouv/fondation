@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -11,7 +11,7 @@ import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationDescription } from './ObservationDescription';
@@ -44,6 +44,7 @@ export function ObservationDetailsContent({
   uploadFiles,
   isArchived,
 }: ObservationDetailsContentProps) {
+  const { formatMessage } = useIntl();
   const isSg = useIsSg();
   const observant = observation.observant;
   const candidacy = observant.candidacy;
@@ -58,7 +59,9 @@ export function ObservationDetailsContent({
       </div>
 
       <h1 className="fr-h2 fr-mb-8v flex items-center justify-between">
-        <span>Fiche observation</span>
+        <span>
+          <FormattedMessage defaultMessage="Fiche observation" />
+        </span>
         <ObservationFollowUpSelector
           isArchived={isArchived}
           sessionId={sessionId}
@@ -72,10 +75,14 @@ export function ObservationDetailsContent({
       <div className="fr-grid-row fr-grid-row--gutters">
         <div className="fr-col-12 fr-col-lg-8">
           <section className="fr-mb-8v">
-            <h2 className="fr-h4">Rappel</h2>
+            <h2 className="fr-h4">
+              <FormattedMessage defaultMessage="Rappel" />
+            </h2>
             <dl className="fr-mb-0">
               <div className="fr-grid-row fr-mb-4v">
-                <dt className="fr-col-4 fr-text--bold">Date de réception :</dt>
+                <dt className="fr-col-4 fr-text--bold">
+                  <FormattedMessage defaultMessage="Date de réception :" />
+                </dt>
                 <dd className="fr-col-8 fr-m-0">
                   <FormattedMessage
                     defaultMessage="{date, date, dateOnlyShort}"
@@ -84,7 +91,9 @@ export function ObservationDetailsContent({
                 </dd>
               </div>
               <div className="fr-grid-row fr-mb-4v">
-                <dt className="fr-col-4 fr-text--bold">Magistrat observé :</dt>
+                <dt className="fr-col-4 fr-text--bold">
+                  <FormattedMessage defaultMessage="Magistrat observé :" />
+                </dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   {observation.observedMagistrat?.name}
                   <LolfiLink
@@ -101,26 +110,30 @@ export function ObservationDetailsContent({
                 </dd>
               </div>
               <div className="fr-grid-row fr-mb-4v">
-                <dt className="fr-col-4 fr-text--bold">Poste observé :</dt>
+                <dt className="fr-col-4 fr-text--bold">
+                  <FormattedMessage defaultMessage="Poste observé :" />
+                </dt>
                 <dd className="fr-col-8 fr-m-0">{observation.observedMagistrat?.proposedPosition ?? '-'}</dd>
               </div>
             </dl>
           </section>
 
           <section className="fr-mb-8v">
-            <h2 className="fr-h4">Magistrat observant</h2>
+            <h2 className="fr-h4">
+              <FormattedMessage defaultMessage="Magistrat observant" />
+            </h2>
             <dl className="fr-mb-0">
               <div className="fr-grid-row fr-mb-4v">
-                <dt className="fr-col-4 fr-text--bold">NOM Prénom :</dt>
+                <dt className="fr-col-4 fr-text--bold">
+                  <FormattedMessage defaultMessage="NOM Prénom :" />
+                </dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
-                  <span>
-                    {observant.lastName.toUpperCase()} {capitalize(observant.firstName)}
-                  </span>
+                  <span>{fullNameUpperCase(observant)}</span>
                   <Button
                     size="small"
                     className="rounded-full after:hidden"
                     priority="tertiary no outline"
-                    title="vers LOLFI"
+                    title={formatMessage({ defaultMessage: 'vers LOLFI' })}
                     iconId="fr-icon-external-link-line"
                     iconPosition="right"
                     linkProps={{ target: '_blank', href: observant.externalUrl }}
@@ -133,13 +146,17 @@ export function ObservationDetailsContent({
                 <>
                   {candidacy.desiredPosition && (
                     <div className="fr-grid-row fr-mb-4v">
-                      <dt className="fr-col-4 fr-text--bold">Poste souhaité :</dt>
+                      <dt className="fr-col-4 fr-text--bold">
+                        <FormattedMessage defaultMessage="Poste souhaité :" />
+                      </dt>
                       <dd className="fr-col-8 fr-m-0">{candidacy.desiredPosition}</dd>
                     </div>
                   )}
                   {candidacy.rank && (
                     <div className="fr-grid-row fr-mb-4v">
-                      <dt className="fr-col-4 fr-text--bold">Rang :</dt>
+                      <dt className="fr-col-4 fr-text--bold">
+                        <FormattedMessage defaultMessage="Rang :" />
+                      </dt>
                       <dd className="fr-col-8 fr-m-0">{candidacy.rank}</dd>
                     </div>
                   )}
@@ -147,7 +164,9 @@ export function ObservationDetailsContent({
               )}
               {observant.biography && (
                 <div className="fr-grid-row fr-mb-4v">
-                  <dt className="fr-col-4 fr-text--bold">Biographie :</dt>
+                  <dt className="fr-col-4 fr-text--bold">
+                    <FormattedMessage defaultMessage="Biographie :" />
+                  </dt>
                   <dd className="fr-col-8 fr-m-0 whitespace-pre-wrap">
                     <BiographyList biography={observant.biography} />
                   </dd>
@@ -162,7 +181,7 @@ export function ObservationDetailsContent({
               (isArchived && observation.memberComment?.comment)) && (
               <section className="fr-mb-8v">
                 <h2 className="fr-h4" id="member-comment-label">
-                  Mon commentaire
+                  <FormattedMessage defaultMessage="Mon commentaire" />
                 </h2>
                 {isArchived ? (
                   <div
@@ -192,9 +211,13 @@ export function ObservationDetailsContent({
           ) : null}
 
           <section className="fr-mb-8v">
-            <h2 className="fr-h4">Pièce(s) jointe(s)</h2>
+            <h2 className="fr-h4">
+              <FormattedMessage defaultMessage="Pièce(s) jointe(s)" />
+            </h2>
             {observation.files.length === 0 ? (
-              <p className="fr-text--sm text-(--text-mention-grey)">Aucune pièce jointe</p>
+              <p className="fr-text--sm text-(--text-mention-grey)">
+                <FormattedMessage defaultMessage="Aucune pièce jointe" />
+              </p>
             ) : (
               <ul className="fr-raw-list">
                 {observation.files.map((file) => (
@@ -214,9 +237,11 @@ export function ObservationDetailsContent({
 
           {relatedPropositions.length > 0 && (
             <section className="fr-mb-8v">
-              <h2 className="fr-h4">Propositions liées</h2>
+              <h2 className="fr-h4">
+                <FormattedMessage defaultMessage="Propositions liées" />
+              </h2>
               <p className="fr-text--sm fr-mb-4v">
-                Autres propositions sur lesquelles ce magistrat a formulé une observation
+                <FormattedMessage defaultMessage="Autres propositions sur lesquelles ce magistrat a formulé une observation" />
               </p>
               <div className="fr-grid-row fr-grid-row--gutters">
                 {relatedPropositions.map((proposition) => (
@@ -226,7 +251,12 @@ export function ObservationDetailsContent({
                       desc={
                         <span className="fr-text--sm">
                           {proposition.number && (
-                            <span className="fr-mb-1v block">N° {proposition.number}</span>
+                            <span className="fr-mb-1v block">
+                              <FormattedMessage
+                                defaultMessage="N° {number}"
+                                values={{ number: proposition.number }}
+                              />
+                            </span>
                           )}
                           <span className="fr-mb-1v block">{proposition.proposedPosition ?? '-'}</span>
                           <span className="block text-(--text-mention-grey)"></span>
