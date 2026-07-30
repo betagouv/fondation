@@ -1,4 +1,4 @@
-import { generatePath } from 'react-router';
+import { generatePath, redirect } from 'react-router';
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
@@ -11,6 +11,9 @@ export const ROUTE_PATHS = {
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     MAGISTRAT_DETAILS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/magistrats/:magistratId',
+  },
+  MEMBER: {
+    MAGISTRAT_DETAILS: '/magistrats/:magistratId',
   },
   SG: {
     DASHBOARD: '/secretariat-general',
@@ -98,9 +101,13 @@ export const getObservationDetailsPath = (props: {
   });
 };
 
+// TODO: remove once the old member URL has faded from bookmarks and shared links
+export const redirectToMemberMagistratDetails = ({ params }: { params: { magistratId?: string } }) =>
+  redirect(getMagistratDetailsPath({ context: 'membre', magistratId: params.magistratId ?? '' }));
+
 export const getMagistratDetailsPath = (props: { magistratId: string; context: 'sg' | 'membre' }) => {
   if (props.context === 'membre') {
-    return generatePath(ROUTE_PATHS.TRANSPARENCES.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
+    return generatePath(ROUTE_PATHS.MEMBER.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
   }
 
   return generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
