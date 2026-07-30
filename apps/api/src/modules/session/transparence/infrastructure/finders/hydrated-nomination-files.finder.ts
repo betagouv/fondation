@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { type NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
@@ -8,6 +7,8 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { DateOnly, type DateOnlyJson } from 'src/utils/date-only';
 import { dateToTimeOnly, type TimeOnly } from 'src/utils/time-only';
+
+import { AffectationVersionFinder } from './affectation-version.finder';
 
 export const SESSION_STATUSES = ['ONGOING', 'REPORTED', 'ARCHIVED'] as const;
 export type SessionStatus = (typeof SESSION_STATUSES)[number];
@@ -32,10 +33,10 @@ export type HydratedNominationFile = {
 };
 
 @Injectable()
-export class InternalHydrateNominationFilesQuery {
+export class HydratedNominationFilesFinder {
   constructor(private readonly versions: AffectationVersionFinder) {}
 
-  async handle(query: {
+  async hydrate(query: {
     nominationFileIds: readonly string[];
     tx: Prisma.TransactionClient;
   }): Promise<HydratedNominationFile[]> {
@@ -107,6 +108,7 @@ export class InternalHydrateNominationFilesQuery {
     return { ...file, reporters };
   }
 
+  // TODO: see computeStatus in list-nomination-sessions.query.ts to homogenize the session status computations
   private sessionStatus(
     session: { id: string; archivedAt: Date | null },
     reportedSessionIds: Set<string>,

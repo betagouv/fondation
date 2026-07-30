@@ -187,10 +187,11 @@ export class ObservationService {
     observationId: string;
     files: readonly StoredFile[];
   }): Promise<AttachedMemberCommentScreenshotsDto> {
-    const reporterIds = await this.affectationVersionFinder.findReporterIds({
+    const reporters = await this.affectationVersionFinder.findReporters({
       nominationFileId: command.nominationFileId,
       sessionId: command.sessionId,
     });
+    const reporterIds = reporters.map(({ id }) => id);
 
     const observation = await this.observationRepository.findById(command.observationId);
 
@@ -234,10 +235,11 @@ export class ObservationService {
     observationId: string;
     comment: string;
   }): Promise<void> {
-    const reporterIds = await this.affectationVersionFinder.findReporterIds({
+    const reporters = await this.affectationVersionFinder.findReporters({
       nominationFileId: command.nominationFileId,
       sessionId: command.sessionId,
     });
+    const reporterIds = reporters.map(({ id }) => id);
 
     const observation = await this.observationRepository.findById(command.observationId);
 

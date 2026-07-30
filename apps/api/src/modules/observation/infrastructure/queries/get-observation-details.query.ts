@@ -116,12 +116,12 @@ export class GetObservationDetailsQuery {
         throw new NotFoundException();
       }
 
-      const reporterIds = await this.affectationVersionFinder.findReporterIds({
+      const reporters = await this.affectationVersionFinder.findReporters({
         tx,
         sessionId: query.sessionId,
         nominationFileId: query.nominationFileId,
       });
-      const isUserReporter = reporterIds.includes(query.userId);
+      const isUserReporter = reporters.some(({ id }) => id === query.userId);
 
       const candidacy = await this.findRelatedNominationFiles(
         tx,

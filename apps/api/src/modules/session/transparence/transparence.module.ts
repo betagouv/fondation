@@ -7,6 +7,7 @@ import { MembersModule } from 'src/modules/members';
 
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
+import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
@@ -23,7 +24,6 @@ import { DetailNominationSessionQuery } from './infrastructure/queries/detail-no
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { InternalDetailMemberSessionQuery } from './infrastructure/queries/internal-detail-member-session.query';
 import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
-import { InternalHydrateNominationFilesQuery } from './infrastructure/queries/internal-hydrate-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
@@ -56,9 +56,9 @@ import { SessionController } from './transparence.controller';
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     GetLolfiMagistratUrlQuery,
+    HydratedNominationFilesFinder,
     InternalDetailMemberSessionQuery,
     InternalFindDocsNominationFilesQuery,
-    InternalHydrateNominationFilesQuery,
     InternalListMagistratNominationFilesQuery,
     InternalListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,

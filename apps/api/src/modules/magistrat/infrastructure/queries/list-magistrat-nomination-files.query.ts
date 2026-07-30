@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
 import { PrismaService } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
 import { NominationFileOutcome } from 'src/modules/session/shared/types/nomination-file-outcome';
-import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/queries/internal-hydrate-nomination-files.query';
+import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -28,13 +28,11 @@ export class ListMagistratNominationFilesQuery {
       });
       if (!magistrat) throw new NotFoundException();
 
-      const { nominationFiles, totalCount } = await this.sessions.internalListMagistratNominationFiles({
+      return this.sessions.internalListMagistratNominationFiles({
         magistratId: query.magistratId,
         pagination: query.pagination,
         tx,
       });
-
-      return paginate({ items: nominationFiles, totalCount, pagination: query.pagination });
     });
   }
 }

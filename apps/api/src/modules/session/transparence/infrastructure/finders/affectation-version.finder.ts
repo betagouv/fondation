@@ -77,8 +77,12 @@ export class AffectationVersionFinder {
   async findReporters(query: {
     nominationFileId: string;
     sessionId: string;
-    tx: Prisma.TransactionClient;
+    tx?: Prisma.TransactionClient;
   }): Promise<{ id: string; firstName: string; lastName: string }[]> {
+    if (!query.tx) {
+      return this.prisma.$transaction((tx) => this.findReporters({ ...query, tx }));
+    }
+
     const version = await this.lastPublished({
       tx: query.tx,
       sessionId: query.sessionId,
@@ -95,33 +99,6 @@ export class AffectationVersionFinder {
     });
 
     return reporters.map(({ user }) => user);
-  }
-
-  async findReporterIds(query: {
-    nominationFileId: string;
-    sessionId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<string[]> {
-    if (!query.tx) {
-      return this.prisma.$transaction((tx) => this.findReporterIds({ ...query, tx }));
-    }
-
-    const version = await this.lastPublished({
-      tx: query.tx,
-      sessionId: query.sessionId,
-    });
-
-    if (version.isNone()) return [];
-
-    const reporters = await query.tx.nominationFileToReporter.findMany({
-      select: { userId: true },
-      where: {
-        versionId: version.id,
-        nominationFileId: query.nominationFileId,
-      },
-    });
-
-    return reporters.map(({ userId }) => userId);
   }
 }
 
