@@ -55,7 +55,7 @@ export class MagistratController {
   })
   listMagistratNominationFiles(
     @Param('magistratId') magistratId: string,
-    @QueryPagination({ defaultLimit: 10 }) pagination: Pagination,
+    @QueryPagination({ defaultLimit: 5 }) pagination: Pagination,
   ): Promise<ListedMagistratNominationFilesDto> {
     return this.magistrats.listNominationFiles({ magistratId, pagination });
   }
@@ -69,7 +69,7 @@ export class MagistratController {
   })
   listMagistratObservations(
     @Param('magistratId') magistratId: string,
-    @QueryPagination({ defaultLimit: 10 }) pagination: Pagination,
+    @QueryPagination({ defaultLimit: 5 }) pagination: Pagination,
   ): Promise<ListedMagistratObservationsDto> {
     return this.magistrats.listObservations({ magistratId, pagination });
   }

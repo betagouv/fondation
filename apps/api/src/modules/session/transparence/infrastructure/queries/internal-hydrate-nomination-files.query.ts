@@ -1,0 +1,118 @@
+import { Injectable } from '@nestjs/common';
+
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
+import { findReportedSessionIds } from 'src/generated/prisma/sql';
+import { type NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { DateOnly, type DateOnlyJson } from 'src/utils/date-only';
+import { dateToTimeOnly, type TimeOnly } from 'src/utils/time-only';
+
+export const SESSION_STATUSES = ['ONGOING', 'REPORTED', 'ARCHIVED'] as const;
+export type SessionStatus = (typeof SESSION_STATUSES)[number];
+
+export type HydratedNominationFile = {
+  id: string;
+  name: string;
+  number: number | null;
+  reporters: { id: string; firstName: string; lastName: string }[];
+  session: {
+    id: string;
+    name: string;
+    formation: FormationEnum;
+    date: DateOnlyJson;
+    status: SessionStatus;
+  };
+  auditionDate: DateOnlyJson | null;
+  auditionTime: TimeOnly | null;
+  targetedGrade: string | null;
+  targetedPosition: string | null;
+  outcome: { value: NominationFileOutcomeEnum; comment: string | null } | null;
+};
+
+@Injectable()
+export class InternalHydrateNominationFilesQuery {
+  constructor(private readonly versions: AffectationVersionFinder) {}
+
+  async handle(query: {
+    nominationFileIds: readonly string[];
+    tx: Prisma.TransactionClient;
+  }): Promise<HydratedNominationFile[]> {
+    const files = [];
+    for (const nominationFileId of query.nominationFileIds) {
+      const file = await this.hydrateFile(nominationFileId, query.tx);
+      if (file) files.push(file);
+    }
+
+    const sessionIds = Array.from(new Set(files.map(({ session }) => session.id)));
+    const reportedSessions = sessionIds.length
+      ? await query.tx.$queryRawTyped(findReportedSessionIds(sessionIds))
+      : [];
+    const reportedSessionIds = new Set(reportedSessions.map(({ id }) => id));
+
+    return files.map((file) => ({
+      id: file.id,
+      name: file.name,
+      number: file.number,
+      reporters: file.reporters,
+      session: {
+        id: file.session.id,
+        name: file.session.name,
+        formation: prismaFormationEnumToFormationEnum(file.session.formation),
+        date: DateOnly.fromDate(file.session.date).toJson(),
+        status: this.sessionStatus(file.session, reportedSessionIds),
+      },
+      auditionDate: file.auditionDate ? DateOnly.fromDate(file.auditionDate).toJson() : null,
+      auditionTime: file.auditionTime ? dateToTimeOnly(file.auditionTime) : null,
+      targetedGrade: file.targetedGrade,
+      targetedPosition: file.targetedPosition,
+      outcome: file.outcome ? { value: file.outcome, comment: file.outcomeComment } : null,
+    }));
+  }
+
+  private async hydrateFile(nominationFileId: string, tx: Prisma.TransactionClient) {
+    const file = await tx.dossierDeNomination.findUnique({
+      where: { id: nominationFileId },
+      select: {
+        id: true,
+        name: true,
+        number: true,
+        auditionDate: true,
+        auditionTime: true,
+        targetedGrade: true,
+        targetedPosition: true,
+        outcome: true,
+        outcomeComment: true,
+        session: {
+          select: {
+            id: true,
+            name: true,
+            formation: true,
+            date: true,
+            archivedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!file) return null;
+
+    const reporters = await this.versions.findReporters({
+      nominationFileId: file.id,
+      sessionId: file.session.id,
+      tx,
+    });
+
+    return { ...file, reporters };
+  }
+
+  private sessionStatus(
+    session: { id: string; archivedAt: Date | null },
+    reportedSessionIds: Set<string>,
+  ): SessionStatus {
+    if (session.archivedAt) return 'ARCHIVED';
+    if (reportedSessionIds.has(session.id)) return 'REPORTED';
+    return 'ONGOING';
+  }
+}

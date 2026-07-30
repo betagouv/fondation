@@ -35,6 +35,7 @@ function makeNominationFile(overrides?: Partial<MagistratNominationFile>): Magis
     auditionDate: null,
     auditionTime: null,
     id: 'dossier-1',
+    name: 'VALROSE Honorine',
     number: 12,
     outcome: null,
     reporters: [],

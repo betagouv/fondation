@@ -65,7 +65,7 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
         className="fr-my-0"
         id="magistrat-details-breadcrumb"
       />
-      <div className="fr-mt-6v flex flex-wrap items-baseline gap-y-2">
+      <div className="fr-mt-6v flex flex-wrap items-start gap-y-2">
         <div className="min-w-fit shrink-0" style={{ width: titleOffset }}>
           <Link
             className="fr-link fr-link--icon-left fr-icon-arrow-left-line"

@@ -18,7 +18,7 @@ export function ObservationLinks(props: {
       id: string;
       hasDescription: boolean;
       hasUserComment: boolean;
-      magistrat: { id: string; firstName: string; lastName: string } | null;
+      magistrat: { id: string; firstName: string; lastName: string; usedName: string | null } | null;
     }[];
   };
 }) {

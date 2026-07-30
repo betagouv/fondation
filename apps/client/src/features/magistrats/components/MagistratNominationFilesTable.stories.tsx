@@ -7,6 +7,7 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
     auditionDate: null,
     auditionTime: null,
     id: 'dossier-1',
+    name: 'VALROSE Honorine',
     number: 12,
     outcome: null,
     reporters: [
@@ -27,7 +28,7 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
 }
 
 const meta = {
-  title: 'Features/Details/MagistratNominationFilesTable',
+  title: 'Features/Details/NominationFilesTable',
   component: MagistratNominationFilesTable,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

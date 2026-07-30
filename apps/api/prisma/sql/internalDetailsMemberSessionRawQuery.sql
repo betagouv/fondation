@@ -47,7 +47,8 @@ FROM nominations_context.dossier_de_nomination ddn
       JSON_AGG(JSONB_BUILD_OBJECT(
         'id', m.id,
         'firstName', m.first_name,
-        'lastName', m.last_name
+        'lastName', m.last_name,
+        'usedName', m.used_name
       )) FILTER (WHERE m.id IS NOT NULL) AS "magistrat"
 
     FROM nominations_context.observation o

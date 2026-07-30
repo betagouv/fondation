@@ -786,6 +786,7 @@ export type DetailedMemberSessionDto = {
                 id: string;
                 firstName: string;
                 lastName: string;
+                usedName: string | null;
             } | null;
         }>;
     }>;
@@ -1412,6 +1413,7 @@ export type DetailedMagistratDto = {
 export type ListedMagistratNominationFilesDto = {
     items: Array<{
         id: string;
+        name: string;
         number: number | null;
         reporters: Array<{
             id: string;

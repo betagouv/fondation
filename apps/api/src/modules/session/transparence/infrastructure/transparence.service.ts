@@ -61,6 +61,11 @@ import {
   InternalFoundAgendaNominationFiles,
 } from './queries/internal-find-docs-nomination-files.query';
 import {
+  type HydratedNominationFile,
+  InternalHydrateNominationFilesQuery,
+} from './queries/internal-hydrate-nomination-files.query';
+import { InternalListMagistratNominationFilesQuery } from './queries/internal-list-magistrat-nomination-files.query';
+import {
   InternalListMemberSessionsQuery,
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
@@ -100,6 +105,8 @@ export class TransparenceService {
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
+    private readonly internalHydrateNominationFilesQuery: InternalHydrateNominationFilesQuery,
+    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
@@ -585,18 +592,20 @@ export class TransparenceService {
   }
 
   /** @internal */
-  async internalLastPublishedAffectationVersionIds(query: {
-    sessionIds: readonly string[];
+  internalListMagistratNominationFiles(query: {
+    magistratId: string;
+    pagination: Pagination;
     tx: Prisma.TransactionClient;
-  }): Promise<Map<string, string>> {
-    const versionIds = new Map<string, string>();
-    for (const sessionId of query.sessionIds) {
-      const version = await this.versions.lastPublished({ sessionId, tx: query.tx });
-      const versionId = version.optionalId;
-      if (versionId) versionIds.set(sessionId, versionId);
-    }
+  }): Promise<{ nominationFiles: HydratedNominationFile[]; totalCount: number }> {
+    return this.internalListMagistratNominationFilesQuery.handle(query);
+  }
 
-    return versionIds;
+  /** @internal */
+  internalHydrateNominationFiles(query: {
+    nominationFileIds: readonly string[];
+    tx: Prisma.TransactionClient;
+  }): Promise<HydratedNominationFile[]> {
+    return this.internalHydrateNominationFilesQuery.handle(query);
   }
 
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {

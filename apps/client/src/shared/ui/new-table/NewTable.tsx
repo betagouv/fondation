@@ -118,8 +118,7 @@ export function NewTable<Data extends RowData>(props: {
                 className={clsx(
                   'flex w-full border-b border-(--border-default-grey)',
                   props.wrap ? 'min-h-12' : 'absolute h-12',
-                  props.rowTint?.(row) ??
-                    'hover:bg-(--background-alt-grey-hover) aria-selected:bg-(--background-open-blue-france)',
+                  props.rowTint?.(row) ?? 'aria-selected:bg-(--background-open-blue-france)',
                 )}
                 data-index={virtualRow.index}
                 key={row.id}

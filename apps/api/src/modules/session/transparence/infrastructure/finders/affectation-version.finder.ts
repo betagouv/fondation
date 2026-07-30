@@ -74,6 +74,29 @@ export class AffectationVersionFinder {
     });
   }
 
+  async findReporters(query: {
+    nominationFileId: string;
+    sessionId: string;
+    tx: Prisma.TransactionClient;
+  }): Promise<{ id: string; firstName: string; lastName: string }[]> {
+    const version = await this.lastPublished({
+      tx: query.tx,
+      sessionId: query.sessionId,
+    });
+
+    if (version.isNone()) return [];
+
+    const reporters = await query.tx.nominationFileToReporter.findMany({
+      select: { user: { select: { id: true, firstName: true, lastName: true } } },
+      where: {
+        versionId: version.id,
+        nominationFileId: query.nominationFileId,
+      },
+    });
+
+    return reporters.map(({ user }) => user);
+  }
+
   async findReporterIds(query: {
     nominationFileId: string;
     sessionId: string;

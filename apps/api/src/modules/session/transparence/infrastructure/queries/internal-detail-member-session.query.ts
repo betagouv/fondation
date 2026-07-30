@@ -113,6 +113,7 @@ export class InternalDetailMemberSessionQuery {
                           id: z.string(),
                           firstName: z.string(),
                           lastName: z.string(),
+                          usedName: z.string().nullable(),
                         })
                         .nullish(),
                     ),
@@ -162,6 +163,7 @@ export class InternalDetailMemberSessionQuery {
                   id: o.magistrat.id,
                   firstName: o.magistrat.firstName,
                   lastName: o.magistrat.lastName,
+                  usedName: o.magistrat.usedName,
                 }
               : null,
           })),
@@ -222,6 +224,7 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
             id: z.string(),
             firstName: z.string(),
             lastName: z.string(),
+            usedName: z.string().nullable(),
           })
           .nullable(),
       }),
