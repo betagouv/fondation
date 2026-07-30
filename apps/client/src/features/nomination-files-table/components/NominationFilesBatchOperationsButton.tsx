@@ -4,11 +4,16 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useCallback, useMemo, useState } from 'react';
 
 import { useAffectations } from '../context/files-affectations.context';
-import { useSelectedFileIds } from '../context/files-selection.context';
+import { useSelectedFileIds, useSelectedFiles } from '../context/files-selection.context';
 import { useNominationFilesTable } from '../context/files-table.context';
+import {
+  useExcludedJurisdictionConflicts,
+  useExcludedJurisdictionTitles,
+} from '../hooks/useExcludedJurisdictionConflicts.hook';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 
+import { ExcludedJurisdictionWarningList } from './ExcludedJurisdictionWarningList';
 import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
 
 const actionsGroupeesModal = createModal({
@@ -40,11 +45,23 @@ export function NominationFilesBatchOperationsButton() {
   );
 
   const selectedFileIds = useSelectedFileIds();
+  const selectedFiles = useSelectedFiles();
   const { affectReporters, prioritize } = useAffectations();
-  const hasSelection = useMemo(() => selectedFileIds.length > 0, [selectedFileIds]);
+  const hasSelection = selectedFileIds.length > 0;
 
   const [localSelection, setLocalSelection] = useState<string[]>([]);
   const [localPriorities, setLocalPriorities] = useState<(PrioriteEnum | None)[]>([]);
+
+  const availableIds = useMemo(
+    () => availableRapporteurs.map(({ userId }) => userId),
+    [availableRapporteurs],
+  );
+  const conflicts = useExcludedJurisdictionConflicts({ files: selectedFiles, memberIds: availableIds });
+  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+  const selectedConflicts = useMemo(
+    () => conflicts.filter(({ memberId }) => localSelection.includes(memberId)),
+    [conflicts, localSelection],
+  );
 
   const handleOpenModal = useCallback(() => {
     setLocalSelection([]);
@@ -150,8 +167,10 @@ export function NominationFilesBatchOperationsButton() {
             <NominationFilesReporterSelector
               availableRapporteurs={availableRapporteurs}
               selectedRapporteurs={localSelection}
+              excludedTitleByRapporteurId={excludedTitleByRapporteurId}
               onSelectionChange={setLocalSelection}
             />
+            <ExcludedJurisdictionWarningList conflicts={selectedConflicts} />
           </div>
         </div>
       </actionsGroupeesModal.Component>

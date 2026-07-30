@@ -1,6 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
 import { memberFullName } from '@/utils/user.utils';
@@ -12,7 +13,7 @@ export function UserAvatarList(props: {
   size?: 'sm' | 'md' | 'lg';
   max?: number;
   direction?: 'row' | 'col';
-  users: readonly { firstName: string; lastName: string }[];
+  users: readonly { firstName: string; icon?: ReactNode; lastName: string }[];
   enableTooltip?: false;
 }) {
   const intl = useIntl();
@@ -29,7 +30,7 @@ export function UserAvatarList(props: {
     >
       {(users.length > max ? users.slice(0, max) : users).map((user) => (
         <li className="fr-p-0" key={`${user.firstName} ${user.lastName}`}>
-          <UserAvatar user={user} size={props.size} enableTooltip={false} />
+          <UserAvatar user={user} size={props.size} enableTooltip={false} icon={user.icon} />
         </li>
       ))}
       {users.length > max ? (

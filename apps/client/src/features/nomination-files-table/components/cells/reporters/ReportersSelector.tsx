@@ -2,12 +2,17 @@ import { useMemo } from 'react';
 
 import { useNominationFilesTable } from '../../../context/files-table.context';
 import { useAffectationRow } from '@/features/nomination-files-table/context/files-affectations.context';
+import {
+  useExcludedJurisdictionConflicts,
+  useExcludedJurisdictionTitles,
+} from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
 import { UserAvatarList } from '@/shared/components/user-avatar';
 import { useMemberListQuery } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+import { ExcludedJurisdictionAlert } from './ExcludedJurisdictionAlert';
+import { MissingSecondReporterAlert } from './MissingSecondReporterAlert';
 import { RapporteursDropdownBase } from './RapporteursDropdownBase';
-import { ReportersAlert } from './ReportersAlert';
 
 export function ReportersSelector(props: { file: SessionNominationFile }) {
   const { formation } = useNominationFilesTable();
@@ -33,25 +38,40 @@ export function ReportersSelector(props: { file: SessionNominationFile }) {
     () => new Map(reporters.map((reporter) => [reporter.userId, reporter] as const)),
     [reporters],
   );
+  const files = useMemo(() => [props.file], [props.file]);
+  const availableIds = useMemo(() => reporters.map(({ userId }) => userId), [reporters]);
+  const conflicts = useExcludedJurisdictionConflicts({ files, memberIds: availableIds });
+  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+
   const selectedUsers = useMemo(
     () =>
-      (selectedReporters.length ?? 0) > 0
-        ? selectedReporters
-            .map((id) => reporterMap.get(id))
-            .filter((x): x is NonNullable<typeof x> => Boolean(x))
-        : [],
-    [selectedReporters, reporterMap],
+      selectedReporters
+        .map((id) => reporterMap.get(id))
+        .filter((reporter): reporter is NonNullable<typeof reporter> => Boolean(reporter))
+        .map((reporter) => {
+          const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.userId);
+
+          return {
+            ...reporter,
+            icon:
+              memberConflicts.length > 0 ? (
+                <ExcludedJurisdictionAlert conflicts={memberConflicts} />
+              ) : undefined,
+          };
+        }),
+    [conflicts, reporterMap, selectedReporters],
   );
 
   const buttonLabel =
-    selectedUsers.length > 0 ? <UserAvatarList users={selectedUsers} max={1} size="sm" /> : 'Sélectionner';
+    selectedUsers.length > 0 ? <UserAvatarList users={selectedUsers} size="sm" /> : 'Sélectionner';
 
   return (
     <div className="flex items-center">
-      <ReportersAlert dossier={props.file} selectedReportersCount={selectedReporters.length} />
+      <MissingSecondReporterAlert dossier={props.file} selectedReportersCount={selectedReporters.length} />
       <RapporteursDropdownBase
         availableRapporteurs={reporters}
         selectedRapporteurs={selectedReporters}
+        excludedTitleByRapporteurId={excludedTitleByRapporteurId}
         onSelectionChange={affectReporters}
         buttonLabel={buttonLabel}
       />

@@ -14,7 +14,7 @@ import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
-import { memberKeys } from '@queries/members.queries';
+import { memberKeys, type ListMembersOptions } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { reportKeys } from '@queries/reports.queries';
 
@@ -25,8 +25,10 @@ const CURRENT_USER_ID = 'current-user';
 
 const CURRENT_USER = { id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' };
 const OTHER_REPORTER = { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevre' };
+const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 
 function renderHeader(options: {
+  excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
   isEditable?: boolean;
   isSg?: boolean;
   myReportId?: string;
@@ -35,13 +37,19 @@ function renderHeader(options: {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
-  const memberListOptions = {
+  const memberListOptions: ListMembersOptions = {
     formations: ['COMMUN', FormationEnum.SIEGE],
     pagination: { pageIndex: 0, pageSize: 100 },
   };
   client.setQueryData(authKeys.introspectSession(), CURRENT_USER);
   client.setQueryData(memberKeys.listMembers(memberListOptions), {
-    items: [CURRENT_USER, OTHER_REPORTER],
+    items: [
+      { ...CURRENT_USER, excludedJurisdictions: [] },
+      {
+        ...OTHER_REPORTER,
+        excludedJurisdictions: options.excludedJurisdictionsOfOtherReporter ?? [],
+      },
+    ],
   });
   client.setQueryData(
     reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
@@ -120,6 +128,32 @@ describe('Header reporter status', () => {
     renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
 
     expect(screen.queryByRole('link', { name: 'Voir mon dossier' })).not.toBeInTheDocument();
+  });
+
+  it('flags a reporter excluded from the jurisdiction of the file', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: LYON.id, targeted: null } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(
+      screen.getByText("Juridiction exclue pour Marie LEFEVRE : Cour d'appel de Lyon"),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves a reporter alone when the file is outside their excluded jurisdictions', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: 'CA  PARIS', targeted: null } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(screen.queryByText(/Juridiction exclue pour/)).not.toBeInTheDocument();
   });
 });
 

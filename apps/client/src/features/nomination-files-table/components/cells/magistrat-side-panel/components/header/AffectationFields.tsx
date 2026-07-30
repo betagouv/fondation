@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 
@@ -8,8 +9,9 @@ import { memberFullName } from '@/utils/user.utils';
 
 const PRIORITY_ITEMS = Object.values(PrioriteEnum);
 
-const REPORTER_TAG =
-  'fr-tag font-normal! bg-(--background-default-grey)! text-(--text-action-high-blue-france)!';
+const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)!';
+
+const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
 export function PrioritySelect(props: {
   value: readonly PrioriteEnum[];
@@ -36,20 +38,36 @@ type Reporter = { userId: string; firstName: string; lastName: string };
 
 export function ReporterSelect(props: {
   available: readonly Reporter[];
+  excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
   value: readonly string[];
   onChange: (ids: string[]) => void;
 }) {
-  const { available, value, onChange } = props;
+  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, value, onChange } = props;
 
   const options = useMemo(
     () =>
       [...available]
         .sort((a, b) => a.lastName.localeCompare(b.lastName))
-        .map((reporter) => ({
-          value: reporter.userId,
-          label: <span className={REPORTER_TAG}>{memberFullName(reporter)}</span>,
-        })),
-    [available],
+        .map((reporter) => {
+          const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
+
+          return {
+            value: reporter.userId,
+            label: (
+              <span
+                className={clsx(
+                  REPORTER_TAG,
+                  excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+                )}
+                title={excludedTitle}
+              >
+                {memberFullName(reporter)}
+                {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+              </span>
+            ),
+          };
+        }),
+    [available, excludedTitleByRapporteurId],
   );
 
   return (

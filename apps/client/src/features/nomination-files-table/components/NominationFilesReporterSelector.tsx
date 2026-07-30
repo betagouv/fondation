@@ -1,16 +1,21 @@
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
+import clsx from 'clsx';
 import { useState, type FC } from 'react';
 
 export type SelectMultipleRapporteursProps = {
   availableRapporteurs: { userId: string; lastName: string; firstName: string }[];
   selectedRapporteurs: string[];
+  excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
   onSelectionChange: (rapporteurIds: string[]) => void;
 };
+
+const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
 export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps> = ({
   availableRapporteurs,
   selectedRapporteurs,
+  excludedTitleByRapporteurId = NO_EXCLUSION,
   onSelectionChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,20 +47,35 @@ export const NominationFilesReporterSelector: FC<SelectMultipleRapporteursProps>
 
       <div className="fr-p-4v max-h-48 space-y-2 overflow-y-auto">
         {filteredRapporteurs.length > 0 ? (
-          filteredRapporteurs.map((rapporteur) => (
-            <Checkbox
-              key={rapporteur.userId}
-              options={[
-                {
-                  label: `${rapporteur.lastName} ${rapporteur.firstName}`.toUpperCase(),
-                  nativeInputProps: {
-                    checked: selectedRapporteurs.includes(rapporteur.userId),
-                    onChange: () => toggleRapporteur(rapporteur.userId),
+          filteredRapporteurs.map((rapporteur) => {
+            const excludedTitle = excludedTitleByRapporteurId.get(rapporteur.userId);
+
+            return (
+              <Checkbox
+                key={rapporteur.userId}
+                options={[
+                  {
+                    label: (
+                      <span
+                        className={clsx(
+                          'flex items-center gap-1.5',
+                          excludedTitle && 'text-(--text-default-warning)',
+                        )}
+                        title={excludedTitle}
+                      >
+                        {`${rapporteur.lastName} ${rapporteur.firstName}`.toUpperCase()}
+                        {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+                      </span>
+                    ),
+                    nativeInputProps: {
+                      checked: selectedRapporteurs.includes(rapporteur.userId),
+                      onChange: () => toggleRapporteur(rapporteur.userId),
+                    },
                   },
-                },
-              ]}
-            />
-          ))
+                ]}
+              />
+            );
+          })
         ) : (
           <p className="fr-py-4v text-center text-sm text-(--text-mention-grey)">Aucun rapporteur trouvé</p>
         )}

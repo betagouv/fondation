@@ -62,7 +62,7 @@ export function MagistratNominationFilesTable({
               </span>
               <span className="mt-2 text-xs text-(--text-mention-grey)">
                 {formatMessage(
-                  { defaultMessage: 'Publié le {date}' },
+                  { defaultMessage: 'Publiée le {date}' },
                   {
                     date: formatDate(dateOnlyToDate(session.date), {
                       format: 'dateOnlyShort',

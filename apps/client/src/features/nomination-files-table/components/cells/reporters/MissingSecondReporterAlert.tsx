@@ -56,7 +56,10 @@ function requires2Reporters(dossier: SessionNominationFile, selectedCount?: numb
   );
 }
 
-export function ReportersAlert(props: { dossier: SessionNominationFile; selectedReportersCount?: number }) {
+export function MissingSecondReporterAlert(props: {
+  dossier: SessionNominationFile;
+  selectedReportersCount?: number;
+}) {
   const isSg = useIsSgNavigation();
   if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 

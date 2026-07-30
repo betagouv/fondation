@@ -101,7 +101,7 @@ function NominationFilesTableInner(props: PropsWithChildren) {
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
             <MagistratSidePanel sessionId={sessionId} />
-            <FilesSelectionProvider selection={tableState.rowSelection}>
+            <FilesSelectionProvider files={nominationFiles} selection={tableState.rowSelection}>
               <FilesAffectationsProvider files={nominationFiles}>
                 <AlertsProvider>
                   <div className="fr-container fr-mb-4v flex flex-col gap-y-4">

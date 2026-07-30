@@ -2,13 +2,20 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import React from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { ReportersAlert } from '@/features/nomination-files-table/components/cells/reporters/ReportersAlert';
+import { MissingSecondReporterAlert } from '@/features/nomination-files-table/components/cells/reporters/MissingSecondReporterAlert';
+import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
+import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import {
+  useExcludedJurisdictionConflicts,
+  useExcludedJurisdictionTitles,
+  type ExcludedJurisdictionConflict,
+} from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { getGdsReportPath } from '@/utils/route-path.utils';
@@ -42,6 +49,22 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
 
   const canEdit = isEditable && !!isUpdatable;
+
+  const files = React.useMemo(() => [nominationFile], [nominationFile]);
+  const availableIds = React.useMemo(
+    () => affectation.availableRapporteurs.map(({ userId }) => userId),
+    [affectation.availableRapporteurs],
+  );
+  const conflicts = useExcludedJurisdictionConflicts({ files, memberIds: availableIds });
+  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+  const displayedReporterIds = React.useMemo(
+    () => (isEditing ? affectation.reporterIds : nominationFile.reporters.map(({ id }) => id)),
+    [isEditing, affectation.reporterIds, nominationFile.reporters],
+  );
+  const selectedConflicts = React.useMemo(
+    () => conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId)),
+    [conflicts, displayedReporterIds],
+  );
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
   const { data: myReportId } = useMyReportQuery({
@@ -109,21 +132,27 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
       {isEditing ? (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
-            <ReportersAlert
+            <MissingSecondReporterAlert
               dossier={nominationFile}
               selectedReportersCount={affectation.reporterIds.length}
             />
             <ReporterSelect
               available={affectation.availableRapporteurs}
+              excludedTitleByRapporteurId={excludedTitleByRapporteurId}
               onChange={affectation.setReporterIds}
               value={affectation.reporterIds}
             />
           </div>
+          <ExcludedJurisdictionNotice conflicts={selectedConflicts} />
           {showWarning && reportersDirty && <UnsavedWarning />}
         </div>
       ) : (
         <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
-          <ReporterStatus currentUserId={user?.id} reporters={nominationFile.reporters} />
+          <ReporterStatus
+            conflicts={selectedConflicts}
+            currentUserId={user?.id}
+            reporters={nominationFile.reporters}
+          />
           {myReportId && (
             <Button
               className="btn-compact"
@@ -150,8 +179,23 @@ function UnsavedWarning() {
 
 type Reporter = { id: string; firstName: string; lastName: string };
 
-function ReporterStatus(props: { currentUserId: string | undefined; reporters: readonly Reporter[] }) {
-  const { currentUserId, reporters } = props;
+function ReporterStatus(props: {
+  conflicts: readonly ExcludedJurisdictionConflict[];
+  currentUserId: string | undefined;
+  reporters: readonly Reporter[];
+}) {
+  const { conflicts, currentUserId, reporters } = props;
+  const { formatMessage } = useIntl();
+
+  const excludedTitleByMemberId = new Map(
+    conflicts.map((conflict) => [
+      conflict.memberId,
+      formatMessage(
+        { defaultMessage: 'Juridiction exclue pour {memberName} : {jurisdiction}' },
+        { jurisdiction: conflict.jurisdiction, memberName: conflict.memberName },
+      ),
+    ]),
+  );
   if (reporters.length === 0)
     return (
       <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
@@ -169,12 +213,11 @@ function ReporterStatus(props: { currentUserId: string | undefined; reporters: r
           values={{ count: reporters.length }}
         />
         {reporters.map((reporter) => (
-          <Tag
-            className="bg-(--background-default-grey)! text-(--text-action-high-blue-france)!"
+          <ReporterTag
+            excludedTitle={excludedTitleByMemberId.get(reporter.id)}
             key={reporter.id}
-          >
-            {memberFullName(reporter)}
-          </Tag>
+            reporter={reporter}
+          />
         ))}
       </div>
     );
@@ -189,13 +232,26 @@ function ReporterStatus(props: { currentUserId: string | undefined; reporters: r
       </span>
       {coReporters.length > 0 && <FormattedMessage defaultMessage="avec" />}
       {coReporters.map((reporter) => (
-        <Tag
-          className="bg-(--background-default-grey)! text-(--text-action-high-blue-france)!"
+        <ReporterTag
+          excludedTitle={excludedTitleByMemberId.get(reporter.id)}
           key={reporter.id}
-        >
-          {memberFullName(reporter)}
-        </Tag>
+          reporter={reporter}
+        />
       ))}
     </div>
+  );
+}
+
+function ReporterTag(props: { excludedTitle?: string; reporter: Reporter }) {
+  return (
+    <Tag
+      className={clsx(
+        'gap-1.5 bg-(--background-default-grey)!',
+        props.excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+      )}
+    >
+      {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
+      {memberFullName(props.reporter)}
+    </Tag>
   );
 }
