@@ -16,6 +16,7 @@ import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
+import { NominationFileJurisdictionsFinder } from './nomination-file-jurisdictions.finder';
 import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
@@ -27,6 +28,7 @@ export class AutoAffectationsFinder {
     @Inject(forwardRef(() => MembersService))
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
+    private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
   ) {}
 
   async find(predicate: {
@@ -65,8 +67,13 @@ export class AutoAffectationsFinder {
       excludedMemberIds: predicate.excludedMemberIds,
     });
 
+    const jurisdictions = await this.jurisdictionsFinder.find({ tx, files: nominationFiles.items });
+
     const files = this.toAutoAffectationNominationFiles(
-      await this.withJurisdiction(tx, nominationFiles.items),
+      nominationFiles.items.map((file) => {
+        const { current = null, targeted = null } = jurisdictions.get(file.id) ?? {};
+        return { ...file, currentJurisdiction: current, targetedJurisdiction: targeted };
+      }),
       { date, formation },
     );
 
@@ -175,55 +182,6 @@ export class AutoAffectationsFinder {
         excludedJurisdictions,
         affectationCountPerGrade,
       });
-    });
-  }
-
-  private async withJurisdiction<
-    T extends {
-      id: string;
-      currentPosition: string | null;
-      targetedPosition: string | null;
-    },
-  >(
-    tx: Prisma.TransactionClient,
-    positions: readonly T[],
-  ): Promise<
-    (T & {
-      targetedJurisdiction: string | null;
-      currentJurisdiction: string | null;
-    })[]
-  > {
-    const result = await tx.$queryRaw<{ id: string; current: string | null; target: string | null }[]>`
-      WITH queried_positions AS (
-        SELECT
-          (p.content ->> 'id')::UUID AS id,
-          (p.content ->> 'currentPosition') AS current_position,
-          (p.content ->> 'targetedPosition') AS targeted_position
-        FROM UNNEST (${positions}::jsonb[]) AS p(content)
-      )
-
-      SELECT queried_positions.id, current_j.codejur AS "current", target_j.codejur AS "target"
-      FROM queried_positions
-        LEFT JOIN data_administration_context.jurisdictions current_j
-          ON (
-            queried_positions.current_position IS NOT NULL
-            AND queried_positions.current_position ILIKE '%' || current_j.codejur || '%'
-          )
-        LEFT JOIN data_administration_context.jurisdictions target_j
-          ON (
-            queried_positions.targeted_position IS NOT NULL
-            AND queried_positions.targeted_position ILIKE '%' || target_j.codejur || '%'
-          )
-    `;
-
-    const byId = new Map(result.map((p) => [p.id, p]));
-    return positions.map((position) => {
-      const { current = null, target = null } = byId.get(position.id) ?? {};
-      return {
-        ...position,
-        currentJurisdiction: current,
-        targetedJurisdiction: target,
-      };
     });
   }
 }
