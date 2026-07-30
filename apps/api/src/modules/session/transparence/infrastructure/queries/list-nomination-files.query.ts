@@ -9,6 +9,7 @@ import {
 } from '../../domain/session-transparence-file-status';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
+import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
 import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { DocsService } from 'src/modules/docs/docs.service';
@@ -37,6 +38,7 @@ export class ListNominationFilesQuery {
   constructor(
     private readonly prisma: PrismaService,
     private readonly versionFinder: AffectationVersionFinder,
+    private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -109,6 +111,8 @@ export class ListNominationFilesQuery {
         nominationFileIds,
       });
 
+      const jurisdictions = await this.jurisdictionsFinder.find({ tx, files: txFiles });
+
       const session = await tx.session.findUnique({
         where: { id: query.sessionId },
         select: { archivedAt: true },
@@ -120,6 +124,7 @@ export class ListNominationFilesQuery {
           const docs = linkedDocs.get(file.id) ?? [];
           return {
             ...file,
+            jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
             status: transparenceFileStatus({ id: file.id, docs }),
             isUpdatable: nominationFilesPolicies.canUpdateNominationFile(
               { docs, id: file.id, outcome: file.outcome },
@@ -154,6 +159,7 @@ export class ListNominationFilesQuery {
           informationCarrière: null,
           detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
           detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+          jurisdictions: x.jurisdictions,
           detectedMagistratId: x.detectedMagistratId ?? null,
           outcome: x.outcome
             ? {
@@ -260,7 +266,10 @@ const NominationFileContentSchema = z.object({
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
+  // TODO: see "jurisdictions", matched on the position label, to homogenize it with
+  // detectedJurisdictionId, resolved at ingestion from the LOLFI position
   detectedJurisdictionId: z.string().nullable(),
+  jurisdictions: z.object({ current: z.string().nullable(), targeted: z.string().nullable() }),
   detectedTargetedFunctionId: z.string().nullable(),
   detectedMagistratId: z.string().nullable(),
   outcome: z
