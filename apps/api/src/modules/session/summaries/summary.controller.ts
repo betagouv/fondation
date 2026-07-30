@@ -185,6 +185,7 @@ export class SummaryController {
     });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/readers')
   @ZodResponse({ status: HttpStatus.OK, type: FoundSummaryReadersDto })
   @UsePipes(ZodValidationPipe)

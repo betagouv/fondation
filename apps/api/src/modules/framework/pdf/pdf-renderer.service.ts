@@ -1,61 +1,53 @@
-import path from 'node:path';
-
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import Piscina from 'piscina';
+
+import * as time from 'src/utils/time';
+
+import { GotenbergHttpClient } from './gotenberg-http-client.service';
+
+const WAIT_FOR_EXPRESSION = `window.status === 'OK'`;
 
 @Injectable()
-export class PdfRenderer implements OnModuleDestroy {
+export class PdfRenderer {
   private readonly logger = new Logger(PdfRenderer.name);
-  #pool: Piscina | null = null;
 
-  async onModuleDestroy(): Promise<void> {
-    await this.#pool?.destroy();
-  }
+  constructor(private readonly http: GotenbergHttpClient) {}
 
   render(html: string): Promise<Buffer> {
     return Sentry.startSpan(
       {
         name: `fr.csm.fondation:pdf:generation`,
-        attributes: { payload_size: html.length },
+        attributes: { payload_size: html.length, renderer: 'gotenberg' },
       },
-      () => this.internalRender(html),
+      async (span) => {
+        const start = performance.now();
+
+        const buffer = await this.http.htmlToPdf({
+          timeout: 1 * time.MINUTES,
+          'index.html': this.withReadyStatus(html),
+          waitForExpression: WAIT_FOR_EXPRESSION,
+          preferCssPageSize: true,
+          printBackground: true,
+        });
+
+        const duration = (performance.now() - start).toFixed(3);
+
+        this.logger.debug(`pdf generation: ${duration}ms`);
+        span.setAttribute('output_file.bytes_size', buffer.byteLength);
+
+        return buffer;
+      },
     );
   }
 
-  private async internalRender(html: string): Promise<Buffer> {
-    const start = performance.now();
-    const buffer: Uint8Array = await this.pool.run(html);
-    const duration = (performance.now() - start).toFixed(3);
-    this.logger.debug(`pdf generation: ${duration}ms`);
-
-    Sentry.getActiveSpan()?.setAttribute('output_file.bytes_size', buffer.byteLength);
-
-    return Buffer.from(buffer);
-  }
-
-  private get pool(): Piscina<string, Buffer> {
-    if (!this.#pool) {
-      this.logger.debug(`Starting the worker pool...`);
-
-      const ext = __filename.endsWith('.ts') ? '.ts' : '.js';
-      const filename = path.resolve(__dirname, `pdf-worker${ext}`);
-
-      this.#pool = Sentry.startSpan(
-        {
-          attributes: { filename },
-          name: `fr.csm.fondation:pdf:start_pool`,
-        },
-        () =>
-          new Piscina({
-            filename,
-            execArgv: process.execArgv,
-            minThreads: 1,
-            maxThreads: 2,
-          }),
-      );
-    }
-
-    return this.#pool;
+  private withReadyStatus(html: string): string {
+    return html.replace(
+      '<head>',
+      /* html */ `<head>
+      <script>
+        window.status = 'IDLE';
+        window.PagedConfig = { after: () => { window.status = 'OK'; } };
+      </script>\n`,
+    );
   }
 }

@@ -7,7 +7,7 @@ import { type LolfiData } from './types';
 
 const ZIP_MIME = 'application/zip';
 
-export async function generateLolfiArchive(data: LolfiData): Promise<Buffer> {
+export async function generateLolfiArchive(data: LolfiData): Promise<ArrayBuffer> {
   const archive = new JSZip();
 
   for await (const file of generateLolfiFiles(data)) {
@@ -22,7 +22,7 @@ export async function generateLolfiArchive(data: LolfiData): Promise<Buffer> {
 
   return archive.generateAsync({
     mimeType: ZIP_MIME,
-    type: 'nodebuffer',
+    type: 'arraybuffer',
     compressionOptions: { level: 0 },
   });
 }

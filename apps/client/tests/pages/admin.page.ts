@@ -17,7 +17,7 @@ class LolfiIngestPage {
     const archive = await generateLolfiArchive(data);
     await this.app.page.getByLabel('Archive LOLFI').setInputFiles([
       {
-        buffer: archive,
+        buffer: Buffer.from(archive),
         mimeType: 'application/zip',
         name: `LOLFI_CSM_${crypto.randomUUID().replaceAll('-', '')}.zip`,
       },

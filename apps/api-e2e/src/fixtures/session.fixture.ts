@@ -1,5 +1,6 @@
 // oxlint-disable no-console
 import * as assert from 'node:assert/strict';
+import { File } from 'node:buffer';
 import { randomInt } from 'node:crypto';
 
 import { generateLolfiArchive, type LolfiData } from 'lolfi';

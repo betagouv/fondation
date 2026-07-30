@@ -1,5 +1,4 @@
 import { generateJSON, mergeAttributes, type AnyExtension, type JSONContent } from '@tiptap/core';
-import type { Node as PMNode, Schema } from '@tiptap/pm/model';
 import {
   Node,
   NodeViewContent,
@@ -9,14 +8,9 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
-import {
-  serializeContent,
-  useBlockActive,
-  type BlockDescriptor,
-  type OfficialReportBlock,
-  type OfficialReportBlockOptions,
-  type OfficialReportMutations,
-} from '../utils';
+import { useBlockActive } from '../hooks/useBlockActive';
+
+import { type OfficialReportBlock } from './official-report-blocks.type';
 
 type JsonOfficialReportSectionIntroBlock = Extract<OfficialReportBlock, { kind: 'section-intro' }>;
 export const OfficialReportSectionIntroBlock = {
@@ -27,26 +21,16 @@ export const OfficialReportSectionIntroBlock = {
     return block.kind === this.block;
   },
 
-  attrsOf(block: JsonOfficialReportSectionIntroBlock) {
-    return { outcome: block.outcome, edited: block.edited };
-  },
-
   map(block: JsonOfficialReportSectionIntroBlock, extensions: AnyExtension[]): JSONContent[] {
     return [
       {
         type: this.name,
-        attrs: this.attrsOf(block),
+        attrs: { outcome: block.outcome, edited: block.edited },
         content: generateJSON(block.html, extensions).content ?? [],
       },
     ];
   },
-
-  nodeKey: (node: PMNode) => (node.attrs.outcome ? `section-intro:${node.attrs.outcome}` : null),
-  serialize: (node: PMNode, schema: Schema) => serializeContent(node, schema),
-  save(node: PMNode, content: string, mutations: OfficialReportMutations) {
-    mutations.editSectionIntro.mutate({ html: content, outcome: node.attrs.outcome });
-  },
-} satisfies BlockDescriptor;
+};
 
 function SectionIntroBlockView(props: ReactNodeViewProps) {
   const active = useBlockActive(props);
@@ -63,7 +47,7 @@ function SectionIntroBlockView(props: ReactNodeViewProps) {
   );
 }
 
-export const OfficialReportSectionIntroBlockNode = Node.create<OfficialReportBlockOptions>({
+export const OfficialReportSectionIntroBlockNode = Node.create({
   name: OfficialReportSectionIntroBlock.name,
   group: 'block',
   content: 'block*',
@@ -71,8 +55,10 @@ export const OfficialReportSectionIntroBlockNode = Node.create<OfficialReportBlo
   isolating: true,
   selectable: true,
 
-  addOptions: () => ({ callbacks: null }),
-  addAttributes: () => ({ outcome: { default: null }, edited: { default: false, rendered: false } }),
+  addAttributes: () => ({
+    outcome: { default: null },
+    edited: { default: false, rendered: false },
+  }),
   parseHTML: () => [{ tag: 'div[data-block-type="section-intro"]' }],
   renderHTML: ({ HTMLAttributes }) =>
     // oxfmt-ignore

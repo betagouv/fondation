@@ -74,12 +74,10 @@ export class FindAgendaDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.prisma.$transaction([
-        this.prisma.agenda.update({
-          where: { id: query.id },
-          data: { pdfFileId },
-        }),
-      ]);
+      await this.prisma.agenda.update({
+        where: { id: query.id },
+        data: { pdfFileId },
+      });
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

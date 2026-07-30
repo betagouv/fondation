@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useTab } from '@/shared/hooks/useTab';
-import type { DocNominationFileOutcomeEnum, FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
@@ -343,90 +343,6 @@ export const useOfficialReportDocumentQuery = (query: { id: string | undefined |
         .then(({ data = null }) => data),
   });
 
-export function useOfficialReportBlockMutations(officialReportId: string) {
-  const queryClient = useQueryClient();
-
-  const reloadDocument = async () =>
-    queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-
-  const editIntro = useMutation({
-    mutationFn: ({ html, outdated }: { html: string; outdated: boolean }) =>
-      $api.docs.editOfficialReportIntro({ path: { officialReportId }, body: { html, outdated } }),
-    onSuccess: reloadDocument,
-  });
-
-  const resetIntro = useMutation({
-    mutationFn: () => $api.docs.resetOfficialReportIntro({ path: { officialReportId } }),
-    onSuccess: reloadDocument,
-  });
-
-  const editConclusion = useMutation({
-    mutationFn: ({ html, outdated }: { html: string; outdated: boolean }) =>
-      $api.docs.editOfficialReportConclusion({ path: { officialReportId }, body: { html, outdated } }),
-    onSuccess: reloadDocument,
-  });
-
-  const resetConclusion = useMutation({
-    mutationFn: () => $api.docs.resetOfficialReportConclusion({ path: { officialReportId } }),
-    onSuccess: reloadDocument,
-  });
-
-  const editSectionTitle = useMutation({
-    mutationFn: ({ outcome, text }: { outcome: DocNominationFileOutcomeEnum; text: string }) =>
-      $api.docs.editOfficialReportSectionTitle({ path: { officialReportId, outcome }, body: { text } }),
-    onSuccess: reloadDocument,
-  });
-
-  const resetSectionTitle = useMutation({
-    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum }) =>
-      $api.docs.resetOfficialReportSectionTitle({ path: { officialReportId, outcome: mutation.outcome } }),
-    onSuccess: reloadDocument,
-  });
-
-  const editSectionIntro = useMutation({
-    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum; html: string }) =>
-      $api.docs.editOfficialReportSectionIntro({
-        path: { officialReportId, outcome: mutation.outcome },
-        body: { html: mutation.html },
-      }),
-    onSuccess: reloadDocument,
-  });
-
-  const resetSectionIntro = useMutation({
-    mutationFn: (mutation: { outcome: DocNominationFileOutcomeEnum }) =>
-      $api.docs.resetOfficialReportSectionTitle({ path: { officialReportId, outcome: mutation.outcome } }),
-    onSuccess: reloadDocument,
-  });
-
-  const editFile = useMutation({
-    mutationFn: (mutation: { html: string; nominationFileId: string; outdated: boolean }) =>
-      $api.docs.editOfficialReportFile({
-        path: { officialReportId, nominationFileId: mutation.nominationFileId },
-        body: { html: mutation.html, outdated: mutation.outdated },
-      }),
-    onSuccess: reloadDocument,
-  });
-
-  const resetFile = useMutation({
-    mutationFn: ({ nominationFileId }: { nominationFileId: string }) =>
-      $api.docs.resetOfficialReportFile({ path: { officialReportId, nominationFileId } }),
-    onSuccess: reloadDocument,
-  });
-
-  return {
-    editIntro,
-    resetIntro,
-    editConclusion,
-    resetConclusion,
-    editSectionTitle,
-    resetSectionTitle,
-    editSectionIntro,
-    resetSectionIntro,
-    editFile,
-    resetFile,
-  };
-}
-
 export function useGenerateOfficialReportPdfMutation(mutation: {
   sessionId: string;
   force: boolean;
@@ -469,6 +385,7 @@ export function useDeleteOfficialReportMutation(sessionId: string) {
       $api.docs.deleteOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
 
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({
         queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
