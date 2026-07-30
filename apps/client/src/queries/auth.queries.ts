@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { HttpException } from '../utils/http-exception';
 import * as $api from '@api/sdk';
@@ -8,32 +8,34 @@ export const authKeys = {
   openIdProviders: () => ['auth', 'openidProviders'],
 };
 
-export const useUser = () => {
-  const { data, ...query } = useQuery({
-    refetchOnWindowFocus: false,
-    staleTime: 10 * 60 * 1_000,
+export const sessionQueryOptions = queryOptions({
+  refetchOnWindowFocus: false,
+  staleTime: 10 * 60 * 1_000,
 
-    queryKey: authKeys.introspectSession(),
-    queryFn: () =>
-      $api.auth
-        .introspectSession()
-        .then(({ data }) =>
-          data
-            ? {
-                id: data.userId,
-                role: data.role,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                isImpersonated: data.isImpersonated,
-                civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
-              }
-            : null,
-        )
-        .catch((err) => {
-          if (err instanceof HttpException && err.statusCode === 401) return null;
-          throw err;
-        }),
-  });
+  queryKey: authKeys.introspectSession(),
+  queryFn: () =>
+    $api.auth
+      .introspectSession()
+      .then(({ data }) =>
+        data
+          ? {
+              id: data.userId,
+              role: data.role,
+              firstName: data.firstName,
+              lastName: data.lastName,
+              isImpersonated: data.isImpersonated,
+              civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
+            }
+          : null,
+      )
+      .catch((err) => {
+        if (err instanceof HttpException && err.statusCode === 401) return null;
+        throw err;
+      }),
+});
+
+export const useUser = () => {
+  const { data, ...query } = useQuery(sessionQueryOptions);
 
   return { ...query, user: data };
 };

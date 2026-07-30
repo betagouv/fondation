@@ -1,16 +1,12 @@
-import { AuthGuard } from '@/features/auth/components/AuthGuard';
-import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 
 export function UserManualPage() {
   const isSg = useIsSg();
 
   return (
-    <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <section className="fr-container fr-py-10v w-5/12 min-w-4xl">
-        {isSg ? <SGUserManual /> : <MemberUserManual />}
-      </section>
-    </AuthGuard>
+    <section className="fr-container fr-py-10v w-5/12 min-w-4xl">
+      {isSg ? <SGUserManual /> : <MemberUserManual />}
+    </section>
   );
 }
 

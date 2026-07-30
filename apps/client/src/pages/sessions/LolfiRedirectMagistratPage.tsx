@@ -5,8 +5,6 @@ import Compass from '@codegouvfr/react-dsfr/picto/Compass';
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router';
 
-import { AuthGuard } from '@/features/auth/components/AuthGuard';
-import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
 import { useLolfiMagistratUrlQuery } from '@queries/nomination-sessions.queries';
 
@@ -111,9 +109,5 @@ function LolfiRedirectMagistratInner() {
 }
 
 export function LolfiRedirectMagistrat() {
-  return (
-    <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <LolfiRedirectMagistratInner />
-    </AuthGuard>
-  );
+  return <LolfiRedirectMagistratInner />;
 }

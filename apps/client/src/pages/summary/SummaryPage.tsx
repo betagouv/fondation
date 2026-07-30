@@ -1,7 +1,5 @@
 import { useParams } from 'react-router';
 
-import { AuthGuard } from '@/features/auth/components/AuthGuard';
-import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { Summary } from '@/features/summary/components/Summary';
 import { SummaryContainer } from '@/features/summary/components/SummaryContainer';
@@ -75,9 +73,5 @@ function SummaryPageInner() {
 
 export function SummaryPage() {
   const { fileId: nominationFileId } = useParams();
-  return (
-    <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <SummaryPageInner key={nominationFileId} />
-    </AuthGuard>
-  );
+  return <SummaryPageInner key={nominationFileId} />;
 }
