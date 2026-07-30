@@ -1,68 +1,58 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
-import { Prisma } from 'src/generated/prisma/client';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InternalInvalidateOfficialReportUseCase {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly officialReportRepository: OfficialReportRepository,
   ) {}
 
-  handle(invalidation: OfficialReportInvalidation): Promise<void> {
+  @Transactional()
+  async handle(invalidation: OfficialReportInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
-        return this.invalidate((tx) => this.mapSessionAffectationVersionPublished({ tx, invalidation }));
+        return this.invalidate(await this.mapSessionAffectationVersionPublished({ invalidation }));
 
       case 'SessionDateUpdated':
-        return this.invalidate((tx) => this.mapSessionDateUpdated({ tx, invalidation }));
+        return this.invalidate(await this.mapSessionDateUpdated({ invalidation }));
 
       case 'AgendaDateUpdated':
-        return this.invalidate((tx) => this.mapAgendaDateUpdated({ tx, invalidation }));
+        return this.invalidate(await this.mapAgendaDateUpdated({ invalidation }));
 
       case 'AgendaNominationFilesUpdated':
-        return this.invalidate((tx) => this.mapAgendaNominationFilesUpdated({ tx, invalidation }));
+        return this.invalidate(await this.mapAgendaNominationFilesUpdated({ invalidation }));
 
       case 'NominationFileOutcomeUpdated':
-        return this.invalidate((tx) => this.mapNominationFileOutcomeUpdated({ tx, invalidation }));
+        return this.invalidate(await this.mapNominationFileOutcomeUpdated({ invalidation }));
 
       default:
         return assertNever(invalidation);
     }
   }
 
-  private async invalidate(
-    mapToInvalidateOfficialReportCommands: (
-      tx: Prisma.TransactionClient,
-    ) => Promise<InvalidateOfficialReportCommand[]>,
-  ): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const commands = await mapToInvalidateOfficialReportCommands(tx);
+  private async invalidate(commands: readonly InvalidateOfficialReportCommand[]): Promise<void> {
+    for (const command of commands) {
+      const officialReport = await this.officialReportRepository.find({ id: command.id }).catch(() => null);
 
-      for (const command of commands) {
-        const officialReport = await this.officialReportRepository
-          .find({ id: command.id, tx })
-          .catch(() => null);
+      if (!officialReport) continue;
 
-        if (!officialReport) continue;
-
-        officialReport.invalidate(command);
-        await this.officialReportRepository.persist(officialReport);
-      }
-    });
+      officialReport.invalidate(command);
+      await this.officialReportRepository.persist(officialReport);
+    }
   }
 
   private async mapNominationFileOutcomeUpdated(query: {
-    tx: Prisma.TransactionClient;
     invalidation: Extract<OfficialReportInvalidation, { type: 'NominationFileOutcomeUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const { nominationFileId, comment, outcome } = query.invalidation.payload;
@@ -70,7 +60,7 @@ export class InternalInvalidateOfficialReportUseCase {
     // We don't handle files without outcome in official reports
     if (!isDefined(outcome)) return [];
 
-    const files = await query.tx.officialReportNominationFile.findMany({
+    const files = await this.db.tx.officialReportNominationFile.findMany({
       where: { nominationFileId: query.invalidation.payload.nominationFileId },
       select: { officialReportId: true },
     });
@@ -91,9 +81,8 @@ export class InternalInvalidateOfficialReportUseCase {
 
   private async mapAgendaNominationFilesUpdated(query: {
     invalidation: Extract<OfficialReportInvalidation, { type: 'AgendaNominationFilesUpdated' }>;
-    tx: Prisma.TransactionClient;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const agendas = await query.tx.agenda.findMany({
+    const agendas = await this.db.tx.agenda.findMany({
       where: { id: query.invalidation.payload.agendaId, officialReportId: { not: null } },
       select: {
         id: true,
@@ -117,7 +106,7 @@ export class InternalInvalidateOfficialReportUseCase {
       );
 
       const { items } = await this.docsNominationFilesFinder.findNonReported({
-        tx: query.tx,
+        tx: this.db.tx,
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
         ignoreOfficialReportId: agenda.officialReportId,
@@ -145,9 +134,8 @@ export class InternalInvalidateOfficialReportUseCase {
 
   private async mapAgendaDateUpdated(query: {
     invalidation: Extract<OfficialReportInvalidation, { type: 'AgendaDateUpdated' }>;
-    tx: Prisma.TransactionClient;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const agenda = await query.tx.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findUnique({
       where: { id: query.invalidation.payload.agendaId },
       select: { id: true, sessionId: true, officialReportId: true },
     });
@@ -165,9 +153,8 @@ export class InternalInvalidateOfficialReportUseCase {
 
   private async mapSessionDateUpdated(query: {
     invalidation: Extract<OfficialReportInvalidation, { type: 'SessionDateUpdated' }>;
-    tx: Prisma.TransactionClient;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const agendas = await query.tx.agenda.findMany({
+    const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.invalidation.payload.sessionId, officialReportId: { not: null } },
       select: { id: true, sessionId: true, officialReportId: true },
     });
@@ -185,11 +172,10 @@ export class InternalInvalidateOfficialReportUseCase {
 
   private async mapSessionAffectationVersionPublished(query: {
     invalidation: Extract<OfficialReportInvalidation, { type: 'SessionAffectationVersionPublished' }>;
-    tx: Prisma.TransactionClient;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const { invalidation, tx } = query;
+    const { invalidation } = query;
 
-    const agendas = await tx.agenda.findMany({
+    const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: invalidation.payload.sessionId, officialReportId: { not: null } },
       select: {
         id: true,
@@ -215,7 +201,7 @@ export class InternalInvalidateOfficialReportUseCase {
       );
 
       const { items } = await this.docsNominationFilesFinder.findNonReported({
-        tx,
+        tx: this.db.tx,
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
         ignoreOfficialReportId: agenda.officialReportId,

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
@@ -19,14 +19,14 @@ export class FindOfficialReportDocumentPdfQuery {
 
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const officialReport = await tx.officialReport.findUnique({
+    const result = await this.db.withTransaction(async () => {
+      const officialReport = await this.db.tx.officialReport.findUnique({
         where: { id: query.id },
         select: {
           sessionMeetingDate: true,
@@ -40,7 +40,7 @@ export class FindOfficialReportDocumentPdfQuery {
       if (!officialReport) throw new NotFoundException();
 
       if (!query.forceNew && officialReport.pdf?.id) {
-        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id, tx });
+        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id, tx: this.db.tx });
         if (!file$) {
           this.logger.error(`Could not retrieve the official report PDF file from S3`);
           throw new InternalServerErrorException();
@@ -55,7 +55,7 @@ export class FindOfficialReportDocumentPdfQuery {
         } as const;
       }
 
-      const html = await this.findOfficialReportDocumentQuery.handle({ ...query, tx });
+      const html = await this.findOfficialReportDocumentQuery.handle(query);
       return { type: 'html', html, officialReport } as const;
     });
 
@@ -80,10 +80,12 @@ export class FindOfficialReportDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.prisma.officialReport.update({
-        where: { id: query.id },
-        data: { pdfId: pdfFileId },
-      });
+      await this.db.withTransaction((tx) =>
+        tx.officialReport.update({
+          where: { id: query.id },
+          data: { pdfId: pdfFileId },
+        }),
+      );
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

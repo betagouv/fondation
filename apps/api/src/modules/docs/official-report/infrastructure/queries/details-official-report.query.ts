@@ -1,19 +1,20 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
+import { Db } from 'src/modules/framework/database';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailsOfficialReportQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: { officialReportId: string }): Promise<DetailedOfficialReportMetadataDto> {
-    const report = await this.prisma.officialReport.findUnique({
+    const report = await this.db.tx.officialReport.findUnique({
       where: { id: query.officialReportId },
       select: {
         id: true,

@@ -1,23 +1,22 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { OfficialReportRenderContextFinder } from '../finders/official-report-render-context.finder';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class FindOfficialReportDocumentQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly officialReportRenderContextFinder: OfficialReportRenderContextFinder,
     private readonly officialReportRenderer: OfficialReportRenderer,
   ) {}
 
-  async handle(query: { id: string; forceNew?: boolean; tx?: Prisma.TransactionClient }): Promise<string> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-
+  @Transactional()
+  async handle(query: { id: string; forceNew?: boolean }): Promise<string> {
     if (!query.forceNew) {
-      const officialReport = await query.tx.officialReport.findUnique({
+      const officialReport = await this.db.tx.officialReport.findUnique({
         where: { id: query.id },
         select: { html: true },
       });
@@ -25,13 +24,13 @@ export class FindOfficialReportDocumentQuery {
       if (officialReport?.html) return officialReport.html;
     }
 
-    return this.renderHtml(query.tx, query.id);
+    return this.renderHtml(query.id);
   }
 
-  private async renderHtml(tx: Prisma.TransactionClient, officialReportId: string): Promise<string> {
-    const renderContext = await this.officialReportRenderContextFinder.find({ officialReportId, tx });
+  private async renderHtml(officialReportId: string): Promise<string> {
+    const renderContext = await this.officialReportRenderContextFinder.find({ officialReportId });
     const html = this.officialReportRenderer.html(renderContext);
-    await tx.officialReport.update({ where: { id: officialReportId }, data: { html } });
+    await this.db.tx.officialReport.update({ where: { id: officialReportId }, data: { html } });
 
     return html;
   }
