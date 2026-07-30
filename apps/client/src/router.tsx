@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/react';
 import { createBrowserRouter } from 'react-router';
 
+import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
+import { roleGuard } from '@/features/auth/guards/role-guard';
 import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ErrorPage } from '@/pages/error/ErrorPage';
@@ -12,6 +14,7 @@ export const router = sentryCreateBrowserRouter([
     path: '/',
     element: <RootLayout />,
     errorElement: <ErrorPage />,
+    hydrateFallbackElement: null,
     children: [
       {
         path: '/',
@@ -23,35 +26,35 @@ export const router = sentryCreateBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: ROUTE_PATHS.HELP,
-        lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
+        loader: roleGuard(AUTHORIZED_ROLES.ALL),
+        children: [
+          {
+            path: ROUTE_PATHS.HELP,
+            lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
+          },
+          {
+            path: ROUTE_PATHS.USER_MANUAL,
+            lazy: () =>
+              import('@/pages/help/UserManualPage').then(({ UserManualPage }) => ({
+                Component: UserManualPage,
+              })),
+          },
+          {
+            path: ROUTE_PATHS.SUMMARY,
+            lazy: () =>
+              import('@/pages/summary/SummaryPage').then(({ SummaryPage }) => ({ Component: SummaryPage })),
+          },
+          {
+            path: ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI,
+            lazy: () =>
+              import('@/pages/sessions/LolfiRedirectMagistratPage').then(({ LolfiRedirectMagistrat }) => ({
+                Component: LolfiRedirectMagistrat,
+              })),
+          },
+        ],
       },
       {
-        path: ROUTE_PATHS.USER_MANUAL,
-        lazy: () =>
-          import('@/pages/help/UserManualPage').then(({ UserManualPage }) => ({ Component: UserManualPage })),
-      },
-      {
-        path: ROUTE_PATHS.HELP,
-        lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
-      },
-      {
-        path: ROUTE_PATHS.SUMMARY,
-        lazy: () =>
-          import('@/pages/summary/SummaryPage').then(({ SummaryPage }) => ({ Component: SummaryPage })),
-      },
-      {
-        path: ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI,
-        lazy: () =>
-          import('@/pages/sessions/LolfiRedirectMagistratPage').then(({ LolfiRedirectMagistrat }) => ({
-            Component: LolfiRedirectMagistrat,
-          })),
-      },
-      {
-        lazy: () =>
-          import('@/pages/spaces/member/MemberLayout').then(({ MemberLayout }) => ({
-            Component: MemberLayout,
-          })),
+        loader: roleGuard(AUTHORIZED_ROLES.MEMBER),
         children: [
           {
             lazy: () =>
@@ -112,12 +115,7 @@ export const router = sentryCreateBrowserRouter([
       },
       {
         path: ROUTE_PATHS.SG.DASHBOARD,
-        lazy: () =>
-          import('@/pages/spaces/secretariat-general/SecretariatLayout').then(
-            ({ SecretariatGeneralLayout }) => ({
-              Component: SecretariatGeneralLayout,
-            }),
-          ),
+        loader: roleGuard(AUTHORIZED_ROLES.SG),
         children: [
           {
             index: true,
@@ -299,8 +297,7 @@ export const router = sentryCreateBrowserRouter([
       },
       {
         path: ROUTE_PATHS.ADMIN.ROOT,
-        lazy: () =>
-          import('@/pages/spaces/admin/AdminLayout').then(({ AdminLayout }) => ({ Component: AdminLayout })),
+        loader: roleGuard(AUTHORIZED_ROLES.NONE),
         children: [
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
