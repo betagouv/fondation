@@ -4,7 +4,7 @@ import { createBrowserRouter } from 'react-router';
 import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ErrorPage } from '@/pages/error/ErrorPage';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { redirectToMemberMagistratDetails, ROUTE_PATHS } from '@/utils/route-path.utils';
 
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
 export const router = sentryCreateBrowserRouter([
@@ -48,32 +48,47 @@ export const router = sentryCreateBrowserRouter([
           })),
       },
       {
-        path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
         lazy: () =>
           import('@/pages/spaces/member/MemberLayout').then(({ MemberLayout }) => ({
             Component: MemberLayout,
           })),
         children: [
           {
-            index: true,
             lazy: () =>
-              import('@/pages/transparence/SessionsPage').then(({ SessionsPage }) => ({
-                Component: SessionsPage,
+              import('@/pages/spaces/member/MemberContentLayout').then(({ MemberContentLayout }) => ({
+                Component: MemberContentLayout,
               })),
+            children: [
+              {
+                path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+                lazy: () =>
+                  import('@/pages/transparence/SessionsPage').then(({ SessionsPage }) => ({
+                    Component: SessionsPage,
+                  })),
+              },
+              {
+                path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
+                lazy: () =>
+                  import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
+                    Component: ReportListPage,
+                  })),
+              },
+            ],
           },
           {
-            path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
             lazy: () =>
-              import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
-                Component: ReportListPage,
-              })),
-          },
-          {
-            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
-            lazy: () =>
-              import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
-                Component: ReportOverviewPage,
-              })),
+              import('@/pages/spaces/member/MemberReportOverviewLayout').then(
+                ({ MemberReportOverviewLayout }) => ({ Component: MemberReportOverviewLayout }),
+              ),
+            children: [
+              {
+                path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
+                lazy: () =>
+                  import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
+                    Component: ReportOverviewPage,
+                  })),
+              },
+            ],
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
@@ -83,11 +98,15 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
           {
-            path: ROUTE_PATHS.TRANSPARENCES.MAGISTRAT_DETAILS,
+            path: ROUTE_PATHS.MEMBER.MAGISTRAT_DETAILS,
             lazy: () =>
               import('@/pages/magistrats/MagistratDetailsPage').then(({ MagistratDetailsPage }) => ({
                 Component: MagistratDetailsPage,
               })),
+          },
+          {
+            path: ROUTE_PATHS.TRANSPARENCES.MAGISTRAT_DETAILS,
+            loader: redirectToMemberMagistratDetails,
           },
         ],
       },

@@ -38,7 +38,7 @@ describe('DetailsLink', () => {
 
     expect(screen.getByRole('link', { name: 'Fiche détails du magistrat' })).toHaveAttribute(
       'href',
-      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/magistrats/magistrat-1',
+      '/magistrats/magistrat-1',
     );
   });
 
