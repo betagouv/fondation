@@ -71,6 +71,7 @@ const MemberListItemDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
+  excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
   stats: z.array(
     z.object({
       year: z.number().int().gt(1),

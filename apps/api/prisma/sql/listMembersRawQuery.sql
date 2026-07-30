@@ -44,10 +44,26 @@ SELECT
       )
     ) FILTER (WHERE s."year" IS NOT NULL),
     ARRAY[]::JSON[]
-  )::JSON[] AS stats
+  )::JSON[] AS stats,
+
+  COALESCE(excluded.jurisdictions, ARRAY[]::JSONB[])::JSONB[] AS "excludedJurisdictions"
 FROM
   identity_and_access_context."users" AS m
   LEFT JOIN stats_for_current_year AS s ON s.reporter_id = m.id
+
+  LEFT JOIN LATERAL (
+    SELECT ARRAY_AGG(
+      JSONB_BUILD_OBJECT(
+        'id', j.codejur,
+        'label', j.libelle
+      )
+    ) FILTER (WHERE j.codejur IS NOT NULL) AS "jurisdictions"
+    FROM data_administration_context.excluded_jurisdictions ej
+      LEFT JOIN data_administration_context.jurisdictions j
+        ON j.codejur = ej.jurisdiction_id
+    WHERE ej.user_id = m.id
+    GROUP BY ej.user_id
+  ) AS excluded ON TRUE
 
 WHERE (
   m."role" = ANY($1)
@@ -58,7 +74,7 @@ WHERE (
   ))
 )
 
-GROUP BY m.id
+GROUP BY m.id, excluded.jurisdictions
 ORDER BY (
   CASE
     WHEN $3::TEXT IS NOT NULL AND $4::TEXT = 'desc' THEN
