@@ -7,7 +7,7 @@ import { useController, useWatch, type UseControllerProps } from 'react-hook-for
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { FormationEnum } from '@/types/enums.types';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
 export function AbsentMemberSelector(
@@ -78,7 +78,7 @@ export function AbsentMemberSelector(
           .sort((a, b) => a.lastName.localeCompare(b.lastName))
           .map((member) => (
             <option key={member.id} value={member.id} disabled={chairmanId === member.id}>
-              {toFullName(member)}
+              {memberFullName(member)}
             </option>
           ))}
       </Select>
@@ -103,14 +103,14 @@ export function AbsentMemberSelector(
               dismissible
               title={formatMessage(
                 { defaultMessage: 'Retirer {member} des absents' },
-                { member: toFullName(member) },
+                { member: memberFullName(member) },
               )}
               key={member.id}
               as="button"
               onClick={unSelect}
               nativeButtonProps={{ 'data-id': member.id }}
             >
-              {toFullName(member)}
+              {memberFullName(member)}
             </Tag>
           ))}
       </ul>

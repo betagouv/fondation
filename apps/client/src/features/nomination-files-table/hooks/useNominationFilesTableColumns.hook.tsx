@@ -1,7 +1,8 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import { useIntl } from 'react-intl';
 
-import { MagistratPanelTrigger } from '../components/cells/magistrat-side-panel/components/MagistratPanelTrigger';
+import { SidePanelTrigger } from '../components/cells/magistrat-side-panel/components/SidePanelTrigger';
 import { NominationFilesOutcomeCell } from '../components/cells/nomination-file-outcome/NominationFilesOutcomeCell';
 import { NominationFilesPriorityCell } from '../components/cells/NominationFilesPriorityCell';
 import { ObservantsCell } from '../components/cells/observations/ObservantsCell';
@@ -9,7 +10,7 @@ import { ReportersCell } from '../components/cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from '../components/cells/targeted-position/NominationFileTargetPositionCell';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import {
   getListCurrentlyAffectedReportersQueryOptions,
@@ -18,6 +19,7 @@ import {
 
 const h = createColumnHelper<SessionNominationFile>();
 export const useNominationFilesTableColumns = () => {
+  const { formatMessage } = useIntl();
   const { sessionId, outcomes } = useNominationFilesTable();
 
   return useMemo(
@@ -26,53 +28,53 @@ export const useNominationFilesTableColumns = () => {
         id: 'fileNumber',
         cell: ({ cell }) => cell.getValue(),
         enableSorting: true,
-        header: 'N°',
+        header: formatMessage({ defaultMessage: 'N°' }),
         meta: { size: '10%' },
         sortDescFirst: true,
       }),
 
       h.accessor('content.nomMagistrat', {
         id: 'name',
-        cell: ({ row }) => <MagistratPanelTrigger nominationFile={row.original} />,
+        cell: ({ row }) => <SidePanelTrigger nominationFile={row.original} />,
         enableSorting: true,
-        header: 'Magistrat',
+        header: formatMessage({ defaultMessage: 'Magistrat' }),
       }),
 
       h.accessor('content.grade', {
         cell: ({ cell }) => cell.getValue(),
         enableSorting: false,
-        header: 'Grade actuel',
+        header: formatMessage({ defaultMessage: 'Grade actuel' }),
       }),
 
       h.accessor('content.posteCible', {
         cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
         enableSorting: false,
-        header: 'Poste cible',
+        header: formatMessage({ defaultMessage: 'Poste cible' }),
       }),
 
       h.accessor('content.gradeCible', {
         id: 'targetedGrade',
         cell: ({ cell }) => cell.getValue(),
         enableSorting: true,
-        header: 'Grade cible',
+        header: formatMessage({ defaultMessage: 'Grade cible' }),
         sortDescFirst: true,
       }),
 
       h.accessor('content.observants', {
         cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
         enableSorting: false,
-        header: 'Observant(s)',
+        header: formatMessage({ defaultMessage: 'Observant(s)' }),
       }),
 
       h.accessor('priorities', {
         cell: ({ row }) => <NominationFilesPriorityCell nominationFile={row.original} />,
         enableSorting: false,
-        header: 'Priorité(s)',
+        header: formatMessage({ defaultMessage: 'Priorité(s)' }),
         meta: {
           filters: {
-            emptyValue: { id: 'null', label: 'Aucune' },
+            emptyValue: { id: 'null', label: formatMessage({ defaultMessage: 'Aucune' }) },
             filterId: 'priorities',
-            label: 'Priorités',
+            label: formatMessage({ defaultMessage: 'Priorités' }),
             type: 'enum',
             values: Object.values(PrioriteEnum).map((priorite) => ({
               id: priorite,
@@ -85,12 +87,12 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('reporters', {
         cell: ({ row }) => <ReportersCell dossier={row.original} />,
         enableSorting: false,
-        header: 'Rapporteur(s)',
+        header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
         meta: {
           filters: {
-            emptyValue: { id: 'null', label: 'Aucun' },
+            emptyValue: { id: 'null', label: formatMessage({ defaultMessage: 'Aucun' }) },
             filterId: 'reporters',
-            label: 'Rapporteur(s)',
+            label: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
             query: {
               ...getListCurrentlyAffectedReportersQueryOptions({ sessionId }),
               select: toListItems,
@@ -103,13 +105,13 @@ export const useNominationFilesTableColumns = () => {
       h.accessor('content.outcome', {
         cell: ({ row }) => <NominationFilesOutcomeCell nominationFile={row.original} />,
         enableSorting: false,
-        header: 'Issue',
+        header: formatMessage({ defaultMessage: 'Issue' }),
         meta: {
           filters: {
             filterId: 'outcomes',
-            label: 'Issue(s)',
+            label: formatMessage({ defaultMessage: 'Issue(s)' }),
             type: 'enum',
-            values: [{ id: 'null', label: 'Aucune' }].concat(
+            values: [{ id: 'null', label: formatMessage({ defaultMessage: 'Aucune' }) }].concat(
               outcomes.map(({ value, label }) => ({
                 id: value,
                 label: label[0].toUpperCase() + label.slice(1),
@@ -119,13 +121,13 @@ export const useNominationFilesTableColumns = () => {
         },
       }),
     ],
-    [outcomes, sessionId],
+    [formatMessage, outcomes, sessionId],
   );
 };
 
 function toListItems(data: ListedCurrentlyAffectedReportersDto) {
   return data.items.map(({ id, firstName, lastName }) => ({
     id,
-    label: toFullName({ firstName, lastName }),
+    label: memberFullName({ firstName, lastName }),
   }));
 }

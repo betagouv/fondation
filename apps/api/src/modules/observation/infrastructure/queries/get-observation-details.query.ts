@@ -95,6 +95,7 @@ export class GetObservationDetailsQuery {
             select: {
               name: true,
               targetedPosition: true,
+              detectedMagistratId: true,
             },
           },
 
@@ -115,12 +116,12 @@ export class GetObservationDetailsQuery {
         throw new NotFoundException();
       }
 
-      const reporterIds = await this.affectationVersionFinder.findReporterIds({
+      const reporters = await this.affectationVersionFinder.findReporters({
         tx,
         sessionId: query.sessionId,
         nominationFileId: query.nominationFileId,
       });
-      const isUserReporter = reporterIds.includes(query.userId);
+      const isUserReporter = reporters.some(({ id }) => id === query.userId);
 
       const candidacy = await this.findRelatedNominationFiles(
         tx,
@@ -149,6 +150,7 @@ export class GetObservationDetailsQuery {
         observedMagistrat: {
           name: observation.nominationFile.name,
           proposedPosition: observation.nominationFile.targetedPosition,
+          detectedMagistratId: observation.nominationFile.detectedMagistratId,
         },
         files: observation.files.map(({ file }) => ({
           id: file.id,
@@ -278,6 +280,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     observedMagistrat: z.object({
       name: z.string(),
       proposedPosition: z.string().nullable(),
+      detectedMagistratId: z.string().nullable(),
     }),
     description: z.string(),
     followUp: z.enum(ObservationFollowUp.enum).nullable(),

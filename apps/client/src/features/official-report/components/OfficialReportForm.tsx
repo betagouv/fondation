@@ -19,7 +19,7 @@ import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { capitalize } from '@/utils/string.utils';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
-import { toFullName, toInitials } from '@/utils/user.utils';
+import { memberFullName, toInitials } from '@/utils/user.utils';
 import {
   useListAgendasForNewOfficialReportQuery,
   useListSecretariesGeneralQuery,
@@ -311,7 +311,7 @@ export function OfficialReportForm() {
 
             {secretaries.map((s) => (
               <option key={s.id} value={s.id}>
-                {toFullName(s)}
+                {memberFullName(s)}
               </option>
             ))}
           </Select>

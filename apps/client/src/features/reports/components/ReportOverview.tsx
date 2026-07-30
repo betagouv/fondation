@@ -2,7 +2,6 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 
-import { formatBiography } from '@/features/reports/utils/formatters';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
@@ -18,7 +17,7 @@ import {
 import { AttachedFileUpload } from './AttachedFileUpload';
 import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
-import { MagistratIdentity } from './MagistratIdentity';
+import { Identity } from './Identity';
 import { Observers } from './Observers';
 import { ReportEditor } from './ReportEditor';
 import { ReportOverviewFileComment } from './ReportOverviewFileComment';
@@ -26,11 +25,7 @@ import { ReportOverviewState } from './ReportOverviewState';
 import { ReportSummaryCard } from './ReportSummaryCard';
 import { Summary } from './Summary';
 
-export type ReportOverviewProps = {
-  id: string;
-};
-
-export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
+export function ReportOverview({ id }: { id: string }) {
   const navigate = useNavigate();
 
   const { data: retrievedReport, isPending, error } = useReportQuery(id);
@@ -49,8 +44,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
     },
     navigate,
   );
-
-  const formattedBiography = formatBiography(retrievedReport.biography);
 
   const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ reportId: id, data: { status } });
@@ -97,19 +90,21 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
             className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
           >
             <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
-            <MagistratIdentity
+            <Identity
               name={retrievedReport.name}
               birthDate={retrievedReport.birthDate}
+              detectedMagistratId={retrievedReport.detectedMagistratId}
               grade={retrievedReport.grade}
-              currentPosition={retrievedReport.currentPosition!}
-              targettedPosition={retrievedReport.targettedPosition!}
-              rank={retrievedReport.rank!}
+              currentPosition={retrievedReport.currentPosition}
+              targetedGrade={retrievedReport.targetedGrade}
+              targettedPosition={retrievedReport.targettedPosition}
+              rank={retrievedReport.rank}
               dureeDuPoste={retrievedReport.dureeDuPoste}
               priorities={retrievedReport.priorities}
               sessionId={retrievedReport.sessionId}
               nominationFileId={retrievedReport.nominationFileId}
             />
-            <Biography biography={formattedBiography} />
+            <Biography biography={retrievedReport.biography} />
             <ReportOverviewFileComment report={retrievedReport} />
             <ReportSummaryCard
               summary={retrievedReport.summary}
@@ -136,6 +131,6 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({ id }) => {
       </div>
     </ArchiveBannerPortal>
   );
-};
+}
 
 export default ReportOverview;

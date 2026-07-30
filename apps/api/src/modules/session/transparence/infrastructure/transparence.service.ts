@@ -25,6 +25,10 @@ import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
+import {
+  type HydratedNominationFile,
+  HydratedNominationFilesFinder,
+} from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import { NominationSessionFinder } from './finders/transparence-session.finder';
@@ -60,6 +64,7 @@ import {
   InternalFindDocsNominationFilesQuery,
   InternalFoundAgendaNominationFiles,
 } from './queries/internal-find-docs-nomination-files.query';
+import { InternalListMagistratNominationFilesQuery } from './queries/internal-list-magistrat-nomination-files.query';
 import {
   InternalListMemberSessionsQuery,
   type ListedMemberSessionsDto,
@@ -100,6 +105,8 @@ export class TransparenceService {
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
+    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
+    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
@@ -582,6 +589,23 @@ export class TransparenceService {
     tx?: Prisma.TransactionClient;
   }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
+  }
+
+  /** @internal */
+  internalListMagistratNominationFiles(query: {
+    magistratId: string;
+    pagination: Pagination;
+    tx: Prisma.TransactionClient;
+  }) {
+    return this.internalListMagistratNominationFilesQuery.handle(query);
+  }
+
+  /** @internal */
+  internalHydrateNominationFiles(query: {
+    nominationFileIds: readonly string[];
+    tx: Prisma.TransactionClient;
+  }): Promise<HydratedNominationFile[]> {
+    return this.hydratedNominationFiles.hydrate(query);
   }
 
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {

@@ -19,7 +19,7 @@ function InnerNominationFileOutcomeBadge(props: {
   if (props.outcome === null) return '-';
 
   // ts hack to add the title
-  const badgeProps = { title: props.acronym ? props.label : undefined };
+  const badgeProps = { title: props.acronym ? (props.label ?? badge) : undefined };
   return (
     <Badge
       {...badgeProps}

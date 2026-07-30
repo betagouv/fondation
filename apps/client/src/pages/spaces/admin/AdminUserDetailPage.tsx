@@ -17,7 +17,7 @@ import { useConfirmation } from '@/shared/context/confirmation';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
   useAdminUserDetailQuery,
@@ -161,7 +161,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
           onSuccess: async () => {
             changeEdition(false);
 
-            const fullName = toFullName(props.user);
+            const fullName = memberFullName(props.user);
             const { isConfirmed } = await confirmation.waitForConfirmation({
               title: $t({
                 defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?`,
@@ -499,7 +499,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
 
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
-  const fullName = toFullName(user);
+  const fullName = memberFullName(user);
   const isUserImpersonable = !(
     ['FIRST_SECRETARY', 'OFFICER', 'SECRETARY'] satisfies DetailedAdminUserDto['role'][]
   ).includes(user.role as any); // oxlint-disable-line @typescript-eslint/no-explicit-any
@@ -562,7 +562,7 @@ export function AdminUserDetailPage() {
   if (isError || !user || !userId)
     return <div className="fr-container fr-py-8v">Utilisateur introuvable.</div>;
 
-  const fullName = user ? toFullName(user) : undefined;
+  const fullName = user ? memberFullName(user) : undefined;
 
   return (
     <div className="fr-container fr-pt-10v">

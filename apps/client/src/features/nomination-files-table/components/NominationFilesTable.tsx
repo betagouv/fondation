@@ -19,8 +19,8 @@ import {
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
-import { MagistratPanel } from './cells/magistrat-side-panel/components/MagistratPanel';
-import { MagistratPanelProvider } from './cells/magistrat-side-panel/context/MagistratPanelProvider';
+import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
+import { SidePanelProvider } from './cells/magistrat-side-panel/context/SidePanelProvider';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
@@ -91,7 +91,7 @@ function NominationFilesTableInner(props: PropsWithChildren) {
 
   return (
     <ObservationsModalProvider>
-      <MagistratPanelProvider
+      <SidePanelProvider
         isFetching={isFetching}
         nominationFiles={nominationFiles}
         onPageChange={onPageChange}
@@ -100,7 +100,7 @@ function NominationFilesTableInner(props: PropsWithChildren) {
       >
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
-            <MagistratPanel sessionId={sessionId} />
+            <MagistratSidePanel sessionId={sessionId} />
             <FilesSelectionProvider selection={tableState.rowSelection}>
               <FilesAffectationsProvider files={nominationFiles}>
                 <AlertsProvider>
@@ -138,7 +138,7 @@ function NominationFilesTableInner(props: PropsWithChildren) {
             </FilesSelectionProvider>
           </NominationFileTargetPositionProvider>
         </NominationFileOutcomeCommentModalProvider>
-      </MagistratPanelProvider>
+      </SidePanelProvider>
     </ObservationsModalProvider>
   );
 }

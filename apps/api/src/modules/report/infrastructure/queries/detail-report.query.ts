@@ -52,11 +52,13 @@ export class DetailReportQuery {
           select: {
             id: true,
             name: true,
+            detectedMagistratId: true,
             biography: true,
             number: true,
             birthDate: true,
             grade: true,
             currentPosition: true,
+            targetedGrade: true,
             targetedPosition: true,
             rank: true,
             observers: true,
@@ -190,6 +192,7 @@ export class DetailReportQuery {
       observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
       fileComment: report.nominationFile.comment,
+      targetedGrade: z.enum(GradeEnum).nullable().parse(report.nominationFile.targetedGrade),
       targettedPosition: report.nominationFile.targetedPosition,
       priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: report.nominationFile.priorities[0]
@@ -202,6 +205,7 @@ export class DetailReportQuery {
       formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
+      detectedMagistratId: report.nominationFile.detectedMagistratId,
 
       observations: report.nominationFile.observations.map((obs) => ({
         id: obs.id,
@@ -248,6 +252,7 @@ export class DetailedReportDto extends createZodDto(
     sessionId: z.string(),
     nominationFileId: z.string(),
     name: z.string(),
+    detectedMagistratId: z.string().nullable(),
     comment: z.string().nullable(),
     formation: z.enum(FormationEnum),
     state: z.enum(ReportStateEnum),
@@ -260,6 +265,7 @@ export class DetailedReportDto extends createZodDto(
     dateTransparence: dateOnlyJsonSchema,
     grade: z.enum(GradeEnum),
     currentPosition: z.string().nullable(),
+    targetedGrade: z.enum(GradeEnum).nullable(),
     targettedPosition: z.string().nullable(),
     rank: z.string().nullable(),
     observers: z.array(z.string()),

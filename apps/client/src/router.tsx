@@ -82,6 +82,13 @@ export const router = sentryCreateBrowserRouter([
                 Component: ObservationDetailsPage,
               })),
           },
+          {
+            path: ROUTE_PATHS.TRANSPARENCES.MAGISTRAT_DETAILS,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratDetailsPage').then(({ MagistratDetailsPage }) => ({
+                Component: MagistratDetailsPage,
+              })),
+          },
         ],
       },
       {
@@ -128,6 +135,13 @@ export const router = sentryCreateBrowserRouter([
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
                 Component: ObservationDetailsPage,
+              })),
+          },
+          {
+            path: ROUTE_PATHS.SG.MAGISTRAT_DETAILS,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratDetailsPage').then(({ MagistratDetailsPage }) => ({
+                Component: MagistratDetailsPage,
               })),
           },
           {

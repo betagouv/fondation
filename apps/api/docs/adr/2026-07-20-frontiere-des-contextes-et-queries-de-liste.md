@@ -1,6 +1,5 @@
 ---
 title: Les données d'un module sont servies par son API, pas par la requête du tableau des dossiers
-status: proposé
 author:
   - github.com/jessicakossibale
   - github.com/jquagliatini

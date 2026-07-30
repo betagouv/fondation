@@ -4,7 +4,7 @@ import { AuthGuard } from '@/features/auth/components/AuthGuard';
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 
-export const MemberLayout = () => {
+export function MemberLayout() {
   const params = useParams();
   const { pathname } = useLocation();
 
@@ -16,9 +16,9 @@ export const MemberLayout = () => {
     </PageContentLayout>
   );
 
-  if (pathname.includes('observations')) {
+  if (pathname.includes('observations') || pathname.includes('magistrats')) {
     children = <Outlet />;
   }
 
   return <AuthGuard authorizedRoles={AUTHORIZED_ROLES.MEMBER}>{children}</AuthGuard>;
-};
+}

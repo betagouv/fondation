@@ -154,6 +154,7 @@ export class ListNominationFilesQuery {
           informationCarrière: null,
           detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
           detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+          detectedMagistratId: x.detectedMagistratId ?? null,
           outcome: x.outcome
             ? {
                 comment: x.outcomeComment,
@@ -194,6 +195,7 @@ export class ListNominationFilesQuery {
                   id: obs.magistrat.id,
                   firstName: obs.magistrat.firstName,
                   lastName: obs.magistrat.lastName,
+                  usedName: obs.magistrat.usedName,
                 }
               : null,
           };
@@ -260,6 +262,7 @@ const NominationFileContentSchema = z.object({
   informationCarrière: z.string().nullable(),
   detectedJurisdictionId: z.string().nullable(),
   detectedTargetedFunctionId: z.string().nullable(),
+  detectedMagistratId: z.string().nullable(),
   outcome: z
     .object({
       value: z.enum(NominationFileOutcome.enum),
@@ -297,6 +300,7 @@ const RawListedNominationFiles = z.array(
     alertHidden: z.boolean(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
+    detectedMagistratId: z.string().nullable(),
     hasAttachment: z.boolean(),
     queryRank: z.number().nullable(),
 
@@ -331,6 +335,7 @@ const RawListedNominationFiles = z.array(
             id: z.string(),
             firstName: z.string(),
             lastName: z.string(),
+            usedName: z.string().nullable(),
           }),
           memberComments: z.array(z.object({ comment: z.string().nullable() })),
         }),
@@ -374,7 +379,14 @@ const NominationFileAffectationItemSchema = z.object({
       followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
-      magistrat: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
+      magistrat: z
+        .object({
+          id: z.string(),
+          firstName: z.string(),
+          lastName: z.string(),
+          usedName: z.string().nullable(),
+        })
+        .nullable(),
     }),
   ),
   memo: z.string().nullable(),

@@ -1,18 +1,16 @@
-import { differenceInYears, format } from 'date-fns';
-import React from 'react';
-import { FormattedMessage } from 'react-intl';
-
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
 import { AuditionBanner } from '@/shared/components/audition-banner';
-import { LolfiMagistratLink } from '@/shared/components/LolfiMagistratLink';
+import { IdentityList } from '@/shared/components/identity-list';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { TitleNameIcons } from '@/shared/components/title-name-icons';
 
 import { SummarySectionCard } from './SummarySectionCard';
 
 export function SummarySectionMagistrat() {
   const { summary, sessionId, nominationFileId } = useSummary();
+  const isSg = useIsSg();
 
   return (
     <SummarySectionCard id="magistrat">
@@ -22,9 +20,15 @@ export function SummarySectionMagistrat() {
             <PriorityBadgeList priorities={summary.priorities} small={false} />
           </div>
         )}
-        <h1 className="fr-mb-0 flex flex-row items-center">
-          <span>{summary.name}</span>
-          <LolfiMagistratLink sessionId={sessionId} nominationFileId={nominationFileId} name={summary.name} />
+        <h1 className="fr-mb-0">
+          <TitleNameIcons
+            detailsLink={{
+              context: isSg ? 'sg' : 'membre',
+              magistratId: summary.detectedMagistratId,
+            }}
+            lolfi={{ sessionId, nominationFileId }}
+            name={summary.name}
+          />
         </h1>
       </header>
 
@@ -34,77 +38,17 @@ export function SummarySectionMagistrat() {
         className="fr-mb-6v rounded px-4 py-3"
       />
 
-      <List>
-        <List.Item isVisible={!!summary.birthDate}>
-          <List.ItemTitle>
-            <FormattedMessage defaultMessage="Date de naissance" />
-          </List.ItemTitle>
-          <List.ItemContent>
-            <BirthDate date={summary.birthDate} />
-          </List.ItemContent>
-        </List.Item>
-
-        <List.Item isVisible={!!summary.position}>
-          <List.ItemTitle>
-            <FormattedMessage defaultMessage="Poste actuel" />
-          </List.ItemTitle>
-          <List.ItemContent>{summary.position}</List.ItemContent>
-        </List.Item>
-
-        <List.Item isVisible={!!summary.lastPositionDate}>
-          <List.ItemTitle>
-            <FormattedMessage defaultMessage="Durée sur le poste" />
-          </List.ItemTitle>
-          <List.ItemContent>
-            <FormattedPositionDuration value={summary.lastPositionDate} />
-          </List.ItemContent>
-        </List.Item>
-
-        <List.Item isVisible={!!summary.rank}>
-          <List.ItemTitle>
-            <FormattedMessage defaultMessage="Rang" />
-          </List.ItemTitle>
-          <List.ItemContent>{summary.rank}</List.ItemContent>
-        </List.Item>
-
-        <List.Item isVisible={!!summary.targetedPosition}>
-          <List.ItemTitle>
-            <FormattedMessage defaultMessage="Poste pressenti" />
-          </List.ItemTitle>
-          <List.ItemContent>{summary.targetedPosition}</List.ItemContent>
-        </List.Item>
-      </List>
+      <IdentityList
+        birthDate={summary.birthDate}
+        currentPosition={summary.position}
+        grade={summary.grade}
+        positionDuration={
+          summary.lastPositionDate && <FormattedPositionDuration value={summary.lastPositionDate} />
+        }
+        rank={summary.rank}
+        targetedGrade={summary.targetedGrade}
+        targetedPosition={summary.targetedPosition}
+      />
     </SummarySectionCard>
   );
 }
-
-function BirthDate(props: { date: { day: number; month: number; year: number } | null }) {
-  if (!props.date) return null;
-
-  const now = new Date();
-  const date = dateOnlyToDate(props.date);
-  const str = format(date, 'dd/MM/yyyy');
-
-  const age = differenceInYears(now, date);
-
-  return (
-    <FormattedMessage
-      defaultMessage="{date} ({age, plural, one {# an} other {# ans}})"
-      values={{ age, date: str }}
-    />
-  );
-}
-
-function List(props: { children: React.ReactNode }) {
-  return <dl className="m-0 flex flex-col gap-2 p-0">{props.children}</dl>;
-}
-
-List.ItemContent = (props: { children: React.ReactNode }) => <dd className="p-0">{props.children}</dd>;
-List.ItemTitle = (props: { children: React.ReactNode }) => (
-  <dt className="p-0 font-bold">{props.children}&nbsp;:&nbsp;</dt>
-);
-List.Item = function Item(props: { className?: string; isVisible?: boolean; children: React.ReactNode }) {
-  if (props.isVisible === false) return null;
-
-  return <div className={`flex flex-row ${props.className ?? ''}`}>{props.children}</div>;
-};

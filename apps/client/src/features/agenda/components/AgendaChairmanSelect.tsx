@@ -1,7 +1,8 @@
 import Select from '@codegouvfr/react-dsfr/Select';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useAgenda } from '@/features/agenda/context/AgendaContext';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
 export function AgendaChairmanSelect(props: {
@@ -9,6 +10,7 @@ export function AgendaChairmanSelect(props: {
   onChange: (id: string) => void;
   error?: string;
 }) {
+  const { formatMessage } = useIntl();
   const { session } = useAgenda();
 
   const { data: chairmen = [], isPending } = useDocsMembersQuery({
@@ -21,7 +23,8 @@ export function AgendaChairmanSelect(props: {
     <Select
       label={
         <>
-          Président de séance<span className="text-(--text-default-error)">*</span>
+          <FormattedMessage defaultMessage="Président de séance" />
+          <span className="text-(--text-default-error)">*</span>
         </>
       }
       nativeSelectProps={{
@@ -33,11 +36,11 @@ export function AgendaChairmanSelect(props: {
       stateRelatedMessage={props.error}
     >
       <option value="" disabled>
-        Sélectionner un président
+        {formatMessage({ defaultMessage: 'Sélectionner un président' })}
       </option>
       {chairmen.map((c) => (
         <option key={c.id} value={c.id}>
-          {toFullName(c)}
+          {memberFullName(c)}
         </option>
       ))}
     </Select>

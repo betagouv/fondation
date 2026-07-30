@@ -29,7 +29,7 @@ function MemberMemoStory(props: { isArchived: boolean; memo: string | null }) {
 }
 
 const meta = {
-  title: 'Features/Magistrat/MemberMemo',
+  title: 'Features/SidePanel/MemberMemo',
   component: MemberMemoStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

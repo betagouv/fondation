@@ -78,9 +78,12 @@ export function AppFooter() {
         ]}
         domains={isLogin ? undefined : []}
         classes={{
-          root: isLogin ? undefined : 'shadow-none!',
           body: isLogin ? undefined : 'hidden!',
-          bottomList: isLogin ? undefined : '',
+          bottom: isLogin ? undefined : 'mt-0! py-2!',
+          bottomCopy: isLogin ? undefined : 'hidden!',
+          bottomItem: isLogin ? undefined : 'm-0!',
+          bottomList: isLogin ? undefined : 'flex! flex-wrap! items-baseline! justify-center! gap-x-3!',
+          root: isLogin ? undefined : 'pt-0! shadow-none!',
         }}
         license={''}
       />

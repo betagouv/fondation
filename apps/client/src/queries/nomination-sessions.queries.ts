@@ -118,6 +118,7 @@ export const useSessionNominationFilesQuery = (options: {
 }) =>
   useQuery({
     placeholderData: (prev) => prev,
+    staleTime: 30_000,
     queryKey: sessionKeys.listSessionNominationFiles(options),
     queryFn: () => {
       return $api.sessions

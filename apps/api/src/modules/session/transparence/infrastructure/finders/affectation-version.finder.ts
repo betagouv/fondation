@@ -74,13 +74,13 @@ export class AffectationVersionFinder {
     });
   }
 
-  async findReporterIds(query: {
+  async findReporters(query: {
     nominationFileId: string;
     sessionId: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<string[]> {
+  }): Promise<{ id: string; firstName: string; lastName: string }[]> {
     if (!query.tx) {
-      return this.prisma.$transaction((tx) => this.findReporterIds({ ...query, tx }));
+      return this.prisma.$transaction((tx) => this.findReporters({ ...query, tx }));
     }
 
     const version = await this.lastPublished({
@@ -91,14 +91,14 @@ export class AffectationVersionFinder {
     if (version.isNone()) return [];
 
     const reporters = await query.tx.nominationFileToReporter.findMany({
-      select: { userId: true },
+      select: { user: { select: { id: true, firstName: true, lastName: true } } },
       where: {
         versionId: version.id,
         nominationFileId: query.nominationFileId,
       },
     });
 
-    return reporters.map(({ userId }) => userId);
+    return reporters.map(({ user }) => user);
   }
 }
 

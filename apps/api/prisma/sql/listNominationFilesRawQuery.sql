@@ -39,6 +39,7 @@ SELECT
   ddn.alert_hidden AS "alertHidden",
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
+  ddn.detected_magistrat_id AS "detectedMagistratId",
 
   EXISTS (
     SELECT 1
@@ -85,7 +86,12 @@ FROM
           'description', obs.description,
           'dateReception', obs.date_reception,
 
-          'magistrat', JSON_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name),
+          'magistrat', JSON_BUILD_OBJECT(
+            'id', m.id,
+            'firstName', m.first_name,
+            'lastName', m.last_name,
+            'usedName', m.used_name
+          ),
           'memberComments', JSON_AGG(
             JSON_BUILD_OBJECT('comment', omc."comment")
           )

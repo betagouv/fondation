@@ -1,9 +1,11 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import { fullNameUpperCase } from '@/utils/user.utils';
 
 export function ObservationLinks(props: {
   context?: 'sg' | 'membre';
@@ -16,7 +18,7 @@ export function ObservationLinks(props: {
       id: string;
       hasDescription: boolean;
       hasUserComment: boolean;
-      magistrat: { id: string; firstName: string; lastName: string } | null;
+      magistrat: { id: string; firstName: string; lastName: string; usedName: string | null } | null;
     }[];
   };
 }) {
@@ -24,7 +26,9 @@ export function ObservationLinks(props: {
     <div className="flex flex-col gap-1">
       {props.nominationFile.legacyObservers.length > 0 && (
         <div className="text-sm">
-          <span className="font-medium text-(--text-mention-grey)">LODAM: </span>
+          <span className="font-medium text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="LODAM :" />{' '}
+          </span>
           <span>{props.nominationFile.legacyObservers.join(', ')}</span>
         </div>
       )}
@@ -45,7 +49,7 @@ export function ObservationLinks(props: {
                     observationId: obs.id,
                   })}
                 >
-                  {obs.magistrat?.firstName} {obs.magistrat?.lastName}
+                  {obs.magistrat ? fullNameUpperCase(obs.magistrat) : null}
                   {(obs.hasDescription || obs.hasUserComment) && (
                     <i className={clsx(cx('ri-message-3-line'), 'fr-ml-1v')} />
                   )}

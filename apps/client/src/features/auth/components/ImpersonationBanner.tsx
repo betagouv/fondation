@@ -1,9 +1,10 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { PermanentBanner } from '@/shared/components/banners';
-import { toFullName } from '@/utils/user.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
 
 const text = colors.options.purpleGlycine.main494.default;
@@ -26,7 +27,10 @@ export function ImpersonationBanner() {
   return (
     <PermanentBanner className="flex items-center" style={{ color: text, backgroundColor: bgColor }}>
       <span>
-        Connecté en tant que <strong>{user ? toFullName(user) : ''}</strong>
+        <FormattedMessage
+          defaultMessage="Connecté en tant que <b>{name}</b>"
+          values={{ b: (chunks) => <strong>{chunks}</strong>, name: user ? memberFullName(user) : '' }}
+        />
       </span>
       <Button
         size="small"
@@ -35,7 +39,7 @@ export function ImpersonationBanner() {
         onClick={onClick}
         disabled={isPending}
       >
-        Déconnecter
+        <FormattedMessage defaultMessage="Déconnecter" />
       </Button>
     </PermanentBanner>
   );
