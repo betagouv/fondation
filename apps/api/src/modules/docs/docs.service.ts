@@ -1,10 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { PrismaService } from '../framework/database';
+import { Db } from '../framework/database';
 import { MembersService } from '../members';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from '../shared/formation.enum';
-import { Prisma } from 'src/generated/prisma/client';
 
 import { AgendasService } from './agenda/agendas.service';
 import { OfficialReportsService } from './official-report/official-reports.service';
@@ -49,7 +48,7 @@ export class DocsService {
     private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
     private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
@@ -77,7 +76,7 @@ export class DocsService {
     name: string;
     authorId: string;
   }): Promise<{ id: string; name: string }> {
-    const result = await this.prisma.justiceDepartmentContact.create({
+    const result = await this.db.tx.justiceDepartmentContact.create({
       data: { name: command.name, authorId: command.authorId },
     });
 
@@ -94,7 +93,6 @@ export class DocsService {
   }
 
   internalFindNominationFilesLinkedDocs(query: {
-    tx?: Prisma.TransactionClient;
     nominationFileIds: Set<string>;
   }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
     return this.internalFindNominationFileLinkedDocsQuery.handle(query);

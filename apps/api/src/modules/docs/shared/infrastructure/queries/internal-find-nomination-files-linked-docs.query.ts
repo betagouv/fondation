@@ -1,27 +1,23 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindNominationFilesLinkedDocsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
-    tx?: Prisma.TransactionClient;
     nominationFileIds: Set<string>;
   }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
     assertPgParams(query.nominationFileIds);
 
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.handle({ ...query, tx }));
-    }
-
     const nominationFileIds = Array.from(query.nominationFileIds);
 
-    const nominationFiles = await query.tx.dossierDeNomination.findMany({
+    const nominationFiles = await this.db.tx.dossierDeNomination.findMany({
       where: { id: { in: nominationFileIds } },
       select: {
         id: true,

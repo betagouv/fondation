@@ -1,29 +1,28 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
 import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
-import { Prisma } from 'src/generated/prisma/client';
 import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
 @Injectable()
 export class AgendaRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
-  async persist(agenda: Agenda, tx?: Prisma.TransactionClient): Promise<OfficialReportInvalidation[]> {
-    if (!tx) return this.prisma.$transaction((tx) => this.persist(agenda, tx));
-
+  @Transactional(Propagation.Mandatory)
+  async persist(agenda: Agenda): Promise<OfficialReportInvalidation[]> {
     let invalidations: OfficialReportInvalidation[] = [];
 
     for (const message of agenda.messages) {
       if (message instanceof AgendaCreated) {
-        await this.persistAgendaCreated(tx, message);
+        await this.persistAgendaCreated(message);
       } else if (message instanceof AgendaUpdated) {
-        invalidations = await this.persistAgendaUpdated(tx, message);
+        invalidations = await this.persistAgendaUpdated(message);
       } else if (message instanceof AgendaDeleted) {
-        await this.persistAgendaDeleted(tx, message);
+        await this.persistAgendaDeleted(message);
       } else {
         assertNever(message);
       }
@@ -32,10 +31,9 @@ export class AgendaRepository {
     return invalidations;
   }
 
-  async find(query: { agendaId: string; tx?: Prisma.TransactionClient }): Promise<Agenda> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
-
-    const foundAgenda = await query.tx.agenda.findUnique({
+  @Transactional()
+  async find(query: { agendaId: string }): Promise<Agenda> {
+    const foundAgenda = await this.db.tx.agenda.findUnique({
       select: { id: true, sessionId: true, officialReportId: true },
       where: { id: query.agendaId },
     });
@@ -51,8 +49,8 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaCreated(tx: Prisma.TransactionClient, message: AgendaCreated) {
-    const session = await tx.session.findUnique({
+  private async persistAgendaCreated(message: AgendaCreated) {
+    const session = await this.db.tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
       select: { formation: true, name: true },
     });
@@ -60,7 +58,7 @@ export class AgendaRepository {
     if (!session) throw new InternalServerErrorException();
     const { formation, name } = session;
 
-    return tx.agenda.create({
+    return this.db.tx.agenda.create({
       data: {
         formation,
         sessionName: name.trim(),
@@ -95,17 +93,14 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaUpdated(
-    tx: Prisma.TransactionClient,
-    message: AgendaUpdated,
-  ): Promise<OfficialReportInvalidation[]> {
+  private async persistAgendaUpdated(message: AgendaUpdated): Promise<OfficialReportInvalidation[]> {
     const invalidations: OfficialReportInvalidation[] = [];
 
-    await tx.agendaNominationFile.deleteMany({
+    await this.db.tx.agendaNominationFile.deleteMany({
       where: { agendaId: message.agendaId },
     });
 
-    const agenda = await tx.agenda.findFirst({
+    const agenda = await this.db.tx.agenda.findFirst({
       select: {
         pdf: { select: { id: true } },
         officialReportId: true,
@@ -130,23 +125,23 @@ export class AgendaRepository {
       invalidations.push({ type: 'AgendaNominationFilesUpdated', payload: { agendaId: message.agendaId } });
 
     if (agenda?.pdf?.id) {
-      await tx.agenda.update({
+      await this.db.tx.agenda.update({
         where: { id: message.agendaId },
         data: { pdfFileId: null },
       });
 
-      await tx.file.deleteMany({
+      await this.db.tx.file.deleteMany({
         where: { id: agenda.pdf.id },
       });
     }
 
     if (agenda?.officialReportId) {
-      await tx.officialReport.delete({
+      await this.db.tx.officialReport.delete({
         where: { id: agenda.officialReportId },
       });
     }
 
-    await tx.agenda.update({
+    await this.db.tx.agenda.update({
       where: { id: message.agendaId },
       data: {
         html: null,
@@ -182,23 +177,24 @@ export class AgendaRepository {
     return invalidations;
   }
 
-  private async persistAgendaDeleted(tx: Prisma.TransactionClient, message: AgendaDeleted) {
-    const found = await tx.agenda.findUnique({
+  private async persistAgendaDeleted(message: AgendaDeleted) {
+    const found = await this.db.tx.agenda.findUnique({
       where: { id: message.agendaId },
       select: { pdfFileId: true, justicePresentationPlanId: true, officialReportId: true },
     });
     if (!found) return;
 
-    if (found.pdfFileId) await tx.file.delete({ where: { id: found.pdfFileId } });
-    if (found.officialReportId) await tx.officialReport.delete({ where: { id: found.officialReportId } });
+    if (found.pdfFileId) await this.db.tx.file.delete({ where: { id: found.pdfFileId } });
+    if (found.officialReportId)
+      await this.db.tx.officialReport.delete({ where: { id: found.officialReportId } });
     if (found.justicePresentationPlanId) {
-      await tx.justicePresentationPlanToAgenda.delete({
+      await this.db.tx.justicePresentationPlanToAgenda.delete({
         where: { agendaId: message.agendaId, planId: found.justicePresentationPlanId },
       });
 
-      await tx.justicePresentationPlan.delete({ where: { id: found.justicePresentationPlanId } });
+      await this.db.tx.justicePresentationPlan.delete({ where: { id: found.justicePresentationPlanId } });
     }
 
-    await tx.agenda.delete({ where: { id: message.agendaId } });
+    await this.db.tx.agenda.delete({ where: { id: message.agendaId } });
   }
 }

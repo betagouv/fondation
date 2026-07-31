@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
@@ -11,7 +12,7 @@ import {
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
 import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
@@ -22,14 +23,13 @@ export class JusticePresentationPlanRepository {
   private readonly logger = new Logger(JusticePresentationPlanRepository.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
   ) {}
 
-  async find(query: { id: string; tx?: Prisma.TransactionClient }): Promise<JusticePresentationPlan> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
-
-    const found = await query.tx.justicePresentationPlan.findUnique({
+  @Transactional()
+  async find(query: { id: string }): Promise<JusticePresentationPlan> {
+    const found = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: query.id },
       select: {
         id: true,
@@ -49,21 +49,20 @@ export class JusticePresentationPlanRepository {
     });
   }
 
-  async persist(plan: JusticePresentationPlan, tx?: Prisma.TransactionClient): Promise<void> {
-    if (!tx) return this.prisma.$transaction((tx) => this.persist(plan, tx));
-
+  @Transactional(Propagation.Mandatory)
+  async persist(plan: JusticePresentationPlan): Promise<void> {
     for (const message of plan.messages) {
       if (
         message instanceof JusticePresentationPlanCreated ||
         message instanceof JusticePresentationPlanUpdated
       ) {
-        await this.persistJusticePresentationPlanUpserted(tx, message);
+        await this.persistJusticePresentationPlanUpserted(message);
       } else if (message instanceof JusticePresentationPlanDeleted) {
-        await this.persistJusticePresentationPlanDeleted(tx, message);
+        await this.persistJusticePresentationPlanDeleted(message);
       } else if (message instanceof JusticePresentationPlanPresented) {
-        await this.persistJusticePresentationPlanPresented(tx, message);
+        await this.persistJusticePresentationPlanPresented(message);
       } else if (message instanceof JusticePresentationPlanUnPresented) {
-        await this.persistJusticePresentationPlanUnPresented(tx, message);
+        await this.persistJusticePresentationPlanUnPresented(message);
       } else {
         assertNever(message);
       }
@@ -71,10 +70,9 @@ export class JusticePresentationPlanRepository {
   }
 
   private async persistJusticePresentationPlanUpserted(
-    tx: Prisma.TransactionClient,
     message: JusticePresentationPlanCreated | JusticePresentationPlanUpdated,
   ) {
-    const justiceContact = await tx.justiceDepartmentContact.findUnique({
+    const justiceContact = await this.db.tx.justiceDepartmentContact.findUnique({
       where: { id: BigInt(message.state.justiceContactId) },
       select: { id: true, name: true },
     });
@@ -84,7 +82,7 @@ export class JusticePresentationPlanRepository {
       throw new InternalServerErrorException();
     }
 
-    const agendas = await tx.agenda.findMany({
+    const agendas = await this.db.tx.agenda.findMany({
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
       select: {
         id: true,
@@ -100,7 +98,6 @@ export class JusticePresentationPlanRepository {
       agendas.map(
         async ({ id: agendaId, officialReportId, sessionId, sessionName, formation, nominationFiles }) => {
           const { items } = await this.docsNominationFilesFinder.findNonReported({
-            tx,
             sessionId,
             formation: prismaFormationEnumToFormationEnum(formation),
             ignoreOfficialReportId: officialReportId ?? undefined,
@@ -155,24 +152,24 @@ export class JusticePresentationPlanRepository {
       justiceDepartmentContactName: justiceContact.name,
     } satisfies Prisma.JusticePresentationPlanUncheckedUpdateInput;
 
-    await tx.justicePresentationPlanToAgenda.deleteMany({
+    await this.db.tx.justicePresentationPlanToAgenda.deleteMany({
       where: { planId: message.id },
     });
 
-    await tx.agenda.updateMany({
+    await this.db.tx.agenda.updateMany({
       data: { justicePresentationPlanId: null },
       where: { justicePresentationPlanId: message.id },
     });
 
-    await tx.agenda.updateMany({
+    await this.db.tx.agenda.updateMany({
       data: { justicePresentationPlanId: message.id },
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
     });
 
-    await tx.justicePresentationPlanMember.deleteMany({ where: { planId: message.id } });
-    await tx.justicePresentationPlanNominationFile.deleteMany({ where: { planId: message.id } });
+    await this.db.tx.justicePresentationPlanMember.deleteMany({ where: { planId: message.id } });
+    await this.db.tx.justicePresentationPlanNominationFile.deleteMany({ where: { planId: message.id } });
 
-    await tx.justicePresentationPlan.upsert({
+    await this.db.tx.justicePresentationPlan.upsert({
       where: { id: message.id },
 
       create: {
@@ -214,48 +211,39 @@ export class JusticePresentationPlanRepository {
     });
   }
 
-  private async persistJusticePresentationPlanDeleted(
-    tx: Prisma.TransactionClient,
-    message: JusticePresentationPlanDeleted,
-  ) {
-    await tx.justicePresentationPlanToAgenda.deleteMany({
+  private async persistJusticePresentationPlanDeleted(message: JusticePresentationPlanDeleted) {
+    await this.db.tx.justicePresentationPlanToAgenda.deleteMany({
       where: { planId: message.id },
     });
 
-    await tx.agenda.updateMany({
+    await this.db.tx.agenda.updateMany({
       data: { justicePresentationPlanId: null },
       where: { justicePresentationPlanId: message.id },
     });
 
-    const file = await tx.justicePresentationPlan.findUnique({
+    const file = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
       select: { pdf: { select: { id: true } } },
     });
 
     if (file?.pdf?.id) {
-      await tx.file.delete({ where: { id: file.pdf.id } });
+      await this.db.tx.file.delete({ where: { id: file.pdf.id } });
     }
 
-    await tx.justicePresentationPlan.delete({
+    await this.db.tx.justicePresentationPlan.delete({
       where: { id: message.id },
     });
   }
 
-  private async persistJusticePresentationPlanPresented(
-    tx: Prisma.TransactionClient,
-    message: JusticePresentationPlanPresented,
-  ) {
-    await tx.justicePresentationPlan.update({
+  private async persistJusticePresentationPlanPresented(message: JusticePresentationPlanPresented) {
+    await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
       data: { isPresented: true, endTime: timeOnlyToDate(message.endTime) },
     });
   }
 
-  private async persistJusticePresentationPlanUnPresented(
-    tx: Prisma.TransactionClient,
-    message: JusticePresentationPlanUnPresented,
-  ) {
-    await tx.justicePresentationPlan.update({
+  private async persistJusticePresentationPlanUnPresented(message: JusticePresentationPlanUnPresented) {
+    await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
       data: { isPresented: false },
     });

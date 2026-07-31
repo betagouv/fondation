@@ -1,7 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -10,35 +11,34 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class ListPresentedPlansQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: { pagination: Pagination }): Promise<ListedPresentedPlansDto> {
-    const [totalCount, items] = await this.prisma.$transaction([
-      this.prisma.justicePresentationPlan.count({
-        where: { isPresented: true },
-      }),
-      this.prisma.justicePresentationPlan.findMany({
-        orderBy: { date: 'desc' },
-        take: query.pagination.limit,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
+    const totalCount = await this.db.tx.justicePresentationPlan.count({
+      where: { isPresented: true },
+    });
+    const items = await this.db.tx.justicePresentationPlan.findMany({
+      orderBy: { date: 'desc' },
+      take: query.pagination.limit,
+      skip: (query.pagination.page - 1) * query.pagination.limit,
 
-        select: {
-          id: true,
-          date: true,
-          time: true,
-          chairmanLastName: true,
-          chairmanFirstName: true,
-          agendas: {
-            take: 1,
-            select: { agenda: { select: { formation: true } } },
-          },
+      select: {
+        id: true,
+        date: true,
+        time: true,
+        chairmanLastName: true,
+        chairmanFirstName: true,
+        agendas: {
+          take: 1,
+          select: { agenda: { select: { formation: true } } },
         },
-        where: {
-          pdfId: { not: null },
-          isPresented: true,
-        },
-      }),
-    ]);
+      },
+      where: {
+        pdfId: { not: null },
+        isPresented: true,
+      },
+    });
 
     return paginate({
       totalCount,

@@ -106,7 +106,6 @@ export class InternalInvalidateOfficialReportUseCase {
       );
 
       const { items } = await this.docsNominationFilesFinder.findNonReported({
-        tx: this.db.tx,
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
         ignoreOfficialReportId: agenda.officialReportId,
@@ -201,7 +200,6 @@ export class InternalInvalidateOfficialReportUseCase {
       );
 
       const { items } = await this.docsNominationFilesFinder.findNonReported({
-        tx: this.db.tx,
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
         ignoreOfficialReportId: agenda.officialReportId,

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { formatDate } from 'date-fns';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 import { makeId } from 'src/utils/id';
@@ -20,15 +20,15 @@ export class FindPresentationPlanDocumentPdfQuery {
   private readonly logger = new Logger(FindPresentationPlanDocumentPdfQuery.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
     private readonly pdfRenderer: PdfRenderer,
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const file = await this.prisma.$transaction(async (tx) => {
-      const plan = await tx.justicePresentationPlan.findUnique({
+    const file = await this.db.withTransaction(async () => {
+      const plan = await this.db.tx.justicePresentationPlan.findUnique({
         where: { id: query.id },
         select: {
           date: true,
@@ -47,7 +47,7 @@ export class FindPresentationPlanDocumentPdfQuery {
           formation: assertIsDefined(plan.agendas[0]).agenda.formation,
         };
 
-      const file$ = await this.files.getFile({ fileId: plan.pdf?.id, tx });
+      const file$ = await this.files.getFile({ fileId: plan.pdf?.id, tx: this.db.tx });
       if (!file$) {
         this.logger.error(`Could not retrieve the presentation plan (${query.id}) from S3`);
         throw new InternalServerErrorException();
@@ -78,7 +78,7 @@ export class FindPresentationPlanDocumentPdfQuery {
       },
     ]);
 
-    await this.prisma.justicePresentationPlan
+    await this.db.tx.justicePresentationPlan
       .update({
         where: { id: query.id },
         data: { pdfId: pdfFileId },

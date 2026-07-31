@@ -432,7 +432,6 @@ export class OfficialReportRepository {
     officialReportId: string;
   }) {
     const { items } = await this.nominationFilesFinder.findNonReported({
-      tx: this.db.tx,
       ids: query.ids,
       sessionId: query.sessionId,
       ignoreOfficialReportId: query.officialReportId,

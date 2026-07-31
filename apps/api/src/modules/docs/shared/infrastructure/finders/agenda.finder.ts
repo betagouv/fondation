@@ -1,9 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import {
@@ -19,18 +20,17 @@ export class AgendaFinder {
   private readonly logger = new Logger(AgendaFinder.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
   ) {}
 
-  async findNonIncludedInOfficialReport(query: {
+  findNonIncludedInOfficialReport(query: {
     ids?: Set<string>;
     sessionId?: string;
     formation?: FormationEnum;
     ignoreOfficialReportId?: string;
-    tx?: Prisma.TransactionClient;
   }): Promise<FoundAgendasDto> {
     return this.find(
       {
@@ -40,14 +40,12 @@ export class AgendaFinder {
         formation: query.formation ? formationEnumToPrismaFormationEnum(query.formation) : undefined,
       },
       query.ids,
-      query.tx,
     );
   }
 
-  async findNonIncludedInPresentationPlan(query: {
+  findNonIncludedInPresentationPlan(query: {
     ids?: Set<string>;
     ignorePlanId?: string;
-    tx?: Prisma.TransactionClient;
   }): Promise<FoundAgendasDto> {
     return this.find(
       {
@@ -55,24 +53,18 @@ export class AgendaFinder {
         OR: [{ justicePresentationPlanId: null }, { justicePresentationPlanId: query.ignorePlanId }],
       },
       query.ids,
-      query.tx,
     );
   }
 
-  private async find(
-    where: Prisma.AgendaWhereInput,
-    ids?: Set<string>,
-    tx?: Prisma.TransactionClient,
-  ): Promise<FoundAgendasDto> {
-    if (!tx) return this.prisma.$transaction((tx) => this.find(where, ids, tx));
-
+  @Transactional()
+  private async find(where: Prisma.AgendaWhereInput, ids?: Set<string>): Promise<FoundAgendasDto> {
     const size = ids?.size ?? 0;
     if (size > 32_000) {
       this.logger.error(`${size} params provided, max 32,000`);
       throw new InternalServerErrorException();
     }
 
-    const items = await tx.agenda.findMany({
+    const items = await this.db.tx.agenda.findMany({
       where,
       orderBy: { date: 'asc' },
       select: {
@@ -114,7 +106,7 @@ export class AgendaFinder {
     const sessions = new Map<string, { typeDeSaisine: TypeDeSaisineEnum; date: DateOnlyJson }>();
     const sessionIds = new Set(items.map(({ sessionId }) => sessionId));
     for (const sessionId of sessionIds) {
-      const session = await this.sessions.details({ sessionId, tx });
+      const session = await this.sessions.details({ sessionId, tx: this.db.tx });
       sessions.set(sessionId, { date: session.date, typeDeSaisine: session.typeDeSaisine });
     }
 

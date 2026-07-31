@@ -1,7 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { PrismaService } from '../../framework/database';
+import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { OfficialReportsInvalidatedIntegrationEvent } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -39,7 +40,7 @@ export class AgendasService {
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     private readonly events: EventEmitter2,
 
@@ -47,6 +48,7 @@ export class AgendasService {
     private readonly members: MembersService,
   ) {}
 
+  @Transactional()
   async createAgenda(command: {
     authorId: string;
     sessionId: string;
@@ -55,47 +57,43 @@ export class AgendasService {
     sessionMeetingDate: DateOnlyJson;
     nominationFileIds: readonly string[];
   }): Promise<CreatedAgendaDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const chairman = await this.members.internalGetMember({
-        tx,
-        id: command.chairmanId,
-      });
-
-      const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
-        tx,
-        sessionId: command.sessionId,
-        ids: command.nominationFileIds,
-      });
-
-      const reportedFiles = await this.reportedNominationFilesFinder.find({
-        tx,
-        fileIds: new Set(nominationFiles.map(({ id }) => id)),
-      });
-
-      const agenda = Agenda.create({
-        chairman,
-        reportedFiles,
-        authorId: command.authorId,
-        sessionId: command.sessionId,
-        date: DateOnly.fromJson(command.date),
-        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-        nominationFiles: nominationFiles.map((f) => ({
-          id: f.id,
-          number: f.number,
-          outcome: f.outcome,
-          name: f.magistrat.name,
-          grade: f.magistrat.position.grade,
-          currentPosition: f.magistrat.position.label,
-          targetedGrade: f.targetPosition.grade,
-          targetedPosition: f.targetPosition.label,
-          reporters: f.reporters.map((r) => r.fullTitledName),
-        })),
-      });
-
-      await this.agendaRepository.persist(agenda, tx);
-
-      return { id: agenda.id };
+    const chairman = await this.members.internalGetMember({
+      tx: this.db.tx,
+      id: command.chairmanId,
     });
+
+    const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
+      sessionId: command.sessionId,
+      ids: command.nominationFileIds,
+    });
+
+    const reportedFiles = await this.reportedNominationFilesFinder.find({
+      fileIds: new Set(nominationFiles.map(({ id }) => id)),
+    });
+
+    const agenda = Agenda.create({
+      chairman,
+      reportedFiles,
+      authorId: command.authorId,
+      sessionId: command.sessionId,
+      date: DateOnly.fromJson(command.date),
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      nominationFiles: nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        outcome: f.outcome,
+        name: f.magistrat.name,
+        grade: f.magistrat.position.grade,
+        currentPosition: f.magistrat.position.label,
+        targetedGrade: f.targetPosition.grade,
+        targetedPosition: f.targetPosition.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
+      })),
+    });
+
+    await this.agendaRepository.persist(agenda);
+
+    return { id: agenda.id };
   }
 
   async updateAgenda(command: {
@@ -106,25 +104,20 @@ export class AgendasService {
     sessionMeetingDate: DateOnlyJson;
     nominationFileIds: readonly string[];
   }): Promise<void> {
-    const invalidations = await this.prisma.$transaction(async (tx) => {
-      const agenda = await this.agendaRepository.find({
-        tx,
-        agendaId: command.agendaId,
-      });
+    const invalidations = await this.db.withTransaction(async () => {
+      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
 
       const chairman = await this.members.internalGetMember({
-        tx,
+        tx: this.db.tx,
         id: command.chairmanId,
       });
 
       const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
-        tx,
         sessionId: agenda.sessionId,
         ids: command.nominationFileIds,
       });
 
       const reportedFiles = await this.reportedNominationFilesFinder.find({
-        tx,
         fileIds: new Set(nominationFiles.map(({ id }) => id)),
         ignoreOfficialReportId: agenda.officialReportId ?? undefined,
       });
@@ -148,7 +141,7 @@ export class AgendasService {
         })),
       });
 
-      return await this.agendaRepository.persist(agenda, tx);
+      return this.agendaRepository.persist(agenda);
     });
 
     for (const invalidation of invalidations) {
@@ -159,12 +152,11 @@ export class AgendasService {
     }
   }
 
+  @Transactional()
   async deleteAgenda(command: { agendaId: string }): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      const agenda = await this.agendaRepository.find({ ...command, tx });
-      agenda.delete();
-      await this.agendaRepository.persist(agenda, tx);
-    });
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.delete();
+    await this.agendaRepository.persist(agenda);
   }
 
   getOrCreateAgendaDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
@@ -184,13 +176,13 @@ export class AgendasService {
   }
 
   async resetAgendaDocument(command: { id: string }): Promise<void> {
-    const agenda = await this.prisma.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findUnique({
       where: { id: command.id },
       select: { pdf: { select: { id: true, path: true } } },
     });
     if (!agenda) throw new NotFoundException();
 
-    await this.prisma.agenda.update({
+    await this.db.tx.agenda.update({
       where: { id: command.id },
       data: { html: null, isManuallyEdited: false, pdfFileId: null },
     });
@@ -199,7 +191,7 @@ export class AgendasService {
   }
 
   async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
-    await this.prisma.agenda.update({
+    await this.db.tx.agenda.update({
       where: { id: command.id },
       data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
     });

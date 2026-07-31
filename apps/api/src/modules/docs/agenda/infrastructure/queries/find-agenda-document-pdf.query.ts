@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
@@ -19,14 +19,14 @@ export class FindAgendaDocumentPdfQuery {
 
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const file = await this.prisma.$transaction(async (tx) => {
-      const agenda = await tx.agenda.findUnique({
+    const file = await this.db.withTransaction(async () => {
+      const agenda = await this.db.tx.agenda.findUnique({
         where: { id: query.id },
         select: {
           sessionId: true,
@@ -43,7 +43,7 @@ export class FindAgendaDocumentPdfQuery {
 
       if (query.forceNew || !agenda.pdf || !agenda.pdf.id) return agenda;
 
-      const file$ = await this.files.getFile({ fileId: agenda.pdf.id, tx });
+      const file$ = await this.files.getFile({ fileId: agenda.pdf.id, tx: this.db.tx });
       if (!file$) {
         this.logger.error(`Could not retrieve the agenda PDF file from S3`);
         throw new InternalServerErrorException();
@@ -74,7 +74,7 @@ export class FindAgendaDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.prisma.agenda.update({
+      await this.db.tx.agenda.update({
         where: { id: query.id },
         data: { pdfFileId },
       });

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -11,10 +11,10 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class ListNonPresentedPlansQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(): Promise<ListedNonPresentedPlansDto> {
-    const plans = await this.prisma.justicePresentationPlan.findMany({
+    const plans = await this.db.tx.justicePresentationPlan.findMany({
       select: {
         id: true,
         date: true,

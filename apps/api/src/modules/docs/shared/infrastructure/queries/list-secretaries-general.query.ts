@@ -4,16 +4,16 @@ import z from 'zod';
 
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 
 @Injectable()
 export class ListSecretariesGeneralQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(): Promise<ListedSecretariesGeneralDto> {
-    const secretaries = await this.prisma.user.findMany({
+    const secretaries = await this.db.tx.user.findMany({
       where: { duty: 'SECRETARY' },
       select: {
         id: true,

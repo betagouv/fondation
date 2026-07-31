@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
@@ -7,8 +8,7 @@ import {
   docNominationFileOutcomeLabel,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -24,17 +24,17 @@ export class DocsNominationFilesFinder {
 
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
 
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
+  @Transactional()
   async find(query: {
     sessionId: string;
     formation?: FormationEnum;
     ids?: readonly string[];
-    tx?: Prisma.TransactionClient;
   }): Promise<FoundDocsNominationFiles> {
     const { items: sessionNominationFiles } = (await this.sessions.internalFindNominationFiles({
-      tx: query.tx,
+      tx: this.db.tx,
       ids: query.ids,
       sessionId: query.sessionId,
     })) as FoundDocsNominationFiles;
@@ -42,7 +42,7 @@ export class DocsNominationFilesFinder {
 
     const formation =
       query.formation ??
-      (await this.sessions.internalGetSessionFormation({ tx: query.tx, sessionId: query.sessionId }));
+      (await this.sessions.internalGetSessionFormation({ tx: this.db.tx, sessionId: query.sessionId }));
 
     const items = sessionNominationFiles.map((file) => {
       if (!file.outcome) return file;
@@ -55,12 +55,12 @@ export class DocsNominationFilesFinder {
     return { items };
   }
 
+  @Transactional()
   async findNonReported(query: {
     sessionId: string;
     formation?: FormationEnum;
     ignoreOfficialReportId?: string;
     ids?: readonly string[];
-    tx?: Prisma.TransactionClient;
   }): Promise<FoundDocsNominationFiles> {
     const { items: sessionNominationFiles } = await this.find(query);
     if (sessionNominationFiles.length === 0) return { items: [] };
@@ -68,7 +68,6 @@ export class DocsNominationFilesFinder {
     const fileIds = new Set(sessionNominationFiles.map((f) => f.id));
     const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
       fileIds,
-      tx: query.tx,
       ignoreOfficialReportId: query.ignoreOfficialReportId,
     });
 
@@ -83,16 +82,12 @@ export class DocsNominationFilesFinder {
     return { items };
   }
 
+  @Transactional()
   async findNonReportedByAgendaIds(query: {
     agendaIds: Set<string>;
     ignoreOfficialReportId?: string;
-    tx?: Prisma.TransactionClient;
   }): Promise<FoundDocsNominationFiles> {
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.findNonReportedByAgendaIds({ ...query, tx }));
-    }
-
-    const agendaList = await query.tx.agenda.findMany({
+    const agendaList = await this.db.tx.agenda.findMany({
       where: { id: { in: [...query.agendaIds] } },
       select: {
         id: true,
@@ -110,7 +105,6 @@ export class DocsNominationFilesFinder {
     for (const [sessionId, list] of bySessionId) {
       const { items } = await this.findNonReported({
         sessionId,
-        tx: query.tx,
         ids: list.flatMap((x): string[] =>
           x.nominationFiles
             .map(({ nominationFileId }) => nominationFileId)

@@ -99,7 +99,6 @@ export class OfficialReportsService {
 
     const uniqueAgendaIds = new Set(command.agendaIds);
     const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
-      tx,
       ids: uniqueAgendaIds,
       formation: session.formation,
     });
@@ -178,7 +177,6 @@ export class OfficialReportsService {
     const members = await this.members.internalFindMembersByFormation({ formation: report.formation, tx });
 
     const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
-      tx,
       formation: report.formation,
       ignoreOfficialReportId: command.id,
       ids: new Set([report.snapshot.meta.agenda.id]),
@@ -189,7 +187,6 @@ export class OfficialReportsService {
     }
 
     const { items: agendaFiles } = await this.docsNominationFilesFinder.findNonReportedByAgendaIds({
-      tx,
       ignoreOfficialReportId: report.id,
       agendaIds: new Set(agendas.map(({ id }) => id)),
     });

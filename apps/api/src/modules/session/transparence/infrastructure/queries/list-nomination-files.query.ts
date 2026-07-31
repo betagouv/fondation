@@ -107,7 +107,6 @@ export class ListNominationFilesQuery {
 
       const nominationFileIds = new Set(txFiles.map(({ id }) => id));
       const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
-        tx,
         nominationFileIds,
       });
 

@@ -60,7 +60,6 @@ export class TransparenceFilesFinder {
     });
 
     const { items: withDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
-      tx: query.tx,
       nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 
