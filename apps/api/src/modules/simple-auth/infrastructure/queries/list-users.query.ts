@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { PrismaRoleEnum } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
   roleEnumToPrismaRoleEnum,
@@ -12,7 +12,7 @@ import { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListUsersQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     search?: string;
@@ -26,7 +26,7 @@ export class ListUsersQuery {
     const includeIds = new Set(query.includeIds).difference(excludeIds);
     excludeIds = excludeIds.union(includeIds);
 
-    const items = await this.prisma.$transaction(async (tx) => {
+    const items = await this.db.withTransaction(async () => {
       const union: {
         id: string;
         role: PrismaRoleEnum;
@@ -35,7 +35,7 @@ export class ListUsersQuery {
       }[] = [];
 
       if (includeIds.size) {
-        const nextItems = await tx.user.findMany({
+        const nextItems = await this.db.tx.user.findMany({
           select: { id: true, firstName: true, lastName: true, role: true },
           where: { id: { in: [...includeIds] } },
           orderBy: { lastName: 'asc' },
@@ -44,7 +44,7 @@ export class ListUsersQuery {
       }
 
       if (!(includeIds.size > 0 && query.includeIdsOnly)) {
-        const nextItems = await this.prisma.user.findMany({
+        const nextItems = await this.db.tx.user.findMany({
           select: { id: true, role: true, firstName: true, lastName: true },
           orderBy: { lastName: 'asc' },
           take: query.limit ? query.limit - union.length : undefined,

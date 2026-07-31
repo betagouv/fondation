@@ -47,7 +47,7 @@ export class FindPresentationPlanDocumentPdfQuery {
           formation: assertIsDefined(plan.agendas[0]).agenda.formation,
         };
 
-      const file$ = await this.files.getFile({ fileId: plan.pdf?.id, tx: this.db.tx });
+      const file$ = await this.files.getFile({ fileId: plan.pdf?.id });
       if (!file$) {
         this.logger.error(`Could not retrieve the presentation plan (${query.id}) from S3`);
         throw new InternalServerErrorException();

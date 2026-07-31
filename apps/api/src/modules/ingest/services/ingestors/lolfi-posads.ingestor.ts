@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertAdministrativePositionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -13,7 +13,7 @@ export class LolfiPosadsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -64,7 +64,7 @@ export class LolfiPosadsIngestor {
   }
 
   private flush(props: { items: RawPause[]; jobId: number; fileId: string; result: { success: boolean } }) {
-    return this.prisma.$queryRawTyped(insertAdministrativePositionsRawQuery(props.items)).catch((error) => {
+    return this.db.tx.$queryRawTyped(insertAdministrativePositionsRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing POSADS.xml chunk`, error);
       props.result.success = false;
     });

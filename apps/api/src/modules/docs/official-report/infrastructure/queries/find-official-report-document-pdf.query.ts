@@ -40,7 +40,7 @@ export class FindOfficialReportDocumentPdfQuery {
       if (!officialReport) throw new NotFoundException();
 
       if (!query.forceNew && officialReport.pdf?.id) {
-        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id, tx: this.db.tx });
+        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
         if (!file$) {
           this.logger.error(`Could not retrieve the official report PDF file from S3`);
           throw new InternalServerErrorException();

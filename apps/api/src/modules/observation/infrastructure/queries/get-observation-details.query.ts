@@ -3,8 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
@@ -14,7 +13,7 @@ import { isDefined } from 'src/utils/is-defined';
 @Injectable()
 export class GetObservationDetailsQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
   ) {}
@@ -25,13 +24,13 @@ export class GetObservationDetailsQuery {
     nominationFileId: string;
     observationId: string;
   }): Promise<GetObservationDetailsResponseDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const session = await tx.session.findUnique({
+    return this.db.withTransaction(async () => {
+      const session = await this.db.tx.session.findUnique({
         where: { id: query.sessionId },
         select: { archivedAt: true },
       });
 
-      const observation = await tx.observation.findUnique({
+      const observation = await this.db.tx.observation.findUnique({
         where: {
           id: query.observationId,
           nominationFileId: query.nominationFileId,
@@ -123,7 +122,6 @@ export class GetObservationDetailsQuery {
       const isUserReporter = reporters.some(({ id }) => id === query.userId);
 
       const candidacy = await this.findRelatedNominationFiles(
-        tx,
         query.sessionId,
         observation.magistrat.firstName,
         observation.magistrat.lastName,
@@ -193,7 +191,6 @@ export class GetObservationDetailsQuery {
   }
 
   private async findRelatedNominationFiles(
-    tx: Prisma.TransactionClient,
     sessionId: string,
     firstName: string,
     lastName: string,
@@ -220,7 +217,7 @@ export class GetObservationDetailsQuery {
       );
     }
 
-    const dossier = await tx.dossierDeNomination.findFirst({
+    const dossier = await this.db.tx.dossierDeNomination.findFirst({
       where: {
         sessionId,
         OR: searchPatterns.map((pattern) => ({ name: pattern })),

@@ -1,6 +1,7 @@
 import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
 
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Readable } from 'node:stream';
 import z from 'zod';
@@ -8,9 +9,8 @@ import { fr } from 'zod/locales';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
-import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { ResultBuilder } from 'src/utils/result';
@@ -22,7 +22,7 @@ export class JobFileIngestor {
   constructor(
     private readonly clock: Clock,
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   async ingest<T>(options: {
@@ -35,26 +35,21 @@ export class JobFileIngestor {
     let start: number;
     const { job, file } = options;
     try {
-      const fileContentResult = await this.prisma.$transaction(
-        async (tx): Promise<{ success: boolean; fileContent?: Readable }> => {
+      const fileContentResult = await this.db.withTransaction(
+        async (): Promise<{ success: boolean; fileContent?: Readable }> => {
           const startedAt = this.clock.now();
           if (file.sha256 === file.lastSha256) {
-            return this.succeedJobFile({ tx, file, startedAt, jobId: job.id });
+            return this.succeedJobFile({ file, startedAt, jobId: job.id });
           }
 
-          await tx.ingestionJobFile.update({
+          await this.db.tx.ingestionJobFile.update({
             where: { primaryKey: { jobId: job.id, fileId: file.id } },
             data: { status: 'RUNNING', startedAt },
           });
 
-          const fileContent = await this.files.getFile({
-            fileId: file.id,
-            tx,
-          });
-
+          const fileContent = await this.files.getFile({ fileId: file.id });
           if (!fileContent) {
             return this.failJobFile({
-              tx,
               file,
               jobId: job.id,
               errors: [{ error: `Impossible de récupérer le fichier "${file.name}"` }],
@@ -127,17 +122,13 @@ export class JobFileIngestor {
     }
   }
 
+  @Transactional()
   private async succeedJobFile(context: {
-    tx?: Prisma.TransactionClient;
     startedAt?: Date;
     jobId: number;
     file: { id: string; name: string };
   }): Promise<{ success: boolean }> {
-    if (!context.tx) {
-      return this.prisma.$transaction((tx) => this.succeedJobFile({ ...context, tx }));
-    }
-
-    return context.tx.ingestionJobFile
+    return this.db.tx.ingestionJobFile
       .update({
         data: {
           status: 'SUCCEEDED',
@@ -157,18 +148,14 @@ export class JobFileIngestor {
       );
   }
 
+  @Transactional()
   private async failJobFile(context: {
     errors: { entityNumber?: number; error: string }[];
     jobId: number;
     file: { id: string; name: string };
-    tx?: Prisma.TransactionClient;
   }): Promise<{ success: false }> {
-    if (!context.tx) {
-      return this.prisma.$transaction((tx) => this.failJobFile({ ...context, tx }));
-    }
-
     this.logger.error(`${context.file.name} failed`);
-    await context.tx.ingestionJobFile
+    await this.db.tx.ingestionJobFile
       .update({
         where: {
           primaryKey: { jobId: context.jobId, fileId: context.file.id },

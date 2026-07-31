@@ -164,7 +164,7 @@ export class OfficialReportRepository {
       officialReport.secretaryTitle as any,
     );
 
-    const files = await this.findOfficialReportFiles({ id: query.id, tx: this.db.tx });
+    const files = await this.findOfficialReportFiles({ id: query.id });
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromDate(officialReport.sessionMeetingDate),
@@ -201,7 +201,6 @@ export class OfficialReportRepository {
    */
   private async findOfficialReportFiles(query: {
     id: string;
-    tx: Prisma.TransactionClient;
   }): Promise<Map<string, OfficialReportSnapshotFile>> {
     const map = new Map<string, OfficialReportSnapshotFile>();
     let cursor: bigint | undefined = undefined;
@@ -214,7 +213,7 @@ export class OfficialReportRepository {
         htmlEdited: string | null;
         nominationFileId: string | null;
         reporters: string[];
-      }[] = await query.tx.officialReportNominationFile.findMany({
+      }[] = await this.db.tx.officialReportNominationFile.findMany({
         where: { officialReportId: query.id },
         orderBy: { id: 'asc' },
         skip: isDefined(cursor) ? 1 : 0,

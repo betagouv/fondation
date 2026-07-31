@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -46,10 +46,10 @@ export class ListObservationsResponseDto extends createZodDto(
 
 @Injectable()
 export class ListObservationsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
-    const observations = await this.prisma.observation.findMany({
+    const observations = await this.db.tx.observation.findMany({
       where: { nominationFileId: query.nominationFileId },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -90,7 +90,7 @@ export class ListObservationsQuery {
       ...new Set(observations.map((obs) => obs.magistrat?.id).filter((id) => id !== undefined)),
     ];
     const positions = magistratIds.length
-      ? await this.prisma.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
+      ? await this.db.tx.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
       : [];
     const positionByMagistratId = new Map(positions.map((p) => [p.magistratId, p.currentPosition]));
 

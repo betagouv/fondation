@@ -1,7 +1,7 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { MemberTitleEnum } from '../domain/member-enums';
-import { Prisma } from 'src/generated/prisma/client';
 import { Pagination } from 'src/modules/framework/pagination';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 
@@ -42,18 +42,21 @@ export class MembersService {
     return this.detailsMemberQuery.handle(query);
   }
 
+  @Transactional()
   async excludeJurisdictions(command: { userId: string; jurisdictionIds: readonly string[] }) {
     const member = await this.memberRepository.findWithJurisdictions(command);
     member.excludeJurisdictions(command.jurisdictionIds);
     await this.memberRepository.persist(member);
   }
 
+  @Transactional()
   async updateDisplayTitle(command: { userId: string; displayTitle: string | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateDisplayTitle(command.displayTitle);
     await this.memberRepository.persist(member);
   }
 
+  @Transactional()
   async updateTitle(command: { userId: string; title: MemberTitleEnum | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateTitle(command.title);
@@ -64,7 +67,6 @@ export class MembersService {
   findMembers(query: {
     ids: readonly string[] | undefined;
     formation: FormationEnum | undefined;
-    tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
     return this.internalFindMembersQuery.handle(query);
   }
@@ -78,15 +80,12 @@ export class MembersService {
   }
 
   /** @internal */
-  internalGetMember(query: { id: string; tx?: Prisma.TransactionClient }): Promise<InternalMemberDto> {
+  internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
     return this.internalGetMemberQuery.handle(query);
   }
 
   /** @internal */
-  internalFindMembersByFormation(query: {
-    formation: FormationEnum;
-    tx?: Prisma.TransactionClient;
-  }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByFormation(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByFormationQuery.handle(query);
   }
 }

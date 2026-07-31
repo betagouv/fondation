@@ -5,15 +5,15 @@ import { z } from 'zod';
 import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
 import { isMember, MEMBER_ROLES } from '../member.utils';
 import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class DetailsMemberQuery {
-  constructor(private readonly db: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { userId: string }): Promise<DetailedMemberDto> {
-    const [user] = await this.db.$queryRawTyped(detailsMemberRawQuery(query.userId));
+    const [user] = await this.db.tx.$queryRawTyped(detailsMemberRawQuery(query.userId));
 
     if (!user || !isMember(user)) throw new NotFoundException();
 

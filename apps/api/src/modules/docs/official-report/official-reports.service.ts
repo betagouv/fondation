@@ -84,14 +84,11 @@ export class OfficialReportsService {
     sessionId: string;
     absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
-    const tx = this.db.tx;
-
     const session = await this.sessions.details({
       sessionId: command.sessionId,
     });
 
     const secretary = await this.auth.detailsUser({
-      tx,
       userId: command.secretaryId,
       impersonationId: undefined,
     });
@@ -107,8 +104,8 @@ export class OfficialReportsService {
     }
 
     const firstAgenda = agendas[0]!;
-    const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-    const members = await this.members.internalFindMembersByFormation({ formation: session.formation, tx });
+    const chairman = await this.members.internalGetMember({ id: command.chairmanId });
+    const members = await this.members.internalFindMembersByFormation({ formation: session.formation });
 
     const report = OfficialReport.create({
       authorId: command.authorId,
@@ -163,17 +160,14 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
-    const tx = this.db.tx;
-
     const report = await this.officialReportRepository.find({ id: command.id });
 
     const secretary = await this.auth.detailsUser({
       userId: command.secretaryId,
       impersonationId: undefined,
-      tx,
     });
-    const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-    const members = await this.members.internalFindMembersByFormation({ formation: report.formation, tx });
+    const chairman = await this.members.internalGetMember({ id: command.chairmanId });
+    const members = await this.members.internalFindMembersByFormation({ formation: report.formation });
 
     const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
       formation: report.formation,

@@ -7,7 +7,7 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
 
@@ -16,13 +16,13 @@ export class ReportRepository {
   private readonly logger = new Logger(ReportRepository.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
   async find(props: { id: string; reporterId: string }): Promise<Report> {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const report = await tx.report.findUnique({
+    const result = await this.db.withTransaction(async () => {
+      const report = await this.db.tx.report.findUnique({
         where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
         select: { id: true, sessionId: true, nominationFileId: true },
       });
@@ -35,7 +35,7 @@ export class ReportRepository {
        *
        *  WE SHOULD DELETE THIS BEHAVIOR IN FAVOR OF SOMETHING THAT MAKES SENSE.
        */
-      const user = await tx.user.findUnique({
+      const user = await this.db.tx.user.findUnique({
         where: { id: props.reporterId },
         select: { firstName: true, lastName: true },
       });
@@ -45,7 +45,7 @@ export class ReportRepository {
       const reporterFullName =
         lastName.toUpperCase() + ' ' + (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
-      const session = await tx.session.findUnique({
+      const session = await this.db.tx.session.findUnique({
         select: { name: true, deletedAt: true, archivedAt: true },
         where: { id: report?.sessionId },
       });
@@ -60,7 +60,7 @@ export class ReportRepository {
         throw new ForbiddenException();
       }
 
-      const dossier = await tx.dossierDeNomination.findUnique({
+      const dossier = await this.db.tx.dossierDeNomination.findUnique({
         where: { id: report.nominationFileId },
       });
       if (!dossier || !dossier.name) return null;
@@ -95,8 +95,8 @@ export class ReportRepository {
   }
 
   private async persistReportFilesDetached(message: ReportFilesDetached) {
-    await this.prisma.$transaction(async (tx) => {
-      const report = await tx.report.findFirst({
+    await this.db.withTransaction(async () => {
+      const report = await this.db.tx.report.findFirst({
         where: { id: message.id, reporterId: message.reporterId },
         include: {
           files: {
@@ -112,7 +112,7 @@ export class ReportRepository {
       }));
 
       if (files.length > 0) {
-        await tx.reportFile.deleteMany({
+        await this.db.tx.reportFile.deleteMany({
           where: { fileId: { in: files.map(({ id }) => id) } },
         });
 
@@ -123,8 +123,8 @@ export class ReportRepository {
 
   private async persistReportFilesAttached(message: ReportFilesAttached) {
     const fileIds = message.files.map(({ id }) => id);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.reportFile.createMany({
+    await this.db.withTransaction(async () => {
+      await this.db.tx.reportFile.createMany({
         data: fileIds.map((fileId) => ({
           fileId,
           usage: message.usage,
@@ -135,14 +135,14 @@ export class ReportRepository {
   }
 
   private async persistReportUpdated(message: ReportUpdated) {
-    return this.prisma.report.update({
+    return this.db.tx.report.update({
       where: { id: message.id },
       data: { state: message.data.status, comment: message.data.comment },
     });
   }
 
   private async persistReportRuleValidationUpdated(message: ReportRuleValidationUpdated) {
-    return this.prisma.report.update({
+    return this.db.tx.report.update({
       where: { id: message.id },
       data: {
         reportRules: {

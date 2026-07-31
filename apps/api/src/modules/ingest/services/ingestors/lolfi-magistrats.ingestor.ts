@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertMagistratRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -14,7 +14,7 @@ export class LolfiMagistratsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -89,10 +89,10 @@ export class LolfiMagistratsIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
+    return this.db
+      .withTransaction(async () => {
         if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(insertMagistratRawQuery(props.items));
+          const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
 
           if (unknown.length > 0) {
             for (const u of unknown) {
@@ -114,7 +114,7 @@ export class LolfiMagistratsIngestor {
 
               if (!error) continue;
 
-              await tx.ingestionJobFileError.create({
+              await this.db.tx.ingestionJobFileError.create({
                 data: {
                   error,
                   entityId: String(entityId),
@@ -127,7 +127,7 @@ export class LolfiMagistratsIngestor {
         }
 
         if (props.errors.length > 0) {
-          await tx.ingestionJobFileError.createMany({
+          await this.db.tx.ingestionJobFileError.createMany({
             data: props.errors.map(({ entityId, error }) => ({
               error,
               entityId,

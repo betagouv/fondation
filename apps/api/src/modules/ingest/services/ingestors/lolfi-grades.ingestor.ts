@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertGradesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -13,7 +13,7 @@ export class LolfiGradesIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -73,9 +73,9 @@ export class LolfiGradesIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
-        const unknownMassGrades = await tx.$queryRawTyped(
+    return this.db
+      .withTransaction(async () => {
+        const unknownMassGrades = await this.db.tx.$queryRawTyped(
           insertGradesRawQuery([
             ...props.massGrades.values().map((x) => ({
               grade: x.masse_grade,
@@ -92,7 +92,7 @@ export class LolfiGradesIngestor {
 
         if (unknownMassGrades.length === 0) return;
 
-        await tx.ingestionJobFileError.createMany({
+        await this.db.tx.ingestionJobFileError.createMany({
           data: unknownMassGrades.map(({ grade, massGrade }) => ({
             jobId: props.jobId,
             fileId: props.fileId,

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import { Prisma } from 'src/generated/prisma/client';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 
@@ -56,7 +55,6 @@ export class SimpleAuthService {
   }
 
   detailsUser(query: {
-    tx?: Prisma.TransactionClient;
     userId: string;
     impersonationId: string | undefined;
   }): Promise<DetailedUserResponseDto> {

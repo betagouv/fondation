@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -11,7 +11,7 @@ import { MagistratNominationFileSchema } from './list-magistrat-nomination-files
 @Injectable()
 export class ListMagistratObservationsQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly sessions: TransparenceService,
   ) {}
 
@@ -19,8 +19,8 @@ export class ListMagistratObservationsQuery {
     magistratId: string;
     pagination: Pagination;
   }): Promise<ListedMagistratObservationsDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const magistrat = await tx.magistrat.findUnique({
+    return this.db.withTransaction(async () => {
+      const magistrat = await this.db.tx.magistrat.findUnique({
         where: { id: query.magistratId },
         select: { id: true },
       });
@@ -30,8 +30,8 @@ export class ListMagistratObservationsQuery {
         magistratId: query.magistratId,
         nominationFile: { session: { deletedAt: null } },
       };
-      const totalCount = await tx.observation.count({ where });
-      const observations = await tx.observation.findMany({
+      const totalCount = await this.db.tx.observation.count({ where });
+      const observations = await this.db.tx.observation.findMany({
         where,
         orderBy: { dateReception: 'desc' },
         skip: (query.pagination.page - 1) * query.pagination.limit,

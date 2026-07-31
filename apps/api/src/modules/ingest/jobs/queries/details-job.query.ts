@@ -3,14 +3,14 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsJobQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { jobId: number }): Promise<DetailedJobDto> {
-    const job = await this.prisma.ingestionJob.findUnique({
+    const job = await this.db.tx.ingestionJob.findUnique({
       where: { id: query.jobId },
       select: {
         id: true,

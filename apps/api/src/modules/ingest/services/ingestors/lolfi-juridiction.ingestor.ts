@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertJurisdictionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -14,7 +14,7 @@ export class LolfiJuridictionIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -72,13 +72,15 @@ export class LolfiJuridictionIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
-        const unknownJurisdictionTypes = await tx.$queryRawTyped(insertJurisdictionsRawQuery(props.items));
+    return this.db
+      .withTransaction(async () => {
+        const unknownJurisdictionTypes = await this.db.tx.$queryRawTyped(
+          insertJurisdictionsRawQuery(props.items),
+        );
 
         if (unknownJurisdictionTypes.length === 0) return;
 
-        await tx.ingestionJobFileError.createMany({
+        await this.db.tx.ingestionJobFileError.createMany({
           data: unknownJurisdictionTypes.map(({ codejur, type_jur }) => ({
             jobId: props.jobId,
             fileId: props.fileId,

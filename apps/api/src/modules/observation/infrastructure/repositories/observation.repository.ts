@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import {
   ForbiddenException,
   Injectable,
@@ -18,8 +19,7 @@ import {
   ObservationMemberCommentWritten,
   ObservationUpdated,
 } from '../../domain/observation';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files/files';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
@@ -29,12 +29,12 @@ export class ObservationRepository {
   private readonly logger = new Logger(ObservationRepository.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
   async findById(id: string): Promise<Observation> {
-    const result = await this.prisma.observation.findUnique({
+    const result = await this.db.tx.observation.findUnique({
       where: { id },
       select: {
         id: true,
@@ -70,36 +70,35 @@ export class ObservationRepository {
     });
   }
 
+  @Transactional()
   async persist(observation: Observation): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of observation.messages) {
-        if (message instanceof ObservationCreated) {
-          await this.persistObservationCreated(tx, message);
-        } else if (message instanceof ObservationFilesAttached) {
-          await this.persistObservationFilesAttached(tx, message);
-        } else if (message instanceof ObservationDeleted) {
-          await this.persistObservationDeleted(tx, message);
-        } else if (message instanceof ObservationUpdated) {
-          await this.persistObservationUpdated(tx, message);
-        } else if (message instanceof ObservationFilesDetached) {
-          await this.persistObservationFilesDetached(tx, message);
-        } else if (message instanceof ObservationMemberCommentWritten) {
-          await this.persistObservationMemberCommentWritten(tx, message);
-        } else if (message instanceof ObservationMemberCommentScreenshotsAttached) {
-          await this.persistObservationMemberCommentScreenshotsAttached(tx, message);
-        } else if (message instanceof ObservationFollowedUp) {
-          await this.persistObservationFollowedUp(tx, message);
-        } else if (message instanceof ObservationFileLinked) {
-          await this.persistObservationFileLinked(tx, message);
-        } else {
-          assertNever(message);
-        }
+    for (const message of observation.messages) {
+      if (message instanceof ObservationCreated) {
+        await this.persistObservationCreated(message);
+      } else if (message instanceof ObservationFilesAttached) {
+        await this.persistObservationFilesAttached(message);
+      } else if (message instanceof ObservationDeleted) {
+        await this.persistObservationDeleted(message);
+      } else if (message instanceof ObservationUpdated) {
+        await this.persistObservationUpdated(message);
+      } else if (message instanceof ObservationFilesDetached) {
+        await this.persistObservationFilesDetached(message);
+      } else if (message instanceof ObservationMemberCommentWritten) {
+        await this.persistObservationMemberCommentWritten(message);
+      } else if (message instanceof ObservationMemberCommentScreenshotsAttached) {
+        await this.persistObservationMemberCommentScreenshotsAttached(message);
+      } else if (message instanceof ObservationFollowedUp) {
+        await this.persistObservationFollowedUp(message);
+      } else if (message instanceof ObservationFileLinked) {
+        await this.persistObservationFileLinked(message);
+      } else {
+        assertNever(message);
       }
-    });
+    }
   }
 
-  private persistObservationCreated(tx: Prisma.TransactionClient, message: ObservationCreated) {
-    return tx.observation.create({
+  private persistObservationCreated(message: ObservationCreated) {
+    return this.db.tx.observation.create({
       data: {
         id: message.id,
         nominationFileId: message.nominationFileId,
@@ -111,8 +110,8 @@ export class ObservationRepository {
     });
   }
 
-  private persistObservationFilesAttached(tx: Prisma.TransactionClient, message: ObservationFilesAttached) {
-    return tx.observationFile.createMany({
+  private persistObservationFilesAttached(message: ObservationFilesAttached) {
+    return this.db.tx.observationFile.createMany({
       data: message.files.map((file) => ({
         observationId: message.observationId,
         fileId: file.id,
@@ -120,14 +119,14 @@ export class ObservationRepository {
     });
   }
 
-  private persistObservationDeleted(tx: Prisma.TransactionClient, message: ObservationDeleted) {
-    return tx.observation.delete({
+  private persistObservationDeleted(message: ObservationDeleted) {
+    return this.db.tx.observation.delete({
       where: { id: message.id },
     });
   }
 
-  private persistObservationUpdated(tx: Prisma.TransactionClient, message: ObservationUpdated) {
-    return tx.observation.update({
+  private persistObservationUpdated(message: ObservationUpdated) {
+    return this.db.tx.observation.update({
       where: { id: message.id },
       data: {
         dateReception: message.data.dateReception,
@@ -137,27 +136,21 @@ export class ObservationRepository {
     });
   }
 
-  private async persistObservationFilesDetached(
-    tx: Prisma.TransactionClient,
-    message: ObservationFilesDetached,
-  ) {
-    const observation = await tx.observationFile.findMany({
+  private async persistObservationFilesDetached(message: ObservationFilesDetached) {
+    const observation = await this.db.tx.observationFile.findMany({
       where: { fileId: { in: message.fileIds as string[] } },
       select: { file: { select: { id: true, path: true } } },
     });
 
-    await tx.observationFile.deleteMany({
+    await this.db.tx.observationFile.deleteMany({
       where: { fileId: { in: observation.map(({ file }) => file.id) } },
     });
 
     this.files.delete(observation.map(({ file }) => file));
   }
 
-  private async persistObservationMemberCommentWritten(
-    tx: Prisma.TransactionClient,
-    message: ObservationMemberCommentWritten,
-  ) {
-    return tx.observationMemberComment.upsert({
+  private async persistObservationMemberCommentWritten(message: ObservationMemberCommentWritten) {
+    return this.db.tx.observationMemberComment.upsert({
       where: {
         primaryKey: {
           userId: message.userId,
@@ -177,10 +170,9 @@ export class ObservationRepository {
   }
 
   private async persistObservationMemberCommentScreenshotsAttached(
-    tx: Prisma.TransactionClient,
     message: ObservationMemberCommentScreenshotsAttached,
   ) {
-    await tx.observationMemberComment.upsert({
+    await this.db.tx.observationMemberComment.upsert({
       where: {
         primaryKey: {
           userId: message.userId,
@@ -195,7 +187,7 @@ export class ObservationRepository {
       update: {},
     });
 
-    await tx.observationMemberCommentScreenshot.createMany({
+    await this.db.tx.observationMemberCommentScreenshot.createMany({
       data: message.files.map((file) => ({
         userId: message.userId,
         observationId: message.observationId,
@@ -205,9 +197,9 @@ export class ObservationRepository {
     });
   }
 
-  private async persistObservationFollowedUp(tx: Prisma.TransactionClient, message: ObservationFollowedUp) {
+  private async persistObservationFollowedUp(message: ObservationFollowedUp) {
     if (message.followUp === null) {
-      await tx.observation.update({
+      await this.db.tx.observation.update({
         where: { id: message.id },
         data: {
           followUp: null,
@@ -217,7 +209,7 @@ export class ObservationRepository {
         },
       });
     } else {
-      await tx.observation.update({
+      await this.db.tx.observation.update({
         where: { id: message.id },
         data: {
           followUp: message.followUp.status,
@@ -229,8 +221,8 @@ export class ObservationRepository {
     }
   }
 
-  private async persistObservationFileLinked(tx: Prisma.TransactionClient, message: ObservationFileLinked) {
-    const existingFile = await tx.file.findUnique({
+  private async persistObservationFileLinked(message: ObservationFileLinked) {
+    const existingFile = await this.db.tx.file.findUnique({
       select: { name: true, path: true, bucket: true },
       where: { id: message.file.fileId },
     });
@@ -241,7 +233,7 @@ export class ObservationRepository {
     }
 
     const { bucket, path, name } = existingFile;
-    const file = await tx.file.create({
+    const file = await this.db.tx.file.create({
       select: { id: true },
       data: {
         id: makeId('FileId'),
@@ -251,7 +243,7 @@ export class ObservationRepository {
       },
     });
 
-    await tx.observationFile.create({
+    await this.db.tx.observationFile.create({
       data: {
         fileId: file.id,
         observationId: message.id,

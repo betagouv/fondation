@@ -58,7 +58,6 @@ export class AgendasService {
     nominationFileIds: readonly string[];
   }): Promise<CreatedAgendaDto> {
     const chairman = await this.members.internalGetMember({
-      tx: this.db.tx,
       id: command.chairmanId,
     });
 
@@ -108,7 +107,6 @@ export class AgendasService {
       const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
 
       const chairman = await this.members.internalGetMember({
-        tx: this.db.tx,
         id: command.chairmanId,
       });
 

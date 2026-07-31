@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 import { JobFileIngestor } from './job-file-ingestor';
@@ -14,7 +14,7 @@ export class LolfiFonctionsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -62,7 +62,7 @@ export class LolfiFonctionsIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
+    return this.db.tx.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
       props.result.success = false;
     });

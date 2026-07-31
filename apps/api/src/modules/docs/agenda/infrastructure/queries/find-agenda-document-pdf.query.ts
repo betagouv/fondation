@@ -43,7 +43,7 @@ export class FindAgendaDocumentPdfQuery {
 
       if (query.forceNew || !agenda.pdf || !agenda.pdf.id) return agenda;
 
-      const file$ = await this.files.getFile({ fileId: agenda.pdf.id, tx: this.db.tx });
+      const file$ = await this.files.getFile({ fileId: agenda.pdf.id });
       if (!file$) {
         this.logger.error(`Could not retrieve the agenda PDF file from S3`);
         throw new InternalServerErrorException();

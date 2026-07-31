@@ -1,6 +1,7 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
@@ -14,10 +15,10 @@ import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class AuthUserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async findByEmail(email: string): Promise<AuthUser> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.db.tx.user.findFirst({
       select: { id: true, password: true },
       where: { email: { equals: email, mode: 'insensitive' } },
     });
@@ -28,7 +29,7 @@ export class AuthUserRepository {
   }
 
   async find(id: string): Promise<AuthUser> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.db.tx.user.findUnique({
       where: { id },
       select: { id: true, password: true },
     });
@@ -38,42 +39,24 @@ export class AuthUserRepository {
     return AuthUser.from(user);
   }
 
-  persist(user: AuthUser) {
-    return this.prisma.$transaction(
-      user.messages.map((event) => {
-        if (event instanceof AuthUserRegistered) {
-          return this.persistUserRegistered(event);
-        }
-
-        if (event instanceof AuthUserAuthenticated) {
-          return this.persistUserAuthenticated(event);
-        }
-
-        if (event instanceof AuthUserUnAuthenticated) {
-          return this.persistAuthUserUnAuthenticated(event);
-        }
-
-        if (event instanceof AuthImpersonationStarted) {
-          return this.persistImpersonationStarted(event);
-        }
-
-        if (event instanceof AuthImpersonationRevoked) {
-          return this.persistImpersonationRevoked(event);
-        }
-
-        if (event instanceof AuthOpenIdRequestCompleted) {
-          return this.persistAuthOpenIdRequestCompleted(event);
-        }
-
-        return assertNever(event);
-      }),
-    );
+  @Transactional()
+  async persist(user: AuthUser): Promise<void> {
+    for (const event of user.messages) {
+      if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
+      else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
+      else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
+      else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
+      else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
+      else if (event instanceof AuthOpenIdRequestCompleted)
+        await this.persistAuthOpenIdRequestCompleted(event);
+      else assertNever(event);
+    }
   }
 
   private persistUserAuthenticated(event: AuthUserAuthenticated) {
     const expiresAt = new Date(event.session.startedAt.getTime() + event.session.durationMs);
 
-    return this.prisma.authSession.create({
+    return this.db.tx.authSession.create({
       data: {
         expiresAt,
         sessionId: event.session.id,
@@ -84,7 +67,7 @@ export class AuthUserRepository {
   }
 
   private persistUserRegistered(event: AuthUserRegistered) {
-    return this.prisma.user.create({
+    return this.db.tx.user.create({
       data: {
         id: event.id,
         email: event.email,
@@ -98,7 +81,7 @@ export class AuthUserRepository {
   }
 
   private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {
-    return this.prisma.authImpersonation.create({
+    return this.db.tx.authImpersonation.create({
       data: {
         id: impersonation.id,
         createdAt: impersonation.startedAt,
@@ -110,17 +93,17 @@ export class AuthUserRepository {
   }
 
   private persistImpersonationRevoked({ impersonationId }: AuthImpersonationRevoked) {
-    return this.prisma.authImpersonation.deleteMany({
+    return this.db.tx.authImpersonation.deleteMany({
       where: { id: impersonationId },
     });
   }
 
   private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
-    return this.prisma.authSession.delete({ where: { sessionId } });
+    return this.db.tx.authSession.delete({ where: { sessionId } });
   }
 
   private persistAuthOpenIdRequestCompleted(message: AuthOpenIdRequestCompleted) {
-    return this.prisma.openIdRequest.delete({
+    return this.db.tx.openIdRequest.delete({
       where: { primaryKey: { id: message.request.id, provider: message.request.provider } },
     });
   }

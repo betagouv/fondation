@@ -4,17 +4,17 @@ import z from 'zod';
 
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 
 @Injectable()
 export class DetailsUserQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { userId: string }): Promise<DetailedAdminUserDto> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.db.tx.user.findUnique({
       select: {
         id: true,
         firstName: true,

@@ -122,7 +122,6 @@ export class AutoAffectationsFinder {
     excludedMemberIds: readonly string[] | undefined;
   }): Promise<AutoAffectationMember[]> {
     let memberIds = await this.membersService.findMembers({
-      tx: this.db.tx,
       ids: undefined,
       formation: session.formation,
     });

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import { formationToMemberRole } from '../../../shared/formation-to-member-role';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     formation: FormationEnum | undefined;
@@ -19,7 +19,7 @@ export class InternalFindMembersByFullNameQuery {
     const reporterFullNames = Array.from(queriedFullNames.keys());
 
     // TypedSQL does not support array variables
-    const members = await this.prisma.$queryRaw<FoundMemberByFullName[]>`
+    const members = await this.db.tx.$queryRaw<FoundMemberByFullName[]>`
       SELECT
         id,
         LOWER(last_name || ' ' || first_name) AS "fullName",

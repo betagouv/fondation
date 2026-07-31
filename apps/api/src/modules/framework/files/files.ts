@@ -13,6 +13,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { HttpService } from '@nestjs/axios';
 import {
   Inject,
@@ -27,9 +28,8 @@ import * as Sentry from '@sentry/node';
 import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../clock';
-import { Prisma } from 'src/generated/prisma/client';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
@@ -85,7 +85,7 @@ export class Files implements OnApplicationBootstrap {
 
   constructor(
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly http: HttpService,
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
@@ -115,54 +115,53 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
+  @Transactional(Propagation.RequiresNew)
   async getPublicUrls(fileIds: readonly string[]): Promise<{ [fileId: string]: URL }> {
     if (fileIds.length === 0) return {};
 
-    return this.prisma.$transaction(async (tx) => {
-      const files = await tx.file.findMany({
-        where: { id: { in: fileIds as string[] } },
-        select: {
-          id: true,
-          name: true,
-          path: true,
-          filePublicUrls: {
-            where: { expiresAt: { gt: this.clock.now() } },
-            select: { id: true, url: true, expiresAt: true },
-            orderBy: [{ expiresAt: 'desc' }],
-            take: 1,
-          },
+    const files = await this.db.tx.file.findMany({
+      where: { id: { in: fileIds as string[] } },
+      select: {
+        id: true,
+        name: true,
+        path: true,
+        filePublicUrls: {
+          where: { expiresAt: { gt: this.clock.now() } },
+          select: { id: true, url: true, expiresAt: true },
+          orderBy: [{ expiresAt: 'desc' }],
+          take: 1,
         },
-      });
-
-      const publicUrls = await Promise.allSettled(
-        files.map((file) => {
-          const publicUrl = file.filePublicUrls[0];
-          if (publicUrl) {
-            return Promise.resolve({
-              ...publicUrl,
-              fileId: file.id,
-              publicUrl: new URL(`${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`),
-              existing: true,
-            });
-          }
-
-          return this.generatePublicUrl(file);
-        }),
-      ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
-
-      await tx.filePublicUrl.createMany({
-        data: publicUrls
-          .filter((x) => !('existing' in x))
-          .map((x) => ({
-            id: x.id,
-            url: x.url.toString(),
-            fileId: x.fileId,
-            expiresAt: x.expiresAt,
-          })),
-      });
-
-      return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
+      },
     });
+
+    const publicUrls = await Promise.allSettled(
+      files.map((file) => {
+        const publicUrl = file.filePublicUrls[0];
+        if (publicUrl) {
+          return Promise.resolve({
+            ...publicUrl,
+            fileId: file.id,
+            publicUrl: new URL(`${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`),
+            existing: true,
+          });
+        }
+
+        return this.generatePublicUrl(file);
+      }),
+    ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
+
+    await this.db.tx.filePublicUrl.createMany({
+      data: publicUrls
+        .filter((x) => !('existing' in x))
+        .map((x) => ({
+          id: x.id,
+          url: x.url.toString(),
+          fileId: x.fileId,
+          expiresAt: x.expiresAt,
+        })),
+    });
+
+    return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
   }
 
   async openBatchStreamSession(
@@ -254,20 +253,20 @@ export class Files implements OnApplicationBootstrap {
     }
 
     try {
-      const toCreate = fulfilled.map((file) => ({
-        name: file.name,
-        path: file.path.split('/'),
-        id: file.meta?.id ?? makeId('FileId'),
-        bucket: this.bucketName,
-        sizeInBytes: file.size ?? null,
-      }));
+      return await this.db.withTransaction(Propagation.RequiresNew, async () => {
+        const toCreate = fulfilled.map((file) => ({
+          name: file.name,
+          path: file.path.split('/'),
+          id: file.meta?.id ?? makeId('FileId'),
+          bucket: this.bucketName,
+          sizeInBytes: file.size ?? null,
+        }));
 
-      await this.prisma.file.createMany({ data: toCreate });
-
-      return toCreate.map(({ id }) => id);
+        await this.db.tx.file.createMany({ data: toCreate });
+        return toCreate.map(({ id }) => id);
+      });
     } catch (error) {
       this.logger.warn(`SQL error, while creating files`, { error });
-
       ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
       throw new InternalServerErrorException(`Failed uploading ${fulfilled.length} files`);
     }
@@ -321,19 +320,19 @@ export class Files implements OnApplicationBootstrap {
         );
       }
 
-      await this.prisma
-        .$transaction(
-          files.map((file) => {
+      await this.db
+        .withTransaction(Propagation.RequiresNew, async () => {
+          for (const file of files) {
             if (typeof file === 'string') {
               const path = file.split('/');
-              return this.prisma.file.deleteMany({
+              await this.db.tx.file.deleteMany({
                 where: { bucket: this.bucketName, path: { equals: path } },
               });
+            } else {
+              await this.db.tx.file.delete({ where: { id: file.id } });
             }
-
-            return this.prisma.file.delete({ where: { id: file.id } });
-          }),
-        )
+          }
+        })
         .catch((err) => {
           throw new RollbackFilePathOperationError(
             files,
@@ -401,10 +400,12 @@ export class Files implements OnApplicationBootstrap {
     fileUrlId: string,
     options?: { download?: boolean },
   ): Promise<{ file: StreamableFile; expiresAt: Date }> {
-    const file = await this.prisma.filePublicUrl.findUnique({
-      where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
-      select: { url: true, expiresAt: true, file: { select: { name: true } } },
-    });
+    const file = await this.db.withTransaction(() =>
+      this.db.tx.filePublicUrl.findUnique({
+        where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
+        select: { url: true, expiresAt: true, file: { select: { name: true } } },
+      }),
+    );
 
     if (!file) throw new NotFoundException();
 
@@ -435,12 +436,9 @@ export class Files implements OnApplicationBootstrap {
     };
   }
 
-  async getFile(props: { fileId: string; tx?: Prisma.TransactionClient }): Promise<Readable | null> {
-    if (!props.tx) {
-      return this.prisma.$transaction((tx) => this.getFile({ ...props, tx }));
-    }
-
-    const storedFile = await props.tx.file.findUnique({
+  @Transactional()
+  async getFile(props: { fileId: string }): Promise<Readable | null> {
+    const storedFile = await this.db.tx.file.findUnique({
       where: { id: props.fileId },
       select: { path: true },
     });

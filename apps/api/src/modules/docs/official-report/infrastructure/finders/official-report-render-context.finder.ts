@@ -133,7 +133,7 @@ export class OfficialReportRenderContextFinder {
     const absentMembers = new Map(
       report.members.map(({ memberId, isAbsent }) => [memberId, isAbsent] as const),
     );
-    const members = await this.members.internalFindMembersByFormation({ tx: this.db.tx, formation });
+    const members = await this.members.internalFindMembersByFormation({ formation });
 
     const membersList = OfficialReportMembersList.from(
       members.flatMap((member) => {

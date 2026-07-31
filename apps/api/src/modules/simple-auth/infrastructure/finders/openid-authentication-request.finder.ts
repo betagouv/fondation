@@ -1,7 +1,7 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { OpenIdProvider } from 'src/modules/simple-auth/openid';
 import { Id, makeId } from 'src/utils/id';
 
@@ -9,9 +9,10 @@ import { Id, makeId } from 'src/utils/id';
 export class OpenIdAuthenticationRequestFinder {
   private readonly logger = new Logger(OpenIdAuthenticationRequestFinder.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
-  async find(query: { provider: OpenIdProvider; state: string; tx?: Prisma.TransactionClient }): Promise<{
+  @Transactional()
+  async find(query: { provider: OpenIdProvider; state: string }): Promise<{
     challenge: Buffer | null;
     nonce: Buffer;
     createdAt: Date;
@@ -19,9 +20,7 @@ export class OpenIdAuthenticationRequestFinder {
     id: Id<'OpenIdRequest'>;
     provider: string;
   }> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
-
-    const found = await query.tx.openIdRequest.findUnique({
+    const found = await this.db.tx.openIdRequest.findUnique({
       where: { primaryKey: { provider: query.provider, id: query.state } },
       select: {
         challenge: true,

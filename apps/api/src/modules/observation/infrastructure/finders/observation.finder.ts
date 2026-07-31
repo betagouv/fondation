@@ -1,14 +1,14 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class ObservationFinder {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   findExistingObservation(query: {
-    tx?: Prisma.TransactionClient;
     sessionId: string;
     nominationFileId: string;
     magistratId: string;
@@ -16,11 +16,7 @@ export class ObservationFinder {
     id: string;
     observations: readonly { magistratId: string }[];
   } | null> {
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.findExistingObservation({ ...query, tx }));
-    }
-
-    return query.tx.dossierDeNomination.findUnique({
+    return this.db.tx.dossierDeNomination.findUnique({
       where: { sessionId: query.sessionId, id: query.nominationFileId },
       select: {
         id: true,
@@ -32,19 +28,15 @@ export class ObservationFinder {
     });
   }
 
+  @Transactional()
   async findExistingFiles(query: {
-    tx?: Prisma.TransactionClient;
     files: readonly {
       observationId: string;
       magistratId: string;
       fileId: string;
     }[];
   }): Promise<{ items: { observationId: string; fileId: string }[] }> {
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.findExistingFiles({ ...query, tx }));
-    }
-
-    const observations = await query.tx.observation.findMany({
+    const observations = await this.db.tx.observation.findMany({
       select: { files: { select: { observationId: true, fileId: true } } },
       where: {
         OR: query.files.map(({ magistratId, observationId: id, fileId }) => ({

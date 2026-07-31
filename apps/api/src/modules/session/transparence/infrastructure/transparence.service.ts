@@ -168,11 +168,7 @@ export class TransparenceService {
     );
 
     const formationMemberIds = await this.members
-      .findMembers({
-        tx: this.db.tx,
-        ids: memberIds,
-        formation: session.formation,
-      })
+      .findMembers({ ids: memberIds, formation: session.formation })
       .then((ids) => new Set(ids));
 
     session.affectNominationFileReporters({ ...command, formationMemberIds });
@@ -241,7 +237,7 @@ export class TransparenceService {
     });
 
     const formationMemberIds = await this.members
-      .findMembers({ tx: this.db.tx, formation: session.formation, ids: undefined })
+      .findMembers({ formation: session.formation, ids: undefined })
       .then((ids) => new Set(ids));
 
     session.autoAffectNominationFileReporters({

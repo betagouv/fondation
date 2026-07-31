@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -13,7 +13,7 @@ export class LolfiPostesIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -80,9 +80,9 @@ export class LolfiPostesIngestor {
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
-        const unknown = await tx.$queryRawTyped(insertPositionsRawQuery(props.items));
+    return this.db
+      .withTransaction(async () => {
+        const unknown = await this.db.tx.$queryRawTyped(insertPositionsRawQuery(props.items));
 
         if (unknown.length > 0) {
           for (const u of unknown) {
@@ -101,7 +101,7 @@ export class LolfiPostesIngestor {
                       : null;
             if (!error) continue;
 
-            await tx.ingestionJobFileError.create({
+            await this.db.tx.ingestionJobFileError.create({
               data: {
                 error,
                 entityId: String(entityId),

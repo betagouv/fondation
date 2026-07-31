@@ -94,7 +94,6 @@ export class PresentationPlansService {
     const { formation } = assertIsDefined(agendas[0]);
     const members = await this.members.internalFindMembersByFormation({
       formation,
-      tx: this.db.tx,
     });
 
     const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
@@ -112,7 +111,6 @@ export class PresentationPlansService {
     const secretary = await this.auth.detailsUser({
       userId: command.secretaryId,
       impersonationId: undefined,
-      tx: this.db.tx,
     });
 
     const plan = JusticePresentationPlan.create({
@@ -166,7 +164,6 @@ export class PresentationPlansService {
     const { formation } = assertIsDefined(agendas[0]);
     const members = await this.members.internalFindMembersByFormation({
       formation,
-      tx: this.db.tx,
     });
 
     const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
@@ -180,7 +177,6 @@ export class PresentationPlansService {
     const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
 
     const secretary = await this.auth.detailsUser({
-      tx: this.db.tx,
       userId: command.secretaryId,
       impersonationId: undefined,
     });
