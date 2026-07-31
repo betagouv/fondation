@@ -118,7 +118,7 @@ export class OfficialReportRepository {
       `Official Report "${query.id}" has no agenda`,
     );
 
-    const { date } = await this.sessions.details({ sessionId: rawAgenda.sessionId, tx: this.db.tx });
+    const { date } = await this.sessions.details({ sessionId: rawAgenda.sessionId });
 
     const agenda = OfficialReportAgenda.from({
       ignoreOfficialReportId: officialReportId,

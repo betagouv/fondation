@@ -27,7 +27,6 @@ export class IsSessionReadyForDocGenerationQuery {
 
     const publishedVersion = await this.versions.lastPublished({
       sessionId: query.sessionId,
-      tx: this.db.tx,
     });
     if (publishedVersion.isNone()) {
       return { isReady: false, canCreateAgenda: false, canCreateOfficialReport: false };

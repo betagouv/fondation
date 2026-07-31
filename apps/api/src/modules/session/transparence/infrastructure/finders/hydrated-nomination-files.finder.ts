@@ -1,7 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
+import { Db } from 'src/modules/framework/database';
 import { type NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -34,21 +35,22 @@ export type HydratedNominationFile = {
 
 @Injectable()
 export class HydratedNominationFilesFinder {
-  constructor(private readonly versions: AffectationVersionFinder) {}
+  constructor(
+    private readonly db: Db,
+    private readonly versions: AffectationVersionFinder,
+  ) {}
 
-  async hydrate(query: {
-    nominationFileIds: readonly string[];
-    tx: Prisma.TransactionClient;
-  }): Promise<HydratedNominationFile[]> {
+  @Transactional()
+  async hydrate(query: { nominationFileIds: readonly string[] }): Promise<HydratedNominationFile[]> {
     const files = [];
     for (const nominationFileId of query.nominationFileIds) {
-      const file = await this.hydrateFile(nominationFileId, query.tx);
+      const file = await this.hydrateFile(nominationFileId);
       if (file) files.push(file);
     }
 
     const sessionIds = Array.from(new Set(files.map(({ session }) => session.id)));
     const reportedSessions = sessionIds.length
-      ? await query.tx.$queryRawTyped(findReportedSessionIds(sessionIds))
+      ? await this.db.tx.$queryRawTyped(findReportedSessionIds(sessionIds))
       : [];
     const reportedSessionIds = new Set(reportedSessions.map(({ id }) => id));
 
@@ -72,8 +74,8 @@ export class HydratedNominationFilesFinder {
     }));
   }
 
-  private async hydrateFile(nominationFileId: string, tx: Prisma.TransactionClient) {
-    const file = await tx.dossierDeNomination.findUnique({
+  private async hydrateFile(nominationFileId: string) {
+    const file = await this.db.tx.dossierDeNomination.findUnique({
       where: { id: nominationFileId },
       select: {
         id: true,
@@ -102,7 +104,6 @@ export class HydratedNominationFilesFinder {
     const reporters = await this.versions.findReporters({
       nominationFileId: file.id,
       sessionId: file.session.id,
-      tx,
     });
 
     return { ...file, reporters };

@@ -117,7 +117,6 @@ export class GetObservationDetailsQuery {
       }
 
       const reporters = await this.affectationVersionFinder.findReporters({
-        tx,
         sessionId: query.sessionId,
         nominationFileId: query.nominationFileId,
       });

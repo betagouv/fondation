@@ -4,7 +4,7 @@ import z from 'zod';
 import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -18,7 +18,7 @@ type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
 export class ListNominationSessionsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     search: string | null;
@@ -43,9 +43,9 @@ export class ListNominationSessionsQuery {
       ? [{ [query.sorting.sortBy]: query.sorting.sortDesc ? ('desc' as const) : ('asc' as const) }]
       : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
 
-    const [totalCount, sessions, reportedIds] = await this.prisma.$transaction(async (tx) => {
-      const txCount = await tx.session.count({ where });
-      const txSessions = await tx.session.findMany({
+    const [totalCount, sessions, reportedIds] = await this.db.withTransaction(async () => {
+      const txCount = await this.db.tx.session.count({ where });
+      const txSessions = await this.db.tx.session.findMany({
         where,
         orderBy,
         skip: (query.pagination.page - 1) * query.pagination.limit,
@@ -62,7 +62,9 @@ export class ListNominationSessionsQuery {
         },
       });
 
-      const reportedRows = await tx.$queryRawTyped(findReportedSessionIds(txSessions.map((s) => s.id)));
+      const reportedRows = await this.db.tx.$queryRawTyped(
+        findReportedSessionIds(txSessions.map((s) => s.id)),
+      );
       const txReportedIds = new Set(reportedRows.map(({ id }) => id));
 
       return [txCount, txSessions, txReportedIds];

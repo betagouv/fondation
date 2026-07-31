@@ -1,16 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 @Injectable()
 export class NominationSessionFinder {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
-  async formation(query: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<FormationEnum> {
-    const session = await (query.tx ?? this.prisma).session.findUnique({
+  async formation(query: { sessionId: string }): Promise<FormationEnum> {
+    const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId },
       select: { formation: true },
     });
@@ -19,12 +18,8 @@ export class NominationSessionFinder {
     return prismaFormationEnumToFormationEnum(session.formation);
   }
 
-  async attachmentsCount(query: { sessionId: string; tx?: Prisma.TransactionClient }): Promise<number> {
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.attachmentsCount({ ...query, tx }));
-    }
-
-    const count = await query.tx.session.findUnique({
+  async attachmentsCount(query: { sessionId: string }): Promise<number> {
+    const count = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: { _count: { select: { attachments: true } } },
     });
@@ -32,18 +27,10 @@ export class NominationSessionFinder {
     return count?._count.attachments ?? 0;
   }
 
-  async affectedReportersCount(query: {
-    sessionId: string;
-    versionId: string | undefined;
-    tx?: Prisma.TransactionClient;
-  }): Promise<number> {
+  async affectedReportersCount(query: { sessionId: string; versionId: string | undefined }): Promise<number> {
     if (!query.versionId) return 0;
 
-    if (!query.tx) {
-      return this.prisma.$transaction(async (tx) => this.affectedReportersCount({ ...query, tx }));
-    }
-
-    const count = await query.tx.session.findUnique({
+    const count = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
         affectationVersions: {

@@ -87,7 +87,6 @@ export class OfficialReportsService {
     const tx = this.db.tx;
 
     const session = await this.sessions.details({
-      tx,
       sessionId: command.sessionId,
     });
 

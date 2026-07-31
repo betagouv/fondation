@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import {
@@ -24,7 +24,7 @@ export class DetailSummaryQuery {
   private readonly logger = new Logger(DetailSummaryQuery.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
@@ -33,7 +33,7 @@ export class DetailSummaryQuery {
     sessionId: string;
     userId: string;
   }): Promise<DetailedSummaryDto> {
-    const session = await this.prisma.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
         id: true,

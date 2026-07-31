@@ -1,8 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
 import { findNominationFileJurisdictionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 export type NominationFileJurisdiction = { id: string; label: string | null };
 
@@ -13,16 +13,15 @@ export type NominationFileJurisdictions = {
 
 @Injectable()
 export class NominationFileJurisdictionsFinder {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async find(predicate: {
-    tx?: Prisma.TransactionClient;
     nominationFileIds: readonly string[];
   }): Promise<Map<string, NominationFileJurisdictions>> {
-    if (!predicate.tx) return this.prisma.$transaction((tx) => this.find({ ...predicate, tx }));
     if (predicate.nominationFileIds.length === 0) return new Map();
 
-    const rows = await predicate.tx.$queryRawTyped(
+    const rows = await this.db.tx.$queryRawTyped(
       findNominationFileJurisdictionsRawQuery(predicate.nominationFileIds as string[]),
     );
 

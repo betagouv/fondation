@@ -31,7 +31,6 @@ export class ListMagistratNominationFilesQuery {
       return this.sessions.internalListMagistratNominationFiles({
         magistratId: query.magistratId,
         pagination: query.pagination,
-        tx,
       });
     });
   }

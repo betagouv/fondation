@@ -1,11 +1,11 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { UnreportedSessionFilesCountFinder } from '../finders/unreported-transparence-files-count.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { NominationFileOutcome } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -17,23 +17,18 @@ import { assertIsDefined } from 'src/utils/is-defined';
 @Injectable()
 export class DetailNominationSessionQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
   ) {}
 
-  async handle(query: {
-    sessionId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<DetailedNominationSessionDto> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-
+  @Transactional()
+  async handle(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
     const optionalVersion = await this.affectationVersionFinder.last({
       sessionId: query.sessionId,
-      tx: query.tx,
     });
 
-    const session = await query.tx.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
         id: true,
@@ -69,7 +64,6 @@ export class DetailNominationSessionQuery {
 
     const unreportedCount = await this.unreportedSessionFilesCountFinder.find({
       sessionId: query.sessionId,
-      tx: query.tx,
     });
     const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
 

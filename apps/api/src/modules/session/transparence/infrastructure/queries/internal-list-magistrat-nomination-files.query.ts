@@ -1,17 +1,22 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { HydratedNominationFilesFinder } from '../finders/hydrated-nomination-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { paginate, Pagination } from 'src/modules/framework/pagination';
 
 @Injectable()
 export class InternalListMagistratNominationFilesQuery {
-  constructor(private readonly hydratedNominationFiles: HydratedNominationFilesFinder) {}
+  constructor(
+    private readonly db: Db,
+    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
+  ) {}
 
-  async handle(query: { magistratId: string; pagination: Pagination; tx: Prisma.TransactionClient }) {
+  @Transactional()
+  async handle(query: { magistratId: string; pagination: Pagination }) {
     const where = { detectedMagistratId: query.magistratId, session: { deletedAt: null } };
-    const totalCount = await query.tx.dossierDeNomination.count({ where });
-    const page = await query.tx.dossierDeNomination.findMany({
+    const totalCount = await this.db.tx.dossierDeNomination.count({ where });
+    const page = await this.db.tx.dossierDeNomination.findMany({
       where,
       orderBy: { session: { date: 'desc' } },
       skip: (query.pagination.page - 1) * query.pagination.limit,
@@ -21,7 +26,6 @@ export class InternalListMagistratNominationFilesQuery {
 
     const nominationFiles = await this.hydratedNominationFiles.hydrate({
       nominationFileIds: page.map(({ id }) => id),
-      tx: query.tx,
     });
 
     return paginate({ items: nominationFiles, totalCount, pagination: query.pagination });

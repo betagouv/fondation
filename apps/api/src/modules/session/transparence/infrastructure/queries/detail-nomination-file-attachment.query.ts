@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 @Injectable()
 export class DetailNominationFileAttachmentQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
@@ -17,7 +17,7 @@ export class DetailNominationFileAttachmentQuery {
     nominationFileId: string;
     fileId: string;
   }): Promise<DetailedNominationFileAttachmentDto> {
-    const nominationFile = await this.prisma.dossierDeNomination.findUnique({
+    const nominationFile = await this.db.tx.dossierDeNomination.findUnique({
       where: { id: query.nominationFileId, sessionId: query.sessionId },
       select: {
         attachments: {

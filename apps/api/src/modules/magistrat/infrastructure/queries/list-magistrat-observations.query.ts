@@ -41,7 +41,6 @@ export class ListMagistratObservationsQuery {
 
       const nominationFiles = await this.sessions.internalHydrateNominationFiles({
         nominationFileIds: observations.map(({ nominationFileId }) => nominationFileId),
-        tx,
       });
       const nominationFilesById = new Map(nominationFiles.map((file) => [file.id, file]));
 

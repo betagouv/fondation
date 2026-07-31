@@ -1,8 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
 import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import {
   AutoAffectationMember,
@@ -24,24 +24,20 @@ export class AutoAffectationsFinder {
   readonly logger = new Logger(AutoAffectationsFinder.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     @Inject(forwardRef(() => MembersService))
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
   ) {}
 
+  @Transactional()
   async find(predicate: {
-    tx?: Prisma.TransactionClient;
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
     excludedMemberIds: readonly string[] | undefined;
   }): Promise<AutoAffectations> {
-    if (!predicate.tx) return this.prisma.$transaction((tx) => this.find({ ...predicate, tx }));
-
-    const { tx } = predicate;
-
-    const session = await tx.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: predicate.sessionId, deletedAt: null },
       select: {
         date: true,
@@ -52,7 +48,6 @@ export class AutoAffectationsFinder {
     if (!session) throw new NotFoundException();
 
     const nominationFiles = await this.unaffectedFilesFinder.find({
-      tx,
       sessionId: predicate.sessionId,
       nominationFileIds: predicate.nominationFileIds,
     });
@@ -60,7 +55,6 @@ export class AutoAffectationsFinder {
     const date = DateOnly.fromDate(session.date);
     const formation = prismaFormationEnumToFormationEnum(session.formation);
     const members = await this.findMembers({
-      tx,
       date,
       formation,
       sessionId: predicate.sessionId,
@@ -68,7 +62,6 @@ export class AutoAffectationsFinder {
     });
 
     const jurisdictions = await this.jurisdictionsFinder.find({
-      tx,
       nominationFileIds: nominationFiles.items.map(({ id }) => id),
     });
 
@@ -127,12 +120,9 @@ export class AutoAffectationsFinder {
     sessionId: string;
     formation: FormationEnum;
     excludedMemberIds: readonly string[] | undefined;
-    tx?: Prisma.TransactionClient;
   }): Promise<AutoAffectationMember[]> {
-    if (!session.tx) return this.prisma.$transaction((tx) => this.findMembers({ ...session, tx }));
-
     let memberIds = await this.membersService.findMembers({
-      tx: session.tx,
+      tx: this.db.tx,
       ids: undefined,
       formation: session.formation,
     });
@@ -145,7 +135,7 @@ export class AutoAffectationsFinder {
     if (memberIds.length === 0) return [];
 
     const [membersExcludedJurisdictions, memberYearlyWorkload] = [
-      await session.tx.user.findMany({
+      await this.db.tx.user.findMany({
         where: { id: { in: memberIds } },
         select: {
           id: true,
@@ -155,7 +145,7 @@ export class AutoAffectationsFinder {
         },
       }),
 
-      await session.tx.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),
+      await this.db.tx.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),
     ];
 
     const affectationCountByMemberIdAndGrade = memberYearlyWorkload.reduce(

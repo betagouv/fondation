@@ -3,7 +3,7 @@ import { build } from 'node-xlsx';
 
 import { nominationFileOutcomeLabel } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
@@ -12,18 +12,17 @@ import { capitalize } from 'src/utils/capitalize';
 @Injectable()
 export class ListNominationFilesAsExcelQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
   ) {}
 
   async handle(query: { sessionId: string }): Promise<StreamableFile> {
-    const session = await this.prisma.$transaction(async (tx) => {
+    const session = await this.db.withTransaction(async () => {
       const version = await this.versions.last({
         sessionId: query.sessionId,
-        tx,
       });
 
-      return tx.session.findUnique({
+      return this.db.tx.session.findUnique({
         where: { id: query.sessionId, deletedAt: null },
         select: {
           formation: true,

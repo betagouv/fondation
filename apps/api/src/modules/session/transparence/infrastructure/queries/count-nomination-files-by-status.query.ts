@@ -4,20 +4,20 @@ import z from 'zod';
 
 import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class CountNominationFilesByStatusQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
   ) {}
 
   async handle(query: { sessionId: string }): Promise<NominationFilesStatusCountDto> {
-    const [unaffected, inProgress, withOutcome] = await this.prisma.$transaction(async (tx) => {
-      const version = await this.versionFinder.last({ tx, sessionId: query.sessionId });
+    const [unaffected, inProgress, withOutcome] = await this.db.withTransaction(async () => {
+      const version = await this.versionFinder.last({ sessionId: query.sessionId });
       return [
-        await tx.dossierDeNomination.count({
+        await this.db.tx.dossierDeNomination.count({
           where: {
             outcome: null,
             sessionId: query.sessionId,
@@ -35,7 +35,7 @@ export class CountNominationFilesByStatusQuery {
         await version.map({
           none: async () => 0,
           some: ({ id: versionId }) =>
-            tx.dossierDeNomination.count({
+            this.db.tx.dossierDeNomination.count({
               where: {
                 sessionId: query.sessionId,
                 OR: [
@@ -49,7 +49,7 @@ export class CountNominationFilesByStatusQuery {
         await version.map({
           none: async () => 0,
           some: () =>
-            tx.dossierDeNomination.count({
+            this.db.tx.dossierDeNomination.count({
               where: {
                 sessionId: query.sessionId,
                 outcome: { in: NominationFileOutcome.finalOutcomes() },

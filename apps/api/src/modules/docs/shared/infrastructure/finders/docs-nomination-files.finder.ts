@@ -34,15 +34,13 @@ export class DocsNominationFilesFinder {
     ids?: readonly string[];
   }): Promise<FoundDocsNominationFiles> {
     const { items: sessionNominationFiles } = (await this.sessions.internalFindNominationFiles({
-      tx: this.db.tx,
       ids: query.ids,
       sessionId: query.sessionId,
     })) as FoundDocsNominationFiles;
     if (sessionNominationFiles.length === 0) return { items: [] };
 
     const formation =
-      query.formation ??
-      (await this.sessions.internalGetSessionFormation({ tx: this.db.tx, sessionId: query.sessionId }));
+      query.formation ?? (await this.sessions.internalGetSessionFormation({ sessionId: query.sessionId }));
 
     const items = sessionNominationFiles.map((file) => {
       if (!file.outcome) return file;

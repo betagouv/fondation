@@ -7,7 +7,7 @@ import {
   internalCountTotalDetailsMemberSessionRawQuery,
   internalDetailsMemberSessionRawQuery,
 } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
@@ -25,7 +25,7 @@ import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InternalDetailMemberSessionQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     user: { id: string; role: RoleEnum };
@@ -36,10 +36,10 @@ export class InternalDetailMemberSessionQuery {
     pagination: Pagination;
     sorting: Sortable<DetailsMemberSessionQueryDto>;
   }): Promise<DetailedMemberSessionDto> {
-    const [session, totalCount, files] = await this.prisma.$transaction(async (tx) => {
+    const [session, totalCount, files] = await this.db.withTransaction(async () => {
       const formation = roleToFormation(query.user.role);
 
-      const [total] = await tx.$queryRawTyped(
+      const [total] = await this.db.tx.$queryRawTyped(
         internalCountTotalDetailsMemberSessionRawQuery(
           formation ?? null,
           query.sessionId,
@@ -49,7 +49,7 @@ export class InternalDetailMemberSessionQuery {
         ),
       );
 
-      const session = await tx.session.findFirst({
+      const session = await this.db.tx.session.findFirst({
         select: {
           id: true,
           name: true,
@@ -66,7 +66,7 @@ export class InternalDetailMemberSessionQuery {
         },
       });
 
-      const files = await tx.$queryRawTyped(
+      const files = await this.db.tx.$queryRawTyped(
         internalDetailsMemberSessionRawQuery(
           formation ?? null,
           query.sessionId,
