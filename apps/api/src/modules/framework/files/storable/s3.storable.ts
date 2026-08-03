@@ -1,4 +1,4 @@
-import { type Readable } from 'node:stream';
+import { PassThrough, Readable } from 'node:stream';
 
 import {
   CompleteMultipartUploadCommandOutput,
@@ -48,10 +48,11 @@ export class S3Storage implements Storage {
 
     for (const storable of objects) {
       await this.innerUpload(storable).then(
-        ({ Bucket }) => r.succeed({ ...storable, bucket: Bucket! }),
+        ({ Bucket, contentByteSize }) =>
+          r.succeed({ ...storable, bucket: Bucket!, byteSize: contentByteSize }),
 
         // bucket is never used in case of deletion
-        () => r.fail({ ...storable, bucket: '' }),
+        () => r.fail({ ...storable, bucket: '', byteSize: 0 }),
       );
     }
 
@@ -214,8 +215,11 @@ export class S3Storage implements Storage {
       );
   }
 
-  private innerUpload(storable: Storable): Promise<CompleteMultipartUploadCommandOutput> {
-    return this.s3
+  private async innerUpload(
+    storable: Storable,
+  ): Promise<CompleteMultipartUploadCommandOutput & { contentByteSize: number }> {
+    const { content, promise: sizePromise } = withSize(storable.content);
+    const responsePromise = this.s3
       .buildCommand(
         ({ command, key }) =>
           new Upload({
@@ -223,17 +227,59 @@ export class S3Storage implements Storage {
             params: {
               ...command,
 
+              Body: content,
               Key: key(storable),
-              Body: storable.content,
               ContentType: storable.mime,
               Metadata: { id: storable.id, name: storable.name },
             },
           }),
       )
       .done();
+
+    const [response, size] = await Promise.all([responsePromise, sizePromise]);
+
+    return { ...response, contentByteSize: size };
   }
 
   private innerGet(object: { path: StorablePath }): GetObjectCommand {
     return this.s3.buildCommand(({ key, command }) => new GetObjectCommand({ ...command, Key: key(object) }));
   }
+}
+
+function withSize(content: Storable['content']): { content: Readable; promise: Promise<number> } {
+  const passthrough = new PassThrough();
+  const promise = new Promise<number>((resolve, reject) => {
+    let alreadyResolved = false;
+    let size = 0;
+
+    passthrough.on('error', (error) => {
+      if (alreadyResolved) return;
+
+      alreadyResolved = true;
+      reject(error);
+    });
+
+    passthrough.once('end', () => {
+      if (alreadyResolved) return;
+
+      alreadyResolved = true;
+      resolve(size);
+    });
+
+    passthrough.on('data', (chunk) => {
+      if (!Buffer.isBuffer(chunk)) return;
+
+      size += chunk.byteLength;
+    });
+  });
+
+  const content$: Readable = Buffer.isBuffer(content)
+    ? Readable.from(content)
+    : content instanceof Blob
+      ? Readable.fromWeb(content.stream())
+      : content instanceof ReadableStream
+        ? Readable.fromWeb(content)
+        : content;
+
+  return { content: content$.pipe(passthrough), promise };
 }

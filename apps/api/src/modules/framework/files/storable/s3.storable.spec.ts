@@ -74,7 +74,11 @@ describe('S3Storage', () => {
       const result = await storage.put([object]);
 
       expect(result.success).toBe(true);
-      expect(result.successes).toContainEqual({ ...object, bucket: 'reports' });
+      expect(result.successes).toContainEqual({
+        ...object,
+        bucket: 'reports',
+        byteSize: (object.content as Buffer).byteLength,
+      });
     });
 
     it('reports a failure when the upload throws', async () => {
@@ -85,7 +89,11 @@ describe('S3Storage', () => {
       const result = await storage.put([object]);
 
       expect(result.success).toBe(false);
-      expect(result.failures).toContainEqual({ ...object, bucket: '' });
+      expect(result.failures).toContainEqual({
+        ...object,
+        bucket: '',
+        byteSize: 0,
+      });
     });
   });
 

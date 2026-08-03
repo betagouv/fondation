@@ -43,6 +43,7 @@ export class DbStorage implements Storage {
             name: f.name,
             bucket: f.bucket,
             path: f.path as unknown as string[],
+            sizeInBytes: f.byteSize,
           })),
         }),
       );

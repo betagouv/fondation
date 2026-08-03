@@ -53,7 +53,7 @@ describe('DbStorage', () => {
   describe('put', () => {
     it('persists the files and returns a success', async () => {
       s3.put.mockResolvedValue(
-        storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] }),
+        storageResult({ success: true, successes: [{ ...object, bucket: 'reports', byteSize: 128 }] }),
       );
       tx.file.createMany.mockResolvedValue({ count: 1 });
 
@@ -78,7 +78,10 @@ describe('DbStorage', () => {
     });
 
     it('rolls back the uploaded objects when persisting the files fails', async () => {
-      const uploaded = storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] });
+      const uploaded = storageResult({
+        success: true,
+        successes: [{ ...object, bucket: 'reports', byteSize: 128 }],
+      });
       uploaded.rollback.mockResolvedValue();
 
       s3.put.mockResolvedValue(uploaded);
@@ -92,7 +95,7 @@ describe('DbStorage', () => {
 
     it('returns a rollback-able result on success, that will delete files in db', async () => {
       s3.put.mockResolvedValue(
-        storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] }),
+        storageResult({ success: true, successes: [{ ...object, bucket: 'reports', byteSize: 128 }] }),
       );
       tx.file.deleteMany.mockResolvedValue({ count: 1 });
 

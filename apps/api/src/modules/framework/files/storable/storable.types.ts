@@ -37,6 +37,7 @@ export type Storable = {
 
 export type Stored = Omit<Storable, 'content'> & {
   bucket: string;
+  byteSize: number;
 };
 
 /** @internal */
