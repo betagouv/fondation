@@ -72,7 +72,11 @@ export class AutoAffectationsFinder {
     const files = this.toAutoAffectationNominationFiles(
       nominationFiles.items.map((file) => {
         const { current = null, targeted = null } = jurisdictions.get(file.id) ?? {};
-        return { ...file, currentJurisdiction: current, targetedJurisdiction: targeted };
+        return {
+          ...file,
+          currentJurisdiction: current?.id ?? null,
+          targetedJurisdiction: targeted?.id ?? null,
+        };
       }),
       { date, formation },
     );

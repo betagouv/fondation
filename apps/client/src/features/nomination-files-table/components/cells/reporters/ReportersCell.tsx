@@ -1,7 +1,5 @@
-import { useMemo } from 'react';
-
+import { useExcludedJurisdictions } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { useExcludedJurisdictionConflicts } from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
 import { UserAvatarList } from '@/shared/components/user-avatar';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -10,25 +8,21 @@ import { MissingSecondReporterAlert } from './MissingSecondReporterAlert';
 import { ReportersSelector } from './ReportersSelector';
 
 function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
-  const files = useMemo(() => [props.dossier], [props.dossier]);
-  const memberIds = useMemo(() => props.dossier.reporters.map(({ id }) => id), [props.dossier]);
-  const conflicts = useExcludedJurisdictionConflicts({ files, memberIds });
-
-  const users = useMemo(
-    () =>
-      props.dossier.reporters.map((reporter) => {
-        const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.id);
-
-        return {
-          ...reporter,
-          icon:
-            memberConflicts.length > 0 ? (
-              <ExcludedJurisdictionAlert conflicts={memberConflicts} />
-            ) : undefined,
-        };
-      }),
-    [conflicts, props.dossier.reporters],
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const conflicts = excludedJurisdictions.conflictsFor(
+    props.dossier,
+    props.dossier.reporters.map(({ id }) => id),
   );
+
+  const users = props.dossier.reporters.map((reporter) => {
+    const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.id);
+
+    return {
+      ...reporter,
+      icon:
+        memberConflicts.length > 0 ? <ExcludedJurisdictionAlert conflicts={memberConflicts} /> : undefined,
+    };
+  });
 
   if (props.dossier.reporters.length === 0) return '-';
 

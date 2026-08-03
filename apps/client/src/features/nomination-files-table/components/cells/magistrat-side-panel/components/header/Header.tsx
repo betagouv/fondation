@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
-import React from 'react';
+import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
@@ -10,12 +10,12 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { MissingSecondReporterAlert } from '@/features/nomination-files-table/components/cells/reporters/MissingSecondReporterAlert';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
-import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import {
-  useExcludedJurisdictionConflicts,
+  useExcludedJurisdictions,
   useExcludedJurisdictionTitles,
-  type ExcludedJurisdictionConflict,
-} from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
+} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { getGdsReportPath } from '@/utils/route-path.utils';
@@ -33,7 +33,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const isSgContext = useIsSgNavigation();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
 
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const affectation = useAffectation({
     nominationFile,
@@ -50,21 +50,16 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
 
   const canEdit = isEditable && !!isUpdatable;
 
-  const files = React.useMemo(() => [nominationFile], [nominationFile]);
-  const availableIds = React.useMemo(
-    () => affectation.availableRapporteurs.map(({ userId }) => userId),
-    [affectation.availableRapporteurs],
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const conflicts = excludedJurisdictions.conflictsFor(
+    nominationFile,
+    affectation.availableRapporteurs.map(({ userId }) => userId),
   );
-  const conflicts = useExcludedJurisdictionConflicts({ files, memberIds: availableIds });
   const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
-  const displayedReporterIds = React.useMemo(
-    () => (isEditing ? affectation.reporterIds : nominationFile.reporters.map(({ id }) => id)),
-    [isEditing, affectation.reporterIds, nominationFile.reporters],
-  );
-  const selectedConflicts = React.useMemo(
-    () => conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId)),
-    [conflicts, displayedReporterIds],
-  );
+  const displayedReporterIds = isEditing
+    ? affectation.reporterIds
+    : nominationFile.reporters.map(({ id }) => id);
+  const selectedConflicts = conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId));
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
   const { data: myReportId } = useMyReportQuery({

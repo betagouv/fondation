@@ -115,7 +115,7 @@ function HeaderStory(props: {
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     content: {
       jurisdictions: props.excludedJurisdiction
-        ? { current: LYON.id, targeted: null }
+        ? { current: LYON, targeted: null }
         : { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
     },

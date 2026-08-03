@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '../../../context/files-table.context';
-import { useAffectationRow } from '@/features/nomination-files-table/context/files-affectations.context';
 import {
-  useExcludedJurisdictionConflicts,
+  useExcludedJurisdictions,
   useExcludedJurisdictionTitles,
-} from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
+} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
+import { useAffectationRow } from '@/features/nomination-files-table/context/files-affectations.context';
 import { UserAvatarList } from '@/shared/components/user-avatar';
 import { useMemberListQuery } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -33,35 +33,31 @@ export function ReportersSelector(props: { file: SessionNominationFile }) {
   );
 
   const { reporterIds, affectReporters } = useAffectationRow(props.file.id);
-  const selectedReporters = useMemo(() => reporterIds ?? [], [reporterIds]);
+  const selectedReporters = reporterIds ?? [];
 
   const reporterMap = useMemo(
     () => new Map(reporters.map((reporter) => [reporter.userId, reporter] as const)),
     [reporters],
   );
-  const files = useMemo(() => [props.file], [props.file]);
-  const availableIds = useMemo(() => reporters.map(({ userId }) => userId), [reporters]);
-  const conflicts = useExcludedJurisdictionConflicts({ files, memberIds: availableIds });
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const conflicts = excludedJurisdictions.conflictsFor(
+    props.file,
+    reporters.map(({ userId }) => userId),
+  );
   const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
 
-  const selectedUsers = useMemo(
-    () =>
-      selectedReporters
-        .map((id) => reporterMap.get(id))
-        .filter((reporter): reporter is NonNullable<typeof reporter> => Boolean(reporter))
-        .map((reporter) => {
-          const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.userId);
+  const selectedUsers = selectedReporters
+    .map((id) => reporterMap.get(id))
+    .filter((reporter): reporter is NonNullable<typeof reporter> => Boolean(reporter))
+    .map((reporter) => {
+      const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.userId);
 
-          return {
-            ...reporter,
-            icon:
-              memberConflicts.length > 0 ? (
-                <ExcludedJurisdictionAlert conflicts={memberConflicts} />
-              ) : undefined,
-          };
-        }),
-    [conflicts, reporterMap, selectedReporters],
-  );
+      return {
+        ...reporter,
+        icon:
+          memberConflicts.length > 0 ? <ExcludedJurisdictionAlert conflicts={memberConflicts} /> : undefined,
+      };
+    });
 
   const buttonLabel =
     selectedUsers.length > 0 ? (

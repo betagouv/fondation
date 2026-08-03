@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { PriorityBadge } from '@/shared/components/priority-badge';
@@ -44,31 +43,27 @@ export function ReporterSelect(props: {
 }) {
   const { available, excludedTitleByRapporteurId = NO_EXCLUSION, value, onChange } = props;
 
-  const options = useMemo(
-    () =>
-      [...available]
-        .sort((a, b) => a.lastName.localeCompare(b.lastName))
-        .map((reporter) => {
-          const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
+  const options = [...available]
+    .sort((a, b) => a.lastName.localeCompare(b.lastName))
+    .map((reporter) => {
+      const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
 
-          return {
-            value: reporter.userId,
-            label: (
-              <span
-                className={clsx(
-                  REPORTER_TAG,
-                  excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
-                )}
-                title={excludedTitle}
-              >
-                {memberFullName(reporter)}
-                {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
-              </span>
-            ),
-          };
-        }),
-    [available, excludedTitleByRapporteurId],
-  );
+      return {
+        value: reporter.userId,
+        label: (
+          <span
+            className={clsx(
+              REPORTER_TAG,
+              excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+            )}
+            title={excludedTitle}
+          >
+            {memberFullName(reporter)}
+            {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+          </span>
+        ),
+      };
+    });
 
   return (
     <Dropdown

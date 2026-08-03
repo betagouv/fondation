@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import {
   excludedJurisdictionLines,
   type ExcludedJurisdictionConflict,
-} from '../hooks/useExcludedJurisdictionConflicts.hook';
+} from '../context/member-excluded-jurisdictions';
 
 import { ExcludedJurisdictionIcon } from './ExcludedJurisdictionIcon';
 

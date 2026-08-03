@@ -249,6 +249,8 @@ export class ListNominationFilesQuery {
   }
 }
 
+const JurisdictionSchema = z.object({ id: z.string(), label: z.string().nullable() });
+
 const NominationFileContentSchema = z.object({
   // open api generator does not support z.literal (json schema const)
   version: z.number().min(2).max(2).meta({ example: 2, description: 'always 2' }),
@@ -266,10 +268,11 @@ const NominationFileContentSchema = z.object({
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
-  // TODO: see "jurisdictions", matched on the position label, to homogenize it with
-  // detectedJurisdictionId, resolved at ingestion from the LOLFI position
   detectedJurisdictionId: z.string().nullable(),
-  jurisdictions: z.object({ current: z.string().nullable(), targeted: z.string().nullable() }),
+  jurisdictions: z.object({
+    current: JurisdictionSchema.nullable(),
+    targeted: JurisdictionSchema.nullable(),
+  }),
   detectedTargetedFunctionId: z.string().nullable(),
   detectedMagistratId: z.string().nullable(),
   outcome: z

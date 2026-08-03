@@ -3,10 +3,8 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 
-import {
-  useExcludedJurisdictionTitles,
-  type ExcludedJurisdictionConflict,
-} from '@/features/nomination-files-table/hooks/useExcludedJurisdictionConflicts.hook';
+import { useExcludedJurisdictionTitles } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
+import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
 
 export function ExcludedJurisdictionAlert(props: { conflicts: readonly ExcludedJurisdictionConflict[] }) {
   const titles = useExcludedJurisdictionTitles(props.conflicts);

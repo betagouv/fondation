@@ -1,16 +1,16 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import {
+  useExcludedJurisdictions,
+  useExcludedJurisdictionTitles,
+} from '../context/excluded-jurisdictions.context';
 import { useAffectations } from '../context/files-affectations.context';
 import { useSelectedFileIds, useSelectedFiles } from '../context/files-selection.context';
 import { useNominationFilesTable } from '../context/files-table.context';
-import {
-  useExcludedJurisdictionConflicts,
-  useExcludedJurisdictionTitles,
-} from '../hooks/useExcludedJurisdictionConflicts.hook';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 
@@ -33,15 +33,11 @@ export function NominationFilesBatchOperationsButton() {
     pagination: { pageIndex: 0, pageSize: 100 },
   });
 
-  const availableRapporteurs = useMemo(
-    () =>
-      (data?.items ?? []).map(({ id, firstName, lastName }) => ({
-        userId: id,
-        firstName,
-        lastName,
-      })),
-    [data],
-  );
+  const availableRapporteurs = (data?.items ?? []).map(({ id, firstName, lastName }) => ({
+    userId: id,
+    firstName,
+    lastName,
+  }));
 
   const selectedFileIds = useSelectedFileIds();
   const selectedFiles = useSelectedFiles();
@@ -51,16 +47,11 @@ export function NominationFilesBatchOperationsButton() {
   const [localSelection, setLocalSelection] = useState<string[]>([]);
   const [localPriorities, setLocalPriorities] = useState<(PrioriteEnum | None)[]>([]);
 
-  const availableIds = useMemo(
-    () => availableRapporteurs.map(({ userId }) => userId),
-    [availableRapporteurs],
-  );
-  const conflicts = useExcludedJurisdictionConflicts({ files: selectedFiles, memberIds: availableIds });
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const availableIds = availableRapporteurs.map(({ userId }) => userId);
+  const conflicts = selectedFiles.flatMap((file) => excludedJurisdictions.conflictsFor(file, availableIds));
   const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
-  const selectedConflicts = useMemo(
-    () => conflicts.filter(({ memberId }) => localSelection.includes(memberId)),
-    [conflicts, localSelection],
-  );
+  const selectedConflicts = conflicts.filter(({ memberId }) => localSelection.includes(memberId));
 
   const handleOpenModal = useCallback(() => {
     setLocalSelection([]);

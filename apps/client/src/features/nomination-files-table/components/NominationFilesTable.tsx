@@ -65,10 +65,8 @@ function NominationFilesTableInner(props: PropsWithChildren) {
       setTableState((state) => ({ ...state, pagination: { ...state.pagination, pageIndex } })),
     [setTableState],
   );
-  const enableRowSelection = useMemo(
-    () => !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable),
-    [edition],
-  );
+  const enableRowSelection =
+    !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable);
 
   const table = useDataTable({
     columns,

@@ -37,11 +37,14 @@ const AVAILABLE_MEMBER = {
 };
 
 const IN_LYON = makeSessionNominationFile({
-  content: { jurisdictions: { current: LYON.id, targeted: null }, numeroDeDossier: 12 },
+  content: { jurisdictions: { current: LYON, targeted: null }, numeroDeDossier: 12 },
   id: 'file-in-lyon',
 });
 const ELSEWHERE = makeSessionNominationFile({
-  content: { jurisdictions: { current: 'CA  PARIS', targeted: null }, numeroDeDossier: 34 },
+  content: {
+    jurisdictions: { current: { id: 'CA  PARIS', label: null }, targeted: null },
+    numeroDeDossier: 34,
+  },
   id: 'file-elsewhere',
 });
 

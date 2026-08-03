@@ -342,8 +342,14 @@ export type PaginatedNominationFiles = {
             informationCarrière: string | null;
             detectedJurisdictionId: string | null;
             jurisdictions: {
-                current: string | null;
-                targeted: string | null;
+                current: {
+                    id: string;
+                    label: string | null;
+                } | null;
+                targeted: {
+                    id: string;
+                    label: string | null;
+                } | null;
             };
             detectedTargetedFunctionId: string | null;
             detectedMagistratId: string | null;

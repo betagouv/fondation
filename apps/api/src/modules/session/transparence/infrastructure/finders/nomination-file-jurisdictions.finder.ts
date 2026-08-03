@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
+import { findNominationFileJurisdictionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 
-export type NominationFileJurisdictions = { current: string | null; targeted: string | null };
+export type NominationFileJurisdiction = { id: string; label: string | null };
+
+export type NominationFileJurisdictions = {
+  current: NominationFileJurisdiction | null;
+  targeted: NominationFileJurisdiction | null;
+};
 
 type NominationFilePositions = {
   id: string;
   currentPosition: string | null;
+  detectedJurisdictionId: string | null;
   targetedPosition: string | null;
 };
 
@@ -22,37 +29,49 @@ export class NominationFileJurisdictionsFinder {
     if (!predicate.tx) return this.prisma.$transaction((tx) => this.find({ ...predicate, tx }));
     if (predicate.files.length === 0) return new Map();
 
-    const positions = predicate.files.map(({ id, currentPosition, targetedPosition }) => ({
-      id,
-      currentPosition,
-      targetedPosition,
-    }));
+    const { files, tx } = predicate;
 
-    const rows = await predicate.tx.$queryRaw<
-      { id: string; current: string | null; target: string | null }[]
-    >`
-      WITH queried_positions AS (
-        SELECT
-          (p.content ->> 'id')::UUID AS id,
-          (p.content ->> 'currentPosition') AS current_position,
-          (p.content ->> 'targetedPosition') AS targeted_position
-        FROM UNNEST (${positions}::jsonb[]) AS p(content)
-      )
+    // LOLFI resolves the targeted jurisdiction at ingestion but carries the current position as a
+    // free label. An empty position never matches, skipping the text fallback where the id is known.
+    const matched = await tx.$queryRawTyped(
+      findNominationFileJurisdictionsRawQuery(
+        files.map(({ id }) => id),
+        files.map(({ currentPosition }) => currentPosition ?? ''),
+        files.map(({ detectedJurisdictionId, targetedPosition }) =>
+          detectedJurisdictionId ? '' : (targetedPosition ?? ''),
+        ),
+      ),
+    );
+    const matchedById = new Map(matched.map((row) => [row.id, row]));
 
-      SELECT queried_positions.id, current_j.codejur AS "current", target_j.codejur AS "target"
-      FROM queried_positions
-        LEFT JOIN data_administration_context.jurisdictions current_j
-          ON (
-            queried_positions.current_position IS NOT NULL
-            AND queried_positions.current_position ILIKE '%' || current_j.codejur || '%'
-          )
-        LEFT JOIN data_administration_context.jurisdictions target_j
-          ON (
-            queried_positions.targeted_position IS NOT NULL
-            AND queried_positions.targeted_position ILIKE '%' || target_j.codejur || '%'
-          )
-    `;
+    const detectedIds = files
+      .map(({ detectedJurisdictionId }) => detectedJurisdictionId)
+      .filter((id): id is string => !!id);
+    const detectedJurisdictions = detectedIds.length
+      ? await tx.jurisdiction.findMany({
+          select: { codejur: true, libelle: true },
+          where: { codejur: { in: detectedIds } },
+        })
+      : [];
+    const detectedLabelById = new Map(detectedJurisdictions.map((j) => [j.codejur, j.libelle]));
 
-    return new Map(rows.map(({ id, current, target }) => [id, { current, targeted: target }]));
+    return new Map(
+      files.map((file) => {
+        const row = matchedById.get(file.id);
+        const current = row?.currentJurisdictionId
+          ? { id: row.currentJurisdictionId, label: row.currentJurisdictionLabel }
+          : null;
+        const targeted = file.detectedJurisdictionId
+          ? {
+              id: file.detectedJurisdictionId,
+              label: detectedLabelById.get(file.detectedJurisdictionId) ?? null,
+            }
+          : row?.targetedJurisdictionId
+            ? { id: row.targetedJurisdictionId, label: row.targetedJurisdictionLabel }
+            : null;
+
+        return [file.id, { current, targeted }];
+      }),
+    );
   }
 }

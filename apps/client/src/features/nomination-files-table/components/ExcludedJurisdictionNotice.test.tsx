@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
-import type { ExcludedJurisdictionConflict } from '../hooks/useExcludedJurisdictionConflicts.hook';
+import type { ExcludedJurisdictionConflict } from '../context/member-excluded-jurisdictions';
 
 import { ExcludedJurisdictionNotice } from './ExcludedJurisdictionNotice';
 

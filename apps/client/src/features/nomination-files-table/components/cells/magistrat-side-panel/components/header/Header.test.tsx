@@ -135,7 +135,7 @@ describe('Header reporter status', () => {
     renderHeader({
       excludedJurisdictionsOfOtherReporter: [LYON],
       nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: LYON.id, targeted: null } },
+        content: { jurisdictions: { current: LYON, targeted: null } },
         reporters: [OTHER_REPORTER],
       }),
     });
@@ -149,7 +149,7 @@ describe('Header reporter status', () => {
     renderHeader({
       excludedJurisdictionsOfOtherReporter: [RENNES, LYON],
       nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: LYON.id, targeted: RENNES.id } },
+        content: { jurisdictions: { current: LYON, targeted: RENNES } },
         reporters: [OTHER_REPORTER],
       }),
     });
@@ -165,7 +165,7 @@ describe('Header reporter status', () => {
     renderHeader({
       excludedJurisdictionsOfOtherReporter: [LYON],
       nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: 'CA  PARIS', targeted: null } },
+        content: { jurisdictions: { current: { id: 'CA  PARIS', label: null }, targeted: null } },
         reporters: [OTHER_REPORTER],
       }),
     });

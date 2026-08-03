@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import {
   excludedJurisdictionLines,
   type ExcludedJurisdictionConflict,
-} from '../hooks/useExcludedJurisdictionConflicts.hook';
+} from '../context/member-excluded-jurisdictions';
 
 function warningLines(conflicts: readonly ExcludedJurisdictionConflict[]) {
   const files = new Map<string, { conflicts: ExcludedJurisdictionConflict[]; fileNumber: number | null }>();
@@ -35,7 +35,7 @@ export function ExcludedJurisdictionWarningList(props: {
       description={
         <ul className="fr-mb-0">
           {warningLines(props.conflicts).map(({ fileId, fileNumber, jurisdictions, memberNames }) => (
-            <li key={`${fileId}_${jurisdictions.join()}`}>
+            <li key={`${fileId}_${JSON.stringify(jurisdictions)}`}>
               <FormattedMessage
                 defaultMessage="Attention le dossier n° {fileNumber} est dans le périmètre {count, plural, one {d'une juridiction exclue} other {de juridictions exclues}} ({jurisdictions}) pour {memberNames}"
                 values={{
