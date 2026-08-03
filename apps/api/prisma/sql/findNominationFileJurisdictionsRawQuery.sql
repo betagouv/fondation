@@ -1,14 +1,18 @@
+-- @param $1:nominationFileIds
+
 SELECT
-  positions.id,
-  current_j.codejur AS "currentJurisdictionId",
-  current_j.libelle AS "currentJurisdictionLabel",
-  targeted_j.codejur AS "targetedJurisdictionId",
-  targeted_j.libelle AS "targetedJurisdictionLabel"
-FROM
-  UNNEST($1::TEXT [], $2::TEXT [], $3::TEXT []) AS positions (id, current_position, targeted_position)
-
-  LEFT JOIN data_administration_context.jurisdictions AS current_j
-    ON positions.current_position ILIKE '%' || current_j.codejur || '%'
-
-  LEFT JOIN data_administration_context.jurisdictions AS targeted_j
-    ON positions.targeted_position ILIKE '%' || targeted_j.codejur || '%'
+    d.id,
+    current_j.codejur AS "currentJurisdictionId",
+    current_j.libelle AS "currentJurisdictionLabel",
+    targeted_j.codejur AS "targetedJurisdictionId",
+    targeted_j.libelle AS "targetedJurisdictionLabel"
+FROM nominations_context.dossier_de_nomination AS d
+LEFT JOIN nominations_context.magistrat AS m
+    ON m.id = d.detected_magistrat_id
+LEFT JOIN data_administration_context."position" AS pos
+    ON pos.id = NULLIF(m.current_position_id, '')::INT
+LEFT JOIN data_administration_context.jurisdictions AS current_j
+    ON current_j.codejur = pos.jurisdiction_id
+LEFT JOIN data_administration_context.jurisdictions AS targeted_j
+    ON targeted_j.codejur = d.detected_jurisdiction_id
+WHERE d.id = ANY($1::UUID[])

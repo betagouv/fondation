@@ -134,7 +134,7 @@ test.describe('Session E2E', () => {
           detectedMagistratId: null,
           detectedJurisdictionId: 'TJ  GRASSE',
           jurisdictions: {
-            current: { id: 'TJ  NARBONNE', label: 'Tribunal judiciaire de Narbonne' },
+            current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
           },
           detectedTargetedFunctionId: 'PR',
@@ -186,7 +186,7 @@ test.describe('Session E2E', () => {
           detectedMagistratId: null,
           detectedJurisdictionId: 'TJ  TOULON',
           jurisdictions: {
-            current: { id: 'TJ  BEZIERS', label: 'Tribunal judiciaire de Béziers' },
+            current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
           },
           detectedTargetedFunctionId: 'PR',

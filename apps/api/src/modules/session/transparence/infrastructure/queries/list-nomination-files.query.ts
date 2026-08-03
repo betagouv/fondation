@@ -111,7 +111,10 @@ export class ListNominationFilesQuery {
         nominationFileIds,
       });
 
-      const jurisdictions = await this.jurisdictionsFinder.find({ tx, files: txFiles });
+      const jurisdictions = await this.jurisdictionsFinder.find({
+        tx,
+        nominationFileIds: [...nominationFileIds],
+      });
 
       const session = await tx.session.findUnique({
         where: { id: query.sessionId },

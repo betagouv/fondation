@@ -67,7 +67,10 @@ export class AutoAffectationsFinder {
       excludedMemberIds: predicate.excludedMemberIds,
     });
 
-    const jurisdictions = await this.jurisdictionsFinder.find({ tx, files: nominationFiles.items });
+    const jurisdictions = await this.jurisdictionsFinder.find({
+      tx,
+      nominationFileIds: nominationFiles.items.map(({ id }) => id),
+    });
 
     const files = this.toAutoAffectationNominationFiles(
       nominationFiles.items.map((file) => {
@@ -90,7 +93,6 @@ export class AutoAffectationsFinder {
   private toAutoAffectationNominationFiles(
     nominationFiles: readonly {
       id: string;
-      targetedPosition: string | null;
       targetedGrade: string | null;
       currentJurisdiction: string | null;
       targetedJurisdiction: string | null;
