@@ -26,7 +26,7 @@ import * as time from 'src/utils/time';
 
 import { StorageResult } from './result.storable';
 import { S3Client } from './s3';
-import { type StorablePath, type Storage, type Stored } from './storable.types';
+import type { Storable, StorablePath, Storage, Stored } from './storable.types';
 
 @Injectable()
 export class S3Storage implements Storage {
@@ -43,15 +43,15 @@ export class S3Storage implements Storage {
     this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
   }
 
-  async put(
-    objects: readonly (Stored & { content: ReadableStream | Buffer })[],
-  ): Promise<StorageResult<Stored>> {
+  async put(objects: readonly Storable[]): Promise<StorageResult<Stored>> {
     const r = new StorageResult<Stored>(this.logger, ({ successes }) => this.innerDelete(successes));
 
-    for (const stored of objects) {
-      await this.innerUpload(stored).then(
-        () => r.succeed(stored),
-        () => r.fail(stored),
+    for (const storable of objects) {
+      await this.innerUpload(storable).then(
+        ({ Bucket }) => r.succeed({ ...storable, bucket: Bucket! }),
+
+        // bucket is never used in case of deletion
+        () => r.fail({ ...storable, bucket: '' }),
       );
     }
 
@@ -214,9 +214,7 @@ export class S3Storage implements Storage {
       );
   }
 
-  private innerUpload(
-    stored: Stored & { content: Buffer | ReadableStream },
-  ): Promise<CompleteMultipartUploadCommandOutput> {
+  private innerUpload(storable: Storable): Promise<CompleteMultipartUploadCommandOutput> {
     return this.s3
       .buildCommand(
         ({ command, key }) =>
@@ -225,10 +223,10 @@ export class S3Storage implements Storage {
             params: {
               ...command,
 
-              Key: key(stored),
-              Body: stored.content,
-              ContentType: stored.mime,
-              Metadata: { id: stored.id, name: stored.name },
+              Key: key(storable),
+              Body: storable.content,
+              ContentType: storable.mime,
+              Metadata: { id: storable.id, name: storable.name },
             },
           }),
       )

@@ -9,7 +9,7 @@ import { partition } from 'src/utils/iterables';
 import { noop } from 'src/utils/noop';
 
 import { StorageResult } from './result.storable';
-import { StorablePath, type Storage, type Stored } from './storable.types';
+import { Storable, StorablePath, type Storage, type Stored } from './storable.types';
 
 @Injectable()
 export class DbStorage implements Storage {
@@ -28,9 +28,7 @@ export class DbStorage implements Storage {
     this.originUrl = config.originUrl;
   }
 
-  async put(
-    objects: readonly (Stored & { content: ReadableStream | Buffer })[],
-  ): Promise<StorageResult<Stored>> {
+  async put(objects: readonly Storable[]): Promise<StorageResult<Stored>> {
     const result = await this.storage.put(objects);
     if (!result.success) {
       await result.rollback().catch(noop);
@@ -40,11 +38,11 @@ export class DbStorage implements Storage {
     try {
       await this.db.withTransaction(Propagation.RequiresNew, () =>
         this.db.tx.file.createMany({
-          data: objects.map((f) => ({
+          data: result.successes.map((f) => ({
             id: f.id,
             name: f.name,
             bucket: f.bucket,
-            path: f.path as [string, ...string[]],
+            path: f.path as unknown as string[],
           })),
         }),
       );
@@ -55,12 +53,12 @@ export class DbStorage implements Storage {
             this.logger.error(`Could not delete ${objects.length} files`, err);
           }),
         ),
-      ).succeed(...objects);
+      ).succeed(...result.successes);
     } catch (error) {
       await result.rollback().catch(noop);
 
       this.logger.error(`failed to create ${objects.length} files`, error);
-      return new StorageResult<Stored>(this.logger).fail(...objects);
+      return new StorageResult<Stored>(this.logger).fail(...result.successes);
     }
   }
 
@@ -68,6 +66,7 @@ export class DbStorage implements Storage {
     files: readonly { id: string; path?: StorablePath }[],
   ): Promise<StorageResult<{ id: string }>> {
     const r = new StorageResult<{ id: string }>(this.logger);
+    if (files.length === 0) return r;
 
     try {
       await this.db.withTransaction(async () => {

@@ -10,7 +10,7 @@ import { MONTHS } from 'src/utils/time';
 
 import { DbStorage } from './db.storable';
 import { StorageResult } from './result.storable';
-import { StorablePath, type Storage, type Stored } from './storable.types';
+import { makeStorablePath, Storable, type Storage, type Stored } from './storable.types';
 
 describe('DbStorage', () => {
   let tx: { file: MockProxy<FileDelegate>; filePublicUrl: MockProxy<FilePublicUrlDelegate> };
@@ -18,18 +18,19 @@ describe('DbStorage', () => {
   let s3: MockProxy<Storage>;
   let storage: DbStorage;
 
-  const object: Stored & { content: Buffer } = {
+  const object: Storable = {
     id: 'file-id',
     name: 'doc.pdf',
     mime: 'application/pdf',
-    ext: 'pdf',
-    bucket: 'bucket',
-    path: ['sessions', 'doc.pdf'],
+    path: makeStorablePath(['sessions', 'doc.pdf']),
     content: Buffer.from('hello'),
   };
 
-  function storageResult(options: { success: boolean }): MockProxy<StorageResult<Stored>> {
-    return mock(options);
+  function storageResult(options: {
+    success: boolean;
+    successes?: Stored[];
+  }): MockProxy<StorageResult<Stored>> {
+    return mock<StorageResult<Stored>>(options);
   }
 
   beforeEach(async () => {
@@ -51,31 +52,33 @@ describe('DbStorage', () => {
 
   describe('put', () => {
     it('persists the files and returns a success', async () => {
-      s3.put.mockResolvedValue(storageResult({ success: true }));
+      s3.put.mockResolvedValue(
+        storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] }),
+      );
       tx.file.createMany.mockResolvedValue({ count: 1 });
 
       const result = await storage.put([object]);
 
       expect(result.success).toBe(true);
-      expect(result.successes).toContainEqual(object);
+      expect(result.successes).toContainEqual(expect.objectContaining({ id: object.id }));
       expect(tx.file.createMany).toHaveBeenCalledOnce();
     });
 
     it('rolls back the storage and does not persist when the upload fails', async () => {
-      const failed = storageResult({ success: false });
-      failed.rollback.mockResolvedValue();
+      const failure = storageResult({ success: false });
+      failure.rollback.mockResolvedValue();
 
-      s3.put.mockResolvedValue(failed);
+      s3.put.mockResolvedValue(failure);
 
       const result = await storage.put([object]);
 
-      expect(result).toBe(failed);
-      expect(failed.rollback).toHaveBeenCalled();
+      expect(result).toBe(failure);
+      expect(failure.rollback).toHaveBeenCalled();
       expect(db.withTransaction).not.toHaveBeenCalled();
     });
 
     it('rolls back the uploaded objects when persisting the files fails', async () => {
-      const uploaded = storageResult({ success: true });
+      const uploaded = storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] });
       uploaded.rollback.mockResolvedValue();
 
       s3.put.mockResolvedValue(uploaded);
@@ -88,7 +91,9 @@ describe('DbStorage', () => {
     });
 
     it('returns a rollback-able result on success, that will delete files in db', async () => {
-      s3.put.mockResolvedValue(storageResult({ success: true }));
+      s3.put.mockResolvedValue(
+        storageResult({ success: true, successes: [{ ...object, bucket: 'reports' }] }),
+      );
       tx.file.deleteMany.mockResolvedValue({ count: 1 });
 
       const result = await storage.put([object]);
@@ -168,7 +173,7 @@ describe('DbStorage', () => {
       const inOneMonth = new Date(Date.now() + 1 * MONTHS);
       const fileId = crypto.randomUUID();
 
-      const path: StorablePath = ['sessions', 'attachments', `${fileId}.pdf`];
+      const path = makeStorablePath(['sessions', 'attachments', `${fileId}.pdf`]);
 
       s3.publish.mockResolvedValue([
         {

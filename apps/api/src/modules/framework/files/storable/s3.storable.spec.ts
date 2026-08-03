@@ -19,7 +19,7 @@ import { SECONDS } from 'src/utils/time';
 
 import { S3Client } from './s3';
 import { S3Storage } from './s3.storable';
-import { type Stored } from './storable.types';
+import { makeStorablePath, Storable } from './storable.types';
 
 vi.mock('@aws-sdk/s3-request-presigner', () => ({ getSignedUrl: vi.fn() }));
 
@@ -34,13 +34,11 @@ describe('S3Storage', () => {
   const fileDuration = 10 * SECONDS;
   const expiresAt = new Date(now.getTime() + fileDuration);
 
-  const object: Stored & { content: Buffer } = {
+  const object: Storable = {
     id: 'file-id',
     name: 'doc.pdf',
     mime: 'application/pdf',
-    ext: 'pdf',
-    bucket: 'bucket',
-    path: ['sessions', 'doc.pdf'],
+    path: makeStorablePath(['sessions', 'doc.pdf']),
     content: Buffer.from('hello'),
   };
 
@@ -69,12 +67,14 @@ describe('S3Storage', () => {
 
   describe('put', () => {
     it('uploads each object and reports success', async () => {
-      vi.spyOn(s3, 'buildCommand').mockReturnValue({ done: () => Promise.resolve() } as never);
+      vi.spyOn(s3, 'buildCommand').mockReturnValue({
+        done: () => Promise.resolve({ Bucket: 'reports' }),
+      } as never);
 
       const result = await storage.put([object]);
 
       expect(result.success).toBe(true);
-      expect(result.successes).toContainEqual(object);
+      expect(result.successes).toContainEqual({ ...object, bucket: 'reports' });
     });
 
     it('reports a failure when the upload throws', async () => {
@@ -85,7 +85,7 @@ describe('S3Storage', () => {
       const result = await storage.put([object]);
 
       expect(result.success).toBe(false);
-      expect(result.failures).toContainEqual(object);
+      expect(result.failures).toContainEqual({ ...object, bucket: '' });
     });
   });
 

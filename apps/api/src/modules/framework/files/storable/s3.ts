@@ -53,7 +53,7 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
 
   buildCommand<T>(
     builder: (helper: {
-      key: (stored: { path: StorablePath }) => string;
+      key: (storable: { path: StorablePath }) => string;
       command: {
         Bucket: string;
         SSECustomerKey?: string;

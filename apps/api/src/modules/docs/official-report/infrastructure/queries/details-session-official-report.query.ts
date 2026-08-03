@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
+import { Objects } from 'src/modules/framework/files';
 
 import { FindOfficialReportDocumentPdfQuery } from './find-official-report-document-pdf.query';
 
@@ -11,7 +11,7 @@ import { FindOfficialReportDocumentPdfQuery } from './find-official-report-docum
 export class DetailsSessionOfficialReportQuery {
   constructor(
     private readonly db: Db,
-    private readonly files: Files,
+    private readonly objects: Objects,
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
   ) {}
 
@@ -38,7 +38,7 @@ export class DetailsSessionOfficialReportQuery {
       return this.innerHandle({ ...query, afterGeneration: true });
     }
 
-    const { [officialReport.pdf.id]: url } = await this.files.getPublicUrls([officialReport.pdf.id]);
+    const [{ url } = {}] = await this.objects.publish([{ id: officialReport.pdf.id }]);
     if (!url) throw new NotFoundException();
 
     return { id: officialReport.id, url: url.toString() };
