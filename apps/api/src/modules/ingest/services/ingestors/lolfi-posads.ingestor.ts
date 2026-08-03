@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -63,6 +64,7 @@ export class LolfiPosadsIngestor {
     return { success: success && mappingResult.success };
   }
 
+  @Transactional()
   private flush(props: { items: RawPause[]; jobId: number; fileId: string; result: { success: boolean } }) {
     return this.db.tx.$queryRawTyped(insertAdministrativePositionsRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing POSADS.xml chunk`, error);

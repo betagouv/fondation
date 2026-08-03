@@ -219,7 +219,7 @@ export class Files implements OnApplicationBootstrap {
     await Sentry.startSpan({ name: 'fr.csm.fondation:files:create' }, (span) =>
       factory(helper).catch((error) => {
         span.setAttribute('error', error);
-        span.recordException(error);
+        Sentry.captureException(error);
         this.logger.warn(`file batch stream session factory failed with error: ${error}`);
       }),
     );
@@ -400,7 +400,7 @@ export class Files implements OnApplicationBootstrap {
     fileUrlId: string,
     options?: { download?: boolean },
   ): Promise<{ file: StreamableFile; expiresAt: Date }> {
-    const file = await this.db.withTransaction(() =>
+    const file = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.filePublicUrl.findUnique({
         where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
         select: { url: true, expiresAt: true, file: { select: { name: true } } },
@@ -436,12 +436,13 @@ export class Files implements OnApplicationBootstrap {
     };
   }
 
-  @Transactional()
   async getFile(props: { fileId: string }): Promise<Readable | null> {
-    const storedFile = await this.db.tx.file.findUnique({
-      where: { id: props.fileId },
-      select: { path: true },
-    });
+    const storedFile = await this.db.withTransaction(Propagation.RequiresNew, () =>
+      this.db.tx.file.findUnique({
+        where: { id: props.fileId },
+        select: { path: true },
+      }),
+    );
 
     if (!storedFile) return null;
 

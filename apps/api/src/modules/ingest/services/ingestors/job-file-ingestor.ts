@@ -1,9 +1,8 @@
 import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
 
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
-import type { Readable } from 'node:stream';
 import z from 'zod';
 import { fr } from 'zod/locales';
 
@@ -12,7 +11,6 @@ import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { assertIsDefined } from 'src/utils/is-defined';
 import { ResultBuilder } from 'src/utils/result';
 
 @Injectable()
@@ -35,38 +33,30 @@ export class JobFileIngestor {
     let start: number;
     const { job, file } = options;
     try {
-      const fileContentResult = await this.db.withTransaction(
-        async (): Promise<{ success: boolean; fileContent?: Readable }> => {
-          const startedAt = this.clock.now();
-          if (file.sha256 === file.lastSha256) {
-            return this.succeedJobFile({ file, startedAt, jobId: job.id });
-          }
+      await this.db.withTransaction(Propagation.RequiresNew, async () => {
+        const startedAt = this.clock.now();
+        if (file.sha256 === file.lastSha256) {
+          const { success } = await this.succeedJobFile({ file, startedAt, jobId: job.id });
+          if (success) this.logger.log(`${options.file.name} sha256 did not change. Exitting`);
+          return { success };
+        }
 
-          await this.db.tx.ingestionJobFile.update({
-            where: { primaryKey: { jobId: job.id, fileId: file.id } },
-            data: { status: 'RUNNING', startedAt },
-          });
+        await this.db.tx.ingestionJobFile.update({
+          where: { primaryKey: { jobId: job.id, fileId: file.id } },
+          data: { status: 'RUNNING', startedAt },
+        });
+      });
 
-          const fileContent = await this.files.getFile({ fileId: file.id });
-          if (!fileContent) {
-            return this.failJobFile({
-              file,
-              jobId: job.id,
-              errors: [{ error: `Impossible de récupérer le fichier "${file.name}"` }],
-            });
-          }
-
-          return { success: true, fileContent };
-        },
-      );
-
-      if (!fileContentResult.success) return { success: false };
-      if (fileContentResult.success && !fileContentResult.fileContent) {
-        this.logger.log(`${options.file.name} sha256 did not change. Exitting`);
-        return { success: true };
+      // The file is fetched from S3 outside of any transaction.
+      const fileContent$ = await this.files.getFile({ fileId: file.id });
+      if (!fileContent$) {
+        return this.failJobFile({
+          file,
+          jobId: job.id,
+          errors: [{ error: `Impossible de récupérer le fichier "${file.name}"` }],
+        });
       }
 
-      const fileContent$ = assertIsDefined(fileContentResult.fileContent);
       const result = new ResultBuilder<T, { num: number | undefined; error: z.ZodError }>();
 
       start = performance.now();

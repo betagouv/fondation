@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -15,6 +16,7 @@ export class InternalDetailsLolfiSessionQuery {
 
   constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(sessionId: number): Promise<DetailedLolfiSession> {
     const nominationFiles = await this.db.tx.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
     const perPositionId = Map.groupBy(nominationFiles, (file) => file.detectedTargetedPositionId);

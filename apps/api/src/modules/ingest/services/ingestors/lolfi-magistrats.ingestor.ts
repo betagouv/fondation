@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -82,69 +83,67 @@ export class LolfiMagistratsIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
+  @Transactional(Propagation.RequiresNew)
+  private async flush(props: {
     items: RawMagistrat[];
     errors: { entityId: string; error: string }[];
     jobId: number;
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.db
-      .withTransaction(async () => {
-        if (props.items.length > 0) {
-          const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
+    try {
+      if (props.items.length > 0) {
+        const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
 
-          if (unknown.length > 0) {
-            for (const u of unknown) {
-              const entityId = u.id;
-              if (!entityId) continue;
+        if (unknown.length > 0) {
+          for (const u of unknown) {
+            const entityId = u.id;
+            if (!entityId) continue;
 
-              const error =
-                u.unknownGrade !== null
-                  ? `Grade "${u.unknownGrade}" inconnu`
-                  : u.unknownPositionId !== null
-                    ? `Poste "${u.unknownPositionId}" inconnu`
-                    : u.unknownAdminPosition !== null
-                      ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
-                      : u.unknownPrevAdminPosition !== null
-                        ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
-                        : u.unknownPrevAdminPosition2 !== null
-                          ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
-                          : null;
+            const error =
+              u.unknownGrade !== null
+                ? `Grade "${u.unknownGrade}" inconnu`
+                : u.unknownPositionId !== null
+                  ? `Poste "${u.unknownPositionId}" inconnu`
+                  : u.unknownAdminPosition !== null
+                    ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
+                    : u.unknownPrevAdminPosition !== null
+                      ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
+                      : u.unknownPrevAdminPosition2 !== null
+                        ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
+                        : null;
 
-              if (!error) continue;
+            if (!error) continue;
 
-              await this.db.tx.ingestionJobFileError.create({
-                data: {
-                  error,
-                  entityId: String(entityId),
-                  fileId: props.fileId,
-                  jobId: props.jobId,
-                },
-              });
-            }
+            await this.db.tx.ingestionJobFileError.create({
+              data: {
+                error,
+                entityId: String(entityId),
+                fileId: props.fileId,
+                jobId: props.jobId,
+              },
+            });
           }
         }
+      }
 
-        if (props.errors.length > 0) {
-          await this.db.tx.ingestionJobFileError.createMany({
-            data: props.errors.map(({ entityId, error }) => ({
-              error,
-              entityId,
-              jobId: props.jobId,
-              fileId: props.fileId,
-            })),
-          });
-        }
-      })
-      .catch((error) => {
-        this.logger.error(`Failed flushing MAGISTRATS.xml chunk`, error);
-        props.result.success = false;
-      })
-      .finally(() => {
-        props.errors.length = 0;
-        props.items.length = 0;
-      });
+      if (props.errors.length > 0) {
+        await this.db.tx.ingestionJobFileError.createMany({
+          data: props.errors.map(({ entityId, error }) => ({
+            error,
+            entityId,
+            jobId: props.jobId,
+            fileId: props.fileId,
+          })),
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Failed flushing MAGISTRATS.xml chunk`, error);
+      props.result.success = false;
+    } finally {
+      props.errors.length = 0;
+      props.items.length = 0;
+    }
   }
 }
 

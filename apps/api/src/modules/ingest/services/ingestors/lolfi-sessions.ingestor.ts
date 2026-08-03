@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -73,6 +74,7 @@ export class LolfiSessionsIngestor {
     return { success: finalSuccess };
   }
 
+  @Transactional()
   private flush(props: { items: RawSession[]; jobId: number; fileId: string; result: { success: boolean } }) {
     return this.db.tx.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);

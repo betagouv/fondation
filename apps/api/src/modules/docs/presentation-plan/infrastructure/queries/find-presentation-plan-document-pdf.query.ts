@@ -27,27 +27,23 @@ export class FindPresentationPlanDocumentPdfQuery {
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const file = await this.db.withTransaction(async () => {
-      const plan = await this.db.tx.justicePresentationPlan.findUnique({
-        where: { id: query.id },
-        select: {
-          date: true,
-          pdf: { select: { id: true, name: true } },
-          agendas: {
-            take: 1,
-            select: { agenda: { select: { formation: true } } },
-          },
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id: query.id },
+      select: {
+        date: true,
+        pdf: { select: { id: true, name: true } },
+        agendas: {
+          take: 1,
+          select: { agenda: { select: { formation: true } } },
         },
-      });
+      },
+    });
 
-      if (!plan || !plan.agendas.length) throw new NotFoundException();
-      if (!plan.pdf || query.forceNew)
-        return {
-          date: plan.date,
-          formation: assertIsDefined(plan.agendas[0]).agenda.formation,
-        };
+    if (!plan || !plan.agendas.length) throw new NotFoundException();
 
-      const file$ = await this.files.getFile({ fileId: plan.pdf?.id });
+    // Stream the cached PDF from S3 outside of any transaction.
+    if (plan.pdf?.id && !query.forceNew) {
+      const file$ = await this.files.getFile({ fileId: plan.pdf.id });
       if (!file$) {
         this.logger.error(`Could not retrieve the presentation plan (${query.id}) from S3`);
         throw new InternalServerErrorException();
@@ -57,14 +53,13 @@ export class FindPresentationPlanDocumentPdfQuery {
         type: FILE_MIME_TYPES.pdf,
         disposition: `inline; filename=${encodeURIComponent(plan.pdf.name)}`,
       });
-    });
+    }
 
-    if (file instanceof StreamableFile) return file;
-
+    const formation = assertIsDefined(plan.agendas[0]).agenda.formation;
     const html = await this.findPresentationPlanDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
-    const name = `Notice de restitution - ${file.formation === 'SIEGE' ? 'Siège' : 'Parquet'} - ${formatDate(file.date, 'dd-MM-yyyy')}.pdf`;
+    const name = `Notice de restitution - ${formation === 'SIEGE' ? 'Siège' : 'Parquet'} - ${formatDate(plan.date, 'dd-MM-yyyy')}.pdf`;
     const fileId = makeId('FileId');
     const path = `docs/${fileId}.pdf`;
 

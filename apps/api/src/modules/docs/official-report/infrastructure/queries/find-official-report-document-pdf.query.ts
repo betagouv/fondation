@@ -25,43 +25,34 @@ export class FindOfficialReportDocumentPdfQuery {
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const result = await this.db.withTransaction(async () => {
-      const officialReport = await this.db.tx.officialReport.findUnique({
-        where: { id: query.id },
-        select: {
-          sessionMeetingDate: true,
-          chairmanFirstName: true,
-          chairmanLastName: true,
-          agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
-          pdf: { select: { id: true, name: true } },
-        },
-      });
-
-      if (!officialReport) throw new NotFoundException();
-
-      if (!query.forceNew && officialReport.pdf?.id) {
-        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
-        if (!file$) {
-          this.logger.error(`Could not retrieve the official report PDF file from S3`);
-          throw new InternalServerErrorException();
-        }
-
-        return {
-          type: 'pdf',
-          file: new StreamableFile(file$, {
-            type: FILE_MIME_TYPES.pdf,
-            disposition: `inline; filename=${encodeURIComponent(officialReport.pdf.name)}`,
-          }),
-        } as const;
-      }
-
-      const html = await this.findOfficialReportDocumentQuery.handle(query);
-      return { type: 'html', html, officialReport } as const;
+    const officialReport = await this.db.tx.officialReport.findUnique({
+      where: { id: query.id },
+      select: {
+        sessionMeetingDate: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
+        agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
+        pdf: { select: { id: true, name: true } },
+      },
     });
 
-    if (result.type === 'pdf') return result.file;
+    if (!officialReport) throw new NotFoundException();
 
-    const { officialReport, html } = result;
+    // Stream the cached PDF from S3 outside of any transaction.
+    if (!query.forceNew && officialReport.pdf?.id) {
+      const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
+      if (!file$) {
+        this.logger.error(`Could not retrieve the official report PDF file from S3`);
+        throw new InternalServerErrorException();
+      }
+
+      return new StreamableFile(file$, {
+        type: FILE_MIME_TYPES.pdf,
+        disposition: `inline; filename=${encodeURIComponent(officialReport.pdf.name)}`,
+      });
+    }
+
+    const html = await this.findOfficialReportDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
     const [agenda] = officialReport.agendas;
@@ -80,12 +71,10 @@ export class FindOfficialReportDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.withTransaction((tx) =>
-        tx.officialReport.update({
-          where: { id: query.id },
-          data: { pdfId: pdfFileId },
-        }),
-      );
+      await this.db.tx.officialReport.update({
+        where: { id: query.id },
+        data: { pdfId: pdfFileId },
+      });
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

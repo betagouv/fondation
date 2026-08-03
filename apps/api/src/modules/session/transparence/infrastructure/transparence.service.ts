@@ -1,4 +1,4 @@
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
@@ -538,31 +538,27 @@ export class TransparenceService {
   }
 
   async internalIngestLolfiSessions(
-    sessions: readonly {
-      id: number;
-      creationDate: DateOnly;
-      name: string | null;
-    }[],
+    sessions: readonly { id: number; creationDate: DateOnly; name: string | null }[],
   ): Promise<void> {
     for (const session of sessions) {
-      const nominationSessions = await this.lolfiNominationSessionFinder.find(session).catch((error) => {
-        Sentry.captureException(error);
-        this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
+      await this.db.withTransaction(Propagation.RequiresNew, async () => {
+        const nominationSessions = await this.lolfiNominationSessionFinder.find(session).catch((error) => {
+          Sentry.captureException(error);
+          this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
 
-        return [] as SessionTransparence[];
-      });
+          return [] as SessionTransparence[];
+        });
 
-      for (const nominationSession of nominationSessions) {
-        await this.db
-          .withTransaction(() => this.nominationSessionRepository.persist(nominationSession))
-          .catch((error) => {
+        for (const nominationSession of nominationSessions) {
+          await this.nominationSessionRepository.persist(nominationSession).catch((error) => {
             this.logger.error(
               `Error while persisting session LOLFI ${session.id}, formation: ${nominationSession.formation}`,
               error,
             );
             Sentry.captureException(error);
           });
-      }
+        }
+      });
     }
   }
 

@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -66,45 +67,44 @@ export class LolfiGradesIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
+  @Transactional()
+  private async flush(props: {
     grades: Map<string, ExtractedGrade>;
     massGrades: Map<string, ExtractedMessGrade>;
     jobId: number;
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.db
-      .withTransaction(async () => {
-        const unknownMassGrades = await this.db.tx.$queryRawTyped(
-          insertGradesRawQuery([
-            ...props.massGrades.values().map((x) => ({
-              grade: x.masse_grade,
-              tri: x.mg_tri,
-              libelle: x.mg_libelle,
-              masse_grade: null,
-            })),
-
-            ...props.grades.values(),
-          ] satisfies (Omit<ExtractedGrade, 'masse_grade'> & {
-            masse_grade: string | null;
-          })[]),
-        );
-
-        if (unknownMassGrades.length === 0) return;
-
-        await this.db.tx.ingestionJobFileError.createMany({
-          data: unknownMassGrades.map(({ grade, massGrade }) => ({
-            jobId: props.jobId,
-            fileId: props.fileId,
-            entityId: grade,
-            error: `Masse grade inconnu: "${massGrade}"`,
+    try {
+      const unknownMassGrades = await this.db.tx.$queryRawTyped(
+        insertGradesRawQuery([
+          ...props.massGrades.values().map((x) => ({
+            grade: x.masse_grade,
+            tri: x.mg_tri,
+            libelle: x.mg_libelle,
+            masse_grade: null,
           })),
-        });
-      })
-      .catch((error) => {
-        this.logger.error(`Failed flushing GRADES.xml chunk`, error);
-        props.result.success = false;
+
+          ...props.grades.values(),
+        ] satisfies (Omit<ExtractedGrade, 'masse_grade'> & {
+          masse_grade: string | null;
+        })[]),
+      );
+
+      if (unknownMassGrades.length === 0) return;
+
+      await this.db.tx.ingestionJobFileError.createMany({
+        data: unknownMassGrades.map(({ grade, massGrade }) => ({
+          jobId: props.jobId,
+          fileId: props.fileId,
+          entityId: grade,
+          error: `Masse grade inconnu: "${massGrade}"`,
+        })),
       });
+    } catch (error) {
+      this.logger.error(`Failed flushing GRADES.xml chunk`, error);
+      props.result.success = false;
+    }
   }
 }
 

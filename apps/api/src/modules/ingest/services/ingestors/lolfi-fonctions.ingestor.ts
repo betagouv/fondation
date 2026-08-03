@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
@@ -56,6 +57,7 @@ export class LolfiFonctionsIngestor {
     return { success: success && mappingResult.success };
   }
 
+  @Transactional()
   private flush(props: {
     items: RawFunction[];
     jobId: number;

@@ -1,5 +1,6 @@
 import { inspect } from 'node:util';
 
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { dag } from '../../domain/requirements';
@@ -83,6 +84,7 @@ export class LolfiFilesIngestor {
     }
   }
 
+  @Transactional(Propagation.RequiresNew)
   private async succeedJob(jobId: number): Promise<void> {
     await this.db.tx.ingestionJob
       .update({
@@ -97,6 +99,7 @@ export class LolfiFilesIngestor {
       });
   }
 
+  @Transactional(Propagation.RequiresNew)
   private async failJob(jobId: number, error?: unknown): Promise<void> {
     await this.db.tx.ingestionJob
       .update({
@@ -255,24 +258,23 @@ export class LolfiFilesIngestor {
     return Promise.resolve({ success: true });
   }
 
+  @Transactional()
   private async cancel(jobId: number) {
-    await this.db
-      .withTransaction(async () => {
-        await this.db.tx.ingestionJobFile.updateMany({
-          where: { status: 'IDLE', jobId },
-          data: { status: 'CANCELED' },
-        });
-
-        await this.db.tx.ingestionJob.updateMany({
-          data: { status: 'CANCELED', endedAt: this.clock.now() },
-          where: {
-            id: jobId,
-            status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
-          },
-        });
-      })
-      .catch((e) => {
-        this.logger.error(`Failed to write job as canceled`, e);
+    try {
+      await this.db.tx.ingestionJobFile.updateMany({
+        where: { status: 'IDLE', jobId },
+        data: { status: 'CANCELED' },
       });
+
+      await this.db.tx.ingestionJob.updateMany({
+        data: { status: 'CANCELED', endedAt: this.clock.now() },
+        where: {
+          id: jobId,
+          status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
+        },
+      });
+    } catch (e) {
+      this.logger.error(`Failed to write job as canceled`, e);
+    }
   }
 }
