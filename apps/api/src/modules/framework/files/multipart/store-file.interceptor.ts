@@ -3,8 +3,10 @@ import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { Files } from '../files';
 import { Sanitizer } from '../sanitizers';
+import { Objects } from '../storable/objects.storable';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { ignoreAsync } from 'src/utils/promises';
 
 import { MultipartFile } from './multipart.file';
 import { StoredFile } from './multipart.types';
@@ -12,7 +14,7 @@ import { StoredFile } from './multipart.types';
 @Injectable()
 export class StoreFileInterceptor implements NestInterceptor {
   constructor(
-    private readonly files: Files,
+    private readonly files: Objects,
     private readonly sanitizer: Sanitizer,
   ) {}
 
@@ -57,7 +59,7 @@ export class StoreFileInterceptor implements NestInterceptor {
       }
     }
 
-    await this.files.create(
+    await this.files.put(
       await Promise.all(
         multipartFiles.map(async (f) => {
           const sanitized = await Sentry.startSpan(
@@ -68,13 +70,12 @@ export class StoreFileInterceptor implements NestInterceptor {
             () => this.sanitizer.sanitize(f),
           );
 
-          const buffer = Buffer.from(await sanitized.arrayBuffer());
           return {
-            path: f.path as string,
+            id: f.id,
             name: f.name,
-            size: buffer.length,
-            meta: { id: f.id },
-            buffer,
+            mime: f.mimeType,
+            path: assertIsDefined(f.path, `unknown object path`),
+            content: sanitized,
           };
         }),
       ),
@@ -82,10 +83,8 @@ export class StoreFileInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       catchError((err) => {
-        this.files.delete(
-          multipartFiles
-            .filter((f) => Boolean(f.deleteOnFail && f.path))
-            .map(({ id, path }) => ({ id, path: (path as string).split('/') })),
+        ignoreAsync(() =>
+          this.files.delete(multipartFiles.filter((f) => f.deleteOnFail).map(({ id }) => ({ id }))),
         );
 
         return throwError(() => err);

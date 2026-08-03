@@ -4,12 +4,12 @@ import { Files } from './files';
 import { FilesController } from './files.controller';
 import { StoreFileInterceptor } from './multipart/store-file.interceptor';
 import { Sanitizer } from './sanitizers';
-
-export const SSE_CONFIG_TOKEN = Symbol();
+import { StorableModule } from './storable/storable.module';
 
 @Global()
 @Module({
-  exports: [Files, Sanitizer],
+  imports: [StorableModule],
+  exports: [Files, Sanitizer, StorableModule],
   controllers: [FilesController],
   providers: [Sanitizer, StoreFileInterceptor, Files],
 })

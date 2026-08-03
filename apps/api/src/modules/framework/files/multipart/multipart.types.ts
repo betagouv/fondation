@@ -23,6 +23,7 @@ export type Multipart<T extends ZodDto<z.ZodType>> = ZodMultipart<z.infer<T['sch
 
 export type MultipartDestinationFactory = (file: {
   id: string;
+  ext: string;
   mimetype: FileMimeType;
   originalname: string;
   request: Omit<ExpressRequest, 'params'> & { params: Record<string, string> };
