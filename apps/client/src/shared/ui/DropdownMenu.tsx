@@ -101,7 +101,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
         position: 'absolute',
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left}px`,
-        zIndex: 9999,
+        zIndex: 'var(--z-index-popover)',
       }}
       className={className}
     >

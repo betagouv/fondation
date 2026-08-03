@@ -76,19 +76,19 @@ export function Dropdown(props: DropdownProps) {
 
   const trigger = (
     <button
-      ref={triggerRef}
       aria-controls={open ? listboxId : undefined}
       aria-expanded={open}
       aria-haspopup="listbox"
       aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
-      id={triggerId}
       className={clsx(
         'cursor-pointer text-left font-[inherit]',
         props.multiple
           ? 'absolute inset-0 h-full w-full [--active:transparent] [--hover:transparent]'
           : cx('fr-select'),
       )}
+      id={triggerId}
       onClick={() => setOpen((value) => !value)}
+      ref={triggerRef}
       type="button"
     >
       {props.multiple ? (
