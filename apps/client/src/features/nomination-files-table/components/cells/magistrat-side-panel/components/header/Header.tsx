@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import React from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
@@ -185,17 +185,8 @@ function ReporterStatus(props: {
   reporters: readonly Reporter[];
 }) {
   const { conflicts, currentUserId, reporters } = props;
-  const { formatMessage } = useIntl();
+  const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
 
-  const excludedTitleByMemberId = new Map(
-    conflicts.map((conflict) => [
-      conflict.memberId,
-      formatMessage(
-        { defaultMessage: 'Juridiction exclue pour {memberName} : {jurisdiction}' },
-        { jurisdiction: conflict.jurisdiction, memberName: conflict.memberName },
-      ),
-    ]),
-  );
   if (reporters.length === 0)
     return (
       <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">

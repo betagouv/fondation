@@ -23,6 +23,13 @@ function renderNotice(conflicts: ExcludedJurisdictionConflict[]) {
 }
 
 describe('ExcludedJurisdictionNotice', () => {
+  it('keeps the live region in the DOM when there is no conflict', () => {
+    renderNotice([]);
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+  });
+
   it('gathers the reporters sharing the same excluded jurisdiction on a single line', () => {
     renderNotice([conflict('Camille COMMUN', LYON), conflict('Sophie SIÈGE', LYON)]);
 

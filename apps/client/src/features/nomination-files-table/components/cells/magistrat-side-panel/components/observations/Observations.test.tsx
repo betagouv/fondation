@@ -55,11 +55,11 @@ describe('Observations', () => {
     expect(screen.getByText('Aucun observant sur cette proposition')).toBeInTheDocument();
   });
 
-  it('uses the singular heading with the count for a single observation', () => {
+  it('uses the singular heading without the count for a single observation', () => {
     observations = [makeObservation('obs-1')];
     renderObservations({ observants: ['Tribunal de Lyon'] });
 
-    expect(screen.getByRole('heading', { name: 'Observant (1)' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Observant' })).toBeInTheDocument();
     expect(screen.getByText('Tribunal de Lyon')).toBeInTheDocument();
   });
 

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '../../../context/files-table.context';
 import { useAffectationRow } from '@/features/nomination-files-table/context/files-affectations.context';
@@ -63,15 +64,19 @@ export function ReportersSelector(props: { file: SessionNominationFile }) {
   );
 
   const buttonLabel =
-    selectedUsers.length > 0 ? <UserAvatarList users={selectedUsers} size="sm" /> : 'Sélectionner';
+    selectedUsers.length > 0 ? (
+      <UserAvatarList users={selectedUsers} size="sm" />
+    ) : (
+      <FormattedMessage defaultMessage="Sélectionner" />
+    );
 
   return (
     <div className="flex items-center">
       <MissingSecondReporterAlert dossier={props.file} selectedReportersCount={selectedReporters.length} />
       <RapporteursDropdownBase
         availableRapporteurs={reporters}
-        selectedRapporteurs={selectedReporters}
         excludedTitleByRapporteurId={excludedTitleByRapporteurId}
+        selectedRapporteurs={selectedReporters}
         onSelectionChange={affectReporters}
         buttonLabel={buttonLabel}
       />

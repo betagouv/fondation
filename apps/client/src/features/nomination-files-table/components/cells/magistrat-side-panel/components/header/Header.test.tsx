@@ -26,6 +26,7 @@ const CURRENT_USER_ID = 'current-user';
 const CURRENT_USER = { id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' };
 const OTHER_REPORTER = { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevre' };
 const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
+const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
 
 function renderHeader(options: {
   excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
@@ -141,6 +142,22 @@ describe('Header reporter status', () => {
 
     expect(
       screen.getByText("Juridiction exclue pour Marie LEFEVRE : Cour d'appel de Lyon"),
+    ).toBeInTheDocument();
+  });
+
+  it('names every excluded jurisdiction of the file for the same reporter', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [RENNES, LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: LYON.id, targeted: RENNES.id } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(
+      screen.getByText(
+        "Juridictions exclues pour Marie LEFEVRE : Cour d'appel de Lyon et Cour d'appel de Rennes",
+      ),
     ).toBeInTheDocument();
   });
 

@@ -4,18 +4,21 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
+const ICON_CLASS = clsx(cx('fr-icon-warning-fill'), 'fr-icon--sm', 'shrink-0', 'align-middle');
+const ICON_STYLE = { color: colors.decisions.text.default.warning.default };
+
 export function ExcludedJurisdictionIcon(props: { title?: string }) {
   const { formatMessage } = useIntl();
-  const description =
-    props.title ?? formatMessage({ defaultMessage: 'Juridiction exclue pour ce rapporteur' });
+
+  if (!props.title) return <i aria-hidden className={ICON_CLASS} style={ICON_STYLE} />;
 
   return (
-    <Tooltip title={description}>
+    <Tooltip title={props.title}>
       <i
         aria-label={formatMessage({ defaultMessage: 'Juridiction exclue' })}
-        className={clsx(cx('fr-icon-warning-fill'), 'fr-icon--sm', 'align-middle')}
+        className={ICON_CLASS}
         role="img"
-        style={{ color: colors.decisions.text.default.warning.default }}
+        style={ICON_STYLE}
       />
     </Tooltip>
   );

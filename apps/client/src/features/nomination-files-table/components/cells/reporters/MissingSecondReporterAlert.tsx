@@ -2,6 +2,7 @@ import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
+import { useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
@@ -60,13 +61,14 @@ export function MissingSecondReporterAlert(props: {
   dossier: SessionNominationFile;
   selectedReportersCount?: number;
 }) {
+  const { formatMessage } = useIntl();
   const isSg = useIsSgNavigation();
   if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 
   return (
     /** @warning ".multi-reporters-alert" is used by the table CSS to display the orange row */
     <div className="multi-reporters-alert fr-pr-1v cursor-pointer">
-      <Tooltip title="2 rapporteurs attendus">
+      <Tooltip title={formatMessage({ defaultMessage: '2 rapporteurs attendus' })}>
         <i
           style={{
             color: colors.decisions.text.default.warning.default,

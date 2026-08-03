@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import React from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useConfirmation } from '@/shared/context/confirmation';
@@ -19,7 +20,12 @@ export function SummarySectionAttachments() {
 
   return (
     <SummarySectionCard id="pieces-jointes">
-      <h2>Pièces jointes {attachmentsCount ? <span>({attachmentsCount})</span> : null}</h2>
+      <h2>
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
+          values={{ count: attachmentsCount }}
+        />
+      </h2>
 
       <SummaryAttachmentInput />
 
@@ -31,7 +37,9 @@ export function SummarySectionAttachments() {
             ))}
           </ul>
         ) : canWriteSummary ? null : (
-          <p className="text-sm text-(--text-mention-grey)">Aucune pièce jointe pour le moment</p>
+          <p className="text-sm text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Aucune pièce jointe pour le moment" />
+          </p>
         )}
       </div>
     </SummarySectionCard>
@@ -40,6 +48,7 @@ export function SummarySectionAttachments() {
 
 function SummaryAttachmentInput() {
   const { sessionId, nominationFileId, canWriteSummary, summary } = useSummary();
+  const { formatMessage } = useIntl();
   const { mutate, isPending } = useAttachSummaryFilesMutation();
   const ref = React.useRef<HTMLInputElement | null>(null);
 
@@ -68,7 +77,7 @@ function SummaryAttachmentInput() {
     <Upload
       label={null}
       multiple
-      hint="Tout type de fichier supporté"
+      hint={formatMessage({ defaultMessage: 'Tout type de fichier supporté' })}
       disabled={isPending || summary.isArchived}
       nativeInputProps={{ ref, onChange }}
     />
@@ -77,6 +86,7 @@ function SummaryAttachmentInput() {
 
 function SummaryAttachment(props: { fileId: string; name: string }) {
   const { canWriteSummary, sessionId, nominationFileId } = useSummary();
+  const { formatMessage } = useIntl();
 
   const { mutate: openAttachment, isPending: isGenerating } = useGenerateSummaryAttachmentPublicUrlMutation();
   const onOpenAttachment = React.useCallback(() => {
@@ -87,18 +97,18 @@ function SummaryAttachment(props: { fileId: string; name: string }) {
   const { buttonProps, waitForConfirmation } = useConfirmation();
   const onDeleteAttachment = React.useCallback(async () => {
     const { isConfirmed } = await waitForConfirmation({
-      title: `Veuillez confirmer la suppression du fichier`,
-      content: `Une fois supprimé, il sera impossible de le récupérer.`,
+      title: formatMessage({ defaultMessage: 'Veuillez confirmer la suppression du fichier' }),
+      content: formatMessage({ defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.' }),
       i18n: {
-        cancel: 'Annuler',
-        confirm: 'Supprimer le fichier',
+        cancel: formatMessage({ defaultMessage: 'Annuler' }),
+        confirm: formatMessage({ defaultMessage: 'Supprimer le fichier' }),
       },
     });
 
     if (!isConfirmed) return;
 
     await detach({ sessionId, nominationFileId, fileIds: [props.fileId] });
-  }, [sessionId, nominationFileId, detach, props.fileId, waitForConfirmation]);
+  }, [sessionId, nominationFileId, detach, formatMessage, props.fileId, waitForConfirmation]);
 
   return (
     <li className="flex">
@@ -114,7 +124,7 @@ function SummaryAttachment(props: { fileId: string; name: string }) {
       {canWriteSummary ? (
         <Button
           disabled={detachingIsPending}
-          title="Supprimer le fichier"
+          title={formatMessage({ defaultMessage: 'Supprimer le fichier' })}
           priority="tertiary no outline"
           iconId="fr-icon-delete-bin-fill"
           nativeButtonProps={buttonProps}
