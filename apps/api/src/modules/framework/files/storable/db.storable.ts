@@ -1,8 +1,9 @@
+import { Propagation } from '@nestjs-cls/transactional';
 import { Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { makeId } from 'src/utils/id';
 import { partition } from 'src/utils/iterables';
 import { noop } from 'src/utils/noop';
@@ -11,15 +12,15 @@ import { StorageResult } from './result.storable';
 import { StorablePath, type Storage, type Stored } from './storable.types';
 
 @Injectable()
-export class PrismaStorage implements Storage {
-  private readonly logger = new Logger(PrismaStorage.name);
+export class DbStorage implements Storage {
+  private readonly logger = new Logger(DbStorage.name);
 
   private readonly originUrl: string;
 
   constructor(
     private readonly clock: Clock,
     private readonly storage: Storage,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     @Inject(API_CONFIG_TOKEN)
     config: ApiConfig,
@@ -37,19 +38,23 @@ export class PrismaStorage implements Storage {
     }
 
     try {
-      await this.prisma.file.createMany({
-        data: objects.map((f) => ({
-          id: f.id,
-          name: f.name,
-          bucket: f.bucket,
-          path: f.path as [string, ...string[]],
-        })),
-      });
+      await this.db.withTransaction(Propagation.RequiresNew, () =>
+        this.db.tx.file.createMany({
+          data: objects.map((f) => ({
+            id: f.id,
+            name: f.name,
+            bucket: f.bucket,
+            path: f.path as [string, ...string[]],
+          })),
+        }),
+      );
 
       return new StorageResult<Stored>(this.logger, () =>
-        this.prisma.file.deleteMany({ where: { id: { in: objects.map(({ id }) => id) } } }).catch((err) => {
-          this.logger.error(`Could not delete ${objects.length} files`, err);
-        }),
+        this.db.withTransaction(Propagation.RequiresNew, () =>
+          this.db.tx.file.deleteMany({ where: { id: { in: objects.map(({ id }) => id) } } }).catch((err) => {
+            this.logger.error(`Could not delete ${objects.length} files`, err);
+          }),
+        ),
       ).succeed(...objects);
     } catch (error) {
       await result.rollback().catch(noop);
@@ -65,20 +70,23 @@ export class PrismaStorage implements Storage {
     const r = new StorageResult<{ id: string }>(this.logger);
 
     try {
-      await this.prisma.$transaction(async (tx) => {
+      await this.db.withTransaction(async () => {
         for (const file of files) {
-          const { path } = await tx.file.delete({ where: { id: file.id }, select: { path: true } });
+          const { path } = await this.db.tx.file.delete({
+            where: { id: file.id },
+            select: { path: true },
+          });
           file.path = path as unknown as StorablePath;
         }
       });
 
       r.succeed(...files);
+
+      await this.storage.delete(files).catch(noop);
     } catch (error) {
       this.logger.error(`failed deleting ${files.length} files`, error);
       r.fail(...files);
     }
-
-    await this.storage.delete(files).catch(noop);
 
     return r;
   }
@@ -87,8 +95,8 @@ export class PrismaStorage implements Storage {
     objects: readonly T[],
   ): Promise<(T & { url: URL; expiresAt: Date })[]> {
     const objectsById = new Map(objects.map((object) => [object.id, object] as const));
-    return this.prisma.$transaction(async (tx) => {
-      const files = await tx.file.findMany({
+    return this.db.withTransaction(Propagation.RequiresNew, async () => {
+      const files = await this.db.tx.file.findMany({
         where: { id: { in: objects.map(({ id }) => id) } },
         select: {
           id: true,
@@ -137,7 +145,7 @@ export class PrismaStorage implements Storage {
               });
             }
 
-            await tx.filePublicUrl.createMany({
+            await this.db.tx.filePublicUrl.createMany({
               data: toCreate,
             });
 
@@ -162,7 +170,7 @@ export class PrismaStorage implements Storage {
     }
 
     if ('id' in object) {
-      const file = await this.prisma.file.findUnique({
+      const file = await this.db.tx.file.findUnique({
         where: { id: object.id },
         select: { id: true, name: true, path: true },
       });
@@ -172,7 +180,7 @@ export class PrismaStorage implements Storage {
       );
     }
 
-    const publicUrl = await this.prisma.filePublicUrl.findUnique({
+    const publicUrl = await this.db.tx.filePublicUrl.findUnique({
       where: { id: object.publicUrlId, expiresAt: { gt: this.clock.now() } },
       select: { url: true, expiresAt: true },
     });

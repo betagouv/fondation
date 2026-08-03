@@ -27,6 +27,7 @@ import * as time from 'src/utils/time';
 import { StorageResult } from './result.storable';
 import { S3Client } from './s3';
 import { type StorablePath, type Storage, type Stored } from './storable.types';
+
 @Injectable()
 export class S3Storage implements Storage {
   private readonly logger = new Logger(S3Storage.name);
@@ -87,10 +88,12 @@ export class S3Storage implements Storage {
       }),
     );
 
-    return new StorageResult<{ id: string; path: StorablePath; versionId: string }>(
+    const finalResult = new StorageResult<{ id: string; path: StorablePath; versionId: string }>(
       this.logger,
       ({ successes }) => this.innerDelete(successes),
     ).succeed(...deleted);
+
+    return finalResult as unknown as StorageResult<{ id: string }>;
   }
 
   async publish<T extends { id: string; path?: StorablePath }>(
