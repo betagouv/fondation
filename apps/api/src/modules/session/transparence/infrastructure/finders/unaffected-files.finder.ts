@@ -31,10 +31,8 @@ export class UnaffectedFilesFinder {
     const items = await predicate.tx.dossierDeNomination.findMany({
       select: {
         id: true,
-        targetedPosition: true,
         targetedGrade: true,
         number: true,
-        currentPosition: true,
       },
       where: {
         outcome: null,
@@ -56,8 +54,6 @@ export class FoundUnaffectedFilesDto extends createZodDto(
       z.object({
         id: z.string(),
         number: z.number().nullable(),
-        currentPosition: z.string().nullable(),
-        targetedPosition: z.string().nullable(),
         targetedGrade: z.string().nullable(),
       }),
     ),

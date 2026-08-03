@@ -27,7 +27,7 @@ describe('DetailsLink', () => {
   it('should link to the secrétariat général magistrat details page', () => {
     renderLink({ context: 'sg', magistratId: 'magistrat-1' });
 
-    expect(screen.getByRole('link', { name: 'Fiche détails du magistrat' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Vers la fiche magistrat' })).toHaveAttribute(
       'href',
       '/secretariat-general/magistrats/magistrat-1',
     );
@@ -36,7 +36,7 @@ describe('DetailsLink', () => {
   it('should link to the member magistrat details page', () => {
     renderLink({ context: 'membre', magistratId: 'magistrat-1' });
 
-    expect(screen.getByRole('link', { name: 'Fiche détails du magistrat' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Vers la fiche magistrat' })).toHaveAttribute(
       'href',
       '/magistrats/magistrat-1',
     );

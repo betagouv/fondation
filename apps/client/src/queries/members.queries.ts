@@ -15,9 +15,17 @@ import { docsKeys } from './agenda.queries';
 import { sessionKeys, type SessionNominationFile } from './nomination-sessions.queries';
 import { summaryKeys } from './summary.queries';
 
+export type ListMembersOptions = {
+  formations?: NonNullable<ListMembersData['query']>['formations'];
+  pagination?: { pageIndex: number; pageSize: number };
+  search?: string;
+  sorting?: { id: string; desc: boolean }[];
+};
+
 export const memberKeys = {
-  listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
-    ['listMembers', props] as const,
+  listMembers: (props: ListMembersOptions) => ['listMembers', props] as const,
+
+  allListedMembers: () => ['listMembers'] as const,
 
   detailsMember: (props: { userId: string | undefined }) => ['detailsMember', props.userId] as const,
 
@@ -34,15 +42,12 @@ export const memberKeys = {
   },
 };
 
-export const useMemberListQuery = (
-  options: {
-    search?: string;
-    formations?: NonNullable<ListMembersData['query']>['formations'];
-    sorting?: { id: string; desc: boolean }[];
-    pagination?: { pageIndex: number; pageSize: number };
-  } = {},
-) =>
+export const useMemberListQuery = ({
+  enabled,
+  ...options
+}: ListMembersOptions & { enabled?: boolean } = {}) =>
   useQuery({
+    enabled,
     staleTime: 1_000,
     placeholderData: (prev) => prev,
     queryKey: memberKeys.listMembers(options),
@@ -132,10 +137,12 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
         body: { jurisdictionIds: jurisdictionIds as string[] },
       });
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: memberKeys.detailsMember({ userId: options.userId }),
-      }),
+      });
+      await queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+    },
   });
 }
 

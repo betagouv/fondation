@@ -33,7 +33,7 @@ describe('PrioritySelect', () => {
     const user = userEvent.setup();
     renderWithIntl(<PrioritySelect onChange={onChange} value={[PrioriteEnum.ETOILE]} />);
 
-    await user.click(screen.getByRole('button', { name: 'Définir une priorité' }));
+    await user.click(screen.getByRole('button', { name: 'Définir une priorité 1 sélectionné' }));
     await user.click(await screen.findByRole('option', { name: 'Étoilé' }));
 
     expect(onChange).toHaveBeenCalledWith([]);

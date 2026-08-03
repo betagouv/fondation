@@ -8,15 +8,18 @@ import { SummarySectionCard } from './SummarySectionCard';
 export function SummarySectionObservations() {
   const { summary } = useSummary();
 
-  const hasAnyObservation = summary.observers.length > 0 || summary.observations.length > 0;
-  if (!hasAnyObservation) {
+  const observantsCount = summary.observers.length + summary.observations.length;
+  if (observantsCount === 0) {
     return null;
   }
 
   return (
     <SummarySectionCard id="observants">
       <h2>
-        <FormattedMessage defaultMessage="Observant(s)" />
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Observant} other {Observants ({count})}}"
+          values={{ count: observantsCount }}
+        />
       </h2>
 
       <ul className="list-['-_']">

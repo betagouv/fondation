@@ -44,7 +44,7 @@ describe('TitleNameIcons', () => {
       lolfi: { sessionId: 'session-1', nominationFileId: 'file-1' },
     });
 
-    expect(screen.getByRole('link', { name: 'Fiche détails du magistrat' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Vers la fiche magistrat' })).toBeVisible();
   });
 
   it('should render no details link without a detected magistrat', () => {
@@ -54,7 +54,7 @@ describe('TitleNameIcons', () => {
       lolfi: { sessionId: 'session-1', nominationFileId: 'file-1' },
     });
 
-    expect(screen.queryByRole('link', { name: 'Fiche détails du magistrat' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Vers la fiche magistrat' })).not.toBeInTheDocument();
   });
 
   it('should link to LOLFI with a direct href', () => {

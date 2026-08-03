@@ -106,7 +106,7 @@ export function MagistratCombobox(props: {
       />
 
       {isOpen && (
-        <div className="fr-mt-1v absolute z-[9999] max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey) shadow-lg">
+        <div className="fr-mt-1v absolute z-(--z-index-popover) max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey) shadow-lg">
           {isSearching && (
             <p className="fr-p-3v fr-mb-0 text-sm text-(--text-mention-grey)">
               <FormattedMessage defaultMessage="Recherche…" />

@@ -18,6 +18,7 @@ const baseContent: SessionNominationFile['content'] = {
   informationCarrière: null,
   isAlertHidden: false,
   isUpdatable: true,
+  jurisdictions: { current: null, targeted: null },
   nomMagistrat: 'Camille DURAND',
   numeroDeDossier: 42,
   observants: null,

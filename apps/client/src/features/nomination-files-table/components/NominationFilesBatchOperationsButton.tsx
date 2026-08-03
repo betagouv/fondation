@@ -1,14 +1,20 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import {
+  useExcludedJurisdictions,
+  useExcludedJurisdictionTitles,
+} from '../context/excluded-jurisdictions.context';
 import { useAffectations } from '../context/files-affectations.context';
-import { useSelectedFileIds } from '../context/files-selection.context';
+import { useSelectedFileIds, useSelectedFiles } from '../context/files-selection.context';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 
+import { ExcludedJurisdictionWarningList } from './ExcludedJurisdictionWarningList';
 import { NominationFilesReporterSelector } from './NominationFilesReporterSelector';
 
 const actionsGroupeesModal = createModal({
@@ -17,34 +23,35 @@ const actionsGroupeesModal = createModal({
 });
 
 type None = 'NONE';
-const PRIORITIES = ([] as (PrioriteEnum | None)[]).concat(Object.values(PrioriteEnum), 'NONE').map((x) => ({
-  value: x,
-  label: x === 'NONE' ? 'Aucune' : PrioriteEnumLabels[x],
-}));
+const PRIORITY_VALUES = ([] as (PrioriteEnum | None)[]).concat(Object.values(PrioriteEnum), 'NONE');
 
 export function NominationFilesBatchOperationsButton() {
+  const { formatMessage } = useIntl();
   const { formation } = useNominationFilesTable();
   const { data } = useMemberListQuery({
     formations: ['COMMUN', formation],
     pagination: { pageIndex: 0, pageSize: 100 },
   });
 
-  const availableRapporteurs = useMemo(
-    () =>
-      (data?.items ?? []).map(({ id, firstName, lastName }) => ({
-        userId: id,
-        firstName,
-        lastName,
-      })),
-    [data],
-  );
+  const availableRapporteurs = (data?.items ?? []).map(({ id, firstName, lastName }) => ({
+    userId: id,
+    firstName,
+    lastName,
+  }));
 
   const selectedFileIds = useSelectedFileIds();
+  const selectedFiles = useSelectedFiles();
   const { affectReporters, prioritize } = useAffectations();
-  const hasSelection = useMemo(() => selectedFileIds.length > 0, [selectedFileIds]);
+  const hasSelection = selectedFileIds.length > 0;
 
   const [localSelection, setLocalSelection] = useState<string[]>([]);
   const [localPriorities, setLocalPriorities] = useState<(PrioriteEnum | None)[]>([]);
+
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const availableIds = availableRapporteurs.map(({ userId }) => userId);
+  const conflicts = selectedFiles.flatMap((file) => excludedJurisdictions.conflictsFor(file, availableIds));
+  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+  const selectedConflicts = conflicts.filter(({ memberId }) => localSelection.includes(memberId));
 
   const handleOpenModal = useCallback(() => {
     setLocalSelection([]);
@@ -113,45 +120,53 @@ export function NominationFilesBatchOperationsButton() {
         disabled={!hasSelection}
         onClick={handleOpenModal}
       >
-        Actions
+        <FormattedMessage defaultMessage="Actions" />
       </Button>
 
       <actionsGroupeesModal.Component
-        title="Actions groupées"
+        title={formatMessage({ defaultMessage: 'Actions groupées' })}
         buttons={[
           {
-            children: 'Annuler',
+            children: formatMessage({ defaultMessage: 'Annuler' }),
             priority: 'secondary',
             onClick: handleCancel,
           },
           {
-            children: 'Appliquer',
+            children: formatMessage({ defaultMessage: 'Appliquer' }),
             onClick: handleApply,
           },
         ]}
       >
         <div className="flex flex-col gap-2">
           <div>
-            <h3 className="fr-mb-2v text-base font-semibold">Définir les priorités</h3>
+            <h3 className="fr-mb-2v text-base font-semibold">
+              <FormattedMessage defaultMessage="Définir les priorités" />
+            </h3>
             <Checkbox
               orientation="horizontal"
-              options={PRIORITIES.map((option) => ({
-                ...option,
+              options={PRIORITY_VALUES.map((value) => ({
+                value,
+                label:
+                  value === 'NONE' ? formatMessage({ defaultMessage: 'Aucune' }) : PrioriteEnumLabels[value],
                 nativeInputProps: {
-                  checked: localPriorities.includes(option.value),
-                  onChange: (e) => togglePriority(option.value, e),
+                  checked: localPriorities.includes(value),
+                  onChange: (e) => togglePriority(value, e),
                 },
               }))}
             />
           </div>
 
           <div className="fr-pt-2v border-t border-(--border-default-grey)">
-            <h3 className="fr-mb-2v text-base font-semibold">Affecter des rapporteurs</h3>
+            <h3 className="fr-mb-2v text-base font-semibold">
+              <FormattedMessage defaultMessage="Affecter des rapporteurs" />
+            </h3>
             <NominationFilesReporterSelector
               availableRapporteurs={availableRapporteurs}
+              excludedTitleByRapporteurId={excludedTitleByRapporteurId}
               selectedRapporteurs={localSelection}
               onSelectionChange={setLocalSelection}
             />
+            <ExcludedJurisdictionWarningList conflicts={selectedConflicts} />
           </div>
         </div>
       </actionsGroupeesModal.Component>

@@ -15,7 +15,7 @@ export function DetailsLink(props: {
 
   if (!props.magistratId) return null;
 
-  const label = formatMessage({ defaultMessage: 'Fiche détails du magistrat' });
+  const label = formatMessage({ defaultMessage: 'Vers la fiche magistrat' });
 
   return (
     <Tooltip kind="hover" title={label}>

@@ -341,6 +341,16 @@ export type PaginatedNominationFiles = {
             } | null;
             informationCarrière: string | null;
             detectedJurisdictionId: string | null;
+            jurisdictions: {
+                current: {
+                    id: string;
+                    label: string | null;
+                } | null;
+                targeted: {
+                    id: string;
+                    label: string | null;
+                } | null;
+            };
             detectedTargetedFunctionId: string | null;
             detectedMagistratId: string | null;
             outcome: {
@@ -689,6 +699,10 @@ export type PaginatedMemberListItemDto = {
         firstName: string;
         lastName: string;
         role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+        excludedJurisdictions: Array<{
+            id: string;
+            label: string | null;
+        }>;
         stats: Array<{
             year: number;
             count: number;

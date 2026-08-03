@@ -2,6 +2,7 @@ import { useMemo, useState, type PropsWithChildren } from 'react';
 
 import type { FormationEnum } from '@/types/enums.types';
 
+import { ExcludedJurisdictionsProvider } from './ExcludedJurisdictionsProvider';
 import { NominationFilesTableContext, type SessionOutcome } from './files-table.context';
 
 export function NominationFilesTableProvider(
@@ -25,5 +26,9 @@ export function NominationFilesTableProvider(
     [props.formation, props.isEditable, props.outcomes, props.sessionId, isEditing],
   );
 
-  return <NominationFilesTableContext value={ctx}>{props.children}</NominationFilesTableContext>;
+  return (
+    <NominationFilesTableContext value={ctx}>
+      <ExcludedJurisdictionsProvider>{props.children}</ExcludedJurisdictionsProvider>
+    </NominationFilesTableContext>
+  );
 }

@@ -65,10 +65,8 @@ function NominationFilesTableInner(props: PropsWithChildren) {
       setTableState((state) => ({ ...state, pagination: { ...state.pagination, pageIndex } })),
     [setTableState],
   );
-  const enableRowSelection = useMemo(
-    () => !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable),
-    [edition],
-  );
+  const enableRowSelection =
+    !!edition?.isEditing && ((row: Row<SessionNominationFile>) => row.original.content.isUpdatable);
 
   const table = useDataTable({
     columns,
@@ -101,7 +99,7 @@ function NominationFilesTableInner(props: PropsWithChildren) {
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
             <MagistratSidePanel sessionId={sessionId} />
-            <FilesSelectionProvider selection={tableState.rowSelection}>
+            <FilesSelectionProvider files={nominationFiles} selection={tableState.rowSelection}>
               <FilesAffectationsProvider files={nominationFiles}>
                 <AlertsProvider>
                   <div className="fr-container fr-mb-4v flex flex-col gap-y-4">

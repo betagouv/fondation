@@ -10,6 +10,7 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
+import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
@@ -69,6 +70,7 @@ import { SessionController } from './transparence.controller';
     ListNominationSessionsQuery,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
+    NominationFileJurisdictionsFinder,
     NominationSessionFinder,
     SessionTransparenceRepository,
     TransparenceFilesFinder,

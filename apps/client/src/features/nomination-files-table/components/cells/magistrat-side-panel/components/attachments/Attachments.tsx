@@ -58,7 +58,7 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
     <div>
       <p className="fr-mb-4v text-xl font-semibold" id={labelId}>
         <FormattedMessage
-          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes}}"
+          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
           values={{ count: attachments.length }}
         />
       </p>

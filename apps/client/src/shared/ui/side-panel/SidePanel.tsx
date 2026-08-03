@@ -88,7 +88,7 @@ export function SidePanel(props: {
       aria-labelledby={ariaLabelledBy}
       aria-modal="true"
       className={clsx(
-        'fixed inset-y-0 right-0 z-1000 flex h-full w-full max-w-full flex-col bg-(--background-default-grey) shadow-[-8px_0_24px_rgba(0,0,0,0.16)] transition duration-300 ease-out outline-none md:w-1/2',
+        'fixed inset-y-0 right-0 z-(--z-index-panel) flex h-full w-full max-w-full flex-col bg-(--background-default-grey) shadow-[-8px_0_24px_rgba(0,0,0,0.16)] transition duration-300 ease-out outline-none md:w-1/2',
         open ? 'translate-x-0 opacity-100' : 'pointer-events-none translate-x-full opacity-0',
       )}
       id={id}

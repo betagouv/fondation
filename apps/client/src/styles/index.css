@@ -13,6 +13,20 @@
   --breakpoint-2xl: 94rem;
 }
 
+:root {
+  --fondation-details-container-max-width: 86rem;
+  --fondation-editor-min-width: 5rem;
+
+  /* DSFR's top layer is 1000 (`.fr-header__navbar`, `.fr-tooltip`) and its modal sits at
+     1750: our overlays must stay in between, above the header but under a modal opened
+     from them. On a tie, document order decides and the outcome is accidental. */
+  --z-index-banner: 1100;
+  --z-index-panel: 1200;
+  /* Popovers portalled to `<body>` escape every stacking context, including a modal
+     which raises `--ground` to 2000 for its own content. They sit above everything. */
+  --z-index-popover: 9999;
+}
+
 @utility btn-compact {
   @apply min-h-9! px-3.5! py-1.5! text-sm-plus!;
 }
@@ -48,9 +62,8 @@ li {
   padding: 0;
 }
 
-:root {
-  --fondation-details-container-max-width: 86rem;
-  --fondation-editor-min-width: 5rem;
+[data-fr-js-tooltip-referent] {
+  cursor: pointer;
 }
 
 .fr-container.fondation-details-container {
@@ -59,6 +72,22 @@ li {
 
 .fr-table__content table tbody td {
   padding: 1rem;
+}
+
+.fr-tooltip {
+  transition: opacity 0.1s;
+}
+
+/* A DSFR tooltip only closes on mouseout, focusout or Escape: opening a dialog fires
+   none of them, so it stays open and draws beside it. `visibility` and not `display`,
+   as DSFR ends its hiding on a `transitionend` a display-none element never fires. */
+:root:has([aria-modal='true']:not([inert])) .fr-tooltip:not(:where([aria-modal='true'] *)) {
+  visibility: hidden;
+}
+
+.editor-resizable-image {
+  min-width: var(--fondation-editor-min-width);
+  max-width: 100%;
 }
 
 .ProseMirror {
@@ -72,11 +101,6 @@ li {
 
 .ProseMirror-selectednode {
   outline: 2px solid var(--border-action-high-info);
-}
-
-.tiptap-editor-wrapper {
-  padding: 1rem;
-  background-color: white;
 }
 
 .ProseMirror > div:has(div > img) {
@@ -94,9 +118,9 @@ li {
   /* width: max-content; */
 }
 
-.editor-resizable-image {
-  min-width: var(--fondation-editor-min-width);
-  max-width: 100%;
+.tiptap-editor-wrapper {
+  padding: 1rem;
+  background-color: white;
 }
 
 .tiptap [data-resize-container] {
@@ -148,12 +172,4 @@ li {
     outline: 1px solid rgba(0, 0, 0, 0.25);
     border-radius: 0.125rem;
   }
-}
-
-[data-fr-js-tooltip-referent] {
-  cursor: pointer;
-}
-
-.fr-tooltip {
-  transition: opacity 0.1s;
 }

@@ -241,7 +241,7 @@ export function Observations({
       <div className="fr-mb-4v flex items-center justify-between gap-2">
         <h3 className="fr-mb-0 text-xl font-semibold">
           <FormattedMessage
-            defaultMessage="{count, plural, =0 {Observants} one {Observant (1)} other {Observants ({count})}}"
+            defaultMessage="{count, plural, =0 {Observants} one {Observant} other {Observants ({count})}}"
             values={{ count: observationsCount }}
           />
         </h3>

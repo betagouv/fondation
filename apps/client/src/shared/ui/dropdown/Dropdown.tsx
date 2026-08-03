@@ -1,6 +1,7 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 export type DropdownOption = { label: ReactNode; value: string };
 
@@ -20,6 +21,7 @@ export function Dropdown(props: DropdownProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
   const labelId = useId();
+  const selectionId = useId();
   const triggerId = useId();
 
   useEffect(() => {
@@ -40,9 +42,7 @@ export function Dropdown(props: DropdownProps) {
 
   const isSelected = (value: string) => selectedValues.includes(value);
 
-  const selectedLabels = props.options
-    .filter((option) => isSelected(option.value))
-    .map((option) => option.label);
+  const selectedOptions = props.options.filter((option) => isSelected(option.value));
 
   const select = (value: string) => {
     if (props.multiple) {
@@ -56,6 +56,55 @@ export function Dropdown(props: DropdownProps) {
     props.onSelect(isSelected(value) ? null : value);
     close();
   };
+
+  const unselect = (value: string) => {
+    if (!props.multiple) return;
+    props.onSelect(props.selected.filter((current) => current !== value));
+    triggerRef.current?.focus();
+  };
+
+  const singleValue =
+    selectedOptions.length > 0 ? (
+      <span className="flex flex-wrap gap-1">
+        {selectedOptions.map((option) => (
+          <span key={option.value}>{option.label}</span>
+        ))}
+      </span>
+    ) : (
+      <span className="text-(--text-mention-grey)">{props.placeholder}</span>
+    );
+
+  const trigger = (
+    <button
+      aria-controls={open ? listboxId : undefined}
+      aria-expanded={open}
+      aria-haspopup="listbox"
+      aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
+      className={clsx(
+        'cursor-pointer text-left font-[inherit]',
+        props.multiple
+          ? 'absolute inset-0 h-full w-full [--active:transparent] [--hover:transparent]'
+          : cx('fr-select'),
+      )}
+      id={triggerId}
+      onClick={() => setOpen((value) => !value)}
+      ref={triggerRef}
+      type="button"
+    >
+      {props.multiple ? (
+        <span className="fr-sr-only" id={selectionId}>
+          {selectedOptions.length > 0 && (
+            <FormattedMessage
+              defaultMessage="{count, plural, one {# sélectionné} other {# sélectionnés}}"
+              values={{ count: selectedOptions.length }}
+            />
+          )}
+        </span>
+      ) : (
+        singleValue
+      )}
+    </button>
+  );
 
   return (
     <div
@@ -73,27 +122,38 @@ export function Dropdown(props: DropdownProps) {
           {props.label}
         </label>
       )}
-      <button
-        ref={triggerRef}
-        aria-controls={open ? listboxId : undefined}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-labelledby={props.label != null ? labelId : undefined}
-        id={triggerId}
-        className={clsx(cx('fr-select'), 'cursor-pointer text-left font-[inherit]')}
-        onClick={() => setOpen((value) => !value)}
-        type="button"
-      >
-        {selectedLabels.length > 0 ? (
-          <span className="flex flex-wrap gap-1">
-            {selectedLabels.map((label, index) => (
-              <span key={index}>{label}</span>
+      {props.multiple ? (
+        <div
+          className={clsx(
+            cx('fr-select'),
+            'relative text-left',
+            selectedOptions.length === 0 && 'hover:bg-(--background-contrast-grey-hover)',
+          )}
+        >
+          {trigger}
+          <span className="pointer-events-none relative flex flex-wrap items-center gap-1">
+            {selectedOptions.length === 0 && (
+              <span className="text-(--text-mention-grey)">{props.placeholder}</span>
+            )}
+            {selectedOptions.map((option) => (
+              <span className="flex items-center gap-1" key={option.value}>
+                {option.label}
+                <button
+                  className="fr-icon-close-line fr-icon--sm pointer-events-auto cursor-pointer rounded-full text-(--text-action-high-blue-france)"
+                  onClick={() => unselect(option.value)}
+                  type="button"
+                >
+                  <span className="fr-sr-only">
+                    <FormattedMessage defaultMessage="Retirer" /> {option.label}
+                  </span>
+                </button>
+              </span>
             ))}
           </span>
-        ) : (
-          <span className="text-(--text-mention-grey)">{props.placeholder}</span>
-        )}
-      </button>
+        </div>
+      ) : (
+        trigger
+      )}
 
       {open && (
         <ul
