@@ -1,34 +1,29 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 
 @Injectable()
 export class UnaffectedFilesFinder {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
   ) {}
 
+  @Transactional()
   async find(predicate: {
-    tx?: Prisma.TransactionClient;
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
   }): Promise<FoundUnaffectedFilesDto> {
-    if (!predicate.tx) {
-      return this.prisma.$transaction((tx) => this.find({ ...predicate, tx }));
-    }
-
     const version = await this.versions.last({
       sessionId: predicate.sessionId,
-      tx: predicate.tx,
     });
 
-    const items = await predicate.tx.dossierDeNomination.findMany({
+    const items = await this.db.tx.dossierDeNomination.findMany({
       select: {
         id: true,
         targetedGrade: true,

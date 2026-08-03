@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import { PrismaService } from '../framework/database';
+import { Db } from '../framework/database';
 
 import { AuthSession } from './domain/auth-session';
 import { OpenIdAuthenticationRequestFinder } from './infrastructure/finders/openid-authentication-request.finder';
@@ -16,14 +16,14 @@ export class OpenIdAuthService {
     private readonly openIdRequestFinder: OpenIdAuthenticationRequestFinder,
     private readonly openId: OpenId,
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   async prepare(command: { provider: OpenIdProvider }): Promise<{ url: URL }> {
     const request = this.openId.for(command.provider).request();
 
     const { expiresAt, createdAt, nonce, challenge } = request.state;
-    await this.prisma.openIdRequest.create({
+    await this.db.tx.openIdRequest.create({
       data: {
         expiresAt,
         createdAt,

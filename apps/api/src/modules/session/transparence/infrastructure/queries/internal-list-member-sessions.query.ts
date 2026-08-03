@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -13,14 +13,14 @@ import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 
 @Injectable()
 export class InternalListMemberSessionsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     typeDeSaisine: TypeDeSaisineEnum;
     user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionsDto> {
     const userFormationRestriction = roleToFormation(query.user.role) ?? null;
-    const sessions = await this.prisma.$queryRawTyped(
+    const sessions = await this.db.tx.$queryRawTyped(
       listMemberGardeDesSceauxSessions(query.user.id, userFormationRestriction),
     );
 

@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class CountUsersNewSessionsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(): Promise<CountUsersNewSessionsDto> {
-    const count = await this.prisma.session.count({
+    const count = await this.db.tx.session.count({
       where: { validatedAt: null, deletedAt: null },
     });
 

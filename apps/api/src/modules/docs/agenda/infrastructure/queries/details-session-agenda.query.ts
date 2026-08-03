@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 import { FindAgendaDocumentPdfQuery } from './find-agenda-document-pdf.query';
@@ -11,7 +11,7 @@ import { FindAgendaDocumentPdfQuery } from './find-agenda-document-pdf.query';
 export class DetailsSessionAgendaQuery {
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
   ) {}
 
@@ -24,7 +24,7 @@ export class DetailsSessionAgendaQuery {
     agendaId: string;
     afterGeneration: boolean;
   }): Promise<DetailedSessionAgenda> {
-    const agenda = await this.prisma.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findUnique({
       where: {
         id: query.agendaId,
         sessionId: query.sessionId,

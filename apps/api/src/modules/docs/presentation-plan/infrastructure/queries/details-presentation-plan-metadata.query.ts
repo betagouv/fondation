@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -12,10 +12,10 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailsPresentationPlanMetadataQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
-    const plan = await this.prisma.justicePresentationPlan.findUnique({
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: query.id },
       select: {
         id: true,

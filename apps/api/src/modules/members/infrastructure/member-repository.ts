@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import {
@@ -6,8 +7,7 @@ import {
   MemberDisplayTitleUpdated,
   MemberTitleUpdated,
 } from '../domain/member';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
@@ -16,15 +16,11 @@ import { MEMBER_ROLES } from './member.utils';
 
 @Injectable()
 export class MemberRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
-  async find(userId: string, options: { tx?: Prisma.TransactionClient } = {}): Promise<Member> {
-    if (!options?.tx) {
-      return this.prisma.$transaction((tx) => this.find(userId, { tx }));
-    }
-
-    const { tx } = options;
-    const user = await tx.user.findFirst({
+  @Transactional()
+  async find(userId: string): Promise<Member> {
+    const user = await this.db.tx.user.findFirst({
       select: { id: true, role: true },
       where: { id: userId, role: { in: MEMBER_ROLES } },
     });
@@ -38,46 +34,41 @@ export class MemberRepository {
     });
   }
 
+  @Transactional()
   async findWithJurisdictions(props: {
     userId: string;
     jurisdictionIds: readonly string[];
   }): Promise<Member> {
-    return this.prisma.$transaction(async (tx) => {
-      const member = await this.find(props.userId, { tx });
+    const member = await this.find(props.userId);
 
-      if (props.jurisdictionIds.length === 0) return member;
+    if (props.jurisdictionIds.length === 0) return member;
 
-      const jurisdictions = await tx.jurisdiction.findMany({
-        select: { codejur: true },
-        where: { codejur: { in: props.jurisdictionIds as string[] } },
-      });
+    const jurisdictions = await this.db.tx.jurisdiction.findMany({
+      select: { codejur: true },
+      where: { codejur: { in: props.jurisdictionIds as string[] } },
+    });
 
-      return Member.from({
-        id: member.id,
-        role: member.role,
-        jurisdictionIds: new Set(jurisdictions.map(({ codejur }) => makeId('JurisdictionId', codejur))),
-      });
+    return Member.from({
+      id: member.id,
+      role: member.role,
+      jurisdictionIds: new Set(jurisdictions.map(({ codejur }) => makeId('JurisdictionId', codejur))),
     });
   }
 
+  @Transactional(Propagation.Mandatory)
   async persist(member: Member): Promise<void> {
-    await this.prisma.$transaction(
-      member.messages.flatMap((message) => {
-        if (message instanceof ExcludedMemberJurisdictions)
-          return this.persistExcludedMemberJurisdictions(message);
-
-        if (message instanceof MemberDisplayTitleUpdated)
-          return this.persistMemberDisplayTitleUpdated(message);
-
-        if (message instanceof MemberTitleUpdated) return this.persistMemberTitleUpdated(message);
-
-        return assertNever(message);
-      }),
-    );
+    for (const message of member.messages) {
+      if (message instanceof ExcludedMemberJurisdictions)
+        await this.persistExcludedMemberJurisdictions(message);
+      else if (message instanceof MemberDisplayTitleUpdated)
+        await this.persistMemberDisplayTitleUpdated(message);
+      else if (message instanceof MemberTitleUpdated) await this.persistMemberTitleUpdated(message);
+      else assertNever(message);
+    }
   }
 
   private persistExcludedMemberJurisdictions(message: ExcludedMemberJurisdictions) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: {
         excludedJurisdictionIds: {
@@ -95,23 +86,21 @@ export class MemberRepository {
   }
 
   private persistMemberDisplayTitleUpdated(message: MemberDisplayTitleUpdated) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
     });
   }
 
-  private persistMemberTitleUpdated(message: MemberTitleUpdated) {
-    return [
-      this.prisma.user.updateMany({
-        where: { title: message.title },
-        data: { title: null, duty: null },
-      }),
+  private async persistMemberTitleUpdated(message: MemberTitleUpdated) {
+    await this.db.tx.user.updateMany({
+      where: { title: message.title },
+      data: { title: null, duty: null },
+    });
 
-      this.prisma.user.update({
-        where: { id: message.userId },
-        data: { title: message.title, duty: message.duty },
-      }),
-    ];
+    await this.db.tx.user.update({
+      where: { id: message.userId },
+      data: { title: message.title, duty: message.duty },
+    });
   }
 }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 import { FindOfficialReportDocumentPdfQuery } from './find-official-report-document-pdf.query';
@@ -10,8 +10,8 @@ import { FindOfficialReportDocumentPdfQuery } from './find-official-report-docum
 @Injectable()
 export class DetailsSessionOfficialReportQuery {
   constructor(
+    private readonly db: Db,
     private readonly files: Files,
-    private readonly prisma: PrismaService,
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
   ) {}
 
@@ -23,10 +23,12 @@ export class DetailsSessionOfficialReportQuery {
     officialReportId: string;
     afterGeneration: boolean;
   }): Promise<DetailedSessionOfficialReportDto> {
-    const officialReport = await this.prisma.officialReport.findUnique({
-      where: { id: query.officialReportId, html: { not: null } },
-      select: { id: true, pdf: { select: { id: true } } },
-    });
+    const officialReport = await this.db.withTransaction(() =>
+      this.db.tx.officialReport.findUnique({
+        where: { id: query.officialReportId, html: { not: null } },
+        select: { id: true, pdf: { select: { id: true } } },
+      }),
+    );
 
     if (!officialReport) throw new NotFoundException();
     if (!officialReport.pdf && query.afterGeneration) throw new NotFoundException();

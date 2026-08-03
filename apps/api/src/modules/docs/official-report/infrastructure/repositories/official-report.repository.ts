@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import {
   forwardRef,
   Inject,
@@ -37,7 +38,7 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { Prisma, PrismaDocsFileOutcomeEnum } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -52,7 +53,7 @@ import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 export class OfficialReportRepository {
   private readonly logger = new Logger(OfficialReportRepository.name);
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly nominationFilesFinder: DocsNominationFilesFinder,
     private readonly files: Files,
 
@@ -60,10 +61,9 @@ export class OfficialReportRepository {
     private readonly sessions: TransparenceService,
   ) {}
 
-  async find(query: { id: string; tx?: Prisma.TransactionClient }): Promise<OfficialReport> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
-
-    const officialReport = await query.tx.officialReport.findUnique({
+  @Transactional()
+  async find(query: { id: string }): Promise<OfficialReport> {
+    const officialReport = await this.db.tx.officialReport.findUnique({
       where: { id: query.id },
       select: {
         id: true,
@@ -118,7 +118,7 @@ export class OfficialReportRepository {
       `Official Report "${query.id}" has no agenda`,
     );
 
-    const { date } = await this.sessions.details({ sessionId: rawAgenda.sessionId, tx: query.tx });
+    const { date } = await this.sessions.details({ sessionId: rawAgenda.sessionId });
 
     const agenda = OfficialReportAgenda.from({
       ignoreOfficialReportId: officialReportId,
@@ -164,7 +164,7 @@ export class OfficialReportRepository {
       officialReport.secretaryTitle as any,
     );
 
-    const files = await this.findOfficialReportFiles({ id: query.id, tx: query.tx });
+    const files = await this.findOfficialReportFiles({ id: query.id });
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromDate(officialReport.sessionMeetingDate),
@@ -201,7 +201,6 @@ export class OfficialReportRepository {
    */
   private async findOfficialReportFiles(query: {
     id: string;
-    tx: Prisma.TransactionClient;
   }): Promise<Map<string, OfficialReportSnapshotFile>> {
     const map = new Map<string, OfficialReportSnapshotFile>();
     let cursor: bigint | undefined = undefined;
@@ -214,7 +213,7 @@ export class OfficialReportRepository {
         htmlEdited: string | null;
         nominationFileId: string | null;
         reporters: string[];
-      }[] = await query.tx.officialReportNominationFile.findMany({
+      }[] = await this.db.tx.officialReportNominationFile.findMany({
         where: { officialReportId: query.id },
         orderBy: { id: 'asc' },
         skip: isDefined(cursor) ? 1 : 0,
@@ -251,54 +250,50 @@ export class OfficialReportRepository {
     return map;
   }
 
-  async persist(report: OfficialReport, tx?: Prisma.TransactionClient): Promise<void> {
-    if (!tx) return this.prisma.$transaction((tx) => this.persist(report, tx));
-
+  @Transactional(Propagation.Mandatory)
+  async persist(report: OfficialReport): Promise<void> {
     for (const message of report.messages) {
       if (message instanceof OfficialReportCreated) {
-        await this.persistOfficialReportCreated(tx, message);
+        await this.persistOfficialReportCreated(message);
       } else if (message instanceof OfficialReportUpdated) {
-        await this.persistOfficialReportUpdated(tx, message);
+        await this.persistOfficialReportUpdated(message);
       } else if (message instanceof OfficialReportDeleted) {
-        await this.persistOfficialReportDeleted(tx, message);
+        await this.persistOfficialReportDeleted(message);
       } else if (message instanceof OfficialReportDocumentReset) {
-        await this.persistOfficialReportDocumentReset(tx, message);
+        await this.persistOfficialReportDocumentReset(message);
       } else if (message instanceof OfficialReportIntroEdited) {
-        await this.persistOfficialReportIntroEdited(tx, message);
+        await this.persistOfficialReportIntroEdited(message);
       } else if (message instanceof OfficialReportIntroReset) {
-        await this.persistOfficialReportIntroReset(tx, message);
+        await this.persistOfficialReportIntroReset(message);
       } else if (message instanceof OfficialReportConclusionEdited) {
-        await this.persistOfficialReportConclusionEdited(tx, message);
+        await this.persistOfficialReportConclusionEdited(message);
       } else if (message instanceof OfficialReportConclusionReset) {
-        await this.persistOfficialReportConclusionReset(tx, message);
+        await this.persistOfficialReportConclusionReset(message);
       } else if (message instanceof OfficialReportFileEdited) {
-        await this.persistOfficialReportFileEdited(tx, message);
+        await this.persistOfficialReportFileEdited(message);
       } else if (message instanceof OfficialReportFileReset) {
-        await this.persistOfficialReportFileReset(tx, message);
+        await this.persistOfficialReportFileReset(message);
       } else if (message instanceof OfficialReportSectionTitleEdited) {
-        await this.persistOfficialReportSectionTitleEdited(tx, message);
+        await this.persistOfficialReportSectionTitleEdited(message);
       } else if (message instanceof OfficialReportSectionTitleReset) {
-        await this.persistOfficialReportSectionTitleReset(tx, message);
+        await this.persistOfficialReportSectionTitleReset(message);
       } else if (message instanceof OfficialReportSectionIntroEdited) {
-        await this.persistOfficialReportSectionIntroEdited(tx, message);
+        await this.persistOfficialReportSectionIntroEdited(message);
       } else if (message instanceof OfficialReportSectionIntroReset) {
-        await this.persistOfficialReportSectionIntroReset(tx, message);
+        await this.persistOfficialReportSectionIntroReset(message);
       } else if (message instanceof OfficialReportInvalidated) {
-        await this.persistOfficialReportInvalidated(tx, message);
+        await this.persistOfficialReportInvalidated(message);
       } else {
         assertNever(message);
       }
     }
   }
 
-  private async persistOfficialReportCreated(tx: Prisma.TransactionClient, message: OfficialReportCreated) {
-    const justiceContact = await this.resolveJusticeContact(
-      tx,
-      message.snapshot.meta.justiceDepartmentContactId,
-    );
-    const nominationFiles = await this.resolveAgendaNominationFiles(tx, message);
+  private async persistOfficialReportCreated(message: OfficialReportCreated) {
+    const justiceContact = await this.resolveJusticeContact(message.snapshot.meta.justiceDepartmentContactId);
+    const nominationFiles = await this.resolveAgendaNominationFiles(message);
 
-    await tx.officialReport.create({
+    await this.db.tx.officialReport.create({
       data: {
         ...this.metadata({
           justiceContact,
@@ -314,11 +309,11 @@ export class OfficialReportRepository {
     });
   }
 
-  private async persistOfficialReportUpdated(tx: Prisma.TransactionClient, message: OfficialReportUpdated) {
-    const justiceContact = await this.resolveJusticeContact(tx, message.snapshot.justiceDepartmentContactId);
-    await tx.officialReportMember.deleteMany({ where: { officialReportId: message.id } });
+  private async persistOfficialReportUpdated(message: OfficialReportUpdated) {
+    const justiceContact = await this.resolveJusticeContact(message.snapshot.justiceDepartmentContactId);
+    await this.db.tx.officialReportMember.deleteMany({ where: { officialReportId: message.id } });
 
-    await tx.officialReport.update({
+    await this.db.tx.officialReport.update({
       where: { id: message.id },
       data: {
         ...this.metadata({
@@ -333,28 +328,24 @@ export class OfficialReportRepository {
     });
   }
 
-  private async persistOfficialReportInvalidated(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportInvalidated,
-  ) {
+  private async persistOfficialReportInvalidated(message: OfficialReportInvalidated) {
     const filesToCreate = message.diff.files
       .filter((file) => file.action === 'create')
       .map((file) => file.nominationFileId);
 
     if (filesToCreate.length > 0) {
-      const self = await tx.officialReport.findUniqueOrThrow({
+      const self = await this.db.tx.officialReport.findUniqueOrThrow({
         where: { id: message.officialReportId },
         select: { agendas: { select: { sessionId: true } } },
       });
       const { sessionId } = assertIsDefined(self.agendas[0]);
       const files = await this.resolveNominationFiles({
-        tx,
         sessionId,
         ids: filesToCreate,
         officialReportId: message.officialReportId,
       });
 
-      await tx.officialReportNominationFile.createMany({
+      await this.db.tx.officialReportNominationFile.createMany({
         data: files.map((file) => ({ ...file, officialReportId: message.officialReportId })),
       });
     }
@@ -364,7 +355,7 @@ export class OfficialReportRepository {
         file.action === 'outdate' || file.action === 'update',
     );
     for (const file of filesToUpdate) {
-      await tx.officialReportNominationFile.update({
+      await this.db.tx.officialReportNominationFile.update({
         where: { id: file.id },
         data: {
           htmlOutdated: file.action === 'outdate',
@@ -375,7 +366,7 @@ export class OfficialReportRepository {
       });
     }
 
-    await tx.officialReport.update({
+    await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: {
         outdated: message.diff.hasAny,
@@ -386,10 +377,9 @@ export class OfficialReportRepository {
   }
 
   private async resolveJusticeContact(
-    tx: Prisma.TransactionClient,
     justiceDepartmentContactId: bigint,
   ): Promise<{ id: bigint; name: string }> {
-    const justiceContact = await tx.justiceDepartmentContact.findUnique({
+    const justiceContact = await this.db.tx.justiceDepartmentContact.findUnique({
       where: { id: justiceDepartmentContactId },
       select: { id: true, name: true },
     });
@@ -408,10 +398,9 @@ export class OfficialReportRepository {
   }
 
   private async resolveAgendaNominationFiles(
-    tx: Prisma.TransactionClient,
     message: OfficialReportCreated | OfficialReportUpdated,
   ): Promise<Prisma.OfficialReportNominationFileUncheckedCreateWithoutOfficialReportInput[]> {
-    const agenda = await tx.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findUnique({
       where: {
         id:
           message instanceof OfficialReportCreated
@@ -430,7 +419,6 @@ export class OfficialReportRepository {
     if (!agenda) return [];
 
     return this.resolveNominationFiles({
-      tx,
       sessionId: agenda.sessionId,
       officialReportId: message.id,
       ids: agenda.nominationFiles.flatMap((file) => (file.nominationFileId ? [file.nominationFileId] : [])),
@@ -438,13 +426,11 @@ export class OfficialReportRepository {
   }
 
   private async resolveNominationFiles(query: {
-    tx: Prisma.TransactionClient;
     sessionId: string;
     ids: readonly string[];
     officialReportId: string;
   }) {
     const { items } = await this.nominationFilesFinder.findNonReported({
-      tx: query.tx,
       ids: query.ids,
       sessionId: query.sessionId,
       ignoreOfficialReportId: query.officialReportId,
@@ -518,18 +504,12 @@ export class OfficialReportRepository {
     }));
   }
 
-  private async persistOfficialReportDocumentReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportDocumentReset,
-  ) {
-    await this.recomputeState(tx, message.officialReportId);
+  private async persistOfficialReportDocumentReset(message: OfficialReportDocumentReset) {
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportIntroEdited(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportIntroEdited,
-  ) {
-    await tx.officialReport.update({
+  private async persistOfficialReportIntroEdited(message: OfficialReportIntroEdited) {
+    await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: {
         introHtml: message.html,
@@ -537,26 +517,20 @@ export class OfficialReportRepository {
       },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportIntroReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportIntroReset,
-  ) {
-    await tx.officialReport.update({
+  private async persistOfficialReportIntroReset(message: OfficialReportIntroReset) {
+    await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: { introHtml: null, introOutdated: false, html: null, pdfId: null },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportConclusionEdited(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportConclusionEdited,
-  ) {
-    await tx.officialReport.update({
+  private async persistOfficialReportConclusionEdited(message: OfficialReportConclusionEdited) {
+    await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: {
         conclusionHtml: message.html,
@@ -564,112 +538,91 @@ export class OfficialReportRepository {
       },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportConclusionReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportConclusionReset,
-  ) {
-    await tx.officialReport.update({
+  private async persistOfficialReportConclusionReset(message: OfficialReportConclusionReset) {
+    await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: { conclusionHtml: null, conclusionOutdated: false, html: null, pdfId: null },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportFileEdited(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportFileEdited,
-  ) {
-    await tx.officialReportNominationFile.updateMany({
+  private async persistOfficialReportFileEdited(message: OfficialReportFileEdited) {
+    await this.db.tx.officialReportNominationFile.updateMany({
       where: { officialReportId: message.officialReportId, nominationFileId: message.nominationFileId },
       data: { htmlEdited: message.html, htmlOutdated: message.outdated },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportFileReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportFileReset,
-  ) {
-    await tx.officialReportNominationFile.updateMany({
+  private async persistOfficialReportFileReset(message: OfficialReportFileReset) {
+    await this.db.tx.officialReportNominationFile.updateMany({
       where: { officialReportId: message.officialReportId, nominationFileId: message.nominationFileId },
       data: { htmlEdited: null, htmlOutdated: false },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportSectionTitleEdited(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportSectionTitleEdited,
-  ) {
-    await tx.officialReportSectionTitle.upsert({
+  private async persistOfficialReportSectionTitleEdited(message: OfficialReportSectionTitleEdited) {
+    await this.db.tx.officialReportSectionTitle.upsert({
       where: { primaryKey: { officialReportId: message.officialReportId, outcome: message.outcome } },
       create: { officialReportId: message.officialReportId, outcome: message.outcome, title: message.text },
       update: { title: message.text },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportSectionTitleReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportSectionTitleReset,
-  ) {
-    await tx.officialReportSectionTitle.deleteMany({
+  private async persistOfficialReportSectionTitleReset(message: OfficialReportSectionTitleReset) {
+    await this.db.tx.officialReportSectionTitle.deleteMany({
       where: { officialReportId: message.officialReportId, outcome: message.outcome },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportSectionIntroEdited(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportSectionIntroEdited,
-  ) {
-    await tx.officialReportSectionIntro.upsert({
+  private async persistOfficialReportSectionIntroEdited(message: OfficialReportSectionIntroEdited) {
+    await this.db.tx.officialReportSectionIntro.upsert({
       where: { primaryKey: { officialReportId: message.officialReportId, outcome: message.outcome } },
       create: { officialReportId: message.officialReportId, outcome: message.outcome, html: message.html },
       update: { html: message.html },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async persistOfficialReportSectionIntroReset(
-    tx: Prisma.TransactionClient,
-    message: OfficialReportSectionIntroReset,
-  ) {
-    await tx.officialReportSectionIntro.deleteMany({
+  private async persistOfficialReportSectionIntroReset(message: OfficialReportSectionIntroReset) {
+    await this.db.tx.officialReportSectionIntro.deleteMany({
       where: { officialReportId: message.officialReportId, outcome: message.outcome },
     });
 
-    await this.recomputeState(tx, message.officialReportId);
+    await this.recomputeState(message.officialReportId);
   }
 
-  private async recomputeState(tx: Prisma.TransactionClient, id: Id<'OfficialReportId'>): Promise<void> {
-    await OfficialReportRepository.recomputeOutdated(tx, id);
-    await OfficialReportRepository.recomputeManuallyEdited(tx, id);
-    await this.resetDocumentData(tx, id);
+  private async recomputeState(id: Id<'OfficialReportId'>): Promise<void> {
+    await this.recomputeOutdated(id);
+    await this.recomputeManuallyEdited(id);
+    await this.resetDocumentData(id);
   }
 
-  private async resetDocumentData(tx: Prisma.TransactionClient, id: string): Promise<void> {
-    const report = await tx.officialReport.findUnique({
+  private async resetDocumentData(id: string): Promise<void> {
+    const report = await this.db.tx.officialReport.findUnique({
       where: { id },
       select: { pdf: { select: { id: true, path: true } } },
     });
-    await tx.officialReport.update({ where: { id }, data: { html: null, pdfId: null } });
+    await this.db.tx.officialReport.update({ where: { id }, data: { html: null, pdfId: null } });
 
     if (!report || !report.pdf) return;
     this.files.delete([{ id: report.pdf.id, path: report.pdf.path }]);
   }
 
-  private static async recomputeManuallyEdited(tx: Prisma.TransactionClient, id: string): Promise<void> {
-    const manuallyEditedOfficialReport = await tx.officialReport.findFirst({
+  private async recomputeManuallyEdited(id: string): Promise<void> {
+    const manuallyEditedOfficialReport = await this.db.tx.officialReport.findFirst({
       select: { id: true },
       where: {
         id,
@@ -683,14 +636,14 @@ export class OfficialReportRepository {
       },
     });
 
-    await tx.officialReport.update({
+    await this.db.tx.officialReport.update({
       where: { id },
       data: { isManuallyEdited: isDefined(manuallyEditedOfficialReport) },
     });
   }
 
-  private static async recomputeOutdated(tx: Prisma.TransactionClient, id: string): Promise<void> {
-    const outdatedOfficialReport = await tx.officialReport.findFirst({
+  private async recomputeOutdated(id: string): Promise<void> {
+    const outdatedOfficialReport = await this.db.tx.officialReport.findFirst({
       select: { id: true },
       where: {
         id,
@@ -702,26 +655,29 @@ export class OfficialReportRepository {
       },
     });
 
-    await tx.officialReport.update({ where: { id }, data: { outdated: isDefined(outdatedOfficialReport) } });
+    await this.db.tx.officialReport.update({
+      where: { id },
+      data: { outdated: isDefined(outdatedOfficialReport) },
+    });
   }
 
-  private async persistOfficialReportDeleted(tx: Prisma.TransactionClient, message: OfficialReportDeleted) {
-    await tx.agenda.updateMany({
+  private async persistOfficialReportDeleted(message: OfficialReportDeleted) {
+    await this.db.tx.agenda.updateMany({
       where: { officialReportId: message.officialReportId },
       data: { officialReportId: null },
     });
 
-    const report = await tx.officialReport.findUnique({
+    const report = await this.db.tx.officialReport.findUnique({
       where: { id: message.officialReportId },
       select: { pdfId: true },
     });
 
-    await tx.officialReport.delete({
+    await this.db.tx.officialReport.delete({
       where: { id: message.officialReportId },
     });
 
     if (report?.pdfId) {
-      await tx.file.deleteMany({
+      await this.db.tx.file.deleteMany({
         where: { id: report.pdfId },
       });
     }

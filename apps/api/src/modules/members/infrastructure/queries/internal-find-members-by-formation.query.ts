@@ -1,10 +1,11 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { isMember } from '../member.utils';
-import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -17,16 +18,12 @@ import { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class InternalFindMembersByFormationQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
-  async handle(query: {
-    formation: FormationEnum;
-    tx?: Prisma.TransactionClient;
-  }): Promise<InternalMemberListDto[]> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-
+  @Transactional()
+  async handle(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
     const roles = formationToMemberRole(query.formation);
-    const users = await query.tx.user.findMany({
+    const users = await this.db.tx.user.findMany({
       where: { role: { in: roles.map(roleEnumToPrismaRoleEnum) } },
       select: {
         id: true,

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { isDefined } from 'src/utils/is-defined';
@@ -10,7 +10,7 @@ import { isDefined } from 'src/utils/is-defined';
 @Injectable()
 export class GetSummaryAttachmentUrlQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
@@ -20,7 +20,7 @@ export class GetSummaryAttachmentUrlQuery {
     nominationFileId: string;
     fileId: string;
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
-    const session = await this.prisma.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
         dossierDeNominations: {

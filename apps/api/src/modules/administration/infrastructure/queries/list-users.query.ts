@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
@@ -11,7 +12,7 @@ import {
 } from '../../domain/user-enum';
 import { ListUsersQueryDto } from '../dto/administration.dto';
 import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -21,8 +22,9 @@ import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ListUsersQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     search?: string;
     roles?: AdminUserRoleEnum[];
@@ -62,25 +64,23 @@ export class ListUsersQuery {
     };
 
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
-    const [totalCount, items] = await this.prisma.$transaction([
-      this.prisma.user.count({ where }),
-      this.prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
-          title: true,
-          duty: true,
-          gender: true,
-        },
-        where,
-        orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
-        skip: (query.pagination.page - 1) * query.pagination.limit,
-        take: query.pagination.limit,
-      }),
-    ]);
+    const totalCount = await this.db.tx.user.count({ where });
+    const items = await this.db.tx.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        title: true,
+        duty: true,
+        gender: true,
+      },
+      where,
+      orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
+      skip: (query.pagination.page - 1) * query.pagination.limit,
+      take: query.pagination.limit,
+    });
 
     return paginate({
       totalCount,

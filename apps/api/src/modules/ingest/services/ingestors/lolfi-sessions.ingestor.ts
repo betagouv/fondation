@@ -1,10 +1,11 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -16,7 +17,7 @@ export class LolfiSessionsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     @Inject(API_CONFIG_TOKEN)
     config: ApiConfig,
@@ -73,8 +74,9 @@ export class LolfiSessionsIngestor {
     return { success: finalSuccess };
   }
 
+  @Transactional()
   private flush(props: { items: RawSession[]; jobId: number; fileId: string; result: { success: boolean } }) {
-    return this.prisma.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
+    return this.db.tx.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
       props.result.success = false;
     });

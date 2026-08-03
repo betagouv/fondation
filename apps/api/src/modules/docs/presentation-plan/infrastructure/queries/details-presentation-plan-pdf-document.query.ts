@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 import { FindPresentationPlanDocumentPdfQuery } from './find-presentation-plan-document-pdf.query';
@@ -11,7 +11,7 @@ import { FindPresentationPlanDocumentPdfQuery } from './find-presentation-plan-d
 export class DetailsPresentationPlanPdfDocumentQuery {
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
   ) {}
 
@@ -23,7 +23,7 @@ export class DetailsPresentationPlanPdfDocumentQuery {
     id: string;
     afterGeneration: boolean;
   }): Promise<DetailedPresentationPlanPdfDocumentDto> {
-    const plan = await this.prisma.justicePresentationPlan.findUnique({
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: query.id, html: { not: null } },
       select: { id: true, pdf: { select: { id: true } } },
     });

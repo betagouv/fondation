@@ -1,8 +1,9 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -13,10 +14,11 @@ import { assertIsDefined } from 'src/utils/is-defined';
 export class InternalDetailsLolfiSessionQuery {
   private logger = new Logger(InternalDetailsLolfiSessionQuery.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(sessionId: number): Promise<DetailedLolfiSession> {
-    const nominationFiles = await this.prisma.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
+    const nominationFiles = await this.db.tx.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
     const perPositionId = Map.groupBy(nominationFiles, (file) => file.detectedTargetedPositionId);
 
     const GradeSchema = z.enum(GradeEnum);

@@ -2,8 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
@@ -11,11 +10,11 @@ import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
 @Injectable()
 export class DetailMagistratQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { magistratId: string }): Promise<DetailedMagistratDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const magistrat = await tx.magistrat.findUnique({
+    return this.db.withTransaction(async () => {
+      const magistrat = await this.db.tx.magistrat.findUnique({
         where: { id: query.magistratId },
         select: {
           id: true,
@@ -37,7 +36,7 @@ export class DetailMagistratQuery {
 
       if (!magistrat) throw new NotFoundException();
 
-      const currentPosition = await this.currentPosition(magistrat.currentPositionId, tx);
+      const currentPosition = await this.currentPosition(magistrat.currentPositionId);
 
       return {
         id: magistrat.id,
@@ -62,11 +61,11 @@ export class DetailMagistratQuery {
     });
   }
 
-  private async currentPosition(currentPositionId: string | null, tx: Prisma.TransactionClient) {
+  private async currentPosition(currentPositionId: string | null) {
     const positionId = Number.parseInt(currentPositionId ?? '', 10);
     if (!Number.isFinite(positionId)) return null;
 
-    const position = await tx.position.findUnique({
+    const position = await this.db.tx.position.findUnique({
       where: { id: positionId },
       select: {
         id: true,

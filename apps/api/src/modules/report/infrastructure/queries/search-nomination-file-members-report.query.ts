@@ -2,18 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class SearchNominationFileMembersReportQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: {
     nominationFileId: string;
     sessionId: string;
     userId: string;
   }): Promise<FoundNominationFileMembersReportDto> {
-    const report = await this.prisma.report.findFirst({
+    const report = await this.db.tx.report.findFirst({
       where: {
         isDeleted: false,
         nominationFileId: query.nominationFileId,

@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AdminUserRole } from '../../domain/admin-user-role';
@@ -12,7 +13,7 @@ import {
   UserRoleUpdated,
   UsersUntitled,
 } from '../../domain/user';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
   roleEnumToPrismaRoleEnum,
@@ -21,10 +22,10 @@ import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async findById(userId: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.db.tx.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -46,7 +47,7 @@ export class UserRepository {
   }
 
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
-    const users = await this.prisma.user.findMany({
+    const users = await this.db.tx.user.findMany({
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
       select: { id: true, lastName: true, role: true, title: true, duty: true },
     });
@@ -66,44 +67,45 @@ export class UserRepository {
     );
   }
 
+  @Transactional()
   async persistMany(users: User[]): Promise<void> {
-    await this.prisma.$transaction(users.flatMap((user) => this.persistUser(user)));
+    for (const user of users) await this.persistUser(user);
   }
 
+  @Transactional()
   async persist(user: User): Promise<void> {
-    await this.prisma.$transaction(this.persistUser(user));
+    await this.persistUser(user);
   }
 
-  private persistUser(user: User) {
-    return user.messages.map((message: UserEvent) => {
-      if (message instanceof UserEmailUpdated) return this.persistEmailUpdated(message);
-      if (message instanceof UserPasswordUpdated) return this.persistPasswordUpdated(message);
-      if (message instanceof UserRoleUpdated) return this.persistRoleUpdated(message);
-      if (message instanceof UserDisplayTitleUpdated) return this.persistDisplayTitleUpdated(message);
-      if (message instanceof UsersUntitled) return this.persistUsersUntitled(message);
-      if (message instanceof UserPromotedToAdmin) return this.persistUserPromotedToAdmin(message);
-      if (message instanceof UserDemotedFromAdmin) return this.persistUserDemotedFromAdmin(message);
-
-      return assertNever(message);
-    });
+  private async persistUser(user: User): Promise<void> {
+    for (const message of user.messages as UserEvent[]) {
+      if (message instanceof UserEmailUpdated) await this.persistEmailUpdated(message);
+      else if (message instanceof UserPasswordUpdated) await this.persistPasswordUpdated(message);
+      else if (message instanceof UserRoleUpdated) await this.persistRoleUpdated(message);
+      else if (message instanceof UserDisplayTitleUpdated) await this.persistDisplayTitleUpdated(message);
+      else if (message instanceof UsersUntitled) await this.persistUsersUntitled(message);
+      else if (message instanceof UserPromotedToAdmin) await this.persistUserPromotedToAdmin(message);
+      else if (message instanceof UserDemotedFromAdmin) await this.persistUserDemotedFromAdmin(message);
+      else assertNever(message);
+    }
   }
 
   private persistEmailUpdated(message: UserEmailUpdated) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { email: message.email },
     });
   }
 
   private persistPasswordUpdated(message: UserPasswordUpdated) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { password: message.hashedPassword },
     });
   }
 
   private persistRoleUpdated(message: UserRoleUpdated) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: {
         role: roleEnumToPrismaRoleEnum(message.role.role),
@@ -114,28 +116,28 @@ export class UserRepository {
   }
 
   private persistUsersUntitled(message: UsersUntitled) {
-    return this.prisma.user.updateMany({
+    return this.db.tx.user.updateMany({
       where: { title: message.sourceTitle },
       data: { title: message.targetRole.title, duty: message.targetRole.duty },
     });
   }
 
   private persistDisplayTitleUpdated(message: UserDisplayTitleUpdated) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
     });
   }
 
   private persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { role: 'ADMIN' },
     });
   }
 
   private persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
-    return this.prisma.user.update({
+    return this.db.tx.user.update({
       where: { id: message.userId },
       data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
     });

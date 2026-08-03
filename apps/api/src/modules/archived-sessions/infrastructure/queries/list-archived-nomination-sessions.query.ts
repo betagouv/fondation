@@ -1,9 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
 import { ListArchivedNominationSessionsQueryDto } from '../../archived-sessions.dto';
 import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -18,8 +19,9 @@ type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
 export class ListArchivedNominationSessionsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     search: string | null;
     typeDeSaisine: TypeDeSaisineEnum;
@@ -47,25 +49,23 @@ export class ListArchivedNominationSessionsQuery {
         ]
       : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
 
-    const [totalCount, sessions] = await this.prisma.$transaction([
-      this.prisma.session.count({ where }),
-      this.prisma.session.findMany({
-        where,
-        orderBy,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
-        take: query.pagination.limit,
-        select: {
-          id: true,
-          name: true,
-          formation: true,
-          date: true,
-          typeDeSaisine: true,
-          validatedAt: true,
+    const totalCount = await this.db.tx.session.count({ where });
+    const sessions = await this.db.tx.session.findMany({
+      where,
+      orderBy,
+      skip: (query.pagination.page - 1) * query.pagination.limit,
+      take: query.pagination.limit,
+      select: {
+        id: true,
+        name: true,
+        formation: true,
+        date: true,
+        typeDeSaisine: true,
+        validatedAt: true,
 
-          transparenceGds: { select: { dueDate: true } },
-        },
-      }),
-    ]);
+        transparenceGds: { select: { dueDate: true } },
+      },
+    });
 
     const items = sessions.map((s) => ({
       id: s.id,

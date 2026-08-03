@@ -1,7 +1,7 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import {
   AttachedFilesToSummary,
@@ -18,12 +18,12 @@ import { isDefined } from 'src/utils/is-defined';
 @Injectable()
 export class SummaryRepository {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
   async find(query: { sessionId: string; nominationFileId: string }) {
-    const session = await this.prisma.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
         dossierDeNominations: {
@@ -46,27 +46,24 @@ export class SummaryRepository {
     });
   }
 
-  persist(summary: Summary) {
-    return this.prisma.$transaction(async (tx) => {
-      for (const message of summary.messages) {
-        if (message instanceof SummaryCreated) await this.persistSummaryCreated(tx, message);
-        else if (message instanceof AttachedFilesToSummary)
-          await this.persistAttachedFilesToSummary(tx, message);
-        else if (message instanceof DetachedFilesFromSummary)
-          await this.persistDetachedFilesFromSummary(tx, message);
-        else if (message instanceof IncludedFilesInSummaryContent)
-          await this.persistIncludedFilesInSummaryContent(tx, message);
-        else if (message instanceof SummaryContentWritten)
-          await this.persistSummaryContentWritten(tx, message);
-        else if (message instanceof UpdatedSummaryReaderList)
-          await this.persistUpdatedSummaryReaderList(tx, message);
-        else assertNever(message);
-      }
-    });
+  @Transactional(Propagation.Mandatory)
+  async persist(summary: Summary) {
+    for (const message of summary.messages) {
+      if (message instanceof SummaryCreated) await this.persistSummaryCreated(message);
+      else if (message instanceof AttachedFilesToSummary) await this.persistAttachedFilesToSummary(message);
+      else if (message instanceof DetachedFilesFromSummary)
+        await this.persistDetachedFilesFromSummary(message);
+      else if (message instanceof IncludedFilesInSummaryContent)
+        await this.persistIncludedFilesInSummaryContent(message);
+      else if (message instanceof SummaryContentWritten) await this.persistSummaryContentWritten(message);
+      else if (message instanceof UpdatedSummaryReaderList)
+        await this.persistUpdatedSummaryReaderList(message);
+      else assertNever(message);
+    }
   }
 
-  private persistSummaryCreated(tx: Prisma.TransactionClient, message: SummaryCreated) {
-    return tx.dossierDeNomination.update({
+  private persistSummaryCreated(message: SummaryCreated) {
+    return this.db.tx.dossierDeNomination.update({
       where: { id: message.nominationFileId, sessionId: message.sessionId },
       data: {
         summary: { upsert: { create: { content: '' }, update: {} } },
@@ -74,8 +71,8 @@ export class SummaryRepository {
     });
   }
 
-  private persistAttachedFilesToSummary(tx: Prisma.TransactionClient, message: AttachedFilesToSummary) {
-    return tx.summary.update({
+  private persistAttachedFilesToSummary(message: AttachedFilesToSummary) {
+    return this.db.tx.summary.update({
       where: { nominationFileId: message.id },
       data: {
         attachments: {
@@ -85,18 +82,15 @@ export class SummaryRepository {
     });
   }
 
-  private async persistDetachedFilesFromSummary(
-    tx: Prisma.TransactionClient,
-    message: DetachedFilesFromSummary,
-  ) {
-    await tx.summaryAttachment.deleteMany({
+  private async persistDetachedFilesFromSummary(message: DetachedFilesFromSummary) {
+    await this.db.tx.summaryAttachment.deleteMany({
       where: {
         summaryId: message.id,
         fileId: { in: message.fileIds as string[] },
       },
     });
 
-    const files = await tx.file.findMany({
+    const files = await this.db.tx.file.findMany({
       select: { id: true, path: true },
       where: { id: { in: message.fileIds as string[] } },
     });
@@ -104,11 +98,8 @@ export class SummaryRepository {
     this.files.delete(files);
   }
 
-  private persistIncludedFilesInSummaryContent(
-    tx: Prisma.TransactionClient,
-    message: IncludedFilesInSummaryContent,
-  ) {
-    return tx.summary.update({
+  private persistIncludedFilesInSummaryContent(message: IncludedFilesInSummaryContent) {
+    return this.db.tx.summary.update({
       where: { nominationFileId: message.id },
       data: {
         screenshots: {
@@ -118,8 +109,8 @@ export class SummaryRepository {
     });
   }
 
-  private persistSummaryContentWritten(tx: Prisma.TransactionClient, message: SummaryContentWritten) {
-    return tx.summary.update({
+  private persistSummaryContentWritten(message: SummaryContentWritten) {
+    return this.db.tx.summary.update({
       where: { nominationFileId: message.id },
       data: {
         content: message.content,
@@ -128,8 +119,8 @@ export class SummaryRepository {
     });
   }
 
-  private persistUpdatedSummaryReaderList(tx: Prisma.TransactionClient, message: UpdatedSummaryReaderList) {
-    return tx.summary.update({
+  private persistUpdatedSummaryReaderList(message: UpdatedSummaryReaderList) {
+    return this.db.tx.summary.update({
       where: { nominationFileId: message.id },
       data: {
         readers: {

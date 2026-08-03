@@ -1,10 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
 import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
@@ -13,16 +13,14 @@ import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailsUserQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
-    tx?: Prisma.TransactionClient;
     userId: string;
     impersonationId: string | undefined;
   }): Promise<DetailedUserResponseDto> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-
-    const maybeUser = await query.tx.user.findUnique({
+    const maybeUser = await this.db.tx.user.findUnique({
       where: { id: query.userId },
       select: {
         id: true,

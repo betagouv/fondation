@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
@@ -5,9 +6,8 @@ import z from 'zod';
 import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
-import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
@@ -17,23 +17,19 @@ export class InternalFindDocsNominationFilesQuery {
   private readonly logger = new Logger(InternalFindDocsNominationFilesQuery.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly version: AffectationVersionFinder,
   ) {}
 
+  @Transactional()
   async handle(query: {
     sessionId: string;
     ids?: readonly string[];
-    tx?: Prisma.TransactionClient;
   }): Promise<InternalFoundAgendaNominationFiles> {
     if (query.ids) assertPgParams(query.ids);
-    if (!query.tx) {
-      return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-    }
 
     const maybeVersion = await this.version.lastPublished({
       sessionId: query.sessionId,
-      tx: query.tx,
     });
 
     if (maybeVersion.isNone()) {
@@ -41,7 +37,7 @@ export class InternalFindDocsNominationFilesQuery {
       throw new NotFoundException();
     }
 
-    const rows = await query.tx.$queryRawTyped(
+    const rows = await this.db.tx.$queryRawTyped(
       findAgendaNominationFilesRawQuery(
         query.sessionId,
         maybeVersion.id,

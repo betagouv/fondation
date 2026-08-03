@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
@@ -19,49 +19,40 @@ export class FindOfficialReportDocumentPdfQuery {
 
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const officialReport = await tx.officialReport.findUnique({
-        where: { id: query.id },
-        select: {
-          sessionMeetingDate: true,
-          chairmanFirstName: true,
-          chairmanLastName: true,
-          agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
-          pdf: { select: { id: true, name: true } },
-        },
-      });
-
-      if (!officialReport) throw new NotFoundException();
-
-      if (!query.forceNew && officialReport.pdf?.id) {
-        const file$ = await this.files.getFile({ fileId: officialReport.pdf.id, tx });
-        if (!file$) {
-          this.logger.error(`Could not retrieve the official report PDF file from S3`);
-          throw new InternalServerErrorException();
-        }
-
-        return {
-          type: 'pdf',
-          file: new StreamableFile(file$, {
-            type: FILE_MIME_TYPES.pdf,
-            disposition: `inline; filename=${encodeURIComponent(officialReport.pdf.name)}`,
-          }),
-        } as const;
-      }
-
-      const html = await this.findOfficialReportDocumentQuery.handle({ ...query, tx });
-      return { type: 'html', html, officialReport } as const;
+    const officialReport = await this.db.tx.officialReport.findUnique({
+      where: { id: query.id },
+      select: {
+        sessionMeetingDate: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
+        agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
+        pdf: { select: { id: true, name: true } },
+      },
     });
 
-    if (result.type === 'pdf') return result.file;
+    if (!officialReport) throw new NotFoundException();
 
-    const { officialReport, html } = result;
+    // Stream the cached PDF from S3 outside of any transaction.
+    if (!query.forceNew && officialReport.pdf?.id) {
+      const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
+      if (!file$) {
+        this.logger.error(`Could not retrieve the official report PDF file from S3`);
+        throw new InternalServerErrorException();
+      }
+
+      return new StreamableFile(file$, {
+        type: FILE_MIME_TYPES.pdf,
+        disposition: `inline; filename=${encodeURIComponent(officialReport.pdf.name)}`,
+      });
+    }
+
+    const html = await this.findOfficialReportDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
     const [agenda] = officialReport.agendas;
@@ -80,7 +71,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.prisma.officialReport.update({
+      await this.db.tx.officialReport.update({
         where: { id: query.id },
         data: { pdfId: pdfFileId },
       });

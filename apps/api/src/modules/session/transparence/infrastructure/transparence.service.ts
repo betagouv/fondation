@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
@@ -5,9 +6,8 @@ import * as Sentry from '@sentry/node';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
-import { Prisma } from 'src/generated/prisma/client';
 import { OfficialReportsInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
@@ -121,7 +121,7 @@ export class TransparenceService {
     private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
@@ -150,6 +150,7 @@ export class TransparenceService {
     return this.internalDetailMemberSessionQuery.handle(query);
   }
 
+  @Transactional()
   async affectReportersAndPriorities(command: {
     sessionId: string;
     affectations: readonly {
@@ -158,35 +159,28 @@ export class TransparenceService {
       reporterIds: readonly string[];
     }[];
   }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, {
-        tx,
-        nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
-      });
-
-      const memberIds = Array.from(
-        new Set(command.affectations.flatMap((affectation) => affectation.reporterIds)),
-      );
-
-      const formationMemberIds = await this.members
-        .findMembers({
-          tx,
-          ids: memberIds,
-          formation: session.formation,
-        })
-        .then((ids) => new Set(ids));
-
-      session.affectNominationFileReporters({ ...command, formationMemberIds });
-
-      for (const item of command.affectations) {
-        session.setNominationFilePriority({
-          nominationFileId: item.nominationFileId,
-          priorities: item.priorities,
-        });
-      }
-
-      await this.nominationSessionRepository.persist(session, tx);
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
     });
+
+    const memberIds = Array.from(
+      new Set(command.affectations.flatMap((affectation) => affectation.reporterIds)),
+    );
+
+    const formationMemberIds = await this.members
+      .findMembers({ ids: memberIds, formation: session.formation })
+      .then((ids) => new Set(ids));
+
+    session.affectNominationFileReporters({ ...command, formationMemberIds });
+
+    for (const item of command.affectations) {
+      session.setNominationFilePriority({
+        nominationFileId: item.nominationFileId,
+        priorities: item.priorities,
+      });
+    }
+
+    await this.nominationSessionRepository.persist(session);
   }
 
   async listNominationFiles(query: {
@@ -212,10 +206,10 @@ export class TransparenceService {
     sessionId: string;
     userId: string;
   }): Promise<void> {
-    const invalidations = await this.prisma.$transaction(async (tx) => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
+    const invalidations = await this.db.withTransaction(async () => {
+      const session = await this.nominationSessionRepository.find(command.sessionId);
       session.publishAffectationVersion({ userId: command.userId });
-      return await this.nominationSessionRepository.persist(session, tx);
+      return this.nominationSessionRepository.persist(session);
     });
 
     for (const invalidation of invalidations) {
@@ -226,34 +220,31 @@ export class TransparenceService {
     }
   }
 
+  @Transactional()
   async autoAffectation(command: {
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
     excludedMemberIds: readonly string[] | undefined;
   }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, {
-        tx,
-        nominationFileIds: new Set(command.nominationFileIds),
-      });
-
-      const autoAffectations = await this.autoAffectationsFinder.find({
-        tx,
-        sessionId: command.sessionId,
-        nominationFileIds: command.nominationFileIds,
-        excludedMemberIds: command.excludedMemberIds,
-      });
-
-      const formationMemberIds = await this.members
-        .findMembers({ tx, formation: session.formation, ids: undefined })
-        .then((ids) => new Set(ids));
-
-      session.autoAffectNominationFileReporters({
-        autoAffectations,
-        formationMemberIds,
-      });
-      await this.nominationSessionRepository.persist(session, tx);
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set(command.nominationFileIds),
     });
+
+    const autoAffectations = await this.autoAffectationsFinder.find({
+      sessionId: command.sessionId,
+      nominationFileIds: command.nominationFileIds,
+      excludedMemberIds: command.excludedMemberIds,
+    });
+
+    const formationMemberIds = await this.members
+      .findMembers({ formation: session.formation, ids: undefined })
+      .then((ids) => new Set(ids));
+
+    session.autoAffectNominationFileReporters({
+      autoAffectations,
+      formationMemberIds,
+    });
+    await this.nominationSessionRepository.persist(session);
   }
 
   async updateNominationFileComment(command: {
@@ -261,7 +252,7 @@ export class TransparenceService {
     nominationFileId: string;
     comment: string | null;
   }): Promise<void> {
-    await this.prisma.dossierDeNomination.update({
+    await this.db.tx.dossierDeNomination.update({
       where: {
         id: command.nominationFileId,
         sessionId: command.sessionId,
@@ -270,6 +261,7 @@ export class TransparenceService {
     });
   }
 
+  @Transactional()
   async updateNominationFileAuditionDate(command: {
     sessionId: string;
     nominationFileId: string;
@@ -291,6 +283,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async createNominationSessionFromLodam(command: {
     files: readonly LodamTransparenceFile[];
     name: string;
@@ -317,23 +310,18 @@ export class TransparenceService {
     return { id: session.id };
   }
 
+  @Transactional()
   async updateSessionNominationFileObservers(command: {
     sessionId: string;
     files: readonly LodamTransparenceFile[];
   }): Promise<void> {
-    const [existingNominationFiles, session] = await this.prisma.$transaction(async (tx) => {
-      const txExistingNominationFiles = await this.nominationSessionFileFinder.bySessionAndFileNumber({
-        tx,
-        sessionId: command.sessionId,
-        fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
-      });
+    const existingNominationFiles = await this.nominationSessionFileFinder.bySessionAndFileNumber({
+      sessionId: command.sessionId,
+      fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
+    });
 
-      const txSession = await this.nominationSessionRepository.find(command.sessionId, {
-        tx,
-        nominationFileIds: new Set(txExistingNominationFiles.map(({ id }) => id)),
-      });
-
-      return [txExistingNominationFiles, txSession];
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set(existingNominationFiles.map(({ id }) => id)),
     });
 
     session.updateNominationFileObservers({
@@ -343,6 +331,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async addNominationSessionAttachments(command: {
     sessionId: string;
     files: { id: string }[];
@@ -353,6 +342,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async removeNominationSessionAttachment(command: { sessionId: string; fileId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
@@ -360,6 +350,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async addNominationFileAttachments(command: {
     sessionId: string;
     nominationFileId: string;
@@ -374,6 +365,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async removeNominationFileAttachment(command: {
     sessionId: string;
     nominationFileId: string;
@@ -414,10 +406,7 @@ export class TransparenceService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: {
-    sessionId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<DetailedNominationSessionDto> {
+  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 
@@ -431,10 +420,10 @@ export class TransparenceService {
       positionStartDate: DateOnly | null;
     };
   }): Promise<void> {
-    const invalidations = await this.prisma.$transaction(async (tx) => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
+    const invalidations = await this.db.withTransaction(async () => {
+      const session = await this.nominationSessionRepository.find(command.sessionId);
       session.update(command.data);
-      return await this.nominationSessionRepository.persist(session, tx);
+      return this.nominationSessionRepository.persist(session);
     });
 
     for (const invalidation of invalidations) {
@@ -461,9 +450,8 @@ export class TransparenceService {
     outcome: NominationFileOutcomeEnum | null;
     comment: string | null;
   }): Promise<void> {
-    const invalidations = await this.prisma.$transaction(async (tx) => {
+    const invalidations = await this.db.withTransaction(async () => {
       const session = await this.nominationSessionRepository.find(command.sessionId, {
-        tx,
         nominationFileIds: new Set([command.nominationFileId]),
       });
 
@@ -479,7 +467,7 @@ export class TransparenceService {
         nominationFileId: command.nominationFileId,
       });
 
-      return await this.nominationSessionRepository.persist(session, tx);
+      return this.nominationSessionRepository.persist(session);
     });
 
     for (const invalidation of invalidations) {
@@ -490,6 +478,7 @@ export class TransparenceService {
     }
   }
 
+  @Transactional()
   async writeNominationFileMemberMemo(command: {
     userId: string;
     sessionId: string;
@@ -534,12 +523,14 @@ export class TransparenceService {
     return this.countUsersNewSessionsQuery.handle();
   }
 
+  @Transactional()
   async validateSession(command: { sessionId: string; userId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.validate({ userId: command.userId });
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async hideAlert(command: { sessionId: string; nominationFileId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.hideAlert(command);
@@ -547,103 +538,78 @@ export class TransparenceService {
   }
 
   async internalIngestLolfiSessions(
-    sessions: readonly {
-      id: number;
-      creationDate: DateOnly;
-      name: string | null;
-    }[],
+    sessions: readonly { id: number; creationDate: DateOnly; name: string | null }[],
   ): Promise<void> {
     for (const session of sessions) {
-      const nominationSessions = await this.lolfiNominationSessionFinder.find(session).catch((error) => {
-        Sentry.captureException(error);
-        this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
-
-        return [] as SessionTransparence[];
-      });
-
-      for (const nominationSession of nominationSessions) {
-        await this.nominationSessionRepository.persist(nominationSession).catch((error) => {
-          this.logger.error(
-            `Error while persisting session LOLFI ${session.id}, formation: ${nominationSession.formation}`,
-            error,
-          );
+      await this.db.withTransaction(Propagation.RequiresNew, async () => {
+        const nominationSessions = await this.lolfiNominationSessionFinder.find(session).catch((error) => {
           Sentry.captureException(error);
+          this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
+
+          return [] as SessionTransparence[];
         });
-      }
+
+        for (const nominationSession of nominationSessions) {
+          await this.nominationSessionRepository.persist(nominationSession).catch((error) => {
+            this.logger.error(
+              `Error while persisting session LOLFI ${session.id}, formation: ${nominationSession.formation}`,
+              error,
+            );
+            Sentry.captureException(error);
+          });
+        }
+      });
     }
   }
 
   async internalFindNominationFiles(query: {
     sessionId: string;
     ids?: readonly string[] | undefined;
-    // TODO: use nest-cls
-    tx?: Prisma.TransactionClient;
   }): Promise<InternalFoundAgendaNominationFiles> {
     return Sentry.startSpan({ name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' }, () =>
       this.internalFindNominationFilesQuery.handle(query),
     );
   }
 
-  internalGetSessionFormation(query: {
-    sessionId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<FormationEnum> {
+  internalGetSessionFormation(query: { sessionId: string }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
   }
 
   /** @internal */
-  internalListMagistratNominationFiles(query: {
-    magistratId: string;
-    pagination: Pagination;
-    tx: Prisma.TransactionClient;
-  }) {
+  internalListMagistratNominationFiles(query: { magistratId: string; pagination: Pagination }) {
     return this.internalListMagistratNominationFilesQuery.handle(query);
   }
 
   /** @internal */
   internalHydrateNominationFiles(query: {
     nominationFileIds: readonly string[];
-    tx: Prisma.TransactionClient;
   }): Promise<HydratedNominationFile[]> {
     return this.hydratedNominationFiles.hydrate(query);
   }
 
+  @Transactional()
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, { tx });
-      const unreportedFileCount = await this.unreportedSessionFilesCountFinder.find({
-        tx,
-        sessionId: command.sessionId,
-      });
-
-      session.archive({ userId: command.userId, unreportedFileCount });
-      await this.nominationSessionRepository.persist(session, tx);
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+    const unreportedFileCount = await this.unreportedSessionFilesCountFinder.find({
+      sessionId: command.sessionId,
     });
+
+    session.archive({ userId: command.userId, unreportedFileCount });
+    await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async deleteSession(command: { id: string; userId: string }): Promise<void> {
-    const { session, affectedReportersCount, attachmentsCount } = await this.prisma.$transaction(
-      async (tx) => {
-        const sessionId = command.id;
-        const session = await this.nominationSessionRepository.find(sessionId, {
-          tx,
-        });
+    const sessionId = command.id;
+    const session = await this.nominationSessionRepository.find(sessionId);
 
-        const attachmentsCount = await this.sessionsFinder.attachmentsCount({
-          tx,
-          sessionId,
-        });
+    const attachmentsCount = await this.sessionsFinder.attachmentsCount({ sessionId });
 
-        const version = await this.versions.last({ sessionId, tx });
-        const affectedReportersCount = await this.sessionsFinder.affectedReportersCount({
-          tx,
-          sessionId,
-          versionId: version.optionalId,
-        });
-
-        return { session, affectedReportersCount, attachmentsCount };
-      },
-    );
+    const version = await this.versions.last({ sessionId });
+    const affectedReportersCount = await this.sessionsFinder.affectedReportersCount({
+      sessionId,
+      versionId: version.optionalId,
+    });
 
     session.delete({
       attachmentsCount,

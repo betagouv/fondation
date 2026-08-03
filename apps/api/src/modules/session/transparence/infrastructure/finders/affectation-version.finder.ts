@@ -1,55 +1,51 @@
 import assert from 'node:assert';
 
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { StatutAffectationEnum } from 'src/modules/session/shared/types/statut-affectation.enum';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 
 @Injectable()
 export class AffectationVersionFinder {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   /** @warning does not check that the session exists */
-  async last(query: {
-    sessionId: string;
-    tx: Prisma.TransactionClient;
-  }): Promise<OptionalAffectationVersion> {
-    const { _max } = await query.tx.affectationVersion.aggregate({
+  @Transactional(Propagation.Mandatory)
+  async last(query: { sessionId: string }): Promise<OptionalAffectationVersion> {
+    const { _max } = await this.db.tx.affectationVersion.aggregate({
       where: { sessionId: query.sessionId },
       _max: { version: true },
     });
 
     return this.version({
-      tx: query.tx,
       version: _max.version,
       sessionId: query.sessionId,
     });
   }
 
   /** @warning does not check that the session exists */
-  async lastPublished(query: { sessionId: string; tx: Prisma.TransactionClient }) {
-    const { _max } = await query.tx.affectationVersion.aggregate({
+  @Transactional(Propagation.Mandatory)
+  async lastPublished(query: { sessionId: string }) {
+    const { _max } = await this.db.tx.affectationVersion.aggregate({
       where: { sessionId: query.sessionId, statut: 'PUBLIEE' },
       _max: { version: true },
     });
 
     return this.version({
-      tx: query.tx,
       version: _max.version,
       sessionId: query.sessionId,
     });
   }
 
   private async version(props: {
-    tx: Prisma.TransactionClient;
     sessionId: string;
     version: number | null;
   }): Promise<OptionalAffectationVersion> {
-    const version = await props.tx.affectationVersion.findFirst({
+    const version = await this.db.tx.affectationVersion.findFirst({
       select: {
         id: true,
         version: true,
@@ -74,23 +70,18 @@ export class AffectationVersionFinder {
     });
   }
 
+  @Transactional()
   async findReporters(query: {
     nominationFileId: string;
     sessionId: string;
-    tx?: Prisma.TransactionClient;
   }): Promise<{ id: string; firstName: string; lastName: string }[]> {
-    if (!query.tx) {
-      return this.prisma.$transaction((tx) => this.findReporters({ ...query, tx }));
-    }
-
     const version = await this.lastPublished({
-      tx: query.tx,
       sessionId: query.sessionId,
     });
 
     if (version.isNone()) return [];
 
-    const reporters = await query.tx.nominationFileToReporter.findMany({
+    const reporters = await this.db.tx.nominationFileToReporter.findMany({
       select: { user: { select: { id: true, firstName: true, lastName: true } } },
       where: {
         versionId: version.id,

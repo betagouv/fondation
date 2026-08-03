@@ -1,12 +1,13 @@
 import { inspect } from 'node:util';
 
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { dag } from '../../domain/requirements';
 import { LolfiJob } from '../lolfi-job.type';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -30,7 +31,7 @@ export class LolfiFilesIngestor {
 
   constructor(
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
     private readonly gradeIngestor: LolfiGradesIngestor,
@@ -83,8 +84,9 @@ export class LolfiFilesIngestor {
     }
   }
 
+  @Transactional(Propagation.RequiresNew)
   private async succeedJob(jobId: number): Promise<void> {
-    await this.prisma.ingestionJob
+    await this.db.tx.ingestionJob
       .update({
         where: { id: jobId },
         data: {
@@ -97,8 +99,9 @@ export class LolfiFilesIngestor {
       });
   }
 
+  @Transactional(Propagation.RequiresNew)
   private async failJob(jobId: number, error?: unknown): Promise<void> {
-    await this.prisma.ingestionJob
+    await this.db.tx.ingestionJob
       .update({
         where: { id: jobId },
         data: {
@@ -116,9 +119,9 @@ export class LolfiFilesIngestor {
     jobId: number,
     signal: AbortSignal,
   ): Promise<{ success: boolean; values?: RawSession[] }> {
-    const [lastSucceededJob, currentJob] = await this.prisma
-      .$transaction(async (tx) => {
-        const runningJob = await tx.ingestionJob.findFirst({
+    const [lastSucceededJob, currentJob] = await this.db
+      .withTransaction(async () => {
+        const runningJob = await this.db.tx.ingestionJob.findFirst({
           where: { status: 'RUNNING' },
           select: { id: true },
         });
@@ -129,7 +132,7 @@ export class LolfiFilesIngestor {
           throw new ConflictException();
         }
 
-        const lastSucceededJob = await tx.ingestionJob.findFirst({
+        const lastSucceededJob = await this.db.tx.ingestionJob.findFirst({
           orderBy: { endedAt: 'desc' },
           where: { status: 'SUCCEEDED' },
           select: {
@@ -142,7 +145,7 @@ export class LolfiFilesIngestor {
           },
         });
 
-        const currentJob = await tx.ingestionJob.update({
+        const currentJob = await this.db.tx.ingestionJob.update({
           where: { id: jobId, status: 'IDLE' },
           data: { status: 'RUNNING', startedAt: this.clock.now() },
           select: {
@@ -255,24 +258,23 @@ export class LolfiFilesIngestor {
     return Promise.resolve({ success: true });
   }
 
+  @Transactional()
   private async cancel(jobId: number) {
-    await this.prisma
-      .$transaction(async (tx) => {
-        await tx.ingestionJobFile.updateMany({
-          where: { status: 'IDLE', jobId },
-          data: { status: 'CANCELED' },
-        });
-
-        await tx.ingestionJob.updateMany({
-          data: { status: 'CANCELED', endedAt: this.clock.now() },
-          where: {
-            id: jobId,
-            status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
-          },
-        });
-      })
-      .catch((e) => {
-        this.logger.error(`Failed to write job as canceled`, e);
+    try {
+      await this.db.tx.ingestionJobFile.updateMany({
+        where: { status: 'IDLE', jobId },
+        data: { status: 'CANCELED' },
       });
+
+      await this.db.tx.ingestionJob.updateMany({
+        data: { status: 'CANCELED', endedAt: this.clock.now() },
+        where: {
+          id: jobId,
+          status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
+        },
+      });
+    } catch (e) {
+      this.logger.error(`Failed to write job as canceled`, e);
+    }
   }
 }

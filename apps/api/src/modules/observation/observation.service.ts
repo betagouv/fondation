@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
 import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
@@ -43,7 +43,7 @@ export class ObservationService {
   private readonly logger = new Logger(ObservationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly observationRepository: ObservationRepository,
     private readonly getObservationDetailsQuery: GetObservationDetailsQuery,
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
@@ -67,16 +67,14 @@ export class ObservationService {
       fileId: string;
     }[];
   }): Promise<{ id: string }> {
-    const [nominationFile, linkedFiles] = await this.prisma.$transaction(async (tx) => {
+    const [nominationFile, linkedFiles] = await this.db.withTransaction(async () => {
       const txNominationFile = await this.observationFinder.findExistingObservation({
         sessionId: command.sessionId,
         nominationFileId: command.nominationFileId,
         magistratId: command.magistratId,
-        tx,
       });
 
       const { items: txLinkedFiles } = await this.observationFinder.findExistingFiles({
-        tx,
         files: command.linkedAttachments.map((attachment) => ({
           ...attachment,
           magistratId: command.magistratId,
@@ -131,7 +129,7 @@ export class ObservationService {
     const observation = await this.observationRepository.findById(command.observationId);
 
     if (command.magistratId !== observation.magistratId) {
-      const existingObservation = await this.prisma.observation.findUnique({
+      const existingObservation = await this.db.tx.observation.findUnique({
         where: {
           nominationFileId_magistratId: {
             nominationFileId: observation.nominationFileId,

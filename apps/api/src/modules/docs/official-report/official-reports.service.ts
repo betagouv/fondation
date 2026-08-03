@@ -1,6 +1,7 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
-import { PrismaService } from '../../framework/database';
+import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
@@ -46,7 +47,7 @@ export class OfficialReportsService {
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
     private readonly auth: SimpleAuthService,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
 
@@ -69,6 +70,7 @@ export class OfficialReportsService {
     return this.agendaFinder.findNonIncludedInOfficialReport(query);
   }
 
+  @Transactional()
   async createOfficialReport(command: {
     authorId: string;
     sessionMeetingDate: DateOnlyJson;
@@ -82,74 +84,70 @@ export class OfficialReportsService {
     sessionId: string;
     absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const session = await this.sessions.details({
-        tx,
-        sessionId: command.sessionId,
-      });
-
-      const secretary = await this.auth.detailsUser({
-        tx,
-        userId: command.secretaryId,
-        impersonationId: undefined,
-      });
-
-      const uniqueAgendaIds = new Set(command.agendaIds);
-      const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
-        tx,
-        ids: uniqueAgendaIds,
-        formation: session.formation,
-      });
-
-      if (agendas.length !== uniqueAgendaIds.size || agendas.length === 0) {
-        throw new NotFoundException();
-      }
-
-      const firstAgenda = agendas[0]!;
-      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByFormation({ formation: session.formation, tx });
-
-      const report = OfficialReport.create({
-        authorId: command.authorId,
-        snapshot: {
-          hasRenunciation: command.hasRenunciation,
-          justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
-
-          agenda: {
-            id: firstAgenda.id,
-            formation: firstAgenda.formation,
-            date: DateOnly.fromJson(firstAgenda.date),
-            session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.session.date) },
-          },
-
-          sessionMeeting: OfficialReportSessionMeeting.from({
-            startTime: command.sessionMeetingTime,
-            endTime: command.sessionMeetingEndingTime,
-            date: DateOnly.fromJson(command.sessionMeetingDate),
-          }),
-
-          // oxlint-disable-next-line typescript/no-misused-spread
-          chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: firstAgenda.formation }),
-          // oxlint-disable-next-line typescript/no-misused-spread
-          secretary: OfficialReportSecretary.from({ ...secretary, id: secretary.userId }),
-          members: OfficialReportMembersList.from(
-            members.map((member) =>
-              OfficialReportMember.from({
-                ...member, // oxlint-disable-line typescript/no-misused-spread
-                expectedFormation: firstAgenda.formation,
-                isAbsent: command.absentMemberIds.includes(member.id),
-              }),
-            ),
-          ),
-        },
-      });
-
-      await this.officialReportRepository.persist(report, tx);
-      return { id: report.id };
+    const session = await this.sessions.details({
+      sessionId: command.sessionId,
     });
+
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    const uniqueAgendaIds = new Set(command.agendaIds);
+    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
+      ids: uniqueAgendaIds,
+      formation: session.formation,
+    });
+
+    if (agendas.length !== uniqueAgendaIds.size || agendas.length === 0) {
+      throw new NotFoundException();
+    }
+
+    const firstAgenda = agendas[0]!;
+    const chairman = await this.members.internalGetMember({ id: command.chairmanId });
+    const members = await this.members.internalFindMembersByFormation({ formation: session.formation });
+
+    const report = OfficialReport.create({
+      authorId: command.authorId,
+      snapshot: {
+        hasRenunciation: command.hasRenunciation,
+        justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
+
+        agenda: {
+          id: firstAgenda.id,
+          formation: firstAgenda.formation,
+          date: DateOnly.fromJson(firstAgenda.date),
+          session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.session.date) },
+        },
+
+        sessionMeeting: OfficialReportSessionMeeting.from({
+          startTime: command.sessionMeetingTime,
+          endTime: command.sessionMeetingEndingTime,
+          date: DateOnly.fromJson(command.sessionMeetingDate),
+        }),
+
+        // oxlint-disable-next-line typescript/no-misused-spread
+        chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: firstAgenda.formation }),
+        // oxlint-disable-next-line typescript/no-misused-spread
+        secretary: OfficialReportSecretary.from({ ...secretary, id: secretary.userId }),
+        members: OfficialReportMembersList.from(
+          members.map((member) =>
+            OfficialReportMember.from({
+              ...member, // oxlint-disable-line typescript/no-misused-spread
+              expectedFormation: firstAgenda.formation,
+              isAbsent: command.absentMemberIds.includes(member.id),
+            }),
+          ),
+        ),
+      },
+    });
+
+    await this.officialReportRepository.persist(report);
+    return { id: report.id };
   }
 
   // TODO: refactor
+  @Transactional()
   async updateOfficialReport(command: {
     id: string;
     authorId: string;
@@ -162,80 +160,75 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const report = await this.officialReportRepository.find({ tx, id: command.id });
+    const report = await this.officialReportRepository.find({ id: command.id });
 
-      const secretary = await this.auth.detailsUser({
-        userId: command.secretaryId,
-        impersonationId: undefined,
-        tx,
-      });
-      const chairman = await this.members.internalGetMember({ id: command.chairmanId, tx });
-      const members = await this.members.internalFindMembersByFormation({ formation: report.formation, tx });
-
-      const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
-        tx,
-        formation: report.formation,
-        ignoreOfficialReportId: command.id,
-        ids: new Set([report.snapshot.meta.agenda.id]),
-      });
-
-      if (agendas.length !== 1) {
-        throw new NotFoundException();
-      }
-
-      const { items: agendaFiles } = await this.docsNominationFilesFinder.findNonReportedByAgendaIds({
-        tx,
-        ignoreOfficialReportId: report.id,
-        agendaIds: new Set(agendas.map(({ id }) => id)),
-      });
-
-      const firstAgenda = agendas[0]!;
-      report.update({
-        authorId: command.authorId,
-        officialReport: {
-          hasRenunciation: command.hasRenunciation,
-          agenda: {
-            id: firstAgenda.id,
-            formation: firstAgenda.formation,
-            date: DateOnly.fromJson(firstAgenda.date),
-            session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.date) },
-          },
-          justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
-          sessionMeeting: OfficialReportSessionMeeting.from({
-            startTime: command.sessionMeetingTime,
-            endTime: command.sessionMeetingEndingTime,
-            date: DateOnly.fromJson(command.sessionMeetingDate),
-          }),
-          // oxlint-disable-next-line typescript/no-misused-spread
-          chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: report.formation }),
-          // oxlint-disable-next-line typescript/no-misused-spread
-          secretary: OfficialReportSecretary.from({ ...secretary, id: secretary.userId }),
-          members: OfficialReportMembersList.from(
-            members.map((member) =>
-              OfficialReportMember.from({
-                ...member, // oxlint-disable-line typescript/no-misused-spread
-                expectedFormation: report.formation,
-                isAbsent: command.absentMemberIds.includes(member.id),
-              }),
-            ),
-          ),
-          files: agendaFiles.flatMap((file) =>
-            file.outcome !== null
-              ? [
-                  {
-                    outcome: file.outcome,
-                    nominationFileId: file.id,
-                    reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
-                  },
-                ]
-              : [],
-          ),
-        },
-      });
-
-      await this.officialReportRepository.persist(report, tx);
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
     });
+    const chairman = await this.members.internalGetMember({ id: command.chairmanId });
+    const members = await this.members.internalFindMembersByFormation({ formation: report.formation });
+
+    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
+      formation: report.formation,
+      ignoreOfficialReportId: command.id,
+      ids: new Set([report.snapshot.meta.agenda.id]),
+    });
+
+    if (agendas.length !== 1) {
+      throw new NotFoundException();
+    }
+
+    const { items: agendaFiles } = await this.docsNominationFilesFinder.findNonReportedByAgendaIds({
+      ignoreOfficialReportId: report.id,
+      agendaIds: new Set(agendas.map(({ id }) => id)),
+    });
+
+    const firstAgenda = agendas[0]!;
+    report.update({
+      authorId: command.authorId,
+      officialReport: {
+        hasRenunciation: command.hasRenunciation,
+        agenda: {
+          id: firstAgenda.id,
+          formation: firstAgenda.formation,
+          date: DateOnly.fromJson(firstAgenda.date),
+          session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.date) },
+        },
+        justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
+        sessionMeeting: OfficialReportSessionMeeting.from({
+          startTime: command.sessionMeetingTime,
+          endTime: command.sessionMeetingEndingTime,
+          date: DateOnly.fromJson(command.sessionMeetingDate),
+        }),
+        // oxlint-disable-next-line typescript/no-misused-spread
+        chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: report.formation }),
+        // oxlint-disable-next-line typescript/no-misused-spread
+        secretary: OfficialReportSecretary.from({ ...secretary, id: secretary.userId }),
+        members: OfficialReportMembersList.from(
+          members.map((member) =>
+            OfficialReportMember.from({
+              ...member, // oxlint-disable-line typescript/no-misused-spread
+              expectedFormation: report.formation,
+              isAbsent: command.absentMemberIds.includes(member.id),
+            }),
+          ),
+        ),
+        files: agendaFiles.flatMap((file) =>
+          file.outcome !== null
+            ? [
+                {
+                  outcome: file.outcome,
+                  nominationFileId: file.id,
+                  reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+                },
+              ]
+            : [],
+        ),
+      },
+    });
+
+    await this.officialReportRepository.persist(report);
   }
 
   getOrCreateOfficialReportDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
@@ -347,13 +340,12 @@ export class OfficialReportsService {
     await this.internalInvalidateOfficialReportUseCase.handle(command);
   }
 
+  @Transactional()
   private async withOfficialReport(id: string, mutation: (report: OfficialReport) => void): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const report = await this.officialReportRepository.find({ id, tx });
+    const report = await this.officialReportRepository.find({ id });
 
-      mutation(report);
+    mutation(report);
 
-      await this.officialReportRepository.persist(report, tx);
-    });
+    await this.officialReportRepository.persist(report);
   }
 }

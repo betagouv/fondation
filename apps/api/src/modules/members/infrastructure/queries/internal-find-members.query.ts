@@ -1,22 +1,20 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { MEMBER_ROLES } from '../member.utils';
-import { Prisma } from 'src/generated/prisma/client';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 @Injectable()
 export class InternalFindMembersQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     ids: readonly string[] | undefined;
     formation: FormationEnum | undefined;
-    tx?: Prisma.TransactionClient;
   }): Promise<string[]> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.handle({ ...query, tx }));
-
     let roles: PrismaRoleEnum[];
     switch (query.formation) {
       case 'PARQUET':
@@ -30,7 +28,7 @@ export class InternalFindMembersQuery {
         break;
     }
 
-    const users = await query.tx.user.findMany({
+    const users = await this.db.tx.user.findMany({
       select: { id: true },
       where: {
         role: { in: roles },

@@ -3,22 +3,22 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class ListCurrentlyAffectedReportersQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
   ) {}
 
   async handle(query: { sessionId: string }) {
     const { sessionId } = query;
-    const version = await this.prisma.$transaction(async (tx) => {
-      const txVersion = await this.versions.last({ sessionId, tx });
+    const version = await this.db.withTransaction(async () => {
+      const txVersion = await this.versions.last({ sessionId });
 
       if (txVersion.isNone()) return null;
-      return tx.nominationFileToReporter.findMany({
+      return this.db.tx.nominationFileToReporter.findMany({
         distinct: ['userId'],
         orderBy: [{ user: { lastName: 'asc' } }, { user: { firstName: 'asc' } }],
         where: { versionId: txVersion.id },

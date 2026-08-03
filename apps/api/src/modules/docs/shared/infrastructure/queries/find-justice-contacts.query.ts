@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class FindJusticeContactsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { search: string }): Promise<FoundJusticeContactsDto> {
-    const contacts = await this.prisma.justiceDepartmentContact.findMany({
+    const contacts = await this.db.tx.justiceDepartmentContact.findMany({
       where: {
         name: query.search.trim() ? { contains: query.search, mode: 'insensitive' } : undefined,
       },

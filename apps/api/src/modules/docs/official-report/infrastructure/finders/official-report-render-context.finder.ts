@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
@@ -6,9 +7,8 @@ import { OfficialReportMembersList } from '../../domain/official-report-member-l
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
-import { Prisma } from 'src/generated/prisma/client';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
@@ -21,17 +21,13 @@ import { dateToTimeOnly } from 'src/utils/time-only';
 @Injectable()
 export class OfficialReportRenderContextFinder {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly members: MembersService,
   ) {}
 
-  async find(query: {
-    officialReportId: string;
-    tx?: Prisma.TransactionClient;
-  }): Promise<OfficialReportRenderContext> {
-    if (!query.tx) return this.prisma.$transaction((tx) => this.find({ ...query, tx }));
-
-    const report = await query.tx.officialReport.findUnique({
+  @Transactional()
+  async find(query: { officialReportId: string }): Promise<OfficialReportRenderContext> {
+    const report = await this.db.tx.officialReport.findUnique({
       where: { id: query.officialReportId },
       select: {
         hasRenunciation: true,
@@ -105,7 +101,7 @@ export class OfficialReportRenderContextFinder {
     const agenda = report.agendas[0];
     if (!agenda) throw new NotFoundException();
 
-    const session = await query.tx.session.findUnique({
+    const session = await this.db.tx.session.findUnique({
       where: { id: agenda.sessionId, deletedAt: null },
       select: { date: true, formation: true },
     });
@@ -137,7 +133,7 @@ export class OfficialReportRenderContextFinder {
     const absentMembers = new Map(
       report.members.map(({ memberId, isAbsent }) => [memberId, isAbsent] as const),
     );
-    const members = await this.members.internalFindMembersByFormation({ tx: query.tx, formation });
+    const members = await this.members.internalFindMembersByFormation({ formation });
 
     const membersList = OfficialReportMembersList.from(
       members.flatMap((member) => {

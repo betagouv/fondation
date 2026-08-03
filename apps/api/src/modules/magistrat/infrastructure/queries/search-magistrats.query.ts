@@ -1,15 +1,17 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
 import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { toMagistratFullTextQuery } from 'src/utils/fulltext-search';
 
 @Injectable()
 export class SearchMagistratsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     search: string | undefined;
     ignoreIds: readonly string[] | undefined;
@@ -20,17 +22,17 @@ export class SearchMagistratsQuery {
     const ignoreIds: string[] | null =
       query.ignoreIds && query.ignoreIds.length > 0 ? (query.ignoreIds as string[]) : null;
 
-    const [[resultTotal], resultItems] = await this.prisma.$transaction([
-      this.prisma.$queryRawTyped(searchMagistratTotalCountRawQuery(searchQuery, ignoreIds)),
-      this.prisma.$queryRawTyped(
-        searchMagistratRawQuery(
-          searchQuery,
-          ignoreIds,
-          (query.pagination.page - 1) * query.pagination.limit,
-          query.pagination.limit,
-        ),
+    const [resultTotal] = await this.db.tx.$queryRawTyped(
+      searchMagistratTotalCountRawQuery(searchQuery, ignoreIds),
+    );
+    const resultItems = await this.db.tx.$queryRawTyped(
+      searchMagistratRawQuery(
+        searchQuery,
+        ignoreIds,
+        (query.pagination.page - 1) * query.pagination.limit,
+        query.pagination.limit,
       ),
-    ]);
+    );
 
     const items = resultItems.map(({ id, grade, firstName, lastName, usedName, ...item }) => ({
       id,

@@ -1,7 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Summary } from '../domain/summary';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { SimpleAuthService } from 'src/modules/simple-auth';
@@ -20,18 +21,20 @@ export class SummaryService {
   constructor(
     private readonly summaryRepository: SummaryRepository,
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly users: SimpleAuthService,
     private readonly detailSummaryQuery: DetailSummaryQuery,
     private readonly generateAttachmentPublicUrlQuery: GetSummaryAttachmentUrlQuery,
   ) {}
 
+  @Transactional()
   async create(command: { sessionId: string; nominationFileId: string }): Promise<{ id: string }> {
     const summary = Summary.create(command);
     await this.summaryRepository.persist(summary);
     return { id: summary.id };
   }
 
+  @Transactional()
   async attachFiles(command: {
     sessionId: string;
     nominationFileId: string;
@@ -42,6 +45,7 @@ export class SummaryService {
     await this.summaryRepository.persist(summary);
   }
 
+  @Transactional()
   async detachFiles(command: {
     sessionId: string;
     nominationFileId: string;
@@ -57,11 +61,13 @@ export class SummaryService {
     nominationFileId: string;
     files: readonly { id: string; name: string }[];
   }): Promise<IncludedFilesInSummaryContentDto> {
-    const summary = await this.summaryRepository.find(command);
-    summary.includeFilesIntoContent({
-      fileIds: command.files.map(({ id }) => id),
+    await this.db.withTransaction(async () => {
+      const summary = await this.summaryRepository.find(command);
+      summary.includeFilesIntoContent({
+        fileIds: command.files.map(({ id }) => id),
+      });
+      await this.summaryRepository.persist(summary);
     });
-    await this.summaryRepository.persist(summary);
 
     const urls = await this.files.getPublicUrls(command.files.map(({ id }) => id));
     const items = Object.entries(urls)
@@ -81,6 +87,7 @@ export class SummaryService {
     return { items };
   }
 
+  @Transactional()
   async writeContent(command: {
     userId: string;
     sessionId: string;
@@ -92,6 +99,7 @@ export class SummaryService {
     await this.summaryRepository.persist(summary);
   }
 
+  @Transactional()
   async updateReadersList(command: {
     userId: string;
     sessionId: string;

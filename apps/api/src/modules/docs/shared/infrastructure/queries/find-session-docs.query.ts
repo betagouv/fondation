@@ -1,43 +1,43 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 
 @Injectable()
 export class FindSessionDocsQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
-    const [session, agendaFiles, officialReportFiles] = await this.prisma.$transaction([
-      this.prisma.session.findUnique({
-        where: { id: query.sessionId },
-        select: { typeDeSaisine: true },
-      }),
-      this.prisma.agenda.findMany({
-        where: { sessionId: query.sessionId, html: { not: null } },
-        select: {
-          id: true,
-          date: true,
-          officialReportId: true,
-          sessionMeetingDate: true,
-          chairmanFirstName: true,
-          chairmanLastName: true,
-        },
-      }),
-      this.prisma.officialReport.findMany({
-        where: { html: { not: null }, agendas: { some: { sessionId: query.sessionId } } },
-        select: {
-          id: true,
-          chairmanLastName: true,
-          chairmanFirstName: true,
-          sessionMeetingDate: true,
-          outdated: true,
-        },
-      }),
-    ]);
+    const session = await this.db.tx.session.findUnique({
+      where: { id: query.sessionId },
+      select: { typeDeSaisine: true },
+    });
+    const agendaFiles = await this.db.tx.agenda.findMany({
+      where: { sessionId: query.sessionId, html: { not: null } },
+      select: {
+        id: true,
+        date: true,
+        officialReportId: true,
+        sessionMeetingDate: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
+      },
+    });
+    const officialReportFiles = await this.db.tx.officialReport.findMany({
+      where: { html: { not: null }, agendas: { some: { sessionId: query.sessionId } } },
+      select: {
+        id: true,
+        chairmanLastName: true,
+        chairmanFirstName: true,
+        sessionMeetingDate: true,
+        outdated: true,
+      },
+    });
 
     if (!session) return { items: [] };
 

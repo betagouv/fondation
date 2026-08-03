@@ -2,16 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class DetailsAgendaMetadataQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { agendaId: string }): Promise<DetailedAgendaMetadata> {
-    const agenda = await this.prisma.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findUnique({
       where: { id: query.agendaId },
       select: {
         id: true,

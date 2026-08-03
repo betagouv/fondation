@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import {
   forwardRef,
   Inject,
@@ -8,7 +9,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { PrismaService } from '../../framework/database';
+import { Db } from '../../framework/database';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
@@ -53,7 +54,7 @@ export class PresentationPlansService {
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
     private readonly auth: SimpleAuthService,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
 
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
@@ -67,6 +68,7 @@ export class PresentationPlansService {
     return this.detailsPresentationPlanMetadataQuery.handle(query);
   }
 
+  @Transactional()
   async createPresentationPlan(command: {
     date: DateOnlyJson;
     time: TimeOnly;
@@ -78,61 +80,58 @@ export class PresentationPlansService {
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<{ id: string }> {
-    return this.prisma.$transaction(async (tx) => {
-      const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
-      const agendaIds = new Set(commentByAgendaId.keys());
-      const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({ ids: agendaIds, tx });
+    const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
+    const agendaIds = new Set(commentByAgendaId.keys());
+    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({ ids: agendaIds });
 
-      if (items.length !== agendaIds.size) throw new NotFoundException();
+    if (items.length !== agendaIds.size) throw new NotFoundException();
 
-      const agendas = items.map((item) => {
-        const found = commentByAgendaId.get(item.id);
-        return { ...item, comment: found?.comment?.trim() || null };
-      });
-
-      const { formation } = assertIsDefined(agendas[0]);
-      const members = await this.members.internalFindMembersByFormation({
-        formation,
-        tx,
-      });
-
-      const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
-      if (!chairman) {
-        this.logger.error(`unknown chairman id ${command.chairmanId}`);
-        throw new NotFoundException();
-      }
-
-      const absentMembersSet = new Set(command.absentMembers);
-      const planMembers = allMembers.map((member) => ({
-        id: member.id,
-        isAbsent: absentMembersSet.has(member.id),
-      }));
-
-      const secretary = await this.auth.detailsUser({
-        userId: command.secretaryId,
-        impersonationId: undefined,
-        tx,
-      });
-
-      const plan = JusticePresentationPlan.create({
-        agendas,
-        chairman,
-        // oxlint-disable-next-line typescript/no-misused-spread
-        secretary: { ...secretary, id: secretary.userId },
-        justiceContactId: command.justiceContactId,
-        authorId: command.authorId,
-        time: command.time,
-        hasRenunciation: command.hasRenunciation,
-        date: DateOnly.fromJson(command.date),
-        members: planMembers,
-      });
-
-      await this.justicePresentationPlanRepository.persist(plan, tx);
-
-      return { id: plan.id };
+    const agendas = items.map((item) => {
+      const found = commentByAgendaId.get(item.id);
+      return { ...item, comment: found?.comment?.trim() || null };
     });
+
+    const { formation } = assertIsDefined(agendas[0]);
+    const members = await this.members.internalFindMembersByFormation({
+      formation,
+    });
+
+    const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+    if (!chairman) {
+      this.logger.error(`unknown chairman id ${command.chairmanId}`);
+      throw new NotFoundException();
+    }
+
+    const absentMembersSet = new Set(command.absentMembers);
+    const planMembers = allMembers.map((member) => ({
+      id: member.id,
+      isAbsent: absentMembersSet.has(member.id),
+    }));
+
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    const plan = JusticePresentationPlan.create({
+      agendas,
+      chairman,
+      // oxlint-disable-next-line typescript/no-misused-spread
+      secretary: { ...secretary, id: secretary.userId },
+      justiceContactId: command.justiceContactId,
+      authorId: command.authorId,
+      time: command.time,
+      hasRenunciation: command.hasRenunciation,
+      date: DateOnly.fromJson(command.date),
+      members: planMembers,
+    });
+
+    await this.justicePresentationPlanRepository.persist(plan);
+
+    return { id: plan.id };
   }
 
+  @Transactional()
   async updatePresentationPlan(command: {
     id: string;
     date: DateOnlyJson;
@@ -146,78 +145,66 @@ export class PresentationPlansService {
     agendas: { id: string; comment: string | null }[];
     absentMembers: readonly string[];
   }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const plan = await this.justicePresentationPlanRepository.find({
-        tx,
-        id: command.id,
-      });
+    const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
 
-      const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
-      const agendaIds = new Set(commentByAgendaId.keys());
-      const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({
-        tx,
-        ids: agendaIds,
-        ignorePlanId: command.id,
-      });
-
-      if (items.length !== agendaIds.size) throw new NotFoundException();
-
-      const agendas = items.map((item) => {
-        const found = commentByAgendaId.get(item.id);
-        return { ...item, comment: found?.comment || null };
-      });
-
-      const { formation } = assertIsDefined(agendas[0]);
-      const members = await this.members.internalFindMembersByFormation({
-        formation,
-        tx,
-      });
-
-      const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
-
-      if (!chairman) {
-        this.logger.error(`unknown chairman id ${command.chairmanId}`);
-        throw new NotFoundException();
-      }
-
-      const absentMembersSet = new Set(command.absentMembers);
-      const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
-
-      const secretary = await this.auth.detailsUser({
-        tx,
-        userId: command.secretaryId,
-        impersonationId: undefined,
-      });
-
-      plan.update({
-        agendas,
-        chairman,
-        hasRenunciation: command.hasRenunciation,
-        // oxlint-disable-next-line typescript/no-misused-spread
-        secretary: { ...secretary, id: secretary.userId },
-        justiceContactId: command.justiceContactId,
-        authorId: command.authorId,
-        time: command.time,
-        endingTime: command.endingTime,
-        date: DateOnly.fromJson(command.date),
-        members: planMembers,
-      });
-
-      await this.justicePresentationPlanRepository.persist(plan, tx);
+    const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
+    const agendaIds = new Set(commentByAgendaId.keys());
+    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({
+      ids: agendaIds,
+      ignorePlanId: command.id,
     });
+
+    if (items.length !== agendaIds.size) throw new NotFoundException();
+
+    const agendas = items.map((item) => {
+      const found = commentByAgendaId.get(item.id);
+      return { ...item, comment: found?.comment || null };
+    });
+
+    const { formation } = assertIsDefined(agendas[0]);
+    const members = await this.members.internalFindMembersByFormation({
+      formation,
+    });
+
+    const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+
+    if (!chairman) {
+      this.logger.error(`unknown chairman id ${command.chairmanId}`);
+      throw new NotFoundException();
+    }
+
+    const absentMembersSet = new Set(command.absentMembers);
+    const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
+
+    const secretary = await this.auth.detailsUser({
+      userId: command.secretaryId,
+      impersonationId: undefined,
+    });
+
+    plan.update({
+      agendas,
+      chairman,
+      hasRenunciation: command.hasRenunciation,
+      // oxlint-disable-next-line typescript/no-misused-spread
+      secretary: { ...secretary, id: secretary.userId },
+      justiceContactId: command.justiceContactId,
+      authorId: command.authorId,
+      time: command.time,
+      endingTime: command.endingTime,
+      date: DateOnly.fromJson(command.date),
+      members: planMembers,
+    });
+
+    await this.justicePresentationPlanRepository.persist(plan);
   }
 
+  @Transactional()
   async deletePresentationPlan(command: { id: string }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const plan = await this.justicePresentationPlanRepository.find({
-        id: command.id,
-        tx,
-      });
+    const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
 
-      plan.delete();
+    plan.delete();
 
-      await this.justicePresentationPlanRepository.persist(plan, tx);
-    });
+    await this.justicePresentationPlanRepository.persist(plan);
   }
 
   findPresentationPlanDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
@@ -237,15 +224,12 @@ export class PresentationPlansService {
   }
 
   async presentPlan(command: { id: string; endTime: TimeOnly }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const plan = await this.justicePresentationPlanRepository.find({
-        tx,
-        id: command.id,
-      });
+    await this.db.withTransaction(async () => {
+      const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
       plan.present({ endTime: command.endTime });
-      await this.justicePresentationPlanRepository.persist(plan, tx);
+      await this.justicePresentationPlanRepository.persist(plan);
 
-      const htmlPlan = await tx.justicePresentationPlan.findUnique({
+      const htmlPlan = await this.db.tx.justicePresentationPlan.findUnique({
         where: { id: command.id },
         select: { html: true },
       });
@@ -260,7 +244,7 @@ export class PresentationPlansService {
         meetingSessionEndingTime: command.endTime,
       });
 
-      await tx.justicePresentationPlan.update({
+      await this.db.tx.justicePresentationPlan.update({
         where: { id: command.id },
         data: { html: updatedHtml, pdfId: null },
       });
@@ -269,15 +253,11 @@ export class PresentationPlansService {
     await this.findPresentationPlanDocumentPdf({ id: command.id });
   }
 
+  @Transactional()
   async unPresentPlan(command: { id: string }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const plan = await this.justicePresentationPlanRepository.find({
-        tx,
-        id: command.id,
-      });
-      plan.unPresent();
-      await this.justicePresentationPlanRepository.persist(plan, tx);
-    });
+    const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
+    plan.unPresent();
+    await this.justicePresentationPlanRepository.persist(plan);
   }
 
   async detailsPresentationPlanPdfDocument(query: { id: string }): Promise<{ id: string; url: string }> {
@@ -285,13 +265,13 @@ export class PresentationPlansService {
   }
 
   async resetPresentationPlanDocument(command: { id: string }): Promise<void> {
-    const plan = await this.prisma.justicePresentationPlan.findUnique({
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
       select: { pdf: { select: { id: true, path: true } } },
     });
     if (!plan) throw new NotFoundException();
 
-    await this.prisma.justicePresentationPlan.update({
+    await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
       data: { html: null, isManuallyEdited: false, pdfId: null },
     });
@@ -300,7 +280,7 @@ export class PresentationPlansService {
   }
 
   async updatePresentationPlanHtml(command: { id: string; html: Buffer }): Promise<void> {
-    await this.prisma.justicePresentationPlan.update({
+    await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
       data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
     });

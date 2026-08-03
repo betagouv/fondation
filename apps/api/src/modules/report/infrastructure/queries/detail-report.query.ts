@@ -5,7 +5,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -25,7 +25,7 @@ export class DetailReportQuery {
   constructor(
     private readonly clock: Clock,
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   async handle(query: {
@@ -34,7 +34,7 @@ export class DetailReportQuery {
   }): Promise<DetailedReportDto> {
     const reporterId = query.user.role !== 'ADJOINT_SECRETAIRE_GENERAL' ? query.user.id : undefined;
 
-    const report = await this.prisma.report.findUnique({
+    const report = await this.db.tx.report.findUnique({
       where: { id: query.reportId, reporterId, isDeleted: false },
       select: {
         reporterId: true,

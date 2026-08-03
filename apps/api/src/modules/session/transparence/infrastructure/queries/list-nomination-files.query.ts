@@ -13,7 +13,7 @@ import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-ju
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
 import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { DocsService } from 'src/modules/docs/docs.service';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
@@ -36,7 +36,7 @@ import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 @Injectable()
 export class ListNominationFilesQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
 
@@ -56,21 +56,18 @@ export class ListNominationFilesQuery {
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const [totalCount, files, sessionArchivedAt] = await this.prisma.$transaction(async (tx) => {
+    const [totalCount, files, sessionArchivedAt] = await this.db.withTransaction(async () => {
       const isSG = (['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as RoleEnum[]).includes(query.user.role);
       const lastVersion = isSG
         ? await this.versionFinder.last({
-            tx,
             sessionId: query.sessionId,
           })
         : await this.versionFinder.lastPublished({
-            tx,
             sessionId: query.sessionId,
           });
 
       const where = ListNominationFilesQuery.filtersToPrismaWhere(query.filters, lastVersion);
-
-      const [{ count: txCount } = { count: 0n }] = await tx.$queryRawTyped(
+      const [{ count: txCount } = { count: 0n }] = await this.db.tx.$queryRawTyped(
         listNominationFilesCountRawQuery(
           where.versionId ?? null,
           where.priorities,
@@ -84,7 +81,7 @@ export class ListNominationFilesQuery {
         ),
       );
 
-      const txFiles = await tx
+      const txFiles = await this.db.tx
         .$queryRawTyped(
           listNominationFilesRawQuery(
             where.versionId ?? null,
@@ -107,16 +104,14 @@ export class ListNominationFilesQuery {
 
       const nominationFileIds = new Set(txFiles.map(({ id }) => id));
       const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
-        tx,
         nominationFileIds,
       });
 
       const jurisdictions = await this.jurisdictionsFinder.find({
-        tx,
         nominationFileIds: [...nominationFileIds],
       });
 
-      const session = await tx.session.findUnique({
+      const session = await this.db.tx.session.findUnique({
         where: { id: query.sessionId },
         select: { archivedAt: true },
       });

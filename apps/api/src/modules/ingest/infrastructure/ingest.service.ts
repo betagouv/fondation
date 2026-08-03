@@ -10,9 +10,8 @@ import {
   IngestedLolfiArchiveFailed,
   LolfiArchiveIngestor,
 } from '../services/lolfi-archive-ingest';
-import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import {
   DetailedLolfiSession,
@@ -26,7 +25,7 @@ export class IngestService {
   constructor(
     private readonly clock: Clock,
     private readonly jobs: JobRunner,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly lolfiArchiveIngestor: LolfiArchiveIngestor,
     private readonly lolfiFilesIngestor: LolfiFilesIngestor,
     private readonly internalDetailsLolfiSessionQuery: InternalDetailsLolfiSessionQuery,
@@ -47,7 +46,7 @@ export class IngestService {
         errors: (IngestedLolfiArchiveFailed | { type: 'Unknown'; message: string })[];
       }
   > {
-    const runningJobExists = await this.prisma.ingestionJob.findFirst({
+    const runningJobExists = await this.db.tx.ingestionJob.findFirst({
       where: { status: 'RUNNING' },
       select: { id: true },
     });
@@ -60,7 +59,7 @@ export class IngestService {
     const start = this.clock.now();
     const result = await this.lolfiArchiveIngestor.ingest(archive, options);
 
-    const jobId = await this.prisma.$transaction((tx) => this.prepareJob({ tx, result, start }));
+    const jobId = await this.db.withTransaction(() => this.prepareJob({ result, start }));
 
     if (!result.success) {
       return { id: jobId, status: 'FAILED', errors: result.errors };
@@ -68,7 +67,7 @@ export class IngestService {
 
     try {
       const metadata = await this.jobs.runDetached(jobId);
-      await this.prisma.ingestionJob
+      await this.db.tx.ingestionJob
         .update({
           where: { id: jobId },
           data: { metadata: metadata.toJSON() },
@@ -77,7 +76,7 @@ export class IngestService {
           this.logger.error(`Failed recording metadata for job #${jobId}`, error);
         });
     } catch (e) {
-      await this.prisma.ingestionJob
+      await this.db.tx.ingestionJob
         .update({
           where: { id: jobId },
           data: {
@@ -99,13 +98,9 @@ export class IngestService {
     return { id: jobId, status: 'STARTED' };
   }
 
-  private async prepareJob(props: {
-    start: Date;
-    result: IngestedLolfiArchive;
-    tx: Prisma.TransactionClient;
-  }): Promise<number> {
+  private async prepareJob(props: { start: Date; result: IngestedLolfiArchive }): Promise<number> {
     const now = this.clock.now();
-    const job = await props.tx.ingestionJob.create({
+    const job = await this.db.tx.ingestionJob.create({
       select: { id: true },
       data: props.result.success
         ? { status: 'IDLE' }
@@ -113,7 +108,7 @@ export class IngestService {
     });
 
     if (props.result.success) {
-      await props.tx.ingestionJobFile.createMany({
+      await this.db.tx.ingestionJobFile.createMany({
         data: props.result.data.map((file) => ({
           jobId: job.id,
           fileId: file.id,
@@ -123,7 +118,7 @@ export class IngestService {
       });
 
       for (const file of withLolfiFileRequirements(props.result.data)) {
-        await props.tx.ingestionJobRequirement.createMany({
+        await this.db.tx.ingestionJobRequirement.createMany({
           data: file.requirements.map(({ requiredFileId }) => ({
             jobId: job.id,
             jobFileId: file.id,
@@ -132,7 +127,7 @@ export class IngestService {
         });
       }
     } else {
-      await props.tx.ingestionJobError.createMany({
+      await this.db.tx.ingestionJobError.createMany({
         data: props.result.errors.map(({ message }) => ({
           jobId: job.id,
           error: message,

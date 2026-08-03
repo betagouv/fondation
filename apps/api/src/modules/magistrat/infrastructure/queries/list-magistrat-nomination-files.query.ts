@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
 import { NominationFileOutcome } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
@@ -13,7 +13,7 @@ import { timeOnlySchema } from 'src/utils/time-only';
 @Injectable()
 export class ListMagistratNominationFilesQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly sessions: TransparenceService,
   ) {}
 
@@ -21,8 +21,8 @@ export class ListMagistratNominationFilesQuery {
     magistratId: string;
     pagination: Pagination;
   }): Promise<ListedMagistratNominationFilesDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const magistrat = await tx.magistrat.findUnique({
+    return this.db.withTransaction(async () => {
+      const magistrat = await this.db.tx.magistrat.findUnique({
         where: { id: query.magistratId },
         select: { id: true },
       });
@@ -31,7 +31,6 @@ export class ListMagistratNominationFilesQuery {
       return this.sessions.internalListMagistratNominationFiles({
         magistratId: query.magistratId,
         pagination: query.pagination,
-        tx,
       });
     });
   }

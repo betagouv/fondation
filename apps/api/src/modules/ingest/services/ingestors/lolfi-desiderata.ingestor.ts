@@ -1,9 +1,10 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertCandidateWishesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -14,7 +15,7 @@ export class LolfiDesiderataIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -82,63 +83,61 @@ export class LolfiDesiderataIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
+  @Transactional(Propagation.RequiresNew)
+  private async flush(props: {
     items: RawCandidateWish[];
     errors: { entityId: string; error: string }[];
     jobId: number;
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
-        if (props.items.length > 0) {
-          const unknown = await tx.$queryRawTyped(insertCandidateWishesRawQuery(props.items));
+    try {
+      if (props.items.length > 0) {
+        const unknown = await this.db.tx.$queryRawTyped(insertCandidateWishesRawQuery(props.items));
 
-          if (unknown.length > 0) {
-            for (const u of unknown) {
-              const entityId = u.id;
-              if (!entityId) continue;
+        if (unknown.length > 0) {
+          for (const u of unknown) {
+            const entityId = u.id;
+            if (!entityId) continue;
 
-              const error =
-                u.unknownCandidateId !== null
-                  ? `Candidat "${u.unknownCandidateId}" inconnu`
-                  : u.unknownPositionId !== null
-                    ? `Poste "${u.unknownPositionId}" inconnu`
-                    : null;
+            const error =
+              u.unknownCandidateId !== null
+                ? `Candidat "${u.unknownCandidateId}" inconnu`
+                : u.unknownPositionId !== null
+                  ? `Poste "${u.unknownPositionId}" inconnu`
+                  : null;
 
-              if (!error) continue;
+            if (!error) continue;
 
-              await tx.ingestionJobFileError.create({
-                data: {
-                  error,
-                  entityId: String(entityId),
-                  fileId: props.fileId,
-                  jobId: props.jobId,
-                },
-              });
-            }
+            await this.db.tx.ingestionJobFileError.create({
+              data: {
+                error,
+                entityId: String(entityId),
+                fileId: props.fileId,
+                jobId: props.jobId,
+              },
+            });
           }
         }
+      }
 
-        if (props.errors.length > 0) {
-          await tx.ingestionJobFileError.createMany({
-            data: props.errors.map(({ entityId, error }) => ({
-              error,
-              entityId,
-              jobId: props.jobId,
-              fileId: props.fileId,
-            })),
-          });
-        }
-      })
-      .catch((error) => {
-        this.logger.error(`Failed flushing DESIDERATA.xml chunk`, error);
-        props.result.success = false;
-      })
-      .finally(() => {
-        props.errors.length = 0;
-        props.items.length = 0;
-      });
+      if (props.errors.length > 0) {
+        await this.db.tx.ingestionJobFileError.createMany({
+          data: props.errors.map(({ entityId, error }) => ({
+            error,
+            entityId,
+            jobId: props.jobId,
+            fileId: props.fileId,
+          })),
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Failed flushing DESIDERATA.xml chunk`, error);
+      props.result.success = false;
+    } finally {
+      props.errors.length = 0;
+      props.items.length = 0;
+    }
   }
 }
 

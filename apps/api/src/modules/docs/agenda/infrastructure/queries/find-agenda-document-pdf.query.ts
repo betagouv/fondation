@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
@@ -19,31 +19,30 @@ export class FindAgendaDocumentPdfQuery {
 
   constructor(
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const file = await this.prisma.$transaction(async (tx) => {
-      const agenda = await tx.agenda.findUnique({
-        where: { id: query.id },
-        select: {
-          sessionId: true,
-          sessionName: true,
-          formation: true,
-          sessionMeetingDate: true,
-          chairmanFirstName: true,
-          chairmanLastName: true,
-          pdf: { select: { id: true, name: true } },
-        },
-      });
+    const agenda = await this.db.tx.agenda.findUnique({
+      where: { id: query.id },
+      select: {
+        sessionId: true,
+        sessionName: true,
+        formation: true,
+        sessionMeetingDate: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
+        pdf: { select: { id: true, name: true } },
+      },
+    });
 
-      if (!agenda) throw new NotFoundException();
+    if (!agenda) throw new NotFoundException();
 
-      if (query.forceNew || !agenda.pdf || !agenda.pdf.id) return agenda;
-
-      const file$ = await this.files.getFile({ fileId: agenda.pdf.id, tx });
+    // Stream the cached PDF from S3 outside of any transaction.
+    if (!query.forceNew && agenda.pdf?.id) {
+      const file$ = await this.files.getFile({ fileId: agenda.pdf.id });
       if (!file$) {
         this.logger.error(`Could not retrieve the agenda PDF file from S3`);
         throw new InternalServerErrorException();
@@ -53,28 +52,26 @@ export class FindAgendaDocumentPdfQuery {
         type: FILE_MIME_TYPES.pdf,
         disposition: `inline; filename=${encodeURIComponent(agenda.pdf.name)}`,
       });
-    });
-
-    if (file instanceof StreamableFile) return file;
+    }
 
     const html = await this.findAgendaDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
     const name = docFileName({
       type: 'AGENDA',
-      formation: file.formation,
-      date: file.sessionMeetingDate,
-      sessionName: file.sessionName,
+      formation: agenda.formation,
+      date: agenda.sessionMeetingDate,
+      sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
-      chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+      chairman: { firstName: agenda.chairmanFirstName, lastName: agenda.chairmanLastName },
     });
 
-    const path = `sessions/${file.sessionId}/agendas/${query.id}.pdf`;
+    const path = `sessions/${agenda.sessionId}/agendas/${query.id}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.prisma.agenda.update({
+      await this.db.tx.agenda.update({
         where: { id: query.id },
         data: { pdfFileId },
       });
