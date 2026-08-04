@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { FormattedMessage } from 'react-intl';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
@@ -10,11 +11,11 @@ export function HelpPageButton() {
 
   return (
     <Button
-      linkProps={{ to: ROUTE_PATHS.HELP }}
-      iconId="fr-icon-questionnaire-line"
       className="fr-mb-0 self-center"
+      iconId="fr-icon-questionnaire-line"
+      linkProps={{ to: ROUTE_PATHS.HELP }}
     >
-      Centre d'aide
+      <FormattedMessage defaultMessage="Centre d'aide" />
     </Button>
   );
 }

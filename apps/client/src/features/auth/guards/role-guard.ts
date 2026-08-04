@@ -13,7 +13,11 @@ export function isAuthorized(
 
 export function roleGuard(authorizedRoles: readonly unknown[]) {
   return async () => {
-    const user = await queryClient.ensureQueryData(sessionQueryOptions).catch(() => null);
+    const user = await queryClient.ensureQueryData(sessionQueryOptions).catch((error) => {
+      const cached = queryClient.getQueryData(sessionQueryOptions.queryKey);
+      if (cached === undefined) throw error;
+      return cached;
+    });
 
     if (isAuthorized(user, authorizedRoles)) return null;
 
