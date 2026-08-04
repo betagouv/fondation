@@ -6,6 +6,8 @@ import { SimpleAuthModule } from 'src/modules/simple-auth';
 
 import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';
+import { AgendaRenderContextFinder } from './agenda/infrastructure/finders/agenda-render-context.finder';
+import { DetailsAgendaDocumentBlocksQuery } from './agenda/infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailsAgendaFilesQuery } from './agenda/infrastructure/queries/details-agenda-files.query';
 import { DetailsAgendaMetadataQuery } from './agenda/infrastructure/queries/details-agenda-metadata.query';
 import { DetailsSessionAgendaQuery } from './agenda/infrastructure/queries/details-session-agenda.query';
@@ -51,9 +53,11 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
   controllers: [DocsController, AgendasController, OfficialReportsController, PresentationPlansController],
   providers: [
     AgendaFinder,
+    AgendaRenderContextFinder,
     AgendaRenderer,
     AgendaRepository,
     AgendasService,
+    DetailsAgendaDocumentBlocksQuery,
     DetailsAgendaFilesQuery,
     DetailsAgendaMetadataQuery,
     DetailsOfficialReportDocumentQuery,
