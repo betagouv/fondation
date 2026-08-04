@@ -1,5 +1,11 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   Agenda,
@@ -7,10 +13,13 @@ import {
   AgendaDeleted,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
-  AgendaUpdated,
+  AgendaFilesUpdated,
+  AgendaMetadataUpdated,
 } from '../../domain/agenda';
-import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { AgendaSnapshot } from '../../domain/agenda-snapshot';
+import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
+import { MembersService } from 'src/modules/members';
 import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -18,17 +27,23 @@ import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class AgendaRepository {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+
+    @Inject(forwardRef(() => MembersService))
+    private readonly members: MembersService,
+  ) {}
 
   @Transactional(Propagation.Mandatory)
-  async persist(agenda: Agenda): Promise<OfficialReportInvalidation[]> {
-    let invalidations: OfficialReportInvalidation[] = [];
-
+  async persist(agenda: Agenda): Promise<void> {
     for (const message of agenda.messages) {
       if (message instanceof AgendaCreated) {
         await this.persistAgendaCreated(message);
-      } else if (message instanceof AgendaUpdated) {
-        invalidations = await this.persistAgendaUpdated(message);
+      } else if (message instanceof AgendaMetadataUpdated) {
+        await this.persistAgendaMetadataUpdated(message);
+      } else if (message instanceof AgendaFilesUpdated) {
+        await this.persistAgendaFilesUpdated(message);
       } else if (message instanceof AgendaDeleted) {
         await this.persistAgendaDeleted(message);
       } else if (message instanceof AgendaFileBlockEdited) {
@@ -39,20 +54,40 @@ export class AgendaRepository {
         assertNever(message);
       }
     }
-
-    return invalidations;
   }
 
   @Transactional()
   async find(query: { agendaId: string }): Promise<Agenda> {
     const foundAgenda = await this.db.tx.agenda.findUnique({
-      select: { id: true, sessionId: true, officialReportId: true },
+      select: {
+        id: true,
+        sessionId: true,
+        officialReportId: true,
+        date: true,
+        sessionMeetingDate: true,
+        chairmanId: true,
+        nominationFiles: {
+          where: { nominationFileId: { not: null } },
+          select: { nominationFileId: true },
+        },
+      },
       where: { id: query.agendaId },
     });
 
     if (!foundAgenda) throw new NotFoundException();
 
+    const snapshot = AgendaSnapshot.from({
+      agendaId: makeId('AgendaId', foundAgenda.id),
+      chairmanId: foundAgenda.chairmanId,
+      date: DateOnly.fromDate(foundAgenda.date),
+      sessionMeetingDate: DateOnly.fromDate(foundAgenda.sessionMeetingDate),
+      nominationFileIds: new Set(
+        foundAgenda.nominationFiles.flatMap((f) => (f.nominationFileId ? [f.nominationFileId] : [])),
+      ),
+    });
+
     return Agenda.from({
+      snapshot,
       id: makeId('AgendaId', foundAgenda.id),
       sessionId: makeId('SessionId', foundAgenda.sessionId),
       officialReportId: foundAgenda.officialReportId
@@ -105,88 +140,77 @@ export class AgendaRepository {
     });
   }
 
-  private async persistAgendaUpdated(message: AgendaUpdated): Promise<OfficialReportInvalidation[]> {
-    const invalidations: OfficialReportInvalidation[] = [];
-
-    await this.db.tx.agendaNominationFile.deleteMany({
-      where: { agendaId: message.agendaId },
-    });
-
-    const agenda = await this.db.tx.agenda.findFirst({
-      select: {
-        pdf: { select: { id: true } },
-        officialReportId: true,
-        date: true,
-        nominationFiles: { select: { nominationFileId: true } },
-      },
-      where: { id: message.agendaId },
-    });
-
-    if (message.date.getTime() !== agenda?.date.getTime()) {
-      invalidations.push({
-        type: 'AgendaDateUpdated',
-        payload: { agendaId: message.agendaId, date: DateOnly.fromDate(message.date).toJson() },
-      });
-    }
-
-    const nominationFileIds = new Set(
-      agenda?.nominationFiles.flatMap(({ nominationFileId }) => (nominationFileId ? [nominationFileId] : [])),
-    );
-    const difference = nominationFileIds.difference(new Set(message.nominationFiles.map(({ id }) => id)));
-    if (difference.size > 0)
-      invalidations.push({ type: 'AgendaNominationFilesUpdated', payload: { agendaId: message.agendaId } });
-
-    if (agenda?.pdf?.id) {
-      await this.db.tx.agenda.update({
-        where: { id: message.agendaId },
-        data: { pdfFileId: null },
-      });
-
-      await this.db.tx.file.deleteMany({
-        where: { id: agenda.pdf.id },
-      });
-    }
-
-    if (agenda?.officialReportId) {
-      await this.db.tx.officialReport.delete({
-        where: { id: agenda.officialReportId },
-      });
-    }
+  private async persistAgendaMetadataUpdated(message: AgendaMetadataUpdated): Promise<void> {
+    const chairman = await this.members.internalGetMember({ id: message.update.chairmanId });
 
     await this.db.tx.agenda.update({
       where: { id: message.agendaId },
       data: {
-        html: null,
-        id: message.agendaId,
-        chairmanFirstName: message.chairman.firstName,
-        chairmanLastName: message.chairman.lastName,
-        chairmanGender: message.chairman.gender,
-        date: message.date,
-        sessionMeetingDate: message.sessionMeetingDate,
         createdBy: message.authorId,
-        chairmanId: message.chairman.id,
-        chairmanTitle: message.chairman.title,
-        chairmanDisplayTitle: message.chairman.displayTitle,
-        nominationFiles: {
-          createMany: {
-            data: message.nominationFiles.map((file) => ({
-              grade: file.grade,
-              name: file.name,
-              position: file.currentPosition,
-              number: file.number,
-              targetedGrade: file.targetedGrade,
-              targetedPosition: file.targetedPosition,
-              nominationFileId: file.id,
-              outcome: file.outcome?.value,
-              outcomeComment: file.outcome?.comment,
-              reporters: file.reporters as string[],
-            })),
-          },
-        },
+
+        date: message.update.date.toDate(),
+        sessionMeetingDate: message.update.sessionMeetingDate.toDate(),
+
+        chairmanId: chairman.id,
+        chairmanFirstName: chairman.firstName,
+        chairmanLastName: chairman.lastName,
+        chairmanGender: chairman.gender,
+        chairmanTitle: chairman.title,
+        chairmanDisplayTitle: chairman.displayTitle,
       },
     });
 
-    return invalidations;
+    await this.invalidateAgendaDocument(message.agendaId);
+  }
+
+  private async persistAgendaFilesUpdated(message: AgendaFilesUpdated): Promise<void> {
+    if (message.update.removed.length > 0) {
+      await this.db.tx.agendaNominationFile.deleteMany({
+        where: {
+          agendaId: message.agendaId,
+          nominationFileId: { in: message.update.removed as string[] },
+        },
+      });
+    }
+
+    if (message.update.added.length > 0) {
+      const { items: files } = await this.docsNominationFilesFinder.find({
+        ids: message.update.added,
+        sessionId: message.sessionId,
+      });
+
+      await this.db.tx.agendaNominationFile.createMany({
+        data: files.map((file) => ({
+          agendaId: message.agendaId,
+          grade: file.magistrat.position.grade,
+          name: file.magistrat.name,
+          position: file.magistrat.position.label,
+          number: file.number,
+          targetedGrade: file.targetPosition.grade,
+          targetedPosition: file.targetPosition.label,
+          nominationFileId: file.id,
+          outcome: file.outcome?.value,
+          outcomeComment: file.outcome?.comment,
+          reporters: file.reporters.map((r) => r.fullTitledName),
+        })),
+      });
+    }
+
+    await this.recomputeAgendaState(message.agendaId);
+  }
+
+  private async invalidateAgendaDocument(agendaId: string): Promise<void> {
+    const agenda = await this.db.tx.agenda.findUnique({
+      where: { id: agendaId },
+      select: { pdfFileId: true },
+    });
+
+    await this.db.tx.agenda.update({
+      where: { id: agendaId },
+      data: { html: null, pdfFileId: null },
+    });
+
+    if (agenda?.pdfFileId) await this.db.tx.file.deleteMany({ where: { id: agenda.pdfFileId } });
   }
 
   private async persistAgendaDeleted(message: AgendaDeleted) {
@@ -239,21 +263,11 @@ export class AgendaRepository {
       where: { id: agendaId, nominationFiles: { some: { htmlOutdated: true } } },
     });
 
-    const agenda = await this.db.tx.agenda.findUnique({
-      where: { id: agendaId },
-      select: { pdfFileId: true },
-    });
-
     await this.db.tx.agenda.update({
       where: { id: agendaId },
-      data: {
-        html: null,
-        pdfFileId: null,
-        isManuallyEdited: isDefined(manuallyEdited),
-        outdated: isDefined(outdated),
-      },
+      data: { isManuallyEdited: isDefined(manuallyEdited), outdated: isDefined(outdated) },
     });
 
-    if (agenda?.pdfFileId) await this.db.tx.file.deleteMany({ where: { id: agenda.pdfFileId } });
+    await this.invalidateAgendaDocument(agendaId);
   }
 }

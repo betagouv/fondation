@@ -4,7 +4,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
-import { OfficialReportsInvalidatedIntegrationEvent } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import {
+  OfficialReportInvalidation,
+  OfficialReportsInvalidatedIntegrationEvent,
+} from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Files } from 'src/modules/framework/files';
@@ -100,6 +103,10 @@ export class AgendasService {
     return { id: agenda.id };
   }
 
+  /**
+   * @deprecated Remplacé par {@link updateAgendaMetadata} et {@link updateAgendaFiles}.
+   * Conservé temporairement, ne pas utiliser pour de nouveaux usages.
+   */
   async updateAgenda(command: {
     agendaId: string;
     authorId: string;
@@ -125,7 +132,7 @@ export class AgendasService {
         ignoreOfficialReportId: agenda.officialReportId ?? undefined,
       });
 
-      agenda.update({
+      const diffs = agenda.update({
         chairman,
         reportedFiles,
         authorId: command.authorId,
@@ -144,9 +151,66 @@ export class AgendasService {
         })),
       });
 
-      return this.agendaRepository.persist(agenda);
+      await this.agendaRepository.persist(agenda);
+      return diffs.flatMap((diff) => (diff.hasAny ? diff.officialReportInvalidations : []));
     });
 
+    await this.emitInvalidations(invalidations);
+  }
+
+  async updateAgendaMetadata(command: {
+    agendaId: string;
+    authorId: string;
+    chairmanId: string;
+    date: DateOnlyJson;
+    sessionMeetingDate: DateOnlyJson;
+  }): Promise<void> {
+    const invalidations = await this.db.withTransaction(async () => {
+      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+      const diff = agenda.updateMetadata({
+        chairmanId: command.chairmanId,
+        authorId: command.authorId,
+        date: DateOnly.fromJson(command.date),
+        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      });
+
+      await this.agendaRepository.persist(agenda);
+
+      return diff.hasAny ? diff.officialReportInvalidations : [];
+    });
+
+    await this.emitInvalidations(invalidations);
+  }
+
+  async updateAgendaFiles(command: {
+    agendaId: string;
+    authorId: string;
+    nominationFileIds: readonly string[];
+  }): Promise<void> {
+    const invalidations = await this.db.withTransaction(async () => {
+      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+
+      const nominationFileIds = new Set(command.nominationFileIds);
+      const reportedFiles = await this.reportedNominationFilesFinder.find({
+        fileIds: nominationFileIds,
+        ignoreOfficialReportId: agenda.officialReportId ?? undefined,
+      });
+
+      const diff = agenda.updateFiles({
+        reportedFiles,
+        nominationFileIds,
+        authorId: command.authorId,
+      });
+
+      await this.agendaRepository.persist(agenda);
+
+      return diff.hasAny ? diff.officialReportInvalidations : [];
+    });
+
+    await this.emitInvalidations(invalidations);
+  }
+
+  private async emitInvalidations(invalidations: readonly OfficialReportInvalidation[]): Promise<void> {
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
         OfficialReportsInvalidatedIntegrationEvent.name,

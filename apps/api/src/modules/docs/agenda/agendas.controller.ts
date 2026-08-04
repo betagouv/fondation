@@ -39,6 +39,8 @@ import {
   CreatedAgendaDto,
   CreateOrUpdateAgendaDto,
   EditAgendaFileBlockDto,
+  UpdateAgendaFilesDto,
+  UpdateAgendaMetadataDto,
 } from './infrastructure/agendas.dto';
 import { AgendasFilter } from './infrastructure/agendas.filter';
 import { DetailedAgendaDocumentBlocksDto } from './infrastructure/queries/details-agenda-document-blocks.query';
@@ -71,10 +73,14 @@ export class AgendasController {
     });
   }
 
+  /**
+   * @deprecated Remplacé par `PUT /agendas/:agendaId/metadata` et `PUT /agendas/:agendaId/files`.
+   */
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/agendas/:agendaId')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ deprecated: true })
   updateAgenda(
     @Param('agendaId') agendaId: string,
     @AuthedUser() authUser: { id: string },
@@ -87,6 +93,40 @@ export class AgendasController {
       chairmanId: body.chairmanId,
       nominationFileIds: body.nominationFileIds,
       sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/agendas/:agendaId/metadata')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgendaMetadata(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: UpdateAgendaMetadataDto,
+  ): Promise<void> {
+    return this.agendas.updateAgendaMetadata({
+      agendaId,
+      date: body.date,
+      authorId: authUser.id,
+      chairmanId: body.chairmanId,
+      sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/agendas/:agendaId/files')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgendaFiles(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: UpdateAgendaFilesDto,
+  ): Promise<void> {
+    return this.agendas.updateAgendaFiles({
+      agendaId,
+      authorId: authUser.id,
+      nominationFileIds: body.nominationFileIds,
     });
   }
 

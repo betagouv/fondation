@@ -1001,6 +1001,24 @@ export type CreatedAgendaDto = {
     id: string;
 };
 
+export type UpdateAgendaMetadataDto = {
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    chairmanId: string;
+};
+
+export type UpdateAgendaFilesDto = {
+    nominationFileIds: Array<string>;
+};
+
 export type DetailedSessionAgenda = {
     id: string;
     url: string;
@@ -3014,6 +3032,51 @@ export type UpdateAgendaResponses = {
 
 export type UpdateAgendaResponse = UpdateAgendaResponses[keyof UpdateAgendaResponses];
 
+export type UpdateAgendaMetadataData = {
+    body: UpdateAgendaMetadataDto;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/metadata';
+};
+
+export type UpdateAgendaMetadataResponses = {
+    204: void;
+};
+
+export type UpdateAgendaMetadataResponse = UpdateAgendaMetadataResponses[keyof UpdateAgendaMetadataResponses];
+
+export type DetailsAgendaFilesData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/files';
+};
+
+export type DetailsAgendaFilesResponses = {
+    200: DetailedAgendaFilesDto;
+};
+
+export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
+
+export type UpdateAgendaFilesData = {
+    body: UpdateAgendaFilesDto;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/files';
+};
+
+export type UpdateAgendaFilesResponses = {
+    204: void;
+};
+
+export type UpdateAgendaFilesResponse = UpdateAgendaFilesResponses[keyof UpdateAgendaFilesResponses];
+
 export type DetailsSessionAgendaData = {
     body?: never;
     path: {
@@ -3061,21 +3124,6 @@ export type GenerateAgendaPdfResponses = {
 };
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
-
-export type DetailsAgendaFilesData = {
-    body?: never;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/files';
-};
-
-export type DetailsAgendaFilesResponses = {
-    200: DetailedAgendaFilesDto;
-};
-
-export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
 
 export type DetailsAgendaDocumentBlocksData = {
     body?: never;
