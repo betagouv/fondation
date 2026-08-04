@@ -69,6 +69,7 @@ export class OfficialReportRenderContextFinder {
         members: { select: { memberId: true, isAbsent: true } },
 
         nominationFiles: {
+          orderBy: { number: 'asc' },
           select: {
             id: true,
             number: true,

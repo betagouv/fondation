@@ -8,7 +8,11 @@ import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/d
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
-import { OfficialReportRenderContext, officialReportTemplate } from './official-report.html';
+import {
+  officialReportBlocks,
+  OfficialReportRenderContext,
+  officialReportTemplate,
+} from './official-report.html';
 
 describe('officialReportTemplate', () => {
   const baseContext = {
@@ -204,5 +208,22 @@ describe('officialReportTemplate', () => {
     expect(html).toContain(
       /* html */ `<strong>MME Mélinée MANOUCHIAN</strong>, a vu son paragraphe subir une modification`,
     );
+  });
+
+  it('should order files', () => {
+    const blocks = Array.from(
+      officialReportBlocks({
+        ...baseContext,
+        files: [1, 2, 0].map((x) => ({ ...baseContext.files[x]!, outcome: 'VALIDATED' })),
+      }),
+    );
+
+    expect(
+      blocks.filter((block) => block.kind === 'file').map(({ nominationFileId }) => nominationFileId),
+    ).toEqual([
+      baseContext.files[0].nominationFileId,
+      baseContext.files[1].nominationFileId,
+      baseContext.files[2].nominationFileId,
+    ]);
   });
 });

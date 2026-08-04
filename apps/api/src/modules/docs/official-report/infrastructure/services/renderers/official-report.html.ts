@@ -201,7 +201,7 @@ function groupFilesByOutcome(
 ): { outcome: DocNominationFileOutcomeEnum; files: readonly OfficialReportRenderContextNominationFile[] }[] {
   return Map.groupBy(ctx.files, (file) => file.outcome)
     .entries()
-    .map(([outcome, files]) => ({ outcome, files }))
+    .map(([outcome, files]) => ({ outcome, files: files.sort((a, b) => a.number - b.number) }))
     .toArray()
     .sort((a, b) => (OUTCOME_ORDER.get(a.outcome) ?? 10) - (OUTCOME_ORDER.get(b.outcome) ?? 10));
 }
