@@ -760,76 +760,14 @@ export type ListedMemberSessionsDto = {
     }>;
 };
 
-export type DetailedMemberSessionDto = {
+export type ListedMemberSessionReportsDto = {
     items: Array<{
-        id: string;
-        isArchived: boolean;
         nominationFileId: string;
-        state: string;
-        formation: string;
-        folderNumber: number | null;
-        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * prefer priorities
-         *
-         * @deprecated
-         */
-        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        name: string;
-        grade: string;
-        currentPosition: string | null;
-        targettedPosition: string;
-        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        /**
-         * LODAM observers, we need to keep them until we recover data from LODAM
-         */
-        observers: Array<string>;
-        observations: Array<{
+        report: {
             id: string;
-            hasDescription: boolean;
-            hasUserComment: boolean;
-            magistrat: {
-                id: string;
-                firstName: string;
-                lastName: string;
-                usedName: string | null;
-            } | null;
-        }>;
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-    session: {
-        id: string;
-        isArchived: boolean;
-        formation: string;
-        outcomes: Array<{
-            commentRequired: boolean;
-            label: string;
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
-        }>;
-        transparency: string;
-        dateTransparence: {
-            year: number;
-            month: number;
-            day: number;
+            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
         };
-        dateSeance: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-    };
+    }>;
 };
 
 export type FoundNominationFileMembersReportDto = {
@@ -2737,31 +2675,21 @@ export type ListMemberSessionsResponses = {
 
 export type ListMemberSessionsResponse = ListMemberSessionsResponses[keyof ListMemberSessionsResponses];
 
-export type DetailsMemberSessionData = {
+export type ListMemberSessionReportsData = {
     body?: never;
     path: {
         userId: string;
         sessionId: string;
     };
-    query?: {
-        sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
-        priorities?: string;
-        status?: string | null;
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}';
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/reports';
 };
 
-export type DetailsMemberSessionResponses = {
-    200: DetailedMemberSessionDto;
+export type ListMemberSessionReportsResponses = {
+    200: ListedMemberSessionReportsDto;
 };
 
-export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+export type ListMemberSessionReportsResponse = ListMemberSessionReportsResponses[keyof ListMemberSessionReportsResponses];
 
 export type SearchNominationFileMembersReportData = {
     body?: never;

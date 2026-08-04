@@ -1,5 +1,5 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
@@ -11,10 +11,9 @@ import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
-import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -56,10 +55,6 @@ import {
   DetailNominationSessionQuery,
 } from './queries/detail-nomination-session.query';
 import { GetLolfiMagistratUrlQuery, LolfiMagistratUrlDto } from './queries/get-lolfi-magistrat-url.query';
-import {
-  type DetailedMemberSessionDto,
-  InternalDetailMemberSessionQuery,
-} from './queries/internal-detail-member-session.query';
 import {
   InternalFindDocsNominationFilesQuery,
   InternalFoundAgendaNominationFiles,
@@ -104,7 +99,6 @@ export class TransparenceService {
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
-    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
     private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
     private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
     private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
@@ -138,16 +132,21 @@ export class TransparenceService {
   }
 
   /** @internal */
-  detailMemberSession(query: {
-    user: { id: string; role: RoleEnum };
-    pagination: Pagination;
+  async assertMemberSessionExists(query: {
     sessionId: string;
     typeDeSaisine: TypeDeSaisineEnum;
-    status: ReportStateEnum[] | undefined;
-    sorting: Sortable<DetailsMemberSessionQueryDto>;
-    priorities: (PriorityEnum | null)[] | undefined;
-  }): Promise<DetailedMemberSessionDto> {
-    return this.internalDetailMemberSessionQuery.handle(query);
+    user: { role: RoleEnum };
+  }): Promise<void> {
+    const session = await this.db.tx.session.findFirst({
+      select: { id: true },
+      where: {
+        deletedAt: null,
+        formation: roleToFormation(query.user.role),
+        id: query.sessionId,
+        typeDeSaisine: query.typeDeSaisine,
+      },
+    });
+    if (!session) throw new NotFoundException();
   }
 
   @Transactional()

@@ -56,10 +56,10 @@ test.describe('Session Affectations E2E', () => {
     const affected = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(affected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: true }));
 
-    const { data: detailedSession } = await member.members.detailsMemberSession({
+    const { data: memberReports } = await member.members.listMemberSessionReports({
       path: { userId: memberId, sessionId },
     });
-    const reportId = detailedSession!.items[0]!.id;
+    const reportId = memberReports!.items[0]!.report.id;
 
     await member.reports.updateReport({
       path: { reportId },
@@ -93,11 +93,11 @@ test.describe('Session Affectations E2E', () => {
       throwOnError: true,
     });
 
-    const { data: reaffected } = await member.members.detailsMemberSession({
+    const { data: reaffected } = await member.members.listMemberSessionReports({
       path: { userId: memberId, sessionId },
     });
     const restoredReport = await member.reports.detailReport({
-      path: { reportId: reaffected!.items[0]!.id },
+      path: { reportId: reaffected!.items[0]!.report.id },
     });
     expect(restoredReport.data!.state).toBe('IN_PROGRESS');
   });

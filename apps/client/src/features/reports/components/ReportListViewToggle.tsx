@@ -2,22 +2,21 @@ import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryState } from 'nuqs';
 
 import { SIDE_PANEL_DOSSIER_PARAM } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/context/side-panel.context';
-import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
+import { useMyFilesFilter } from '@/features/reports/hooks/useMyFilesFilter';
+import { useUser } from '@queries/auth.queries';
 
-export function ReportListViewToggle(props: { onChange?: (focus: 'general' | 'affectations') => unknown }) {
-  const [focus, setFocus] = useReportListFocus();
+export function ReportListViewToggle() {
+  const { user } = useUser();
+  const [isMine, setIsMine] = useMyFilesFilter(user?.id);
   const [, setOpenedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
-  const isGeneral = focus === 'general';
 
   return (
     <ToggleSwitch
-      label={isGeneral ? 'Tous les dossiers' : 'Mes dossiers'}
-      checked={isGeneral}
+      label="Afficher uniquement mes dossiers"
+      checked={isMine}
       onChange={(checked) => {
-        const next = checked ? 'general' : 'affectations';
-        setFocus(next);
+        setIsMine(checked);
         setOpenedDossier(null);
-        props.onChange?.(next);
       }}
       showCheckedHint={false}
       labelPosition="right"

@@ -14,6 +14,10 @@ import {
   type GetReportFileUrlsResponseDto,
 } from './infrastructure/queries/get-report-file-urls.query';
 import {
+  type ListedMemberSessionReportsDto,
+  ListMemberSessionReportsQuery,
+} from './infrastructure/queries/list-member-session-reports.query';
+import {
   type FoundNominationFileMembersReportDto,
   SearchNominationFileMembersReportQuery,
 } from './infrastructure/queries/search-nomination-file-members-report.query';
@@ -25,6 +29,7 @@ export class ReportService {
     private readonly reportRepository: ReportRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
+    private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
     private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
     private readonly files: Files,
   ) {}
@@ -106,6 +111,13 @@ export class ReportService {
     reportId: string;
   }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
+  }
+
+  internalListMemberSessionReports(query: {
+    sessionId: string;
+    userId: string;
+  }): Promise<ListedMemberSessionReportsDto> {
+    return this.listMemberSessionReportsQuery.handle(query);
   }
 
   internalSearchNominationFileMembersReport(query: {

@@ -65,14 +65,8 @@ export type RoutePathSecretariat = RoutePath['SG'][keyof RoutePath['SG']];
 export const getNewAgendaPath = (sessionId: string): string =>
   generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId });
 
-export function getDetailSessionGdsPath(props: {
-  sessionId: string;
-  focus?: 'affectations' | 'general';
-}): string {
-  const path = generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, {
-    sessionId: props.sessionId,
-  });
-  return path + (props.focus ? `?focus=${props.focus}` : '');
+export function getDetailSessionGdsPath(props: { sessionId: string }): string {
+  return generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, { sessionId: props.sessionId });
 }
 
 export const getGdsReportPath = (id: string) => {

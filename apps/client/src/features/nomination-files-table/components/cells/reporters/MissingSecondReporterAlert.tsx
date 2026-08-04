@@ -66,8 +66,7 @@ export function MissingSecondReporterAlert(props: {
   if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 
   return (
-    /** @warning ".multi-reporters-alert" is used by the table CSS to display the orange row */
-    <div className="multi-reporters-alert fr-pr-1v cursor-pointer">
+    <div className="fr-pr-1v cursor-pointer">
       <Tooltip title={formatMessage({ defaultMessage: '2 rapporteurs attendus' })}>
         <i
           style={{

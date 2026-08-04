@@ -1,16 +1,17 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import clsx from 'clsx';
-import React from 'react';
+import { useCallback, useContext } from 'react';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { NominationFileTargetPositionContext } from './NominationFileTargetPositionContext';
 import { nominationFileTargetPositionModal } from './NominationFileTargetPositionProvider';
+
+const alertColor = colors.decisions.text.default.warning.default;
 
 function normalizePosition(position: string | undefined | null): string {
   const trimmed = position?.trim();
@@ -23,68 +24,55 @@ const HEARING_ALERT_POSITIONS = ['Procureur Général', 'Procureur de la Républ
   (x) => new RegExp(`^${normalizePosition(x)} (?!\\s*adjoint)`, 'i'),
 );
 
-function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile): {
-  position: string;
-  hasAlert: boolean;
-} {
+function useHearingAlert(nominationFile: SessionNominationFile): boolean {
   const isSg = useIsSg();
-  const [position, normalizedPosition, isAlertHidden] = React.useMemo(() => {
-    const target = nominationFile.content.posteCible;
+  const { isAlertHidden, posteCible } = nominationFile.content;
 
-    return [target, normalizePosition(target), nominationFile.content.isAlertHidden] as const;
-  }, [nominationFile]);
+  if (!isSg || isAlertHidden || !posteCible) return false;
 
-  if (!position) return { position: '', hasAlert: false };
-
-  return {
-    position,
-    hasAlert: isSg && !isAlertHidden && HEARING_ALERT_POSITIONS.some((x) => x.test(normalizedPosition)),
-  };
+  return HEARING_ALERT_POSITIONS.some((x) => x.test(normalizePosition(posteCible)));
 }
 
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
-  const { setNominationFile } = React.useContext(NominationFileTargetPositionContext);
-  const { hasAlert, position } = useHearingAlertTargetedPosition(props.nominationFile);
+  const { setNominationFile } = useContext(NominationFileTargetPositionContext);
+  const hasAlert = useHearingAlert(props.nominationFile);
 
-  const onClick = React.useCallback(() => {
+  const onClick = useCallback(() => {
     setNominationFile(props.nominationFile);
     nominationFileTargetPositionModal.open();
   }, [props.nominationFile, setNominationFile]);
 
-  if (!hasAlert) return position;
+  const label = (
+    <span className="leading-6">
+      <GradeAndPosition
+        grade={props.nominationFile.content.gradeCible}
+        position={props.nominationFile.content.posteCible}
+      />
+    </span>
+  );
+
+  if (!hasAlert) return label;
 
   return (
-    /** @warning ".position-hearing-alert" is used by {@link NominationFilesTable.css} */
     <Tooltip title="Fiche de juridiction requise">
       <Button
-        size="small"
-        className="position-hearing-alert fr-px-0 hover:underline"
         aria-controls={nominationFileTargetPositionModal.id}
+        className="group fr-px-0"
         onClick={onClick}
         priority="tertiary no outline"
+        size="small"
       >
-        <i
-          style={{
-            color: colors.decisions.text.default.warning.default,
-          }}
-          className={clsx(
-            cx('fr-icon-warning-fill'),
-            'text-center',
-            'block',
-            'rounded-full',
-            'fr-p-1v',
-            'size-6',
-
-            'before:block',
-            'before:content-[""]',
-            'before:size-4!',
-          )}
-        />
-        <span
-          className="text-left text-sm font-normal"
-          style={{ color: colors.decisions.text.default.grey.default }}
-        >
-          {position}
+        <span className="text-left text-sm font-normal whitespace-nowrap">
+          <span
+            className="whitespace-normal underline underline-offset-4 group-hover:decoration-2"
+            style={{ color: alertColor }}
+          >
+            {label}
+          </span>
+          <i
+            className="fr-icon-warning-fill fr-ml-1v relative -top-px inline-block align-middle before:block before:size-4! before:content-['']"
+            style={{ color: alertColor }}
+          />
         </span>
       </Button>
     </Tooltip>

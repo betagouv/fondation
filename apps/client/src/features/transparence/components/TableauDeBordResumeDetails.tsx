@@ -1,55 +1,40 @@
-import { colors } from '@codegouvfr/react-dsfr';
+import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { dateOnlyToDate } from '@/utils/date-only.util';
+import type { PlainDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
 
-const Label = ({ nom }: { nom: string }) => (
-  <div className="text-xs" style={{ color: colors.decisions.text.disabled.grey.default }}>
-    {nom}
-  </div>
-);
-
-export const TableauDeBordResumeDetails = (transparence: DetailedNominationSessionDto) => {
-  const { dueDate, observationsClosingDate, positionStartDate } = transparence;
-
+function Detail(props: { date: PlainDateOnly | null | undefined; label: ReactNode }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2">
-      <div>
-        <Label nom="Délai d'observation" />
-        <div className="text-sm lining-nums">
+    <div className="flex items-baseline gap-x-2">
+      <span className="text-sm leading-6 font-normal text-(--text-mention-grey)">{props.label}</span>
+      <span className="text-sm leading-6 font-normal text-(--text-default-grey) lining-nums">
+        {props.date ? (
           <FormattedMessage
             defaultMessage="{date, date, dateOnlyShort}"
-            values={{ date: dateOnlyToDate(observationsClosingDate) }}
+            values={{ date: dateOnlyToDate(props.date) }}
           />
-        </div>
-      </div>
-      <div>
-        <Label nom="Date d'écheance" />
-        <div className="text-sm lining-nums">
-          {dueDate ? (
-            <FormattedMessage
-              values={{ date: dateOnlyToDate(dueDate) }}
-              defaultMessage="{date, date, dateOnlyShort}"
-            />
-          ) : (
-            '-'
-          )}
-        </div>
-      </div>
-      <div>
-        <Label nom="Date de prise de poste" />
-        <div className="text-sm lining-nums">
-          {positionStartDate ? (
-            <FormattedMessage
-              defaultMessage="{date, date, dateOnlyShort}"
-              values={{ date: dateOnlyToDate(positionStartDate) }}
-            />
-          ) : (
-            '-'
-          )}
-        </div>
-      </div>
+        ) : (
+          '-'
+        )}
+      </span>
+    </div>
+  );
+}
+
+export const TableauDeBordResumeDetails = (transparence: DetailedNominationSessionDto) => {
+  const { date, dueDate, observationsClosingDate, positionStartDate } = transparence;
+
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+      <Detail date={date} label={<FormattedMessage defaultMessage="Publiée le" />} />
+      <Detail
+        date={observationsClosingDate}
+        label={<FormattedMessage defaultMessage="Délai d'observation" />}
+      />
+      <Detail date={dueDate} label={<FormattedMessage defaultMessage="Échéance" />} />
+      <Detail date={positionStartDate} label={<FormattedMessage defaultMessage="Prise de poste" />} />
     </div>
   );
 };

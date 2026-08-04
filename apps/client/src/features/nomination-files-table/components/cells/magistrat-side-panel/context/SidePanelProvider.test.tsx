@@ -11,8 +11,7 @@ import { SidePanelProvider } from './SidePanelProvider';
 type ProviderProps = {
   isFetching: boolean;
   nominationFiles: SessionNominationFile[];
-  onPageChange: (pageIndex: number) => void;
-  pagination: { pageIndex: number; pageSize: number };
+  onEndReached: () => void;
   totalCount: number;
 };
 
@@ -48,16 +47,14 @@ function renderProvider(initialProps: ProviderProps, searchParams?: string) {
   };
 }
 
-const PAGE_SIZE = 2;
-const firstPage = makeSessionNominationFileList(['a', 'b']);
-const secondPage = makeSessionNominationFileList(['c', 'd']);
+const loadedFiles = makeSessionNominationFileList(['a', 'b']);
+const allFiles = makeSessionNominationFileList(['a', 'b', 'c', 'd']);
 
 function baseProps(overrides: Partial<ProviderProps> = {}): ProviderProps {
   return {
     isFetching: false,
-    nominationFiles: firstPage,
-    onPageChange: vi.fn(),
-    pagination: { pageIndex: 0, pageSize: PAGE_SIZE },
+    nominationFiles: loadedFiles,
+    onEndReached: vi.fn(),
     totalCount: 4,
     ...overrides,
   };
@@ -82,7 +79,7 @@ describe('SidePanelProvider', () => {
     expect(view.panel.activeFile?.id).toBe('a');
   });
 
-  it('navigates within the current page', () => {
+  it('navigates within the loaded files', () => {
     const view = renderProvider(baseProps());
 
     act(() => view.panel.open('a'));
@@ -94,69 +91,55 @@ describe('SidePanelProvider', () => {
   });
 
   it('disables previous on the first file and next on the last', () => {
-    const first = renderProvider(baseProps());
-    act(() => first.panel.open('a'));
-    expect(first.panel.hasPrevious).toBe(false);
-    expect(first.panel.hasNext).toBe(true);
+    const view = renderProvider(baseProps({ nominationFiles: allFiles }));
 
-    const last = renderProvider(
-      baseProps({ nominationFiles: secondPage, pagination: { pageIndex: 1, pageSize: PAGE_SIZE } }),
-    );
-    act(() => last.panel.open('d'));
-    expect(last.panel.hasNext).toBe(false);
-    expect(last.panel.hasPrevious).toBe(true);
+    act(() => view.panel.open('a'));
+    expect(view.panel.hasPrevious).toBe(false);
+    expect(view.panel.hasNext).toBe(true);
+
+    act(() => view.panel.open('d'));
+    expect(view.panel.hasNext).toBe(false);
+    expect(view.panel.hasPrevious).toBe(true);
   });
 
-  it('crosses to the next page and selects its first file once loaded', () => {
-    const onPageChange = vi.fn();
-    const view = renderProvider(baseProps({ onPageChange }));
+  it('loads more files and selects the next one once loaded', () => {
+    const onEndReached = vi.fn();
+    const view = renderProvider(baseProps({ onEndReached }));
 
     act(() => view.panel.open('b'));
     act(() => view.panel.next());
 
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    expect(onEndReached).toHaveBeenCalledOnce();
     expect(view.panel.isOpen).toBe(true);
 
-    view.rerender(
-      baseProps({ onPageChange, isFetching: true, pagination: { pageIndex: 1, pageSize: PAGE_SIZE } }),
-    );
-    view.rerender(
-      baseProps({
-        onPageChange,
-        nominationFiles: secondPage,
-        pagination: { pageIndex: 1, pageSize: PAGE_SIZE },
-      }),
-    );
+    view.rerender(baseProps({ onEndReached, isFetching: true }));
+    view.rerender(baseProps({ onEndReached, nominationFiles: allFiles }));
 
     expect(view.panel.activeFile?.id).toBe('c');
   });
 
-  it('crosses to the previous page and selects its last file once loaded', () => {
-    const onPageChange = vi.fn();
-    const view = renderProvider(
-      baseProps({
-        onPageChange,
-        nominationFiles: secondPage,
-        pagination: { pageIndex: 1, pageSize: PAGE_SIZE },
-      }),
-    );
+  it('selects the next file served without an observable fetch', () => {
+    const view = renderProvider(baseProps());
 
-    act(() => view.panel.open('c'));
-    act(() => view.panel.previous());
+    act(() => view.panel.open('b'));
+    act(() => view.panel.next());
 
-    expect(onPageChange).toHaveBeenCalledWith(0);
+    view.rerender(baseProps({ nominationFiles: allFiles }));
 
-    view.rerender(
-      baseProps({
-        onPageChange,
-        isFetching: true,
-        nominationFiles: secondPage,
-        pagination: { pageIndex: 0, pageSize: PAGE_SIZE },
-      }),
-    );
-    view.rerender(baseProps({ onPageChange, pagination: { pageIndex: 0, pageSize: PAGE_SIZE } }));
+    expect(view.panel.activeFile?.id).toBe('c');
+  });
 
-    expect(view.panel.activeFile?.id).toBe('b');
+  it('abandons the pending load when fetching ends without new files', () => {
+    const view = renderProvider(baseProps());
+
+    act(() => view.panel.open('b'));
+    act(() => view.panel.next());
+
+    view.rerender(baseProps({ isFetching: true }));
+    view.rerender(baseProps());
+    view.rerender(baseProps({ nominationFiles: allFiles }));
+
+    expect(view.panel.activeFile).toBeNull();
   });
 
   it('closes and clears the active file', () => {

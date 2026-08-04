@@ -5,6 +5,8 @@ import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
 
+import { memberKeys } from './members.queries';
+
 const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const reportKeys = {
@@ -116,7 +118,10 @@ export function useUpdateReportMutation() {
     },
 
     onSuccess: (_, { reportId }) =>
-      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
+        queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberSessionReports() }),
+      ]),
   });
 }
 

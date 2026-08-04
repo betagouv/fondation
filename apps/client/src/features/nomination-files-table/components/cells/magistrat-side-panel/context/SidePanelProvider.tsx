@@ -5,22 +5,21 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 import { SIDE_PANEL_DOSSIER_PARAM, SidePanelContext, type SidePanelLeaveGuard } from './side-panel.context';
 
-type PendingEdge = { edge: 'first' | 'last'; pageIndex: number };
+type PendingNext = { fromId: string; sawFetching: boolean };
 
 export function SidePanelProvider(
   props: PropsWithChildren<{
     isFetching: boolean;
     nominationFiles: SessionNominationFile[];
-    onPageChange: (pageIndex: number) => void;
-    pagination: { pageIndex: number; pageSize: number };
+    onEndReached: () => void;
     totalCount: number;
   }>,
 ) {
-  const { isFetching, nominationFiles, onPageChange, pagination, totalCount } = props;
+  const { isFetching, nominationFiles, onEndReached, totalCount } = props;
 
   const [activeId, setActiveId] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
 
-  const [pending, setPending] = useState<PendingEdge | null>(null);
+  const [pendingNext, setPendingNext] = useState<PendingNext | null>(null);
 
   const leaveGuardsRef = useRef(new Set<SidePanelLeaveGuard>());
   const registerLeaveGuard = useCallback((guard: SidePanelLeaveGuard) => {
@@ -46,9 +45,8 @@ export function SidePanelProvider(
   const isLeaveBlocked = blockedKeys.length > 0;
 
   const localIndex = activeId ? nominationFiles.findIndex((file) => file.id === activeId) : -1;
-  const globalIndex = localIndex === -1 ? -1 : pagination.pageIndex * pagination.pageSize + localIndex;
-  const hasPrevious = globalIndex > 0;
-  const hasNext = globalIndex !== -1 && globalIndex < totalCount - 1;
+  const hasPrevious = localIndex > 0;
+  const hasNext = localIndex !== -1 && localIndex < totalCount - 1;
 
   const hasResolvedFile = useRef(false);
   if (localIndex !== -1) hasResolvedFile.current = true;
@@ -56,7 +54,7 @@ export function SidePanelProvider(
   const open = useCallback(
     (id: string) => {
       if (!canLeave()) return;
-      setPending(null);
+      setPendingNext(null);
       setActiveId(id);
     },
     [canLeave, setActiveId],
@@ -64,49 +62,49 @@ export function SidePanelProvider(
 
   const close = useCallback(() => {
     if (!canLeave()) return;
-    setPending(null);
+    setPendingNext(null);
     setActiveId(null);
   }, [canLeave, setActiveId]);
 
   const previous = useCallback(() => {
     if (!canLeave()) return;
-    if (localIndex > 0) {
-      setActiveId(nominationFiles[localIndex - 1].id);
-    } else if (hasPrevious) {
-      setPending({ edge: 'last', pageIndex: pagination.pageIndex - 1 });
-      onPageChange(pagination.pageIndex - 1);
-    }
-  }, [canLeave, hasPrevious, localIndex, nominationFiles, onPageChange, pagination.pageIndex, setActiveId]);
+    if (localIndex > 0) setActiveId(nominationFiles[localIndex - 1].id);
+  }, [canLeave, localIndex, nominationFiles, setActiveId]);
 
   const next = useCallback(() => {
     if (!canLeave()) return;
-    if (localIndex !== -1 && localIndex < nominationFiles.length - 1) {
+    if (localIndex === -1) return;
+
+    if (localIndex < nominationFiles.length - 1) {
       setActiveId(nominationFiles[localIndex + 1].id);
     } else if (hasNext) {
-      setPending({ edge: 'first', pageIndex: pagination.pageIndex + 1 });
-      onPageChange(pagination.pageIndex + 1);
+      setPendingNext({ fromId: nominationFiles[localIndex].id, sawFetching: false });
+      onEndReached();
     }
-  }, [canLeave, hasNext, localIndex, nominationFiles, onPageChange, pagination.pageIndex, setActiveId]);
+  }, [canLeave, hasNext, localIndex, nominationFiles, onEndReached, setActiveId]);
 
   useEffect(() => {
-    if (
-      !pending ||
-      isFetching ||
-      pagination.pageIndex !== pending.pageIndex ||
-      nominationFiles.length === 0
-    ) {
+    if (!pendingNext) return;
+
+    const fromIndex = nominationFiles.findIndex((file) => file.id === pendingNext.fromId);
+    const nextFile = fromIndex === -1 ? undefined : nominationFiles[fromIndex + 1];
+    if (nextFile) {
+      setActiveId(nextFile.id);
+      setPendingNext(null);
       return;
     }
-    const target =
-      pending.edge === 'first' ? nominationFiles[0] : nominationFiles[nominationFiles.length - 1];
-    setActiveId(target.id);
-    setPending(null);
-  }, [isFetching, nominationFiles, pagination.pageIndex, pending, setActiveId]);
+
+    if (isFetching) {
+      if (!pendingNext.sawFetching) setPendingNext({ ...pendingNext, sawFetching: true });
+    } else if (pendingNext.sawFetching) {
+      setPendingNext(null);
+    }
+  }, [isFetching, nominationFiles, pendingNext, setActiveId]);
 
   useEffect(() => {
-    const isUnresolvableDeepLink = !hasResolvedFile.current && activeId && !isFetching && !pending;
+    const isUnresolvableDeepLink = !hasResolvedFile.current && activeId && !isFetching && !pendingNext;
     if (isUnresolvableDeepLink) setActiveId(null);
-  }, [activeId, isFetching, pending, setActiveId]);
+  }, [activeId, isFetching, pendingNext, setActiveId]);
 
   const value = useMemo(
     () => ({
@@ -116,7 +114,7 @@ export function SidePanelProvider(
       hasNext,
       hasPrevious,
       isLeaveBlocked,
-      isOpen: activeId !== null || pending !== null,
+      isOpen: activeId !== null || pendingNext !== null,
       next,
       open,
       previous,
@@ -133,7 +131,7 @@ export function SidePanelProvider(
       next,
       nominationFiles,
       open,
-      pending,
+      pendingNext,
       previous,
       registerLeaveGuard,
       setLeaveBlocked,

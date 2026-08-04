@@ -15,20 +15,16 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { DetailedMemberSessionDto } from '../session/transparence/infrastructure/queries/internal-detail-member-session.query';
 import { ListedMemberSessionsDto } from '../session/transparence/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import { ListedMemberSessionReportsDto } from 'src/modules/report/infrastructure/queries/list-member-session-reports.query';
 import { FoundNominationFileMembersReportDto } from 'src/modules/report/infrastructure/queries/search-nomination-file-members-report.query';
 import { ReportService } from 'src/modules/report/report.service';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
-import {
-  DetailsMemberSessionQueryDto,
-  ListMembersQueryDto,
-  WriteNominationFileMemberMemoDto,
-} from './infrastructure/dtos/members.dto';
+import { ListMembersQueryDto, WriteNominationFileMemberMemoDto } from './infrastructure/dtos/members.dto';
 import {
   ExcludeJurisdictionsDto,
   UpdateMemberDisplayTitleDto,
@@ -119,27 +115,22 @@ export class MembersController {
   }
 
   @HasRole()
-  @ApiPaginated()
-  @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId')
-  @ZodResponse({ type: DetailedMemberSessionDto, status: HttpStatus.OK })
-  detailsMemberSession(
+  @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/reports')
+  @ZodResponse({ type: ListedMemberSessionReportsDto, status: HttpStatus.OK })
+  async listMemberSessionReports(
     @Param('userId') userId: string,
     @Param('sessionId') sessionId: string,
-    @QueryPagination() pagination: Pagination,
-    @Query(ZodValidationPipe) query: DetailsMemberSessionQueryDto,
     @AuthedUser() authUser: { id: string; role: RoleEnum },
-  ): Promise<DetailedMemberSessionDto> {
+  ): Promise<ListedMemberSessionReportsDto> {
     if (userId !== authUser.id) throw new ForbiddenException();
 
-    return this.sessions.detailMemberSession({
-      user: authUser,
-      priorities: query.priorities,
-      status: query.status ?? undefined,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: 'TRANSPARENCE_GDS',
-      pagination,
+    await this.sessions.assertMemberSessionExists({
       sessionId,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
+      user: authUser,
     });
+
+    return this.reports.internalListMemberSessionReports({ sessionId, userId });
   }
 
   @HasRole()

@@ -19,7 +19,7 @@ export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | 
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
   members: Pick<
     TestSteps['members'],
-    | 'detailsMemberSession'
+    | 'listMemberSessionReports'
     | 'listMemberSessions'
     | 'searchNominationFileMembersReport'
     | 'writeNominationFileMemberMemo'
@@ -33,7 +33,7 @@ export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | 
 export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
   members: Omit<
     (typeof api)['members'],
-    'detailsMemberSession' | 'listMemberSessions' | 'writeNominationFileMemberMemo'
+    'listMemberSessionReports' | 'listMemberSessions' | 'writeNominationFileMemberMemo'
   >;
 };
 
