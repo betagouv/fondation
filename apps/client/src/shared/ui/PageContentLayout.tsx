@@ -20,7 +20,7 @@ export const PageContentLayout: FC<PageContentLayoutProps> = ({
 
   return (
     <div className={backgroundClass}>
-      <div className={cx('fr-container', 'fr-py-10v')}>{children}</div>
+      <div className={cx('fr-container', 'fr-py-6v')}>{children}</div>
     </div>
   );
 };

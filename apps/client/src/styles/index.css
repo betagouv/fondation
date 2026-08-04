@@ -14,7 +14,7 @@
 }
 
 :root {
-  --fondation-details-container-max-width: 86rem;
+  --fondation-container-max-width: 86rem;
   --fondation-editor-min-width: 5rem;
 
   /* DSFR's top layer is 1000 (`.fr-header__navbar`, `.fr-tooltip`) and its modal sits at
@@ -66,8 +66,9 @@ li {
   cursor: pointer;
 }
 
-.fr-container.fondation-details-container {
-  max-width: var(--fondation-details-container-max-width);
+/* class doublée : ce fichier charge avant le CSS du DSFR, il faut gagner en spécificité */
+.fr-container.fr-container {
+  max-width: var(--fondation-container-max-width);
 }
 
 .fr-table__content table tbody td {

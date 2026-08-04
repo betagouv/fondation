@@ -78,6 +78,7 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
             '--active': 'var(--background-action-low-blue-france-active)',
           } as React.CSSProperties
         }
+        nativeButtonProps={{ 'aria-expanded': isOpen, 'aria-haspopup': 'true' }}
         onClick={toggleDropdown}
         type="button"
       >

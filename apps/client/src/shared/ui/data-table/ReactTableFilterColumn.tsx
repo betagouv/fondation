@@ -65,11 +65,11 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
   const label =
     hasFilterActive && itemLabel
       ? `${rowsCount} ${itemLabel}`
-      : intl.formatMessage({ defaultMessage: `Filtrer par:` });
+      : intl.formatMessage({ defaultMessage: `Filtrer par` });
 
   return (
     <div className="flex items-center gap-4">
-      <span className="font-bold">{label}</span>
+      <span>{label}</span>
       {props.table.options.columns
         .filter((col) => !!col.meta?.filters)
         .map((col) => {

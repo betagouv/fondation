@@ -1,6 +1,6 @@
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useTableVirtualizer } from './hooks/useTableVirtualizer';
 
@@ -51,6 +51,7 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
 }
 
 export function NewTable<Data extends RowData>(props: {
+  ariaLabel?: string;
   className?: string;
   emptyLabel?: ReactNode;
   fluid?: boolean;
@@ -58,10 +59,12 @@ export function NewTable<Data extends RowData>(props: {
   onEndReached?: () => void;
   rowTint?: (row: Row<Data>) => string | undefined;
   table: Table<Data>;
-  wrap?: boolean;
+  unvirtualized?: boolean;
+  visibleRows?: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { onEndReached, table } = props;
+  const headerRef = useRef<HTMLDivElement>(null);
+  const { onEndReached, table, visibleRows } = props;
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
@@ -75,20 +78,42 @@ export function NewTable<Data extends RowData>(props: {
     }
   }, [onEndReached, lastRenderedIndex, totalRows]);
 
+  const [visibleRowsHeight, setVisibleRowsHeight] = useState<number>();
+  useEffect(() => {
+    if (!visibleRows) return;
+    if (totalRows === 0) {
+      setVisibleRowsHeight(undefined);
+      return;
+    }
+
+    const lastVisibleIndex = Math.min(visibleRows, totalRows) - 1;
+    const lastVisible = virtualRows.find(({ index }) => index === lastVisibleIndex);
+    if (lastVisible) {
+      setVisibleRowsHeight(lastVisible.start + lastVisible.size + (headerRef.current?.offsetHeight ?? 0));
+    }
+  }, [totalRows, virtualRows, visibleRows]);
+
   const isEmpty = !props.isLoading && totalRows === 0;
 
   return (
     <div
       className={clsx(
         'relative overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)',
-        props.wrap ? 'w-full' : 'size-full',
+        props.unvirtualized ? 'w-full' : 'size-full',
         props.className,
       )}
+      aria-label={props.ariaLabel}
       ref={scrollRef}
+      role={props.ariaLabel ? 'region' : undefined}
+      style={visibleRowsHeight === undefined ? undefined : { height: visibleRowsHeight }}
       tabIndex={0}
     >
       <div aria-rowcount={totalRows} className="grid w-full text-sm text-(--text-default-grey)" role="table">
-        <div className="sticky top-0 z-2 grid bg-(--background-contrast-grey)" role="rowgroup">
+        <div
+          className="sticky top-0 z-2 grid bg-(--background-contrast-grey)"
+          ref={headerRef}
+          role="rowgroup"
+        >
           {table.getHeaderGroups().map((group) => (
             <div className="flex w-full border-b border-(--border-default-grey)" key={group.id} role="row">
               {group.headers.map((header) => (
@@ -99,9 +124,16 @@ export function NewTable<Data extends RowData>(props: {
         </div>
 
         <div
-          className="relative grid"
+          className="grid"
           role="rowgroup"
-          style={props.wrap ? undefined : { height: `${virtualizer.getTotalSize()}px` }}
+          style={
+            props.unvirtualized
+              ? undefined
+              : {
+                  paddingTop: virtualRows[0]?.start ?? 0,
+                  paddingBottom: virtualizer.getTotalSize() - (virtualRows.at(-1)?.end ?? 0),
+                }
+          }
         >
           {isEmpty ? (
             <div className="p-8 text-center text-(--text-mention-grey)" role="row">
@@ -109,47 +141,50 @@ export function NewTable<Data extends RowData>(props: {
             </div>
           ) : null}
 
-          {(props.wrap ? rows.map((_, index) => ({ index, start: 0 })) : virtualRows).map((virtualRow) => {
-            const row = rows[virtualRow.index];
-            return (
-              <div
-                aria-rowindex={virtualRow.index + 1}
-                aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
-                className={clsx(
-                  'flex w-full border-b border-(--border-default-grey)',
-                  props.wrap ? 'min-h-12' : 'absolute h-12',
-                  props.rowTint?.(row) ?? 'aria-selected:bg-(--background-open-blue-france)',
-                )}
-                data-index={virtualRow.index}
-                key={row.id}
-                ref={props.wrap ? undefined : virtualizer.measureElement}
-                role="row"
-                style={props.wrap ? undefined : { transform: `translateY(${virtualRow.start}px)` }}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const sticky = cell.column.columnDef.meta?.sticky;
-                  return (
-                    <div
-                      className={clsx(
-                        'flex items-center overflow-hidden px-4 py-2',
-                        props.wrap ? 'wrap-break-word' : 'text-ellipsis whitespace-nowrap',
-                        sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey) bg-inherit',
-                      )}
-                      key={cell.id}
-                      role="cell"
-                      style={
-                        props.fluid
-                          ? { flexBasis: cell.column.getSize(), flexGrow: cell.column.getSize(), minWidth: 0 }
-                          : { width: cell.column.getSize() }
-                      }
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+          {(props.unvirtualized ? rows.map((_, index) => ({ index, start: 0 })) : virtualRows).map(
+            (virtualRow) => {
+              const row = rows[virtualRow.index];
+              return (
+                <div
+                  aria-rowindex={virtualRow.index + 1}
+                  aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
+                  className={clsx(
+                    'flex min-h-12 w-full border-b border-(--border-default-grey)',
+                    props.rowTint?.(row) ?? 'aria-selected:bg-(--background-open-blue-france)',
+                  )}
+                  data-index={virtualRow.index}
+                  key={row.id}
+                  ref={props.unvirtualized ? undefined : virtualizer.measureElement}
+                  role="row"
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const sticky = cell.column.columnDef.meta?.sticky;
+                    return (
+                      <div
+                        className={clsx(
+                          'flex items-center overflow-hidden px-4 py-3 wrap-break-word',
+                          sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey) bg-inherit',
+                        )}
+                        key={cell.id}
+                        role="cell"
+                        style={
+                          props.fluid
+                            ? {
+                                flexBasis: cell.column.getSize(),
+                                flexGrow: cell.column.getSize(),
+                                minWidth: 0,
+                              }
+                            : { width: cell.column.getSize() }
+                        }
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            },
+          )}
         </div>
       </div>
     </div>
