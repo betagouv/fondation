@@ -1,6 +1,6 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import clsx from 'clsx';
-import React from 'react';
+import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
@@ -28,7 +28,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
   const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
 
-  const onArchive = React.useCallback(async () => {
+  const onArchive = useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: formatMessage({ defaultMessage: `Confirmer l'archivage` }),
       content: (
@@ -53,7 +53,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
     });
   }, [archiveSessionMutation, confirmation, formatMessage, navigate, transparence.name]);
 
-  const onDelete = React.useCallback(async () => {
+  const onDelete = useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: formatMessage({ defaultMessage: 'Confirmer la suppression' }),
       content: (

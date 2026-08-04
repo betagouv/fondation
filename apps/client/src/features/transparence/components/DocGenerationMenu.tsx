@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
@@ -10,7 +10,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
   const { formatMessage } = useIntl();
   const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId: props.sessionId });
 
-  const officialReportPath = React.useMemo(
+  const officialReportPath = useMemo(
     () => generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId }),
     [props.sessionId],
   );

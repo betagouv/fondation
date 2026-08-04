@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 
 import { useSessionValidation } from '@/shared/context/session-validation';
 
 export function SessionValidationBannerPortal(
-  props: React.PropsWithChildren<{ session: { id: string; isValidated: boolean } | null | undefined }>,
+  props: PropsWithChildren<{ session: { id: string; isValidated: boolean } | null | undefined }>,
 ) {
   const sessionId = props.session?.id;
   const isValidated = props.session?.isValidated;

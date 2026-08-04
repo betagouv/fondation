@@ -28,7 +28,6 @@ function AuditionDateStory(props: { editable: boolean; auditionDateTime: number 
       <ConfirmationProvider>
         <NominationFilesTableContext
           value={{
-            edition: undefined,
             formation: 'SIEGE',
             isEditable: true,
             outcomes: makeSessionOutcomes('SIEGE'),

@@ -1,11 +1,11 @@
 import { Popover as BasePopover } from '@base-ui/react/popover';
 import { Button, type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import React from 'react';
+import { memo, type PropsWithChildren } from 'react';
 
 export const PopoverRoot = BasePopover.Root;
 
-export const PopoverTrigger = React.memo((props: ButtonProps) => (
+export const PopoverTrigger = memo((props: ButtonProps) => (
   <BasePopover.Trigger
     nativeButton
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +13,7 @@ export const PopoverTrigger = React.memo((props: ButtonProps) => (
   />
 ));
 
-export const PopoverContent = React.memo((props: React.PropsWithChildren<{ className?: string }>) => (
+export const PopoverContent = memo((props: PropsWithChildren<{ className?: string }>) => (
   <BasePopover.Portal>
     <BasePopover.Positioner align="start" className="z-10 outline-hidden" sideOffset={8}>
       <BasePopover.Popup

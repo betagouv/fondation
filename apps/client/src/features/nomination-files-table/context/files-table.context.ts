@@ -6,9 +6,6 @@ import type { DetailedNominationSessionDto } from '@api/types';
 export type SessionOutcome = DetailedNominationSessionDto['outcomes'][number];
 
 export type NominationFilesTableContextType = {
-  edition:
-    | { isEditing: boolean; setEditing: (value: boolean | ((v: boolean) => boolean)) => void }
-    | undefined;
   formation: FormationEnum;
   isEditable: boolean;
   outcomes: readonly SessionOutcome[];
