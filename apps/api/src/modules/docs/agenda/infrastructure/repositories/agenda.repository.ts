@@ -1,12 +1,20 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
-import { Agenda, AgendaCreated, AgendaDeleted, AgendaUpdated } from '../../domain/agenda';
+import {
+  Agenda,
+  AgendaCreated,
+  AgendaDeleted,
+  AgendaFileBlockEdited,
+  AgendaFileBlockReset,
+  AgendaUpdated,
+} from '../../domain/agenda';
 import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class AgendaRepository {
@@ -23,6 +31,10 @@ export class AgendaRepository {
         invalidations = await this.persistAgendaUpdated(message);
       } else if (message instanceof AgendaDeleted) {
         await this.persistAgendaDeleted(message);
+      } else if (message instanceof AgendaFileBlockEdited) {
+        await this.persistAgendaFileBlockEdited(message);
+      } else if (message instanceof AgendaFileBlockReset) {
+        await this.persistAgendaFileBlockReset(message);
       } else {
         assertNever(message);
       }
@@ -196,5 +208,52 @@ export class AgendaRepository {
     }
 
     await this.db.tx.agenda.delete({ where: { id: message.agendaId } });
+  }
+
+  private async persistAgendaFileBlockEdited(message: AgendaFileBlockEdited) {
+    await this.db.tx.agendaNominationFile.updateMany({
+      where: { id: message.fileId, agendaId: message.agendaId },
+      data: { htmlEdited: message.html, htmlOutdated: message.outdated },
+    });
+
+    await this.recomputeAgendaState(message.agendaId);
+  }
+
+  private async persistAgendaFileBlockReset(message: AgendaFileBlockReset) {
+    await this.db.tx.agendaNominationFile.updateMany({
+      where: { id: message.fileId, agendaId: message.agendaId },
+      data: { htmlEdited: null, htmlOutdated: false },
+    });
+
+    await this.recomputeAgendaState(message.agendaId);
+  }
+
+  private async recomputeAgendaState(agendaId: string): Promise<void> {
+    const manuallyEdited = await this.db.tx.agenda.findFirst({
+      select: { id: true },
+      where: { id: agendaId, nominationFiles: { some: { htmlEdited: { not: null } } } },
+    });
+
+    const outdated = await this.db.tx.agenda.findFirst({
+      select: { id: true },
+      where: { id: agendaId, nominationFiles: { some: { htmlOutdated: true } } },
+    });
+
+    const agenda = await this.db.tx.agenda.findUnique({
+      where: { id: agendaId },
+      select: { pdfFileId: true },
+    });
+
+    await this.db.tx.agenda.update({
+      where: { id: agendaId },
+      data: {
+        html: null,
+        pdfFileId: null,
+        isManuallyEdited: isDefined(manuallyEdited),
+        outdated: isDefined(outdated),
+      },
+    });
+
+    if (agenda?.pdfFileId) await this.db.tx.file.deleteMany({ where: { id: agenda.pdfFileId } });
   }
 }

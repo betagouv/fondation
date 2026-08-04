@@ -13,3 +13,7 @@ export class CreateOrUpdateAgendaDto extends createZodDto(
 ) {}
 
 export class CreatedAgendaDto extends createZodDto(z.object({ id: z.uuid() })) {}
+
+export class EditAgendaFileBlockDto extends createZodDto(
+  z.object({ html: z.string(), outdated: z.boolean() }),
+) {}

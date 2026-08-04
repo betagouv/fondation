@@ -1038,6 +1038,11 @@ export type DetailedAgendaDocumentBlocksDto = {
     }>;
 };
 
+export type EditAgendaFileBlockDto = {
+    html: string;
+    outdated: boolean;
+};
+
 export type DetailedSessionOfficialReportDto = {
     id: string;
     url: string;
@@ -3086,6 +3091,38 @@ export type DetailsAgendaDocumentBlocksResponses = {
 };
 
 export type DetailsAgendaDocumentBlocksResponse = DetailsAgendaDocumentBlocksResponses[keyof DetailsAgendaDocumentBlocksResponses];
+
+export type ResetAgendaFileBlockData = {
+    body?: never;
+    path: {
+        agendaId: string;
+        fileId: number;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+};
+
+export type ResetAgendaFileBlockResponses = {
+    204: void;
+};
+
+export type ResetAgendaFileBlockResponse = ResetAgendaFileBlockResponses[keyof ResetAgendaFileBlockResponses];
+
+export type EditAgendaFileBlockData = {
+    body: EditAgendaFileBlockDto;
+    path: {
+        agendaId: string;
+        fileId: number;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+};
+
+export type EditAgendaFileBlockResponses = {
+    204: void;
+};
+
+export type EditAgendaFileBlockResponse = EditAgendaFileBlockResponses[keyof EditAgendaFileBlockResponses];
 
 export type UpdateAgendaHtmlData = {
     body?: {

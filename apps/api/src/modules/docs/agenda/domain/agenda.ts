@@ -47,7 +47,28 @@ export class AgendaDeleted {
   constructor(readonly agendaId: Id<'AgendaId'>) {}
 }
 
-export type AgendaEvent = AgendaCreated | AgendaUpdated | AgendaDeleted;
+export class AgendaFileBlockEdited {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly fileId: bigint,
+    readonly html: string,
+    readonly outdated: boolean,
+  ) {}
+}
+
+export class AgendaFileBlockReset {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly fileId: bigint,
+  ) {}
+}
+
+export type AgendaEvent =
+  | AgendaCreated
+  | AgendaUpdated
+  | AgendaDeleted
+  | AgendaFileBlockEdited
+  | AgendaFileBlockReset;
 
 export class EmptyAgenda extends Error {}
 
@@ -120,6 +141,16 @@ export class Agenda {
 
   delete(): void {
     this.#messages.push(new AgendaDeleted(this.id));
+  }
+
+  editFileBlock(command: { fileId: bigint; html: string; outdated: boolean }): void {
+    this.#messages.push(
+      new AgendaFileBlockEdited(this.id, command.fileId, command.html, command.outdated),
+    );
+  }
+
+  resetFileBlock(command: { fileId: bigint }): void {
+    this.#messages.push(new AgendaFileBlockReset(this.id, command.fileId));
   }
 
   static create(props: {

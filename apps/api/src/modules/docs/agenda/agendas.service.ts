@@ -193,11 +193,34 @@ export class AgendasService {
     if (agenda.pdf) this.files.delete([agenda.pdf]);
   }
 
+  /**
+   * @deprecated Remplacé par l'édition par bloc ({@link editAgendaFileBlock}).
+   * Conservé temporairement, ne pas utiliser pour de nouveaux usages.
+   */
   async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
     await this.db.tx.agenda.update({
       where: { id: command.id },
       data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
     });
+  }
+
+  @Transactional()
+  async editAgendaFileBlock(command: {
+    agendaId: string;
+    fileId: bigint;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.editFileBlock({ fileId: command.fileId, html: command.html, outdated: command.outdated });
+    await this.agendaRepository.persist(agenda);
+  }
+
+  @Transactional()
+  async resetAgendaFileBlock(command: { agendaId: string; fileId: bigint }): Promise<void> {
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.resetFileBlock({ fileId: command.fileId });
+    await this.agendaRepository.persist(agenda);
   }
 
   detailsAgendaFiles(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {

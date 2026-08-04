@@ -19,14 +19,27 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiProduces,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { ParseBigIntPipe } from 'src/modules/framework/pipes';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AgendasService } from './agendas.service';
-import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/agendas.dto';
+import {
+  CreatedAgendaDto,
+  CreateOrUpdateAgendaDto,
+  EditAgendaFileBlockDto,
+} from './infrastructure/agendas.dto';
 import { AgendasFilter } from './infrastructure/agendas.filter';
 import { DetailedAgendaDocumentBlocksDto } from './infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailedAgendaFilesDto } from './infrastructure/queries/details-agenda-files.query';
@@ -130,17 +143,43 @@ export class AgendasController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId/blocks')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaDocumentBlocksDto })
-  detailsAgendaDocumentBlocks(
-    @Param('agendaId') agendaId: string,
-  ): Promise<DetailedAgendaDocumentBlocksDto> {
+  detailsAgendaDocumentBlocks(@Param('agendaId') agendaId: string): Promise<DetailedAgendaDocumentBlocksDto> {
     return this.agendas.detailsAgendaDocumentBlocks({ agendaId });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/agendas/:agendaId/blocks/files/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  @ApiParam({ name: 'fileId', type: 'integer', format: 'int64' })
+  editAgendaFileBlock(
+    @Param('agendaId') agendaId: string,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+    @Body() { html, outdated }: EditAgendaFileBlockDto,
+  ): Promise<void> {
+    return this.agendas.editAgendaFileBlock({ agendaId, fileId, html, outdated });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/blocks/files/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'fileId', type: 'integer', format: 'int64' })
+  resetAgendaFileBlock(
+    @Param('agendaId') agendaId: string,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+  ): Promise<void> {
+    return this.agendas.resetAgendaFileBlock({ agendaId, fileId });
+  }
+
+  /**
+   * @deprecated Remplacé par l'édition par bloc (`PATCH /agendas/:agendaId/blocks/files/:fileId`).
+   */
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/agendas/:agendaId/html')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
+    deprecated: true,
     requestBody: {
       content: {
         'multipart/form-data': {
