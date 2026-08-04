@@ -28,6 +28,7 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 import { AgendasService } from './agendas.service';
 import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/agendas.dto';
 import { AgendasFilter } from './infrastructure/agendas.filter';
+import { DetailedAgendaDocumentBlocksDto } from './infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailedAgendaFilesDto } from './infrastructure/queries/details-agenda-files.query';
 import { DetailedAgendaMetadata } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailedSessionAgenda } from './infrastructure/queries/details-session-agenda.query';
@@ -124,6 +125,15 @@ export class AgendasController {
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaFilesDto })
   detailsAgendaFiles(@Param('agendaId') agendaId: string): Promise<DetailedAgendaFilesDto> {
     return this.agendas.detailsAgendaFiles({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId/blocks')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaDocumentBlocksDto })
+  detailsAgendaDocumentBlocks(
+    @Param('agendaId') agendaId: string,
+  ): Promise<DetailedAgendaDocumentBlocksDto> {
+    return this.agendas.detailsAgendaDocumentBlocks({ agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

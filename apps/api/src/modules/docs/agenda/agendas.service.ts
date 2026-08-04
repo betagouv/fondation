@@ -13,6 +13,10 @@ import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 import { Agenda } from './domain/agenda';
 import { CreatedAgendaDto } from './infrastructure/agendas.dto';
 import {
+  DetailedAgendaDocumentBlocksDto,
+  DetailsAgendaDocumentBlocksQuery,
+} from './infrastructure/queries/details-agenda-document-blocks.query';
+import {
   DetailedAgendaFilesDto,
   DetailsAgendaFilesQuery,
 } from './infrastructure/queries/details-agenda-files.query';
@@ -37,6 +41,7 @@ export class AgendasService {
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
+    private readonly detailsAgendaDocumentBlocksQuery: DetailsAgendaDocumentBlocksQuery,
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
@@ -197,5 +202,9 @@ export class AgendasService {
 
   detailsAgendaFiles(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {
     return this.detailsAgendaFilesQuery.handle(query);
+  }
+
+  detailsAgendaDocumentBlocks(query: { agendaId: string }): Promise<DetailedAgendaDocumentBlocksDto> {
+    return this.detailsAgendaDocumentBlocksQuery.handle(query);
   }
 }

@@ -1026,6 +1026,18 @@ export type DetailedAgendaFilesDto = {
     items: Array<string>;
 };
 
+export type DetailedAgendaDocumentBlocksDto = {
+    blocks: Array<{
+        kind: 'file';
+        weight: number;
+        edited: boolean;
+        outdated: boolean;
+        generatedHtml?: string;
+        html: string;
+        id: string;
+    }>;
+};
+
 export type DetailedSessionOfficialReportDto = {
     id: string;
     url: string;
@@ -3059,6 +3071,21 @@ export type DetailsAgendaFilesResponses = {
 };
 
 export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
+
+export type DetailsAgendaDocumentBlocksData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks';
+};
+
+export type DetailsAgendaDocumentBlocksResponses = {
+    200: DetailedAgendaDocumentBlocksDto;
+};
+
+export type DetailsAgendaDocumentBlocksResponse = DetailsAgendaDocumentBlocksResponses[keyof DetailsAgendaDocumentBlocksResponses];
 
 export type UpdateAgendaHtmlData = {
     body?: {
