@@ -4,6 +4,7 @@ import React from 'react';
 import { ImpersonationBanner } from '@/features/auth/components/ImpersonationBanner';
 
 import { ArchiveBanner } from './archived-banner/ArchivedSessionBanner';
+import { SessionValidationBanner } from './session-validation-banner/SessionValidationBanner';
 import { StagingBanner } from './StagingBanner';
 
 export function Banners(
@@ -44,6 +45,7 @@ export function BanneredLayout(props: React.PropsWithChildren) {
         <StagingBanner />
         <ImpersonationBanner key={'ImpersonationBanner'} />
         <ArchiveBanner key={'ArchivedSessionBanner'} />
+        <SessionValidationBanner key={'SessionValidationBanner'} />
       </Banners>
 
       <div style={{ marginTop: state.height }}>{props.children}</div>
