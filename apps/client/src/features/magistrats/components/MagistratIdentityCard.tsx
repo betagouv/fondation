@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl';
 import { FormattedAge, FormattedPositionDuration } from '@/i18n/components';
 import { DetailsCard } from '@/shared/ui/details';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { gradeAndPositionLabel } from '@/utils/position.utils';
 import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
@@ -12,7 +13,7 @@ export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagist
   const positionLabel = position
     ? [position.function?.label, position.jurisdiction.label].filter(Boolean).join(' ')
     : null;
-  const currentPosition = [magistrat.grade, positionLabel].filter(Boolean).join(' - ');
+  const currentPosition = gradeAndPositionLabel(magistrat.grade, positionLabel);
 
   return (
     <DetailsCard background="terreBattue">

@@ -29,7 +29,21 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
+export const Priorities: Story = {
+  argTypes: { priority: { table: { disable: true } } },
+  render: (args) => (
+    <ul className="fr-m-0 fr-p-0 flex list-none flex-col items-start gap-4">
+      {priorities.map((priority) => (
+        <li className="fr-p-0" key={priority}>
+          <PriorityBadge acronym={args.acronym} priority={priority} small={args.small} />
+        </li>
+      ))}
+    </ul>
+  ),
+};
+
 export const List: Story = {
+  argTypes: { priority: { table: { disable: true } } },
   render: (args) => (
     <PriorityBadgeList
       acronym={args.acronym}

@@ -33,7 +33,7 @@ const preview: Preview = {
       matchers: { color: /(background|color)$/i, date: /Date$/i },
     },
     options: {
-      storySort: { order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
+      storySort: { method: 'alphabetical', order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
     },
   },
 };
