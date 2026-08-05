@@ -192,15 +192,22 @@ export const router = sentryCreateBrowserRouter([
           {
             path: ROUTE_PATHS.SG.AGENDA_NEW,
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
-                Component: CreateOrUpdateAgendaPage,
+              import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
+                Component: CreateAgendaPage,
               })),
           },
           {
-            path: ROUTE_PATHS.SG.AGENDA_UPDATE,
+            path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaPage').then(({ CreateOrUpdateAgendaPage }) => ({
-                Component: CreateOrUpdateAgendaPage,
+              import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
+                ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
+              ),
+          },
+          {
+            path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
+            lazy: () =>
+              import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(({ AgendaUpdateFilesPage }) => ({
+                Component: AgendaUpdateFilesPage,
               })),
           },
           {

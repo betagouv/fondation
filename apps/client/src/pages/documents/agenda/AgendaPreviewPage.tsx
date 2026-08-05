@@ -51,19 +51,34 @@ export function AgendaPreviewPage() {
           <h1 className="fr-mb-0">
             <FormattedMessage defaultMessage="Ordre du jour" />
           </h1>
-          <Button
-            size="small"
-            priority="secondary"
-            iconId="ri-edit-fill"
-            linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE, {
-                agendaId: agendaId!,
-                sessionId: sessionId!,
-              }),
-            }}
-          >
-            <FormattedMessage defaultMessage="Métadonnées" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="small"
+              priority="secondary"
+              iconId="ri-file-list-3-line"
+              linkProps={{
+                to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+                  agendaId: agendaId!,
+                  sessionId: sessionId!,
+                }),
+              }}
+            >
+              <FormattedMessage defaultMessage="Propositions" />
+            </Button>
+            <Button
+              size="small"
+              priority="secondary"
+              iconId="ri-calendar-event-line"
+              linkProps={{
+                to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+                  agendaId: agendaId!,
+                  sessionId: sessionId!,
+                }),
+              }}
+            >
+              <FormattedMessage defaultMessage="Métadonnées" />
+            </Button>
+          </div>
         </div>
 
         <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
