@@ -191,7 +191,7 @@ export class AgendasController {
   @Patch('/agendas/:agendaId/blocks/files/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
-  @ApiParam({ name: 'fileId', type: 'integer', format: 'int64' })
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
   editAgendaFileBlock(
     @Param('agendaId') agendaId: string,
     @Param('fileId', ParseBigIntPipe) fileId: bigint,
@@ -203,7 +203,7 @@ export class AgendasController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/agendas/:agendaId/blocks/files/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiParam({ name: 'fileId', type: 'integer', format: 'int64' })
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
   resetAgendaFileBlock(
     @Param('agendaId') agendaId: string,
     @Param('fileId', ParseBigIntPipe) fileId: bigint,

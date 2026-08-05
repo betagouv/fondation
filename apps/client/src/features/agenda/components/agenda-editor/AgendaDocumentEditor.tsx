@@ -6,39 +6,36 @@ import { generatePath, useNavigate } from 'react-router';
 
 import '@/shared/ui/document-preview/DocumentEditor.css';
 import '@/shared/ui/doc-block-editor/doc-block.css';
-
-import './blocks.css';
-
 import { BoldButton } from '@/shared/ui/tip-tap-editor/buttons/BoldButton';
 import { ItalicButton } from '@/shared/ui/tip-tap-editor/buttons/ItalicButton';
 import { RedoButton } from '@/shared/ui/tip-tap-editor/buttons/RedoButton';
 import { UndoButton } from '@/shared/ui/tip-tap-editor/buttons/UndoButton';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-import { OfficialReportBlocksModel } from './blocks/official-report-blocks.model';
-import type { OfficialReportBlock } from './blocks/official-report-blocks.type';
-import { OfficialReportFileBlock } from './blocks/OfficialReportFileBlock';
-import { useOfficialReportEditor } from './hooks/useOfficialReportEditor';
+import { AgendaBlocksModel } from './blocks/agenda-blocks.model';
+import type { AgendaBlock } from './blocks/agenda-blocks.type';
+import { AgendaFileBlock } from './blocks/AgendaFileBlock';
+import { useAgendaEditor } from './hooks/useAgendaEditor';
 
-export function OfficialReportDocumentEditor(props: {
+export function AgendaDocumentEditor(props: {
   sessionId: string;
-  officialReportId: string;
-  blocks: readonly OfficialReportBlock[];
+  agendaId: string;
+  blocks: readonly AgendaBlock[];
   onPendingRevalidationChange?: (pending: boolean) => void;
 }) {
   const navigate = useNavigate();
 
   const [model] = React.useState(
-    () => new OfficialReportBlocksModel({ officialReportId: props.officialReportId, blocks: props.blocks }),
+    () => new AgendaBlocksModel({ agendaId: props.agendaId, blocks: props.blocks }),
   );
-  const editor = useOfficialReportEditor(model);
+  const editor = useAgendaEditor(model);
 
   const hasPendingRevalidation = useEditorState({
     editor,
     selector: ({ editor }): boolean => {
       let pending = false;
       editor?.state.doc.descendants((node) => {
-        if (node.type.name === OfficialReportFileBlock.name && node.attrs.outdated) pending = true;
+        if (node.type.name === AgendaFileBlock.name && node.attrs.outdated) pending = true;
         return !pending;
       });
       return pending;
@@ -56,9 +53,9 @@ export function OfficialReportDocumentEditor(props: {
       setIsPersisting(true);
       await model.onEditorUpdate(editor);
       return navigate(
-        generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_RENDER, {
+        generatePath(ROUTE_PATHS.SG.AGENDA_RENDER, {
           sessionId: props.sessionId,
-          officialReportId: model.officialReportId,
+          agendaId: model.agendaId,
         }),
       );
     } finally {

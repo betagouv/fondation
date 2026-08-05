@@ -1,0 +1,1 @@
+export { AgendaDocumentEditor } from './AgendaDocumentEditor';

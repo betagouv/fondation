@@ -1,38 +1,34 @@
-import { useIntl } from 'react-intl';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useState } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { AgendaDocumentEditor } from '@/features/agenda/components/agenda-editor';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { DocumentPreviewLayout } from '@/shared/ui/document-preview';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import {
-  useAgendaHtmlQuery,
-  useGenerateAgendaPdfMutation,
-  useUpdateAgendaHtmlMutation,
-} from '@queries/agenda.queries';
+import { useAgendaDocumentBlocksQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function AgendaPreviewPage() {
-  const { $t } = useIntl();
-  const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
   const navigate = useNavigate();
 
+  const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
+
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
+  const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
 
-  const { data: html, isPending } = useAgendaHtmlQuery({ id: agendaId });
-
-  const updateHtml = useUpdateAgendaHtmlMutation(agendaId!);
   const generatePdf = useGenerateAgendaPdfMutation({
+    force: true,
     sessionId: sessionId!,
     agendaId: agendaId!,
-    force: false,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
   });
 
-  const title = $t({ defaultMessage: `Ordre du jour` });
+  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
 
   return (
     <>
-      <div className="fr-container fr-pt-4v">
+      <div className="fr-container">
         <Breadcrumb
           id="breadcrumb"
           ariaLabel="fil d'Ariane"
@@ -49,13 +45,57 @@ export function AgendaPreviewPage() {
           }}
         />
       </div>
-      <DocumentPreviewLayout
-        html={html}
-        title={title}
-        isPending={isPending}
-        validateMutation={generatePdf}
-        updateContentMutation={updateHtml}
-      />
+
+      <div className="fr-pt-5v mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+          <h1 className="fr-mb-0">
+            <FormattedMessage defaultMessage="Ordre du jour" />
+          </h1>
+          <Button
+            size="small"
+            priority="secondary"
+            iconId="ri-edit-fill"
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE, {
+                agendaId: agendaId!,
+                sessionId: sessionId!,
+              }),
+            }}
+          >
+            <FormattedMessage defaultMessage="Métadonnées" />
+          </Button>
+        </div>
+
+        <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
+          {!isFetchedAfterMount || !agendaId || !document ? (
+            <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
+          ) : (
+            <AgendaDocumentEditor
+              key={agendaId}
+              sessionId={sessionId!}
+              agendaId={agendaId}
+              blocks={document.blocks}
+              onPendingRevalidationChange={setHasPendingRevalidation}
+            />
+          )}
+        </div>
+
+        <div className="fr-px-4v fr-py-6v flex flex-col items-center gap-2 bg-(--background-default-grey)">
+          {hasPendingRevalidation && (
+            <p className="fr-mb-0 text-(--text-default-warning)">
+              <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
+            </p>
+          )}
+          <Button
+            disabled={generatePdf.isPending || hasPendingRevalidation}
+            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            iconPosition="right"
+            onClick={() => generatePdf.mutate()}
+          >
+            <FormattedMessage defaultMessage="Valider le document" />
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

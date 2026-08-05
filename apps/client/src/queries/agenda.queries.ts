@@ -19,6 +19,7 @@ export const agendaKeys = {
     ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const,
   detailsAgendaFiles: (query: { agendaId: string | undefined | null }) =>
     ['agenda', 'detailsAgendaFiles', query.agendaId ?? undefined] as const,
+  documentBlocks: (id: string | undefined | null) => ['agenda', 'documentBlocks', id ?? undefined] as const,
 };
 
 export function useCreateAgendaMutation() {
@@ -129,23 +130,6 @@ export const htmlMutationKeys = {
   presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
 };
 
-export function useUpdateAgendaHtmlMutation(agendaId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationKey: htmlMutationKeys.agendaHtml,
-    mutationFn: ({ html }: { html: string }) =>
-      $api.docs.updateAgendaHtml({
-        path: { agendaId },
-        body: { html: new Blob([html], { type: 'text/html' }) },
-      }),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
-      queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
-    },
-  });
-}
-
 export function useGenerateAgendaPdfMutation(mutation: {
   sessionId: string;
   agendaId: string;
@@ -172,6 +156,16 @@ export function useGenerateAgendaPdfMutation(mutation: {
     },
   });
 }
+
+export const useAgendaDocumentBlocksQuery = (query: { id: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.id,
+    queryKey: agendaKeys.documentBlocks(query.id),
+    queryFn: () =>
+      $api.docs
+        .detailsAgendaDocumentBlocks({ path: { agendaId: query.id! } })
+        .then(({ data = null }) => data),
+  });
 
 export const useFindAgendaNominationFilesQuery = (query: { sessionId: string }) =>
   useQuery({

@@ -9,7 +9,7 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
-import { useBlockActive } from '../hooks/useBlockActive';
+import { useBlockActive } from '@/shared/ui/doc-block-editor';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
 

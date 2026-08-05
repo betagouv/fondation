@@ -5,7 +5,7 @@ import { type ReactNodeViewProps } from '@tiptap/react';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-function OfficialReportDriftBannerTooltip() {
+function DocBlockDriftBannerTooltip() {
   const { formatMessage } = useIntl();
 
   const tooltipTitle = formatMessage({ defaultMessage: `Contenu invalide` });
@@ -21,7 +21,7 @@ function OfficialReportDriftBannerTooltip() {
   );
 }
 
-export function OfficialReportDriftBanner(props: ReactNodeViewProps) {
+export function DocBlockDriftBanner(props: ReactNodeViewProps) {
   const { editor, node } = props;
   const { outdated, generatedHtml, isPending } = node.attrs;
 
@@ -42,7 +42,7 @@ export function OfficialReportDriftBanner(props: ReactNodeViewProps) {
       <Badge as="p" severity="new" small className="fr-mr-1v">
         <FormattedMessage defaultMessage="MODIFICATION" />
       </Badge>
-      <Tooltip title={<OfficialReportDriftBannerTooltip />} />
+      <Tooltip title={<DocBlockDriftBannerTooltip />} />
       <div className="fr-mt-1v">
         <div dangerouslySetInnerHTML={{ __html: generatedHtml }} />
       </div>
