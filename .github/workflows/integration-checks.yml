@@ -93,8 +93,11 @@ jobs:
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
-      - name: Test Api
+      - name: Test Api UNIT
         run: pnpm --filter api test
+
+      - name: Test Front UNIT
+        run: pnpm --filter client test
 
       - name: Test API E2E
         run: pnpm --filter api-e2e test
@@ -122,8 +125,8 @@ jobs:
       - name: Install Playwright
         uses: ./.github/playwright
 
-      - name: Test Client
-        run: pnpm --filter client test:all
+      - name: Test Client E2E
+        run: pnpm --filter client test:e2e
 
       - name: Build
         run: pnpm build

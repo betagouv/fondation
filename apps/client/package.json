@@ -24,7 +24,7 @@
     "prebuild-storybook": "pnpm run update-icons",
     "openapi:generate": "openapi-ts",
     "playwright": "playwright",
-    "test:all": "playwright test"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "1.5.0",
