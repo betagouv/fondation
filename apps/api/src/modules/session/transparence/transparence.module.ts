@@ -38,7 +38,7 @@ import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
 
 @Module({
-  exports: [TransparenceService, SummaryModule, AffectationVersionFinder],
+  exports: [TransparenceService, SummaryModule],
   controllers: [SessionController],
   imports: [
     SummaryModule,

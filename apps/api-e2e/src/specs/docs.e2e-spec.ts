@@ -74,10 +74,27 @@ test.describe('Docs Service', () => {
   test('should prevent creating an agenda with a file appearing as VALIDATED in official report', async ({
     agent,
     expect,
+    member,
   }) => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundFiles.response?.status).toBe(200);
     expect(foundFiles.data!.items).toHaveLength(2);
+
+    const memberId = member['@user']!.id;
+    const affectationRes = await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: (foundFiles.data?.items ?? []).map(({ id }) => ({
+          nominationFileId: id,
+          reporterIds: [memberId],
+          priorities: [],
+        })),
+      },
+    });
+    expect(affectationRes.response?.status).toBe(204);
+
+    const publicationRes = await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    expect(publicationRes.response?.status).toBe(204);
 
     for (const { id } of foundFiles.data!.items) {
       const outcomeRes = await agent.sessions.defineNominationFileOutcome({

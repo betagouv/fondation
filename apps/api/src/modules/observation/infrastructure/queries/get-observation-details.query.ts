@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -14,8 +14,10 @@ import { isDefined } from 'src/utils/is-defined';
 export class GetObservationDetailsQuery {
   constructor(
     private readonly db: Db,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
   async handle(query: {
@@ -115,7 +117,7 @@ export class GetObservationDetailsQuery {
         throw new NotFoundException();
       }
 
-      const reporters = await this.affectationVersionFinder.findReporters({
+      const reporters = await this.transparences.versions.findReporters({
         sessionId: query.sessionId,
         nominationFileId: query.nominationFileId,
       });

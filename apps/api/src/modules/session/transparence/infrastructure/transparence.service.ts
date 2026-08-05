@@ -98,35 +98,41 @@ export class TransparenceService {
   constructor(
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
+    private readonly db: Db,
+
+    private readonly nominationSessionRepository: SessionTransparenceRepository,
+
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
+    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
+    private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+
+    private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
+    private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
+    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
-    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
-    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
-    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
-    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
-    private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
+    private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
+    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
-    private readonly nominationSessionFileFinder: TransparenceFilesFinder,
-    private readonly nominationSessionRepository: SessionTransparenceRepository,
-    private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
-    private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
-    private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
-    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
-    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
-    private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
-    private readonly db: Db,
-    private readonly versions: AffectationVersionFinder,
+
+    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
+    private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
+    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
+    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
 
     private readonly events: EventEmitter2,
+
+    readonly versions: AffectationVersionFinder,
   ) {}
 
   /** @internal */
