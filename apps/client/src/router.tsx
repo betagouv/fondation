@@ -211,6 +211,13 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
           {
+            path: ROUTE_PATHS.SG.AGENDA_RENDER,
+            lazy: () =>
+              import('@/pages/documents/agenda/AgendaRenderPage').then(({ AgendaRenderPage }) => ({
+                Component: AgendaRenderPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
             lazy: () =>
               import('@/pages/documents/official-report/OfficialReportPage').then(

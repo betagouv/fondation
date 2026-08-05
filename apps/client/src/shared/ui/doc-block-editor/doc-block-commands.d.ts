@@ -2,7 +2,7 @@ import type { ReactNodeViewProps } from '@tiptap/react';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    officialReportModel: {
+    docBlockModel: {
       resetBlock: (viewProps: ReactNodeViewProps) => ReturnType;
       acknowledgeBlock: (viewProps: ReactNodeViewProps) => ReturnType;
     };

@@ -3,7 +3,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { FormattedMessage } from 'react-intl';
 
-export function OfficialReportEditedBadge() {
+export function DocBlockEditedBadge() {
   return (
     <Badge
       small

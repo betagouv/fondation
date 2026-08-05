@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
+import { tipTapNodeToHtml } from '@/shared/ui/doc-block-editor';
 import type { DocNominationFileOutcomeEnum } from '@/types/enums.types';
 import { assertNever } from '@/utils/types.util';
 import * as $api from '@api/sdk';
@@ -12,7 +13,6 @@ import { OfficialReportFileBlock } from './OfficialReportFileBlock';
 import { OfficialReportIntroBlock } from './OfficialReportIntroBlock';
 import { OfficialReportSectionIntroBlock } from './OfficialReportSectionIntroBlock';
 import { OfficialReportSectionTitleBlock } from './OfficialReportSectionTitleBlock';
-import { tipTapNodeToHtml } from './tiptap-node-to-html';
 
 export class OfficialReportBlocksModel {
   readonly blocks: readonly OfficialReportBlock[];

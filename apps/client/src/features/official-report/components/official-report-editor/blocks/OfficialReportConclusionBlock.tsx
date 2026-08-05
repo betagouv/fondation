@@ -11,9 +11,7 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
-import { OfficialReportDriftBanner } from '../components/OfficialReportDriftBanner';
-import { OfficialReportEditedBadge } from '../components/OfficialReportEditedBadge';
-import { useBlockActive } from '../hooks/useBlockActive';
+import { DocBlockDriftBanner, DocBlockEditedBadge, useBlockActive } from '@/shared/ui/doc-block-editor';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
 
@@ -59,10 +57,10 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
         'doc-block--warning': edited,
       })}
     >
-      {edited && <OfficialReportEditedBadge />}
+      {edited && <DocBlockEditedBadge />}
 
       <NodeViewContent />
-      <OfficialReportDriftBanner {...props} />
+      <DocBlockDriftBanner {...props} />
     </NodeViewWrapper>
   );
 }
