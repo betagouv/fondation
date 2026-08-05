@@ -3141,7 +3141,7 @@ export type ResetAgendaFileBlockData = {
     body?: never;
     path: {
         agendaId: string;
-        fileId: number;
+        fileId: string;
     };
     query?: never;
     url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
@@ -3157,7 +3157,7 @@ export type EditAgendaFileBlockData = {
     body: EditAgendaFileBlockDto;
     path: {
         agendaId: string;
-        fileId: number;
+        fileId: string;
     };
     query?: never;
     url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
