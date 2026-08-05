@@ -705,8 +705,8 @@ export class SessionTransparenceRepository {
   }
 
   private async persistSessionTransparenceValidated(message: SessionTransparenceValidated) {
-    await this.db.tx.session.update({
-      where: { id: message.sessionId },
+    await this.db.tx.sessionTransparenceGds.update({
+      where: { sessionId: message.sessionId },
       data: {
         validatedBy: message.userId,
         validatedAt: this.clock.now(),

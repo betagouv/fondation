@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
+import { ListGdsNominationSessionsQueryDto } from '../../abstract-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
@@ -12,12 +12,13 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
-const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
+export const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
-export class ListNominationSessionsQuery {
+export class ListSessionsQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: {
@@ -56,9 +57,7 @@ export class ListNominationSessionsQuery {
           formation: true,
           date: true,
           typeDeSaisine: true,
-          validatedAt: true,
-
-          transparenceGds: { select: { dueDate: true } },
+          transparenceGds: { select: { dueDate: true, validatedAt: true } },
         },
       });
 
@@ -67,7 +66,7 @@ export class ListNominationSessionsQuery {
       );
       const txReportedIds = new Set(reportedRows.map(({ id }) => id));
 
-      return [txCount, txSessions, txReportedIds];
+      return [txCount, txSessions, txReportedIds] as const;
     });
 
     const items = sessions.map((s) => ({
@@ -77,17 +76,17 @@ export class ListNominationSessionsQuery {
       date: DateOnly.fromDate(s.date).toJson(),
       dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
-      status: ListNominationSessionsQuery.computeStatus(s, reportedIds),
+      status: ListSessionsQuery.computeStatus(s, reportedIds),
     }));
 
     return paginate({ items, totalCount, pagination: query.pagination });
   }
 
   private static computeStatus(
-    session: { id: string; validatedAt: Date | null },
+    session: { id: string; transparenceGds: { validatedAt: Date | null } | null },
     reportedIds: ReadonlySet<string>,
   ): SessionStatus {
-    if (!session.validatedAt) return 'TO_VALIDATE';
+    if (!isDefined(session.transparenceGds?.validatedAt)) return 'TO_VALIDATE';
     if (reportedIds.has(session.id)) return 'REPORTED';
     return 'READY';
   }

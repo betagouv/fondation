@@ -3,6 +3,10 @@ import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
+import {
+  ListedNominationSessionAttachmentDto,
+  ListSessionAttachmentsQuery,
+} from '../../abstract/infrastructure/queries/list-session-attachments.query';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
@@ -22,7 +26,6 @@ import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
-import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import {
@@ -37,11 +40,11 @@ import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
 } from './queries/count-nomination-files-by-status.query';
-import { CountedUnaffectedFilesDto, CountUnaffectedFilesQuery } from './queries/count-unaffected-files.query';
 import {
+  CountNonValidatedSessionsQuery,
   CountUsersNewSessionsDto,
-  CountUsersNewSessionsQuery,
-} from './queries/count-users-new-sessions.query';
+} from './queries/count-non-validated-sessions.query';
+import { CountedUnaffectedFilesDto, CountUnaffectedFilesQuery } from './queries/count-unaffected-files.query';
 import {
   type DetailedNominationFileAttachmentDto,
   DetailNominationFileAttachmentQuery,
@@ -82,14 +85,6 @@ import {
   ListNominationFilesQuery,
   type PaginatedNominationFiles,
 } from './queries/list-nomination-files.query';
-import {
-  type ListedNominationSessionAttachmentDto,
-  ListNominationSessionAttachmentsQuery,
-} from './queries/list-nomination-session-attachments.query';
-import {
-  ListedNominationSessionsDto,
-  ListNominationSessionsQuery,
-} from './queries/list-nomination-sessions.query';
 import { SessionTransparenceRepository } from './repositories/session-transparence.repository';
 
 @Injectable()
@@ -111,16 +106,15 @@ export class TransparenceService {
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
-    private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
-    private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
+    private readonly listNominationSessionAttachmentsQuery: ListSessionAttachmentsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
-    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+    private readonly countNonValidatedSessionsQuery: CountNonValidatedSessionsQuery,
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
@@ -148,6 +142,11 @@ export class TransparenceService {
     priorities: (PriorityEnum | null)[] | undefined;
   }): Promise<DetailedMemberSessionDto> {
     return this.internalDetailMemberSessionQuery.handle(query);
+  }
+
+  @Transactional()
+  countNonValidatedSessions(): Promise<CountUsersNewSessionsDto> {
+    return this.countNonValidatedSessionsQuery.handle();
   }
 
   @Transactional()
@@ -434,16 +433,6 @@ export class TransparenceService {
     }
   }
 
-  listNominationSessions(query: {
-    search: string | null;
-    pagination: Pagination;
-    typeDeSaisine: TypeDeSaisineEnum;
-    formations: readonly FormationEnum[] | undefined;
-    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
-  }): Promise<ListedNominationSessionsDto> {
-    return this.listNominationSessionsQuery.handle(query);
-  }
-
   async defineNominationFileOutcome(command: {
     sessionId: string;
     nominationFileId: string;
@@ -519,11 +508,6 @@ export class TransparenceService {
     return this.countNominationFilesByStatusQuery.handle(query);
   }
 
-  countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
-    return this.countUsersNewSessionsQuery.handle();
-  }
-
-  @Transactional()
   async validateSession(command: { sessionId: string; userId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.validate({ userId: command.userId });

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ListGdsNominationSessionsQueryDto } from '../session/transparence/infrastructure/dtos/transparence-session.dto';
+import { ListGdsNominationSessionsQueryDto } from '../session/abstract/abstract-session.dto';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';

@@ -35,10 +35,11 @@ model Magistrat {
 
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
 
-  observations              Observation[]
-  candidacies               Candidate[]
-  nominations               Nomination[]
-  detectedInNominationFiles DossierDeNomination[]
+  observations                 Observation[]
+  candidacies                  Candidate[]
+  nominations                  Nomination[]
+  detectedInNominationFiles    DossierDeNomination[]
+  detectedInNominationFilesMtt NominationFileMtt[]
 
   search Unsupported("tsvector")? @default(dbgenerated("(((setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))
 

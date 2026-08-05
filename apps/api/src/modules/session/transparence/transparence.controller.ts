@@ -38,7 +38,6 @@ import {
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadNominationFileAttachmentsDto,
@@ -51,8 +50,8 @@ import {
 } from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountUsersNewSessionsDto } from './infrastructure/queries/count-non-validated-sessions.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
-import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
@@ -60,8 +59,6 @@ import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistr
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
-import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -72,28 +69,10 @@ export class SessionController {
   constructor(private readonly sessions: TransparenceService) {}
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/garde-des-sceaux')
-  @UsePipes(ZodValidationPipe)
-  @ApiPaginated()
-  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
-  listSessionsOfTypeGardeDesSceaux(
-    @QueryPagination() pagination: Pagination,
-    @Query() query: ListGdsNominationSessionsQueryDto,
-  ): Promise<ListedNominationSessionsDto> {
-    return this.sessions.listNominationSessions({
-      pagination,
-      search: query.search || null,
-      formations: query.formations,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: 'TRANSPARENCE_GDS',
-    });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/new/count')
   @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
   countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
-    return this.sessions.countUsersNewSessions();
+    return this.sessions.countNonValidatedSessions();
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -388,18 +367,6 @@ export class SessionController {
       sessionId,
       fileId,
     });
-  }
-
-  @HasRole()
-  @Get('/:sessionId/attachments')
-  @ZodResponse({
-    type: ListedNominationSessionAttachmentDto,
-    status: HttpStatus.OK,
-  })
-  async listNominationSessionAttachments(
-    @Param('sessionId') sessionId: string,
-  ): Promise<ListedNominationSessionAttachmentDto> {
-    return this.sessions.listAttachments({ sessionId });
   }
 
   /** @warning this is a mutation */
