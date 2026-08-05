@@ -392,7 +392,7 @@ function css() {
       .signatures {
         break-before: avoid;
         break-inside: avoid;
-        margin-top: 3rem;
+        margin-top: 10rem;
         font-size: 0.8rem;
 
         display: flex;

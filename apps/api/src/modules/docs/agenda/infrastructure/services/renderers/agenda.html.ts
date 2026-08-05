@@ -159,6 +159,7 @@ function agendaCss(): string {
         font-size: 0.8rem;
 
         .signature {
+          margin-top: 5rem;
           text-align: right;
         }
       }
