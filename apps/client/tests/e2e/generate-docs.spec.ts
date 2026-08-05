@@ -115,6 +115,15 @@ test.describe('Générer un ordre du jour', () => {
     // Et que je publie aux membres
     await page.publishAffectationsButton.click();
     await app.page.getByRole('alert').waitFor();
+
+    // Quand je définis une issue "SURSIS" à tous les dossiers
+    await page.switchToEditModeButton.click();
+    for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
+      const row = page.sessionRow({ name });
+      await row.locator(/* outcome button */ 'td:last-of-type button').click();
+      await app.page.getByRole('button', { name: 'SURSIS ' }).click();
+    }
+    await page.switchToReadModeButton.click();
   });
 
   test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {

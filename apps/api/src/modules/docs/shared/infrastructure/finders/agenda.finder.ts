@@ -7,10 +7,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
-import {
-  formationEnumToPrismaFormationEnum,
-  prismaFormationEnumToFormationEnum,
-} from 'src/modules/shared/mappers/formation.mapper';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
@@ -23,24 +20,62 @@ export class AgendaFinder {
     private readonly db: Db,
 
     @Inject(forwardRef(() => TransparenceService))
-    private readonly sessions: TransparenceService,
+    private readonly transparences: TransparenceService,
   ) {}
 
-  findNonIncludedInOfficialReport(query: {
+  @Transactional()
+  async hasAnyReportableInOfficialReport(query: {
+    sessionId: string;
+    affectationVersionId: string;
+  }): Promise<boolean> {
+    const where = await this.buildFindReportableInOfficialReport(query);
+    if (!where) return false;
+
+    const result = await this.db.tx.agenda.findFirst({ where, select: { id: true } });
+    return Boolean(result);
+  }
+
+  @Transactional()
+  async findReportableInOfficialReport(query: {
     ids?: Set<string>;
-    sessionId?: string;
-    formation?: FormationEnum;
+    sessionId: string;
     ignoreOfficialReportId?: string;
   }): Promise<FoundAgendasDto> {
-    return this.find(
-      {
+    const where = await this.buildFindReportableInOfficialReport(query);
+    if (!where) return { items: [] };
+
+    return this.find(where, query.ids);
+  }
+
+  private async buildFindReportableInOfficialReport(query: {
+    ids?: Set<string>;
+    sessionId: string;
+    affectationVersionId?: string;
+    ignoreOfficialReportId?: string;
+  }): Promise<Prisma.AgendaWhereInput | null> {
+    let versionId = query.affectationVersionId;
+    if (!versionId) {
+      const publishedVersion = await this.transparences.versions.lastPublished({
         sessionId: query.sessionId,
-        id: { in: query.ids ? Array.from(query.ids) : undefined },
-        OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }],
-        formation: query.formation ? formationEnumToPrismaFormationEnum(query.formation) : undefined,
+      });
+
+      if (publishedVersion.isNone()) return null;
+      versionId = publishedVersion.id;
+    }
+
+    return {
+      sessionId: query.sessionId,
+      id: { in: query.ids ? Array.from(query.ids) : undefined },
+      OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }],
+      nominationFiles: {
+        every: {
+          nominationFile: {
+            outcome: { not: null },
+            reporterIds: { some: { versionId } },
+          },
+        },
       },
-      query.ids,
-    );
+    };
   }
 
   findNonIncludedInPresentationPlan(query: {
@@ -106,7 +141,7 @@ export class AgendaFinder {
     const sessions = new Map<string, { typeDeSaisine: TypeDeSaisineEnum; date: DateOnlyJson }>();
     const sessionIds = new Set(items.map(({ sessionId }) => sessionId));
     for (const sessionId of sessionIds) {
-      const session = await this.sessions.details({ sessionId });
+      const session = await this.transparences.details({ sessionId });
       sessions.set(sessionId, { date: session.date, typeDeSaisine: session.typeDeSaisine });
     }
 

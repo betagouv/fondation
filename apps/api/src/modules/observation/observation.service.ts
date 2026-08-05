@@ -2,15 +2,17 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 
+import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
-import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
 import { isDefined } from 'src/utils/is-defined';
 
 import {
@@ -49,9 +51,11 @@ export class ObservationService {
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly files: Files,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly listObservationsAttachmentsQuery: ListObservationsAttachmentsQuery,
     private readonly observationFinder: ObservationFinder,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
   async createObservation(command: {
@@ -185,7 +189,7 @@ export class ObservationService {
     observationId: string;
     files: readonly StoredFile[];
   }): Promise<AttachedMemberCommentScreenshotsDto> {
-    const reporters = await this.affectationVersionFinder.findReporters({
+    const reporters = await this.transparences.versions.findReporters({
       nominationFileId: command.nominationFileId,
       sessionId: command.sessionId,
     });
@@ -233,7 +237,7 @@ export class ObservationService {
     observationId: string;
     comment: string;
   }): Promise<void> {
-    const reporters = await this.affectationVersionFinder.findReporters({
+    const reporters = await this.transparences.versions.findReporters({
       nominationFileId: command.nominationFileId,
       sessionId: command.sessionId,
     });
