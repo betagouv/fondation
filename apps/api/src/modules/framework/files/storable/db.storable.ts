@@ -139,7 +139,7 @@ export class DbStorage implements Storage {
               toReturn.push({ ...original, url, expiresAt: x.expiresAt });
               toCreate.push({
                 id,
-                url: url.toString(),
+                url: x.url.toString(),
                 fileId: original.id,
                 expiresAt: x.expiresAt,
               });
