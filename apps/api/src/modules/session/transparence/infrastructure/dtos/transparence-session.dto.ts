@@ -3,10 +3,8 @@ import z from 'zod';
 
 import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { createSortableDto } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
 
 const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
   file: z
@@ -73,23 +71,6 @@ export class DefineNominationFileOutcomeDto extends createZodDto(
   z.object({
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     comment: z.string().trim().nonempty().nullable(),
-  }),
-) {}
-
-export class ListGdsNominationSessionsQueryDto extends createSortableDto(
-  z.object({
-    search: z
-      .string()
-      .trim()
-      .optional()
-      .transform((x) => (x?.length === 0 ? undefined : x)),
-    sortBy: z.enum(['date', 'dueDate']).optional(),
-    formations: z
-      .preprocess(
-        (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
-        z.array(z.enum(FormationEnum)).optional(),
-      )
-      .optional(),
   }),
 ) {}
 

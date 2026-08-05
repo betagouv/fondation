@@ -5,7 +5,7 @@ import z from 'zod';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
-export class ListNominationSessionAttachmentsQuery {
+export class ListSessionAttachmentsQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {

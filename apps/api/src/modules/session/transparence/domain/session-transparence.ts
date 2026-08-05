@@ -91,6 +91,7 @@ export class SessionTransparenceFilesObserversUpdated {
   ) {}
 }
 
+/** @deprecated */
 export class SessionTransparenceAttachmentAdded {
   constructor(
     readonly sessionId: string,
@@ -98,6 +99,7 @@ export class SessionTransparenceAttachmentAdded {
   ) {}
 }
 
+/** @deprecated */
 export class SessionTransparenceAttachmentRemoved {
   constructor(
     readonly sessionId: string,
@@ -519,12 +521,14 @@ export class SessionTransparence {
     this.#messages.push(new SessionTransparenceFilesObserversUpdated(this.id, knownFiles));
   }
 
+  /** @deprecated */
   addAttachments(command: { files: { id: string }[] }) {
     for (const file of command.files) {
       this.#messages.push(new SessionTransparenceAttachmentAdded(this.id, file));
     }
   }
 
+  /** @deprecated */
   removeAttachment(command: { fileId: string }) {
     this.#messages.push(new SessionTransparenceAttachmentRemoved(this.id, command.fileId));
   }
