@@ -14,20 +14,10 @@ import {
   Put,
   Query,
   StreamableFile,
-  UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiConsumes,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiProduces,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
@@ -65,29 +55,6 @@ export class AgendasController {
   ): Promise<CreatedAgendaDto> {
     return this.agendas.createAgenda({
       sessionId,
-      date: body.date,
-      authorId: authUser.id,
-      chairmanId: body.chairmanId,
-      nominationFileIds: body.nominationFileIds,
-      sessionMeetingDate: body.sessionMeetingDate,
-    });
-  }
-
-  /**
-   * @deprecated Remplacé par `PUT /agendas/:agendaId/metadata` et `PUT /agendas/:agendaId/files`.
-   */
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Put('/agendas/:agendaId')
-  @UsePipes(ZodValidationPipe)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ deprecated: true })
-  updateAgenda(
-    @Param('agendaId') agendaId: string,
-    @AuthedUser() authUser: { id: string },
-    @Body() body: CreateOrUpdateAgendaDto,
-  ): Promise<void> {
-    return this.agendas.updateAgenda({
-      agendaId,
       date: body.date,
       authorId: authUser.id,
       chairmanId: body.chairmanId,
@@ -209,37 +176,6 @@ export class AgendasController {
     @Param('fileId', ParseBigIntPipe) fileId: bigint,
   ): Promise<void> {
     return this.agendas.resetAgendaFileBlock({ agendaId, fileId });
-  }
-
-  /**
-   * @deprecated Remplacé par l'édition par bloc (`PATCH /agendas/:agendaId/blocks/files/:fileId`).
-   */
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Patch('/agendas/:agendaId/html')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiConsumes('multipart/form-data')
-  @ApiOperation({
-    deprecated: true,
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          encoding: { html: { contentType: 'text/html' } },
-          schema: { type: 'object', properties: { html: { type: 'string', format: 'binary' } } },
-        },
-      },
-    },
-  })
-  @UseInterceptors(
-    FileInterceptor('html', {
-      limits: { fileSize: 5_242_880 /* 5Mo */ },
-      fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'text/html'),
-    }),
-  )
-  updateAgendaHtml(
-    @Param('agendaId') agendaId: string,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<void> {
-    return this.agendas.updateAgendaHtml({ id: agendaId, html: file.buffer });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

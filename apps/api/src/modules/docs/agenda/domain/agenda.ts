@@ -159,43 +159,6 @@ export class Agenda {
     return diff;
   }
 
-  /**
-   * @deprecated Remplacé par {@link updateMetadata} et {@link updateFiles}.
-   * Conservé temporairement, ne pas utiliser pour de nouveaux usages.
-   */
-  update(command: {
-    authorId: string;
-    date: DateOnly;
-    sessionMeetingDate: DateOnly;
-    nominationFiles: readonly AgendaNominationFile[];
-    chairman: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      gender: GenderEnum;
-      title: UserTitleEnum | null;
-      displayTitle: string | null;
-    };
-    reportedFiles: ReportedNominationFileCollection;
-  }): [AgendaMetadataDiff, AgendaFilesDiff] {
-    if (command.nominationFiles.length === 0) throw new EmptyAgenda();
-
-    const agendaMetadataDiff = this.updateMetadata({
-      authorId: command.authorId,
-      date: command.date,
-      chairmanId: command.chairman.id,
-      sessionMeetingDate: command.sessionMeetingDate,
-    });
-
-    const agendaFilesDiff = this.updateFiles({
-      authorId: command.authorId,
-      reportedFiles: command.reportedFiles,
-      nominationFileIds: new Set(command.nominationFiles.map(({ id }) => id)),
-    });
-
-    return [agendaMetadataDiff, agendaFilesDiff] as const;
-  }
-
   delete(): void {
     this.#messages.push(new AgendaDeleted(this.id));
   }

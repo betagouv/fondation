@@ -94,40 +94,6 @@ describe('Agenda', () => {
     expect(act).toThrow(AgendaFilesAlreadyReported);
   });
 
-  describe('[DEPRECATED] update', () => {
-    // TODO: remove once .update methods is removed
-
-    it('should prevent updating an agenda with an already reported file', () => {
-      const agenda = makeAgenda();
-
-      const officialReportId = makeId('OfficialReportId');
-      const act = () =>
-        agenda.update({
-          ...props,
-          reportedFiles: ReportedNominationFileCollection.from([
-            { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
-          ]),
-        });
-
-      expect(act).toThrow(new AgendaFilesAlreadyReported([props.nominationFiles[0].id]));
-    });
-
-    it('should allow updating an agenda with an already reported file in the linked official report', () => {
-      const officialReportId = makeId('OfficialReportId');
-      const agenda = makeAgenda({ officialReportId });
-
-      const act = () =>
-        agenda.update({
-          ...props,
-          reportedFiles: ReportedNominationFileCollection.from([
-            { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
-          ]),
-        });
-
-      expect(act).not.toThrow();
-    });
-  });
-
   it('should prevent updating an agenda file with an already reported file', () => {
     const agenda = makeAgenda();
 
