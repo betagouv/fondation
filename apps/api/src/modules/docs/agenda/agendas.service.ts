@@ -103,61 +103,6 @@ export class AgendasService {
     return { id: agenda.id };
   }
 
-  /**
-   * @deprecated Remplacé par {@link updateAgendaMetadata} et {@link updateAgendaFiles}.
-   * Conservé temporairement, ne pas utiliser pour de nouveaux usages.
-   */
-  async updateAgenda(command: {
-    agendaId: string;
-    authorId: string;
-    chairmanId: string;
-    date: DateOnlyJson;
-    sessionMeetingDate: DateOnlyJson;
-    nominationFileIds: readonly string[];
-  }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
-
-      const chairman = await this.members.internalGetMember({
-        id: command.chairmanId,
-      });
-
-      const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
-        sessionId: agenda.sessionId,
-        ids: command.nominationFileIds,
-      });
-
-      const reportedFiles = await this.reportedNominationFilesFinder.find({
-        fileIds: new Set(nominationFiles.map(({ id }) => id)),
-        ignoreOfficialReportId: agenda.officialReportId ?? undefined,
-      });
-
-      const diffs = agenda.update({
-        chairman,
-        reportedFiles,
-        authorId: command.authorId,
-        date: DateOnly.fromJson(command.date),
-        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-        nominationFiles: nominationFiles.map((f) => ({
-          id: f.id,
-          number: f.number,
-          outcome: f.outcome,
-          name: f.magistrat.name,
-          grade: f.magistrat.position.grade,
-          currentPosition: f.magistrat.position.label,
-          targetedGrade: f.targetPosition.grade,
-          targetedPosition: f.targetPosition.label,
-          reporters: f.reporters.map((r) => r.fullTitledName),
-        })),
-      });
-
-      await this.agendaRepository.persist(agenda);
-      return diffs.flatMap((diff) => (diff.hasAny ? diff.officialReportInvalidations : []));
-    });
-
-    await this.emitInvalidations(invalidations);
-  }
-
   async updateAgendaMetadata(command: {
     agendaId: string;
     authorId: string;
@@ -242,6 +187,7 @@ export class AgendasService {
     return this.detailsAgendaMetadataQuery.handle(query);
   }
 
+  @Transactional()
   async resetAgendaDocument(command: { id: string }): Promise<void> {
     const agenda = await this.db.tx.agenda.findUnique({
       where: { id: command.id },
@@ -255,17 +201,6 @@ export class AgendasService {
     });
 
     if (agenda.pdf) this.files.delete([agenda.pdf]);
-  }
-
-  /**
-   * @deprecated Remplacé par l'édition par bloc ({@link editAgendaFileBlock}).
-   * Conservé temporairement, ne pas utiliser pour de nouveaux usages.
-   */
-  async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
-    await this.db.tx.agenda.update({
-      where: { id: command.id },
-      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
-    });
   }
 
   @Transactional()

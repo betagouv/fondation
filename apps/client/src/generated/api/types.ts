@@ -2987,51 +2987,6 @@ export type CreateAgendaResponses = {
 
 export type CreateAgendaResponse = CreateAgendaResponses[keyof CreateAgendaResponses];
 
-export type DeleteAgendaData = {
-    body?: never;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
-};
-
-export type DeleteAgendaResponses = {
-    204: void;
-};
-
-export type DeleteAgendaResponse = DeleteAgendaResponses[keyof DeleteAgendaResponses];
-
-export type DetailsAgendaMetadataData = {
-    body?: never;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
-};
-
-export type DetailsAgendaMetadataResponses = {
-    200: DetailedAgendaMetadata;
-};
-
-export type DetailsAgendaMetadataResponse = DetailsAgendaMetadataResponses[keyof DetailsAgendaMetadataResponses];
-
-export type UpdateAgendaData = {
-    body: CreateOrUpdateAgendaDto;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
-};
-
-export type UpdateAgendaResponses = {
-    204: void;
-};
-
-export type UpdateAgendaResponse = UpdateAgendaResponses[keyof UpdateAgendaResponses];
-
 export type UpdateAgendaMetadataData = {
     body: UpdateAgendaMetadataDto;
     path: {
@@ -3125,6 +3080,36 @@ export type GenerateAgendaPdfResponses = {
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
 
+export type DeleteAgendaData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}';
+};
+
+export type DeleteAgendaResponses = {
+    204: void;
+};
+
+export type DeleteAgendaResponse = DeleteAgendaResponses[keyof DeleteAgendaResponses];
+
+export type DetailsAgendaMetadataData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}';
+};
+
+export type DetailsAgendaMetadataResponses = {
+    200: DetailedAgendaMetadata;
+};
+
+export type DetailsAgendaMetadataResponse = DetailsAgendaMetadataResponses[keyof DetailsAgendaMetadataResponses];
+
 export type DetailsAgendaDocumentBlocksData = {
     body?: never;
     path: {
@@ -3171,23 +3156,6 @@ export type EditAgendaFileBlockResponses = {
 };
 
 export type EditAgendaFileBlockResponse = EditAgendaFileBlockResponses[keyof EditAgendaFileBlockResponses];
-
-export type UpdateAgendaHtmlData = {
-    body?: {
-        html?: Blob | File;
-    };
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/html';
-};
-
-export type UpdateAgendaHtmlResponses = {
-    204: void;
-};
-
-export type UpdateAgendaHtmlResponse = UpdateAgendaHtmlResponses[keyof UpdateAgendaHtmlResponses];
 
 export type ResetAgendaDocumentData = {
     body?: never;
