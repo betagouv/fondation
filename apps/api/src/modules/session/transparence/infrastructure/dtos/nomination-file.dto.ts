@@ -92,6 +92,12 @@ export class UpdateCommentDto extends createZodDto(
   }),
 ) {}
 
+export class UpdateMissingEvaluationDto extends createZodDto(
+  z.object({
+    missingEvaluation: z.boolean(),
+  }),
+) {}
+
 export class UpdateAuditionDateDto extends createZodDto(
   z
     .object({

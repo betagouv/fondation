@@ -179,6 +179,7 @@ export class ListNominationFilesQuery {
           targetedPosition: x.targetedPosition,
         }),
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
+        missingEvaluation: x.missingEvaluation,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
@@ -309,6 +310,7 @@ const RawListedNominationFiles = z.array(
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().nullable(),
     alertHidden: z.boolean(),
+    missingEvaluation: z.boolean(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
@@ -376,6 +378,7 @@ const NominationFileAffectationItemSchema = z.object({
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionExpected: z.boolean(),
   auditionTime: timeOnlySchema.nullable(),
+  missingEvaluation: z.boolean(),
   reporters: z.array(
     z.object({
       id: z.string(),

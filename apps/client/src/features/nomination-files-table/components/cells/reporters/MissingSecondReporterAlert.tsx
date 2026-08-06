@@ -21,11 +21,15 @@ export function MissingSecondReporterAlert(props: {
   const isSg = useIsSgNavigation();
   if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 
+  const label = formatMessage({ defaultMessage: '2 rapporteurs attendus' });
+
   return (
     /** @warning ".multi-reporters-alert" is used by the table CSS to display the orange row */
-    <div className="multi-reporters-alert fr-pr-1v cursor-pointer">
-      <Tooltip title={formatMessage({ defaultMessage: '2 rapporteurs attendus' })}>
+    <div className="multi-reporters-alert fr-pr-1v cursor-help">
+      <Tooltip title={label}>
         <i
+          aria-label={label}
+          role="img"
           style={{
             color: colors.decisions.text.default.warning.default,
             backgroundColor: colors.decisions.background.contrast.warning.default,

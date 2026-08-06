@@ -8,6 +8,7 @@ import { Biography } from './biography/Biography';
 import { CareerInfo } from './career-info/CareerInfo';
 import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
+import { MissingEvaluation, MissingEvaluationNotice } from './missing-evaluation/MissingEvaluation';
 import { Observations } from './observations/Observations';
 import { Outcome } from './outcome/Outcome';
 import { SgComment } from './sg-comment/SgComment';
@@ -29,6 +30,10 @@ export function MagistratSidePanelContent(props: {
         auditionDate={nominationFile.auditionDate}
         auditionTime={nominationFile.auditionTime}
         editable={auditionEditable}
+      />
+      <MissingEvaluationNotice
+        editable={isSgContext && nominationFile.content.isUpdatable}
+        missingEvaluation={nominationFile.missingEvaluation}
       />
       <Outcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <CareerInfo content={nominationFile.content} />
@@ -56,6 +61,13 @@ export function MagistratSidePanelContent(props: {
           editable={auditionEditable}
           key={`${nominationFile.id}-audition`}
           nominationFile={nominationFile}
+        />
+      )}
+      {isSgContext && (
+        <MissingEvaluation
+          key={`${nominationFile.id}-missing-evaluation`}
+          nominationFile={nominationFile}
+          sessionId={sessionId}
         />
       )}
     </div>

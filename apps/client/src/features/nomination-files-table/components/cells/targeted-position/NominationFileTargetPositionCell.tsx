@@ -4,6 +4,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import React from 'react';
+import { useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { unaccent } from '@/utils/string.utils';
@@ -43,6 +44,7 @@ function useHearingAlertTargetedPosition(nominationFile: SessionNominationFile):
 }
 
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
+  const { formatMessage } = useIntl();
   const { setNominationFile } = React.useContext(NominationFileTargetPositionContext);
   const { hasAlert, position } = useHearingAlertTargetedPosition(props.nominationFile);
 
@@ -55,7 +57,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
 
   return (
     /** @warning ".position-hearing-alert" is used by {@link NominationFilesTable.css} */
-    <Tooltip title="Fiche de juridiction requise">
+    <Tooltip title={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>
       <Button
         size="small"
         className="position-hearing-alert fr-px-0 hover:underline"

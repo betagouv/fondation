@@ -13,6 +13,7 @@ import { ReportsDnVueGenerale } from '@/features/reports/components/ReportsDnVue
 import { ReportStateTag } from '@/features/reports/components/ReportStateTag';
 import { useReportListFocus } from '@/features/reports/hooks/useReportListFocus';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { MissingEvaluationIcon } from '@/shared/components/missing-evaluation';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
@@ -52,7 +53,13 @@ function useReportListColumns(sessionId: string) {
               to: generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id: row.original.id }),
             }}
           >
-            <div className="text-left leading-4 underline">{row.original.name}</div>
+            <div className="flex flex-wrap items-center text-left leading-4">
+              <span className="underline">{row.original.name}</span>
+              <MissingEvaluationIcon
+                className="fr-ml-1v"
+                missingEvaluation={row.original.missingEvaluation}
+              />
+            </div>
             {row.original.currentPosition ? (
               <span className="text-xs">{row.original.currentPosition}</span>
             ) : null}

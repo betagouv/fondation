@@ -369,6 +369,7 @@ export type PaginatedNominationFiles = {
             minutes: number;
             seconds: number;
         } | null;
+        missingEvaluation: boolean;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -453,6 +454,10 @@ export type AutoAffectationDto = {
 
 export type UpdateCommentDto = {
     comment: string | null;
+};
+
+export type UpdateMissingEvaluationDto = {
+    missingEvaluation: boolean;
 };
 
 export type UpdateAuditionDateDto = {
@@ -616,6 +621,7 @@ export type DetailedSummaryDto = {
         minutes: number;
         seconds: number;
     } | null;
+    missingEvaluation: boolean;
     grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     position: string | null;
     targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
@@ -784,6 +790,7 @@ export type DetailedMemberSessionDto = {
         currentPosition: string | null;
         targettedPosition: string;
         targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        missingEvaluation: boolean;
         /**
          * LODAM observers, we need to keep them until we recover data from LODAM
          */
@@ -2290,6 +2297,22 @@ export type UpdateNominationFileCommentResponses = {
 };
 
 export type UpdateNominationFileCommentResponse = UpdateNominationFileCommentResponses[keyof UpdateNominationFileCommentResponses];
+
+export type UpdateNominationFileMissingEvaluationData = {
+    body: UpdateMissingEvaluationDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/missing-evaluation';
+};
+
+export type UpdateNominationFileMissingEvaluationResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileMissingEvaluationResponse = UpdateNominationFileMissingEvaluationResponses[keyof UpdateNominationFileMissingEvaluationResponses];
 
 export type UpdateNominationFileAuditionDateData = {
     body: UpdateAuditionDateDto;

@@ -43,5 +43,3 @@ export const Upcoming: Story = {};
 export const Past: Story = { args: { at: PAST_AT } };
 
 export const WithAction: Story = { args: { withAction: true } };
-
-export const Empty: Story = { args: { at: null } };

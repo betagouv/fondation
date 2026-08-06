@@ -6,6 +6,7 @@ import * as seed from '../utils/seed.ts';
 test.describe('Members E2E', () => {
   test.describe('Given a user with role ADJOINT_SECRETAIRE_GENERAL', () => {
     let memberId: string;
+    let memberLastName: string;
     let jurisdictionIds: string[];
 
     // Jurisdictions are populated by importing a LODAM session
@@ -37,6 +38,7 @@ test.describe('Members E2E', () => {
 
       const member = await registerUser('MEMBRE_COMMUN');
       memberId = member.id;
+      memberLastName = member.lastName;
     });
 
     test('updates a member excluded jurisdictions', async ({ agent, expect }) => {
@@ -60,7 +62,9 @@ test.describe('Members E2E', () => {
     test('lists members with their excluded jurisdictions', async ({ agent, expect }) => {
       await agent.members.excludeJurisdictions({ path: { userId: memberId }, body: { jurisdictionIds } });
 
-      const members = await agent.members.listMembers({ query: { formations: [] } });
+      const members = await agent.members.listMembers({
+        query: { formations: [], search: memberLastName },
+      });
       expect(members.response?.status).toBe(200);
 
       const member = members.data?.items.find(({ id }) => id === memberId);
