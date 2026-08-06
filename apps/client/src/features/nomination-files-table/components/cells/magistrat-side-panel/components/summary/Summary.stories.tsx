@@ -67,6 +67,7 @@ function makeSummaryDetail(props: {
     isArchived: props.isArchived,
     lastPositionDate: null,
     lastRankingDate: null,
+    missingEvaluation: false,
     name: 'Camille DURAND',
     number: 42,
     observations: [],

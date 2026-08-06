@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 
 import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
+import { MissingEvaluationIcon } from '@/shared/components/missing-evaluation';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 export function SidePanelTrigger(props: { nominationFile: SessionNominationFile }) {
@@ -52,6 +53,10 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             title={auditionLabel}
           />
         )}
+        <MissingEvaluationIcon
+          className="fr-ml-1v cursor-pointer"
+          missingEvaluation={props.nominationFile.missingEvaluation}
+        />
         {hasAnnotations && (
           <i
             aria-label={annotationsLabel}
