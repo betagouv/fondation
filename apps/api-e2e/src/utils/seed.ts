@@ -12,6 +12,13 @@ export const functions = {
     labelOneFemale: 'procureure de la République',
     formation: 'PARQUET',
   },
+  PG: {
+    id: 'PG',
+    label: 'Procureur Général',
+    labelOneMale: 'procureur général',
+    labelOneFemale: 'procureure générale',
+    formation: 'PARQUET',
+  },
   P: {
     id: 'P',
     label: 'Président',

@@ -109,6 +109,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionExpected: false,
         auditionTime: null,
         canScheduleAudition: true,
         isArchived: false,
@@ -132,12 +133,10 @@ test.describe('Session E2E', () => {
           outcome: null,
           isAlertHidden: false,
           detectedMagistratId: null,
-          detectedJurisdictionId: 'TJ  GRASSE',
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
           },
-          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },
@@ -159,6 +158,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionExpected: false,
         auditionTime: null,
         canScheduleAudition: true,
         id: expect.any(String),
@@ -184,12 +184,10 @@ test.describe('Session E2E', () => {
           outcome: null,
           isAlertHidden: false,
           detectedMagistratId: null,
-          detectedJurisdictionId: 'TJ  TOULON',
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
           },
-          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },

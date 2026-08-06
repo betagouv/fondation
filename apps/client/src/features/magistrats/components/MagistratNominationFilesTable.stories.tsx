@@ -5,6 +5,7 @@ import { type MagistratNominationFile, MagistratNominationFilesTable } from './M
 function makeNominationFile(overrides: Partial<MagistratNominationFile>): MagistratNominationFile {
   return {
     auditionDate: null,
+    auditionExpected: false,
     auditionTime: null,
     id: 'dossier-1',
     name: 'VALROSE Honorine',
@@ -59,7 +60,7 @@ const REPORTERS = [
 ];
 
 type PlaygroundArgs = {
-  audition: 'none' | 'scheduled' | 'past';
+  audition: 'none' | 'expected' | 'scheduled' | 'past';
   dossierNumber: number;
   grade: string;
   ongoingSession: boolean;
@@ -82,7 +83,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     sessionName: 'Transparence Annuelle',
   },
   argTypes: {
-    audition: { control: 'inline-radio', options: ['none', 'scheduled', 'past'] },
+    audition: { control: 'inline-radio', options: ['none', 'expected', 'scheduled', 'past'] },
     outcome: { control: 'select', options: ['none', ...OUTCOMES] },
     reportersCount: { control: { type: 'range', min: 0, max: REPORTERS.length, step: 1 } },
   },
@@ -97,7 +98,11 @@ export const Playground: StoryObj<PlaygroundArgs> = {
               : args.audition === 'past'
                 ? { year: 2021, month: 3, day: 18 }
                 : null,
-          auditionTime: args.audition === 'none' ? null : { hours: 14, minutes: 30, seconds: 0 },
+          auditionExpected: args.audition === 'expected',
+          auditionTime:
+            args.audition === 'scheduled' || args.audition === 'past'
+              ? { hours: 14, minutes: 30, seconds: 0 }
+              : null,
           number: args.dossierNumber,
           outcome: args.outcome === 'none' ? null : { comment: null, value: args.outcome },
           reporters: REPORTERS.slice(0, args.reportersCount),
