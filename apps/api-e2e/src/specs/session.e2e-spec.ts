@@ -241,11 +241,7 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasAttachment).toBe(true);
     });
 
-    test('should flag then clear a missing evaluation on a nomination file', async ({
-      agent,
-      sessions,
-      expect,
-    }) => {
+    test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 
       const missingEvaluationOf = async (nominationFileId: string) => {
