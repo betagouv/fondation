@@ -340,7 +340,6 @@ export type PaginatedNominationFiles = {
                 day: number;
             } | null;
             informationCarrière: string | null;
-            detectedJurisdictionId: string | null;
             jurisdictions: {
                 current: {
                     id: string;
@@ -351,7 +350,6 @@ export type PaginatedNominationFiles = {
                     label: string | null;
                 } | null;
             };
-            detectedTargetedFunctionId: string | null;
             detectedMagistratId: string | null;
             outcome: {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
@@ -368,6 +366,7 @@ export type PaginatedNominationFiles = {
             month: number;
             day: number;
         } | null;
+        auditionExpected: boolean;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -1485,6 +1484,7 @@ export type ListedMagistratNominationFilesDto = {
             month: number;
             day: number;
         } | null;
+        auditionExpected: boolean;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -1540,6 +1540,7 @@ export type ListedMagistratObservationsDto = {
                 month: number;
                 day: number;
             } | null;
+            auditionExpected: boolean;
             auditionTime: {
                 hours: number;
                 minutes: number;

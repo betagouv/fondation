@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -44,7 +44,6 @@ export function ObservationDetailsContent({
   uploadFiles,
   isArchived,
 }: ObservationDetailsContentProps) {
-  const { formatMessage } = useIntl();
   const isSg = useIsSg();
   const observant = observation.observant;
   const candidacy = observant.candidacy;
@@ -96,15 +95,15 @@ export function ObservationDetailsContent({
                 </dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   {observation.observedMagistrat?.name}
+                  <DetailsLink
+                    context={context}
+                    magistratId={observation.observedMagistrat?.detectedMagistratId}
+                    small
+                  />
                   <LolfiLink
                     sessionId={sessionId}
                     nominationFileId={nominationFileId}
                     name={observation.observedMagistrat?.name}
-                    small
-                  />
-                  <DetailsLink
-                    context={context}
-                    magistratId={observation.observedMagistrat?.detectedMagistratId}
                     small
                   />
                 </dd>
@@ -129,17 +128,8 @@ export function ObservationDetailsContent({
                 </dt>
                 <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
                   <span>{fullNameUpperCase(observant)}</span>
-                  <Button
-                    size="small"
-                    className="rounded-full after:hidden"
-                    priority="tertiary no outline"
-                    title={formatMessage({ defaultMessage: 'vers LOLFI' })}
-                    iconId="fr-icon-external-link-line"
-                    iconPosition="right"
-                    linkProps={{ target: '_blank', href: observant.externalUrl }}
-                    // oxlint-disable-next-line react/no-children-prop
-                    children={undefined /* FIXME: TS issue otherwise */}
-                  />
+                  <DetailsLink context={context} magistratId={observant.id} small />
+                  <LolfiLink href={observant.externalUrl} small />
                 </dd>
               </div>
               {candidacy && (

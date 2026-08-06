@@ -33,7 +33,10 @@ export class ListMagistratObservationsQuery {
       const totalCount = await this.db.tx.observation.count({ where });
       const observations = await this.db.tx.observation.findMany({
         where,
-        orderBy: { dateReception: 'desc' },
+        orderBy: [
+          { nominationFile: { session: { date: 'desc' } } },
+          { nominationFile: { number: { sort: 'asc', nulls: 'last' } } },
+        ],
         skip: (query.pagination.page - 1) * query.pagination.limit,
         take: query.pagination.limit,
         select: { id: true, dateReception: true, nominationFileId: true },
