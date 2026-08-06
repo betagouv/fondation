@@ -147,6 +147,7 @@ export class InternalDetailMemberSessionQuery {
           grade: d.grade ?? '',
           targettedPosition: d.targetedPosition ?? '',
           targetedGrade: d.targetedGrade,
+          missingEvaluation: d.missingEvaluation,
 
           observers: d.observers,
           observations: (observations || []).filter(isDefined).map((o) => ({
@@ -210,6 +211,7 @@ export class DetailedMemberSessionDto extends createPaginatedZodDto(
     currentPosition: z.string().nullable(),
     targettedPosition: z.string(),
     targetedGrade: z.enum(GradeEnum),
+    missingEvaluation: z.boolean(),
 
     observers: z
       .array(z.string())

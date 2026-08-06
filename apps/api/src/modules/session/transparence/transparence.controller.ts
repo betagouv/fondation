@@ -32,6 +32,7 @@ import {
   ListNominationFilesQueryDto,
   UpdateAuditionDateDto,
   UpdateCommentDto,
+  UpdateMissingEvaluationDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
   CountUnaffectedFilesQueryDto,
@@ -311,6 +312,22 @@ export class SessionController {
       sessionId,
       nominationFileId,
       comment: body.comment,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/:nominationFileId/missing-evaluation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFileMissingEvaluation(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: UpdateMissingEvaluationDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFileMissingEvaluation({
+      sessionId,
+      nominationFileId,
+      missingEvaluation: body.missingEvaluation,
     });
   }
 

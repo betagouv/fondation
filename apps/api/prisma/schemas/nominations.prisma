@@ -47,17 +47,18 @@ enum PrismaNominationFileOutcomeEnum {
 }
 
 model DossierDeNomination {
-  id             String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt      DateTime                         @default(now()) @map("created_at") @db.Timestamp(6)
-  sessionId      String                           @map("session_id") @db.Uuid
+  id                String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt         DateTime                         @default(now()) @map("created_at") @db.Timestamp(6)
+  sessionId         String                           @map("session_id") @db.Uuid
   //// @deprecated
-  priorite       PrismaPrioriteEnum?              @ignore
-  priorities     PrismaPrioriteEnum[]             @default([])
-  comment        String?                          @map("comment") @db.Text
-  auditionDate   DateTime?                        @map("audition_date") @db.Date
-  auditionTime   DateTime?                        @map("audition_time") @db.Time(0)
-  outcome        PrismaNominationFileOutcomeEnum?
-  outcomeComment String?                          @map("outcome_comment")
+  priorite          PrismaPrioriteEnum?              @ignore
+  priorities        PrismaPrioriteEnum[]             @default([])
+  comment           String?                          @map("comment") @db.Text
+  auditionDate      DateTime?                        @map("audition_date") @db.Date
+  auditionTime      DateTime?                        @map("audition_time") @db.Time(0)
+  outcome           PrismaNominationFileOutcomeEnum?
+  outcomeComment    String?                          @map("outcome_comment")
+  missingEvaluation Boolean                          @default(false) @map("missing_evaluation")
 
   number  Int?
   dueDate DateTime? @map("due_date") @db.Date

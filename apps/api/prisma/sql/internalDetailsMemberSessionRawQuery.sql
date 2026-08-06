@@ -23,6 +23,7 @@ SELECT
   ddn.rank,
   ddn.targeted_position AS "targetedPosition",
   ddn.targeted_grade AS "targetedGrade",
+  ddn.missing_evaluation AS "missingEvaluation",
   ARRAY_TO_JSON(priorities) AS "priorities",
 
   JSONB_AGG(observations) AS "observations",
