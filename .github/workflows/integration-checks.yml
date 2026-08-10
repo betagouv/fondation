@@ -81,6 +81,9 @@ jobs:
       - name: Types check
         run: pnpm types:check
 
+      - name: Types check tests and stories
+        run: pnpm --filter client types:check:test
+
       - name: Lint
         run: node_modules/.bin/oxlint --deny-warnings
 

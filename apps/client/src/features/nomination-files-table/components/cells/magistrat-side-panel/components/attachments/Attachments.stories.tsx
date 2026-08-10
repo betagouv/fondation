@@ -1,19 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { QueryClient } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { ConfirmationProvider } from '@/shared/context/confirmation';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { sessionKeys } from '@queries/nomination-sessions.queries';
+import type { ListedNominationFileAttachmentDto } from '@api/types';
 
 import { Attachments } from './Attachments';
 
 const SESSION_ID = 'session-1';
-const NOMINATION_FILE_ID = 'file-1';
 
-const SAMPLE_FILES = [
+const SAMPLE_FILES: ListedNominationFileAttachmentDto['items'] = [
   { id: 'a1', name: 'cv-camille-durand.pdf', size: 248_900 },
   { id: 'a2', name: 'lettre-de-motivation.pdf', size: 51_200 },
   { id: 'a3', name: 'photo-identite.png', size: null },
@@ -22,27 +21,56 @@ const SAMPLE_FILES = [
 const VIEWS = ['sg', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
-function AttachmentsStory(props: { hasFiles: boolean; isArchived: boolean; view: View }) {
+type AttachmentsArgs = { hasFiles: boolean; isArchived: boolean; view: View };
+
+const attachmentsByNominationFile = new Map<string, ListedNominationFileAttachmentDto['items']>();
+
+const nominationFileIdFor = (args: AttachmentsArgs) =>
+  `file-${args.view}-${args.hasFiles}-${args.isArchived}`;
+
+const attachmentsOf = (nominationFileId: string) => attachmentsByNominationFile.get(nominationFileId) ?? [];
+
+const attachmentHandlers = [
+  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments', ({ params }) =>
+    HttpResponse.json<ListedNominationFileAttachmentDto>({
+      items: attachmentsOf(String(params.nominationFileId)),
+    }),
+  ),
+  http.put(
+    '*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments',
+    async ({ params, request }) => {
+      const nominationFileId = String(params.nominationFileId);
+      const uploaded = (await request.formData())
+        .getAll('files')
+        .filter((file): file is File => file instanceof File)
+        .map((file) => ({ id: crypto.randomUUID(), name: file.name, size: file.size }));
+
+      attachmentsByNominationFile.set(nominationFileId, [...attachmentsOf(nominationFileId), ...uploaded]);
+      return new HttpResponse(null, { status: 204 });
+    },
+  ),
+  http.delete('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId', ({ params }) => {
+    const nominationFileId = String(params.nominationFileId);
+    attachmentsByNominationFile.set(
+      nominationFileId,
+      attachmentsOf(nominationFileId).filter(({ id }) => id !== params.fileId),
+    );
+    return new HttpResponse(null, { status: 204 });
+  }),
+];
+
+function AttachmentsStory(props: AttachmentsArgs) {
   const navigate = useNavigate();
   useEffect(() => {
     navigate(props.view === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
   }, [props.view, navigate]);
 
-  const seed = (client: QueryClient) =>
-    client.setQueryData(
-      sessionKeys.listNominationFileAttachments({
-        nominationFileId: NOMINATION_FILE_ID,
-        sessionId: SESSION_ID,
-      }),
-      { items: props.hasFiles ? SAMPLE_FILES : [] },
-    );
-
   return (
-    <StoryQueryClient key={String(props.hasFiles)} seed={seed}>
+    <StoryQueryClient>
       <ConfirmationProvider>
         <Attachments
           isArchived={props.isArchived}
-          nominationFileId={NOMINATION_FILE_ID}
+          nominationFileId={nominationFileIdFor(props)}
           sessionId={SESSION_ID}
         />
       </ConfirmationProvider>
@@ -53,6 +81,15 @@ function AttachmentsStory(props: { hasFiles: boolean; isArchived: boolean; view:
 const meta = {
   title: 'Features/SidePanel/Attachments',
   component: AttachmentsStory,
+  beforeEach: ({ args, msw }) => {
+    msw.use(...attachmentHandlers);
+
+    const nominationFileId = nominationFileIdFor(args);
+    attachmentsByNominationFile.set(nominationFileId, args.hasFiles ? [...SAMPLE_FILES] : []);
+    return () => {
+      attachmentsByNominationFile.delete(nominationFileId);
+    };
+  },
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
