@@ -1,7 +1,8 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
+import { ListGdsNominationSessionsQueryDto } from '../../abstract-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
@@ -12,14 +13,16 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
-const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
+export const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
-export class ListNominationSessionsQuery {
+export class ListSessionsQuery {
   constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     search: string | null;
     typeDeSaisine: TypeDeSaisineEnum;
@@ -43,32 +46,24 @@ export class ListNominationSessionsQuery {
       ? [{ [query.sorting.sortBy]: query.sorting.sortDesc ? ('desc' as const) : ('asc' as const) }]
       : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
 
-    const [totalCount, sessions, reportedIds] = await this.db.withTransaction(async () => {
-      const txCount = await this.db.tx.session.count({ where });
-      const txSessions = await this.db.tx.session.findMany({
-        where,
-        orderBy,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
-        take: query.pagination.limit,
-        select: {
-          id: true,
-          name: true,
-          formation: true,
-          date: true,
-          typeDeSaisine: true,
-          validatedAt: true,
-
-          transparenceGds: { select: { dueDate: true } },
-        },
-      });
-
-      const reportedRows = await this.db.tx.$queryRawTyped(
-        findReportedSessionIds(txSessions.map((s) => s.id)),
-      );
-      const txReportedIds = new Set(reportedRows.map(({ id }) => id));
-
-      return [txCount, txSessions, txReportedIds];
+    const totalCount = await this.db.tx.session.count({ where });
+    const sessions = await this.db.tx.session.findMany({
+      where,
+      orderBy,
+      skip: (query.pagination.page - 1) * query.pagination.limit,
+      take: query.pagination.limit,
+      select: {
+        id: true,
+        name: true,
+        formation: true,
+        date: true,
+        typeDeSaisine: true,
+        transparenceGds: { select: { dueDate: true, validatedAt: true } },
+      },
     });
+
+    const reportedRows = await this.db.tx.$queryRawTyped(findReportedSessionIds(sessions.map((s) => s.id)));
+    const reportedIds = new Set(reportedRows.map(({ id }) => id));
 
     const items = sessions.map((s) => ({
       id: s.id,
@@ -77,17 +72,17 @@ export class ListNominationSessionsQuery {
       date: DateOnly.fromDate(s.date).toJson(),
       dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
-      status: ListNominationSessionsQuery.computeStatus(s, reportedIds),
+      status: ListSessionsQuery.computeStatus(s, reportedIds),
     }));
 
     return paginate({ items, totalCount, pagination: query.pagination });
   }
 
   private static computeStatus(
-    session: { id: string; validatedAt: Date | null },
+    session: { id: string; transparenceGds: { validatedAt: Date | null } | null },
     reportedIds: ReadonlySet<string>,
   ): SessionStatus {
-    if (!session.validatedAt) return 'TO_VALIDATE';
+    if (!isDefined(session.transparenceGds?.validatedAt)) return 'TO_VALIDATE';
     if (reportedIds.has(session.id)) return 'REPORTED';
     return 'READY';
   }

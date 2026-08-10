@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 
+import { ListSessionAttachmentsQuery } from '../abstract/infrastructure/queries/list-session-attachments.query';
 import { SummaryModule } from '../summaries/summary.module';
 import { DocsModule } from 'src/modules/docs/docs.module';
 import { IngestModule } from 'src/modules/ingest/ingest.module';
@@ -16,8 +17,8 @@ import { NominationSessionFinder } from './infrastructure/finders/transparence-s
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { UnreportedSessionFilesCountFinder } from './infrastructure/finders/unreported-transparence-files-count.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountNonValidatedSessionsQuery } from './infrastructure/queries/count-non-validated-sessions.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
-import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -31,8 +32,6 @@ import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/li
 import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
-import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
 import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
@@ -50,8 +49,8 @@ import { SessionController } from './transparence.controller';
     AffectationVersionFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
+    CountNonValidatedSessionsQuery,
     CountUnaffectedFilesQuery,
-    CountUsersNewSessionsQuery,
     DetailNominationFileAttachmentQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
@@ -66,10 +65,9 @@ import { SessionController } from './transparence.controller';
     ListNominationFileAttachmentsQuery,
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
-    ListNominationSessionAttachmentsQuery,
-    ListNominationSessionsQuery,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
+    ListSessionAttachmentsQuery,
     NominationFileJurisdictionsFinder,
     NominationSessionFinder,
     SessionTransparenceRepository,

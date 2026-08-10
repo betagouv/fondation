@@ -16,7 +16,7 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
@@ -39,7 +39,6 @@ import {
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
   UpdateNominationSessionFilesObserversDto,
   UploadNominationFileAttachmentsDto,
@@ -52,8 +51,8 @@ import {
 } from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountUsersNewSessionsDto } from './infrastructure/queries/count-non-validated-sessions.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
-import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
@@ -61,8 +60,6 @@ import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistr
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
-import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
-import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -73,28 +70,10 @@ export class SessionController {
   constructor(private readonly sessions: TransparenceService) {}
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/garde-des-sceaux')
-  @UsePipes(ZodValidationPipe)
-  @ApiPaginated()
-  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
-  listSessionsOfTypeGardeDesSceaux(
-    @QueryPagination() pagination: Pagination,
-    @Query() query: ListGdsNominationSessionsQueryDto,
-  ): Promise<ListedNominationSessionsDto> {
-    return this.sessions.listNominationSessions({
-      pagination,
-      search: query.search || null,
-      formations: query.formations,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: 'TRANSPARENCE_GDS',
-    });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/new/count')
   @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
   countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
-    return this.sessions.countUsersNewSessions();
+    return this.sessions.countNonValidatedSessions();
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -379,6 +358,7 @@ export class SessionController {
     await this.sessions.hideAlert({ sessionId, nominationFileId });
   }
 
+  @ApiOperation({ deprecated: true, description: 'prefer attachFileToSession' })
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/multiattachments')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -397,6 +377,7 @@ export class SessionController {
     });
   }
 
+  @ApiOperation({ deprecated: true, description: 'prefer detachFileFromSession' })
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/:sessionId/attachments/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -407,19 +388,8 @@ export class SessionController {
     });
   }
 
-  @HasRole()
-  @Get('/:sessionId/attachments')
-  @ZodResponse({
-    type: ListedNominationSessionAttachmentDto,
-    status: HttpStatus.OK,
-  })
-  async listNominationSessionAttachments(
-    @Param('sessionId') sessionId: string,
-  ): Promise<ListedNominationSessionAttachmentDto> {
-    return this.sessions.listAttachments({ sessionId });
-  }
-
   /** @warning this is a mutation */
+  // TODO: move to abstract session
   @HasRole()
   @Get('/:sessionId/attachments/:fileId')
   @ZodResponse({
