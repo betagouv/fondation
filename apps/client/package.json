@@ -20,6 +20,7 @@
     "prebuild": "pnpm run update-icons",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "msw:init": "msw init .storybook/public --save",
     "prestorybook": "pnpm run update-icons",
     "prebuild-storybook": "pnpm run update-icons",
     "openapi:generate": "openapi-ts",
@@ -92,6 +93,8 @@
     "globals": "16.5.0",
     "jsdom": "29.1.1",
     "lolfi": "workspace:*",
+    "msw": "2.15.0",
+    "msw-storybook-addon": "3.0.0",
     "prettier-plugin-tailwindcss": "0.8.0",
     "storybook": "10.4.2",
     "tailwindcss": "4.3.0",
@@ -101,5 +104,10 @@
     "vitest": "catalog:",
     "vitest-axe": "0.1.0",
     "xlsx": "file:../../vendor/xlsx-0.20.3.tgz"
+  },
+  "msw": {
+    "workerDirectory": [
+      ".storybook/public"
+    ]
   }
 }
