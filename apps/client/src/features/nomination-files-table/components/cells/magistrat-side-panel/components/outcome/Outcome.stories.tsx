@@ -1,17 +1,33 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useQuery } from '@tanstack/react-query';
 
 import { NominationFileOutcomeCommentModalProvider } from '../../../nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { authHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+import { sessionKeys, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { Outcome } from './Outcome';
 
 const SESSION_ID = 'session-1';
 
 const outcomes = Object.values(NominationFileOutcomeEnum);
+
+function SeededOutcome(props: { nominationFile: SessionNominationFile }) {
+  const { data } = useQuery({
+    queryFn: () => ({ items: [props.nominationFile] }),
+    queryKey: sessionKeys.listSessionNominationFiles({ sessionId: SESSION_ID }),
+    staleTime: Infinity,
+  });
+
+  const nominationFile = data?.items[0];
+  if (!nominationFile) return null;
+
+  return <Outcome nominationFile={nominationFile} />;
+}
 
 function OutcomeStory(props: {
   comment: string | null;
@@ -24,14 +40,14 @@ function OutcomeStory(props: {
   });
 
   return (
-    <StoryQueryClient>
+    <StoryQueryClient key={`${props.comment}-${props.formation}-${props.outcome}`}>
       <NominationFilesTableProvider
         formation={props.formation}
         outcomes={sessionOutcomes}
         sessionId={SESSION_ID}
       >
         <NominationFileOutcomeCommentModalProvider>
-          <Outcome nominationFile={nominationFile} />
+          <SeededOutcome nominationFile={nominationFile} />
         </NominationFileOutcomeCommentModalProvider>
       </NominationFilesTableProvider>
     </StoryQueryClient>
@@ -41,6 +57,9 @@ function OutcomeStory(props: {
 const meta = {
   title: 'Features/SidePanel/Outcome',
   component: OutcomeStory,
+  beforeEach: ({ msw }) => {
+    msw.use(...authHandlers);
+  },
   parameters: {
     layout: 'padded',
     router: { initialEntries: [`/secretariat-general/session/${SESSION_ID}`] },

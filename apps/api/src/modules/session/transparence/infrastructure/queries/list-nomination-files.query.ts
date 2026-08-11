@@ -218,8 +218,6 @@ export class ListNominationFilesQuery {
           datePassageAuGrade: DateOnly.fromOptionalDate(x.lastRankingDate)?.toJson() ?? null,
           datePriseDeFonctionPosteActuel: DateOnly.fromOptionalDate(x.lastPositionDate)?.toJson() ?? null,
           informationCarrière: null,
-          detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
-          detectedJurisdictionId: x.detectedJurisdictionId ?? null,
           jurisdictions: x.jurisdictions,
           detectedMagistratId: x.detectedMagistratId ?? null,
           outcome: x.outcome
@@ -238,7 +236,13 @@ export class ListNominationFilesQuery {
           archivedAt: sessionArchivedAt,
         }),
         auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
+        auditionExpected: nominationFilesPolicies.isAuditionExpected({
+          detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+          detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
+          targetedPosition: x.targetedPosition,
+        }),
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
+        missingEvaluation: x.missingEvaluation,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
@@ -338,12 +342,10 @@ const NominationFileContentSchema = z.object({
   datePassageAuGrade: dateOnlyJsonSchema.nullable(),
   datePriseDeFonctionPosteActuel: dateOnlyJsonSchema.nullable(),
   informationCarrière: z.string().nullable(),
-  detectedJurisdictionId: z.string().nullable(),
   jurisdictions: z.object({
     current: JurisdictionSchema.nullable(),
     targeted: JurisdictionSchema.nullable(),
   }),
-  detectedTargetedFunctionId: z.string().nullable(),
   detectedMagistratId: z.string().nullable(),
   outcome: z
     .object({
@@ -380,6 +382,7 @@ const RawListedNominationFiles = z.array(
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().nullable(),
     alertHidden: z.boolean(),
+    missingEvaluation: z.boolean(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
@@ -445,7 +448,9 @@ const NominationFileAffectationItemSchema = z.object({
   comment: z.string().nullable(),
   canScheduleAudition: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),
+  auditionExpected: z.boolean(),
   auditionTime: timeOnlySchema.nullable(),
+  missingEvaluation: z.boolean(),
   reporters: z.array(
     z.object({
       id: z.string(),

@@ -1,4 +1,4 @@
-import { stripIndent } from 'common-tags';
+import { oneLine } from 'common-tags';
 
 import {
   commonDocumentCss,
@@ -10,14 +10,42 @@ import {
   requiresElision,
   titled,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
+import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
+import { AgendaBlockFile } from '../../../domain/agenda-doc-block';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
-import type { Pretty } from 'src/utils/types';
 
-const html = stripIndent;
+const html = oneLine;
 
-function agendaHeader(ctx: { sessionMeetingDate: Date; formation: FormationEnum }): string {
+type AgendaRenderContextNominationFile = {
+  id: bigint;
+  number: number;
+  name: string;
+  currentPosition: string | null;
+  currentGrade: string;
+  targetedPosition: string | null;
+  targetedGrade: string;
+  reporters: readonly string[];
+};
+
+export type AgendaRenderContext = {
+  date: Date;
+  sessionMeetingDate: Date;
+  formation: FormationEnum;
+  chairman: {
+    firstName: string;
+    lastName: string;
+    title: UserTitleEnum | null;
+    gender: GenderEnum;
+  };
+  nominationFiles: readonly AgendaRenderContextNominationFile[];
+  userDefinedBlocks: {
+    files: Map<bigint, { html: string; isOutdated: boolean }>;
+  };
+};
+
+function agendaHeader(ctx: AgendaRenderContext): string {
   return html`
     <h1>Avis du Conseil supérieur de la magistrature</h1>
     <p class="formation">
@@ -33,46 +61,41 @@ function agendaHeader(ctx: { sessionMeetingDate: Date; formation: FormationEnum 
   `;
 }
 
-function agendaNominationParagraph(
-  ctx: {
-    name: string;
-    currentPosition: string | null;
-    currentGrade: string;
-    targetedPosition: string | null;
-    targetedGrade: string;
-    reporters: readonly string[];
-  },
-  index: number,
-): string {
-  const currentPosition = ctx.currentPosition
-    ? `, actuellement ${ctx.currentPosition} (${ctx.currentGrade})`
-    : '';
-  const targetPosition = ctx.targetedPosition
-    ? `, au poste ${requiresElision(ctx.targetedPosition) ? `d'` : 'de '}${ctx.targetedPosition} (${ctx.targetedGrade})`
-    : '';
-  const reporters = ctx.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.reporters)}` : '';
-
-  return html`
-    <p class="article" data-file="${index}">
-      <strong>${ctx.name}</strong>${currentPosition}${targetPosition}${reporters}.
-    </p>
-  `;
-}
-
-type AgendaContentCtx = Pretty<Parameters<typeof agendaNominationParagraph>[0]>;
-function agendaContent(ctx: { nominationFiles: readonly AgendaContentCtx[] }): string {
-  return html` ${ctx.nominationFiles.map((n, i) => agendaNominationParagraph(n, i + 1)).join('\n')}`;
-}
-
-function agendaFooter(ctx: {
-  date: Date;
-  chairman: {
-    firstName: string;
-    lastName: string;
-    title: UserTitleEnum | null;
-    gender: GenderEnum;
-  };
+function displayFileContent(ctx: {
+  root: AgendaRenderContext;
+  file: AgendaRenderContextNominationFile;
+  ignoreUserDefinedContent?: true;
 }): string {
+  const userDefinedContent = ctx.root.userDefinedBlocks.files.get(ctx.file.id)?.html;
+  if (!ctx.ignoreUserDefinedContent && userDefinedContent) return userDefinedContent;
+
+  const currentPosition = ctx.file.currentPosition
+    ? `, actuellement ${ctx.file.currentPosition} (${ctx.file.currentGrade})`
+    : '';
+  const targetPosition = ctx.file.targetedPosition
+    ? `, au poste ${requiresElision(ctx.file.targetedPosition) ? `d'` : 'de '}${ctx.file.targetedPosition} (${ctx.file.targetedGrade})`
+    : '';
+  const reporters =
+    ctx.file.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.file.reporters)}` : '';
+
+  return /* html */ `<strong>${ctx.file.name}</strong>${currentPosition}${targetPosition}${reporters}.`;
+}
+
+function agendaNominationParagraph(ctx: {
+  root: AgendaRenderContext;
+  file: AgendaRenderContextNominationFile;
+  index: number;
+}): string {
+  return html`<p data-file="${ctx.index}">${displayFileContent({ root: ctx.root, file: ctx.file })}</p>`;
+}
+
+function agendaContent(ctx: AgendaRenderContext): string {
+  return html` ${ctx.nominationFiles
+    .map((file, index) => agendaNominationParagraph({ root: ctx, file, index: index + 1 }))
+    .join('\n')}`;
+}
+
+function agendaFooter(ctx: AgendaRenderContext): string {
   return html`
     <p class="redaction-place">Fait à Paris, le ${date(ctx.date, 'do MMMM yyyy')}</p>
     <p class="signature">${titled(ctx.chairman)}</p>
@@ -136,6 +159,7 @@ function agendaCss(): string {
         font-size: 0.8rem;
 
         .signature {
+          margin-top: 5rem;
           text-align: right;
         }
       }
@@ -143,9 +167,28 @@ function agendaCss(): string {
   `;
 }
 
-export const agendaTemplate = documentLayout({
+export const agendaTemplate: Template<AgendaRenderContext> = documentLayout({
   css: agendaCss,
   header: agendaHeader,
   content: agendaContent,
   footer: agendaFooter,
-});
+} as any) as any;
+
+export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFile> {
+  for (const file of ctx.nominationFiles) {
+    const userDefined = ctx.userDefinedBlocks.files.get(file.id);
+    const outdated = Boolean(userDefined?.isOutdated);
+
+    yield {
+      kind: 'file',
+      weight: file.number,
+      id: file.id,
+      html: displayFileContent({ root: ctx, file }),
+      edited: Boolean(userDefined?.html),
+      outdated,
+      generatedHtml: outdated
+        ? displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true })
+        : undefined,
+    };
+  }
+}

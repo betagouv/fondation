@@ -1,7 +1,6 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
-import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
@@ -39,18 +38,19 @@ import { InternalInvalidateOfficialReportUseCase } from './infrastructure/use-ca
 export class OfficialReportsService {
   constructor(
     private readonly officialReportRepository: OfficialReportRepository,
+
     private readonly agendaFinder: AgendaFinder,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
-    private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
+
     private readonly detailsOfficialReportDocumentQuery: DetailsOfficialReportDocumentQuery,
+    private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
-    private readonly auth: SimpleAuthService,
-    private readonly db: Db,
 
     private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
 
+    private readonly auth: SimpleAuthService,
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
@@ -67,7 +67,7 @@ export class OfficialReportsService {
     sessionId: string;
     ignoreOfficialReportId?: string;
   }): Promise<FoundAgendasDto> {
-    return this.agendaFinder.findNonIncludedInOfficialReport(query);
+    return this.agendaFinder.findReportableInOfficialReport(query);
   }
 
   @Transactional()
@@ -95,12 +95,12 @@ export class OfficialReportsService {
     });
 
     const uniqueAgendaIds = new Set(command.agendaIds);
-    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
+    const { items: agendas } = await this.agendaFinder.findReportableInOfficialReport({
       ids: uniqueAgendaIds,
-      formation: session.formation,
+      sessionId: command.sessionId,
     });
 
-    if (agendas.length !== uniqueAgendaIds.size || agendas.length === 0) {
+    if (agendas.length !== 1) {
       throw new NotFoundException();
     }
 
@@ -170,9 +170,9 @@ export class OfficialReportsService {
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
     const members = await this.members.internalFindMembersByFormation({ formation: report.formation });
 
-    const { items: agendas } = await this.agendaFinder.findNonIncludedInOfficialReport({
-      formation: report.formation,
+    const { items: agendas } = await this.agendaFinder.findReportableInOfficialReport({
       ignoreOfficialReportId: command.id,
+      sessionId: report.snapshot.meta.agenda.session.id,
       ids: new Set([report.snapshot.meta.agenda.id]),
     });
 

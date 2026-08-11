@@ -5,6 +5,7 @@ import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
 import '@/shared/ui/document-preview/DocumentEditor.css';
+import '@/shared/ui/doc-block-editor/doc-block.css';
 
 import './blocks.css';
 

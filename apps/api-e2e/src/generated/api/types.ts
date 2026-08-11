@@ -337,7 +337,6 @@ export type PaginatedNominationFiles = {
                 day: number;
             } | null;
             informationCarrière: string | null;
-            detectedJurisdictionId: string | null;
             jurisdictions: {
                 current: {
                     id: string;
@@ -348,7 +347,6 @@ export type PaginatedNominationFiles = {
                     label: string | null;
                 } | null;
             };
-            detectedTargetedFunctionId: string | null;
             detectedMagistratId: string | null;
             outcome: {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
@@ -365,11 +363,13 @@ export type PaginatedNominationFiles = {
             month: number;
             day: number;
         } | null;
+        auditionExpected: boolean;
         auditionTime: {
             hours: number;
             minutes: number;
             seconds: number;
         } | null;
+        missingEvaluation: boolean;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -454,6 +454,10 @@ export type AutoAffectationDto = {
 
 export type UpdateCommentDto = {
     comment: string | null;
+};
+
+export type UpdateMissingEvaluationDto = {
+    missingEvaluation: boolean;
 };
 
 export type UpdateAuditionDateDto = {
@@ -548,7 +552,6 @@ export type DetailedNominationFileDto = {
             day: number;
         } | null;
         informationCarrière: string | null;
-        detectedJurisdictionId: string | null;
         jurisdictions: {
             current: {
                 id: string;
@@ -559,7 +562,6 @@ export type DetailedNominationFileDto = {
                 label: string | null;
             } | null;
         };
-        detectedTargetedFunctionId: string | null;
         detectedMagistratId: string | null;
         outcome: {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
@@ -576,11 +578,13 @@ export type DetailedNominationFileDto = {
         month: number;
         day: number;
     } | null;
+    auditionExpected: boolean;
     auditionTime: {
         hours: number;
         minutes: number;
         seconds: number;
     } | null;
+    missingEvaluation: boolean;
     reporters: Array<{
         id: string;
         firstName: string;
@@ -721,6 +725,7 @@ export type DetailedSummaryDto = {
         minutes: number;
         seconds: number;
     } | null;
+    missingEvaluation: boolean;
     grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     position: string | null;
     targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
@@ -1040,6 +1045,24 @@ export type CreatedAgendaDto = {
     id: string;
 };
 
+export type UpdateAgendaMetadataDto = {
+    sessionMeetingDate: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    chairmanId: string;
+};
+
+export type UpdateAgendaFilesDto = {
+    nominationFileIds: Array<string>;
+};
+
 export type DetailedSessionAgenda = {
     id: string;
     url: string;
@@ -1063,6 +1086,23 @@ export type DetailedAgendaMetadata = {
 
 export type DetailedAgendaFilesDto = {
     items: Array<string>;
+};
+
+export type DetailedAgendaDocumentBlocksDto = {
+    blocks: Array<{
+        kind: 'file';
+        weight: number;
+        edited: boolean;
+        outdated: boolean;
+        generatedHtml?: string;
+        html: string;
+        id: string;
+    }>;
+};
+
+export type EditAgendaFileBlockDto = {
+    html: string;
+    outdated: boolean;
 };
 
 export type DetailedSessionOfficialReportDto = {
@@ -1489,6 +1529,7 @@ export type ListedMagistratNominationFilesDto = {
             month: number;
             day: number;
         } | null;
+        auditionExpected: boolean;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -1544,6 +1585,7 @@ export type ListedMagistratObservationsDto = {
                 month: number;
                 day: number;
             } | null;
+            auditionExpected: boolean;
             auditionTime: {
                 hours: number;
                 minutes: number;
@@ -2297,6 +2339,22 @@ export type UpdateNominationFileCommentResponses = {
 
 export type UpdateNominationFileCommentResponse = UpdateNominationFileCommentResponses[keyof UpdateNominationFileCommentResponses];
 
+export type UpdateNominationFileMissingEvaluationData = {
+    body: UpdateMissingEvaluationDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/missing-evaluation';
+};
+
+export type UpdateNominationFileMissingEvaluationResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileMissingEvaluationResponse = UpdateNominationFileMissingEvaluationResponses[keyof UpdateNominationFileMissingEvaluationResponses];
+
 export type UpdateNominationFileAuditionDateData = {
     body: UpdateAuditionDateDto;
     path: {
@@ -2997,50 +3055,50 @@ export type CreateAgendaResponses = {
 
 export type CreateAgendaResponse = CreateAgendaResponses[keyof CreateAgendaResponses];
 
-export type DeleteAgendaData = {
+export type UpdateAgendaMetadataData = {
+    body: UpdateAgendaMetadataDto;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/metadata';
+};
+
+export type UpdateAgendaMetadataResponses = {
+    204: void;
+};
+
+export type UpdateAgendaMetadataResponse = UpdateAgendaMetadataResponses[keyof UpdateAgendaMetadataResponses];
+
+export type DetailsAgendaFilesData = {
     body?: never;
     path: {
         agendaId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
+    url: '/api/docs/v1/agendas/{agendaId}/files';
 };
 
-export type DeleteAgendaResponses = {
-    204: void;
+export type DetailsAgendaFilesResponses = {
+    200: DetailedAgendaFilesDto;
 };
 
-export type DeleteAgendaResponse = DeleteAgendaResponses[keyof DeleteAgendaResponses];
+export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
 
-export type DetailsAgendaMetadataData = {
-    body?: never;
+export type UpdateAgendaFilesData = {
+    body: UpdateAgendaFilesDto;
     path: {
         agendaId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
+    url: '/api/docs/v1/agendas/{agendaId}/files';
 };
 
-export type DetailsAgendaMetadataResponses = {
-    200: DetailedAgendaMetadata;
-};
-
-export type DetailsAgendaMetadataResponse = DetailsAgendaMetadataResponses[keyof DetailsAgendaMetadataResponses];
-
-export type UpdateAgendaData = {
-    body: CreateOrUpdateAgendaDto;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}';
-};
-
-export type UpdateAgendaResponses = {
+export type UpdateAgendaFilesResponses = {
     204: void;
 };
 
-export type UpdateAgendaResponse = UpdateAgendaResponses[keyof UpdateAgendaResponses];
+export type UpdateAgendaFilesResponse = UpdateAgendaFilesResponses[keyof UpdateAgendaFilesResponses];
 
 export type DetailsSessionAgendaData = {
     body?: never;
@@ -3090,37 +3148,82 @@ export type GenerateAgendaPdfResponses = {
 
 export type GenerateAgendaPdfResponse = GenerateAgendaPdfResponses[keyof GenerateAgendaPdfResponses];
 
-export type DetailsAgendaFilesData = {
+export type DeleteAgendaData = {
     body?: never;
     path: {
         agendaId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/files';
+    url: '/api/docs/v1/agendas/{agendaId}';
 };
 
-export type DetailsAgendaFilesResponses = {
-    200: DetailedAgendaFilesDto;
+export type DeleteAgendaResponses = {
+    204: void;
 };
 
-export type DetailsAgendaFilesResponse = DetailsAgendaFilesResponses[keyof DetailsAgendaFilesResponses];
+export type DeleteAgendaResponse = DeleteAgendaResponses[keyof DeleteAgendaResponses];
 
-export type UpdateAgendaHtmlData = {
-    body?: {
-        html?: Blob | File;
-    };
+export type DetailsAgendaMetadataData = {
+    body?: never;
     path: {
         agendaId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/html';
+    url: '/api/docs/v1/agendas/{agendaId}';
 };
 
-export type UpdateAgendaHtmlResponses = {
+export type DetailsAgendaMetadataResponses = {
+    200: DetailedAgendaMetadata;
+};
+
+export type DetailsAgendaMetadataResponse = DetailsAgendaMetadataResponses[keyof DetailsAgendaMetadataResponses];
+
+export type DetailsAgendaDocumentBlocksData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks';
+};
+
+export type DetailsAgendaDocumentBlocksResponses = {
+    200: DetailedAgendaDocumentBlocksDto;
+};
+
+export type DetailsAgendaDocumentBlocksResponse = DetailsAgendaDocumentBlocksResponses[keyof DetailsAgendaDocumentBlocksResponses];
+
+export type ResetAgendaFileBlockData = {
+    body?: never;
+    path: {
+        agendaId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+};
+
+export type ResetAgendaFileBlockResponses = {
     204: void;
 };
 
-export type UpdateAgendaHtmlResponse = UpdateAgendaHtmlResponses[keyof UpdateAgendaHtmlResponses];
+export type ResetAgendaFileBlockResponse = ResetAgendaFileBlockResponses[keyof ResetAgendaFileBlockResponses];
+
+export type EditAgendaFileBlockData = {
+    body: EditAgendaFileBlockDto;
+    path: {
+        agendaId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+};
+
+export type EditAgendaFileBlockResponses = {
+    204: void;
+};
+
+export type EditAgendaFileBlockResponse = EditAgendaFileBlockResponses[keyof EditAgendaFileBlockResponses];
 
 export type ResetAgendaDocumentData = {
     body?: never;

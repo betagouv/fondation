@@ -4,7 +4,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
-import { OfficialReportsInvalidatedIntegrationEvent } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import {
+  OfficialReportInvalidation,
+  OfficialReportsInvalidatedIntegrationEvent,
+} from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Files } from 'src/modules/framework/files';
@@ -12,6 +15,10 @@ import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 
 import { Agenda } from './domain/agenda';
 import { CreatedAgendaDto } from './infrastructure/agendas.dto';
+import {
+  DetailedAgendaDocumentBlocksDto,
+  DetailsAgendaDocumentBlocksQuery,
+} from './infrastructure/queries/details-agenda-document-blocks.query';
 import {
   DetailedAgendaFilesDto,
   DetailsAgendaFilesQuery,
@@ -37,6 +44,7 @@ export class AgendasService {
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
+    private readonly detailsAgendaDocumentBlocksQuery: DetailsAgendaDocumentBlocksQuery,
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
@@ -95,53 +103,59 @@ export class AgendasService {
     return { id: agenda.id };
   }
 
-  async updateAgenda(command: {
+  async updateAgendaMetadata(command: {
     agendaId: string;
     authorId: string;
     chairmanId: string;
     date: DateOnlyJson;
     sessionMeetingDate: DateOnlyJson;
+  }): Promise<void> {
+    const invalidations = await this.db.withTransaction(async () => {
+      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+      const diff = agenda.updateMetadata({
+        chairmanId: command.chairmanId,
+        authorId: command.authorId,
+        date: DateOnly.fromJson(command.date),
+        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      });
+
+      await this.agendaRepository.persist(agenda);
+
+      return diff.hasAny ? diff.officialReportInvalidations : [];
+    });
+
+    await this.emitInvalidations(invalidations);
+  }
+
+  async updateAgendaFiles(command: {
+    agendaId: string;
+    authorId: string;
     nominationFileIds: readonly string[];
   }): Promise<void> {
     const invalidations = await this.db.withTransaction(async () => {
       const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
 
-      const chairman = await this.members.internalGetMember({
-        id: command.chairmanId,
-      });
-
-      const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
-        sessionId: agenda.sessionId,
-        ids: command.nominationFileIds,
-      });
-
+      const nominationFileIds = new Set(command.nominationFileIds);
       const reportedFiles = await this.reportedNominationFilesFinder.find({
-        fileIds: new Set(nominationFiles.map(({ id }) => id)),
+        fileIds: nominationFileIds,
         ignoreOfficialReportId: agenda.officialReportId ?? undefined,
       });
 
-      agenda.update({
-        chairman,
+      const diff = agenda.updateFiles({
         reportedFiles,
+        nominationFileIds,
         authorId: command.authorId,
-        date: DateOnly.fromJson(command.date),
-        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-        nominationFiles: nominationFiles.map((f) => ({
-          id: f.id,
-          number: f.number,
-          outcome: f.outcome,
-          name: f.magistrat.name,
-          grade: f.magistrat.position.grade,
-          currentPosition: f.magistrat.position.label,
-          targetedGrade: f.targetPosition.grade,
-          targetedPosition: f.targetPosition.label,
-          reporters: f.reporters.map((r) => r.fullTitledName),
-        })),
       });
 
-      return this.agendaRepository.persist(agenda);
+      await this.agendaRepository.persist(agenda);
+
+      return diff.hasAny ? diff.officialReportInvalidations : [];
     });
 
+    await this.emitInvalidations(invalidations);
+  }
+
+  private async emitInvalidations(invalidations: readonly OfficialReportInvalidation[]): Promise<void> {
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
         OfficialReportsInvalidatedIntegrationEvent.name,
@@ -173,6 +187,7 @@ export class AgendasService {
     return this.detailsAgendaMetadataQuery.handle(query);
   }
 
+  @Transactional()
   async resetAgendaDocument(command: { id: string }): Promise<void> {
     const agenda = await this.db.tx.agenda.findUnique({
       where: { id: command.id },
@@ -188,14 +203,30 @@ export class AgendasService {
     if (agenda.pdf) this.files.delete([agenda.pdf]);
   }
 
-  async updateAgendaHtml(command: { id: string; html: Buffer }): Promise<void> {
-    await this.db.tx.agenda.update({
-      where: { id: command.id },
-      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
-    });
+  @Transactional()
+  async editAgendaFileBlock(command: {
+    agendaId: string;
+    fileId: bigint;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.editFileBlock({ fileId: command.fileId, html: command.html, outdated: command.outdated });
+    await this.agendaRepository.persist(agenda);
+  }
+
+  @Transactional()
+  async resetAgendaFileBlock(command: { agendaId: string; fileId: bigint }): Promise<void> {
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.resetFileBlock({ fileId: command.fileId });
+    await this.agendaRepository.persist(agenda);
   }
 
   detailsAgendaFiles(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {
     return this.detailsAgendaFilesQuery.handle(query);
+  }
+
+  detailsAgendaDocumentBlocks(query: { agendaId: string }): Promise<DetailedAgendaDocumentBlocksDto> {
+    return this.detailsAgendaDocumentBlocksQuery.handle(query);
   }
 }

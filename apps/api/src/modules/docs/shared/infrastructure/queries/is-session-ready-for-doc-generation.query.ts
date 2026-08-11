@@ -1,39 +1,40 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { AgendaFinder } from '../finders/agenda.finder';
 import { Db } from 'src/modules/framework/database';
-import { AffectationVersionFinder } from 'src/modules/session/transparence/infrastructure/finders/affectation-version.finder';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 
 @Injectable()
 export class IsSessionReadyForDocGenerationQuery {
   constructor(
     private readonly db: Db,
-    private readonly versions: AffectationVersionFinder,
+    private readonly agendas: AgendaFinder,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
-    const session = await this.db.tx.session.findFirst({
-      where: { id: query.sessionId },
-      select: { deletedAt: true, archivedAt: true },
-    });
-
-    if (!session) throw new NotFoundException();
-    if (session.archivedAt || session.deletedAt) {
+    const session = await this.transparences.details({ formation: undefined, sessionId: query.sessionId });
+    if (session.isArchived) {
       return { isReady: false, canCreateAgenda: false, canCreateOfficialReport: false };
     }
 
-    const publishedVersion = await this.versions.lastPublished({
+    const publishedVersion = await this.transparences.versions.lastPublished({
       sessionId: query.sessionId,
     });
+
     if (publishedVersion.isNone()) {
       return { isReady: false, canCreateAgenda: false, canCreateOfficialReport: false };
     }
 
-    const hasAnyNonReportedAgenda = await this.db.tx.agenda.findFirst({
-      where: { sessionId: query.sessionId, officialReportId: null },
+    const hasAnyReportableAgenda = await this.agendas.hasAnyReportableInOfficialReport({
+      sessionId: query.sessionId,
+      affectationVersionId: publishedVersion.id,
     });
 
     const hasAnyNonOfficiallyReportedFile = await this.db.tx.dossierDeNomination.findFirst({
@@ -47,7 +48,7 @@ export class IsSessionReadyForDocGenerationQuery {
     });
 
     const canCreateAgenda = Boolean(hasAnyNonOfficiallyReportedFile);
-    const canCreateOfficialReport = Boolean(hasAnyNonReportedAgenda && hasAnyNonOfficiallyReportedFile);
+    const canCreateOfficialReport = hasAnyReportableAgenda;
 
     return {
       canCreateAgenda,

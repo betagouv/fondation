@@ -5,56 +5,12 @@ import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 /** @see https://www.notion.so/2-Proposer-automatiquement-deux-rapporteurs-sur-certains-postes-26aa2ff25f1581848cc0eef5a4d77252 */
 function requires2Reporters(dossier: SessionNominationFile, selectedCount?: number) {
   const hasOneReporter = selectedCount !== undefined ? selectedCount == 1 : dossier.reporters.length === 1;
-  if (!hasOneReporter) return false;
-
-  const position = dossier.content.detectedTargetedFunctionId;
-  if (
-    // procureur général
-    position === 'PG' ||
-    // procureur de la République Financier
-    position === 'PR F' ||
-    // procureur de la République antiterroriste
-    position === 'PRAT' ||
-    // premier président de chambre
-    position === '1PC'
-  ) {
-    return true;
-  }
-
-  const jurisdiction = dossier.content.detectedJurisdictionId;
-  if (
-    // premier avocat général à la CC
-    (jurisdiction === 'CC  PARIS' && position === '1AG') ||
-    // avocat général à la CC
-    (jurisdiction === 'CC  PARIS' && position === 'AG') ||
-    // procureur de la république près le tribunal judiciaire de Paris
-    (jurisdiction === 'TJ  PARIS' && position === 'PR')
-  ) {
-    return true;
-  }
-
-  // Legacy: when we don't use data from LOLFI, we don't have functions' or jurisdictions' codes
-  const search = unaccent(dossier.content.posteCible || '').toLowerCase();
-  return (
-    search &&
-    [
-      'procureur general',
-      'premier avocat general pres la cour de cassation',
-      'avocat general près la cour de cassation',
-      'procureur pres la cour de cassation',
-      'procureur national anti-terroriste',
-      'procureur national financier',
-      'premier president de chambre',
-      'avocat general cc  paris',
-      'premier avocat general cc  paris',
-    ].some((position) => search.startsWith(position))
-  );
+  return hasOneReporter && dossier.auditionExpected;
 }
 
 export function MissingSecondReporterAlert(props: {
@@ -65,10 +21,14 @@ export function MissingSecondReporterAlert(props: {
   const isSg = useIsSgNavigation();
   if (!isSg || !requires2Reporters(props.dossier, props.selectedReportersCount)) return null;
 
+  const label = formatMessage({ defaultMessage: '2 rapporteurs attendus' });
+
   return (
-    <div className="fr-pr-1v cursor-pointer">
-      <Tooltip title={formatMessage({ defaultMessage: '2 rapporteurs attendus' })}>
+    <div className="fr-pr-1v cursor-help">
+      <Tooltip title={label}>
         <i
+          aria-label={label}
+          role="img"
           style={{
             color: colors.decisions.text.default.warning.default,
             backgroundColor: colors.decisions.background.contrast.warning.default,

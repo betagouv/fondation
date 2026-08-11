@@ -18,6 +18,7 @@ import {
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
   SessionTransparenceFileReportersAffected,
   SessionTransparenceFilesObserversUpdated,
@@ -676,6 +677,81 @@ describe('SessionTransparence', () => {
     expect(session.messages).toEqual([
       new SessionTransparenceAuditionUnScheduled('session-id', 'nomination-file-id-1'),
     ]);
+  });
+
+  it('should flag a missing evaluation on a nomination file', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: 'SIEGE',
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+        },
+      ],
+    });
+
+    session.updateMissingEvaluation({
+      nominationFileId: 'nomination-file-id-1',
+      missingEvaluation: true,
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceFileMissingEvaluationUpdated('session-id', 'nomination-file-id-1', true),
+    ]);
+  });
+
+  it('should clear a missing evaluation on a nomination file', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: 'SIEGE',
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+        },
+      ],
+    });
+
+    session.updateMissingEvaluation({
+      nominationFileId: 'nomination-file-id-1',
+      missingEvaluation: false,
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceFileMissingEvaluationUpdated('session-id', 'nomination-file-id-1', false),
+    ]);
+  });
+
+  it('should throw when flagging a missing evaluation on a file whose decision is final', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: 'SIEGE',
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(() =>
+      session.updateMissingEvaluation({
+        nominationFileId: 'nomination-file-id-1',
+        missingEvaluation: true,
+      }),
+    ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should add attachments to a nomination file', () => {

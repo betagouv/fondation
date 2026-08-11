@@ -1,15 +1,23 @@
 import '@codegouvfr/react-dsfr/main.css';
 import '../src/styles/index.css';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
-import type { Preview } from '@storybook/react-vite';
+import addonA11y from '@storybook/addon-a11y';
+import addonDocs from '@storybook/addon-docs';
+import { definePreview } from '@storybook/react-vite';
+import addonMsw from 'msw-storybook-addon';
 import { IntlProvider } from 'react-intl';
 import { Link, MemoryRouter, Route, Routes } from 'react-router';
 
 import { frFormat } from '../src/i18n/formats';
+import { sidePanelHandlers } from '../src/shared/storybook/msw.handlers';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
 
-const preview: Preview = {
+export default definePreview({
+  addons: [addonDocs(), addonA11y(), addonMsw()],
+  beforeEach: ({ msw }) => {
+    msw.use(...sidePanelHandlers);
+  },
   decorators: [
     (Story, context) => {
       const router = context.parameters.router as { initialEntries?: string[]; path?: string } | undefined;
@@ -36,6 +44,4 @@ const preview: Preview = {
       storySort: { method: 'alphabetical', order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
     },
   },
-};
-
-export default preview;
+});

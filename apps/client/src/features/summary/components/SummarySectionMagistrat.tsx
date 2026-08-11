@@ -3,6 +3,7 @@ import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
 import { AuditionBanner } from '@/shared/components/audition-banner';
 import { IdentityList } from '@/shared/components/identity-list';
+import { MissingEvaluationBanner } from '@/shared/components/missing-evaluation';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 
@@ -36,6 +37,11 @@ export function SummarySectionMagistrat() {
         date={summary.auditionDate}
         time={summary.auditionTime}
         className="fr-mb-6v rounded px-4 py-3"
+      />
+
+      <MissingEvaluationBanner
+        className="fr-mb-6v rounded px-4 py-3"
+        missingEvaluation={summary.missingEvaluation}
       />
 
       <IdentityList

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { AuditionNotice } from '../audition-date/AuditionNotice';
+import { MissingEvaluationNotice } from '../missing-evaluation/MissingEvaluation';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
@@ -97,6 +98,7 @@ type View = (typeof VIEWS)[number];
 function HeaderStory(props: {
   auditionScheduled?: boolean;
   excludedJurisdiction?: boolean;
+  missingEvaluation?: boolean;
   nomMagistrat: string;
   priorities: PrioriteEnum[];
   reporters: ReporterScenario;
@@ -119,6 +121,7 @@ function HeaderStory(props: {
         : { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
     },
+    missingEvaluation: !!props.missingEvaluation,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
   });
@@ -150,6 +153,10 @@ function HeaderStory(props: {
             auditionTime={nominationFile.auditionTime}
             editable={isSg && nominationFile.canScheduleAudition}
           />
+          <MissingEvaluationNotice
+            editable={isSg && nominationFile.content.isUpdatable}
+            missingEvaluation={nominationFile.missingEvaluation}
+          />
         </div>
       </NominationFilesTableProvider>
     </StoryQueryClient>
@@ -164,6 +171,7 @@ const meta = {
   argTypes: {
     auditionScheduled: { control: 'boolean' },
     excludedJurisdiction: { control: 'boolean' },
+    missingEvaluation: { control: 'boolean' },
     nomMagistrat: { control: 'text' },
     priorities: { control: 'check', options: priorities },
     reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
@@ -172,6 +180,7 @@ const meta = {
   args: {
     auditionScheduled: false,
     excludedJurisdiction: false,
+    missingEvaluation: false,
     nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
     reporters: 'others',

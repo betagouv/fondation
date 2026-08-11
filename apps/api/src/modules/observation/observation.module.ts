@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
@@ -13,7 +13,7 @@ import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
 @Module({
-  imports: [TransparenceModule],
+  imports: [forwardRef(() => TransparenceModule)],
   controllers: [ObservationController, ObservationAttachmentsController],
   exports: [ObservationService],
   providers: [

@@ -16,7 +16,7 @@ export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagist
   const currentPosition = gradeAndPositionLabel(magistrat.grade, positionLabel);
 
   return (
-    <DetailsCard background="terreBattue">
+    <DetailsCard>
       <h2 className="fr-h4">
         <FormattedMessage defaultMessage="Informations personnelles" />
       </h2>

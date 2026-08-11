@@ -33,6 +33,7 @@ vi.mock('@queries/magistrats.queries', () => ({
 function makeNominationFile(overrides?: Partial<MagistratNominationFile>): MagistratNominationFile {
   return {
     auditionDate: null,
+    auditionExpected: false,
     auditionTime: null,
     id: 'dossier-1',
     name: 'VALROSE Honorine',

@@ -109,7 +109,9 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionExpected: false,
         auditionTime: null,
+        missingEvaluation: false,
         canScheduleAudition: true,
         isArchived: false,
         content: {
@@ -132,12 +134,10 @@ test.describe('Session E2E', () => {
           outcome: null,
           isAlertHidden: false,
           detectedMagistratId: null,
-          detectedJurisdictionId: 'TJ  GRASSE',
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
           },
-          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },
@@ -159,7 +159,9 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         comment: null,
         auditionDate: null,
+        auditionExpected: false,
         auditionTime: null,
+        missingEvaluation: false,
         canScheduleAudition: true,
         id: expect.any(String),
         isArchived: false,
@@ -184,12 +186,10 @@ test.describe('Session E2E', () => {
           outcome: null,
           isAlertHidden: false,
           detectedMagistratId: null,
-          detectedJurisdictionId: 'TJ  TOULON',
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
           },
-          detectedTargetedFunctionId: 'PR',
           isUpdatable: true,
           status: 'TO_REPORT',
         },
@@ -308,6 +308,33 @@ test.describe('Session E2E', () => {
       });
       expect(forbidden.response?.status).toBe(404);
     }, 10_000);
+
+    test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const missingEvaluationOf = async (nominationFileId: string) => {
+        const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+        return files.data!.items.find(({ id }) => id === nominationFileId)?.missingEvaluation;
+      };
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+      expect(await missingEvaluationOf(nominationFileId)).toBe(false);
+
+      const flagRes = await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+      expect(flagRes.response?.status).toBe(204);
+      expect(await missingEvaluationOf(nominationFileId)).toBe(true);
+
+      const clearRes = await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: false },
+      });
+      expect(clearRes.response?.status).toBe(204);
+      expect(await missingEvaluationOf(nominationFileId)).toBe(false);
+    });
 
     test('should not report an empty summary', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);

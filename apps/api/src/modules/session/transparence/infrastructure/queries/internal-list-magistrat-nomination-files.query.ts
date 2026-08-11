@@ -18,7 +18,7 @@ export class InternalListMagistratNominationFilesQuery {
     const totalCount = await this.db.tx.dossierDeNomination.count({ where });
     const page = await this.db.tx.dossierDeNomination.findMany({
       where,
-      orderBy: { session: { date: 'desc' } },
+      orderBy: [{ session: { date: 'desc' } }, { number: { sort: 'asc', nulls: 'last' } }],
       skip: (query.pagination.page - 1) * query.pagination.limit,
       take: query.pagination.limit,
       select: { id: true },

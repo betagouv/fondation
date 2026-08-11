@@ -40,6 +40,7 @@ allowBuilds:
   prisma: false
   unrs-resolver: false
   esbuild: true
+  msw: false
 minimumReleaseAgeExclude:
   # Renovate security update: @hey-api/openapi-ts@0.97.3
   - '@hey-api/openapi-ts@0.97.3'

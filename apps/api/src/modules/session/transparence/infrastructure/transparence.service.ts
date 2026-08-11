@@ -117,7 +117,7 @@ export class TransparenceService {
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
-    private readonly versions: AffectationVersionFinder,
+    readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
 
@@ -270,6 +270,24 @@ export class TransparenceService {
       },
       data: { comment: command.comment },
     });
+  }
+
+  @Transactional()
+  async updateNominationFileMissingEvaluation(command: {
+    sessionId: string;
+    nominationFileId: string;
+    missingEvaluation: boolean;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+
+    session.updateMissingEvaluation({
+      nominationFileId: command.nominationFileId,
+      missingEvaluation: command.missingEvaluation,
+    });
+
+    await this.nominationSessionRepository.persist(session);
   }
 
   @Transactional()

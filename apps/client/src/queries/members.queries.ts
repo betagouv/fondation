@@ -7,6 +7,7 @@ import type {
   ListedMemberSessionsDto,
   ListMembersData,
   UpdateAuditionDateDto,
+  UpdateMissingEvaluationDto,
 } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
@@ -236,6 +237,34 @@ export function useUpdateNominationFileAuditionDateMutation() {
       queryClient.setQueryData(
         summaryKeys.detailsSummary({ sessionId, nominationFileId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
+      );
+    },
+  });
+}
+
+export function useUpdateNominationFileMissingEvaluationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateMissingEvaluationDto & { sessionId: string; nominationFileId: string },
+    ) => {
+      await $api.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
+        body: { missingEvaluation: mutation.missingEvaluation },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, missingEvaluation }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId ? { ...file, missingEvaluation } : file,
+        ),
+      );
+
+      queryClient.setQueryData(
+        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, missingEvaluation } : old),
       );
     },
   });

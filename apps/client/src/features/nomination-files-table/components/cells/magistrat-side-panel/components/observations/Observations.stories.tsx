@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { QueryClient } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -8,12 +8,18 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { observationKeys, type Observation } from '@queries/observations.queries';
+import type {
+  CreateObservationResponseDto,
+  ListedObservationsAttachmentsDto,
+  ListObservationsResponseDto,
+  SearchMagistratsResponseDto,
+  UpdateObservationDto,
+} from '@api/types';
+import type { Observation } from '@queries/observations.queries';
 
 import { Observations } from './Observations';
 
 const SESSION_ID = 'session-1';
-const NOMINATION_FILE_ID = 'nomination-file';
 
 const OBSERVERS = [
   'Syndicat de la magistrature',
@@ -124,46 +130,144 @@ type View = (typeof VIEWS)[number];
 const NO_TAG = 'NONE';
 type FollowUpControl = ObservationFollowupEnum | typeof NO_TAG;
 
-function seed(observations: Observation[]) {
-  return (client: QueryClient) =>
-    client.setQueryData(
-      observationKeys.observations({ sessionId: SESSION_ID, nominationFileId: NOMINATION_FILE_ID }),
-      { observations },
-    );
+const observationsByNominationFile = new Map<string, Observation[]>();
+
+const observationsOf = (nominationFileId: string) => observationsByNominationFile.get(nominationFileId) ?? [];
+
+async function readObservationForm(request: Request) {
+  const data = await request.formData();
+  const part = data.get('form');
+  if (!(part instanceof Blob)) throw new Error('Missing "form" part in the multipart body');
+
+  const form = JSON.parse(await part.text()) as UpdateObservationDto['form'];
+  const files = data.getAll('files').filter((file): file is File => file instanceof File);
+  return { detachedFileIds: [form.detachFileIds ?? []].flat(), files, form };
 }
 
-function ObservationsStory(props: {
-  view: View;
-  observationsCount: number;
-  observationText?: boolean;
+const toObservationFile = (file: File) => ({ id: crypto.randomUUID(), name: file.name });
+
+const observationHandlers = [
+  http.get('*/api/magistrats/v1', ({ request }) => {
+    const search = new URL(request.url).searchParams.get('search')?.toLowerCase() ?? '';
+    const items = MAGISTRATS.filter(({ firstName, lastName, usedName }) =>
+      `${firstName} ${lastName} ${usedName ?? ''}`.toLowerCase().includes(search),
+    ).map((magistrat) => ({ ...magistrat, grade: null, usedName: magistrat.usedName ?? '' }));
+
+    return HttpResponse.json<SearchMagistratsResponseDto>({
+      currentPageIndex: 0,
+      items,
+      totalCount: items.length,
+    });
+  }),
+  http.get('*/api/sessions/v2/:sessionId/observations/attachments', () =>
+    HttpResponse.json<ListedObservationsAttachmentsDto>({ items: [] }),
+  ),
+  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', ({ params }) =>
+    HttpResponse.json<ListObservationsResponseDto>({
+      observations: observationsOf(String(params.nominationFileId)),
+    }),
+  ),
+  http.post(
+    '*/api/sessions/v2/:sessionId/files/:nominationFileId/observations',
+    async ({ params, request }) => {
+      const nominationFileId = String(params.nominationFileId);
+      const { files, form } = await readObservationForm(request);
+      const observation = makeObservation({
+        dateReception: form.dateReception,
+        description: form.description ?? '',
+        files: files.map(toObservationFile),
+        id: crypto.randomUUID(),
+        magistrat: MAGISTRATS.find(({ id }) => id === form.magistratId) ?? null,
+      });
+
+      observationsByNominationFile.set(nominationFileId, [observation, ...observationsOf(nominationFileId)]);
+      return HttpResponse.json<CreateObservationResponseDto>({ id: observation.id }, { status: 201 });
+    },
+  ),
+  http.put(
+    '*/api/sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId',
+    async ({ params, request }) => {
+      const nominationFileId = String(params.nominationFileId);
+      const { detachedFileIds, files, form } = await readObservationForm(request);
+
+      observationsByNominationFile.set(
+        nominationFileId,
+        observationsOf(nominationFileId).map((observation) =>
+          observation.id === params.observationId
+            ? {
+                ...observation,
+                dateReception: form.dateReception,
+                description: form.description ?? '',
+                files: observation.files
+                  .filter(({ id }) => !detachedFileIds.includes(id))
+                  .concat(files.map(toObservationFile)),
+                magistrat: MAGISTRATS.find(({ id }) => id === form.magistratId) ?? observation.magistrat,
+              }
+            : observation,
+        ),
+      );
+      return new HttpResponse(null, { status: 204 });
+    },
+  ),
+  http.delete(
+    '*/api/sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId',
+    ({ params }) => {
+      const nominationFileId = String(params.nominationFileId);
+      observationsByNominationFile.set(
+        nominationFileId,
+        observationsOf(nominationFileId).filter(({ id }) => id !== params.observationId),
+      );
+      return new HttpResponse(null, { status: 204 });
+    },
+  ),
+];
+
+type ObservationsArgs = {
+  data?: Observation[];
   filesCount?: number;
   followUp?: FollowUpControl;
+  observationsCount: number;
+  observationText?: boolean;
   observers: number;
-  data?: Observation[];
-}) {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate(props.view === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
-  }, [props.view, navigate]);
+  view: View;
+};
 
-  const { filesCount, followUp, observationText } = props;
-  const base = (props.data ?? OBSERVATIONS).slice(0, props.observationsCount);
-  const observations = base.map((observation) => ({
+const nominationFileIdFor = (args: ObservationsArgs) =>
+  [
+    'nomination-file',
+    args.data ? 'custom-data' : 'sample-data',
+    args.filesCount ?? 'default-files',
+    args.followUp ?? 'default-tag',
+    args.observationsCount,
+    args.observationText ?? 'default-text',
+    args.observers,
+    args.view,
+  ].join('-');
+
+function buildObservations(args: ObservationsArgs): Observation[] {
+  const { filesCount, followUp, observationText } = args;
+
+  return (args.data ?? OBSERVATIONS).slice(0, args.observationsCount).map((observation) => ({
     ...observation,
     ...(filesCount !== undefined && { files: makeFiles(filesCount) }),
     ...(followUp !== undefined && { followUp: followUp === NO_TAG ? null : followUp }),
     ...(observationText !== undefined && { description: observationText ? LONG_TEXT : '' }),
   }));
+}
+
+function ObservationsStory(props: ObservationsArgs) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate(props.view === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
+  }, [props.view, navigate]);
+
   const nominationFile = makeSessionNominationFile({
-    id: NOMINATION_FILE_ID,
+    id: nominationFileIdFor(props),
     content: { observants: props.observers > 0 ? OBSERVERS.slice(0, props.observers) : null },
   });
 
   return (
-    <StoryQueryClient
-      key={`${observations.length}-${followUp ?? 'none'}-${filesCount ?? 'none'}-${observationText ?? 'none'}`}
-      seed={seed(observations)}
-    >
+    <StoryQueryClient>
       <ObservationsModalProvider>
         <Observations nominationFile={nominationFile} sessionId={SESSION_ID} />
       </ObservationsModalProvider>
@@ -174,6 +278,15 @@ function ObservationsStory(props: {
 const meta = {
   title: 'Features/SidePanel/Observations',
   component: ObservationsStory,
+  beforeEach: ({ args, msw }) => {
+    msw.use(...observationHandlers);
+
+    const nominationFileId = nominationFileIdFor(args);
+    observationsByNominationFile.set(nominationFileId, buildObservations(args));
+    return () => {
+      observationsByNominationFile.delete(nominationFileId);
+    };
+  },
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {

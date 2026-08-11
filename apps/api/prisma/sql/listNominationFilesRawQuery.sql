@@ -38,6 +38,7 @@ SELECT
   ddn.outcome,
   ddn.outcome_comment AS "outcomeComment",
   ddn.alert_hidden AS "alertHidden",
+  ddn.missing_evaluation AS "missingEvaluation",
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
   ddn.detected_magistrat_id AS "detectedMagistratId",

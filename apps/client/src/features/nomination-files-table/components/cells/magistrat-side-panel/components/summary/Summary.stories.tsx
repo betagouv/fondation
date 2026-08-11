@@ -67,6 +67,7 @@ function makeSummaryDetail(props: {
     isArchived: props.isArchived,
     lastPositionDate: null,
     lastRankingDate: null,
+    missingEvaluation: false,
     name: 'Camille DURAND',
     number: 42,
     observations: [],
@@ -129,7 +130,7 @@ function SummaryStory(props: {
 
   return (
     <StoryQueryClient
-      key={`${props.view}-${props.hasSummary}-${props.readers}-${props.attachments}`}
+      key={`${props.view}-${props.hasSummary}-${props.readers}-${props.attachments}-${props.isArchived}-${props.longText}`}
       seed={seed}
     >
       <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>

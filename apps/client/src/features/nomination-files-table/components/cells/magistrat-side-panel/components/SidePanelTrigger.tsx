@@ -6,6 +6,7 @@ import { useIntl } from 'react-intl';
 
 import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
+import { MissingEvaluationIcon } from '@/shared/components/missing-evaluation';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -66,6 +67,10 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             />
           </Tooltip>
         )}
+        <MissingEvaluationIcon
+          className="fr-ml-1v cursor-pointer"
+          missingEvaluation={props.nominationFile.missingEvaluation}
+        />
         {hasAnnotations && (
           <Tooltip kind="hover" title={annotationsLabel}>
             <i

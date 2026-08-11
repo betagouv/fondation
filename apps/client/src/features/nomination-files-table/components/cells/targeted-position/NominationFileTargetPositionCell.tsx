@@ -2,6 +2,7 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { useCallback, useContext } from 'react';
+import { useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
@@ -34,6 +35,7 @@ function useHearingAlert(nominationFile: SessionNominationFile): boolean {
 }
 
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
+  const { formatMessage } = useIntl();
   const { setNominationFile } = useContext(NominationFileTargetPositionContext);
   const hasAlert = useHearingAlert(props.nominationFile);
 
@@ -54,7 +56,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
   if (!hasAlert) return label;
 
   return (
-    <Tooltip title="Fiche de juridiction requise">
+    <Tooltip title={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>
       <Button
         aria-controls={nominationFileTargetPositionModal.id}
         className="group fr-px-0"

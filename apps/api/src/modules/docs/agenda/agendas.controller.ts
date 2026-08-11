@@ -14,20 +14,26 @@ import {
   Put,
   Query,
   StreamableFile,
-  UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiOkResponse, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { ParseBigIntPipe } from 'src/modules/framework/pipes';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AgendasService } from './agendas.service';
-import { CreatedAgendaDto, CreateOrUpdateAgendaDto } from './infrastructure/agendas.dto';
+import {
+  CreatedAgendaDto,
+  CreateOrUpdateAgendaDto,
+  EditAgendaFileBlockDto,
+  UpdateAgendaFilesDto,
+  UpdateAgendaMetadataDto,
+} from './infrastructure/agendas.dto';
 import { AgendasFilter } from './infrastructure/agendas.filter';
+import { DetailedAgendaDocumentBlocksDto } from './infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailedAgendaFilesDto } from './infrastructure/queries/details-agenda-files.query';
 import { DetailedAgendaMetadata } from './infrastructure/queries/details-agenda-metadata.query';
 import { DetailedSessionAgenda } from './infrastructure/queries/details-session-agenda.query';
@@ -58,21 +64,36 @@ export class AgendasController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Put('/agendas/:agendaId')
+  @Put('/agendas/:agendaId/metadata')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  updateAgenda(
+  updateAgendaMetadata(
     @Param('agendaId') agendaId: string,
     @AuthedUser() authUser: { id: string },
-    @Body() body: CreateOrUpdateAgendaDto,
+    @Body() body: UpdateAgendaMetadataDto,
   ): Promise<void> {
-    return this.agendas.updateAgenda({
+    return this.agendas.updateAgendaMetadata({
       agendaId,
       date: body.date,
       authorId: authUser.id,
       chairmanId: body.chairmanId,
-      nominationFileIds: body.nominationFileIds,
       sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/agendas/:agendaId/files')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgendaFiles(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: UpdateAgendaFilesDto,
+  ): Promise<void> {
+    return this.agendas.updateAgendaFiles({
+      agendaId,
+      authorId: authUser.id,
+      nominationFileIds: body.nominationFileIds,
     });
   }
 
@@ -127,30 +148,34 @@ export class AgendasController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Patch('/agendas/:agendaId/html')
+  @Get('/agendas/:agendaId/blocks')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaDocumentBlocksDto })
+  detailsAgendaDocumentBlocks(@Param('agendaId') agendaId: string): Promise<DetailedAgendaDocumentBlocksDto> {
+    return this.agendas.detailsAgendaDocumentBlocks({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/agendas/:agendaId/blocks/files/:fileId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiConsumes('multipart/form-data')
-  @ApiOperation({
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          encoding: { html: { contentType: 'text/html' } },
-          schema: { type: 'object', properties: { html: { type: 'string', format: 'binary' } } },
-        },
-      },
-    },
-  })
-  @UseInterceptors(
-    FileInterceptor('html', {
-      limits: { fileSize: 5_242_880 /* 5Mo */ },
-      fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'text/html'),
-    }),
-  )
-  updateAgendaHtml(
+  @UsePipes(ZodValidationPipe)
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  editAgendaFileBlock(
     @Param('agendaId') agendaId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+    @Body() { html, outdated }: EditAgendaFileBlockDto,
   ): Promise<void> {
-    return this.agendas.updateAgendaHtml({ id: agendaId, html: file.buffer });
+    return this.agendas.editAgendaFileBlock({ agendaId, fileId, html, outdated });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/blocks/files/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  resetAgendaFileBlock(
+    @Param('agendaId') agendaId: string,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+  ): Promise<void> {
+    return this.agendas.resetAgendaFileBlock({ agendaId, fileId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

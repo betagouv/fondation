@@ -45,6 +45,8 @@ model Agenda {
   createdBy String?  @map("created_by") @db.Uuid
 
   html             String?
+  outdated         Boolean @default(false) @map("html_outdated")
+  // computed value from all AgendaNominationFile.htmlEdited columns
   isManuallyEdited Boolean @default(false) @map("is_manually_edited")
   pdfFileId        String? @map("pdf_file_id") @db.Uuid
 
@@ -75,6 +77,9 @@ model AgendaNominationFile {
   outcome          PrismaDocsFileOutcomeEnum?
   outcomeComment   String?                    @map("outcome_comment")
   reporters        String[]
+
+  htmlEdited   String? @map("html_edited")
+  htmlOutdated Boolean @default(false) @map("html_outdated")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

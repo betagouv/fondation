@@ -199,7 +199,10 @@ describe('DbStorage', () => {
       const [result] = await storage.publish([{ id: 'file-123' }]);
 
       expect(s3.publish).toHaveBeenCalled();
-      expect(tx.filePublicUrl.createMany).toHaveBeenCalled();
+      expect(tx.filePublicUrl.createMany).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ url: 'http://s3.example.com/getFile' })],
+      });
+
       expect(result).toMatchObject({
         id: 'file-123',
         expiresAt: expect.any(Date),

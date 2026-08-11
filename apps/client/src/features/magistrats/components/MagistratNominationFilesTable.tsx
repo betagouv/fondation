@@ -120,10 +120,10 @@ export function MagistratNominationFilesTable({
       }),
       columnHelper.accessor('auditionDate', {
         cell: (info) => {
-          const { auditionDate, auditionTime } = info.row.original;
+          const { auditionDate, auditionExpected, auditionTime, session } = info.row.original;
           const scheduledAt = toScheduledDate(auditionDate, auditionTime);
           if (!scheduledAt) {
-            return info.row.original.session.status === 'ONGOING'
+            return auditionExpected && session.status === 'ONGOING'
               ? formatMessage({ defaultMessage: 'À prévoir' })
               : '-';
           }

@@ -22,7 +22,7 @@ function AgendaContent() {
   );
 }
 
-export function CreateOrUpdateAgendaPage() {
+export function CreateAgendaPage() {
   return (
     <AgendaProvider>
       <AgendaContent />
