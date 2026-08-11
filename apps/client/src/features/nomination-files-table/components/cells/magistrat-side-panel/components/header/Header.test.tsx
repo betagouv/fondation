@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
@@ -23,8 +23,8 @@ import { Header } from './Header';
 const SESSION_ID = 'session-1';
 const CURRENT_USER_ID = 'current-user';
 
-const CURRENT_USER = { id: CURRENT_USER_ID, firstName: 'Jean', lastName: 'Petit' };
-const OTHER_REPORTER = { id: 'reporter-1', firstName: 'Marie', lastName: 'Lefevre' };
+const CURRENT_USER = { firstName: 'Jean', id: CURRENT_USER_ID, lastName: 'Petit' };
+const OTHER_REPORTER = { firstName: 'Marie', id: 'reporter-1', lastName: 'Lefevre' };
 const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
 
@@ -247,21 +247,72 @@ describe('Header edition', () => {
     expect(affectReporters).toHaveBeenCalledTimes(1);
     expect(affectReporters).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: { sessionId: SESSION_ID },
         body: {
           items: [
             {
               nominationFileId: 'nomination-file',
-              reporterIds: [OTHER_REPORTER.id],
               priorities: [PrioriteEnum.ETOILE],
+              reporterIds: [OTHER_REPORTER.id],
             },
           ],
         },
+        path: { sessionId: SESSION_ID },
       }),
     );
 
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Header missing second reporter', () => {
+  // jsdom implements no layout, so scrollIntoView is absent from Element.prototype
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('stays silent on a position expecting no particular reporters', () => {
+    renderHeader({
+      nominationFile: makeSessionNominationFile({ expectedReportersCount: null, reporters: [] }),
+    });
+
+    expect(screen.queryByText('2 rapporteurs sont attendus pour ce poste')).not.toBeInTheDocument();
+  });
+
+  it('opens the affectation and focuses the reporter select', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        content: { isUpdatable: true },
+        expectedReportersCount: 2,
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(screen.getByText('2 rapporteurs sont attendus pour ce poste')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Affecter' }));
+
+    expect(screen.getByRole('button', { name: /Affecter un rapporteur/ })).toHaveFocus();
+  });
+
+  it('keeps warning until a second reporter is selected', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        content: { isUpdatable: true },
+        expectedReportersCount: 2,
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Affecter' }));
+    expect(screen.getByText('2 rapporteurs sont attendus pour ce poste')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
+    await user.click(screen.getByRole('option', { name: /Jean PETIT/ }));
+
+    expect(screen.queryByText('2 rapporteurs sont attendus pour ce poste')).not.toBeInTheDocument();
   });
 });
 

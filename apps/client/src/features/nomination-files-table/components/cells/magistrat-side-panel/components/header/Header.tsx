@@ -1,13 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
+import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { MissingSecondReporterAlert } from '@/features/nomination-files-table/components/cells/reporters/MissingSecondReporterAlert';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
 import {
@@ -18,6 +18,7 @@ import { useNominationFilesTable } from '@/features/nomination-files-table/conte
 import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import type { DropdownHandle } from '@/shared/ui/dropdown';
 import { getGdsReportPath } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
@@ -25,6 +26,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
+import { MissingSecondReporterNotice } from './MissingSecondReporterNotice';
 
 export const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
 
@@ -33,18 +35,37 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const { user } = useUser();
   const { canManage } = useNominationFilesTable();
   const isSgContext = useIsSgNavigation();
-  const { nomMagistrat, isUpdatable } = nominationFile.content;
+  const { isUpdatable, nomMagistrat } = nominationFile.content;
 
   const [isEditing, setIsEditing] = useState(false);
 
   const affectation = useAffectation({
     nominationFile,
-    sessionId,
     onSaved: () => setIsEditing(false),
+    sessionId,
   });
 
   const startEditing = () => setIsEditing(true);
   const stopEditing = () => setIsEditing(false);
+
+  const { reportersMissing } = useAuditionExpectation(nominationFile, {
+    selectedReportersCount: isEditing ? affectation.reporterIds.length : undefined,
+  });
+
+  const reporterSelectRef = useRef<DropdownHandle>(null);
+  const [pendingReporterFocus, setPendingReporterFocus] = useState(false);
+  const affectReporters = () => {
+    setIsEditing(true);
+    setPendingReporterFocus(true);
+  };
+
+  useEffect(() => {
+    if (!isEditing || !pendingReporterFocus) return;
+
+    setPendingReporterFocus(false);
+    document.getElementById(AFFECTATION_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    reporterSelectRef.current?.focusTrigger();
+  }, [isEditing, pendingReporterFocus]);
 
   const prioritiesDirty = isEditing && affectation.prioritiesDirty;
   const reportersDirty = isEditing && affectation.reportersDirty;
@@ -95,7 +116,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
                 context: isSgContext ? 'sg' : 'membre',
                 magistratId: nominationFile.content.detectedMagistratId,
               }}
-              lolfi={{ sessionId, nominationFileId: nominationFile.id }}
+              lolfi={{ nominationFileId: nominationFile.id, sessionId }}
               name={nomMagistrat}
               small
             />
@@ -131,18 +152,13 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
       </div>
       {isEditing ? (
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
-            <MissingSecondReporterAlert
-              dossier={nominationFile}
-              selectedReportersCount={affectation.reporterIds.length}
-            />
-            <ReporterSelect
-              available={affectation.availableRapporteurs}
-              excludedTitleByRapporteurId={excludedTitleByRapporteurId}
-              onChange={affectation.setReporterIds}
-              value={affectation.reporterIds}
-            />
-          </div>
+          <ReporterSelect
+            available={affectation.availableRapporteurs}
+            excludedTitleByRapporteurId={excludedTitleByRapporteurId}
+            onChange={affectation.setReporterIds}
+            ref={reporterSelectRef}
+            value={affectation.reporterIds}
+          />
           <ExcludedJurisdictionNotice conflicts={selectedConflicts} />
           {showWarning && reportersDirty && <UnsavedWarning />}
         </div>
@@ -165,6 +181,9 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           )}
         </div>
       )}
+      {isSgContext && reportersMissing && (
+        <MissingSecondReporterNotice editable={canEdit && !isEditing} onAffect={affectReporters} />
+      )}
     </div>
   );
 }
@@ -177,7 +196,7 @@ function UnsavedWarning() {
   );
 }
 
-type Reporter = { id: string; firstName: string; lastName: string };
+type Reporter = { firstName: string; id: string; lastName: string };
 
 function ReporterStatus(props: {
   conflicts: readonly ExcludedJurisdictionConflict[];

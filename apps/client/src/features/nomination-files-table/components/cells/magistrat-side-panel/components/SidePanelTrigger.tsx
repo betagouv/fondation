@@ -1,10 +1,11 @@
-import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import { useEffect, useRef } from 'react';
+import clsx from 'clsx';
+import { useEffect, useId, useRef } from 'react';
 import { useIntl } from 'react-intl';
 
 import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
+import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { MissingEvaluationIcon } from '@/shared/components/missing-evaluation';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
@@ -17,6 +18,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
   const intl = useIntl();
   const isActive = activeId === props.nominationFile.id;
 
+  const expectationId = useId();
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (isActive) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -36,6 +38,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
   );
 
   const attachmentLabel = intl.formatMessage({ defaultMessage: 'Au moins une pièce jointe est présente' });
+  const { label: auditionExpectedLabel } = useAuditionExpectation(props.nominationFile);
   const auditionLabel = isPastSchedule(
     props.nominationFile.auditionDate,
     props.nominationFile.auditionTime ?? END_OF_DAY,
@@ -43,21 +46,49 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
     ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu pour ce magistrat' })
     : intl.formatMessage({ defaultMessage: 'Une audition est prévue pour ce magistrat' });
 
+  const magistratLink = (
+    <Button
+      aria-controls={SIDE_PANEL_ID}
+      aria-current={isActive ? 'true' : undefined}
+      aria-describedby={auditionExpectedLabel ? expectationId : undefined}
+      className={clsx(
+        'group fr-px-0 text-left! font-normal! uppercase! hover:bg-transparent!',
+        auditionExpectedLabel
+          ? 'text-(--text-default-warning)! no-underline!'
+          : 'text-(--text-action-high-blue-france)! underline! underline-offset-4 hover:decoration-2',
+      )}
+      onClick={() => open(props.nominationFile.id)}
+      priority="tertiary no outline"
+      ref={ref}
+      size="small"
+    >
+      {auditionExpectedLabel ? (
+        <span className="bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat group-hover:bg-size-[100%_2px]">
+          {props.nominationFile.content.nomMagistrat}
+          <i
+            aria-hidden
+            className="fr-icon-warning-fill fr-ml-1v relative -top-0.5 inline-block align-middle before:block before:size-3.5! before:content-['']"
+          />
+        </span>
+      ) : (
+        props.nominationFile.content.nomMagistrat
+      )}
+    </Button>
+  );
+
   return (
     <div className="flex flex-col items-start gap-y-0.5">
       <div className="flex flex-wrap items-center text-left leading-4">
-        <Button
-          aria-controls={SIDE_PANEL_ID}
-          aria-current={isActive ? 'true' : undefined}
-          className="fr-px-0 text-left! font-normal! uppercase! underline! underline-offset-4 hover:bg-transparent! hover:decoration-2"
-          onClick={() => open(props.nominationFile.id)}
-          priority="tertiary no outline"
-          ref={ref}
-          size="small"
-          style={{ color: colors.decisions.text.actionHigh.blueFrance.default }}
-        >
-          {props.nominationFile.content.nomMagistrat}
-        </Button>
+        {auditionExpectedLabel ? (
+          <>
+            <Tooltip title={auditionExpectedLabel}>{magistratLink}</Tooltip>
+            <span className="fr-sr-only" id={expectationId}>
+              {auditionExpectedLabel}
+            </span>
+          </>
+        ) : (
+          magistratLink
+        )}
         {props.nominationFile.auditionDate && (
           <Tooltip kind="hover" title={auditionLabel}>
             <i
@@ -67,10 +98,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             />
           </Tooltip>
         )}
-        <MissingEvaluationIcon
-          className="fr-ml-1v"
-          missingEvaluation={props.nominationFile.missingEvaluation}
-        />
+        {props.nominationFile.missingEvaluation && <MissingEvaluationIcon className="fr-ml-1v" />}
         {hasAnnotations && (
           <Tooltip kind="hover" title={annotationsLabel}>
             <i

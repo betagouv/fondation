@@ -19,6 +19,7 @@ import { AutoSaveNotice } from './AutoSaveNotice';
 import { Biography } from './Biography';
 import { Identity } from './Identity';
 import { Observers } from './Observers';
+import { ReportAlerts } from './ReportAlerts';
 import { ReportEditor } from './ReportEditor';
 import { ReportOverviewFileComment } from './ReportOverviewFileComment';
 import { ReportOverviewState } from './ReportOverviewState';
@@ -45,21 +46,21 @@ export function ReportOverview({ id }: { id: string }) {
     navigate,
   );
 
-  const onUpdateContent = (comment: string) => updateReport({ reportId: id, data: { comment } });
-  const onUpdateState = (status: ReportStatusEnum) => updateReport({ reportId: id, data: { status } });
+  const onUpdateContent = (comment: string) => updateReport({ data: { comment }, reportId: id });
+  const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
 
   const onFilesAttached = (files: File[]) => {
     attachReportFiles({
-      reportId: id,
       files,
+      reportId: id,
       usage: 'ATTACHMENT',
     });
   };
 
   const onAttachedFileDeleted = async (fileName: string) => {
     detachReportFiles({
-      reportId: id,
       fileNames: [fileName],
+      reportId: id,
     });
   };
 
@@ -75,55 +76,56 @@ export function ReportOverview({ id }: { id: string }) {
     <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
       <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
         <div className="w-full">
-          <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
+          <Breadcrumb ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} id="report-breadcrumb" />
         </div>
         <AutoSaveNotice />
         <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
           <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
             <Summary
-              summary={retrievedReport.summary}
               fileComment={retrievedReport.fileComment}
               observers={retrievedReport.observers.concat(retrievedReport.observations.map(({ id }) => id))}
+              summary={retrievedReport.summary}
             />
           </div>
           <div
             className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
           >
-            <ReportOverviewState state={retrievedReport.state} onUpdateState={onUpdateState} />
+            <ReportAlerts report={retrievedReport} />
+            <ReportOverviewState onUpdateState={onUpdateState} state={retrievedReport.state} />
             <Identity
-              name={retrievedReport.name}
               birthDate={retrievedReport.birthDate}
-              detectedMagistratId={retrievedReport.detectedMagistratId}
-              grade={retrievedReport.grade}
               currentPosition={retrievedReport.currentPosition}
+              detectedMagistratId={retrievedReport.detectedMagistratId}
+              dureeDuPoste={retrievedReport.dureeDuPoste}
+              grade={retrievedReport.grade}
+              name={retrievedReport.name}
+              nominationFileId={retrievedReport.nominationFileId}
+              priorities={retrievedReport.priorities}
+              rank={retrievedReport.rank}
+              sessionId={retrievedReport.sessionId}
               targetedGrade={retrievedReport.targetedGrade}
               targettedPosition={retrievedReport.targettedPosition}
-              rank={retrievedReport.rank}
-              dureeDuPoste={retrievedReport.dureeDuPoste}
-              priorities={retrievedReport.priorities}
-              sessionId={retrievedReport.sessionId}
-              nominationFileId={retrievedReport.nominationFileId}
             />
             <Biography biography={retrievedReport.biography} />
             <ReportOverviewFileComment report={retrievedReport} />
             <ReportSummaryCard
-              summary={retrievedReport.summary}
-              sessionId={retrievedReport.sessionId}
               nominationFileId={retrievedReport.nominationFileId}
+              sessionId={retrievedReport.sessionId}
+              summary={retrievedReport.summary}
             />
             <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
             <Observers
-              observers={retrievedReport.observers}
-              observations={retrievedReport.observations}
-              sessionId={retrievedReport.sessionId}
               nominationFileId={retrievedReport.nominationFileId}
+              observations={retrievedReport.observations}
+              observers={retrievedReport.observers}
               reportId={id}
+              sessionId={retrievedReport.sessionId}
             />
             <AttachedFileUpload
-              reportId={id}
               attachments={retrievedReport.attachments}
-              onFilesAttached={onFilesAttached}
               onAttachedFileDeleted={onAttachedFileDeleted}
+              onFilesAttached={onFilesAttached}
+              reportId={id}
             />
           </div>
         </div>

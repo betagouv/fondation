@@ -19,16 +19,17 @@ const columnHelper = createColumnHelper<MagistratNominationFile>();
 export function MagistratNominationFilesTable({
   context,
   nominationFiles,
+  showAuditionDate = true,
 }: {
   context: 'sg' | 'membre';
   nominationFiles: MagistratNominationFile[];
+  showAuditionDate?: boolean;
 }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
 
   const columns = useMemo(
     () => [
       columnHelper.accessor((row) => row.session.name, {
-        id: 'session',
         cell: (info) => {
           const { session } = info.row.original;
           const isOngoing = session.status === 'ONGOING';
@@ -74,6 +75,7 @@ export function MagistratNominationFilesTable({
           );
         },
         header: formatMessage({ defaultMessage: 'Session' }),
+        id: 'session',
         size: 200,
       }),
       columnHelper.accessor('number', {
@@ -120,6 +122,8 @@ export function MagistratNominationFilesTable({
       }),
       columnHelper.accessor('auditionDate', {
         cell: (info) => {
+          if (!showAuditionDate) return '-';
+
           const { auditionDate, auditionExpected, auditionTime, session } = info.row.original;
           const scheduledAt = toScheduledDate(auditionDate, auditionTime);
           if (!scheduledAt) {
@@ -147,7 +151,7 @@ export function MagistratNominationFilesTable({
         size: 150,
       }),
     ],
-    [context, formatDate, formatMessage, formatTime],
+    [context, formatDate, formatMessage, formatTime, showAuditionDate],
   );
 
   const table = useReactTable({

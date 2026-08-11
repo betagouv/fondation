@@ -4,7 +4,6 @@ import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { ExcludedJurisdictionAlert } from './ExcludedJurisdictionAlert';
-import { MissingSecondReporterAlert } from './MissingSecondReporterAlert';
 
 export function ReportersCell(props: { dossier: SessionNominationFile }) {
   const { user } = useUser();
@@ -29,7 +28,6 @@ export function ReportersCell(props: { dossier: SessionNominationFile }) {
 
   return (
     <div className="flex items-center">
-      <MissingSecondReporterAlert dossier={props.dossier} />
       <ReporterTagList reporters={reporters} />
     </div>
   );

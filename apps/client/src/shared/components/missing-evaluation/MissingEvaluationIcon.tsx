@@ -2,10 +2,8 @@ import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
-export function MissingEvaluationIcon(props: { className?: string; missingEvaluation: boolean }) {
+export function MissingEvaluationIcon(props: { className?: string }) {
   const { formatMessage } = useIntl();
-
-  if (!props.missingEvaluation) return null;
 
   const label = formatMessage({
     defaultMessage: 'Évaluation manquante dans le dossier administratif LOLFI',

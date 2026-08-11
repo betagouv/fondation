@@ -1,6 +1,6 @@
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-type NominationFileOverrides = Partial<Omit<SessionNominationFile, 'content'>> & {
+export type NominationFileOverrides = Partial<Omit<SessionNominationFile, 'content'>> & {
   content?: Partial<SessionNominationFile['content']>;
 };
 
@@ -31,14 +31,15 @@ const baseContent: SessionNominationFile['content'] = {
 export function makeSessionNominationFile(overrides: NominationFileOverrides = {}): SessionNominationFile {
   const { content, ...rest } = overrides;
   return {
-    id: 'nomination-file',
-    comment: null,
-    canScheduleAudition: true,
     auditionDate: null,
     auditionExpected: false,
     auditionTime: null,
+    canScheduleAudition: true,
+    comment: null,
     content: { ...baseContent, ...content },
+    expectedReportersCount: null,
     hasAttachment: false,
+    id: 'nomination-file',
     isArchived: false,
     memo: null,
     missingEvaluation: false,

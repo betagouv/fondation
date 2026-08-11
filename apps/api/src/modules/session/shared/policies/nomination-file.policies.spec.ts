@@ -1,6 +1,6 @@
 import { NominationFileOutcome } from '../types/nomination-file-outcome';
 
-import { canScheduleAudition, canUpdateNominationFile, isAuditionExpected } from './nomination-file.policies';
+import { canScheduleAudition, canUpdateNominationFile } from './nomination-file.policies';
 
 describe('canUpdateTransparenceFile', () => {
   describe('given a non-archived session', () => {
@@ -104,61 +104,5 @@ describe('canScheduleAudition', () => {
     it.each(NominationFileOutcome.enum)(`prevents to schedule an audition with outcome: %s`, (outcome) => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
-  });
-});
-
-describe('isAuditionExpected', () => {
-  it.each(['PG', 'PR F', 'PRAT', '1PC'])('expects an audition for the targeted function %s', (functionId) => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: 'CA  LYON',
-        detectedTargetedFunctionId: functionId,
-        targetedPosition: null,
-      }),
-    ).toBe(true);
-  });
-
-  it.each([
-    ['1AG', 'CC  PARIS'],
-    ['AG', 'CC  PARIS'],
-    ['PR', 'TJ  PARIS'],
-  ])('expects an audition for the function %s at %s', (functionId, jurisdictionId) => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: jurisdictionId,
-        detectedTargetedFunctionId: functionId,
-        targetedPosition: null,
-      }),
-    ).toBe(true);
-  });
-
-  it('does not expect an audition for the same function outside the targeted jurisdiction', () => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: 'CA  GRENOBLE',
-        detectedTargetedFunctionId: 'PR',
-        targetedPosition: null,
-      }),
-    ).toBe(false);
-  });
-
-  it('falls back on the position label when the file predates LOLFI detection', () => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: null,
-        detectedTargetedFunctionId: null,
-        targetedPosition: "Procureur Général près la cour d'appel de Lyon",
-      }),
-    ).toBe(true);
-  });
-
-  it('does not expect an audition for a regular position', () => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: null,
-        detectedTargetedFunctionId: null,
-        targetedPosition: 'Président de chambre CA AIX EN PROVENCE',
-      }),
-    ).toBe(false);
   });
 });
