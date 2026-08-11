@@ -57,18 +57,19 @@ export function NewTable<Data extends RowData>(props: {
   fluid?: boolean;
   isLoading?: boolean;
   onEndReached?: () => void;
+  revealedRowId?: string | null;
   rowTint?: (row: Row<Data>) => string | undefined;
   table: Table<Data>;
   unvirtualized?: boolean;
   visibleRows?: number;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollBox, setScrollBox] = useState<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const { onEndReached, table, visibleRows } = props;
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
-  const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollRef });
+  const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox });
   const virtualRows = virtualizer.getVirtualItems();
 
   const lastRenderedIndex = virtualRows.at(-1)?.index;
@@ -78,7 +79,34 @@ export function NewTable<Data extends RowData>(props: {
     }
   }, [onEndReached, lastRenderedIndex, totalRows]);
 
+  const { revealedRowId } = props;
+  const revealedIndex = revealedRowId ? rows.findIndex((row) => row.id === revealedRowId) : -1;
+  const alreadyRevealedRef = useRef<{ rowId: string; scrollBox: HTMLDivElement } | null>(null);
+
+  useEffect(() => {
+    if (!revealedRowId || revealedIndex === -1 || !scrollBox) return;
+    if (
+      alreadyRevealedRef.current?.rowId === revealedRowId &&
+      alreadyRevealedRef.current.scrollBox === scrollBox
+    )
+      return;
+
+    alreadyRevealedRef.current = { rowId: revealedRowId, scrollBox };
+
+    const rowElement = scrollBox.querySelector(`[data-index="${revealedIndex}"]`);
+    if (rowElement) {
+      const row = rowElement.getBoundingClientRect();
+      const box = scrollBox.getBoundingClientRect();
+      const headerHeight = headerRef.current?.offsetHeight ?? 0;
+      const isFullyVisible = row.top >= box.top + headerHeight && row.bottom <= box.bottom;
+      if (isFullyVisible) return;
+    }
+
+    virtualizer.scrollToIndex(revealedIndex, { align: 'center' });
+  }, [revealedIndex, revealedRowId, scrollBox, virtualizer]);
+
   const [visibleRowsHeight, setVisibleRowsHeight] = useState<number>();
+
   useEffect(() => {
     if (!visibleRows) return;
     if (totalRows === 0) {
@@ -97,13 +125,13 @@ export function NewTable<Data extends RowData>(props: {
 
   return (
     <div
+      aria-label={props.ariaLabel}
       className={clsx(
         'relative overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)',
         props.unvirtualized ? 'w-full' : 'size-full',
         props.className,
       )}
-      aria-label={props.ariaLabel}
-      ref={scrollRef}
+      ref={setScrollBox}
       role={props.ariaLabel ? 'region' : undefined}
       style={visibleRowsHeight === undefined ? undefined : { height: visibleRowsHeight }}
       tabIndex={0}
@@ -150,6 +178,7 @@ export function NewTable<Data extends RowData>(props: {
                   aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
                   className={clsx(
                     'flex min-h-12 w-full border-b border-(--border-default-grey)',
+                    'motion-safe:transition-colors motion-safe:duration-200 motion-safe:ease-out',
                     props.rowTint?.(row) ?? 'aria-selected:bg-(--background-open-blue-france)',
                   )}
                   data-index={virtualRow.index}

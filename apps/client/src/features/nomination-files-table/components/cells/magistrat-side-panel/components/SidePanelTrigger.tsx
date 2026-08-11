@@ -62,6 +62,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             <i
               aria-label={auditionLabel}
               className="fr-icon-speak-line fr-icon--sm fr-ml-1v text-(--text-action-high-blue-france)"
+              role="img"
             />
           </Tooltip>
         )}
@@ -70,6 +71,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             <i
               aria-label={annotationsLabel}
               className="ri-message-3-line fr-ml-1v relative -top-0.5 text-(--text-action-high-blue-france) before:size-4! before:content-['']"
+              role="img"
             />
           </Tooltip>
         )}
@@ -78,6 +80,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             <i
               aria-label={attachmentLabel}
               className="ri-file-line fr-ml-1v relative -top-0.5 text-(--text-action-high-blue-france) before:size-4! before:content-['']"
+              role="img"
             />
           </Tooltip>
         )}

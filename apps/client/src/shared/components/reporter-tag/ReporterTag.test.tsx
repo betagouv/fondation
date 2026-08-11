@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 import { ReporterTag } from './ReporterTag';
 import { ReporterTagList } from './ReporterTagList';
 
-const HONORINE = { firstName: 'Honorine', lastName: 'Valrose' };
-const ADA = { firstName: 'Ada', lastName: 'Lovelace' };
+const HONORINE = { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' };
+const ADA = { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' };
 
 function renderTag(enableTooltip?: boolean) {
   return render(

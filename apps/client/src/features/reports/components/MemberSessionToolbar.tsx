@@ -1,7 +1,7 @@
 import { FormattedMessage } from 'react-intl';
 
 import { NominationSessionAttachmentList } from '@/features/transparence/components/NominationSessionAttachmentList';
-import { CountedPopover, EmptyPanel } from '@/features/transparence/components/TransparenceToolbar';
+import { CountedPopover, EmptyPanel } from '@/shared/ui/popover';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 
 export function MemberSessionToolbar(props: { sessionId: string }) {

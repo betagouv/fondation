@@ -10,12 +10,15 @@ type PendingNext = { fromId: string; sawFetching: boolean };
 export function SidePanelProvider(
   props: PropsWithChildren<{
     isFetching: boolean;
+    isResolvingOutOfListFile?: boolean;
     nominationFiles: SessionNominationFile[];
     onEndReached: () => void;
+    outOfListFile?: SessionNominationFile | null;
     totalCount: number;
   }>,
 ) {
   const { isFetching, nominationFiles, onEndReached, totalCount } = props;
+  const { isResolvingOutOfListFile = false, outOfListFile = null } = props;
 
   const [activeId, setActiveId] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
 
@@ -49,7 +52,7 @@ export function SidePanelProvider(
   const hasNext = localIndex !== -1 && localIndex < totalCount - 1;
 
   const hasResolvedFile = useRef(false);
-  if (localIndex !== -1) hasResolvedFile.current = true;
+  if (localIndex !== -1 || outOfListFile) hasResolvedFile.current = true;
 
   const open = useCallback(
     (id: string) => {
@@ -102,13 +105,14 @@ export function SidePanelProvider(
   }, [isFetching, nominationFiles, pendingNext, setActiveId]);
 
   useEffect(() => {
-    const isUnresolvableDeepLink = !hasResolvedFile.current && activeId && !isFetching && !pendingNext;
+    const isUnresolvableDeepLink =
+      !hasResolvedFile.current && activeId && !isFetching && !pendingNext && !isResolvingOutOfListFile;
     if (isUnresolvableDeepLink) setActiveId(null);
-  }, [activeId, isFetching, pendingNext, setActiveId]);
+  }, [activeId, isFetching, isResolvingOutOfListFile, pendingNext, setActiveId]);
 
   const value = useMemo(
     () => ({
-      activeFile: localIndex === -1 ? null : nominationFiles[localIndex],
+      activeFile: localIndex === -1 ? outOfListFile : nominationFiles[localIndex],
       activeId,
       close,
       hasNext,
@@ -131,6 +135,7 @@ export function SidePanelProvider(
       next,
       nominationFiles,
       open,
+      outOfListFile,
       pendingNext,
       previous,
       registerLeaveGuard,

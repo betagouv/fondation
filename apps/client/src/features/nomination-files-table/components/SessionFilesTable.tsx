@@ -23,6 +23,7 @@ import {
 import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
 import { useSidePanel } from './cells/magistrat-side-panel/context/side-panel.context';
 import { SidePanelProvider } from './cells/magistrat-side-panel/context/SidePanelProvider';
+import { useOutOfListFile } from './cells/magistrat-side-panel/hooks/use-out-of-list-file/use-out-of-list-file.hook';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
@@ -43,6 +44,7 @@ function SessionFilesNewTable(props: {
       fluid
       isLoading={props.isLoading}
       onEndReached={props.onEndReached}
+      revealedRowId={activeId}
       rowTint={(row) => (row.id === activeId ? 'bg-(--background-alt-blue-france)' : undefined)}
       table={props.table}
       visibleRows={10}
@@ -77,9 +79,17 @@ export function SessionFilesTable(
     });
   const nominationFiles = useMemo(() => data?.items ?? [], [data]);
 
-  const onEndReached = useCallback(() => {
+  const fetchNextFilesPage = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const outOfList = useOutOfListFile({
+    fetchNextPage: fetchNextFilesPage,
+    isFiltered: !!tableState.globalFilter || tableState.columnFilters.some(({ value }) => value.length),
+    isListPending: isLoading,
+    nominationFiles,
+    sessionId,
+  });
 
   const onSortingChange = useCallback(
     (updater: SortingState | ((old: SortingState) => SortingState)) =>
@@ -129,8 +139,10 @@ export function SessionFilesTable(
     <ObservationsModalProvider>
       <SidePanelProvider
         isFetching={isFetching}
+        isResolvingOutOfListFile={outOfList.isResolving}
         nominationFiles={nominationFiles}
-        onEndReached={onEndReached}
+        onEndReached={fetchNextFilesPage}
+        outOfListFile={outOfList.file}
         totalCount={data?.totalCount ?? 0}
       >
         <NominationFileOutcomeCommentModalProvider>
@@ -153,7 +165,7 @@ export function SessionFilesTable(
                 />
               </div>
               {props.children}
-              <SessionFilesNewTable isLoading={isLoading} onEndReached={onEndReached} table={table} />
+              <SessionFilesNewTable isLoading={isLoading} onEndReached={fetchNextFilesPage} table={table} />
             </div>
           </NominationFileTargetPositionProvider>
         </NominationFileOutcomeCommentModalProvider>

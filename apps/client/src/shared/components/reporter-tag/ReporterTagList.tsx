@@ -14,6 +14,7 @@ export function ReporterTagList(props: {
   reporters: readonly {
     firstName: string;
     icon?: ReactNode;
+    id: string;
     isCurrentUser?: boolean;
     lastName: string;
   }[];
@@ -32,7 +33,7 @@ export function ReporterTagList(props: {
       )}
     >
       {reporters.slice(0, max).map((reporter) => (
-        <li className="fr-p-0" key={`${reporter.firstName} ${reporter.lastName}`}>
+        <li className="fr-p-0" key={reporter.id}>
           <ReporterTag
             enableTooltip={false}
             icon={reporter.icon}

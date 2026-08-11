@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import type { FC } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
@@ -8,19 +7,17 @@ import { type FormationEnum, FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
 import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
 
-export type HeaderReportListProps = {
-  dateTransparence: PlainDateOnly;
-  transparency: string;
-  formation: FormationEnum;
-  dueDate: PlainDateOnly | null;
-};
-
-export const HeaderReportList: FC<HeaderReportListProps> = ({
+export function HeaderReportList({
   dateTransparence,
   transparency,
   formation,
   dueDate,
-}) => {
+}: {
+  dateTransparence: PlainDateOnly;
+  transparency: string;
+  formation: FormationEnum;
+  dueDate: PlainDateOnly | null;
+}) {
   const intl = useIntl();
   const navigate = useNavigate();
   const breadcrumb = getTransparencesBreadCrumb(
@@ -73,7 +70,7 @@ export const HeaderReportList: FC<HeaderReportListProps> = ({
       </div>
     </div>
   );
-};
+}
 
 function DisplayedDate(props: { dateOnly: PlainDateOnly | null | undefined }) {
   const intl = useIntl();

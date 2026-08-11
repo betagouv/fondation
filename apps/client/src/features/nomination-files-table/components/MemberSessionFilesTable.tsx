@@ -111,7 +111,7 @@ export function MemberSessionFilesTable(
   }>,
 ) {
   return (
-    <NominationFilesTableProvider {...props} isEditable={false}>
+    <NominationFilesTableProvider {...props} canManage={false}>
       <MemberReportsProvider>
         <MemberSessionFilesTableInner filtersEnd={props.filtersEnd}>
           {props.children}

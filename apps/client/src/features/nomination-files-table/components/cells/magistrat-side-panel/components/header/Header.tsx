@@ -29,7 +29,7 @@ import { PrioritySelect, ReporterSelect } from './AffectationFields';
 export function Header(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
   const { user } = useUser();
-  const { isEditable } = useNominationFilesTable();
+  const { canManage } = useNominationFilesTable();
   const isSgContext = useIsSgNavigation();
   const { nomMagistrat, isUpdatable } = nominationFile.content;
 
@@ -48,7 +48,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const reportersDirty = isEditing && affectation.reportersDirty;
   const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
 
-  const canEdit = isEditable && !!isUpdatable;
+  const canEdit = canManage && !!isUpdatable;
 
   const excludedJurisdictions = useExcludedJurisdictions();
   const conflicts = excludedJurisdictions.conflictsFor(

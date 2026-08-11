@@ -121,8 +121,8 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ toolbar?: ReactNode
 
 export function SgSessionFilesTable(
   props: PropsWithChildren<{
+    canManage?: boolean;
     formation: FormationEnum;
-    isEditable?: boolean;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
     toolbar?: ReactNode;

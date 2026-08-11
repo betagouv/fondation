@@ -7,20 +7,20 @@ import { NominationFilesTableContext, type SessionOutcome } from './files-table.
 
 export function NominationFilesTableProvider(
   props: PropsWithChildren<{
+    canManage?: boolean;
     formation: FormationEnum;
-    isEditable?: boolean;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
   }>,
 ) {
   const ctx = useMemo(
     () => ({
+      canManage: props.canManage !== false,
       formation: props.formation,
-      isEditable: props.isEditable !== false,
       outcomes: props.outcomes,
       sessionId: props.sessionId,
     }),
-    [props.formation, props.isEditable, props.outcomes, props.sessionId],
+    [props.canManage, props.formation, props.outcomes, props.sessionId],
   );
 
   return (

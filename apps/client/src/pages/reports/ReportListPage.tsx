@@ -1,4 +1,3 @@
-import type { FC } from 'react';
 import { useParams } from 'react-router';
 
 import { MemberSessionFilesTable } from '@/features/nomination-files-table/components/MemberSessionFilesTable';
@@ -8,7 +7,7 @@ import { ReportListViewToggle } from '@/features/reports/components/ReportListVi
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
-export const ReportListPage: FC = () => {
+export function ReportListPage() {
   const { sessionId } = useParams();
   const { data: session, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
@@ -35,5 +34,5 @@ export const ReportListPage: FC = () => {
       </div>
     </ArchiveBannerPortal>
   );
-};
+}
 export default ReportListPage;

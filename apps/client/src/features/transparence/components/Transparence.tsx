@@ -50,9 +50,9 @@ export function Transparence() {
         <AlertsProvider>
           <div className={cx('fr-container')}>
             <Breadcrumb
-              id="transparence-details-breadcrumb"
               ariaLabel="Fil d'Ariane d'une transparence détaillée"
               breadcrumb={breadcrumb}
+              id="transparence-details-breadcrumb"
             />
 
             <AlertsProvider.Alerts ref={alertRef} />
@@ -66,8 +66,8 @@ export function Transparence() {
             </div>
             <div className="fr-container fr-mb-8v">
               <SgSessionFilesTable
+                canManage={!transparence.isArchived}
                 formation={transparence.formation}
-                isEditable={!transparence.isArchived}
                 outcomes={transparence.outcomes}
                 sessionId={sessionId!}
                 toolbar={<TransparenceToolbar transparence={transparence} />}

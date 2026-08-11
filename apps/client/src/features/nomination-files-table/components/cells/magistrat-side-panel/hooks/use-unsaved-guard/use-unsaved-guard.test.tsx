@@ -34,8 +34,7 @@ function setup() {
       <SidePanelProvider
         isFetching={false}
         nominationFiles={makeSessionNominationFileList(['a', 'b'])}
-        onPageChange={vi.fn()}
-        pagination={{ pageIndex: 0, pageSize: 2 }}
+        onEndReached={vi.fn()}
         totalCount={2}
       >
         <Consumer />
@@ -109,8 +108,7 @@ describe('useUnsavedGuard', () => {
         <SidePanelProvider
           isFetching={false}
           nominationFiles={makeSessionNominationFileList(['a', 'b'])}
-          onPageChange={vi.fn()}
-          pagination={{ pageIndex: 0, pageSize: 2 }}
+          onEndReached={vi.fn()}
           totalCount={2}
         >
           <Consumer />

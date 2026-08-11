@@ -1,10 +1,8 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
-import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useArchivedSession } from '@/shared/context/archived-session';
-import { PopoverContent, PopoverRoot, PopoverTrigger } from '@/shared/ui/popover';
+import { CountedPopover, EmptyPanel } from '@/shared/ui/popover';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
@@ -14,26 +12,6 @@ import * as importAttachments from './ImportAttachmentModal';
 import { NominationSessionAttachmentList } from './NominationSessionAttachmentList';
 import { NominationSessionDocsList } from './NominationSessionDocsList';
 import { TransparenceActionsMenu } from './TransparenceActionsMenu';
-
-export function CountedPopover(props: { children: ReactNode; count: number; label: ReactNode }) {
-  return (
-    <PopoverRoot>
-      <PopoverTrigger priority="tertiary no outline" size="small">
-        {props.label}
-        <Badge as="span" className="fr-ml-2v" noIcon small>
-          {props.count}
-        </Badge>
-        <i aria-hidden className="fr-icon-arrow-down-s-line fr-icon--sm fr-ml-1v" />
-      </PopoverTrigger>
-
-      <PopoverContent className="max-h-96 w-96 overflow-y-auto">{props.children}</PopoverContent>
-    </PopoverRoot>
-  );
-}
-
-export function EmptyPanel(props: { children: ReactNode }) {
-  return <p className="fr-m-0 text-sm text-(--text-mention-grey)">{props.children}</p>;
-}
 
 export function TransparenceToolbar(props: { transparence: DetailedNominationSessionDto }) {
   const { transparence } = props;

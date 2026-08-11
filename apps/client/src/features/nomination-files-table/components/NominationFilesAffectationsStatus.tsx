@@ -5,10 +5,10 @@ import { useNominationFilesTable } from '../context/files-table.context';
 import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesAffectationsStatus() {
-  const { sessionId, isEditable } = useNominationFilesTable();
+  const { canManage, sessionId } = useNominationFilesTable();
   const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
 
-  if (!isEditable) return null;
+  if (!canManage) return null;
 
   const isBrouillon =
     !affectationsVersion || !('status' in affectationsVersion) || affectationsVersion.status !== 'PUBLIEE';

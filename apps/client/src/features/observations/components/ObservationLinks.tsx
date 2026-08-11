@@ -24,6 +24,7 @@ function ObservationAnnotationsIcon(props: { hasDescription: boolean; hasUserCom
       <i
         aria-label={label}
         className="ri-message-3-line fr-ml-1v relative -top-1 inline-block align-middle text-(--text-action-high-blue-france) before:size-4! before:content-['']"
+        role="img"
       />
     </Tooltip>
   );

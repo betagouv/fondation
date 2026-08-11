@@ -53,6 +53,10 @@ export const sessionKeys = {
     const { sessionId, ...rest } = props ?? {};
     return key('sessions', 'listSessionNominationFiles', sessionId, rest);
   },
+  detailSessionNominationFile: (props: {
+    nominationFileId: string | undefined;
+    sessionId: string | undefined;
+  }) => key('sessions', 'detailSessionNominationFile', props.sessionId, props.nominationFileId),
   detailSession: (props?: { sessionId: string | undefined }) =>
     key('sessions', 'detailSession', props?.sessionId),
   listGdsSessions: (props?: {
@@ -111,6 +115,14 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
 const SESSION_NOMINATION_FILES_PAGE_SIZE = 100;
 
+/** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
+function selectSessionNominationFiles(data: InfiniteData<PaginatedNominationFiles | null>) {
+  return {
+    items: data.pages.filter((page) => !!page).flatMap((page) => page.items),
+    totalCount: data.pages.at(-1)?.totalCount ?? 0,
+  };
+}
+
 export const useInfiniteSessionNominationFilesQuery = (options: {
   sessionId: string;
   filters:
@@ -146,10 +158,27 @@ export const useInfiniteSessionNominationFilesQuery = (options: {
         })
         .then(({ data = null }) => data);
     },
-    select: (data) => ({
-      items: data.pages.filter((page) => !!page).flatMap((page) => page.items),
-      totalCount: data.pages.at(-1)?.totalCount ?? 0,
-    }),
+    select: selectSessionNominationFiles,
+  });
+
+export const useSessionNominationFileQuery = (options: {
+  enabled: boolean;
+  nominationFileId: string | undefined;
+  sessionId: string | undefined;
+}) =>
+  useQuery({
+    enabled: options.enabled && !!options.nominationFileId && !!options.sessionId,
+    staleTime: 30_000,
+    queryKey: sessionKeys.detailSessionNominationFile(options),
+    queryFn: async () => {
+      if (!options.nominationFileId || !options.sessionId) return null;
+
+      const { data } = await $api.sessions.detailNominationFile({
+        path: { nominationFileId: options.nominationFileId, sessionId: options.sessionId },
+      });
+
+      return data ?? null;
+    },
   });
 
 export const mapCachedNominationFiles =
@@ -568,8 +597,9 @@ export const getListCurrentlyAffectedReportersQueryOptions = (options: { session
 export const useListCurrentlyAffectedReportersQuery = (options: { sessionId: string }) =>
   useQuery(getListCurrentlyAffectedReportersQueryOptions(options));
 
-export const useCountUnaffectedFilesQuery = (options: { sessionId: string }) =>
+export const useCountUnaffectedFilesQuery = (options: { enabled?: boolean; sessionId: string }) =>
   useQuery({
+    enabled: options.enabled,
     queryKey: sessionKeys.countUnaffectedFiles(options),
     queryFn: async () => {
       const { data } = await $api.sessions.countUnaffectedNominationFiles({

@@ -10,8 +10,10 @@ import { SidePanelProvider } from './SidePanelProvider';
 
 type ProviderProps = {
   isFetching: boolean;
+  isResolvingOutOfListFile?: boolean;
   nominationFiles: SessionNominationFile[];
   onEndReached: () => void;
+  outOfListFile?: SessionNominationFile | null;
   totalCount: number;
 };
 
@@ -167,6 +169,30 @@ describe('SidePanelProvider', () => {
     const view = renderProvider(baseProps({ isFetching: true, nominationFiles: [] }), '?dossier=ghost');
 
     expect(view.panel.activeId).toBe('ghost');
+  });
+
+  it('serves a deep linked file the loaded rows do not hold', async () => {
+    const [outOfListFile] = makeSessionNominationFileList(['z']);
+    const view = renderProvider(baseProps({ outOfListFile }), '?dossier=z');
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(view.panel.isOpen).toBe(true);
+    expect(view.panel.activeFile?.id).toBe('z');
+    expect(view.panel.hasPrevious).toBe(false);
+    expect(view.panel.hasNext).toBe(false);
+  });
+
+  it('keeps a dossier deep link while the file is resolved out of the list', async () => {
+    const view = renderProvider(baseProps({ isResolvingOutOfListFile: true }), '?dossier=z');
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(view.panel.activeId).toBe('z');
   });
 
   it('stays open when the active file drops out of the refreshed list', async () => {

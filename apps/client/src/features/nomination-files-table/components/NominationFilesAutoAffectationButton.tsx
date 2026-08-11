@@ -18,11 +18,11 @@ export function NominationFilesAutoAffectationButton() {
   const alerts = useAlerts();
   const confirmation = useConfirmation();
   const { formatMessage } = useIntl();
-  const { sessionId, formation } = useNominationFilesTable();
+  const { canManage, formation, sessionId } = useNominationFilesTable();
   const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
   const excludedMemberIdsRef = useRef<string[]>([]);
 
-  const { data, isFetching } = useCountUnaffectedFilesQuery({ sessionId });
+  const { data, isFetching } = useCountUnaffectedFilesQuery({ enabled: canManage, sessionId });
 
   const unaffectedFilesCount = data?.count ?? 0;
 
@@ -106,6 +106,8 @@ export function NominationFilesAutoAffectationButton() {
     sessionId,
     unaffectedFilesCount,
   ]);
+
+  if (!canManage) return null;
 
   return (
     <Button

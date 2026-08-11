@@ -12,7 +12,7 @@ import {
 export function NominationFilesPublishButton() {
   const alerts = useAlerts();
   const { formatMessage } = useIntl();
-  const { sessionId, isEditable } = useNominationFilesTable();
+  const { canManage, sessionId } = useNominationFilesTable();
   const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
   const { mutate: publishAffectations, isPending: isPublishing } = usePublishVersionMutation();
 
@@ -41,7 +41,7 @@ export function NominationFilesPublishButton() {
   const isDraft =
     !!affectationsVersion && 'status' in affectationsVersion && affectationsVersion.status === 'BROUILLON';
 
-  if (!isEditable || (!isDraft && !hasNoVersionYet)) return null;
+  if (!canManage || (!isDraft && !hasNoVersionYet)) return null;
 
   return (
     <Button

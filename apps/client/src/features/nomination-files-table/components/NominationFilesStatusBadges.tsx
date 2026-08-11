@@ -18,10 +18,10 @@ function StatusCount(props: { count: number; label: ReactNode; severity?: BadgeP
 }
 
 export function NominationFilesStatusBadges(props: { className?: string }) {
-  const { sessionId, isEditable } = useNominationFilesTable();
+  const { canManage, sessionId } = useNominationFilesTable();
   const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId });
 
-  if (!counts || !isEditable) return null;
+  if (!counts || !canManage) return null;
 
   const { unaffected, inProgress, withOutcome } = counts;
 

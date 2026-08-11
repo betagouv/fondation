@@ -6,8 +6,8 @@ import type { DetailedNominationSessionDto } from '@api/types';
 export type SessionOutcome = DetailedNominationSessionDto['outcomes'][number];
 
 export type NominationFilesTableContextType = {
+  canManage: boolean;
   formation: FormationEnum;
-  isEditable: boolean;
   outcomes: readonly SessionOutcome[];
   sessionId: string;
 };
