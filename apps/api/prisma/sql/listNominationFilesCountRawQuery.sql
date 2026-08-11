@@ -13,13 +13,7 @@
 SELECT COUNT(ddn.id)
 
 FROM
-  nominations_context.dossier_de_nomination AS ddn
-
-  LEFT JOIN LATERAL (
-    SELECT nfr.user_id
-    FROM nominations_context.nomination_file_to_reporter AS nfr
-    WHERE nfr.nomination_file_id = ddn.id AND nfr.version_id = /* versionId */$1::UUID
-  ) AS reporters ON TRUE,
+  nominations_context.dossier_de_nomination AS ddn,
 
   TO_TSQUERY('unaccent_fr'::REGCONFIG, /* search */$8::TEXT) AS query
 
@@ -41,7 +35,15 @@ WHERE (
     (/* reporterIds */$4::UUID[] IS NULL AND $5::BOOLEAN = FALSE)
     OR (
       ARRAY_LENGTH(/* reporterIds */$4::UUID[], 1) IS NOT NULL
-      AND reporters.user_id = ANY(/* reporterIds */$4::UUID[])
+      AND EXISTS (
+        SELECT user_id
+        FROM nominations_context.nomination_file_to_reporter AS sub_nfr
+        WHERE (
+          sub_nfr.version_id = /* versionId */$1::UUID
+          AND sub_nfr.nomination_file_id = ddn.id
+          AND sub_nfr.user_id = ANY(/* reporterIds */$4::UUID[])
+        )
+      )
     ) OR (
       /* hasNoReporter */$5::BOOLEAN
       AND /* versionId */$1::UUID IS NOT NULL
