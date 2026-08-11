@@ -1,4 +1,4 @@
-import { useMemo, useState, type PropsWithChildren } from 'react';
+import { useMemo, type PropsWithChildren } from 'react';
 
 import type { FormationEnum } from '@/types/enums.types';
 
@@ -7,23 +7,20 @@ import { NominationFilesTableContext, type SessionOutcome } from './files-table.
 
 export function NominationFilesTableProvider(
   props: PropsWithChildren<{
+    canManage?: boolean;
     formation: FormationEnum;
-    isEditable?: boolean;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
   }>,
 ) {
-  const [isEditing, setEditing] = useState<boolean>(false);
-
   const ctx = useMemo(
     () => ({
-      edition: props.isEditable !== false ? { isEditing, setEditing } : undefined,
+      canManage: props.canManage !== false,
       formation: props.formation,
-      isEditable: props.isEditable !== false,
       outcomes: props.outcomes,
       sessionId: props.sessionId,
     }),
-    [props.formation, props.isEditable, props.outcomes, props.sessionId, isEditing],
+    [props.canManage, props.formation, props.outcomes, props.sessionId],
   );
 
   return (

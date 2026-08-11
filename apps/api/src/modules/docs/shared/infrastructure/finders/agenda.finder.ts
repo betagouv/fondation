@@ -141,7 +141,7 @@ export class AgendaFinder {
     const sessions = new Map<string, { typeDeSaisine: TypeDeSaisineEnum; date: DateOnlyJson }>();
     const sessionIds = new Set(items.map(({ sessionId }) => sessionId));
     for (const sessionId of sessionIds) {
-      const session = await this.transparences.details({ sessionId });
+      const session = await this.transparences.details({ formation: undefined, sessionId });
       sessions.set(sessionId, { date: session.date, typeDeSaisine: session.typeDeSaisine });
     }
 

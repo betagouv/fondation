@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl';
 
 import { FormattedBirthDate } from '@/i18n/components';
 import type { PlainDateOnly } from '@/utils/date-only.util';
+import { gradeAndPositionLabel } from '@/utils/position.utils';
 
 function TextValue(props: { label: string; value: ReactNode }) {
   return (
@@ -12,10 +13,6 @@ function TextValue(props: { label: string; value: ReactNode }) {
       <span>{props.value}</span>
     </div>
   );
-}
-
-function withGrade(grade: string | null, position: string | null) {
-  return [grade, position].filter(Boolean).join(' - ');
 }
 
 export function IdentityList(props: {
@@ -29,8 +26,8 @@ export function IdentityList(props: {
 }) {
   const { formatMessage } = useIntl();
 
-  const currentPosition = withGrade(props.grade, props.currentPosition);
-  const targetedPosition = withGrade(props.targetedGrade, props.targetedPosition);
+  const currentPosition = gradeAndPositionLabel(props.grade, props.currentPosition);
+  const targetedPosition = gradeAndPositionLabel(props.targetedGrade, props.targetedPosition);
 
   return (
     <div className="flex flex-col gap-2">

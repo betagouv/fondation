@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
@@ -47,6 +53,10 @@ export const sessionKeys = {
     const { sessionId, ...rest } = props ?? {};
     return key('sessions', 'listSessionNominationFiles', sessionId, rest);
   },
+  detailSessionNominationFile: (props: {
+    nominationFileId: string | undefined;
+    sessionId: string | undefined;
+  }) => key('sessions', 'detailSessionNominationFile', props.sessionId, props.nominationFileId),
   detailSession: (props?: { sessionId: string | undefined }) =>
     key('sessions', 'detailSession', props?.sessionId),
   listGdsSessions: (props?: {
@@ -70,8 +80,8 @@ export const sessionKeys = {
     key('sessions', 'lolfiMagistratUrl', props?.sessionId, props?.nominationFileId),
   listCurrentlyAffectedReporters: (props?: { sessionId: string }) =>
     key('sessions', 'listCurrentlyAffectedReporters', props?.sessionId),
-  countUnaffectedFiles: (props?: { sessionId: string; nominationFileIds?: readonly string[] }) =>
-    key('sessions', 'countUnaffectedFiles', props?.sessionId, props?.nominationFileIds),
+  countUnaffectedFiles: (props?: { sessionId: string }) =>
+    key('sessions', 'countUnaffectedFiles', props?.sessionId),
   nominationFilesStatusCounts: (props?: { sessionId: string }) =>
     key('sessions', 'nominationFilesStatusCounts', props?.sessionId),
   countUsersNewSessions: () => key('sessions', 'countUsersNewSessions'),
@@ -103,7 +113,17 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
   });
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
-export const useSessionNominationFilesQuery = (options: {
+const SESSION_NOMINATION_FILES_PAGE_SIZE = 100;
+
+/** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
+function selectSessionNominationFiles(data: InfiniteData<PaginatedNominationFiles | null>) {
+  return {
+    items: data.pages.filter((page) => !!page).flatMap((page) => page.items),
+    totalCount: data.pages.at(-1)?.totalCount ?? 0,
+  };
+}
+
+export const useInfiniteSessionNominationFilesQuery = (options: {
   sessionId: string;
   filters:
     | {
@@ -113,21 +133,21 @@ export const useSessionNominationFilesQuery = (options: {
         search?: string | null;
       }
     | undefined;
-  pagination: { pageIndex: number; pageSize: number } | undefined;
   sorting: [] | [{ id: NonNullable<ListNominationFilesData['query']>['sortBy']; desc: boolean }] | undefined;
 }) =>
-  useQuery({
+  useInfiniteQuery({
     placeholderData: (prev) => prev,
     staleTime: 30_000,
     queryKey: sessionKeys.listSessionNominationFiles(options),
-    queryFn: () => {
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: PaginatedNominationFiles | null) => lastPage?.nextPageIndex,
+    queryFn: ({ pageParam }) => {
       return $api.sessions
         .listNominationFiles({
           path: { sessionId: options.sessionId },
           query: {
-            limit: options.pagination?.pageSize,
-            page:
-              (options.pagination?.pageIndex ?? 0) > 0 ? (options.pagination?.pageIndex ?? 0) + 1 : undefined,
+            limit: SESSION_NOMINATION_FILES_PAGE_SIZE,
+            page: pageParam,
             sortBy: options.sorting?.[0]?.id,
             sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
             priorities: options.filters?.priorities,
@@ -138,7 +158,39 @@ export const useSessionNominationFilesQuery = (options: {
         })
         .then(({ data = null }) => data);
     },
+    select: selectSessionNominationFiles,
   });
+
+export const useSessionNominationFileQuery = (options: {
+  enabled: boolean;
+  nominationFileId: string | undefined;
+  sessionId: string | undefined;
+}) =>
+  useQuery({
+    enabled: options.enabled && !!options.nominationFileId && !!options.sessionId,
+    staleTime: 30_000,
+    queryKey: sessionKeys.detailSessionNominationFile(options),
+    queryFn: async () => {
+      if (!options.nominationFileId || !options.sessionId) return null;
+
+      const { data } = await $api.sessions.detailNominationFile({
+        path: { nominationFileId: options.nominationFileId, sessionId: options.sessionId },
+      });
+
+      return data ?? null;
+    },
+  });
+
+export const mapCachedNominationFiles =
+  (mapItem: (item: SessionNominationFile) => SessionNominationFile) =>
+  (old: InfiniteData<PaginatedNominationFiles | null> | undefined) => {
+    if (!old) return old;
+
+    return {
+      ...old,
+      pages: old.pages.map((page) => (page ? { ...page, items: page.items.map(mapItem) } : page)),
+    };
+  };
 
 /** @warning there is an issue with the code generation here */
 type AffectationItem = AffectReportersDto['items'][number];
@@ -194,17 +246,10 @@ export function useAutoAffectationMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (mutation: {
-      sessionId: string;
-      nominationFileIds: readonly string[] | undefined;
-      excludedMemberIds: string[] | undefined;
-    }) =>
+    mutationFn: (mutation: { sessionId: string; excludedMemberIds: string[] | undefined }) =>
       $api.sessions.autoAffectation({
         path: { sessionId: mutation.sessionId },
-        body: {
-          nominationFileIds: mutation.nominationFileIds as string[] | undefined,
-          excludedMemberIds: mutation.excludedMemberIds,
-        },
+        body: { excludedMemberIds: mutation.excludedMemberIds },
       }),
 
     onSuccess: (_data, { sessionId }) =>
@@ -349,16 +394,9 @@ export const useAddNominationFileAttachmentsMutation = () => {
     onSuccess: async (_data, { nominationFileId, sessionId }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
-            ),
-          };
-        },
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
+        ),
       );
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
@@ -383,16 +421,9 @@ export const useRemoveNominationFileAttachmentMutation = () => {
 
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === nominationFileId ? { ...item, hasAttachment } : item,
-            ),
-          };
-        },
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId ? { ...item, hasAttachment } : item,
+        ),
       );
 
       await queryClient.invalidateQueries({
@@ -518,28 +549,23 @@ export function useDefineNominationFileOutcomeMutation(input: {
         Promise.resolve(
           queryClient.setQueriesData(
             { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
-            (old: PaginatedNominationFiles | undefined) => {
-              if (!old) return old;
-
-              return {
-                ...old,
-                items: old?.items.map((item) =>
-                  item.id === input.nominationFileId
-                    ? {
-                        ...item,
-                        content: {
-                          ...item.content,
-                          outcome: outcome === null ? null : { value: outcome, comment },
-                        },
-                      }
-                    : item,
-                ),
-              };
-            },
+            mapCachedNominationFiles((item) =>
+              item.id === input.nominationFileId
+                ? {
+                    ...item,
+                    content: {
+                      ...item.content,
+                      outcome: outcome === null ? null : { value: outcome, comment },
+                    },
+                  }
+                : item,
+            ),
           ),
         ),
         queryClient.invalidateQueries({
           predicate: doesQueryKey.matchesAny(
+            sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+            sessionKeys.detailSessionNominationFile(input),
             sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
             sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
@@ -573,19 +599,13 @@ export const getListCurrentlyAffectedReportersQueryOptions = (options: { session
 export const useListCurrentlyAffectedReportersQuery = (options: { sessionId: string }) =>
   useQuery(getListCurrentlyAffectedReportersQueryOptions(options));
 
-export const useCountUnaffectedFilesQuery = (options: {
-  sessionId: string;
-  nominationFileIds: readonly string[] | undefined;
-}) =>
+export const useCountUnaffectedFilesQuery = (options: { enabled?: boolean; sessionId: string }) =>
   useQuery({
+    enabled: options.enabled,
     queryKey: sessionKeys.countUnaffectedFiles(options),
     queryFn: async () => {
       const { data } = await $api.sessions.countUnaffectedNominationFiles({
         path: { sessionId: options.sessionId },
-        query: {
-          nominationFileIds:
-            (options.nominationFileIds ?? [])?.length > 0 ? options.nominationFileIds?.join(',') : undefined,
-        },
       });
 
       return data ?? null;
@@ -663,18 +683,11 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
     onSuccess: (_, { nominationFileId }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === nominationFileId
-                ? { ...item, content: { ...item.content, isAlertHidden: true } }
-                : item,
-            ),
-          };
-        },
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId
+            ? { ...item, content: { ...item.content, isAlertHidden: true } }
+            : item,
+        ),
       ),
   });
 }

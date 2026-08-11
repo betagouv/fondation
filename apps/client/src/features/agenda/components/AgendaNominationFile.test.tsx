@@ -51,6 +51,13 @@ describe('AgendaNominationFile', () => {
     expect(screen.getByTitle('sursis à statuer')).toHaveTextContent('SAS');
   });
 
+  it('describes each position with its own grade', () => {
+    renderFile(makeDocsNominationFile());
+
+    expect(screen.getByTitle('I - Premier grade')).toBeInTheDocument();
+    expect(screen.getByTitle('HH - Hors hiérarchie')).toBeInTheDocument();
+  });
+
   it('renders no outcome badge when the file has no outcome', () => {
     renderFile(makeDocsNominationFile());
 

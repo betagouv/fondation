@@ -19,7 +19,7 @@ export class IsSessionReadyForDocGenerationQuery {
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
-    const session = await this.transparences.details(query);
+    const session = await this.transparences.details({ formation: undefined, sessionId: query.sessionId });
     if (session.isArchived) {
       return { isReady: false, canCreateAgenda: false, canCreateOfficialReport: false };
     }

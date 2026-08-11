@@ -513,6 +513,110 @@ export type DetailedNominationFileAttachmentDto = {
     url: string;
 };
 
+export type DetailedNominationFileDto = {
+    id: string;
+    isArchived: boolean;
+    priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
+    content: {
+        /**
+         * always 2
+         */
+        version: number;
+        nomMagistrat: string;
+        numeroDeDossier: number | null;
+        dateEchéance: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+        posteActuel: string | null;
+        posteCible: string | null;
+        gradeCible: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        rang: string | null;
+        dateDeNaissance: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        historique: string | null;
+        observants: Array<string> | null;
+        datePassageAuGrade: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        datePriseDeFonctionPosteActuel: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        informationCarrière: string | null;
+        jurisdictions: {
+            current: {
+                id: string;
+                label: string | null;
+            } | null;
+            targeted: {
+                id: string;
+                label: string | null;
+            } | null;
+        };
+        detectedMagistratId: string | null;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            comment: string | null;
+        } | null;
+        isAlertHidden: boolean;
+        isUpdatable: boolean;
+        status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+    };
+    comment: string | null;
+    canScheduleAudition: boolean;
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionExpected: boolean;
+    auditionTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    } | null;
+    missingEvaluation: boolean;
+    reporters: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+    }>;
+    observations: Array<{
+        id: string;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
+        followUpComment: string | null;
+        hasDescription: boolean;
+        hasUserComment: boolean;
+        magistrat: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            usedName: string | null;
+        } | null;
+    }>;
+    memo: string | null;
+    summary: {
+        id: string;
+        canRead: boolean;
+        canWrite: boolean;
+    } | null;
+    hasAttachment: boolean;
+};
+
 export type DetailedNominationSessionDto = {
     id: string;
     name: string;
@@ -765,77 +869,14 @@ export type ListedMemberSessionsDto = {
     }>;
 };
 
-export type DetailedMemberSessionDto = {
+export type ListedMemberSessionReportsDto = {
     items: Array<{
-        id: string;
-        isArchived: boolean;
         nominationFileId: string;
-        state: string;
-        formation: string;
-        folderNumber: number | null;
-        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * prefer priorities
-         *
-         * @deprecated
-         */
-        filePriority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        name: string;
-        grade: string;
-        currentPosition: string | null;
-        targettedPosition: string;
-        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
-        missingEvaluation: boolean;
-        /**
-         * LODAM observers, we need to keep them until we recover data from LODAM
-         */
-        observers: Array<string>;
-        observations: Array<{
+        report: {
             id: string;
-            hasDescription: boolean;
-            hasUserComment: boolean;
-            magistrat: {
-                id: string;
-                firstName: string;
-                lastName: string;
-                usedName: string | null;
-            } | null;
-        }>;
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-    session: {
-        id: string;
-        isArchived: boolean;
-        formation: string;
-        outcomes: Array<{
-            commentRequired: boolean;
-            label: string;
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
-        }>;
-        transparency: string;
-        dateTransparence: {
-            year: number;
-            month: number;
-            day: number;
+            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
         };
-        dateSeance: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-    };
+    }>;
 };
 
 export type FoundNominationFileMembersReportDto = {
@@ -2490,6 +2531,22 @@ export type CreateNominationFileAttachmentUrlResponses = {
 
 export type CreateNominationFileAttachmentUrlResponse = CreateNominationFileAttachmentUrlResponses[keyof CreateNominationFileAttachmentUrlResponses];
 
+export type DetailNominationFileData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}';
+};
+
+export type DetailNominationFileResponses = {
+    200: DetailedNominationFileDto;
+};
+
+export type DetailNominationFileResponse = DetailNominationFileResponses[keyof DetailNominationFileResponses];
+
 export type DeleteNominationSessionData = {
     body?: never;
     path: {
@@ -2796,31 +2853,21 @@ export type ListMemberSessionsResponses = {
 
 export type ListMemberSessionsResponse = ListMemberSessionsResponses[keyof ListMemberSessionsResponses];
 
-export type DetailsMemberSessionData = {
+export type ListMemberSessionReportsData = {
     body?: never;
     path: {
         userId: string;
         sessionId: string;
     };
-    query?: {
-        sortBy?: 'fileNumber' | 'name' | 'targetedPosition' | 'targetedGrade';
-        priorities?: string;
-        status?: string | null;
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}';
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/reports';
 };
 
-export type DetailsMemberSessionResponses = {
-    200: DetailedMemberSessionDto;
+export type ListMemberSessionReportsResponses = {
+    200: ListedMemberSessionReportsDto;
 };
 
-export type DetailsMemberSessionResponse = DetailsMemberSessionResponses[keyof DetailsMemberSessionResponses];
+export type ListMemberSessionReportsResponse = ListMemberSessionReportsResponses[keyof ListMemberSessionReportsResponses];
 
 export type SearchNominationFileMembersReportData = {
     body?: never;

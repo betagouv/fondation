@@ -84,12 +84,38 @@ describe('OutcomeSelect', () => {
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
-    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED');
+    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', null);
     expect(mocks.mutate).toHaveBeenCalledWith(
       { comment: 'Bien', outcome: 'NON_VALIDATED' },
       expect.anything(),
     );
     expect(mocks.reset).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the current comment when the new outcome needs none', async () => {
+    const user = userEvent.setup();
+    renderSelect({ content: { outcome: { value: 'NON_VALIDATED', comment: 'Déjà écrit' } } });
+
+    await user.click(screen.getByRole('button', { name: 'NON CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
+
+    await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
+    expect(mocks.mutate).toHaveBeenCalledWith(
+      { comment: 'Déjà écrit', outcome: 'VALIDATED' },
+      expect.anything(),
+    );
+  });
+
+  it('prefills the dialog with the current comment when the new outcome needs one', async () => {
+    mocks.waitForOutcomeComment.mockResolvedValue({ type: 'comment', value: 'Corrigé' });
+    const user = userEvent.setup();
+    renderSelect({ content: { outcome: { value: 'VALIDATED', comment: 'Déjà écrit' } } });
+
+    await user.click(screen.getByRole('button', { name: 'CONFORME' }));
+    await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
+
+    await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
+    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', 'Déjà écrit');
   });
 
   it('drops the change without saving when the dialog is cancelled', async () => {

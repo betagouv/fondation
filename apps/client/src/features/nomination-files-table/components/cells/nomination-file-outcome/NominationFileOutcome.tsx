@@ -21,12 +21,9 @@ export function NominationFileOutcome(props: { nominationFile: SessionNomination
 
   return (
     <Tooltip kind="hover" title={outcome.comment}>
-      <div
-        className="flex cursor-pointer flex-row items-center gap-1"
-        style={{ '--icon-size': '10px' } as CSSProperties}
-      >
+      <div className="flex flex-col items-center" style={{ '--icon-size': '10px' } as CSSProperties}>
         <NominationFileOutcomeBadge acronym formation={formation} label={label} outcome={outcome.value} />
-        <i className="ri-message-3-line text-(--text-action-high-blue-france) before:size-5! before:content-['']" />
+        <i className="ri-message-3-line text-(--text-action-high-blue-france) before:size-4! before:content-['']" />
       </div>
     </Tooltip>
   );

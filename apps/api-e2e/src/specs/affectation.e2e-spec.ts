@@ -41,6 +41,23 @@ test.describe('Session Affectations E2E', () => {
     expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
   });
 
+  test('counts a nomination file once whatever its number of reporters', async ({ agent, logIn, expect }) => {
+    const secondMember = await logIn('MEMBRE_COMMUN');
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: [{ nominationFileId, reporterIds: [memberId, secondMember['@user']!.id], priorities: [] }],
+      },
+      throwOnError: true,
+    });
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+
+    expect(files.data!.items[0]!.reporters).toHaveLength(2);
+    expect(files.data!.totalCount).toBe(files.data!.items.length);
+  });
+
   test('the affectation lifecycle preserves the report edition', async ({ agent, member, expect }) => {
     await agent.sessions.affectReporters({
       path: { sessionId },
@@ -56,10 +73,10 @@ test.describe('Session Affectations E2E', () => {
     const affected = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(affected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: true }));
 
-    const { data: detailedSession } = await member.members.detailsMemberSession({
+    const { data: memberReports } = await member.members.listMemberSessionReports({
       path: { userId: memberId, sessionId },
     });
-    const reportId = detailedSession!.items[0]!.id;
+    const reportId = memberReports!.items[0]!.report.id;
 
     await member.reports.updateReport({
       path: { reportId },
@@ -93,11 +110,11 @@ test.describe('Session Affectations E2E', () => {
       throwOnError: true,
     });
 
-    const { data: reaffected } = await member.members.detailsMemberSession({
+    const { data: reaffected } = await member.members.listMemberSessionReports({
       path: { userId: memberId, sessionId },
     });
     const restoredReport = await member.reports.detailReport({
-      path: { reportId: reaffected!.items[0]!.id },
+      path: { reportId: reaffected!.items[0]!.report.id },
     });
     expect(restoredReport.data!.state).toBe('IN_PROGRESS');
   });

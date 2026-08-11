@@ -23,7 +23,7 @@ export default definePreview({
       const router = context.parameters.router as { initialEntries?: string[]; path?: string } | undefined;
       return (
         <MemoryRouter initialEntries={router?.initialEntries}>
-          <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
+          <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
             {router?.path ? (
               <Routes>
                 <Route element={<Story />} path={router.path} />
@@ -41,7 +41,7 @@ export default definePreview({
       matchers: { color: /(background|color)$/i, date: /Date$/i },
     },
     options: {
-      storySort: { order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
+      storySort: { method: 'alphabetical', order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
     },
   },
 });

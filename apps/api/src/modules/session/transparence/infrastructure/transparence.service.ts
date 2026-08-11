@@ -1,5 +1,5 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
@@ -11,10 +11,9 @@ import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
-import { DetailsMemberSessionQueryDto } from 'src/modules/members/infrastructure/dtos/members.dto';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -57,10 +56,6 @@ import {
 } from './queries/detail-nomination-session.query';
 import { GetLolfiMagistratUrlQuery, LolfiMagistratUrlDto } from './queries/get-lolfi-magistrat-url.query';
 import {
-  type DetailedMemberSessionDto,
-  InternalDetailMemberSessionQuery,
-} from './queries/internal-detail-member-session.query';
-import {
   InternalFindDocsNominationFilesQuery,
   InternalFoundAgendaNominationFiles,
 } from './queries/internal-find-docs-nomination-files.query';
@@ -79,6 +74,7 @@ import {
 } from './queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 import {
+  type DetailedNominationFileDto,
   ListNominationFilesQuery,
   type PaginatedNominationFiles,
 } from './queries/list-nomination-files.query';
@@ -98,41 +94,34 @@ export class TransparenceService {
   constructor(
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
-    private readonly db: Db,
-
-    private readonly nominationSessionRepository: SessionTransparenceRepository,
-
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
-    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
-    private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
-
-    private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
-    private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
-    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
-    private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
+    private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
+    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
+    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+    private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
-    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
-
-    private readonly internalDetailMemberSessionQuery: InternalDetailMemberSessionQuery,
-    private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
-    private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
-    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
-
-    private readonly sessionsFinder: NominationSessionFinder,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
+    private readonly nominationSessionRepository: SessionTransparenceRepository,
+    private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
+    private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
+    private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
+    private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
+    private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
+    private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+    private readonly db: Db,
+    readonly versions: AffectationVersionFinder,
+    private readonly sessionsFinder: NominationSessionFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
 
     private readonly events: EventEmitter2,
-
-    readonly versions: AffectationVersionFinder,
   ) {}
 
   /** @internal */
@@ -144,16 +133,21 @@ export class TransparenceService {
   }
 
   /** @internal */
-  detailMemberSession(query: {
-    user: { id: string; role: RoleEnum };
-    pagination: Pagination;
+  async assertMemberSessionExists(query: {
     sessionId: string;
     typeDeSaisine: TypeDeSaisineEnum;
-    status: ReportStateEnum[] | undefined;
-    sorting: Sortable<DetailsMemberSessionQueryDto>;
-    priorities: (PriorityEnum | null)[] | undefined;
-  }): Promise<DetailedMemberSessionDto> {
-    return this.internalDetailMemberSessionQuery.handle(query);
+    user: { role: RoleEnum };
+  }): Promise<void> {
+    const session = await this.db.tx.session.findFirst({
+      select: { id: true },
+      where: {
+        deletedAt: null,
+        formation: roleToFormation(query.user.role),
+        id: query.sessionId,
+        typeDeSaisine: query.typeDeSaisine,
+      },
+    });
+    if (!session) throw new NotFoundException();
   }
 
   @Transactional()
@@ -202,6 +196,17 @@ export class TransparenceService {
     };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
+  }
+
+  async detailNominationFile(query: {
+    nominationFileId: string;
+    sessionId: string;
+    user: { role: RoleEnum; id: string };
+  }): Promise<DetailedNominationFileDto> {
+    const file = await this.listNominationFilesQuery.detail(query);
+    if (!file) throw new NotFoundException();
+
+    return file;
   }
 
   detailNominationSessionAffectationsVersion(query: { sessionId: string }): Promise<FoundAffectationVersion> {
@@ -430,7 +435,11 @@ export class TransparenceService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+  details(query: {
+    /** undefined means no restriction on the formation */
+    formation: FormationEnum | undefined;
+    sessionId: string;
+  }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 

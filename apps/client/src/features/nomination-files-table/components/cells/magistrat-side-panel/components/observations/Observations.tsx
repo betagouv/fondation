@@ -205,6 +205,8 @@ function ObservationCard({ observation, file }: { observation: Observation; file
   );
 }
 
+export const OBSERVATIONS_SECTION_ID = 'magistrat-observations-section';
+
 export function Observations({
   nominationFile,
   sessionId,
@@ -237,7 +239,7 @@ export function Observations({
   if (!isSg && observationsCount === 0 && !formattedObservers) return null;
 
   return (
-    <div>
+    <div id={OBSERVATIONS_SECTION_ID}>
       <div className="fr-mb-4v flex items-center justify-between gap-2">
         <h3 className="fr-mb-0 text-xl font-semibold">
           <FormattedMessage

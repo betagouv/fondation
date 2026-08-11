@@ -1,26 +1,27 @@
 import { useExcludedJurisdictions } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
-import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { UserAvatarList } from '@/shared/components/user-avatar';
+import { ReporterTagList } from '@/shared/components/reporter-tag';
+import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { ExcludedJurisdictionAlert } from './ExcludedJurisdictionAlert';
 import { MissingSecondReporterAlert } from './MissingSecondReporterAlert';
-import { ReportersSelector } from './ReportersSelector';
 
-function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
+export function ReportersCell(props: { dossier: SessionNominationFile }) {
+  const { user } = useUser();
   const excludedJurisdictions = useExcludedJurisdictions();
   const conflicts = excludedJurisdictions.conflictsFor(
     props.dossier,
     props.dossier.reporters.map(({ id }) => id),
   );
 
-  const users = props.dossier.reporters.map((reporter) => {
+  const reporters = props.dossier.reporters.map((reporter) => {
     const memberConflicts = conflicts.filter(({ memberId }) => memberId === reporter.id);
 
     return {
       ...reporter,
       icon:
         memberConflicts.length > 0 ? <ExcludedJurisdictionAlert conflicts={memberConflicts} /> : undefined,
+      isCurrentUser: reporter.id === user?.id,
     };
   });
 
@@ -29,17 +30,7 @@ function ReadOnlyReportersCell(props: { dossier: SessionNominationFile }) {
   return (
     <div className="flex items-center">
       <MissingSecondReporterAlert dossier={props.dossier} />
-      <UserAvatarList users={users} size="sm" />
+      <ReporterTagList reporters={reporters} />
     </div>
   );
-}
-
-export function ReportersCell(props: { dossier: SessionNominationFile }) {
-  const { edition } = useNominationFilesTable();
-
-  if (edition?.isEditing && props.dossier.content.isUpdatable) {
-    return <ReportersSelector file={props.dossier} />;
-  }
-
-  return <ReadOnlyReportersCell dossier={props.dossier} />;
 }

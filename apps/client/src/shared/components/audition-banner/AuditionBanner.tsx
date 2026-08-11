@@ -25,11 +25,11 @@ export function AuditionBanner(props: {
   return (
     <div
       className={clsx(
-        'flex items-center gap-2 bg-(--background-contrast-info) text-sm-plus font-medium text-(--text-default-info)',
+        'flex min-h-6 items-center gap-2 bg-(--background-contrast-info) text-sm-plus font-medium text-(--text-default-info)',
         props.className,
       )}
     >
-      <span aria-hidden className="fr-icon-info-fill shrink-0 before:[--icon-size:1.25rem]" />
+      <span aria-hidden className="fr-icon-speak-fill fr-icon--sm shrink-0" />
       <span>
         {isPast ? (
           <FormattedMessage defaultMessage="Une audition a eu lieu le {date} à {time}" values={values} />

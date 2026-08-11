@@ -105,7 +105,7 @@ function HeaderStory(props: {
   view: View;
 }) {
   const isSg = props.view !== 'member';
-  const isEditable = props.view === 'sg';
+  const canManage = props.view === 'sg';
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -141,8 +141,8 @@ function HeaderStory(props: {
       }
     >
       <NominationFilesTableProvider
+        canManage={canManage}
         formation={FormationEnum.SIEGE}
-        isEditable={isEditable}
         outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
         sessionId={SESSION_ID}
       >

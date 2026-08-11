@@ -29,8 +29,8 @@ const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
 
 function renderHeader(options: {
+  canManage?: boolean;
   excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
-  isEditable?: boolean;
   isSg?: boolean;
   myReportId?: string;
   nominationFile: SessionNominationFile;
@@ -66,8 +66,8 @@ function renderHeader(options: {
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
         <QueryClientProvider client={client}>
           <NominationFilesTableProvider
+            canManage={options.canManage ?? true}
             formation={FormationEnum.SIEGE}
-            isEditable={options.isEditable ?? true}
             outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
             sessionId={SESSION_ID}
           >
@@ -179,7 +179,7 @@ describe('Header edition', () => {
 
   it('offers the edit button when the table is editable and the file is updatable', () => {
     renderHeader({
-      isEditable: true,
+      canManage: true,
       nominationFile: makeSessionNominationFile({ content: { isUpdatable: true } }),
     });
 
@@ -188,7 +188,7 @@ describe('Header edition', () => {
 
   it('hides the edit button for a member (table not editable)', () => {
     renderHeader({
-      isEditable: false,
+      canManage: false,
       nominationFile: makeSessionNominationFile({ content: { isUpdatable: true } }),
     });
 
@@ -197,7 +197,7 @@ describe('Header edition', () => {
 
   it('hides the edit button when the file is not updatable', () => {
     renderHeader({
-      isEditable: true,
+      canManage: true,
       nominationFile: makeSessionNominationFile({ content: { isUpdatable: false } }),
     });
 
@@ -207,7 +207,7 @@ describe('Header edition', () => {
   it('swaps read controls for edit controls, and cancel restores read mode', async () => {
     const user = userEvent.setup();
     renderHeader({
-      isEditable: true,
+      canManage: true,
       nominationFile: makeSessionNominationFile({ content: { isUpdatable: true }, reporters: [] }),
     });
 
@@ -233,7 +233,7 @@ describe('Header edition', () => {
       .mockResolvedValue({} as Awaited<ReturnType<typeof $api.sessions.affectReporters>>);
     const user = userEvent.setup();
     renderHeader({
-      isEditable: true,
+      canManage: true,
       nominationFile: makeSessionNominationFile({
         content: { isUpdatable: true },
         priorities: [PrioriteEnum.ETOILE],

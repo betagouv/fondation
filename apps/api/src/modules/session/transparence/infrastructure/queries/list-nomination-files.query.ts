@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
+import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import * as nominationFilesPolicies from '../../../shared/policies/nomination-file.policies';
@@ -16,6 +17,7 @@ import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import {
   NominationFileOutcome,
@@ -56,17 +58,15 @@ export class ListNominationFilesQuery {
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     };
   }): Promise<PaginatedNominationFiles> {
-    const [totalCount, files, sessionArchivedAt] = await this.db.withTransaction(async () => {
-      const isSG = (['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as RoleEnum[]).includes(query.user.role);
-      const lastVersion = isSG
-        ? await this.versionFinder.last({
-            sessionId: query.sessionId,
-          })
-        : await this.versionFinder.lastPublished({
-            sessionId: query.sessionId,
-          });
+    const [totalCount, items] = await this.db.withTransaction(async () => {
+      const session = await this.findVisibleSession(query);
+      if (!session) return [0, [] as NominationFileAffectationItem[]] as const;
 
-      const where = ListNominationFilesQuery.filtersToPrismaWhere(query.filters, lastVersion);
+      const where = ListNominationFilesQuery.filtersToPrismaWhere(
+        query.filters,
+        await this.lastVersion(query),
+      );
+
       const [{ count: txCount } = { count: 0n }] = await this.db.tx.$queryRawTyped(
         listNominationFilesCountRawQuery(
           where.versionId ?? null,
@@ -81,61 +81,124 @@ export class ListNominationFilesQuery {
         ),
       );
 
-      const txFiles = await this.db.tx
-        .$queryRawTyped(
-          listNominationFilesRawQuery(
-            where.versionId ?? null,
-            query.user.id,
-            query.pagination.limit,
-            (query.pagination.page - 1) * query.pagination.limit,
-            where.priorities,
-            where.hasNoPriorities,
-            where.reporterIds,
-            where.hasNoReporters,
-            where.outcomes,
-            where.hasNoOutcome,
-            where.search,
-            query.sorting.sortBy ?? null,
-            query.sorting.sortDesc ? 'desc' : 'asc',
-            query.sessionId,
-          ),
-        )
-        .then((list) => RawListedNominationFiles.parseAsync(list));
-
-      const nominationFileIds = new Set(txFiles.map(({ id }) => id));
-      const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
-        nominationFileIds,
-      });
-
-      const jurisdictions = await this.jurisdictionsFinder.find({
-        nominationFileIds: [...nominationFileIds],
-      });
-
-      const session = await this.db.tx.session.findUnique({
-        where: { id: query.sessionId },
-        select: { archivedAt: true },
-      });
-
       return [
         Number(txCount ?? 0n),
-        txFiles.map((file) => {
-          const docs = linkedDocs.get(file.id) ?? [];
-          return {
-            ...file,
-            jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
-            status: transparenceFileStatus({ id: file.id, docs }),
-            isUpdatable: nominationFilesPolicies.canUpdateNominationFile(
-              { docs, id: file.id, outcome: file.outcome },
-              { archivedAt: session?.archivedAt },
-            ),
-          };
+        await this.loadFiles({
+          nominationFileIds: null,
+          pagination: query.pagination,
+          session,
+          sessionId: query.sessionId,
+          sorting: query.sorting,
+          userId: query.user.id,
+          where,
         }),
-        session?.archivedAt,
-      ];
+      ] as const;
     });
 
+    return paginate({ items, totalCount, pagination: query.pagination });
+  }
+
+  /** @internal */
+  async detail(query: {
+    nominationFileId: string;
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<NominationFileAffectationItem | null> {
+    const [file] = await this.db.withTransaction(async () => {
+      const session = await this.findVisibleSession(query);
+      if (!session) return [];
+
+      return this.loadFiles({
+        nominationFileIds: [query.nominationFileId],
+        pagination: { page: 1, limit: 1 },
+        session,
+        sessionId: query.sessionId,
+        sorting: { sortBy: undefined, sortDesc: false },
+        userId: query.user.id,
+        where: ListNominationFilesQuery.filtersToPrismaWhere(
+          { outcomes: [], priorities: [], reporterIds: [], search: null },
+          await this.lastVersion(query),
+        ),
+      });
+    });
+
+    return file ?? null;
+  }
+
+  private findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
+    return this.db.tx.session.findFirst({
+      select: { archivedAt: true },
+      where: { deletedAt: null, formation: roleToFormation(query.user.role), id: query.sessionId },
+    });
+  }
+
+  private lastVersion(query: { sessionId: string; user: { role: RoleEnum } }) {
+    const isSG = (['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as RoleEnum[]).includes(query.user.role);
+
+    return isSG
+      ? this.versionFinder.last({ sessionId: query.sessionId })
+      : this.versionFinder.lastPublished({ sessionId: query.sessionId });
+  }
+
+  private async loadFiles(query: {
+    nominationFileIds: string[] | null;
+    pagination: { limit: number; page: number };
+    session: { archivedAt: Date | null };
+    sessionId: string;
+    sorting: Sortable<ListNominationFilesQueryDto>;
+    userId: string;
+    where: NominationFilesWhere;
+  }): Promise<NominationFileAffectationItem[]> {
+    const { where } = query;
+
+    const txFiles = await this.db.tx
+      .$queryRawTyped(
+        listNominationFilesRawQuery(
+          where.versionId ?? null,
+          query.userId,
+          query.pagination.limit,
+          (query.pagination.page - 1) * query.pagination.limit,
+          where.priorities,
+          where.hasNoPriorities,
+          where.reporterIds,
+          where.hasNoReporters,
+          where.outcomes,
+          where.hasNoOutcome,
+          where.search,
+          query.sorting.sortBy ?? null,
+          query.sorting.sortDesc ? 'desc' : 'asc',
+          query.sessionId,
+          query.nominationFileIds,
+        ),
+      )
+      .then((list) => RawListedNominationFiles.parseAsync(list));
+
+    const nominationFileIds = new Set(txFiles.map(({ id }) => id));
+    const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
+      nominationFileIds,
+    });
+
+    const jurisdictions = await this.jurisdictionsFinder.find({
+      nominationFileIds: [...nominationFileIds],
+    });
+
+    const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
-    const items = files.map((x): NominationFileAffectationItem => {
+
+    const files = txFiles.map((file) => {
+      const docs = linkedDocs.get(file.id) ?? [];
+      return {
+        ...file,
+        jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
+        status: transparenceFileStatus({ id: file.id, docs }),
+        isUpdatable: nominationFilesPolicies.canUpdateNominationFile(
+          { docs, id: file.id, outcome: file.outcome },
+          { archivedAt: sessionArchivedAt },
+        ),
+      };
+    });
+
+    return files.map((x): NominationFileAffectationItem => {
       return {
         id: x.id,
         isArchived,
@@ -212,17 +275,15 @@ export class ListNominationFilesQuery {
         summary: x.summary
           ? {
               id: x.id,
-              canWrite: x.summary.authorId === query.user.id,
+              canWrite: x.summary.authorId === query.userId,
               canRead:
-                x.summary.authorId === query.user.id ||
-                x.summary.readers.some((userId) => userId === query.user.id),
+                x.summary.authorId === query.userId ||
+                x.summary.readers.some((userId) => userId === query.userId),
             }
           : null,
         hasAttachment: x.hasAttachment,
       };
     });
-
-    return paginate({ items, totalCount, pagination: query.pagination });
   }
 
   private static filtersToPrismaWhere(
@@ -233,7 +294,7 @@ export class ListNominationFilesQuery {
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
     },
     lastVersion: OptionalAffectationVersion,
-  ) {
+  ): NominationFilesWhere {
     const [hasNoReporters, reporterIds] = partition(filters.reporterIds, (x) => x === null);
     const [hasNoPriorities, priorities] = partition(filters.priorities, (x) => x === null);
     const [hasNoOutcome, outcomes] = partition(filters.outcomes, (x) => x === null);
@@ -250,6 +311,17 @@ export class ListNominationFilesQuery {
     };
   }
 }
+
+type NominationFilesWhere = {
+  versionId: string | undefined;
+  reporterIds: string[] | null;
+  hasNoReporters: boolean;
+  priorities: PrismaPrioriteEnum[] | null;
+  hasNoPriorities: boolean;
+  outcomes: NominationFileOutcomeEnum[] | null;
+  hasNoOutcome: boolean;
+  search: string | null;
+};
 
 const JurisdictionSchema = z.object({ id: z.string(), label: z.string().nullable() });
 
@@ -412,3 +484,5 @@ const NominationFileAffectationItemSchema = z.object({
 export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;
 
 export class PaginatedNominationFiles extends createPaginatedZodDto(NominationFileAffectationItemSchema) {}
+
+export class DetailedNominationFileDto extends createZodDto(NominationFileAffectationItemSchema) {}

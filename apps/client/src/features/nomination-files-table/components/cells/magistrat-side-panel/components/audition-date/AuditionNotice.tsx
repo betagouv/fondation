@@ -26,10 +26,10 @@ export function AuditionNotice(props: {
   };
 
   return (
-    <AuditionBanner date={auditionDate} time={auditionTime} className="-mx-8 -mt-10 px-8 py-4">
+    <AuditionBanner className="-mx-8 -mt-10 px-8 py-4" date={auditionDate} time={auditionTime}>
       {editable && !isPast && (
         <Button
-          className="ml-auto whitespace-nowrap text-(--text-default-info)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
+          className="ml-auto min-h-0! px-3.5! py-0! whitespace-nowrap text-(--text-default-info)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
           onClick={goToDateField}
           priority="tertiary no outline"
           size="small"

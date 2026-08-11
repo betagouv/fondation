@@ -20,6 +20,7 @@ export function OutcomeSelect(props: { nominationFile: SessionNominationFile }) 
   });
 
   const current = props.nominationFile.content.outcome?.value ?? null;
+  const currentComment = props.nominationFile.content.outcome?.comment ?? null;
 
   const save = (outcome: NominationFileOutcomeEnum, comment: string | null) => {
     mutate({ comment, outcome }, { onSettled: () => reset() });
@@ -32,11 +33,11 @@ export function OutcomeSelect(props: { nominationFile: SessionNominationFile }) 
     }
 
     if (!outcomeRequiresComment(outcomes, next)) {
-      save(next, null);
+      save(next, currentComment);
       return;
     }
 
-    const event = await waitForOutcomeComment(next);
+    const event = await waitForOutcomeComment(next, currentComment);
     if (event.type === 'drop') {
       reset();
       return;

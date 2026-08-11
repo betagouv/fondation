@@ -41,10 +41,10 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 
   return (
     <DropdownFilter
-      tagName={props.filter.label}
+      onSelectionChange={onSelectionChange}
       options={options}
       selectedValues={currentFilter.value}
-      onSelectionChange={onSelectionChange}
+      tagName={props.filter.label}
     />
   );
 }
@@ -65,11 +65,11 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
   const label =
     hasFilterActive && itemLabel
       ? `${rowsCount} ${itemLabel}`
-      : intl.formatMessage({ defaultMessage: `Filtrer par:` });
+      : intl.formatMessage({ defaultMessage: `Filtrer par` });
 
   return (
     <div className="flex items-center gap-4">
-      <span className="font-bold">{label}</span>
+      <span>{label}</span>
       {props.table.options.columns
         .filter((col) => !!col.meta?.filters)
         .map((col) => {
@@ -77,17 +77,17 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
             case 'enum':
               return (
                 <ReactTableFilterEnum
-                  table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
+                  table={props.table}
                 />
               );
             case 'asyncList':
               return (
                 <ReactTableFilterColumnAsyncList
-                  table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
+                  table={props.table}
                 />
               );
             default:

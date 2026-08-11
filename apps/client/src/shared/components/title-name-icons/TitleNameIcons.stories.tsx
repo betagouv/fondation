@@ -26,7 +26,7 @@ type PlaygroundArgs = {
 export const Playground: StoryObj<PlaygroundArgs> = {
   args: {
     hasDetectedMagistrat: true,
-    name: 'Mme DUPONT DE LA BOISSIÈRE Anne-Charlotte',
+    name: 'DUPONT DE LA BOISSIÈRE Anne-Charlotte',
     small: false,
     titleColor: 'black',
   },

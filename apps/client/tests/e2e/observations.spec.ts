@@ -105,9 +105,7 @@ test.describe('observations', () => {
       await app.page.getByRole('heading', { name: sessionName }).waitFor();
       await test.expect(app.page.getByRole('cell', { name: 'Chargement...' })).toBeHidden();
 
-      // Quand je bascule en édition
-      await app.pages.session.switchToEditModeButton.click();
-      // Et que j'ouvre la boite de dialogue d'ajout d'une observation
+      // Quand j'ouvre la boite de dialogue d'ajout d'une observation
       const modal = await app.pages.session.openObservationModal({ number: 1 });
 
       // Et que je saisis "01/05/2026" pour la date
@@ -124,15 +122,13 @@ test.describe('observations', () => {
 
       // Quand je clique sur "Sauvegarder"
       await modal.saveButton.click();
-      // Et que je ferme la boite de dialogue
+      // Et que je ferme la boite de dialogue puis le panneau
       await modal.closeButton.click();
       await modal.dialog.waitFor({ state: 'hidden' });
+      await app.pages.session.closeMagistratDetails();
     });
 
     test('je crée une observation sur un dossier', async ({ app }) => {
-      // Et que je bascule en mode lecture
-      await app.pages.session.switchToReadModeButton.click();
-
       // Alors la colonne "Observant(s)" doit contenir "Michel Foucault"
       const row = app.pages.session.sessionRow({ number: 1 });
       await test.expect(row.getByRole('link', { name: magistrats.michelFoucault.firstName })).toBeVisible();
@@ -143,18 +139,14 @@ test.describe('observations', () => {
       await test.expect(app.page.getByRole('heading', { name: sessionName })).toBeVisible();
       await test.expect(app.page.getByRole('cell', { name: 'Chargement...' })).toBeHidden();
 
-      await app.pages.session.switchToEditModeButton.click();
-
-      const modal = await app.pages.session.openObservationModal({ number: 1 });
-      await modal.editObservationButton.click();
+      const modal = await app.pages.session.openObservationModal({ number: 1 }, 'edit');
       await modal.fillHistory('Mise à jour');
 
       await modal.saveButton.click();
       await test.expect(modal.saveButton).toBeHidden();
       await modal.closeButton.click();
 
-      const modalWithEdition = await app.pages.session.openObservationModal({ number: 1 });
-      modalWithEdition.editObservationButton.click();
+      const modalWithEdition = await app.pages.session.openObservationModal({ number: 1 }, 'edit');
 
       await test.expect(modalWithEdition.inputHistory).toHaveValue(/Mise à jour/);
     });

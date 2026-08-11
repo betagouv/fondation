@@ -5,7 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
 import { NominationFileOutcomeBadge } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
-import { UserAvatarList } from '@/shared/components/user-avatar';
+import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { NewTable } from '@/shared/ui/new-table/NewTable';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -142,9 +142,9 @@ export function MagistratNominationFilesTable({
       }),
       columnHelper.accessor('reporters', {
         cell: (info) =>
-          info.getValue().length === 0 ? '-' : <UserAvatarList size="sm" users={info.getValue()} />,
+          info.getValue().length === 0 ? '-' : <ReporterTagList reporters={info.getValue()} />,
         header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
-        size: 140,
+        size: 150,
       }),
     ],
     [context, formatDate, formatMessage, formatTime],
@@ -157,5 +157,5 @@ export function MagistratNominationFilesTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <NewTable className="max-h-80" fluid table={table} wrap />;
+  return <NewTable className="max-h-80" fluid table={table} unvirtualized />;
 }

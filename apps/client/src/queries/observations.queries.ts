@@ -8,12 +8,11 @@ import type {
   CreateObservationDto,
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
-  PaginatedNominationFiles,
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
 
-import { sessionKeys } from './nomination-sessions.queries';
+import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
@@ -329,25 +328,18 @@ export function useFollowUpOnObservationMutation() {
     onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === nominationFileId
-                ? {
-                    ...item,
-                    observations: item.observations.map((observation) =>
-                      observation.id === observationId
-                        ? { ...observation, followUp, followUpComment: comment }
-                        : observation,
-                    ),
-                  }
-                : item,
-            ),
-          };
-        },
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId
+            ? {
+                ...item,
+                observations: item.observations.map((observation) =>
+                  observation.id === observationId
+                    ? { ...observation, followUp, followUpComment: comment }
+                    : observation,
+                ),
+              }
+            : item,
+        ),
       );
 
       return queryClient.invalidateQueries({

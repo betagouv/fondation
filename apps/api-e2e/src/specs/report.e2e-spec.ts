@@ -50,11 +50,11 @@ test.describe('Report E2E', () => {
     expect(publishResponse.response?.status).toBe(204);
 
     const memberId = member['@user']!.id;
-    const reportsRes = await member.members.detailsMemberSession({
+    const reportsRes = await member.members.listMemberSessionReports({
       path: { userId: memberId, sessionId: session.id },
     });
 
-    reportId = reportsRes.data!.items[0]!.id;
+    reportId = reportsRes.data!.items[0]!.report.id;
   });
 
   test('should find my report for a nomination file', async ({ logIn, member, expect }) => {
@@ -75,6 +75,28 @@ test.describe('Report E2E', () => {
       path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
     });
     expect(otherMemberRes.response?.status).toBe(403);
+  });
+
+  test('should list my session reports with their state', async ({ logIn, member, expect }) => {
+    const memberRes = await member.members.listMemberSessionReports({
+      path: { sessionId, userId: member['@user']!.id },
+    });
+    expect(memberRes.response?.status).toBe(200);
+    expect(memberRes.data?.items).toEqual([{ nominationFileId, report: { id: reportId, state: 'NEW' } }]);
+
+    const memberWithoutReport = await logIn('MEMBRE_COMMUN');
+    const withoutReportRes = await memberWithoutReport.members.listMemberSessionReports({
+      path: { sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(withoutReportRes.response?.status).toBe(200);
+    expect(withoutReportRes.data?.items).toEqual([]);
+  });
+
+  test('should not list session reports of an unknown session', async ({ member, expect }) => {
+    const unknownSessionRes = await member.members.listMemberSessionReports({
+      path: { sessionId: crypto.randomUUID(), userId: member['@user']!.id },
+    });
+    expect(unknownSessionRes.response?.status).toBe(404);
   });
 
   test('should attach files to a report', async ({ member, expect }) => {

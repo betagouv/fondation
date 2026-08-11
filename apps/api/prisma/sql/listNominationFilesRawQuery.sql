@@ -14,6 +14,7 @@
 -- @param {String} $12:sortBy?
 -- @param {String} $13:sortOrder?
 -- @param {String} $14:sessionId
+-- @param $15:nominationFileIds?
 
 SELECT
   ddn.id,
@@ -194,6 +195,12 @@ WHERE (
 
   /* -- SEARCH -- */
   AND ($11::TEXT IS NULL OR ddn."search" @@ query)
+
+  /* -- IDS -- */
+  AND (
+    /* nominationFileIds */$15::UUID[] IS NULL
+    OR ddn.id = ANY(/* nominationFileIds */$15::UUID[])
+  )
 )
 
 ORDER BY 
