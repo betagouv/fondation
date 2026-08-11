@@ -1,15 +1,21 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 export type DropdownOption = { label: ReactNode; value: string };
+
+export type DropdownHandle = { focusTrigger: () => void };
+
+/** DSFR hides the focus ring unless `:focus-visible` matches, which never happens when we move the focus here on behalf of the user after a mouse click */
+const FORCED_FOCUS_RING = '[&[data-forced-focus]:focus]:[outline-style:solid]';
 
 type DropdownProps = {
   className?: string;
   label?: ReactNode;
   options: readonly DropdownOption[];
   placeholder?: ReactNode;
+  ref?: Ref<DropdownHandle>;
 } & (
   | { multiple?: false; onSelect: (value: string | null) => void; selected: string | null }
   | { multiple: true; onSelect: (value: string[]) => void; selected: readonly string[] }
@@ -23,6 +29,17 @@ export function Dropdown(props: DropdownProps) {
   const labelId = useId();
   const selectionId = useId();
   const triggerId = useId();
+
+  useImperativeHandle(props.ref, () => ({
+    focusTrigger() {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+
+      trigger.dataset.forcedFocus = '';
+      trigger.addEventListener('blur', () => delete trigger.dataset.forcedFocus, { once: true });
+      trigger.focus({ preventScroll: true });
+    },
+  }));
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +99,7 @@ export function Dropdown(props: DropdownProps) {
       aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
       className={clsx(
         'cursor-pointer text-left font-[inherit]',
+        FORCED_FOCUS_RING,
         props.multiple
           ? 'absolute inset-0 h-full w-full [--active:transparent] [--hover:transparent]'
           : cx('fr-select'),
@@ -108,7 +126,6 @@ export function Dropdown(props: DropdownProps) {
 
   return (
     <div
-      ref={rootRef}
       className={clsx('relative w-fit max-w-full', props.className)}
       onKeyDown={(event) => {
         if (event.key === 'Escape' && open) {
@@ -116,6 +133,7 @@ export function Dropdown(props: DropdownProps) {
           close();
         }
       }}
+      ref={rootRef}
     >
       {props.label != null && (
         <label className="fr-label fr-mb-1v" id={labelId}>

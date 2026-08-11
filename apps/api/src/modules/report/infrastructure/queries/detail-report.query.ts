@@ -14,11 +14,13 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
+import { isAuditionExpected } from 'src/modules/shared/policies/auditioned-position.policy';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class DetailReportQuery {
@@ -66,6 +68,11 @@ export class DetailReportQuery {
             lastRankingDate: true,
             priorities: true,
             comment: true,
+            auditionDate: true,
+            auditionTime: true,
+            missingEvaluation: true,
+            detectedJurisdictionId: true,
+            detectedTargetedFunctionId: true,
 
             summary: {
               select: {
@@ -183,6 +190,13 @@ export class DetailReportQuery {
         usage: f.usage,
       })),
 
+      auditionDate: DateOnly.fromOptionalDate(report.nominationFile.auditionDate)?.toJson() ?? null,
+      auditionExpected: isAuditionExpected(report.nominationFile),
+      auditionTime: report.nominationFile.auditionTime
+        ? dateToTimeOnly(report.nominationFile.auditionTime)
+        : null,
+      missingEvaluation: report.nominationFile.missingEvaluation,
+
       biography: report.nominationFile.biography,
       birthDate: DateOnly.fromOptionalDate(report.nominationFile.birthDate)?.toJson() ?? null,
       currentPosition: report.nominationFile.currentPosition,
@@ -257,6 +271,10 @@ export class DetailedReportDto extends createZodDto(
     formation: z.enum(FormationEnum),
     state: z.enum(ReportStateEnum),
     isArchived: z.boolean(),
+    auditionDate: dateOnlyJsonSchema.nullable(),
+    auditionExpected: z.boolean(),
+    auditionTime: timeOnlySchema.nullable(),
+    missingEvaluation: z.boolean(),
     folderNumber: z.number().nullable(),
     biography: z.string().nullable(),
     dueDate: dateOnlyJsonSchema.nullable(),

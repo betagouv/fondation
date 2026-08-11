@@ -28,6 +28,10 @@ import {
   priorityEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPriorityEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
+import {
+  expectedReportersCount,
+  isAuditionExpected,
+} from 'src/modules/shared/policies/auditioned-position.policy';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -199,6 +203,12 @@ export class ListNominationFilesQuery {
     });
 
     return files.map((x): NominationFileAffectationItem => {
+      const auditionedPosition = {
+        detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+        detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
+        targetedPosition: x.targetedPosition,
+      };
+
       return {
         id: x.id,
         isArchived,
@@ -236,12 +246,9 @@ export class ListNominationFilesQuery {
           archivedAt: sessionArchivedAt,
         }),
         auditionDate: DateOnly.fromOptionalDate(x.auditionDate)?.toJson() ?? null,
-        auditionExpected: nominationFilesPolicies.isAuditionExpected({
-          detectedJurisdictionId: x.detectedJurisdictionId ?? null,
-          detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
-          targetedPosition: x.targetedPosition,
-        }),
+        auditionExpected: isAuditionExpected(auditionedPosition),
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
+        expectedReportersCount: expectedReportersCount(auditionedPosition),
         missingEvaluation: x.missingEvaluation,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
@@ -450,6 +457,7 @@ const NominationFileAffectationItemSchema = z.object({
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionExpected: z.boolean(),
   auditionTime: timeOnlySchema.nullable(),
+  expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   reporters: z.array(
     z.object({

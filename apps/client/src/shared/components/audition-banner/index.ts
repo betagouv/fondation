@@ -1,1 +1,1 @@
-export { AuditionBanner } from './AuditionBanner';
+export { AuditionScheduledBanner } from './AuditionScheduledBanner';

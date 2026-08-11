@@ -1,3 +1,4 @@
+import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -20,6 +21,7 @@ export function MagistratSidePanelContent(props: {
 }) {
   const { nominationFile, sessionId } = props;
   const { historique } = nominationFile.content;
+  const { auditionMissing } = useAuditionExpectation(nominationFile);
   const isSgContext = useIsSgNavigation();
   const auditionEditable = isSgContext && nominationFile.canScheduleAudition;
 
@@ -28,6 +30,7 @@ export function MagistratSidePanelContent(props: {
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
       <AuditionNotice
         auditionDate={nominationFile.auditionDate}
+        auditionMissing={auditionMissing}
         auditionTime={nominationFile.auditionTime}
         editable={auditionEditable}
       />

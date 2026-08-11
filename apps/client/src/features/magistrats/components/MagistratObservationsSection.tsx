@@ -32,6 +32,7 @@ export function MagistratObservationsSection(props: { context: 'sg' | 'membre'; 
       <MagistratNominationFilesTable
         context={props.context}
         nominationFiles={observations.map((observation) => observation.nominationFile)}
+        showAuditionDate={false}
       />
       {hasNextPage && (
         <Button

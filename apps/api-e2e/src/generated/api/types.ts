@@ -77,6 +77,18 @@ export type DetailedReportDto = {
     formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
     isArchived: boolean;
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionExpected: boolean;
+    auditionTime: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    } | null;
+    missingEvaluation: boolean;
     folderNumber: number | null;
     biography: string | null;
     dueDate: {
@@ -369,6 +381,7 @@ export type PaginatedNominationFiles = {
             minutes: number;
             seconds: number;
         } | null;
+        expectedReportersCount: number | null;
         missingEvaluation: boolean;
         reporters: Array<{
             id: string;
@@ -584,6 +597,7 @@ export type DetailedNominationFileDto = {
         minutes: number;
         seconds: number;
     } | null;
+    expectedReportersCount: number | null;
     missingEvaluation: boolean;
     reporters: Array<{
         id: string;

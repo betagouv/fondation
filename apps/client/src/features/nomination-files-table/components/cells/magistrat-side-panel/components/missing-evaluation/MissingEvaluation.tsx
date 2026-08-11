@@ -1,8 +1,7 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
-import { MissingEvaluationBanner } from '@/shared/components/missing-evaluation';
+import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -18,21 +17,21 @@ function focusCheckbox() {
 }
 
 export function MissingEvaluationNotice(props: { editable: boolean; missingEvaluation: boolean }) {
-  const { formatMessage } = useIntl();
+  if (!props.missingEvaluation) return null;
 
   return (
-    <MissingEvaluationBanner className="-mx-8 -mt-10 px-8 py-4" missingEvaluation={props.missingEvaluation}>
+    <AlertBanner
+      className="-mx-8 -mt-10 px-8 py-4"
+      icon="fr-icon-draft-line"
+      message={<FormattedMessage defaultMessage="Évaluation manquante dans le dossier administratif LOLFI" />}
+      tone="warning"
+    >
       {props.editable && (
-        <Button
-          className="ml-auto min-h-0! px-3.5! py-0! whitespace-nowrap text-(--text-default-warning)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
-          onClick={focusCheckbox}
-          priority="tertiary no outline"
-          size="small"
-        >
-          {formatMessage({ defaultMessage: 'Modifier' })}
-        </Button>
+        <AlertBannerAction onClick={focusCheckbox}>
+          <FormattedMessage defaultMessage="Modifier" />
+        </AlertBannerAction>
       )}
-    </MissingEvaluationBanner>
+    </AlertBanner>
   );
 }
 

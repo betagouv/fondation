@@ -1,11 +1,13 @@
+import { FormattedMessage } from 'react-intl';
+
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
-import { AuditionBanner } from '@/shared/components/audition-banner';
+import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { IdentityList } from '@/shared/components/identity-list';
-import { MissingEvaluationBanner } from '@/shared/components/missing-evaluation';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 
 import { SummarySectionCard } from './SummarySectionCard';
 
@@ -33,16 +35,22 @@ export function SummarySectionMagistrat() {
         </h1>
       </header>
 
-      <AuditionBanner
+      <AuditionScheduledBanner
+        className="fr-mb-6v rounded px-4 py-3"
         date={summary.auditionDate}
         time={summary.auditionTime}
-        className="fr-mb-6v rounded px-4 py-3"
       />
 
-      <MissingEvaluationBanner
-        className="fr-mb-6v rounded px-4 py-3"
-        missingEvaluation={summary.missingEvaluation}
-      />
+      {summary.missingEvaluation && (
+        <AlertBanner
+          className="fr-mb-6v rounded px-4 py-3"
+          icon="fr-icon-draft-line"
+          message={
+            <FormattedMessage defaultMessage="Évaluation manquante dans le dossier administratif LOLFI" />
+          }
+          tone="warning"
+        />
+      )}
 
       <IdentityList
         birthDate={summary.birthDate}

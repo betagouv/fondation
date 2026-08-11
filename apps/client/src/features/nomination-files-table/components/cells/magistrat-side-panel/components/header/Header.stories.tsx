@@ -10,6 +10,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
+import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys, type ListMembersOptions } from '@queries/members.queries';
@@ -97,6 +98,7 @@ type View = (typeof VIEWS)[number];
 
 function HeaderStory(props: {
   auditionScheduled?: boolean;
+  auditionedPosition?: boolean;
   excludedJurisdiction?: boolean;
   missingEvaluation?: boolean;
   nomMagistrat: string;
@@ -114,6 +116,7 @@ function HeaderStory(props: {
 
   const nominationFile = makeSessionNominationFile({
     auditionDate: props.auditionScheduled ? { year: 2026, month: 9, day: 15 } : null,
+    auditionExpected: !!props.auditionedPosition,
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     content: {
       jurisdictions: props.excludedJurisdiction
@@ -121,6 +124,7 @@ function HeaderStory(props: {
         : { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
     },
+    expectedReportersCount: props.auditionedPosition ? 2 : null,
     missingEvaluation: !!props.missingEvaluation,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
@@ -150,6 +154,7 @@ function HeaderStory(props: {
           <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
           <AuditionNotice
             auditionDate={nominationFile.auditionDate}
+            auditionMissing={isAuditionMissing(nominationFile)}
             auditionTime={nominationFile.auditionTime}
             editable={isSg && nominationFile.canScheduleAudition}
           />
@@ -170,6 +175,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     auditionScheduled: { control: 'boolean' },
+    auditionedPosition: { control: 'boolean' },
     excludedJurisdiction: { control: 'boolean' },
     missingEvaluation: { control: 'boolean' },
     nomMagistrat: { control: 'text' },
@@ -179,6 +185,7 @@ const meta = {
   },
   args: {
     auditionScheduled: false,
+    auditionedPosition: false,
     excludedJurisdiction: false,
     missingEvaluation: false,
     nomMagistrat: 'Camille DURAND',
