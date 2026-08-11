@@ -6,15 +6,15 @@ export class GenerateAgendaPage {
   constructor(private readonly app: TestApp) {}
 
   async goto(): Promise<this> {
-    const name = /Générer l'ODJ \(\d+\)/;
-    await this.app.page.getByRole('button', { name }).click();
+    await this.app.page.getByRole('button', { name: 'Générer la documentation' }).click();
+    await this.app.page.getByRole('menuitem', { name: 'Ordre du jour' }).click();
     await this.app.page.getByRole('heading', { name: 'Sélection des propositions' }).waitFor();
 
     return this;
   }
 
-  get addToAgendaButton(): Locator {
-    return this.app.page.getByRole('button', { name: "Ajouter à l'ODJ" });
+  get selectAllFilesCheckbox(): Locator {
+    return this.app.page.getByRole('checkbox', { name: /propositions? sélectionnées?|Aucune proposition/ });
   }
 
   get secretarySelect(): Locator {

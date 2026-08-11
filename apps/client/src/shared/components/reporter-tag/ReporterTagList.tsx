@@ -1,6 +1,5 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
-import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
@@ -26,12 +25,7 @@ export function ReporterTagList(props: {
   const max = props.max ?? 3;
 
   const list = (
-    <ul
-      className={clsx(
-        'fr-m-0 fr-p-0 flex list-none flex-row items-center gap-x-2',
-        props.enableTooltip !== false && 'cursor-pointer',
-      )}
-    >
+    <ul className="fr-m-0 fr-p-0 flex list-none flex-row items-center gap-x-2">
       {reporters.slice(0, max).map((reporter) => (
         <li className="fr-p-0" key={reporter.id}>
           <ReporterTag

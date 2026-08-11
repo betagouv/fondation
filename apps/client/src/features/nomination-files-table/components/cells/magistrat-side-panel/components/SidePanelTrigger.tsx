@@ -68,7 +68,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
           </Tooltip>
         )}
         <MissingEvaluationIcon
-          className="fr-ml-1v cursor-pointer"
+          className="fr-ml-1v"
           missingEvaluation={props.nominationFile.missingEvaluation}
         />
         {hasAnnotations && (

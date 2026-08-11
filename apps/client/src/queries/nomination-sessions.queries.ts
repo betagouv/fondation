@@ -564,6 +564,8 @@ export function useDefineNominationFileOutcomeMutation(input: {
         ),
         queryClient.invalidateQueries({
           predicate: doesQueryKey.matchesAny(
+            sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+            sessionKeys.detailSessionNominationFile(input),
             sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
             sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),

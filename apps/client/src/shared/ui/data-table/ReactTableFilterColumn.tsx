@@ -41,10 +41,10 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 
   return (
     <DropdownFilter
-      tagName={props.filter.label}
+      onSelectionChange={onSelectionChange}
       options={options}
       selectedValues={currentFilter.value}
-      onSelectionChange={onSelectionChange}
+      tagName={props.filter.label}
     />
   );
 }
@@ -77,17 +77,17 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
             case 'enum':
               return (
                 <ReactTableFilterEnum
-                  table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
+                  table={props.table}
                 />
               );
             case 'asyncList':
               return (
                 <ReactTableFilterColumnAsyncList
-                  table={props.table}
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
+                  table={props.table}
                 />
               );
             default:

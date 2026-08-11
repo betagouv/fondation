@@ -64,17 +64,14 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
         priority="tertiary no outline"
         size="small"
       >
-        <span className="text-left text-sm font-normal whitespace-nowrap">
+        <span className="text-left text-sm font-normal">
           <span
-            className="whitespace-normal underline underline-offset-4 group-hover:decoration-2"
+            className="bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat group-hover:bg-size-[100%_2px]"
             style={{ color: alertColor }}
           >
             {label}
+            <i className="fr-icon-warning-fill fr-ml-1v relative -top-0.5 inline-block align-middle before:block before:size-3.5! before:content-['']" />
           </span>
-          <i
-            className="fr-icon-warning-fill fr-ml-1v relative -top-px inline-block align-middle before:block before:size-4! before:content-['']"
-            style={{ color: alertColor }}
-          />
         </span>
       </Button>
     </Tooltip>

@@ -28,7 +28,7 @@ export const Avatar: FC = () => {
 
   return (
     <>
-      <Badge small noIcon className="fr-mx-2v fr-mt-0 fr-ml-3v self-center">
+      <Badge className="fr-mx-2v fr-mt-0 fr-ml-3v self-center" noIcon small>
         {RoleEnumLabels[user.role]}
       </Badge>
       <Button className="fr-mb-0" onClick={onClickLogout}>
@@ -39,7 +39,7 @@ export const Avatar: FC = () => {
                 {toInitials(user)}
               </span>
             </Tooltip>
-            <div id="avatar-logout" className="font-semibold hover:cursor-pointer">
+            <div className="font-semibold hover:cursor-pointer" id="avatar-logout">
               <FormattedMessage defaultMessage="Se déconnecter" />
             </div>
           </div>

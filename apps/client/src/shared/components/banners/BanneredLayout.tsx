@@ -41,7 +41,7 @@ export function BanneredLayout(props: React.PropsWithChildren) {
 
   return (
     <>
-      <Banners ref={ref} hidden={state.hidden}>
+      <Banners hidden={state.hidden} ref={ref}>
         <StagingBanner />
         <ImpersonationBanner key={'ImpersonationBanner'} />
         <ArchiveBanner key={'ArchivedSessionBanner'} />

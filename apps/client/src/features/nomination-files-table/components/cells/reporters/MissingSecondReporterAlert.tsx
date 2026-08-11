@@ -24,15 +24,10 @@ export function MissingSecondReporterAlert(props: {
   const label = formatMessage({ defaultMessage: '2 rapporteurs attendus' });
 
   return (
-    <div className="fr-pr-1v cursor-help">
+    <div className="fr-pr-1v">
       <Tooltip title={label}>
         <i
           aria-label={label}
-          role="img"
-          style={{
-            color: colors.decisions.text.default.warning.default,
-            backgroundColor: colors.decisions.background.contrast.warning.default,
-          }}
           className={clsx(
             cx('fr-icon-warning-fill'),
             'text-center',
@@ -44,6 +39,11 @@ export function MissingSecondReporterAlert(props: {
             'before:content-[""]',
             'before:size-4!',
           )}
+          role="img"
+          style={{
+            backgroundColor: colors.decisions.background.contrast.warning.default,
+            color: colors.decisions.text.default.warning.default,
+          }}
         />
       </Tooltip>
     </div>

@@ -26,6 +26,8 @@ import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
 
+export const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
+
 export function Header(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;
   const { user } = useUser();
@@ -73,7 +75,10 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
     : 'bg-(--background-alt-blue-france)';
 
   return (
-    <div className={clsx('-mx-8 -mt-8 flex flex-col gap-6 p-8', surfaceClassName)}>
+    <div
+      className={clsx('-mx-8 -mt-8 flex flex-col gap-6 p-8', surfaceClassName)}
+      id={AFFECTATION_SECTION_ID}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-6">
           {isEditing ? (

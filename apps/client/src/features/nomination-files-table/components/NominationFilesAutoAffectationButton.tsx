@@ -58,7 +58,7 @@ export function NominationFilesAutoAffectationButton() {
               }
               values={{
                 link: (x) => (
-                  <Link to={ROUTE_PATHS.SG.MANAGE_MEMBERS} onClick={() => confirmationModal.close()}>
+                  <Link onClick={() => confirmationModal.close()} to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>
                     {x}
                   </Link>
                 ),
@@ -73,7 +73,7 @@ export function NominationFilesAutoAffectationButton() {
               }
             />
           </p>
-          <MemberExclusionSelector formation={formation} excludedMemberIdsRef={excludedMemberIdsRef} />
+          <MemberExclusionSelector excludedMemberIdsRef={excludedMemberIdsRef} formation={formation} />
         </>
       ),
     });

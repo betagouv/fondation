@@ -16,10 +16,10 @@ export function ReportListPage() {
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
       <HeaderReportList
-        formation={session.formation}
-        transparency={session.name}
         dateTransparence={session.date}
         dueDate={session.dueDate}
+        formation={session.formation}
+        transparency={session.name}
       />
 
       <MemberSessionToolbar sessionId={session.id} />

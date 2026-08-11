@@ -23,7 +23,7 @@ export default definePreview({
       const router = context.parameters.router as { initialEntries?: string[]; path?: string } | undefined;
       return (
         <MemoryRouter initialEntries={router?.initialEntries}>
-          <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
+          <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
             {router?.path ? (
               <Routes>
                 <Route element={<Story />} path={router.path} />

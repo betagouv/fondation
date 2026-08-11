@@ -1,3 +1,4 @@
+import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
@@ -11,11 +12,15 @@ export function MissingEvaluationIcon(props: { className?: string; missingEvalua
   });
 
   return (
-    <i
-      aria-label={label}
-      className={clsx('fr-icon-draft-line fr-icon--sm', props.className)}
-      role="img"
-      title={label}
-    />
+    <Tooltip kind="hover" title={label}>
+      <i
+        aria-label={label}
+        className={clsx(
+          'fr-icon-draft-line fr-icon--sm text-(--text-action-high-blue-france)',
+          props.className,
+        )}
+        role="img"
+      />
+    </Tooltip>
   );
 }

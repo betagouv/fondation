@@ -3,7 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getNewAgendaPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
 
 export function DocGenerationMenu(props: { sessionId: string }) {
@@ -15,6 +15,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
     [props.sessionId],
   );
 
+  const canCreateAgenda = !!readiness?.canCreateAgenda;
   const canCreateOfficialReport = !!readiness?.canCreateOfficialReport;
 
   return (
@@ -25,6 +26,22 @@ export function DocGenerationMenu(props: { sessionId: string }) {
       </MenuTrigger>
 
       <MenuContent>
+        {canCreateAgenda ? (
+          <MenuItem iconId="ri-calendar-line" linkProps={{ to: getNewAgendaPath(props.sessionId) }}>
+            <FormattedMessage defaultMessage="Ordre du jour" />
+          </MenuItem>
+        ) : (
+          <MenuItem
+            disabled
+            iconId="ri-calendar-line"
+            title={formatMessage({
+              defaultMessage: "Aucun dossier n'est disponible pour un ordre du jour",
+            })}
+          >
+            <FormattedMessage defaultMessage="Ordre du jour" />
+          </MenuItem>
+        )}
+
         {canCreateOfficialReport ? (
           <MenuItem iconId="ri-file-text-line" linkProps={{ to: officialReportPath }}>
             <FormattedMessage defaultMessage="Procès verbal" />

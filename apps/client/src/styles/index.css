@@ -63,7 +63,7 @@ li {
 }
 
 [data-fr-js-tooltip-referent] {
-  cursor: pointer;
+  cursor: default;
 }
 
 /* doubled class: this file loads before the DSFR stylesheet, so it needs to win on specificity */

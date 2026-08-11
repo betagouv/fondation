@@ -52,10 +52,12 @@ function useMemberSessionFilesColumns() {
       }),
 
       h.accessor('content.posteCible', {
+        id: 'targetedGrade',
         cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
-        enableSorting: false,
+        enableSorting: true,
         header: formatMessage({ defaultMessage: 'Poste cible' }),
         size: 240,
+        sortDescFirst: true,
       }),
 
       h.accessor('content.observants', {

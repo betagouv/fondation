@@ -93,21 +93,8 @@ test.describe('Affectations', () => {
 
       const page = app.pages.session;
 
-      // Et que je sélectionne le member pour le dossier 1
-      await page.switchToEditModeButton.click();
-      await page.sessionRow({ number: 1 }).locator(page.selectReporterButton).click();
-
-      await page.searchReporterInput.fill(firstName);
-      await app.page
-        .getByRole('checkbox', { name: `${lastName} ${firstName}` })
-        .first()
-        .click({ force: true });
-
-      await app.page.getByRole('document').click();
-
-      // Et que je sauvegarde l'affectation
-      await page.saveAffectationsButton.click();
-      await test.expect(page.saveAffectationsButton).toBeHidden();
+      // Et que j'affecte le membre au dossier 1 depuis son panneau
+      await page.editAffectation({ number: 1 }, { reporters: [new RegExp(`${firstName} ${lastName}`, 'i')] });
 
       await page
         .sessionRow({ number: 1 })

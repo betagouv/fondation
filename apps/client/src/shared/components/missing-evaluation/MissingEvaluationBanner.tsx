@@ -12,11 +12,11 @@ export function MissingEvaluationBanner(props: {
   return (
     <div
       className={clsx(
-        'flex items-center gap-2 bg-(--background-contrast-warning) text-sm-plus font-medium text-(--text-default-warning)',
+        'flex min-h-6 items-center gap-2 bg-(--background-contrast-warning) text-sm-plus font-medium text-(--text-default-warning)',
         props.className,
       )}
     >
-      <span aria-hidden className="fr-icon-draft-line shrink-0 before:[--icon-size:1.25rem]" />
+      <span aria-hidden className="fr-icon-draft-line fr-icon--sm shrink-0" />
       <span>
         <FormattedMessage defaultMessage="Évaluation manquante dans le dossier administratif LOLFI" />
       </span>

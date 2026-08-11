@@ -44,7 +44,7 @@ export function TransparenceToolbar(props: { transparence: DetailedNominationSes
               label={<FormattedMessage defaultMessage="Pièces jointes" />}
             >
               {attachmentsCount ? (
-                <NominationSessionAttachmentList sessionId={transparence.id} placeholder={null} />
+                <NominationSessionAttachmentList placeholder={null} sessionId={transparence.id} />
               ) : (
                 <EmptyPanel>
                   <FormattedMessage defaultMessage="Aucune pièce jointe." />

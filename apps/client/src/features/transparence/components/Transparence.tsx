@@ -1,5 +1,6 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useCallback } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router';
 
 import { SgSessionFilesTable } from '@/features/nomination-files-table/components/SgSessionFilesTable';
@@ -15,6 +16,7 @@ import { TableauDeBordResume } from './TableauDeBordResume';
 import { TransparenceToolbar } from './TransparenceToolbar';
 
 export function Transparence() {
+  const { formatMessage } = useIntl();
   const { sessionId } = useParams();
   const alertRef = useCallback((ref: HTMLUListElement | null) => {
     ref?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -27,18 +29,22 @@ export function Transparence() {
   }
 
   if (!transparence || isError) {
-    return <div className="fr-container fr-pt-5v">Session de type Transparence non trouvée.</div>;
+    return (
+      <div className="fr-container fr-pt-5v">
+        <FormattedMessage defaultMessage="Session de type Transparence non trouvée." />
+      </div>
+    );
   }
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: transparence.name,
     segments: [
       {
-        label: 'Secrétariat général',
+        label: formatMessage({ defaultMessage: 'Secrétariat général' }),
         to: ROUTE_PATHS.SG.DASHBOARD,
       },
       {
-        label: 'Gérer une session',
+        label: formatMessage({ defaultMessage: 'Gérer une session' }),
         to: ROUTE_PATHS.SG.MANAGE_SESSION,
       },
     ],
@@ -50,7 +56,7 @@ export function Transparence() {
         <AlertsProvider>
           <div className={cx('fr-container')}>
             <Breadcrumb
-              ariaLabel="Fil d'Ariane d'une transparence détaillée"
+              ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
               breadcrumb={breadcrumb}
               id="transparence-details-breadcrumb"
             />

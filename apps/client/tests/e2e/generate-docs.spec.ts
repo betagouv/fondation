@@ -95,35 +95,19 @@ test.describe('Générer un ordre du jour', () => {
 
     const page = app.pages.session;
 
-    // Et que je bascule en mode édition
-    await page.switchToEditModeButton.click();
-    await page.switchToReadModeButton.waitFor();
-
     // Et que j'affecte "Sophie de Bawr" aux 3 dossiers
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      const row = page.sessionRow({ name });
-      await row.locator(page.selectReporterButton).click();
-      await page.searchReporterInput.fill(memberLastName);
-      await app.page.getByRole('checkbox', { name: memberLastName }).first().click({ force: true });
-      await app.page.getByRole('document').click();
+      await page.editAffectation({ name }, { reporters: [new RegExp(memberLastName, 'i')] });
     }
-
-    // Et que je sauvegarde les affectations
-    await page.saveAffectationsButton.click();
-    await page.switchToEditModeButton.waitFor();
 
     // Et que je publie aux membres
     await page.publishAffectationsButton.click();
     await app.page.getByRole('alert').waitFor();
 
     // Quand je définis une issue "SURSIS" à tous les dossiers
-    await page.switchToEditModeButton.click();
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      const row = page.sessionRow({ name });
-      await row.locator(/* outcome button */ 'td:last-of-type button').click();
-      await app.page.getByRole('button', { name: 'SURSIS ' }).click();
+      await page.defineOutcome({ name }, 'SURSIS');
     }
-    await page.switchToReadModeButton.click();
   });
 
   test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
@@ -160,17 +144,11 @@ test.describe('Générer un ordre du jour', () => {
       data: { role: 'FIRST_SECRETARY' },
     });
 
-    // Quand je bascule en mode édition
-    await app.pages.session.switchToEditModeButton.click();
-    await app.pages.session.switchToReadModeButton.waitFor();
-
-    // Et que je sélectionne les 3 dossiers
-    for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      await app.pages.session.sessionRow({ name }).getByRole('checkbox').first().click({ force: true });
-    }
-
-    await app.pages.session.addToAgenda();
+    // Quand j'ouvre la génération d'un ordre du jour
     const agendaPage = await app.pages.session.startAgendaGeneration();
+
+    // Et que je sélectionne les 3 dossiers, qu'un sursis exclut de la sélection par défaut
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
     await agendaPage.goToNextStep();
 
     const { agendaId } = await agendaPage.fill({ sessionMeetingDate: new Date(), chairman: chairman.id });

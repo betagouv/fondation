@@ -24,7 +24,7 @@ export function MissingEvaluationNotice(props: { editable: boolean; missingEvalu
     <MissingEvaluationBanner className="-mx-8 -mt-10 px-8 py-4" missingEvaluation={props.missingEvaluation}>
       {props.editable && (
         <Button
-          className="ml-auto whitespace-nowrap text-(--text-default-warning)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
+          className="ml-auto min-h-0! px-3.5! py-0! whitespace-nowrap text-(--text-default-warning)! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
           onClick={focusCheckbox}
           priority="tertiary no outline"
           size="small"
