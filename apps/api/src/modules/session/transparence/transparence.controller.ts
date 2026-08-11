@@ -21,6 +21,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
@@ -59,7 +60,10 @@ import { DetailedNominationSessionDto } from './infrastructure/queries/detail-no
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
-import { PaginatedNominationFiles } from './infrastructure/queries/list-nomination-files.query';
+import {
+  DetailedNominationFileDto,
+  PaginatedNominationFiles,
+} from './infrastructure/queries/list-nomination-files.query';
 import { ListedNominationSessionAttachmentDto } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListedNominationSessionsDto } from './infrastructure/queries/list-nomination-sessions.query';
 import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
@@ -472,12 +476,24 @@ export class SessionController {
   }
 
   @HasRole()
+  @Get('/:sessionId/files/:nominationFileId')
+  @ZodResponse({ type: DetailedNominationFileDto, status: HttpStatus.OK })
+  detailNominationFile(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @AuthedUser() user: { id: string; role: RoleEnum },
+  ): Promise<DetailedNominationFileDto> {
+    return this.sessions.detailNominationFile({ nominationFileId, sessionId, user });
+  }
+
+  @HasRole()
   @Get('/:sessionId')
   @ZodResponse({ type: DetailedNominationSessionDto, status: HttpStatus.OK })
   async detailsNominationSession(
     @Param('sessionId') sessionId: string,
+    @AuthedUser() user: { role: RoleEnum },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ sessionId });
+    return this.sessions.details({ formation: roleToFormation(user.role), sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

@@ -7,58 +7,56 @@ date: 2026-08-04
 
 ## En une phrase
 
-Le tableau des dossiers repose sur une requête unique possédée par le module session. Toute
-donnée d'un autre module est une surcouche servie par le module propriétaire et fusionnée
-côté client.
+Une seule requête, possédée par le module session, produit les lignes du tableau — la liste
+entière comme un dossier seul. Toute donnée appartenant à un autre module est chargée à part,
+puis fusionnée côté client.
+
+Le **socle** désigne cette requête (`listNominationFilesRawQuery`) et son mapping
+(`ListNominationFilesQuery`), gelés par l'ADR du 2026-07-20. Une **surcouche** désigne une
+donnée affichée dans le tableau mais possédée par un autre module, par exemple le statut du
+rapport du membre connecté.
 
 ## Contexte
 
-L'ADR du 2026-07-20 a gelé `listNominationFilesRawQuery` : la requête du tableau ne grossit
-plus. Depuis, la vue membre a migré vers le tableau partagé `NominationFilesTable`, qui sert
-désormais tous les rôles. Cette migration a posé la question suivante : comment afficher dans
-le tableau une donnée qui appartient à un autre module, ici le statut du rapport du membre
-connecté, sans rouvrir la requête gelée ?
-
-Le code contenait déjà trois réponses partielles à cette question mais la règle n'était
-écrite nulle part :
-
-- le filtre "mes dossiers" de la vue membre passe par le paramètre générique `reporterIds`
-  de la requête du tableau, sans la modifier
-- le lien vers le rapport du membre (FON-451) est servi par un endpoint du module report,
-  chargé à l'ouverture du panneau
-- les conflits de juridictions exclues (FON-283) sont chargés par une query dédiée puis
-  fusionnés au tableau dans un modèle exposé par un Context React
+La vue membre a migré vers le tableau partagé, qui sert désormais tous les rôles. Deux
+questions en ont découlé : comment afficher le statut du rapport, une donnée du module report,
+sans rouvrir la requête gelée ? Et comment servir un lien profond vers un dossier situé
+au-delà des lignes chargées, que le passage au défilement infini faisait échouer sans message ?
 
 ## Décision
 
-Trois règles :
-
-1. **Le socle ne grossit plus.** La requête du tableau ne contient que des données du module
-   session et des primitives génériques : pagination, tri et filtres sur ses propres
-   colonnes. C'est la reprise de l'ADR du 2026-07-20.
+1. **Le socle ne grossit plus.** Il ne contient que des données du module session et des
+   primitives génériques : pagination, tri et filtres sur ses propres colonnes.
 2. **Toute donnée d'un autre module est une surcouche.** Le module propriétaire l'expose par
-   une query sur son service (méthode `internal...`), l'endpoint vit dans le contrôleur qui
-   possède le chemin REST et la donnée est indexée par `nominationFileId`. Côté client, une
-   query Tanstack dédiée la charge en parallèle du tableau et un modèle construit une fois
-   dans un Context la sert à chaque ligne. Exemple : la colonne statut de la vue membre
-   (`ListMemberSessionReportsQuery` côté report, `MemberReports` côté client).
-3. **Filtrer sur une surcouche ne passe jamais par une jointure dans le socle.** Si un écran
-   doit un jour filtrer le tableau selon une donnée de surcouche, le module propriétaire
-   traduit le filtre en une liste de `nominationFileIds` et le socle se restreint à cette
-   liste par une primitive générique. Cette primitive n'existe pas encore et ne sera ajoutée
-   que devant un besoin confirmé.
+   une query `internal…` sur son service, l'endpoint vit dans le contrôleur qui possède le
+   chemin REST et la donnée est indexée par `nominationFileId`. Côté client, une query
+   Tanstack la charge en parallèle du tableau et un modèle construit dans un Context la sert
+   à chaque ligne. Exemple : `ListMemberSessionReportsQuery` côté report, `MemberReports`
+   côté client.
+3. **Filtrer sur une surcouche ne passe jamais par une jointure dans le socle.** Le module
+   propriétaire traduit le filtre en une liste de `nominationFileIds`. Cette primitive existe
+   déjà — elle sert la règle 4 — mais reste privée : le comptage total ne la connaît pas et
+   l'exposer fausserait la pagination.
+4. **Le socle sert aussi un dossier seul.** La même requête, restreinte à un identifiant, et
+   le même mapping (`loadFiles`) servent l'endpoint `GET /:sessionId/files/:nominationFileId`,
+   qui répond un objet identique à un item de la liste — un test e2e le vérifie. Un dossier
+   étranger à la session répond 404.
 
-Limite assumée : le tri serveur sur une donnée de surcouche est impossible dans ce modèle.
-Le filtre couvre le besoin réel et cette limite est acceptée.
+Le panneau affiche un dossier hors liste sans attendre. Ses flèches de navigation, elles,
+exigent que la liste contienne le dossier : en vue non filtrée, le tableau charge tranche par
+tranche jusqu'à l'atteindre ; en vue filtrée, il n'essaie pas et la navigation reste
+désactivée.
+
+Limite assumée : pas de tri serveur sur une surcouche, le filtre couvre le besoin réel.
 
 ## Conséquences
 
-- La colonne statut de la vue membre applique la règle 2 en premier. La réponse du tableau
-  ne change pas.
-- Les requêtes `internalDetailsMemberSessionRawQuery` et
-  `internalCountTotalDetailsMemberSessionRawQuery` sont supprimées avec leur endpoint
-  `detailsMemberSession`, devenu orphelin après la migration de la vue membre. Le cas
-  "à trancher dans un ticket dédié" de l'ADR du 2026-07-20 (le module session lit les tables
-  du module report) est soldé : cette lecture n'existe plus.
-- Le prix accepté reste celui de l'ADR précédent : un petit endpoint par surcouche plutôt
+- Les requêtes `internalDetailsMemberSession*` et l'endpoint `detailsMemberSession`, devenus
+  orphelins, sont supprimés. Le cas laissé ouvert par l'ADR du 2026-07-20 (le module session
+  lit les tables du module report) est soldé : cette lecture n'existe plus.
+- Le prix accepté reste celui de l'ADR précédent : un petit endpoint par surcouche, plutôt
   qu'une requête centrale qui accumule les sous-requêtes.
+- La requête de détail ne part que lorsque les lignes chargées ne contiennent pas le dossier ;
+  un clic dans le tableau n'en déclenche jamais.
+- La forme servie ne peut plus diverger entre la liste et le panneau sans casser le test e2e
+  qui compare les deux réponses.

@@ -241,6 +241,74 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasAttachment).toBe(true);
     });
 
+    test('should detail a nomination file exactly as the list serves it', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const listed = files.data!.items[0]!;
+
+      const detailed = await agent.sessions.detailNominationFile({
+        path: { sessionId: session.id, nominationFileId: listed.id },
+      });
+
+      expect(detailed.response?.status).toBe(200);
+      expect(detailed.data).toEqual(listed);
+    }, 10_000);
+
+    test('should not detail a nomination file outside of the session', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const otherSession = await sessions.createOne(TREVOUX_SESSION);
+      const otherFiles = await agent.sessions.listNominationFiles({ path: { sessionId: otherSession.id } });
+
+      const unknown = await agent.sessions.detailNominationFile({
+        path: { sessionId: session.id, nominationFileId: randomUUID() },
+      });
+      expect(unknown.response?.status).toBe(404);
+
+      const foreign = await agent.sessions.detailNominationFile({
+        path: { sessionId: session.id, nominationFileId: otherFiles.data!.items[0]!.id },
+      });
+      expect(foreign.response?.status).toBe(404);
+    }, 10_000);
+
+    test('should not detail a session to a member of another formation', async ({ agent, logIn, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const { data } = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
+
+      const outsider = await logIn(data!.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+      const forbidden = await outsider.sessions.detailsNominationSession({
+        path: { sessionId: session.id },
+      });
+      expect(forbidden.response?.status).toBe(404);
+
+      const insider = await logIn(data!.formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
+      const allowed = await insider.sessions.detailsNominationSession({ path: { sessionId: session.id } });
+      expect(allowed.response?.status).toBe(200);
+    }, 10_000);
+
+    test('should not serve the files of a session to a member of another formation', async ({
+      agent,
+      logIn,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const { data } = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
+
+      const insider = await logIn(data!.formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
+      const files = await insider.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      expect(files.data!.items.length).toBeGreaterThan(0);
+
+      const outsider = await logIn(data!.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+      const hidden = await outsider.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      expect(hidden.data!.items).toEqual([]);
+      expect(hidden.data!.totalCount).toBe(0);
+
+      const forbidden = await outsider.sessions.detailNominationFile({
+        path: { sessionId: session.id, nominationFileId: files.data!.items[0]!.id },
+      });
+      expect(forbidden.response?.status).toBe(404);
+    }, 10_000);
+
     test('should not report an empty summary', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 

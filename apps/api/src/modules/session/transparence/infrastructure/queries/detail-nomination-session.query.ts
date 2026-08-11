@@ -23,13 +23,17 @@ export class DetailNominationSessionQuery {
   ) {}
 
   @Transactional()
-  async handle(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+  async handle(query: {
+    /** undefined means no restriction on the formation */
+    formation: FormationEnum | undefined;
+    sessionId: string;
+  }): Promise<DetailedNominationSessionDto> {
     const optionalVersion = await this.affectationVersionFinder.last({
       sessionId: query.sessionId,
     });
 
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
+      where: { id: query.sessionId, deletedAt: null, formation: query.formation },
       select: {
         id: true,
         name: true,

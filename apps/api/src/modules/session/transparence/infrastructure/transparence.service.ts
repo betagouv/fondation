@@ -74,6 +74,7 @@ import {
 } from './queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './queries/list-nomination-files-as-excel.query';
 import {
+  type DetailedNominationFileDto,
   ListNominationFilesQuery,
   type PaginatedNominationFiles,
 } from './queries/list-nomination-files.query';
@@ -195,6 +196,17 @@ export class TransparenceService {
     };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
+  }
+
+  async detailNominationFile(query: {
+    nominationFileId: string;
+    sessionId: string;
+    user: { role: RoleEnum; id: string };
+  }): Promise<DetailedNominationFileDto> {
+    const file = await this.listNominationFilesQuery.detail(query);
+    if (!file) throw new NotFoundException();
+
+    return file;
   }
 
   detailNominationSessionAffectationsVersion(query: { sessionId: string }): Promise<FoundAffectationVersion> {
@@ -405,7 +417,11 @@ export class TransparenceService {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: { sessionId: string }): Promise<DetailedNominationSessionDto> {
+  details(query: {
+    /** undefined means no restriction on the formation */
+    formation: FormationEnum | undefined;
+    sessionId: string;
+  }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 
