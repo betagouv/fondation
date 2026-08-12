@@ -49,9 +49,11 @@ function agendaHeader(ctx: AgendaRenderContext): string {
   return html`
     <h1>Avis du Conseil supérieur de la magistrature</h1>
     <p class="formation">
-      ${ctx.formation === 'SIEGE'
-        ? `Formation compétente à l'égard des magistrats du siège`
-        : `Formation compétente à l'égard des magistrats du parquet`}
+      ${
+        ctx.formation === 'SIEGE'
+          ? `Formation compétente à l'égard des magistrats du siège`
+          : `Formation compétente à l'égard des magistrats du parquet`
+      }
     </p>
     <div class="subtitle-row">
       <p class="subtitle">Ordre du jour</p>
