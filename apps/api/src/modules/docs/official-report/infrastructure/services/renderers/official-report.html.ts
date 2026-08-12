@@ -74,9 +74,11 @@ function header(ctx: OfficialReportRenderContext): string {
       Paris au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
-      ${ctx.agenda.formation === 'SIEGE'
-        ? `Formation compétente à l'égard des magistrats du siège`
-        : `Formation compétente à l'égard des magistrats du parquet`}
+      ${
+        ctx.agenda.formation === 'SIEGE'
+          ? `Formation compétente à l'égard des magistrats du siège`
+          : `Formation compétente à l'égard des magistrats du parquet`
+      }
     </p>
   `;
 }
