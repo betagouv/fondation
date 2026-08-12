@@ -16,7 +16,7 @@
     "lolfi": "workspace:*",
     "postgres": "3.4.9",
     "typescript": "catalog:",
-    "undici-types": "8.7.0",
+    "undici-types": "8.9.0",
     "vitest": "catalog:"
   }
 }
