@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useQueryClient } from '@tanstack/react-query';
 import { EditorContent, EditorContext, useEditorState } from '@tiptap/react';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -14,6 +15,7 @@ import { ItalicButton } from '@/shared/ui/tip-tap-editor/buttons/ItalicButton';
 import { RedoButton } from '@/shared/ui/tip-tap-editor/buttons/RedoButton';
 import { UndoButton } from '@/shared/ui/tip-tap-editor/buttons/UndoButton';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { sessionKeys } from '@queries/nomination-sessions.queries';
 
 import { OfficialReportBlocksModel } from './blocks/official-report-blocks.model';
 import type { OfficialReportBlock } from './blocks/official-report-blocks.type';
@@ -27,11 +29,21 @@ export function OfficialReportDocumentEditor(props: {
   onPendingRevalidationChange?: (pending: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [model] = React.useState(
     () => new OfficialReportBlocksModel({ officialReportId: props.officialReportId, blocks: props.blocks }),
   );
   const editor = useOfficialReportEditor(model);
+
+  // block edition resets the official report pdf, which drives the files table status
+  const { sessionId } = props;
+  React.useEffect(
+    () => () => {
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+    },
+    [queryClient, sessionId],
+  );
 
   const hasPendingRevalidation = useEditorState({
     editor,

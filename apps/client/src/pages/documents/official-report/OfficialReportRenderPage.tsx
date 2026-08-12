@@ -15,7 +15,7 @@ export function OfficialReportRenderPage() {
   }>();
 
   const { data: html, isPending } = useOfficialReportHtmlQuery({ id: officialReportId, force: true });
-  const closePreview = useResetOfficialReportDocumentMutation(officialReportId!);
+  const closePreview = useResetOfficialReportDocumentMutation(sessionId!, officialReportId!);
 
   const title = $t({ defaultMessage: 'PV de restitution' });
 
