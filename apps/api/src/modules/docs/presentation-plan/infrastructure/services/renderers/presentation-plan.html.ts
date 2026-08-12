@@ -116,9 +116,9 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readon
 
   return html`<p>
       ${intro}
-      ${paragraphs.length > 1
-        ? html`les propositions suivantes&nbsp;:`
-        : html`la proposition suivante&nbsp;:`}
+      ${
+        paragraphs.length > 1 ? html`les propositions suivantes&nbsp;:` : html`la proposition suivante&nbsp;:`
+      }
     </p>
     ${paragraphs.length === 0 ? '' : `<ul>${paragraphs}</ul>`}`;
 }
@@ -143,16 +143,20 @@ function nonValidatedParagraph(ctx: {
         outcome: 'NON_VALIDATED',
       })}</strong
     >
-    ${paragraphs.length > 1
-      ? html` aux propositions de nomination suivantes&nbsp;:`
-      : html` à la proposition de nomination suivante&nbsp;:`}
+    ${
+      paragraphs.length > 1
+        ? html` aux propositions de nomination suivantes&nbsp;:`
+        : html` à la proposition de nomination suivante&nbsp;:`
+    }
   </p>`;
 
-  return html`${intro}${paragraphs.length === 0
-    ? ''
-    : html`<ul>
-        ${paragraphs}
-      </ul>`}`;
+  return html`${intro}${
+    paragraphs.length === 0
+      ? ''
+      : html`<ul>
+          ${paragraphs}
+        </ul>`
+  }`;
 }
 
 function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0 | 1 | 2 {
@@ -183,19 +187,23 @@ function chairmanBlock(ctx: {
   const validatedParagraph =
     validatedCount > 0
       ? html`<p>
-          ${nonValidated !== '' && suspended !== ''
-            ? `Enfin, le Conseil émet un`
-            : nonValidated !== '' || suspended !== ''
-              ? `Par ailleurs, le Conseil émet un`
-              : `Le Conseil supérieur de la magistrature émet un`}
+          ${
+            nonValidated !== '' && suspended !== ''
+              ? `Enfin, le Conseil émet un`
+              : nonValidated !== '' || suspended !== ''
+                ? `Par ailleurs, le Conseil émet un`
+                : `Le Conseil supérieur de la magistrature émet un`
+          }
           <strong>${displayOutcome({ formation: ctx.formation, outcome: 'VALIDATED' })}</strong>
-          ${otherCount === 0
-            ? validatedCount > 1
-              ? html` à toutes les propositions de nomination.`
-              : html` à la proposition de nomination.`
-            : validatedCount > 1
-              ? html` aux autres propositions de nomination.`
-              : html` à la proposition de nomination restante.`}
+          ${
+            otherCount === 0
+              ? validatedCount > 1
+                ? html` à toutes les propositions de nomination.`
+                : html` à la proposition de nomination.`
+              : validatedCount > 1
+                ? html` aux autres propositions de nomination.`
+                : html` à la proposition de nomination restante.`
+          }
         </p> `
       : html`<p>
           Le Conseil supérieur de la magistrature n'émet un
@@ -270,13 +278,15 @@ function content(ctx: {
   }[];
 }): string {
   return html`
-    ${ctx.hasRenunciation
-      ? html`<h3>Introduction</h3>
-          <p>
-            Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du décret
-            du 9 mars 1994 pour la fixation de l'ordre du jour.
-          </p>`
-      : ''}
+    ${
+      ctx.hasRenunciation
+        ? html`<h3>Introduction</h3>
+            <p>
+              Faire confirmer par la DSJ qu'elle renonce au délai de huit jours prévus à l'article 35 du
+              décret du 9 mars 1994 pour la fixation de l'ordre du jour.
+            </p>`
+        : ''
+    }
     ${ctx.sessions.map((session) => presentationPlanSessionSection(session)).join('\n')}
 
     <h3>Informations administratives</h3>
