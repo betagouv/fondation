@@ -178,9 +178,7 @@ export class ListNominationFilesQuery {
       .then((list) => RawListedNominationFiles.parseAsync(list));
 
     const nominationFileIds = new Set(txFiles.map(({ id }) => id));
-    const { items: linkedDocs } = await this.docs.internalFindNominationFilesLinkedDocs({
-      nominationFileIds,
-    });
+    const linkedDocs = await this.docs.internalFindNominationFilesLinkedDocs({ nominationFileIds });
 
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
@@ -194,7 +192,7 @@ export class ListNominationFilesQuery {
       return {
         ...file,
         jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
-        status: transparenceFileStatus({ id: file.id, docs }),
+        status: transparenceFileStatus({ docs, outcome: file.outcome }),
         isUpdatable: nominationFilesPolicies.canUpdateNominationFile(
           { docs, id: file.id, outcome: file.outcome },
           { archivedAt: sessionArchivedAt },
@@ -238,7 +236,7 @@ export class ListNominationFilesQuery {
             : null,
           isAlertHidden: x.alertHidden,
           isUpdatable: x.isUpdatable,
-          status: x.status,
+          status: { ...x.status, date: DateOnly.fromOptionalDate(x.status.date)?.toJson() ?? null },
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         comment: x.comment,
@@ -363,7 +361,10 @@ const NominationFileContentSchema = z.object({
   isAlertHidden: z.boolean(),
 
   isUpdatable: z.boolean(),
-  status: z.enum(NOMINATION_SESSION_FILE_STATUSES),
+  status: z.object({
+    value: z.enum(NOMINATION_SESSION_FILE_STATUSES),
+    date: dateOnlyJsonSchema.nullable(),
+  }),
 });
 
 const RawListedNominationFiles = z.array(

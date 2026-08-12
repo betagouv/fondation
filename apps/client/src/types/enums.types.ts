@@ -128,8 +128,7 @@ export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
   SUCCEEDED: 'succès',
 };
 
-export type UpdatableNominationFileStatusEnum =
-  PaginatedNominationFiles['items'][number]['content']['status'];
+export type NominationSessionFileStatus = PaginatedNominationFiles['items'][number]['content']['status'];
 
 export type DocNominationFileOutcomeEnum = NonNullable<
   FoundDocsNominationFiles['items'][number]['outcome']

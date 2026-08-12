@@ -41,10 +41,10 @@ import { PresentationPlansService } from './presentation-plan/presentation-plans
 import { DocsController } from './shared/infrastructure/docs.controller';
 import { AgendaFinder } from './shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from './shared/infrastructure/finders/docs-nomination-files.finder';
+import { NominationFilesLinkedDocsFinder } from './shared/infrastructure/finders/nomination-files-linked-docs.finder';
 import { ReportedNominationFilesFinder } from './shared/infrastructure/finders/reported-nomination-files.finder';
 import { FindJusticeContactsQuery } from './shared/infrastructure/queries/find-justice-contacts.query';
 import { FindSessionDocsQuery } from './shared/infrastructure/queries/find-session-docs.query';
-import { InternalFindNominationFilesLinkedDocsQuery } from './shared/infrastructure/queries/internal-find-nomination-files-linked-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './shared/infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/list-secretaries-general.query';
 
@@ -76,13 +76,13 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentPdfQuery,
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
-    InternalFindNominationFilesLinkedDocsQuery,
     InternalInvalidateOfficialReportUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,
     ListPresentedPlansQuery,
     ListSecretariesGeneralQuery,
+    NominationFilesLinkedDocsFinder,
     OfficialReportRenderContextFinder,
     OfficialReportRenderer,
     OfficialReportRepository,

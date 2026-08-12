@@ -1,5 +1,10 @@
 import { test } from '../fixtures.ts';
+import type { PaginatedNominationFiles } from '../generated/api/types.ts';
 import * as seed from '../utils/seed.ts';
+
+function statusOf(items: PaginatedNominationFiles['items'], nominationFileId: string) {
+  return items.find(({ id }) => id === nominationFileId)?.content.status;
+}
 
 test.describe('Docs Service', () => {
   let chairmanId: string;
@@ -69,6 +74,100 @@ test.describe('Docs Service', () => {
       path: { sessionId },
     });
     expect(publishRes.response?.status).toBe(204);
+  });
+
+  test('should plan a file listed in an agenda, and keep it planned until its official report is validated', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    expect(foundFiles.data!.items).toHaveLength(2);
+
+    const affectationRes = await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: foundFiles.data!.items.map(({ id }) => ({
+          nominationFileId: id,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    expect(affectationRes.response?.status).toBe(204);
+
+    const publicationRes = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId },
+    });
+    expect(publicationRes.response?.status).toBe(204);
+
+    for (const { id } of foundFiles.data!.items) {
+      const outcomeRes = await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId: id },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+      expect(outcomeRes.response?.status).toBe(204);
+    }
+
+    const [plannedFile, untouchedFile] = foundFiles.data!.items;
+
+    const beforeAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(statusOf(beforeAgenda.data!.items, plannedFile!.id)).toEqual({
+      value: 'TO_REPORT',
+      date: null,
+    });
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
+        nominationFileIds: [plannedFile!.id],
+      },
+    });
+    expect(agenda.response?.status).toBe(201);
+
+    const afterAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(statusOf(afterAgenda.data!.items, plannedFile!.id)).toEqual({
+      value: 'DSJ_PLANNED',
+      date: { day: 10, month: 2, year: 2026 },
+    });
+    expect(statusOf(afterAgenda.data!.items, untouchedFile!.id)).toEqual({
+      value: 'TO_REPORT',
+      date: null,
+    });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const todayDate = new Date();
+
+    const officialReport = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agenda.data!.id],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: {
+          day: todayDate.getDate(),
+          month: todayDate.getMonth() + 1,
+          year: todayDate.getFullYear(),
+        },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(officialReport.response?.status).toBe(201);
+
+    const afterOfficialReport = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(statusOf(afterOfficialReport.data!.items, plannedFile!.id)).toEqual({
+      value: 'DSJ_PLANNED',
+      date: { day: 10, month: 2, year: 2026 },
+    });
   });
 
   test('should prevent creating an agenda with a file appearing as VALIDATED in official report', async ({

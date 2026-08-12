@@ -14,6 +14,10 @@ import {
   FoundDocsNominationFiles,
 } from './shared/infrastructure/finders/docs-nomination-files.finder';
 import {
+  NominationFileLinkedDoc,
+  NominationFilesLinkedDocsFinder,
+} from './shared/infrastructure/finders/nomination-files-linked-docs.finder';
+import {
   FindJusticeContactsQuery,
   FoundJusticeContactsDto,
 } from './shared/infrastructure/queries/find-justice-contacts.query';
@@ -21,10 +25,6 @@ import {
   FindSessionDocsQuery,
   FoundSessionDocsDto,
 } from './shared/infrastructure/queries/find-session-docs.query';
-import {
-  InternalFindNominationFilesLinkedDocsQuery,
-  InternalFoundNominationFilesLinkedDocsDto,
-} from './shared/infrastructure/queries/internal-find-nomination-files-linked-docs.query';
 import {
   DocGenerationSessionReadinessDto,
   IsSessionReadyForDocGenerationQuery,
@@ -45,8 +45,8 @@ export class DocsService {
 
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
-    private readonly internalFindNominationFileLinkedDocsQuery: InternalFindNominationFilesLinkedDocsQuery,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
+    private readonly nominationFilesLinkedDocsFinder: NominationFilesLinkedDocsFinder,
     private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
     private readonly db: Db,
 
@@ -94,7 +94,7 @@ export class DocsService {
 
   internalFindNominationFilesLinkedDocs(query: {
     nominationFileIds: Set<string>;
-  }): Promise<InternalFoundNominationFilesLinkedDocsDto> {
-    return this.internalFindNominationFileLinkedDocsQuery.handle(query);
+  }): Promise<Map<string, NominationFileLinkedDoc[]>> {
+    return this.nominationFilesLinkedDocsFinder.find(query);
   }
 }

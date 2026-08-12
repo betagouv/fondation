@@ -366,7 +366,14 @@ export type PaginatedNominationFiles = {
             } | null;
             isAlertHidden: boolean;
             isUpdatable: boolean;
-            status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+            status: {
+                value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+                date: {
+                    year: number;
+                    month: number;
+                    day: number;
+                } | null;
+            };
         };
         comment: string | null;
         canScheduleAudition: boolean;
@@ -582,7 +589,14 @@ export type DetailedNominationFileDto = {
         } | null;
         isAlertHidden: boolean;
         isUpdatable: boolean;
-        status: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+        status: {
+            value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+        };
     };
     comment: string | null;
     canScheduleAudition: boolean;
