@@ -17,6 +17,8 @@ preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
   node-xlsx>xlsx: '-'
+  prosemirror-model: ^1.25.11
+  prosemirror-view: ^1.42.2
 
 # jest-dom augments `vitest` without depending on it, so pnpm resolves its
 # augmentation against the api's vitest instead of the client's. Declaring the
