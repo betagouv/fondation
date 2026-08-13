@@ -49,6 +49,7 @@ export function useCreateAgendaMutation() {
       queryClient.invalidateQueries({
         queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
       });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
     },
   });
 }
@@ -116,6 +117,7 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
       queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaFiles({ agendaId }) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
     },
   });
 }
@@ -242,6 +244,7 @@ export function useDeleteAgenda(sessionId: string) {
       $api.docs.deleteAgenda({ path: { agendaId: mutation.agendaId } }),
 
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({
         queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
@@ -368,17 +371,22 @@ export function useGenerateOfficialReportPdfMutation(mutation: {
       await queryClient.invalidateQueries({
         queryKey: agendaKeys.findSessionDocs(mutation.sessionId),
       });
+      await queryClient.invalidateQueries({
+        queryKey: sessionKeys.listSessionNominationFiles({ sessionId: mutation.sessionId }),
+      });
       mutation.onSuccess?.();
     },
   });
 }
 
-export function useResetOfficialReportDocumentMutation(officialReportId: string) {
+export function useResetOfficialReportDocumentMutation(sessionId: string, officialReportId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => $api.docs.resetOfficialReportDocument({ path: { officialReportId } }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+    },
   });
 }
 
@@ -445,6 +453,7 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
     onSuccess: (_, { officialReportId }) => {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
       queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
     },
   });

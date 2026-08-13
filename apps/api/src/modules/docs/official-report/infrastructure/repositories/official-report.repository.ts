@@ -372,11 +372,12 @@ export class OfficialReportRepository {
     await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: {
-        outdated: message.diff.hasAny,
         introOutdated: message.diff.intro === 'OUTDATED' ? true : undefined,
         conclusionOutdated: message.diff.conclusion === 'OUTDATED' ? true : undefined,
       },
     });
+
+    if (message.diff.hasAny) await this.recomputeState(message.officialReportId);
   }
 
   private async resolveJusticeContact(

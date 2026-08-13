@@ -51,7 +51,8 @@ export function DocGenerationMenu(props: { sessionId: string }) {
             disabled
             iconId="ri-file-text-line"
             title={formatMessage({
-              defaultMessage: 'Tous les dossiers doivent avoir une issue pour générer le procès verbal',
+              defaultMessage:
+                "Chaque dossier d'un ordre du jour doit avoir une issue et un rapporteur publié pour générer le procès verbal",
             })}
           >
             <FormattedMessage defaultMessage="Procès verbal" />

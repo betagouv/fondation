@@ -24,7 +24,7 @@ const baseContent: SessionNominationFile['content'] = {
   posteActuel: 'Juge au tribunal judiciaire de Lyon',
   posteCible: 'Conseiller à la cour d’appel de Paris',
   rang: null,
-  status: 'TO_REPORT',
+  status: { value: 'TO_REPORT', date: null },
   version: 2,
 };
 

@@ -89,7 +89,9 @@ function useSgSessionFilesColumns() {
       h.accessor('content.status', {
         cell: ({ cell }) => <NominationFileStatusCell status={cell.getValue()} />,
         enableSorting: false,
-        header: formatMessage({ defaultMessage: 'Statut' }),
+        header: () => (
+          <span className="block text-center">{formatMessage({ defaultMessage: 'Statut' })}</span>
+        ),
         size: 120,
       }),
     ],
