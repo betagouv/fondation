@@ -1,11 +1,11 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -56,7 +56,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
   if (!hasAlert) return label;
 
   return (
-    <Tooltip title={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>
+    <Tooltip label={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>
       <Button
         aria-controls={nominationFileTargetPositionModal.id}
         className="group fr-px-0"

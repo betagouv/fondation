@@ -1,10 +1,10 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import type { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName, toInitials } from '@/utils/user.utils';
@@ -34,7 +34,7 @@ export const Avatar: FC = () => {
       <Button className="fr-mb-0" onClick={onClickLogout}>
         <div className="fr-py-2v flex items-center gap-8 rounded-sm">
           <div className="flex items-center gap-2">
-            <Tooltip title={memberFullName(user)}>
+            <Tooltip label={memberFullName(user)}>
               <span className="inline-flex size-8 items-center justify-center rounded-full bg-(--background-default-grey-active) text-sm font-medium text-(--text-default-grey)">
                 {toInitials(user)}
               </span>

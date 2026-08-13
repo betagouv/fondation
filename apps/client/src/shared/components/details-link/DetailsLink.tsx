@@ -1,8 +1,8 @@
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 
 export function DetailsLink(props: {
@@ -18,7 +18,7 @@ export function DetailsLink(props: {
   const label = formatMessage({ defaultMessage: 'Vers la fiche magistrat' });
 
   return (
-    <Tooltip kind="hover" title={label}>
+    <Tooltip label={label}>
       <Link
         aria-label={label}
         className={clsx(

@@ -3,7 +3,6 @@ import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
-import { Tooltip } from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -11,6 +10,7 @@ import { useDebounce } from 'use-debounce';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { Marked } from '@/shared/ui/Marked';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { capitalize } from '@/utils/string.utils';
 import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 
@@ -69,7 +69,7 @@ export function SummaryReaderSelector(
 
       {withCount && readersCount > 0 ? (
         <Tooltip
-          title={summary.summary.readers
+          label={summary.summary.readers
             .map(({ firstName, lastName }) => `${capitalize(firstName)} ${lastName.toUpperCase()}`)
             .join(', ')}
         >

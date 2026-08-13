@@ -1,10 +1,10 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { memberFullName, toInitials } from '@/utils/user.utils';
 
 const currentUserStyle = {
@@ -34,6 +34,6 @@ export function ReporterTag(props: {
   return props.enableTooltip === false ? (
     tag
   ) : (
-    <Tooltip title={memberFullName(props.reporter)}>{tag}</Tooltip>
+    <Tooltip label={memberFullName(props.reporter)}>{tag}</Tooltip>
   );
 }

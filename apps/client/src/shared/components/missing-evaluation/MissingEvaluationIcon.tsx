@@ -1,6 +1,7 @@
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
+
+import { Tooltip } from '@/shared/ui/tooltip';
 
 export function MissingEvaluationIcon(props: { className?: string }) {
   const { formatMessage } = useIntl();
@@ -10,7 +11,7 @@ export function MissingEvaluationIcon(props: { className?: string }) {
   });
 
   return (
-    <Tooltip kind="hover" title={label}>
+    <Tooltip label={label}>
       <i
         aria-label={label}
         className={clsx(

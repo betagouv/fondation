@@ -1,5 +1,0 @@
-/* Nested tooltips: hovering the excluded-jurisdiction icon opens its own tooltip
-   (which already names the reporter), so hide the reporter-list tooltip it overlaps */
-span:has(ul .excluded-jurisdiction-alert:hover) + .fr-tooltip {
-  visibility: hidden;
-}

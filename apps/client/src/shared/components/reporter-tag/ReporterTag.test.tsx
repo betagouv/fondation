@@ -20,13 +20,13 @@ describe('ReporterTag', () => {
   it('describes the tag with the reporter full name', () => {
     renderTag();
 
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Honorine VALROSE');
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Honorine VALROSE');
   });
 
   it('drops the tooltip when it is disabled', () => {
     renderTag(false);
 
-    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
   });
 });
 
@@ -38,7 +38,7 @@ describe('ReporterTagList', () => {
       </IntlProvider>,
     );
 
-    expect(screen.getAllByRole('tooltip')).toHaveLength(1);
+    expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
   });
 
   it('drops the tooltip when it is disabled', () => {
@@ -48,6 +48,6 @@ describe('ReporterTagList', () => {
       </IntlProvider>,
     );
 
-    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
   });
 });
