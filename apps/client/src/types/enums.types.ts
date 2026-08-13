@@ -7,6 +7,7 @@ import type {
   FollowUpOnObservationDto,
   FoundDocsNominationFiles,
   PaginatedNominationFiles,
+  UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
@@ -19,6 +20,7 @@ export const RoleEnumLabels: Record<RoleEnum, string> = {
 };
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
+export type NominationFileAttachmentTypeEnum = UploadNominationFileAttachmentsDto['form']['type'];
 export type ReportStatusEnum = NonNullable<DetailedReportDto['state']>;
 export const REPORT_STATUSES = [
   'NEW',

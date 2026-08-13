@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url';
 import type { LolfiData } from 'lolfi';
 
 import { test } from '../fixtures.ts';
-import type { ImportNominationSessionFromLodamXlsxDto, PaginatedNominationFiles } from '../generated/api/types.ts';
+import type {
+  ImportNominationSessionFromLodamXlsxDto,
+  PaginatedNominationFiles,
+  UploadNominationFileAttachmentsDto,
+} from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -33,6 +37,10 @@ function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
     ],
     { type: 'application/json' },
   ) as any;
+}
+
+function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
+  return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
 
 const TREVOUX_SESSION: LolfiData['sessions'][number] = {
@@ -226,7 +234,7 @@ test.describe('Session E2E', () => {
       const fileToAttach = makeFile({ type: 'application/pdf', name: 'note.pdf' });
       const uploadRes = await agent.sessions.uploadNominationFileAttachments({
         path: { sessionId, nominationFileId },
-        body: { files: [fileToAttach] },
+        body: { files: [fileToAttach], form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }) },
       });
       expect(uploadRes.response?.status).toBe(204);
 
@@ -235,7 +243,13 @@ test.describe('Session E2E', () => {
       });
       expect(attachments.response?.status).toBe(200);
       expect(attachments.data!.items).toEqual([
-        { id: expect.any(String), name: fileToAttach.name, size: fileToAttach.size },
+        {
+          id: expect.any(String),
+          name: fileToAttach.name,
+          size: fileToAttach.size,
+          type: 'FICHE_DE_JURIDICTION',
+          addedAt: expect.any(String),
+        },
       ]);
 
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });

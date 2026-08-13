@@ -22,6 +22,7 @@ import type {
   NoneAffectationVersion,
   PaginatedNominationFiles,
   SomeAffectationVersion,
+  UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
 import { agendaKeys } from './agenda.queries';
@@ -385,10 +386,14 @@ export const useAddNominationFileAttachmentsMutation = () => {
       nominationFileId: string;
       sessionId: string;
       files: readonly File[] | FileList;
+      type: UploadNominationFileAttachmentsDto['form']['type'];
     }) => {
       await $api.sessions.uploadNominationFileAttachments({
         path: { nominationFileId: input.nominationFileId, sessionId: input.sessionId },
-        body: { files: [...input.files] },
+        body: {
+          files: [...input.files],
+          form: multipartJson({ type: input.type } satisfies UploadNominationFileAttachmentsDto['form']),
+        },
       });
     },
     onSuccess: async (_data, { nominationFileId, sessionId }) => {

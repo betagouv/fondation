@@ -4,6 +4,7 @@ import { NominationFileDocsSnapshot } from '../../shared/types/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import * as policies from 'src/modules/session/shared/policies/nomination-file.policies';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -109,6 +110,7 @@ export class SessionTransparenceFileAttachmentAdded {
   constructor(
     readonly nominationFileId: string,
     readonly file: { id: string },
+    readonly type: NominationFileAttachmentTypeEnum,
   ) {}
 }
 
@@ -610,11 +612,17 @@ export class SessionTransparence {
     this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
   }
 
-  addNominationFileAttachments(command: { nominationFileId: string; files: { id: string }[] }) {
+  addNominationFileAttachments(command: {
+    nominationFileId: string;
+    files: { id: string }[];
+    type: NominationFileAttachmentTypeEnum;
+  }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     for (const file of command.files) {
-      this.#messages.push(new SessionTransparenceFileAttachmentAdded(command.nominationFileId, file));
+      this.#messages.push(
+        new SessionTransparenceFileAttachmentAdded(command.nominationFileId, file, command.type),
+      );
     }
   }
 
