@@ -17,7 +17,7 @@ export function TitleNameIcons(props: {
   return (
     <>
       {start && `${start} `}
-      <span className="inline-flex items-center whitespace-nowrap [&_span[id^=tooltip-owner]]:inline-flex">
+      <span className="inline-flex items-center whitespace-nowrap">
         {tail}
         <span className="ml-2 inline-flex items-center">
           {props.detailsLink && (

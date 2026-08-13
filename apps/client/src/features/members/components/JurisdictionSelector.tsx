@@ -2,8 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { useState } from 'react';
+
+import { Tooltip } from '@/shared/ui/tooltip';
 
 import { JuridictionAutocomplete } from './JurisdictionAutocomplete';
 
@@ -22,7 +23,7 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
           <li className="shrink-0 whitespace-nowrap">
             <Tooltip
               className="shrink-0"
-              title={
+              label={
                 <ul>
                   {props.selected.map(({ label, id }) => (
                     <li key={`excluded_jurisdictions_tooltip_${id}`}>{label ?? id}</li>

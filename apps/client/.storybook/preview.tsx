@@ -5,6 +5,7 @@ import addonA11y from '@storybook/addon-a11y';
 import addonDocs from '@storybook/addon-docs';
 import { definePreview } from '@storybook/react-vite';
 import addonMsw from 'msw-storybook-addon';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { IntlProvider } from 'react-intl';
 import { Link, MemoryRouter, Route, Routes } from 'react-router';
 
@@ -23,15 +24,17 @@ export default definePreview({
       const router = context.parameters.router as { initialEntries?: string[]; path?: string } | undefined;
       return (
         <MemoryRouter initialEntries={router?.initialEntries}>
-          <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-            {router?.path ? (
-              <Routes>
-                <Route element={<Story />} path={router.path} />
-              </Routes>
-            ) : (
-              <Story />
-            )}
-          </IntlProvider>
+          <NuqsAdapter>
+            <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
+              {router?.path ? (
+                <Routes>
+                  <Route element={<Story />} path={router.path} />
+                </Routes>
+              ) : (
+                <Story />
+              )}
+            </IntlProvider>
+          </NuqsAdapter>
         </MemoryRouter>
       );
     },

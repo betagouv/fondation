@@ -1,5 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useEffect, useId, useRef } from 'react';
 import { useIntl } from 'react-intl';
@@ -8,6 +7,7 @@ import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
 import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { MissingEvaluationIcon } from '@/shared/components/missing-evaluation';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -60,7 +60,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       aria-current={isActive ? 'true' : undefined}
       aria-describedby={auditionExpectedLabel ? expectationId : undefined}
       className={clsx(
-        'group fr-px-0 text-left! font-normal! uppercase! hover:bg-transparent!',
+        'group fr-px-0 text-left! font-normal! hover:bg-transparent!',
         auditionExpectedLabel
           ? 'text-(--text-default-warning)! no-underline!'
           : 'text-(--text-action-high-blue-france)! underline! underline-offset-4 hover:decoration-2',
@@ -71,9 +71,9 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       size="small"
     >
       <span>
-        {leadingWords && <span className={nameUnderline}>{`${leadingWords} `}</span>}
+        {leadingWords && <span className={clsx('uppercase!', nameUnderline)}>{`${leadingWords} `}</span>}
         <span className="whitespace-nowrap">
-          <span className={nameUnderline}>
+          <span className={clsx('uppercase!', nameUnderline)}>
             {lastWord}
             {auditionExpectedLabel && (
               <i
@@ -82,9 +82,9 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
               />
             )}
           </span>
-          <span className="inline-flex items-center align-middle [&_span[id^=tooltip-owner]]:inline-flex">
+          <span className="inline-flex items-center align-middle">
             {props.nominationFile.auditionDate && (
-              <Tooltip kind="hover" title={auditionLabel}>
+              <Tooltip label={auditionLabel}>
                 <i
                   aria-label={auditionLabel}
                   className="fr-icon-speak-line fr-icon--sm fr-ml-1v text-(--text-action-high-blue-france)"
@@ -94,19 +94,19 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
             )}
             {props.nominationFile.missingEvaluation && <MissingEvaluationIcon className="fr-ml-1v" />}
             {hasAnnotations && (
-              <Tooltip kind="hover" title={annotationsLabel}>
+              <Tooltip label={annotationsLabel}>
                 <i
                   aria-label={annotationsLabel}
-                  className="ri-message-3-line fr-ml-1v relative -top-0.5 text-(--text-action-high-blue-france) before:size-4! before:content-['']"
+                  className="ri-message-3-line fr-icon--sm fr-ml-1v text-(--text-action-high-blue-france)"
                   role="img"
                 />
               </Tooltip>
             )}
             {props.nominationFile.hasAttachment && (
-              <Tooltip kind="hover" title={attachmentLabel}>
+              <Tooltip label={attachmentLabel}>
                 <i
                   aria-label={attachmentLabel}
-                  className="ri-file-line fr-ml-1v relative -top-0.5 text-(--text-action-high-blue-france) before:size-4! before:content-['']"
+                  className="ri-file-line fr-icon--sm fr-ml-1v text-(--text-action-high-blue-france)"
                   role="img"
                 />
               </Tooltip>
@@ -122,7 +122,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       <div className="text-left leading-4">
         {auditionExpectedLabel ? (
           <>
-            <Tooltip title={auditionExpectedLabel}>{magistratLink}</Tooltip>
+            <Tooltip label={auditionExpectedLabel}>{magistratLink}</Tooltip>
             <span className="fr-sr-only" id={expectationId}>
               {auditionExpectedLabel}
             </span>

@@ -28,7 +28,7 @@ export function ReportStateTag(props: { state: ReportStatusEnum }) {
 
   return (
     <Tag
-      className="min-h-7! py-0! text-[0.8125rem] text-nowrap"
+      className="min-h-7! py-0.5! text-center text-[0.8125rem] leading-tight whitespace-normal!"
       style={{ backgroundColor: activeSpec.backgroundColor, color: activeSpec.color }}
     >
       <span className={cx('fr-text--bold')} style={{ color: activeSpec.color }}>

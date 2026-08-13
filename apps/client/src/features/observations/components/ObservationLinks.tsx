@@ -1,7 +1,7 @@
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 
@@ -20,7 +20,7 @@ function ObservationAnnotationsIcon(props: { hasDescription: boolean; hasUserCom
   );
 
   return (
-    <Tooltip kind="hover" title={label}>
+    <Tooltip label={label}>
       <i
         aria-label={label}
         className="ri-message-3-line fr-ml-1v relative -top-1 inline-block align-middle text-(--text-action-high-blue-france) before:size-4! before:content-['']"

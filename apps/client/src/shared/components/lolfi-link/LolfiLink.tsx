@@ -1,8 +1,8 @@
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 type LolfiTarget = { href: string } | { name?: string | null; nominationFileId: string; sessionId: string };
@@ -18,7 +18,7 @@ export function LolfiLink(props: { className?: string; small?: boolean } & Lolfi
   );
 
   return (
-    <Tooltip kind="hover" title={label}>
+    <Tooltip label={label}>
       {'href' in props ? (
         <a
           aria-label={label}

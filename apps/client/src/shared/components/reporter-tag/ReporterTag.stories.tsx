@@ -1,13 +1,14 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import clsx from 'clsx';
+
+import { Tooltip } from '@/shared/ui/tooltip';
 
 import { ReporterTag } from './ReporterTag';
 
 const excludedJurisdictionIcon = (
-  <Tooltip title="Juridiction exclue pour Honorine VALROSE : Cour d'appel de Lyon">
+  <Tooltip label="Juridiction exclue pour Honorine VALROSE : Cour d'appel de Lyon">
     <i
       className={clsx(cx('fr-icon-warning-fill'), 'fr-icon--sm shrink-0')}
       style={{ color: colors.decisions.text.default.warning.default }}

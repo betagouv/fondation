@@ -1,8 +1,8 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import type { ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
+import { Tooltip } from '@/shared/ui/tooltip';
 import { memberFullName } from '@/utils/user.utils';
 
 import { ReporterTag } from './ReporterTag';
@@ -47,6 +47,6 @@ export function ReporterTagList(props: {
   return props.enableTooltip === false ? (
     list
   ) : (
-    <Tooltip title={intl.formatList(reporters.map(memberFullName), { type: 'conjunction' })}>{list}</Tooltip>
+    <Tooltip label={intl.formatList(reporters.map(memberFullName), { type: 'conjunction' })}>{list}</Tooltip>
   );
 }

@@ -1,9 +1,10 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { type ReactNodeViewProps } from '@tiptap/react';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
+
+import { Tooltip } from '@/shared/ui/tooltip';
 
 function DocBlockDriftBannerTooltip() {
   const { formatMessage } = useIntl();
@@ -42,7 +43,9 @@ export function DocBlockDriftBanner(props: ReactNodeViewProps) {
       <Badge as="p" severity="new" small className="fr-mr-1v">
         <FormattedMessage defaultMessage="MODIFICATION" />
       </Badge>
-      <Tooltip title={<DocBlockDriftBannerTooltip />} />
+      <Tooltip label={<DocBlockDriftBannerTooltip />}>
+        <i aria-hidden className="fr-icon-question-line fr-icon--sm text-(--text-action-high-blue-france)" />
+      </Tooltip>
       <div className="fr-mt-1v">
         <div dangerouslySetInnerHTML={{ __html: generatedHtml }} />
       </div>

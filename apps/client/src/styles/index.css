@@ -62,10 +62,6 @@ li {
   padding: 0;
 }
 
-[data-fr-js-tooltip-referent] {
-  cursor: default;
-}
-
 /* doubled class: this file loads before the DSFR stylesheet, so it needs to win on specificity */
 .fr-container.fr-container {
   max-width: var(--fondation-container-max-width);
@@ -73,17 +69,6 @@ li {
 
 .fr-table__content table tbody td {
   padding: 1rem;
-}
-
-.fr-tooltip {
-  transition: opacity 0.1s;
-}
-
-/* A DSFR tooltip only closes on mouseout, focusout or Escape: opening a dialog fires
-   none of them, so it stays open and draws beside it. `visibility` and not `display`,
-   as DSFR ends its hiding on a `transitionend` a display-none element never fires. */
-:root:has([aria-modal='true']:not([inert])) .fr-tooltip:not(:where([aria-modal='true'] *)) {
-  visibility: hidden;
 }
 
 .editor-resizable-image {

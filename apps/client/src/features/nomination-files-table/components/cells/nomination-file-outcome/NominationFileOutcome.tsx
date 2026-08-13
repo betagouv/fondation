@@ -1,7 +1,7 @@
-import Tooltip from '@codegouvfr/react-dsfr/Tooltip';
 import { useMemo, type CSSProperties } from 'react';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { Tooltip } from '@/shared/ui/tooltip';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { sessionOutcomeLabel } from './nomination-file-outcome.utils';
@@ -20,10 +20,10 @@ export function NominationFileOutcome(props: { nominationFile: SessionNomination
   }
 
   return (
-    <Tooltip kind="hover" title={outcome.comment}>
+    <Tooltip label={outcome.comment}>
       <div className="flex flex-col items-center" style={{ '--icon-size': '10px' } as CSSProperties}>
         <NominationFileOutcomeBadge acronym formation={formation} label={label} outcome={outcome.value} />
-        <i className="ri-message-3-line text-(--text-action-high-blue-france) before:size-4! before:content-['']" />
+        <i className="ri-message-3-line fr-icon--sm text-(--text-action-high-blue-france)" />
       </div>
     </Tooltip>
   );
