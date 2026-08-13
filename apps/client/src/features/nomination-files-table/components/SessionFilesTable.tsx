@@ -20,6 +20,7 @@ import {
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
+import { AddNominationFileAttachmentModalProvider } from './cells/magistrat-side-panel/components/attachments/context/AddNominationFileAttachmentModalProvider';
 import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
 import { useSidePanel } from './cells/magistrat-side-panel/context/side-panel.context';
 import { SidePanelProvider } from './cells/magistrat-side-panel/context/SidePanelProvider';
@@ -147,26 +148,28 @@ export function SessionFilesTable(
       >
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
-            <MagistratSidePanel sessionId={sessionId} />
-            <div className="flex flex-col gap-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-6">
-                  <ReactTableFilterColumn table={table} />
-                  {props.filtersEnd}
+            <AddNominationFileAttachmentModalProvider>
+              <MagistratSidePanel sessionId={sessionId} />
+              <div className="flex flex-col gap-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-6">
+                    <ReactTableFilterColumn table={table} />
+                    {props.filtersEnd}
+                  </div>
+                  <SearchInput
+                    className="w-72"
+                    onChange={(value) => {
+                      setSearch(value);
+                      updateGlobalFilter(value);
+                    }}
+                    onClear={clearSearch}
+                    value={search}
+                  />
                 </div>
-                <SearchInput
-                  className="w-72"
-                  onChange={(value) => {
-                    setSearch(value);
-                    updateGlobalFilter(value);
-                  }}
-                  onClear={clearSearch}
-                  value={search}
-                />
+                {props.children}
+                <SessionFilesNewTable isLoading={isLoading} onEndReached={fetchNextFilesPage} table={table} />
               </div>
-              {props.children}
-              <SessionFilesNewTable isLoading={isLoading} onEndReached={fetchNextFilesPage} table={table} />
-            </div>
+            </AddNominationFileAttachmentModalProvider>
           </NominationFileTargetPositionProvider>
         </NominationFileOutcomeCommentModalProvider>
       </SidePanelProvider>

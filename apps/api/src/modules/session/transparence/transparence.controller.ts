@@ -448,9 +448,14 @@ export class SessionController {
   async uploadNominationFileAttachments(
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
-    @Body() { files }: Multipart<typeof UploadNominationFileAttachmentsDto>,
+    @Body() { files, form }: Multipart<typeof UploadNominationFileAttachmentsDto>,
   ) {
-    await this.sessions.addNominationFileAttachments({ sessionId, nominationFileId, files });
+    await this.sessions.addNominationFileAttachments({
+      sessionId,
+      nominationFileId,
+      files,
+      type: form.type,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

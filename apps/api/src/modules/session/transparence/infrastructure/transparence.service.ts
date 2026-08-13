@@ -13,6 +13,7 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { MembersService } from 'src/modules/members';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
@@ -384,12 +385,14 @@ export class TransparenceService {
     sessionId: string;
     nominationFileId: string;
     files: { id: string }[];
+    type: NominationFileAttachmentTypeEnum;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
     session.addNominationFileAttachments({
       nominationFileId: command.nominationFileId,
       files: command.files,
+      type: command.type,
     });
     await this.nominationSessionRepository.persist(session);
   }

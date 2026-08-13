@@ -1,23 +1,27 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import { useCallback, useRef, type ChangeEvent } from 'react';
+import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useConfirmation } from '@/shared/context/confirmation';
 import { useTab } from '@/shared/hooks/useTab';
+import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
 import {
-  useAddNominationFileAttachmentsMutation,
   useCreateNominationFileAttachmentUrlMutation,
   useListNominationFileAttachmentsQuery,
   useRemoveNominationFileAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
+import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
+import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
+
+export const ATTACHMENTS_SECTION_ID = 'magistrat-attachments-section';
+
 export function Attachments(props: { nominationFileId: string; sessionId: string; isArchived: boolean }) {
-  const { formatMessage } = useIntl();
   const isSg = useIsSgNavigation();
+  const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
     nominationFileId: props.nominationFileId,
     sessionId: props.sessionId,
@@ -27,41 +31,32 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
   const canManage = isSg && !props.isArchived;
   const labelId = `attachments-${props.nominationFileId}`;
 
-  const {
-    mutate: add,
-    isPending: isAddPending,
-    isError: isAddError,
-    reset: resetAdd,
-  } = useAddNominationFileAttachmentsMutation();
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const onAdd = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (!files || files.length === 0) return;
-
-      add(
-        { nominationFileId: props.nominationFileId, sessionId: props.sessionId, files: [...files] },
-        {
-          onSettled() {
-            if (inputRef.current) inputRef.current.value = '';
-          },
-        },
-      );
-    },
-    [add, props.sessionId, props.nominationFileId],
-  );
-
   if (attachments.length === 0 && !canManage) return null;
 
   return (
-    <div>
-      <p className="fr-mb-4v text-xl font-semibold" id={labelId}>
-        <FormattedMessage
-          defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
-          values={{ count: attachments.length }}
-        />
-      </p>
+    <div id={ATTACHMENTS_SECTION_ID}>
+      <div className="fr-mb-4v flex items-center justify-between gap-4">
+        <p className="fr-mb-0 text-xl font-semibold" id={labelId}>
+          <FormattedMessage
+            defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
+            values={{ count: attachments.length }}
+          />
+        </p>
+        {canManage && (
+          <Button
+            onClick={() =>
+              openAddAttachment({
+                nominationFileId: props.nominationFileId,
+                sessionId: props.sessionId,
+              })
+            }
+            priority="secondary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Ajouter" />
+          </Button>
+        )}
+      </div>
 
       {attachments.length > 0 ? (
         <ul
@@ -71,12 +66,14 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
           {attachments.map((file) => (
             <AttachmentItem
               key={file.id}
+              addedAt={file.addedAt}
               canDelete={canManage}
               fileId={file.id}
               name={file.name}
               nominationFileId={props.nominationFileId}
               sessionId={props.sessionId}
               size={file.size}
+              type={file.type}
             />
           ))}
         </ul>
@@ -87,41 +84,6 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
           </div>
         )
       )}
-
-      {canManage && (
-        <div
-          className="fr-mt-3v fr-p-4v max-w-105 cursor-pointer bg-(--background-alt-grey) [&_.fr-hint-text]:text-sm [&_.fr-hint-text]:font-normal [&_.fr-hint-text]:text-(--text-mention-grey) [&_.fr-label]:cursor-pointer [&_.fr-label]:text-base [&_.fr-label]:font-medium [&_.fr-label]:text-(--text-label-grey) [&_.fr-upload]:cursor-pointer"
-          onClick={(event) => {
-            if ((event.target as HTMLElement).closest('.fr-upload, .fr-label')) return;
-            inputRef.current?.click();
-          }}
-        >
-          <Upload
-            disabled={isAddPending}
-            hint={formatMessage({ defaultMessage: 'Formats supportés : PNG, JPG et PDF' })}
-            label={formatMessage({ defaultMessage: 'Ajouter un fichier' })}
-            multiple
-            nativeInputProps={{
-              accept: 'image/png,image/jpeg,application/pdf',
-              onChange: onAdd,
-              ref: inputRef,
-            }}
-          />
-        </div>
-      )}
-
-      {isAddError && (
-        <Alert
-          className="fr-mt-2v"
-          closable
-          description={formatMessage({
-            defaultMessage: "L'ajout de la pièce jointe a échoué. Veuillez réessayer.",
-          })}
-          onClose={resetAdd}
-          severity="error"
-          small
-        />
-      )}
     </div>
   );
 }
@@ -130,9 +92,11 @@ function AttachmentItem(props: {
   fileId: string;
   nominationFileId: string;
   sessionId: string;
+  addedAt: string;
   canDelete: boolean;
   name: string;
   size: number | null;
+  type: NominationFileAttachmentTypeEnum;
 }) {
   const { formatMessage } = useIntl();
   const tab = useTab();
@@ -215,6 +179,16 @@ function AttachmentItem(props: {
 
   return (
     <li className="fr-py-3v">
+      <div className="fr-mb-2v flex items-center gap-2">
+        <NominationFileAttachmentTypeTag type={props.type} />
+        <span className="text-sm text-(--text-mention-grey)">
+          <FormattedMessage
+            defaultMessage="Ajoutée le {date, date, dateOnlyShort}"
+            values={{ date: new Date(props.addedAt) }}
+          />
+        </span>
+      </div>
+
       <div className="flex items-start justify-between gap-4">
         <div className="grid min-w-0 items-center gap-x-2" style={{ gridTemplateColumns: 'auto 1fr' }}>
           <span

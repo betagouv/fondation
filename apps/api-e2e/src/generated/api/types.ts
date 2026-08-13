@@ -517,6 +517,9 @@ export type DetailedNominationSessionAttachmentDto = {
 
 export type UploadNominationFileAttachmentsDto = {
     files?: Array<Blob | File>;
+    form: {
+        type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
+    };
 };
 
 export type ListedNominationFileAttachmentDto = {
@@ -524,6 +527,8 @@ export type ListedNominationFileAttachmentDto = {
         id: string;
         name: string;
         size: number | null;
+        type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
+        addedAt: string;
     }>;
 };
 

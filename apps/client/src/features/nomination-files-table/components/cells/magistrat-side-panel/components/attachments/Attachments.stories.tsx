@@ -9,13 +9,26 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedNominationFileAttachmentDto } from '@api/types';
 
 import { Attachments } from './Attachments';
+import { AddNominationFileAttachmentModalProvider } from './context/AddNominationFileAttachmentModalProvider';
 
 const SESSION_ID = 'session-1';
 
 const SAMPLE_FILES: ListedNominationFileAttachmentDto['items'] = [
-  { id: 'a1', name: 'cv-camille-durand.pdf', size: 248_900 },
-  { id: 'a2', name: 'lettre-de-motivation.pdf', size: 51_200 },
-  { id: 'a3', name: 'photo-identite.png', size: null },
+  {
+    id: 'a1',
+    name: 'cv-camille-durand.pdf',
+    size: 248_900,
+    type: 'FICHE_DE_JURIDICTION',
+    addedAt: '2026-06-18T09:30:00.000Z',
+  },
+  {
+    id: 'a2',
+    name: 'lettre-de-motivation.pdf',
+    size: 51_200,
+    type: 'NOTE_INTENTION',
+    addedAt: '2026-06-18T10:05:00.000Z',
+  },
+  { id: 'a3', name: 'photo-identite.png', size: null, type: 'AUTRE', addedAt: '2026-06-19T08:00:00.000Z' },
 ];
 
 const VIEWS = ['sg', 'member'] as const;
@@ -40,10 +53,18 @@ const attachmentHandlers = [
     '*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments',
     async ({ params, request }) => {
       const nominationFileId = String(params.nominationFileId);
-      const uploaded = (await request.formData())
+      const formData = await request.formData();
+      const { type } = JSON.parse(await (formData.get('form') as Blob).text());
+      const uploaded = formData
         .getAll('files')
         .filter((file): file is File => file instanceof File)
-        .map((file) => ({ id: crypto.randomUUID(), name: file.name, size: file.size }));
+        .map((file) => ({
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          type,
+          addedAt: new Date().toISOString(),
+        }));
 
       attachmentsByNominationFile.set(nominationFileId, [...attachmentsOf(nominationFileId), ...uploaded]);
       return new HttpResponse(null, { status: 204 });
@@ -68,11 +89,13 @@ function AttachmentsStory(props: AttachmentsArgs) {
   return (
     <StoryQueryClient>
       <ConfirmationProvider>
-        <Attachments
-          isArchived={props.isArchived}
-          nominationFileId={nominationFileIdFor(props)}
-          sessionId={SESSION_ID}
-        />
+        <AddNominationFileAttachmentModalProvider>
+          <Attachments
+            isArchived={props.isArchived}
+            nominationFileId={nominationFileIdFor(props)}
+            sessionId={SESSION_ID}
+          />
+        </AddNominationFileAttachmentModalProvider>
       </ConfirmationProvider>
     </StoryQueryClient>
   );

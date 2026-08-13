@@ -1,22 +1,33 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
+import { frFormat } from '@/i18n/formats';
+
 import { Attachments } from './Attachments';
 
 const mocks = vi.hoisted(() => ({
-  add: vi.fn(),
-  attachments: [] as { id: string; name: string; size: number | null }[],
+  attachments: [] as {
+    id: string;
+    name: string;
+    size: number | null;
+    type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
+    addedAt: string;
+  }[],
   createUrl: vi.fn(),
   download: vi.fn(),
   isSg: vi.fn(() => true),
   open: vi.fn(),
+  openAddAttachment: vi.fn(),
   remove: vi.fn(),
   waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
 
+vi.mock('./context/AddNominationFileAttachmentModalContext', () => ({
+  useAddNominationFileAttachmentModal: () => ({ open: mocks.openAddAttachment }),
+}));
 vi.mock('@/shared/context/confirmation', () => ({
   useConfirmation: () => ({ buttonProps: {}, waitForConfirmation: mocks.waitForConfirmation }),
 }));
@@ -24,12 +35,6 @@ vi.mock('@/shared/hooks/useTab', () => ({ useTab: () => ({ open: mocks.open, dow
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
-  useAddNominationFileAttachmentsMutation: () => ({
-    mutate: mocks.add,
-    isPending: false,
-    isError: false,
-    reset: vi.fn(),
-  }),
   useCreateNominationFileAttachmentUrlMutation: () => ({
     mutate: mocks.createUrl,
     isPending: false,
@@ -48,7 +53,7 @@ const PROPS = { nominationFileId: 'nf-1', sessionId: 'session-1', isArchived: fa
 
 function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
   return render(
-    <IntlProvider defaultLocale="fr" locale="fr">
+    <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
       <Attachments {...PROPS} {...overrides} />
     </IntlProvider>,
   );
@@ -57,7 +62,15 @@ function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.isSg.mockReturnValue(true);
-  mocks.attachments = [{ id: 'file-1', name: 'rapport.pdf', size: 2048 }];
+  mocks.attachments = [
+    {
+      id: 'file-1',
+      name: 'rapport.pdf',
+      size: 2048,
+      type: 'FICHE_DE_JURIDICTION',
+      addedAt: '2026-06-18T09:30:00.000Z',
+    },
+  ];
 });
 
 describe('Attachments listing', () => {
@@ -66,6 +79,14 @@ describe('Attachments listing', () => {
 
     expect(screen.getByRole('button', { name: 'rapport' })).toBeInTheDocument();
     expect(screen.getByText('PDF - 2 Ko')).toBeInTheDocument();
+  });
+
+  it('renders the type badge and the date the attachment was added', () => {
+    renderAttachments();
+    const list = within(screen.getByRole('list'));
+
+    expect(list.getByText('Fiche de juridiction')).toBeInTheDocument();
+    expect(list.getByText('Ajoutée le 18/06/2026')).toBeInTheDocument();
   });
 
   it('renders nothing for a member when there is no attachment', () => {
@@ -131,18 +152,16 @@ describe('Attachments actions', () => {
     expect(mocks.remove).not.toHaveBeenCalled();
   });
 
-  it('uploads the selected files', async () => {
+  it('opens the add modal on the displayed nomination file', async () => {
     const user = userEvent.setup();
-    const { container } = renderAttachments();
+    renderAttachments({ nominationFileId: 'nf-2' });
 
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
-    await user.upload(input, new File(['data'], 'new.pdf', { type: 'application/pdf' }));
+    await user.click(screen.getByRole('button', { name: 'Ajouter' }));
 
-    expect(mocks.add).toHaveBeenCalledWith(
-      expect.objectContaining({ nominationFileId: 'nf-1', sessionId: 'session-1' }),
-      expect.any(Object),
-    );
-    expect(mocks.add.mock.calls[0][0].files).toHaveLength(1);
+    expect(mocks.openAddAttachment).toHaveBeenCalledWith({
+      nominationFileId: 'nf-2',
+      sessionId: 'session-1',
+    });
   });
 });
 
@@ -152,14 +171,14 @@ describe('Attachments permissions', () => {
     renderAttachments();
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
-    expect(screen.queryByText('Ajouter un fichier')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 
   it('hides delete and upload when the file is archived', () => {
     renderAttachments({ isArchived: true });
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
-    expect(screen.queryByText('Ajouter un fichier')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 });
 

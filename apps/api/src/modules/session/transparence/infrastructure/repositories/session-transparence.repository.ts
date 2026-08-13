@@ -498,7 +498,7 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileAttachmentAdded,
   ) {
     await this.db.tx.nominationFileAttachment.create({
-      data: { nominationFileId: message.nominationFileId, fileId: message.file.id },
+      data: { nominationFileId: message.nominationFileId, fileId: message.file.id, type: message.type },
     });
   }
 

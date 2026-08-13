@@ -771,15 +771,20 @@ describe('SessionTransparence', () => {
     session.addNominationFileAttachments({
       nominationFileId: 'nomination-file-id-1',
       files: [{ id: 'file-1' }, { id: 'file-2' }],
+      type: 'FICHE_DE_JURIDICTION',
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', {
-        id: 'file-1',
-      }),
-      new SessionTransparenceFileAttachmentAdded('nomination-file-id-1', {
-        id: 'file-2',
-      }),
+      new SessionTransparenceFileAttachmentAdded(
+        'nomination-file-id-1',
+        { id: 'file-1' },
+        'FICHE_DE_JURIDICTION',
+      ),
+      new SessionTransparenceFileAttachmentAdded(
+        'nomination-file-id-1',
+        { id: 'file-2' },
+        'FICHE_DE_JURIDICTION',
+      ),
     ]);
   });
 
@@ -830,6 +835,7 @@ describe('SessionTransparence', () => {
       session.addNominationFileAttachments({
         nominationFileId: 'nomination-file-id-1',
         files: [{ id: 'file-1' }],
+        type: 'AUTRE',
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
@@ -873,6 +879,7 @@ describe('SessionTransparence', () => {
       session.addNominationFileAttachments({
         nominationFileId: 'unknown-nomination-file',
         files: [{ id: 'file-1' }],
+        type: 'AUTRE',
       }),
     ).toThrow(CantUpdateNominationFiles);
   });

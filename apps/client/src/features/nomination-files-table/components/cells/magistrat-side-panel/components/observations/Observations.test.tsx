@@ -95,6 +95,18 @@ describe('Observations', () => {
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 
+  it('collapses back the observations expanded with the show more button', async () => {
+    const user = userEvent.setup();
+    observations = ['obs-1', 'obs-2', 'obs-3', 'obs-4'].map(makeObservation);
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Afficher plus (1)' }));
+    expect(screen.getAllByRole('listitem')).toHaveLength(4);
+
+    await user.click(screen.getByRole('button', { name: 'Afficher moins' }));
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+  });
+
   it('renders nothing for a member when there is neither observer nor observation', () => {
     isSg.mockReturnValue(false);
     renderObservations();

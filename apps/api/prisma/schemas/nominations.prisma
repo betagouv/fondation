@@ -118,14 +118,25 @@ model DossierDeNomination {
 }
 
 model NominationFileAttachment {
-  nominationFileId String @map("nomination_file_id") @db.Uuid
-  fileId           String @map("file_id") @db.Uuid
+  nominationFileId String                                 @map("nomination_file_id") @db.Uuid
+  fileId           String                                 @map("file_id") @db.Uuid
+  type             PrismaNominationFileAttachmentTypeEnum
+  createdAt        DateTime                               @default(now()) @map("created_at")
 
   nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   file           File                @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([nominationFileId, fileId], name: "primaryKey")
   @@map("nomination_file_attachment")
+  @@schema("nominations_context")
+}
+
+enum PrismaNominationFileAttachmentTypeEnum {
+  FICHE_DE_JURIDICTION
+  NOTE_INTENTION
+  AUTRE
+
+  @@map("nomination_file_attachment_type_enum")
   @@schema("nominations_context")
 }
 

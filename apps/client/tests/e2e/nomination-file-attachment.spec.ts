@@ -50,8 +50,9 @@ test.describe('Pièces jointes de dossier de nomination', () => {
     const attachment = new File(['preuve'], 'preuve.pdf', { type: 'application/pdf' });
     await modal.addAttachment(attachment);
 
-    // Alors la pièce jointe est visible
+    // Alors la pièce jointe est visible avec son type
     await modal.attachment(attachment.name).waitFor();
+    await modal.attachmentType('Fiche de juridiction').waitFor();
 
     // Quand je supprime la pièce jointe
     await modal.deleteAttachment(attachment.name);

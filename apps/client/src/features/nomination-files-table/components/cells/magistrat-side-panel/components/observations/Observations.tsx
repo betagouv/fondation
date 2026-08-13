@@ -280,16 +280,20 @@ export function Observations({
         </ul>
       )}
 
-      {hiddenCount > 0 && (
+      {observations.length > VISIBLE_OBSERVATIONS && (
         <Button
           className="fr-mt-3v btn-compact"
-          iconId="fr-icon-arrow-down-s-line"
+          iconId={showAll ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
           iconPosition="right"
-          onClick={() => setShowAll(true)}
+          onClick={() => setShowAll(!showAll)}
           priority="tertiary"
           size="small"
         >
-          <FormattedMessage defaultMessage="Afficher plus ({count})" values={{ count: hiddenCount }} />
+          {showAll ? (
+            <FormattedMessage defaultMessage="Afficher moins" />
+          ) : (
+            <FormattedMessage defaultMessage="Afficher plus ({count})" values={{ count: hiddenCount }} />
+          )}
         </Button>
       )}
 

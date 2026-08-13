@@ -5,6 +5,7 @@ import { NominationFileOutcome } from '../../../shared/types/nomination-file-out
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -66,6 +67,7 @@ export class UploadSessionAttachmentsDto extends createZodDto(
 export class UploadNominationFileAttachmentsDto extends createZodDto(
   z.object({
     files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file())),
+    form: z.object({ type: z.enum(NominationFileAttachmentTypeEnum) }),
   }),
 ) {}
 

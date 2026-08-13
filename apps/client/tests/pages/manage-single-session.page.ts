@@ -161,12 +161,20 @@ class MagistratSidePanel {
     return this.observationsSection.getByRole('button', { name: "Éditer l'observation" });
   }
 
-  private get fileInput(): Locator {
-    return this.dialog.locator('input[type="file"]');
+  private get attachmentsSection(): Locator {
+    return this.dialog.locator('#magistrat-attachments-section');
+  }
+
+  private get addAttachmentModal(): Locator {
+    return this.page.locator('#modal-add-nomination-file-attachment');
   }
 
   attachment(name: string): Locator {
     return this.dialog.getByTitle(`Ouvrir ${name} dans un nouvel onglet`, { exact: true });
+  }
+
+  attachmentType(label: string): Locator {
+    return this.attachmentsSection.getByText(label, { exact: true });
   }
 
   private deleteButton(name: string): Locator {
@@ -177,12 +185,17 @@ class MagistratSidePanel {
     return this.page.locator('#confirmation_modal').getByRole('button', { name: 'Supprimer', exact: true });
   }
 
-  async addAttachment(file: File): Promise<void> {
-    await this.fileInput.setInputFiles({
+  async addAttachment(file: File, type = 'Fiche de juridiction'): Promise<void> {
+    await this.attachmentsSection.getByRole('button', { name: 'Ajouter' }).click();
+
+    const modal = this.addAttachmentModal;
+    await modal.locator('input[type="file"]').setInputFiles({
       name: file.name,
       mimeType: file.type,
       buffer: Buffer.from(await file.arrayBuffer()),
     });
+    await modal.getByLabel('Type de document').selectOption({ label: type });
+    await modal.getByRole('button', { name: 'Ajouter à la proposition' }).click();
   }
 
   async deleteAttachment(name: string): Promise<void> {
