@@ -46,8 +46,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Survol: Story = {};
+export const Default: Story = {};
 
-export const TexteCourt: Story = { args: { label: 'Évaluation manquante' } };
+export const ShortText: Story = { args: { label: 'Évaluation manquante' } };
 
-export const DansUnConteneurQuiRogne: Story = { render: (args) => <ClippedTooltipStory {...args} /> };
+export const InsideClippingContainer: Story = { render: (args) => <ClippedTooltipStory {...args} /> };

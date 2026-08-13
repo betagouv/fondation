@@ -16,17 +16,29 @@ const FILE_URL = 'about:blank';
 const STORY_USER: DetailedUserResponseDto = {
   displayTitle: null,
   duty: null,
-  firstName: 'Inès',
+  firstName: 'Nadia',
   gender: 'FEMALE',
   isImpersonated: false,
-  lastName: 'Fontaine',
+  lastName: 'Lemoine',
   role: 'MEMBRE_COMMUN',
   title: null,
   userId: 'user-1',
 };
 
+const STORY_SG_USER: DetailedUserResponseDto = {
+  ...STORY_USER,
+  firstName: 'Claire',
+  lastName: 'Mercier',
+  role: 'ADJOINT_SECRETAIRE_GENERAL',
+  userId: 'user-sg',
+};
+
 export const authHandlers = [
   http.get('*/api/auth/v2/introspect', () => HttpResponse.json<DetailedUserResponseDto>(STORY_USER)),
+];
+
+export const sgAuthHandlers = [
+  http.get('*/api/auth/v2/introspect', () => HttpResponse.json<DetailedUserResponseDto>(STORY_SG_USER)),
 ];
 
 export const sidePanelHandlers = [

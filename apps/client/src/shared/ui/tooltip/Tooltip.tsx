@@ -4,7 +4,6 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 const ARROW_GAP = 10;
 const SAFE_MARGIN = 16;
 
-/** nested anchors are both hovered at once, so only the innermost tooltip stays open */
 let openedTooltip: (() => void) | null = null;
 
 export function Tooltip(props: { children: ReactNode; className?: string; label: ReactNode }) {
