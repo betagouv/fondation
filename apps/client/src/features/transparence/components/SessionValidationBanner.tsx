@@ -1,26 +1,19 @@
-import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { PermanentBanner } from '../PermanentBanner';
 import { useConfirmation } from '@/shared/context/confirmation';
-import { useSessionValidation } from '@/shared/context/session-validation';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useUser } from '@queries/auth.queries';
 import { useValidateSessionMutation } from '@queries/nomination-sessions.queries';
 
-const bgColor = colors.decisions.background.contrast.warning.default;
-const text = colors.decisions.text.default.warning.default;
-
-export function SessionValidationBanner() {
+export function SessionValidationBanner(props: { session: { id: string; isValidated: boolean } }) {
   const { formatMessage } = useIntl();
   const { user } = useUser();
   const confirmation = useConfirmation();
-  const { sessionToValidate, setSessionToValidate } = useSessionValidation();
   const { mutate: validateSession, isError, isPending } = useValidateSessionMutation();
 
-  const onValidate = useCallback(async () => {
-    if (!user || !sessionToValidate) return;
+  const onValidate = async () => {
+    if (!user) return;
 
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: formatMessage({ defaultMessage: 'Valider les données de la session\u00A0?' }),
@@ -42,23 +35,23 @@ export function SessionValidationBanner() {
 
     if (!isConfirmed) return;
 
-    validateSession(
-      { sessionId: sessionToValidate.id, userId: user.id },
-      { onSuccess: () => setSessionToValidate(null) },
-    );
-  }, [confirmation, formatMessage, sessionToValidate, setSessionToValidate, user, validateSession]);
+    validateSession({ sessionId: props.session.id, userId: user.id });
+  };
 
-  if (!sessionToValidate) return null;
+  if (props.session.isValidated) return null;
 
   return (
-    <PermanentBanner className="flex items-center gap-x-2" style={{ color: text, backgroundColor: bgColor }}>
-      <span>
+    <AlertBanner
+      className="fr-py-2v mx-[calc(50%-50vw)] justify-center px-[calc(50vw-50%)]"
+      icon="fr-icon-warning-fill"
+      message={
         <FormattedMessage
           defaultMessage="<b>Nouvelle session</b>, les données n'ont pas encore été validées"
           values={{ b: (chunks) => <strong>{chunks}</strong> }}
         />
-      </span>
-
+      }
+      tone="warning"
+    >
       <Button
         disabled={isPending}
         nativeButtonProps={confirmation.buttonProps}
@@ -74,6 +67,6 @@ export function SessionValidationBanner() {
           <FormattedMessage defaultMessage="La validation a échoué, réessayez." />
         </span>
       )}
-    </PermanentBanner>
+    </AlertBanner>
   );
 }
