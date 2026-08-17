@@ -36,8 +36,8 @@ catalogs:
 
 overrides:
   node-xlsx>xlsx: '-'
-  prosemirror-model: ^1.25.11
-  prosemirror-view: ^1.42.2
+  prosemirror-model: 1.25.11
+  prosemirror-view: 1.42.2
 
 packageExtensionsChecksum: sha256-/YfwHsFiPIyrsa7w+LrMbcvcAF2Tq98gf6TNdIQqOm0=
 
