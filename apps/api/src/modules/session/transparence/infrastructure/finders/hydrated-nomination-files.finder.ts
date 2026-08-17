@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { canScheduleAudition } from 'src/modules/session/shared/policies/nomination-file.policies';
 import { type NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -30,6 +31,7 @@ export type HydratedNominationFile = {
   auditionDate: DateOnlyJson | null;
   auditionExpected: boolean;
   auditionTime: TimeOnly | null;
+  canScheduleAudition: boolean;
   targetedGrade: string | null;
   targetedPosition: string | null;
   outcome: { value: NominationFileOutcomeEnum; comment: string | null } | null;
@@ -71,6 +73,7 @@ export class HydratedNominationFilesFinder {
       auditionDate: file.auditionDate ? DateOnly.fromDate(file.auditionDate).toJson() : null,
       auditionExpected: isAuditionExpected(file),
       auditionTime: file.auditionTime ? dateToTimeOnly(file.auditionTime) : null,
+      canScheduleAudition: canScheduleAudition(file, file.session),
       targetedGrade: file.targetedGrade,
       targetedPosition: file.targetedPosition,
       outcome: file.outcome ? { value: file.outcome, comment: file.outcomeComment } : null,

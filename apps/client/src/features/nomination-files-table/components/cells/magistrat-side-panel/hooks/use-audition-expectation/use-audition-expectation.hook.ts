@@ -19,7 +19,10 @@ export function useAuditionExpectation(
 
   const auditionMissing = isAuditionMissing(nominationFile);
   const reportersMissing = areReportersMissing(
-    nominationFile,
+    {
+      canAffectReporters: nominationFile.content.isUpdatable,
+      expectedReportersCount: nominationFile.expectedReportersCount,
+    },
     options.selectedReportersCount ?? nominationFile.reporters.length,
   );
   const reportersAnnounced = isSg && reportersMissing;

@@ -99,6 +99,22 @@ test.describe('Report E2E', () => {
     expect(unknownSessionRes.response?.status).toBe(404);
   });
 
+  test('should no longer schedule an audition once the outcome is final', async ({ agent, member, expect }) => {
+    const openReport = await member.reports.detailReport({ path: { reportId } });
+    expect(openReport.response?.status).toBe(200);
+    expect(openReport.data).toMatchObject({ canScheduleAudition: true });
+
+    const outcomeRes = await agent.sessions.defineNominationFileOutcome({
+      body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId, sessionId },
+    });
+    expect(outcomeRes.response?.status).toBe(204);
+
+    const closedReport = await member.reports.detailReport({ path: { reportId } });
+    expect(closedReport.response?.status).toBe(200);
+    expect(closedReport.data).toMatchObject({ canScheduleAudition: false });
+  });
+
   test('should attach files to a report', async ({ member, expect }) => {
     const file = makeFile({ type: 'image/png', name: `image_${crypto.randomUUID()}.png` });
 

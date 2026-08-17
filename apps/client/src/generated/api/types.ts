@@ -91,6 +91,7 @@ export type DetailedReportDto = {
         minutes: number;
         seconds: number;
     } | null;
+    canScheduleAudition: boolean;
     missingEvaluation: boolean;
     folderNumber: number | null;
     biography: string | null;
@@ -1571,6 +1572,7 @@ export type ListedMagistratNominationFilesDto = {
             minutes: number;
             seconds: number;
         } | null;
+        canScheduleAudition: boolean;
         targetedGrade: string | null;
         targetedPosition: string | null;
         outcome: {
@@ -1627,6 +1629,7 @@ export type ListedMagistratObservationsDto = {
                 minutes: number;
                 seconds: number;
             } | null;
+            canScheduleAudition: boolean;
             targetedGrade: string | null;
             targetedPosition: string | null;
             outcome: {

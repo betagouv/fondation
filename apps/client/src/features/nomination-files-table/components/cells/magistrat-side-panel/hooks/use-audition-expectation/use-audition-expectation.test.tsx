@@ -75,6 +75,17 @@ describe('useAuditionExpectation', () => {
     });
   });
 
+  it('announces nothing on a file that no longer accepts an audition nor an affectation', () => {
+    expect(
+      renderExpectation({
+        ...AUDITIONED,
+        canScheduleAudition: false,
+        content: { isUpdatable: false },
+        reporters: REPORTERS.slice(0, 1),
+      }),
+    ).toEqual({ auditionMissing: false, label: null, reportersMissing: false });
+  });
+
   it('follows the reporters being selected rather than the affected ones', () => {
     expect(renderExpectation({ ...AUDITIONED, reporters: [] }, { selectedReportersCount: 2 })).toEqual({
       auditionMissing: true,

@@ -8,6 +8,7 @@ import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
+import { canScheduleAudition } from 'src/modules/session/shared/policies/nomination-file.policies';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -68,6 +69,7 @@ export class DetailReportQuery {
             lastRankingDate: true,
             priorities: true,
             comment: true,
+            outcome: true,
             auditionDate: true,
             auditionTime: true,
             missingEvaluation: true,
@@ -195,6 +197,7 @@ export class DetailReportQuery {
       auditionTime: report.nominationFile.auditionTime
         ? dateToTimeOnly(report.nominationFile.auditionTime)
         : null,
+      canScheduleAudition: canScheduleAudition(report.nominationFile, report.nominationFile.session),
       missingEvaluation: report.nominationFile.missingEvaluation,
 
       biography: report.nominationFile.biography,
@@ -274,6 +277,7 @@ export class DetailedReportDto extends createZodDto(
     auditionDate: dateOnlyJsonSchema.nullable(),
     auditionExpected: z.boolean(),
     auditionTime: timeOnlySchema.nullable(),
+    canScheduleAudition: z.boolean(),
     missingEvaluation: z.boolean(),
     folderNumber: z.number().nullable(),
     biography: z.string().nullable(),

@@ -103,6 +103,7 @@ test.describe('Magistrat E2E', () => {
       auditionDate: { year: 2026, month: 9, day: 15 },
       auditionExpected: false,
       auditionTime: { hours: 14, minutes: 30 },
+      canScheduleAudition: true,
       id: valrose.nominationFile.id,
       outcome: null,
       session: { id: valrose.session.id, status: 'ONGOING' },
@@ -123,7 +124,28 @@ test.describe('Magistrat E2E', () => {
     });
 
     expect(nominationFiles.response?.status).toBe(200);
-    expect(nominationFiles.data!.items[0]).toMatchObject({ auditionExpected: true });
+    expect(nominationFiles.data!.items[0]).toMatchObject({
+      auditionExpected: true,
+      canScheduleAudition: true,
+    });
+  });
+
+  test('should no longer schedule an audition once the outcome is final', async ({ agent, expect, valrose }) => {
+    const outcomeRes = await agent.sessions.defineNominationFileOutcome({
+      body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId: valrose.otherNominationFile.id, sessionId: valrose.session.id },
+    });
+    expect(outcomeRes.response?.status).toBe(204);
+
+    const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.otherNominationFile.content.detectedMagistratId! },
+    });
+
+    expect(nominationFiles.response?.status).toBe(200);
+    expect(nominationFiles.data!.items[0]).toMatchObject({
+      auditionExpected: true,
+      canScheduleAudition: false,
+    });
   });
 
   test('should list the observations received by a magistrat', async ({ agent, expect, valrose }) => {

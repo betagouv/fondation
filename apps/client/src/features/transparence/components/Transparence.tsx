@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router';
 
 import { SgSessionFilesTable } from '@/features/nomination-files-table/components/SgSessionFilesTable';
-import { ArchiveBannerPortal, SessionValidationBannerPortal } from '@/shared/components/banners';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { AlertsProvider } from '@/shared/context/alerts';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -52,36 +52,34 @@ export function Transparence() {
 
   return (
     <ArchiveBannerPortal isArchived={transparence.isArchived}>
-      <SessionValidationBannerPortal session={transparence}>
-        <AlertsProvider>
-          <div className={cx('fr-container')}>
-            <Breadcrumb
-              ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
-              breadcrumb={breadcrumb}
-              id="transparence-details-breadcrumb"
+      <AlertsProvider>
+        <div className={cx('fr-container')}>
+          <Breadcrumb
+            ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
+            breadcrumb={breadcrumb}
+            id="transparence-details-breadcrumb"
+          />
+
+          <AlertsProvider.Alerts ref={alertRef} />
+        </div>
+
+        <div className={'flex flex-col gap-8 overflow-x-clip'}>
+          <div className="fr-container flex justify-between gap-x-6">
+            <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
+
+            <TableauDeBordResume {...transparence} />
+          </div>
+          <div className="fr-container fr-mb-8v">
+            <SgSessionFilesTable
+              canManage={!transparence.isArchived}
+              formation={transparence.formation}
+              outcomes={transparence.outcomes}
+              sessionId={sessionId!}
+              toolbar={<TransparenceToolbar transparence={transparence} />}
             />
-
-            <AlertsProvider.Alerts ref={alertRef} />
           </div>
-
-          <div className={'flex flex-col gap-8 overflow-x-clip'}>
-            <div className="fr-container flex justify-between gap-x-6">
-              <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
-
-              <TableauDeBordResume {...transparence} />
-            </div>
-            <div className="fr-container fr-mb-8v">
-              <SgSessionFilesTable
-                canManage={!transparence.isArchived}
-                formation={transparence.formation}
-                outcomes={transparence.outcomes}
-                sessionId={sessionId!}
-                toolbar={<TransparenceToolbar transparence={transparence} />}
-              />
-            </div>
-          </div>
-        </AlertsProvider>
-      </SessionValidationBannerPortal>
+        </div>
+      </AlertsProvider>
     </ArchiveBannerPortal>
   );
 }
