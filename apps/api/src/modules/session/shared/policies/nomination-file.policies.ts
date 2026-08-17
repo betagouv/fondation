@@ -16,10 +16,9 @@ export function canUpdateNominationFile(
   return !session.archivedAt && (isOutcomeIgnored || !isLinkedToOfficialReportWithFinalOutcome);
 }
 
-const NON_FINAL_OUTCOMES = new Set<NominationFileOutcomeEnum>(NominationFileOutcome.nonFinalOutcomes());
 export function canScheduleAudition(
   file: { outcome: NominationFileOutcomeEnum | null },
   session: { archivedAt: Date | null | undefined },
 ): boolean {
-  return !session.archivedAt && (file.outcome === null || NON_FINAL_OUTCOMES.has(file.outcome));
+  return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
 }

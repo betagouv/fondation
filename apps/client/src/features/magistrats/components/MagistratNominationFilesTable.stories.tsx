@@ -7,6 +7,7 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
     auditionDate: null,
     auditionExpected: false,
     auditionTime: null,
+    canScheduleAudition: false,
     id: 'dossier-1',
     name: 'VALROSE Honorine',
     number: 12,
@@ -61,6 +62,7 @@ const REPORTERS = [
 
 type PlaygroundArgs = {
   audition: 'none' | 'expected' | 'scheduled' | 'past';
+  canScheduleAudition: boolean;
   dossierNumber: number;
   grade: string;
   ongoingSession: boolean;
@@ -74,6 +76,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   parameters: { controls: { exclude: ['nominationFiles'] } },
   args: {
     audition: 'none',
+    canScheduleAudition: true,
     dossierNumber: 12,
     grade: 'G3',
     ongoingSession: true,
@@ -103,6 +106,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
             args.audition === 'scheduled' || args.audition === 'past'
               ? { hours: 14, minutes: 30, seconds: 0 }
               : null,
+          canScheduleAudition: args.canScheduleAudition,
           number: args.dossierNumber,
           outcome: args.outcome === 'none' ? null : { comment: null, value: args.outcome },
           reporters: REPORTERS.slice(0, args.reportersCount),
@@ -126,6 +130,7 @@ export const ManyRows: Story = {
     context: 'sg',
     nominationFiles: Array.from({ length: 10 }, (_, index) =>
       makeNominationFile({
+        canScheduleAudition: index === 0,
         id: `dossier-${index}`,
         number: index + 3,
         outcome: index === 0 ? null : { comment: null, value: 'VALIDATED' },

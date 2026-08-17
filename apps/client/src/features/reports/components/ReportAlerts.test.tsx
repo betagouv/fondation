@@ -15,7 +15,7 @@ function renderAlerts(report: Partial<DetailedReportDto>) {
           auditionDate: null,
           auditionExpected: false,
           auditionTime: null,
-          isArchived: false,
+          canScheduleAudition: true,
           missingEvaluation: false,
           ...report,
         }}
@@ -40,8 +40,8 @@ describe('ReportAlerts', () => {
     expect(screen.getByText('Une audition est à prévoir pour ce poste')).toBeInTheDocument();
   });
 
-  it('hides the audition to schedule once the session is archived', () => {
-    renderAlerts({ auditionExpected: true, isArchived: true });
+  it('hides the audition to schedule once the file no longer accepts one', () => {
+    renderAlerts({ auditionExpected: true, canScheduleAudition: false });
 
     expect(screen.queryByText('Une audition est à prévoir pour ce poste')).not.toBeInTheDocument();
   });

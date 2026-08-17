@@ -35,6 +35,7 @@ function makeNominationFile(overrides?: Partial<MagistratNominationFile>): Magis
     auditionDate: null,
     auditionExpected: false,
     auditionTime: null,
+    canScheduleAudition: true,
     id: 'dossier-1',
     name: 'VALROSE Honorine',
     number: 12,
@@ -82,6 +83,25 @@ describe('MagistratNominationFilesSection', () => {
 
     expect(screen.getByText('Chargement...')).toBeInTheDocument();
     expect(screen.queryByText('Aucune proposition')).not.toBeInTheDocument();
+  });
+
+  it('announces the audition to schedule while the file still accepts one', () => {
+    query = { ...query, data: { pages: [{ items: [makeNominationFile({ auditionExpected: true })] }] } };
+    renderSection();
+
+    expect(screen.getByText('À prévoir')).toBeInTheDocument();
+  });
+
+  it('announces no audition to schedule once the file no longer accepts one', () => {
+    query = {
+      ...query,
+      data: {
+        pages: [{ items: [makeNominationFile({ auditionExpected: true, canScheduleAudition: false })] }],
+      },
+    };
+    renderSection();
+
+    expect(screen.queryByText('À prévoir')).not.toBeInTheDocument();
   });
 
   it('loads the next page from the "Voir plus" button', async () => {

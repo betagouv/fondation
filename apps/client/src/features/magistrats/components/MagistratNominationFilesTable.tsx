@@ -7,6 +7,7 @@ import { generatePath, Link } from 'react-router';
 import { NominationFileOutcomeBadge } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { NewTable } from '@/shared/ui/new-table/NewTable';
+import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { isPastSchedule, toScheduledDate } from '@/utils/time-only.util';
@@ -124,10 +125,10 @@ export function MagistratNominationFilesTable({
         cell: (info) => {
           if (!showAuditionDate) return '-';
 
-          const { auditionDate, auditionExpected, auditionTime, session } = info.row.original;
+          const { auditionDate, auditionTime } = info.row.original;
           const scheduledAt = toScheduledDate(auditionDate, auditionTime);
           if (!scheduledAt) {
-            return auditionExpected && session.status === 'ONGOING'
+            return isAuditionMissing(info.row.original)
               ? formatMessage({ defaultMessage: 'À prévoir' })
               : '-';
           }

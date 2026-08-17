@@ -3,20 +3,20 @@ import type { PlainDateOnly } from '@/utils/date-only.util';
 type AuditionedPosition = {
   auditionDate: PlainDateOnly | null;
   auditionExpected: boolean;
-  isArchived: boolean;
+  canScheduleAudition: boolean;
 };
 
 type ReportedPosition = {
+  canAffectReporters: boolean;
   expectedReportersCount: number | null;
-  isArchived: boolean;
 };
 
 export function isAuditionMissing(position: AuditionedPosition): boolean {
-  return position.auditionExpected && !position.isArchived && !position.auditionDate;
+  return position.auditionExpected && position.canScheduleAudition && !position.auditionDate;
 }
 
 export function areReportersMissing(position: ReportedPosition, reportersCount: number): boolean {
-  if (position.isArchived || position.expectedReportersCount === null) return false;
+  if (!position.canAffectReporters || position.expectedReportersCount === null) return false;
 
   return reportersCount < position.expectedReportersCount;
 }

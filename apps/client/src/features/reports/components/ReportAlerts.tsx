@@ -12,7 +12,7 @@ export function ReportAlerts({
 }: {
   report: Pick<
     DetailedReportDto,
-    'auditionDate' | 'auditionExpected' | 'auditionTime' | 'isArchived' | 'missingEvaluation'
+    'auditionDate' | 'auditionExpected' | 'auditionTime' | 'canScheduleAudition' | 'missingEvaluation'
   >;
 }) {
   return (
