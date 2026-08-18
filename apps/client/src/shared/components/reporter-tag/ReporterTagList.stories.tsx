@@ -1,20 +1,20 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
+import { ExcludedJurisdictionLines } from '@/features/nomination-files-table/components/ExcludedJurisdictionLines';
+import type { ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
 
 import { ReporterTagList } from './ReporterTagList';
 
 const LYON = "Cour d'appel de Lyon";
 const RENNES = "Cour d'appel de Rennes";
 
-function excludedJurisdictionDetails(titles: readonly string[]) {
-  return (
-    <ul className="fr-mb-0 mt-1 flex flex-col gap-1">
-      {titles.map((title) => (
-        <li key={title}>{title}</li>
-      ))}
-    </ul>
-  );
+const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
+const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
+const SOPHIE = { firstName: 'Sophie', id: 'sophie', lastName: 'Siège' };
+
+function conflict(memberName: string, jurisdiction: string): ExcludedJurisdictionConflict {
+  return { fileId: 'file-1', fileNumber: 12, jurisdiction, memberId: memberName, memberName };
 }
 
 const meta = {
@@ -36,9 +36,9 @@ const meta = {
       { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' },
       { firstName: 'Jean-Pierre', id: 'jean-pierre', lastName: 'de la Tour' },
       { firstName: 'Marie', id: 'marie', lastName: 'Curie' },
-      { firstName: 'Sophie', id: 'sophie', lastName: 'Siège' },
-      { firstName: 'Camille', id: 'camille', lastName: 'Commun' },
-      { firstName: 'Paul', id: 'paul', lastName: 'Parquet' },
+      SOPHIE,
+      CAMILLE,
+      PAUL,
     ],
   },
 } satisfies Meta<typeof ReporterTagList>;
@@ -49,26 +49,38 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const ExcludedJurisdictions: Story = {
+export const SharedExcludedJurisdiction: Story = {
   args: {
-    details: excludedJurisdictionDetails([
-      `Juridiction exclue pour Camille COMMUN : ${LYON}`,
-      `Juridiction exclue pour Sophie SIÈGE : ${LYON}`,
-    ]),
+    details: (
+      <ExcludedJurisdictionLines
+        className="mt-1"
+        conflicts={[conflict('Camille COMMUN', LYON), conflict('Sophie SIÈGE', LYON)]}
+      />
+    ),
     reporters: [
-      { firstName: 'Camille', icon: <ExcludedJurisdictionIcon />, id: 'camille', lastName: 'Commun' },
-      { firstName: 'Sophie', icon: <ExcludedJurisdictionIcon />, id: 'sophie', lastName: 'Siège' },
-      { firstName: 'Paul', id: 'paul', lastName: 'Parquet' },
+      { ...CAMILLE, icon: <ExcludedJurisdictionIcon /> },
+      { ...SOPHIE, icon: <ExcludedJurisdictionIcon /> },
+      PAUL,
     ],
   },
 };
 
-export const SeveralExcludedJurisdictions: Story = {
+export const ExcludedJurisdictions: Story = {
   args: {
-    details: excludedJurisdictionDetails([`Juridictions exclues pour Camille COMMUN : ${LYON} et ${RENNES}`]),
+    details: (
+      <ExcludedJurisdictionLines
+        className="mt-1"
+        conflicts={[
+          conflict('Camille COMMUN', LYON),
+          conflict('Camille COMMUN', RENNES),
+          conflict('Sophie SIÈGE', LYON),
+        ]}
+      />
+    ),
     reporters: [
-      { firstName: 'Camille', icon: <ExcludedJurisdictionIcon />, id: 'camille', lastName: 'Commun' },
-      { firstName: 'Paul', id: 'paul', lastName: 'Parquet' },
+      { ...CAMILLE, icon: <ExcludedJurisdictionIcon /> },
+      { ...SOPHIE, icon: <ExcludedJurisdictionIcon /> },
+      PAUL,
     ],
   },
 };
