@@ -56,7 +56,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Playground: Story = {};
 
 export const NoReportStarted: Story = {
   args: { sessionId: 'without-report' },

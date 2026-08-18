@@ -50,8 +50,4 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Empty: Story = {};
-
-export const WithText: Story = {
-  args: { value: 'tarabeux' },
-};
+export const Playground: Story = {};

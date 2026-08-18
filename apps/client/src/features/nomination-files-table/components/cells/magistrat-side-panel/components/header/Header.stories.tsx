@@ -32,6 +32,16 @@ const OTHER_REPORTERS = [
 ];
 
 const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
+const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
+
+const EXCLUSION_SCENARIOS = [
+  'none',
+  'oneReporter',
+  'sameJurisdiction',
+  'distinctJurisdictions',
+  'overlappingJurisdictions',
+] as const;
+type ExclusionScenario = (typeof EXCLUSION_SCENARIOS)[number];
 
 const AVAILABLE_MEMBERS = [
   { firstName: 'Jean', id: CURRENT_USER_ID, lastName: 'Petit' },
@@ -39,12 +49,31 @@ const AVAILABLE_MEMBERS = [
   { firstName: 'Sophie', id: 'reporter-3', lastName: 'Bernard' },
 ].map((member) => ({ ...member, excludedJurisdictions: [] as (typeof LYON)[] }));
 
-function membersFor(excludedJurisdiction: boolean) {
-  if (!excludedJurisdiction) return AVAILABLE_MEMBERS;
+function exclusionsFor(scenario: ExclusionScenario): Record<string, (typeof LYON)[]> {
+  if (scenario === 'oneReporter') return { [OTHER_REPORTERS[0].id]: [LYON] };
+  if (scenario === 'sameJurisdiction')
+    return { [OTHER_REPORTERS[0].id]: [LYON], [OTHER_REPORTERS[1].id]: [LYON] };
+  if (scenario === 'distinctJurisdictions')
+    return { [OTHER_REPORTERS[0].id]: [LYON], [OTHER_REPORTERS[1].id]: [RENNES] };
+  if (scenario === 'overlappingJurisdictions')
+    return { [OTHER_REPORTERS[0].id]: [LYON, RENNES], [OTHER_REPORTERS[1].id]: [LYON] };
+  return {};
+}
 
-  return AVAILABLE_MEMBERS.map((member) =>
-    member.id === OTHER_REPORTERS[0].id ? { ...member, excludedJurisdictions: [LYON] } : member,
-  );
+function membersFor(scenario: ExclusionScenario) {
+  const exclusions = exclusionsFor(scenario);
+
+  return AVAILABLE_MEMBERS.map((member) => ({
+    ...member,
+    excludedJurisdictions: exclusions[member.id] ?? member.excludedJurisdictions,
+  }));
+}
+
+function jurisdictionsFor(scenario: ExclusionScenario) {
+  if (scenario === 'none') return { current: null, targeted: null };
+  if (scenario === 'distinctJurisdictions' || scenario === 'overlappingJurisdictions')
+    return { current: LYON, targeted: RENNES };
+  return { current: LYON, targeted: null };
 }
 
 function reportersFor(scenario: ReporterScenario) {
@@ -99,7 +128,7 @@ type View = (typeof VIEWS)[number];
 function HeaderStory(props: {
   auditionScheduled?: boolean;
   auditionedPosition?: boolean;
-  excludedJurisdiction?: boolean;
+  excludedJurisdiction?: ExclusionScenario;
   missingEvaluation?: boolean;
   nomMagistrat: string;
   priorities: PrioriteEnum[];
@@ -119,9 +148,7 @@ function HeaderStory(props: {
     auditionExpected: !!props.auditionedPosition,
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     content: {
-      jurisdictions: props.excludedJurisdiction
-        ? { current: LYON, targeted: null }
-        : { current: null, targeted: null },
+      jurisdictions: jurisdictionsFor(props.excludedJurisdiction ?? 'none'),
       nomMagistrat: props.nomMagistrat,
     },
     expectedReportersCount: props.auditionedPosition ? 2 : null,
@@ -140,7 +167,7 @@ function HeaderStory(props: {
           client,
           props.view,
           { nominationFileId: nominationFile.id, reportId: myReportId },
-          membersFor(!!props.excludedJurisdiction),
+          membersFor(props.excludedJurisdiction ?? 'none'),
         )
       }
     >
@@ -176,7 +203,7 @@ const meta = {
   argTypes: {
     auditionScheduled: { control: 'boolean' },
     auditionedPosition: { control: 'boolean' },
-    excludedJurisdiction: { control: 'boolean' },
+    excludedJurisdiction: { control: 'inline-radio', options: EXCLUSION_SCENARIOS },
     missingEvaluation: { control: 'boolean' },
     nomMagistrat: { control: 'text' },
     priorities: { control: 'check', options: priorities },
@@ -186,7 +213,7 @@ const meta = {
   args: {
     auditionScheduled: false,
     auditionedPosition: false,
-    excludedJurisdiction: false,
+    excludedJurisdiction: 'none',
     missingEvaluation: false,
     nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
@@ -199,7 +226,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const SecretaireGeneral: Story = {
+export const Playground: Story = {
   args: { priorities: [PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER], reporters: 'others', view: 'sg' },
   argTypes: {
     reporters: { control: 'inline-radio', options: ['none', 'others'] },
@@ -209,4 +236,7 @@ export const SecretaireGeneral: Story = {
 
 export const Membre: Story = {
   args: { priorities: [], reporters: 'you', view: 'member' },
+  argTypes: {
+    excludedJurisdiction: { control: 'inline-radio', options: ['none', 'oneReporter'] },
+  },
 };

@@ -9,11 +9,11 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    ariaLabel: { control: false },
-    emptyLabel: { control: false },
-    onDirtyChange: { control: false },
-    onSave: { control: false },
-    initialValue: { control: 'text' },
+    ariaLabel: { table: { disable: true } },
+    emptyLabel: { table: { disable: true } },
+    initialValue: { table: { disable: true } },
+    onDirtyChange: { table: { disable: true } },
+    onSave: { table: { disable: true } },
     placeholder: { control: 'text' },
     readOnly: { control: 'boolean' },
     warning: { control: 'boolean' },
@@ -33,9 +33,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Empty: Story = {};
-
-export const Filled: Story = { args: { initialValue: 'Profil solide, expérience pénale confirmée.' } };
+export const Playground: Story = {};
 
 export const Warning: Story = { args: { initialValue: 'Brouillon en cours', warning: true } };
 

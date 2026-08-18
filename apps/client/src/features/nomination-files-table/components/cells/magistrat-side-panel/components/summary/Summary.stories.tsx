@@ -167,15 +167,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Readable: Story = {};
-
-export const LongText: Story = { args: { longText: true } };
-
-export const Shared: Story = { args: { readers: true } };
-
-export const WithAttachments: Story = { args: { attachments: true } };
-
-export const SharedWithAttachments: Story = { args: { attachments: true, readers: true } };
+export const Playground: Story = {};
 
 export const Member: Story = { args: { view: 'member' } };
 

@@ -9,14 +9,14 @@ const meta = {
   component: CareerInfo,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
-  argTypes: { content: { control: false } },
+  argTypes: { content: { table: { disable: true } } },
 } satisfies Meta<typeof CareerInfo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Playground: Story = {
   args: {
     content: makeSessionNominationFile({
       content: {

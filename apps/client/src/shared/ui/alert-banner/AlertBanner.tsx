@@ -17,7 +17,7 @@ export function AlertBanner(props: {
   return (
     <div
       className={clsx(
-        'flex min-h-6 items-center gap-2 text-sm-plus font-medium',
+        'flex min-h-6 items-start gap-2 text-sm-plus font-medium',
         TONES[props.tone],
         props.className,
       )}

@@ -127,10 +127,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const SecretaireGeneralWithFiles: Story = {};
+export const Playground: Story = {};
 
 export const SecretaireGeneralEmpty: Story = { args: { hasFiles: false } };
 
 export const MemberWithFiles: Story = { args: { view: 'member' } };
-
-export const MemberEmpty: Story = { args: { hasFiles: false, view: 'member' } };

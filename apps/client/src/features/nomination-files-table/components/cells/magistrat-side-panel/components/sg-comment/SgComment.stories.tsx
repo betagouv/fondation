@@ -52,12 +52,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const SecretaireGeneralEditable: Story = {};
+export const Playground: Story = {};
 
 export const MemberReadOnly: Story = {
   args: { initialComment: 'Profil confirmé par le SG, expérience pénale solide.', view: 'member' },
 };
-
-export const MemberWithoutComment: Story = { args: { initialComment: null, view: 'member' } };
 
 export const Archived: Story = { args: { initialComment: 'Figé.', isArchived: true, view: 'sg' } };

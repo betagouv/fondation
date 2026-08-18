@@ -64,6 +64,20 @@ describe('ExcludedJurisdictionNotice', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps a line per reporter when they only share part of their excluded jurisdictions', () => {
+    renderNotice([
+      conflict('Camille COMMUN', LYON),
+      conflict('Camille COMMUN', RENNES),
+      conflict('Sophie SIÈGE', LYON),
+    ]);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(
+      screen.getByText(`Juridictions exclues pour Camille COMMUN : ${LYON} et ${RENNES}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(`Juridiction exclue pour Sophie SIÈGE : ${LYON}`)).toBeInTheDocument();
+  });
+
   it('enumerates three jurisdictions with a final conjunction', () => {
     renderNotice([
       conflict('Camille COMMUN', LYON),
