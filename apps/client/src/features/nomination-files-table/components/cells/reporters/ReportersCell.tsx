@@ -1,8 +1,6 @@
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
-import {
-  useExcludedJurisdictions,
-  useExcludedJurisdictionTitles,
-} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
+import { ExcludedJurisdictionLines } from '@/features/nomination-files-table/components/ExcludedJurisdictionLines';
+import { useExcludedJurisdictions } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -14,11 +12,11 @@ export function ReportersCell(props: { dossier: SessionNominationFile }) {
     props.dossier,
     props.dossier.reporters.map(({ id }) => id),
   );
-  const excludedTitleByReporterId = useExcludedJurisdictionTitles(conflicts);
+  const excludedReporterIds = new Set(conflicts.map(({ memberId }) => memberId));
 
   const reporters = props.dossier.reporters.map((reporter) => ({
     ...reporter,
-    icon: excludedTitleByReporterId.has(reporter.id) ? <ExcludedJurisdictionIcon /> : undefined,
+    icon: excludedReporterIds.has(reporter.id) ? <ExcludedJurisdictionIcon /> : undefined,
     isCurrentUser: reporter.id === user?.id,
   }));
 
@@ -27,15 +25,7 @@ export function ReportersCell(props: { dossier: SessionNominationFile }) {
   return (
     <div className="flex items-center">
       <ReporterTagList
-        details={
-          excludedTitleByReporterId.size > 0 ? (
-            <ul className="fr-mb-0 mt-1 flex flex-col gap-1">
-              {[...excludedTitleByReporterId].map(([reporterId, title]) => (
-                <li key={reporterId}>{title}</li>
-              ))}
-            </ul>
-          ) : undefined
-        }
+        details={<ExcludedJurisdictionLines className="mt-1" conflicts={conflicts} />}
         reporters={reporters}
       />
     </div>

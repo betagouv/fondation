@@ -16,7 +16,10 @@ const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
 const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
 
-function renderCell(excludedJurisdictionsOfCamille: (typeof LYON)[]) {
+function renderCell(
+  excludedJurisdictionsOfCamille: (typeof LYON)[],
+  excludedJurisdictionsOfPaul: (typeof LYON)[] = [],
+) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(authKeys.introspectSession(), { ...PAUL, role: 'MEMBRE_DU_SIEGE' });
 
@@ -27,7 +30,7 @@ function renderCell(excludedJurisdictionsOfCamille: (typeof LYON)[]) {
 
   const model = MemberExcludedJurisdictions.fromMembers([
     { ...CAMILLE, excludedJurisdictions: excludedJurisdictionsOfCamille },
-    { ...PAUL, excludedJurisdictions: [] },
+    { ...PAUL, excludedJurisdictions: excludedJurisdictionsOfPaul },
   ]);
 
   return render(
@@ -53,6 +56,14 @@ describe('ReportersCell', () => {
 
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
       `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
+    );
+  });
+
+  it('gathers the reporters sharing a jurisdiction on a single line, as the notice does', () => {
+    renderCell([LYON], [LYON]);
+
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+      `Juridiction exclue pour Camille COMMUN et Paul PARQUET : ${LYON.label}`,
     );
   });
 
