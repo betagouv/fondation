@@ -9,7 +9,7 @@ Le projet est un workspace [pnpm](https://pnpm.io) composé de :
 - [apps/api](./apps/api) : le back-end Nest.js + Prisma
 - [apps/client](./apps/client) : le front-end React + Vite
 - [apps/api-e2e](./apps/api-e2e) : les tests bout-en-bout de l'api
-- [packages/lolfi](./packages/lolfi) : générateur d'archives LOLFI, partagé entre les tests de l'api et le front
+- [packages/lolfi](./packages/lolfi) : générateur d'archives LOLFI, utilisé par les tests bout-en-bout de l'api et par ceux de Playwright
 
 ## Architecture
 
@@ -23,26 +23,24 @@ flowchart LR
 
   sdv["Serveur relais SDV<br/>raccordé au RIE et à Internet"]
 
+  subgraph scaleway[Scaleway]
+    storage[(Stockage objet S3)]
+  end
+
   subgraph scalingo[Scalingo]
     front["Client React<br/>servi par NGINX"]
     back[API Nest.js]
     db[(PostgreSQL)]
     oneoff[["One-off<br/>ingestion XML"]]
     gotenberg[["Gotenberg"]]
-    gotenberg_app@{ shape: text, label: "application<br/><em>fondation-gotenberg</em>" }
-  end
-
-  subgraph scaleway[Scaleway]
-    storage[(Stockage objet S3)]
   end
 
   user -- https --> front
   user -- https --> back
   lolfi --> sdv
   sdv -- https --> back
-  back -- prisma --> db
+  back -- Prisma --> db
   back <-- http --> gotenberg
-  gotenberg -.- gotenberg_app
   back -- lance --> oneoff
   oneoff --> db
   back -- s3/https --> storage
@@ -51,15 +49,21 @@ flowchart LR
 LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats : ses
 extractions XML sont la source des données de nomination. Le RIE n'étant pas connecté à
 Internet, un serveur relais fourni par le prestataire SDV, raccordé aux deux réseaux,
-transmet ces fichiers chiffrés à l'api. Le stockage objet, hébergé chez Scaleway et compatible
-S3, contient les pièces jointes et les PDF générés. En local, il est émulé par MinIO (voir
-l'installation).
+transmet ces fichiers chiffrés à l'api.
+
+Gotenberg convertit en PDF le HTML des documents produits par l'api (ordre du jour, PV et
+notice de restitution). Il n'est pas déployé depuis ce dépôt : c'est l'image officielle,
+hébergée dans sa propre application Scalingo `fondation-gotenberg`.
+
+Le stockage objet, hébergé chez Scaleway et compatible S3, contient les pièces jointes ainsi
+que les PDF générés, qui y sont mis en cache pour éviter de les reconstruire à chaque
+consultation. En local, il est émulé par MinIO (voir l'installation).
 
 ## Installation et lancement
 
-Les commandes ci-dessous se lancent depuis `apps/api`, sauf mention de la racine ou usage de `--filter` (qui fonctionne depuis n'importe où).
+Toutes les commandes ci-dessous se lancent depuis la racine du dépôt.
 
-1. Installation des dépendances (depuis la racine)
+1. Installation des dépendances
 
 ```bash
 pnpm install
@@ -68,10 +72,10 @@ pnpm install
 2. Copier le fichier `.env.example` vers `.env`
 
 ```bash
-cp .env.example .env
+cp apps/api/.env.example apps/api/.env
 ```
 
-Le fichier `.env` (gitignoré) contient toutes les variables nécessaires pour démarrer
+Le fichier `apps/api/.env` (gitignoré) contient toutes les variables nécessaires pour démarrer
 l'application localement. `DATABASE_URL` pointe vers un Postgres local lancé dans Docker
 (étape 3), sur le port non-standard `5435` pour ne pas entrer en conflit avec un Postgres
 déjà présent sur la machine.
@@ -79,14 +83,14 @@ déjà présent sur la machine.
 3. Démarrer les services et la base de données
 
 ```bash
-docker compose --file ./test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000 + Gotenberg :9091
-pnpm run prisma migrate deploy
+docker compose --file apps/api/test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000 + Gotenberg :9091
+pnpm --filter api prisma migrate deploy
 ```
 
 Pour la base de test :
 
 ```bash
-npx dotenvx run -f .env.e2e -f .env -- pnpm run prisma migrate deploy
+pnpm --filter api exec dotenvx run -f .env.e2e -f .env -- prisma migrate deploy
 ```
 
 > [!WARNING]
@@ -108,7 +112,7 @@ pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
 5. Initialiser les buckets S3 (une seule fois)
 
 ```bash
-node scripts/init-buckets.js
+node apps/api/scripts/init-buckets.js
 ```
 
 6. Lancement de l'application
@@ -122,51 +126,73 @@ pnpm --filter client dev    # front sur :5173
 
 ```bash
 pnpm --filter api build
-node --env-file .env dist/cli user register \
+pnpm --filter api exec node --env-file .env dist/cli user register \
   --email jean@example.fr \
   --firstname Jean \
   --lastname Moulin \
   --gender MALE \
   --role MEMBRE_DU_PARQUET
+```
+
+Le CLI est interactif et demandera les informations manquantes si nécessaire, à commencer
+par le mot de passe :
+
+```
 password: *****
 repeat password: *****
 ```
 
-Le CLI est interactif et demandera les informations manquantes si nécessaire.
 Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
-`ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` ([voir les rôles](./apps/api/prisma/schemas/identity.prisma#L80)).
+`ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` (enum `PrismaRoleEnum` dans
+[apps/api/prisma/schemas/identity.prisma](./apps/api/prisma/schemas/identity.prisma)).
 Il est recommandé de créer un membre commun et un agent du secrétariat général.
 
 8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
 
-## Tests E2E playwright
+## Tests
 
-Les tests playwright exécutent l'application dans un mode particulier pour faciliter les tests, sans trop s'éloigner du comportement de production.
+Les tests unitaires :
+
+```bash
+pnpm --filter api test
+pnpm --filter client test
+```
+
+Les tests bout-en-bout de l'api ([apps/api-e2e](./apps/api-e2e)) démarrent l'api eux-mêmes :
+ils ont seulement besoin des services de l'étape 3 et de la base de test migrée.
+
+```bash
+pnpm --filter api-e2e test
+```
+
+### Playwright
+
+Les tests Playwright exécutent l'application dans un mode particulier pour faciliter les tests, sans trop s'éloigner du comportement de production.
 
 Il faut déjà démarrer l'application back des tests. Playwright est capable de l'exécuter lui-même. S'il y a un bug, les logs seront cependant plus lisibles dans un processus séparé.
 
-```
-$ pnpm --filter api start:e2e
+```bash
+pnpm --filter api start:e2e
 ```
 
 Démarrer l'appli front
 
-```
-$ pnpm --filter client dev
+```bash
+pnpm --filter client dev
 ```
 
-Ensuite démarrer playwright
+Ensuite démarrer Playwright
 
-```
-$ pnpm --filter client playwright test --ui
+```bash
+pnpm --filter client playwright test --ui   # ou `test:e2e` pour un lancement sans interface
 ```
 
 ## Génération du SDK front
 
 Pour générer le code du contrat d'interface entre le front et le back, on utilise
-[openapi](https://swagger.io/specification/) dans un mode _code-first_.
+[OpenAPI](https://swagger.io/specification/) dans un mode _code-first_.
 
-La spécification est générée directement depuis nos contrôleurs nest, grâce à
+La spécification est générée directement depuis nos contrôleurs Nest, grâce à
 
 - [@nestjs/swagger](https://docs.nestjs.com/openapi/introduction)
 - [nestjs-zod](https://www.npmjs.com/package/nestjs-zod/v/5.0.1)
@@ -186,20 +212,12 @@ La configuration de l'outil est disponible dans [apps/client/openapi-ts.config.t
 
 ### Générer le client
 
-Pour mettre à jour le client, il faut démarrer le back
+openapi-ts utilise directement la spécification exposée par Nest : le back doit donc tourner
+(étape 6) avant de lancer la génération depuis la racine.
 
+```bash
+pnpm run openapi:generate
 ```
-cd apps/api
-pnpm run dev
-```
-
-Une fois disponible, on peut lancer le script de génération :
-
-```
-pnpm run -r openapi:generate
-```
-
-openapi-ts utilise directement la spécification exposée par nest.
 
 > [!NOTE]
 > Le code généré est directement embarqué dans le dépôt de code pour faciliter les choses.
@@ -213,8 +231,8 @@ hooks sont décrites dans [CLAUDE.md](./CLAUDE.md).
 
 Le catalogue des composants du front est construit avec [Storybook](https://storybook.js.org/) :
 
-```
-$ pnpm --filter client storybook
+```bash
+pnpm --filter client storybook
 ```
 
 Il est accessible sur [localhost:6006](http://localhost:6006). Une version en ligne est
@@ -239,8 +257,8 @@ ont chacun une configuration définie dans chaque projet (`.oxlintrc.json`, `.ox
 Pour chaque pull request, on vérifie que le code proposé respecte ces conventions. Pour éviter des
 cycles de CI inutiles, on peut lancer les mêmes vérifications en local depuis la racine :
 
-```sh
-$ pnpm run prepush
+```bash
+pnpm run prepush
 ```
 
 Le hook [husky](https://typicode.github.io/husky) `prepush` peut automatiser ce lancement avant
@@ -275,8 +293,3 @@ que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur co
 > [!WARNING]
 > Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.
 > Chaque installation de dépendance doit être justifiée.
-
-> [!NOTE]
-> `prisma` est volontairement à `false` : le client est généré manuellement avec
-> `prisma generate --sql`, qui doit se connecter à une base déjà lancée (voir la section
-> [Installation et lancement](#installation-et-lancement)).
