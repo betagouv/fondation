@@ -300,7 +300,7 @@ const meta = {
       labels: { [NO_TAG]: 'Aucun', ...ObservationFollowUpEnumLabels },
     },
     observers: { control: { type: 'range', min: 0, max: OBSERVERS.length, step: 1 } },
-    data: { control: false },
+    data: { table: { disable: true } },
   },
   args: { view: 'sg', observationsCount: 1, observers: 0 },
 } satisfies Meta<typeof ObservationsStory>;
@@ -309,27 +309,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const SecretaireGeneral: Story = {};
+export const Playground: Story = {};
 
 export const Member: Story = { args: { view: 'member' } };
-
-export const List: Story = { args: { observationsCount: OBSERVATIONS.length } };
-
-export const TextOnly: Story = { args: { filesCount: 0, observationText: true } };
-
-export const OneAttachment: Story = { args: { filesCount: 1, observationText: false } };
-
-export const TextWithSeveralAttachments: Story = { args: { filesCount: 6, observationText: true } };
-
-export const MemberWithAttachment: Story = {
-  args: { view: 'member', filesCount: 1, observationText: false },
-};
 
 export const Qualifications: Story = {
   args: { data: QUALIFIED_OBSERVATIONS, observationsCount: QUALIFIED_OBSERVATIONS.length },
 };
-
-export const WithoutTag: Story = { args: { followUp: NO_TAG } };
 
 export const ObserversOnly: Story = { args: { observationsCount: 0, observers: 3 } };
 

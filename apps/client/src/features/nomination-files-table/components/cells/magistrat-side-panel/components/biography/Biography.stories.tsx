@@ -18,6 +18,6 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const WithHistory: Story = {};
+export const Playground: Story = {};
 
 export const Empty: Story = { args: { historique: null } };

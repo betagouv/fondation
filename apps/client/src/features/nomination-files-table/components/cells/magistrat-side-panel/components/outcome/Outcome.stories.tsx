@@ -81,7 +81,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Conforme: Story = {};
+export const Playground: Story = {};
 
 export const WithoutComment: Story = {
   args: { comment: null, outcome: NominationFileOutcomeEnum.NON_VALIDATED },

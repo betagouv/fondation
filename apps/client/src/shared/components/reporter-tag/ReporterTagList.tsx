@@ -8,6 +8,7 @@ import { memberFullName } from '@/utils/user.utils';
 import { ReporterTag } from './ReporterTag';
 
 export function ReporterTagList(props: {
+  details?: ReactNode;
   enableTooltip?: boolean;
   max?: number;
   reporters: readonly {
@@ -44,9 +45,18 @@ export function ReporterTagList(props: {
     </ul>
   );
 
-  return props.enableTooltip === false ? (
-    list
-  ) : (
-    <Tooltip label={intl.formatList(reporters.map(memberFullName), { type: 'conjunction' })}>{list}</Tooltip>
+  if (props.enableTooltip === false) return list;
+
+  return (
+    <Tooltip
+      label={
+        <>
+          {intl.formatList(reporters.map(memberFullName), { type: 'conjunction' })}
+          {props.details}
+        </>
+      }
+    >
+      {list}
+    </Tooltip>
   );
 }

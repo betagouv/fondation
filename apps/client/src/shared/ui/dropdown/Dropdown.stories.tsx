@@ -48,13 +48,13 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    className: { control: false },
+    className: { table: { disable: true } },
     label: { control: 'text' },
     multiple: { control: 'boolean' },
-    onSelect: { control: false },
-    options: { control: false },
+    onSelect: { table: { disable: true } },
+    options: { table: { disable: true } },
     placeholder: { control: 'text' },
-    selected: { control: false },
+    selected: { table: { disable: true } },
   },
   args: {
     label: 'Couleur',
@@ -68,23 +68,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Single: Story = {};
-
-export const Multiple: Story = {
-  args: { label: 'Couleurs', multiple: true, placeholder: 'Sélectionner des couleurs' },
-};
+export const Playground: Story = {};
 
 export const WithBadges: Story = {
   args: { label: 'Statut', options: statusOptions, placeholder: 'Sélectionner un statut' },
-};
-
-export const MultipleWithBadges: Story = {
-  args: {
-    label: 'Statuts',
-    multiple: true,
-    options: statusOptions,
-    placeholder: 'Filtrer par statut',
-  },
 };
 
 export const WithoutLabel: Story = {

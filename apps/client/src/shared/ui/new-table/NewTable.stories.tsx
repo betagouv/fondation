@@ -44,10 +44,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const Default: Story = {
-  args: { rowCount: 100 },
-};
-
 export const WithSelection: Story = {
   args: { withSelection: true },
 };

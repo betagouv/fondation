@@ -10,12 +10,12 @@ const meta = {
   parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
   argTypes: {
-    ariaLabel: { control: false },
-    ariaLabelledBy: { control: false },
+    ariaLabel: { table: { disable: true } },
+    ariaLabelledBy: { table: { disable: true } },
     children: { control: 'text' },
-    header: { control: false },
-    id: { control: false },
-    onClose: { control: false },
+    header: { table: { disable: true } },
+    id: { table: { disable: true } },
+    onClose: { table: { disable: true } },
     open: { control: 'boolean' },
   },
   args: {
@@ -48,6 +48,6 @@ function SidePanelDemo(args: ComponentProps<typeof SidePanel>) {
   );
 }
 
-export const Default: Story = {
+export const WithTrigger: Story = {
   render: (args) => <SidePanelDemo {...args} />,
 };

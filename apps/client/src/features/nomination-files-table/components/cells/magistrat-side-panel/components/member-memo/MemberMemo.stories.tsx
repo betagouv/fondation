@@ -41,11 +41,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Empty: Story = {};
-
-export const Filled: Story = {
-  args: { memo: 'À recontacter sur sa mobilité géographique avant la prochaine session.' },
-};
+export const Playground: Story = {};
 
 export const Archived: Story = {
   args: { isArchived: true, memo: 'Note conservée mais non modifiable sur une session archivée.' },

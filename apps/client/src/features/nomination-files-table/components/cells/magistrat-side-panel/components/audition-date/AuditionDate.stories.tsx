@@ -12,11 +12,14 @@ const SESSION_ID = 'session-1';
 
 const SG_ROUTE = { initialEntries: [`/secretariat-general/session/${SESSION_ID}`] };
 
-const UPCOMING_AT = new Date('2029-06-15T14:30').getTime();
 const PAST_AT = new Date('2020-01-10T14:30').getTime();
 
-function AuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
+const VIEWS = ['sg', 'member'] as const;
+type View = (typeof VIEWS)[number];
+
+function AuditionDateStory(props: { auditionDateTime: number | null; view: View }) {
   const at = props.auditionDateTime ? new Date(props.auditionDateTime) : null;
+  const editable = props.view === 'sg';
 
   const nominationFile = makeSessionNominationFile({
     auditionDate: at ? { year: at.getFullYear(), month: at.getMonth() + 1, day: at.getDate() } : null,
@@ -35,8 +38,8 @@ function AuditionDateStory(props: { editable: boolean; auditionDateTime: number 
           }}
         >
           <AuditionDate
-            editable={props.editable}
-            key={`${props.editable}-${props.auditionDateTime}`}
+            editable={editable}
+            key={`${props.view}-${props.auditionDateTime}`}
             nominationFile={nominationFile}
           />
         </NominationFilesTableContext>
@@ -51,30 +54,18 @@ const meta = {
   parameters: { layout: 'padded', router: SG_ROUTE },
   tags: ['autodocs'],
   argTypes: {
-    editable: { control: 'boolean' },
     auditionDateTime: { control: 'date' },
+    view: { control: 'inline-radio', options: VIEWS },
   },
-  args: { editable: true, auditionDateTime: null },
+  args: { auditionDateTime: null, view: 'sg' },
 } satisfies Meta<typeof AuditionDateStory>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const EditableEmpty: Story = {};
-
-export const EditableUpcoming: Story = {
-  args: { auditionDateTime: UPCOMING_AT },
-};
+export const Playground: Story = {};
 
 export const PastLocked: Story = {
   args: { auditionDateTime: PAST_AT },
-};
-
-export const ReadonlyMemberUpcoming: Story = {
-  args: { auditionDateTime: UPCOMING_AT, editable: false },
-};
-
-export const ReadonlyMemberPast: Story = {
-  args: { auditionDateTime: PAST_AT, editable: false },
 };

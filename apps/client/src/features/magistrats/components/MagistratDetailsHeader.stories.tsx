@@ -32,18 +32,18 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
+    context: { control: 'inline-radio', options: ['sg', 'membre'] },
     magistrat: { table: { disable: true } },
   },
+  args: { context: 'sg', magistrat },
 } satisfies Meta<typeof MagistratDetailsHeader>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const SgContext: Story = {
-  args: { context: 'sg', magistrat },
-};
+export const Playground: Story = {};
 
 export const MemberContext: Story = {
-  args: { context: 'membre', magistrat },
+  args: { context: 'membre' },
 };
