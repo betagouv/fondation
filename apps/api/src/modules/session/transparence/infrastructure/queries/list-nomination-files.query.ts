@@ -56,10 +56,11 @@ export class ListNominationFilesQuery {
     pagination: Pagination;
     sorting: Sortable<ListNominationFilesQueryDto>;
     filters: {
-      search: string | null;
-      reporterIds: readonly (string | null)[];
-      priorities: readonly (PriorityEnum | null)[];
+      missingEvaluation: boolean | undefined;
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
+      reporterIds: readonly (string | null)[];
+      search: string | null;
     };
   }): Promise<PaginatedNominationFiles> {
     const [totalCount, items] = await this.db.withTransaction(async () => {
@@ -82,6 +83,7 @@ export class ListNominationFilesQuery {
           where.hasNoOutcome,
           where.search,
           query.sessionId,
+          where.missingEvaluation,
         ),
       );
 
@@ -173,6 +175,7 @@ export class ListNominationFilesQuery {
           query.sorting.sortDesc ? 'desc' : 'asc',
           query.sessionId,
           query.nominationFileIds,
+          where.missingEvaluation,
         ),
       )
       .then((list) => RawListedNominationFiles.parseAsync(list));
@@ -248,6 +251,7 @@ export class ListNominationFilesQuery {
         auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         missingEvaluation: x.missingEvaluation,
+        missingEvaluationComment: x.missingEvaluationComment,
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           id,
           firstName,
@@ -293,10 +297,11 @@ export class ListNominationFilesQuery {
 
   private static filtersToPrismaWhere(
     filters: {
-      search: string | null;
-      reporterIds: readonly (string | null)[];
-      priorities: readonly (PriorityEnum | null)[];
+      missingEvaluation?: boolean | undefined;
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
+      reporterIds: readonly (string | null)[];
+      search: string | null;
     },
     lastVersion: OptionalAffectationVersion,
   ): NominationFilesWhere {
@@ -306,6 +311,7 @@ export class ListNominationFilesQuery {
 
     return {
       versionId: lastVersion.optionalId,
+      missingEvaluation: filters.missingEvaluation ?? null,
       reporterIds: reporterIds.length > 0 ? reporterIds : null,
       hasNoReporters: hasNoReporters.length > 0,
       priorities: priorities.length > 0 ? priorities.map(priorityEnumToPrismaPrioriteEnum) : null,
@@ -319,6 +325,7 @@ export class ListNominationFilesQuery {
 
 type NominationFilesWhere = {
   versionId: string | undefined;
+  missingEvaluation: boolean | null;
   reporterIds: string[] | null;
   hasNoReporters: boolean;
   priorities: PrismaPrioriteEnum[] | null;
@@ -391,6 +398,7 @@ const RawListedNominationFiles = z.array(
     outcomeComment: z.string().nullable(),
     alertHidden: z.boolean(),
     missingEvaluation: z.boolean(),
+    missingEvaluationComment: z.string().nullable(),
     detectedJurisdictionId: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
@@ -460,6 +468,7 @@ const NominationFileAffectationItemSchema = z.object({
   auditionTime: timeOnlySchema.nullable(),
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
+  missingEvaluationComment: z.string().nullable(),
   reporters: z.array(
     z.object({
       id: z.string(),

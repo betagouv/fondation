@@ -69,6 +69,7 @@ import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
 } from './queries/list-currently-affected-reporters.query';
+import { ListMissingEvaluationsAsExcelQuery } from './queries/list-missing-evaluations-as-excel.query';
 import {
   type ListedNominationFileAttachmentDto,
   ListNominationFileAttachmentsQuery,
@@ -115,6 +116,7 @@ export class TransparenceService {
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
     private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
+    private readonly listMissingEvaluationsAsExcelQuery: ListMissingEvaluationsAsExcelQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
@@ -190,9 +192,10 @@ export class TransparenceService {
     sessionId: string;
     user: { role: RoleEnum; id: string };
     filters: {
-      reporterIds: readonly (string | null)[];
-      priorities: readonly (PriorityEnum | null)[];
+      missingEvaluation: boolean | undefined;
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
+      priorities: readonly (PriorityEnum | null)[];
+      reporterIds: readonly (string | null)[];
       search: string | null;
     };
   }): Promise<PaginatedNominationFiles> {
@@ -286,6 +289,24 @@ export class TransparenceService {
     session.updateMissingEvaluation({
       nominationFileId: command.nominationFileId,
       missingEvaluation: command.missingEvaluation,
+    });
+
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async updateNominationFileMissingEvaluationComment(command: {
+    sessionId: string;
+    nominationFileId: string;
+    comment: string | null;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+
+    session.updateMissingEvaluationComment({
+      nominationFileId: command.nominationFileId,
+      comment: command.comment,
     });
 
     await this.nominationSessionRepository.persist(session);
@@ -549,6 +570,10 @@ export class TransparenceService {
 
   listNominationFilesAsExcel(query: { sessionId: string }): Promise<StreamableFile> {
     return this.listNominationFilesAsExcelQuery.handle(query);
+  }
+
+  listMissingEvaluationsAsExcel(query: { sessionId: string }): Promise<StreamableFile> {
+    return this.listMissingEvaluationsAsExcelQuery.handle(query);
   }
 
   countNominationFilesByStatus(query: { sessionId: string }): Promise<NominationFilesStatusCountDto> {

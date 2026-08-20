@@ -34,6 +34,7 @@ import {
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
   SessionTransparenceFileMemberMemoWritten,
+  SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
   SessionTransparenceFileReportersAffected,
@@ -179,6 +180,8 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceFileMemberMemoWritten(message);
       } else if (message instanceof SessionTransparenceFileMissingEvaluationUpdated) {
         await this.persistSessionTransparenceFileMissingEvaluationUpdated(message);
+      } else if (message instanceof SessionTransparenceFileMissingEvaluationCommentUpdated) {
+        await this.persistSessionTransparenceFileMissingEvaluationCommentUpdated(message);
       } else if (message instanceof SessionTransparenceFileAlertHidden) {
         await this.persistSessionTransparenceFileAlertHidden(message);
       } else if (message instanceof SessionTransparenceLolfiFilesAssociated) {
@@ -623,6 +626,15 @@ export class SessionTransparenceRepository {
     await this.db.tx.dossierDeNomination.update({
       where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { missingEvaluation: message.missingEvaluation },
+    });
+  }
+
+  private async persistSessionTransparenceFileMissingEvaluationCommentUpdated(
+    message: SessionTransparenceFileMissingEvaluationCommentUpdated,
+  ) {
+    await this.db.tx.dossierDeNomination.update({
+      where: { sessionId: message.sessionId, id: message.nominationFileId },
+      data: { missingEvaluationComment: message.comment },
     });
   }
 

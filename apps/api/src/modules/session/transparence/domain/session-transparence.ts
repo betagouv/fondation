@@ -187,6 +187,14 @@ export class SessionTransparenceFileMissingEvaluationUpdated {
   ) {}
 }
 
+export class SessionTransparenceFileMissingEvaluationCommentUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly comment: string | null,
+  ) {}
+}
+
 export class SessionTransparenceValidated {
   constructor(
     readonly sessionId: string,
@@ -215,6 +223,7 @@ type NominationSessionEvent =
   | SessionTransparenceAuditionUnScheduled
   | SessionTransparenceFileMemberMemoWritten
   | SessionTransparenceFileMissingEvaluationUpdated
+  | SessionTransparenceFileMissingEvaluationCommentUpdated
   | SessionTransparenceOutcomeDefined
   | SessionTransparenceLolfiFilesAssociated
   | SessionTransparenceAffectationVersionCreated
@@ -604,6 +613,24 @@ export class SessionTransparence {
         this.id,
         command.nominationFileId,
         command.missingEvaluation,
+      ),
+    );
+
+    if (!command.missingEvaluation) {
+      this.#messages.push(
+        new SessionTransparenceFileMissingEvaluationCommentUpdated(this.id, command.nominationFileId, null),
+      );
+    }
+  }
+
+  updateMissingEvaluationComment(command: { nominationFileId: string; comment: string | null }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileMissingEvaluationCommentUpdated(
+        this.id,
+        command.nominationFileId,
+        command.comment,
       ),
     );
   }

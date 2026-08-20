@@ -16,10 +16,11 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
+import { ApiOkDiscriminatedByType } from 'src/modules/framework/openapi';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
@@ -33,6 +34,7 @@ import {
   ListNominationFilesQueryDto,
   UpdateAuditionDateDto,
   UpdateCommentDto,
+  UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
@@ -190,6 +192,15 @@ export class SessionController {
     return this.sessions.listNominationFilesAsExcel({ sessionId });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Header('Content-Type', FILE_MIME_TYPES.xlsx)
+  @Get('/:sessionId/files/missing-evaluations.xlsx')
+  listMissingEvaluationsAsExcel(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<StreamableFile> {
+    return this.sessions.listMissingEvaluationsAsExcel({ sessionId });
+  }
+
   @HasRole()
   @Get('/:sessionId/files')
   @ApiPaginated()
@@ -209,9 +220,10 @@ export class SessionController {
       pagination,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       filters: {
+        missingEvaluation: query.missingEvaluation,
+        outcomes: query.outcomes,
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],
-        outcomes: query.outcomes,
         search: query.search || null,
       },
     });
@@ -219,17 +231,7 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/last')
-  @ApiExtraModels(SomeAffectationVersion, NoneAffectationVersion)
-  @ApiOkResponse({
-    schema: {
-      type: 'object',
-      discriminator: { propertyName: '@type' },
-      oneOf: [
-        { $ref: getSchemaPath(SomeAffectationVersion) },
-        { $ref: getSchemaPath(NoneAffectationVersion) },
-      ],
-    },
-  })
+  @ApiOkDiscriminatedByType(SomeAffectationVersion, NoneAffectationVersion)
   detailNominationSessionAffectationsVersion(
     @Param('sessionId') sessionId: string,
   ): Promise<FoundAffectationVersion> {
@@ -332,6 +334,22 @@ export class SessionController {
       sessionId,
       nominationFileId,
       missingEvaluation: body.missingEvaluation,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/:sessionId/files/:nominationFileId/missing-evaluation/comment')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFileMissingEvaluationComment(
+    @Param('sessionId') sessionId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: UpdateMissingEvaluationCommentDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFileMissingEvaluationComment({
+      sessionId,
+      nominationFileId,
+      comment: body.comment,
     });
   }
 

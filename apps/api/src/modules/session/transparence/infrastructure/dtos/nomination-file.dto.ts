@@ -83,6 +83,11 @@ export class ListNominationFilesQueryDto extends createSortableDto(
       .trim()
       .optional()
       .transform((x) => x || undefined),
+
+    missingEvaluation: z.codec(z.union([z.string(), z.boolean()]).optional(), z.boolean().optional(), {
+      decode: (x) => (x === undefined ? undefined : x === 'true' || x === true),
+      encode: (x) => x?.toString(),
+    }),
   }),
 ) {}
 
@@ -95,6 +100,17 @@ export class UpdateCommentDto extends createZodDto(
 export class UpdateMissingEvaluationDto extends createZodDto(
   z.object({
     missingEvaluation: z.boolean(),
+  }),
+) {}
+
+export class UpdateMissingEvaluationCommentDto extends createZodDto(
+  z.object({
+    comment: z
+      .string()
+      .trim()
+      .max(150)
+      .nullable()
+      .transform((x) => x || null),
   }),
 ) {}
 

@@ -14,52 +14,74 @@ export class CountNominationFilesByStatusQuery {
   ) {}
 
   async handle(query: { sessionId: string }): Promise<NominationFilesStatusCountDto> {
-    const [unaffected, inProgress, withOutcome] = await this.db.withTransaction(async () => {
-      const version = await this.versionFinder.last({ sessionId: query.sessionId });
-      return [
-        await this.db.tx.dossierDeNomination.count({
-          where: {
-            outcome: null,
-            sessionId: query.sessionId,
-            reporterIds: {
-              none: version.map({
-                /** @warning the '{}' checks that no reporter exist regardless of the version*/
-                none: () => ({}),
+    const [unaffected, inProgress, withOutcome, total, missingEvaluation, missingEvaluationWithComment] =
+      await this.db.withTransaction(async () => {
+        const version = await this.versionFinder.last({ sessionId: query.sessionId });
+        return [
+          await this.db.tx.dossierDeNomination.count({
+            where: {
+              outcome: null,
+              sessionId: query.sessionId,
+              reporterIds: {
+                none: version.map({
+                  /** @warning the '{}' matches files without any reporter, regardless of the version */
+                  none: () => ({}),
 
-                some: ({ id: versionId }) => ({ versionId }),
-              }),
+                  some: ({ id: versionId }) => ({ versionId }),
+                }),
+              },
             },
-          },
-        }),
+          }),
 
-        await version.map({
-          none: async () => 0,
-          some: ({ id: versionId }) =>
-            this.db.tx.dossierDeNomination.count({
-              where: {
-                sessionId: query.sessionId,
-                OR: [
-                  { outcome: { in: NominationFileOutcome.nonFinalOutcomes() } },
-                  { outcome: null, reporterIds: { some: { versionId } } },
-                ],
-              },
-            }),
-        }),
+          await version.map({
+            none: async () => 0,
+            some: ({ id: versionId }) =>
+              this.db.tx.dossierDeNomination.count({
+                where: {
+                  sessionId: query.sessionId,
+                  OR: [
+                    { outcome: { in: NominationFileOutcome.nonFinalOutcomes() } },
+                    { outcome: null, reporterIds: { some: { versionId } } },
+                  ],
+                },
+              }),
+          }),
 
-        await version.map({
-          none: async () => 0,
-          some: () =>
-            this.db.tx.dossierDeNomination.count({
-              where: {
-                sessionId: query.sessionId,
-                outcome: { in: NominationFileOutcome.finalOutcomes() },
-              },
-            }),
-        }),
-      ] as const;
-    });
+          await version.map({
+            none: async () => 0,
+            some: () =>
+              this.db.tx.dossierDeNomination.count({
+                where: {
+                  sessionId: query.sessionId,
+                  outcome: { in: NominationFileOutcome.finalOutcomes() },
+                },
+              }),
+          }),
 
-    return { unaffected, inProgress, withOutcome };
+          await this.db.tx.dossierDeNomination.count({ where: { sessionId: query.sessionId } }),
+
+          await this.db.tx.dossierDeNomination.count({
+            where: { missingEvaluation: true, sessionId: query.sessionId },
+          }),
+
+          await this.db.tx.dossierDeNomination.count({
+            where: {
+              missingEvaluation: true,
+              missingEvaluationComment: { not: null },
+              sessionId: query.sessionId,
+            },
+          }),
+        ] as const;
+      });
+
+    return {
+      unaffected,
+      inProgress,
+      withOutcome,
+      total,
+      missingEvaluation,
+      missingEvaluationWithComment,
+    };
   }
 }
 
@@ -68,5 +90,8 @@ export class NominationFilesStatusCountDto extends createZodDto(
     unaffected: z.number(),
     inProgress: z.number(),
     withOutcome: z.number(),
+    total: z.number(),
+    missingEvaluation: z.number(),
+    missingEvaluationWithComment: z.number(),
   }),
 ) {}

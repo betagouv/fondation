@@ -43,6 +43,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
     isArchived: false,
     memo: null,
     missingEvaluation: false,
+    missingEvaluationComment: null,
     observations: [],
     priorities: [],
     reporters: [],
