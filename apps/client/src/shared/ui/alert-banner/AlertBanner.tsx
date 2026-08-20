@@ -8,6 +8,7 @@ const TONES = {
 };
 
 export function AlertBanner(props: {
+  align?: 'center' | 'start';
   children?: ReactNode;
   className?: string;
   icon: string;
@@ -17,7 +18,8 @@ export function AlertBanner(props: {
   return (
     <div
       className={clsx(
-        'flex min-h-6 items-start gap-2 text-sm-plus font-medium',
+        'flex min-h-6 gap-2 text-sm-plus font-medium',
+        props.align === 'center' ? 'items-center' : 'items-start',
         TONES[props.tone],
         props.className,
       )}

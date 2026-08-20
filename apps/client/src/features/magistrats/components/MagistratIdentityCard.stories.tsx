@@ -27,7 +27,7 @@ const magistrat: DetailedMagistratDto = {
 };
 
 const meta = {
-  title: 'Features/Details/IdentityCard',
+  title: 'Features/MagistratDetails/IdentityCard',
   component: MagistratIdentityCard,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

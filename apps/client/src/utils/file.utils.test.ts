@@ -10,8 +10,9 @@ describe('formatFileSize', () => {
 
   it('scales to the right unit with french formatting', () => {
     expect(formatFileSize(1024)).toBe('1 Ko');
-    expect(formatFileSize(63360)).toBe('61,88 Ko');
+    expect(formatFileSize(63360)).toBe('62 Ko');
     expect(formatFileSize(1024 * 1024)).toBe('1 Mo');
+    expect(formatFileSize(1.24 * 1024 * 1024)).toBe('1,2 Mo');
   });
 });
 

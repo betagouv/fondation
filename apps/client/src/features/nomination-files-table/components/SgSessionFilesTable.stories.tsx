@@ -52,7 +52,7 @@ function SgSessionFilesTableStory(props: {
 }
 
 const meta = {
-  title: 'Features/Session/SgSessionFilesTable',
+  title: 'Session/Transparence/SgSessionFilesTable',
   component: SgSessionFilesTableStory,
   beforeEach: ({ msw }) => {
     msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));

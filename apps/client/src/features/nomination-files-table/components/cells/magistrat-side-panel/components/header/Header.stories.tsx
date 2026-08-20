@@ -196,7 +196,7 @@ function HeaderStory(props: {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Header',
+  title: 'Features/MagistratSidePanel/Header',
   component: HeaderStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

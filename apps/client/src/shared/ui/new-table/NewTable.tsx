@@ -2,7 +2,7 @@ import { flexRender, type Header, type Row, type RowData, type Table } from '@ta
 import clsx from 'clsx';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
-import { useTableVirtualizer } from './hooks/useTableVirtualizer';
+import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
 function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
   const glyph = props.direction === 'asc' ? '▲' : props.direction === 'desc' ? '▼' : '↕';
@@ -53,7 +53,7 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
 export function NewTable<Data extends RowData>(props: {
   ariaLabel?: string;
   className?: string;
-  emptyLabel?: ReactNode;
+  emptyLabel: ReactNode;
   fluid?: boolean;
   isLoading?: boolean;
   onEndReached?: () => void;
@@ -123,6 +123,9 @@ export function NewTable<Data extends RowData>(props: {
 
   const isEmpty = !props.isLoading && totalRows === 0;
 
+  const unvirtualizedMaxHeight =
+    props.unvirtualized && visibleRows ? (visibleRows + 1) * ESTIMATED_ROW_HEIGHT : undefined;
+
   return (
     <div
       aria-label={props.ariaLabel}
@@ -133,7 +136,13 @@ export function NewTable<Data extends RowData>(props: {
       )}
       ref={setScrollBox}
       role={props.ariaLabel ? 'region' : undefined}
-      style={visibleRowsHeight === undefined ? undefined : { height: visibleRowsHeight }}
+      style={
+        unvirtualizedMaxHeight === undefined
+          ? visibleRowsHeight === undefined
+            ? undefined
+            : { height: visibleRowsHeight }
+          : { maxHeight: unvirtualizedMaxHeight }
+      }
       tabIndex={0}
     >
       <div aria-rowcount={totalRows} className="grid w-full text-sm text-(--text-default-grey)" role="table">
@@ -165,7 +174,7 @@ export function NewTable<Data extends RowData>(props: {
         >
           {isEmpty ? (
             <div className="p-8 text-center text-(--text-mention-grey)" role="row">
-              <div role="cell">{props.emptyLabel ?? 'Aucune donnée'}</div>
+              <div role="cell">{props.emptyLabel}</div>
             </div>
           ) : null}
 

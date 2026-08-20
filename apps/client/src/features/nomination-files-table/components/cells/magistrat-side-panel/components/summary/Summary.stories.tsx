@@ -141,7 +141,7 @@ function SummaryStory(props: {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Summary',
+  title: 'Features/MagistratSidePanel/Summary',
   component: SummaryStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

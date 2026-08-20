@@ -30,7 +30,7 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
 }
 
 const meta = {
-  title: 'Features/Details/NominationFilesTable',
+  title: 'Features/MagistratDetails/NominationFilesTable',
   component: MagistratNominationFilesTable,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

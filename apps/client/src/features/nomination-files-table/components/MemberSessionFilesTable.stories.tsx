@@ -33,7 +33,7 @@ function MemberSessionFilesTableStory(props: { formation: FormationEnum; session
 }
 
 const meta = {
-  title: 'Features/Session/MemberSessionFilesTable',
+  title: 'Session/Transparence/MemberSessionFilesTable',
   component: MemberSessionFilesTableStory,
   beforeEach: ({ msw }) => {
     msw.use(...authHandlers, ...makeSessionHandlers(sessions));

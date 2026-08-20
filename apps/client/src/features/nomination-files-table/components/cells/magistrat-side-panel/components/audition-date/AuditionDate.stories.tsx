@@ -49,7 +49,7 @@ function AuditionDateStory(props: { auditionDateTime: number | null; view: View 
 }
 
 const meta = {
-  title: 'Features/SidePanel/AuditionDate',
+  title: 'Features/MagistratSidePanel/AuditionDate',
   component: AuditionDateStory,
   parameters: { layout: 'padded', router: SG_ROUTE },
   tags: ['autodocs'],

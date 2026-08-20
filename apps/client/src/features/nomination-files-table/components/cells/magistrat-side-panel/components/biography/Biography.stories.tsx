@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Biography } from './Biography';
 
 const meta = {
-  title: 'Features/SidePanel/Biography',
+  title: 'Features/MagistratSidePanel/Biography',
   component: Biography,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

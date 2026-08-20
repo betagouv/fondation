@@ -27,7 +27,7 @@ const magistrat: DetailedMagistratDto = {
 };
 
 const meta = {
-  title: 'Features/Details/DetailsHeader',
+  title: 'Features/MagistratDetails/DetailsHeader',
   component: MagistratDetailsHeader,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
