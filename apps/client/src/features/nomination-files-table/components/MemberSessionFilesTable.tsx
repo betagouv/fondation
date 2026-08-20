@@ -1,12 +1,13 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, type PropsWithChildren, type ReactNode } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { SessionOutcome } from '../context/files-table.context';
 import { MemberReportsProvider } from '../context/MemberReportsProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { TotalBadge } from '@/shared/ui/total-badge';
 import type { FormationEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -98,7 +99,15 @@ function MemberSessionFilesTableInner(props: PropsWithChildren<{ filtersEnd?: Re
   const columns = useMemberSessionFilesColumns();
 
   return (
-    <SessionFilesTable columns={columns} filtersEnd={props.filtersEnd}>
+    <SessionFilesTable
+      columns={columns}
+      filtersEnd={props.filtersEnd}
+      summary={({ totalCount }) => (
+        <TotalBadge value={totalCount}>
+          <FormattedMessage defaultMessage="Total" />
+        </TotalBadge>
+      )}
+    >
       {props.children}
     </SessionFilesTable>
   );

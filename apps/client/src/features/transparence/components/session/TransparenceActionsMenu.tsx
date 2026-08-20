@@ -12,10 +12,7 @@ import type { DetailedNominationSessionDto } from '@api/types';
 import {
   useArchiveNominationSessionMutation,
   useDeleteNominationSessionMutation,
-  useListNominationFilesAsExcelMutation,
 } from '@queries/nomination-sessions.queries';
-
-import * as importAttachments from './ImportAttachmentModal';
 
 export function TransparenceActionsMenu(props: { transparence: DetailedNominationSessionDto }) {
   const { transparence } = props;
@@ -24,7 +21,6 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
   const navigate = useNavigate();
   const confirmation = useConfirmation();
 
-  const exportAsExcelMutation = useListNominationFilesAsExcelMutation();
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
   const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
 
@@ -84,8 +80,11 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
     });
   }, [confirmation, deleteSessionMutation, formatMessage, navigate, transparence.name]);
 
-  const isMutationPending =
-    deleteSessionMutation.isPending || archiveSessionMutation.isPending || exportAsExcelMutation.isPending;
+  const isMutationPending = deleteSessionMutation.isPending || archiveSessionMutation.isPending;
+
+  const canArchive = transparence.isArchivable;
+  const canDelete = !isArchived && transparence.isDeletable;
+  if (!canArchive && !canDelete) return null;
 
   return (
     <MenuRoot disabled={isMutationPending}>
@@ -94,8 +93,9 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
           "before:animate-spin before:content-['']": isMutationPending,
         })}
         disabled={isMutationPending}
-        iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
+        iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-more-2-fill'}
         priority="tertiary no outline"
+        size="small"
         title={formatMessage(
           { defaultMessage: 'Actions sur la transparence "{name}"' },
           { name: transparence.name },
@@ -103,26 +103,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
       />
 
       <MenuContent>
-        {!isArchived && (
-          <MenuItem
-            disabled={isMutationPending}
-            iconId="fr-icon-file-add-line"
-            nativeButtonProps={importAttachments.modal.buttonProps}
-          >
-            <FormattedMessage defaultMessage="Pièces jointes" />
-          </MenuItem>
-        )}
-        <MenuItem
-          disabled={isMutationPending}
-          iconId="ri-file-download-line"
-          onClick={() => {
-            exportAsExcelMutation.mutate({ sessionId: transparence.id });
-          }}
-        >
-          <FormattedMessage defaultMessage="Export .xlsx" />
-        </MenuItem>
-
-        {transparence.isArchivable && (
+        {canArchive && (
           <MenuItem
             className={clsx({
               "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
@@ -137,7 +118,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
           </MenuItem>
         )}
 
-        {!isArchived && transparence.isDeletable && (
+        {canDelete && (
           <MenuItem
             className={clsx('before text-(--text-default-error)', {
               "before:animate-spin before:content-['']": deleteSessionMutation.isPending,

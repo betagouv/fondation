@@ -5,7 +5,8 @@ export function formatFileSize(bytes: number): string {
 
   const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), FILE_SIZE_UNITS.length - 1);
   const value = bytes / 1024 ** exponent;
-  const formatted = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value);
+  const maximumFractionDigits = exponent >= FILE_SIZE_UNITS.indexOf('Mo') ? 1 : 0;
+  const formatted = new Intl.NumberFormat('fr-FR', { maximumFractionDigits }).format(value);
 
   return `${formatted} ${FILE_SIZE_UNITS[exponent]}`;
 }

@@ -41,6 +41,11 @@ export const sgAuthHandlers = [
   http.get('*/api/auth/v2/introspect', () => HttpResponse.json<DetailedUserResponseDto>(STORY_SG_USER)),
 ];
 
+export const sessionDocsHandlers = [
+  http.delete('*/api/docs/v1/agendas/:agendaId', noContent),
+  http.delete('*/api/docs/v1/official-reports/:officialReportId', noContent),
+];
+
 export const sidePanelHandlers = [
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/audition/schedule', noContent),
   http.patch('*/api/sessions/v2/:sessionId/files/:nominationFileId/comment', noContent),

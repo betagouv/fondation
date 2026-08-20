@@ -391,6 +391,7 @@ export type PaginatedNominationFiles = {
         } | null;
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
+        missingEvaluationComment: string | null;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -458,6 +459,9 @@ export type NominationFilesStatusCountDto = {
     unaffected: number;
     inProgress: number;
     withOutcome: number;
+    total: number;
+    missingEvaluation: number;
+    missingEvaluationWithComment: number;
 };
 
 export type ListedCurrentlyAffectedReportersDto = {
@@ -479,6 +483,10 @@ export type UpdateCommentDto = {
 
 export type UpdateMissingEvaluationDto = {
     missingEvaluation: boolean;
+};
+
+export type UpdateMissingEvaluationCommentDto = {
+    comment: string | null;
 };
 
 export type UpdateAuditionDateDto = {
@@ -507,6 +515,12 @@ export type ListedNominationSessionAttachmentDto = {
     items: Array<{
         name: string;
         id: string;
+        addedAt: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        sizeInBytes: number | null;
     }>;
 };
 
@@ -619,6 +633,7 @@ export type DetailedNominationFileDto = {
     } | null;
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
+    missingEvaluationComment: string | null;
     reporters: Array<{
         id: string;
         firstName: string;
@@ -2236,6 +2251,19 @@ export type ListNominationFilesAsExcelResponses = {
     200: unknown;
 };
 
+export type ListMissingEvaluationsAsExcelData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/missing-evaluations.xlsx';
+};
+
+export type ListMissingEvaluationsAsExcelResponses = {
+    200: unknown;
+};
+
 export type ListNominationFilesData = {
     body?: never;
     path: {
@@ -2247,6 +2275,7 @@ export type ListNominationFilesData = {
         priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | 'null'>;
         reporterIds?: Array<string | null>;
         search?: string;
+        missingEvaluation?: string | boolean;
         /**
          * true
          */
@@ -2274,9 +2303,9 @@ export type DetailNominationSessionAffectationsVersionData = {
 
 export type DetailNominationSessionAffectationsVersionResponses = {
     200: ({
-        '@type': 'SomeAffectationVersion';
+        '@type': 'fr.csm.fondation.affectations.version.some';
     } & SomeAffectationVersion) | ({
-        '@type': 'NoneAffectationVersion';
+        '@type': 'fr.csm.fondation.affectations.version.none';
     } & NoneAffectationVersion);
 };
 
@@ -2390,6 +2419,22 @@ export type UpdateNominationFileMissingEvaluationResponses = {
 };
 
 export type UpdateNominationFileMissingEvaluationResponse = UpdateNominationFileMissingEvaluationResponses[keyof UpdateNominationFileMissingEvaluationResponses];
+
+export type UpdateNominationFileMissingEvaluationCommentData = {
+    body: UpdateMissingEvaluationCommentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/missing-evaluation/comment';
+};
+
+export type UpdateNominationFileMissingEvaluationCommentResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileMissingEvaluationCommentResponse = UpdateNominationFileMissingEvaluationCommentResponses[keyof UpdateNominationFileMissingEvaluationCommentResponses];
 
 export type UpdateNominationFileAuditionDateData = {
     body: UpdateAuditionDateDto;

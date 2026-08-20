@@ -1,6 +1,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-const ESTIMATED_ROW_HEIGHT = 48;
+export const ESTIMATED_ROW_HEIGHT = 48;
 
 export function useTableVirtualizer(props: { rowCount: number; scrollBox: HTMLDivElement | null }) {
   return useVirtualizer({

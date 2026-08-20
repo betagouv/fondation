@@ -1,6 +1,6 @@
 import { FormattedMessage } from 'react-intl';
 
-import { NominationSessionAttachmentList } from '@/features/transparence/components/NominationSessionAttachmentList';
+import { NominationSessionAttachmentList } from '@/features/transparence/components/attachments/NominationSessionAttachmentList';
 import { CountedPopover, EmptyPanel } from '@/shared/ui/popover';
 import { useListNominationSessionAttachmentsQuery } from '@queries/nomination-sessions.queries';
 

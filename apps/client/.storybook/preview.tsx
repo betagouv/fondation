@@ -44,7 +44,25 @@ export default definePreview({
       matchers: { color: /(background|color)$/i, date: /Date$/i },
     },
     options: {
-      storySort: { method: 'alphabetical', order: ['Guide', 'Design Tokens', 'Shared', 'Features'] },
+      storySort: {
+        method: 'alphabetical',
+        order: [
+          'Guide',
+          'Design Tokens',
+          'Shared',
+          'Features',
+          'Session',
+          [
+            'Transparence',
+            [
+              'SgSessionFilesTable',
+              'MemberSessionFilesTable',
+              'SessionAttachmentsTable',
+              'SessionDocumentsTable',
+            ],
+          ],
+        ],
+      },
     },
   },
 });

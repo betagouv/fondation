@@ -162,5 +162,13 @@ export function MagistratNominationFilesTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <NewTable className="max-h-80" fluid table={table} unvirtualized />;
+  return (
+    <NewTable
+      className="max-h-80"
+      emptyLabel={formatMessage({ defaultMessage: 'Aucun dossier de nomination' })}
+      fluid
+      table={table}
+      unvirtualized
+    />
+  );
 }

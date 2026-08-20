@@ -121,6 +121,7 @@ test.describe('Session E2E', () => {
         auditionTime: null,
         expectedReportersCount: null,
         missingEvaluation: false,
+        missingEvaluationComment: null,
         canScheduleAudition: true,
         isArchived: false,
         content: {
@@ -172,6 +173,7 @@ test.describe('Session E2E', () => {
         auditionTime: null,
         expectedReportersCount: null,
         missingEvaluation: false,
+        missingEvaluationComment: null,
         canScheduleAudition: true,
         id: expect.any(String),
         isArchived: false,
@@ -350,6 +352,124 @@ test.describe('Session E2E', () => {
       });
       expect(clearRes.response?.status).toBe(204);
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
+    });
+
+    test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const listFlaggedAs = async (missingEvaluation: boolean) => {
+        const files = await agent.sessions.listNominationFiles({
+          path: { sessionId: session.id },
+          query: { missingEvaluation },
+        });
+        return { ids: files.data!.items.map(({ id }) => id), totalCount: files.data!.totalCount };
+      };
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+
+      expect(await listFlaggedAs(true)).toEqual({ ids: [], totalCount: 0 });
+      expect(await listFlaggedAs(false)).toEqual({
+        ids: [nominationFileId],
+        totalCount: initial.data!.totalCount,
+      });
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+
+      expect(await listFlaggedAs(true)).toEqual({ ids: [nominationFileId], totalCount: 1 });
+      expect(await listFlaggedAs(false)).toEqual({ ids: [], totalCount: 0 });
+    });
+
+    test('should export the missing evaluations as a spreadsheet', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+
+      const exported = await agent.sessions.listMissingEvaluationsAsExcel({
+        path: { sessionId: session.id },
+      });
+
+      expect(exported.response?.status).toBe(200);
+      expect(exported.response?.headers.get('content-type')).toContain('spreadsheetml');
+    });
+
+    test('should comment a missing evaluation then drop the comment when it is cleared', async ({
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const commentOf = async (nominationFileId: string) => {
+        const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+        return files.data!.items.find(({ id }) => id === nominationFileId)?.missingEvaluationComment;
+      };
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+      expect(await commentOf(nominationFileId)).toBeNull();
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+
+      const commentRes = await agent.sessions.updateNominationFileMissingEvaluationComment({
+        path: { sessionId: session.id, nominationFileId },
+        body: { comment: 'Relancée le 12 août' },
+      });
+      expect(commentRes.response?.status).toBe(204);
+      expect(await commentOf(nominationFileId)).toBe('Relancée le 12 août');
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: false },
+      });
+      expect(await commentOf(nominationFileId)).toBeNull();
+    });
+
+    test('should count the missing evaluations and the ones already commented', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const counts = async () => {
+        const { data } = await agent.sessions.countNominationFilesByStatus({
+          path: { sessionId: session.id },
+        });
+        return data!;
+      };
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+      const total = initial.data!.totalCount;
+
+      expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 0, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluationComment({
+        path: { sessionId: session.id, nominationFileId },
+        body: { comment: 'Relancée le 12 août' },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 1, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: false },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
     });
 
     test('should not report an empty summary', async ({ agent, sessions, expect }) => {

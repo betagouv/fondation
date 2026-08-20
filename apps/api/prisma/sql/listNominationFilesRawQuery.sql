@@ -15,6 +15,7 @@
 -- @param {String} $13:sortOrder?
 -- @param {String} $14:sessionId
 -- @param $15:nominationFileIds?
+-- @param {Boolean} $16:missingEvaluation?
 
 SELECT
   ddn.id,
@@ -39,6 +40,7 @@ SELECT
   ddn.outcome_comment AS "outcomeComment",
   ddn.alert_hidden AS "alertHidden",
   ddn.missing_evaluation AS "missingEvaluation",
+  ddn.missing_evaluation_comment AS "missingEvaluationComment",
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
   ddn.detected_magistrat_id AS "detectedMagistratId",
@@ -200,6 +202,12 @@ WHERE (
   AND (
     /* nominationFileIds */$15::UUID[] IS NULL
     OR ddn.id = ANY(/* nominationFileIds */$15::UUID[])
+  )
+
+  /* -- MISSING EVALUATION -- */
+  AND (
+    /* missingEvaluation */$16::BOOLEAN IS NULL
+    OR ddn.missing_evaluation = /* missingEvaluation */$16::BOOLEAN
   )
 )
 

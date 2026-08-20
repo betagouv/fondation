@@ -33,7 +33,7 @@ function SgCommentStory(props: { initialComment: string | null; isArchived: bool
 }
 
 const meta = {
-  title: 'Features/SidePanel/SgComment',
+  title: 'Features/MagistratSidePanel/SgComment',
   component: SgCommentStory,
   parameters: {
     layout: 'padded',

@@ -102,7 +102,7 @@ function AttachmentsStory(props: AttachmentsArgs) {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Attachments',
+  title: 'Features/MagistratSidePanel/Attachments',
   component: AttachmentsStory,
   beforeEach: ({ args, msw }) => {
     msw.use(...attachmentHandlers);

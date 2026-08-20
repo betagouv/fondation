@@ -72,7 +72,11 @@ export function DemoTable(props: {
 
   return (
     <div style={{ height: props.height ?? 480 }}>
-      <NewTable rowTint={props.rowTint ? () => ROW_TINTS[props.rowTint!] : undefined} table={table} />
+      <NewTable
+        emptyLabel="Aucune donnée"
+        rowTint={props.rowTint ? () => ROW_TINTS[props.rowTint!] : undefined}
+        table={table}
+      />
     </div>
   );
 }
@@ -106,6 +110,7 @@ export function InfiniteDemoTable(props: { height?: number }) {
   return (
     <div style={{ height: props.height ?? 480 }}>
       <NewTable
+        emptyLabel="Aucune donnée"
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}

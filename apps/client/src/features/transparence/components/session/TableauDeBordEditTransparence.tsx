@@ -4,6 +4,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
@@ -19,6 +20,7 @@ import {
 } from '@queries/nomination-sessions.queries';
 
 function TableauDeBordEditTransparence(props: { session: DetailedNominationSessionDto }) {
+  const { formatMessage } = useIntl();
   const navigate = useNavigate();
 
   const { user } = useUser();
@@ -27,19 +29,21 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
   const { mutateAsync: updateNominationSessionAsync } = useUpdateNominationSessionMutation();
   const { mutate: validateSession } = useValidateSessionMutation();
 
+  const invalidDate = formatMessage({ defaultMessage: 'Format de date invalide' });
+
   const {
     control,
-    setError,
-    handleSubmit,
     formState: { errors },
+    handleSubmit,
+    setError,
   } = useForm({
     resolver: zodResolver(
       z.object({
         name: z.string().nonempty(),
-        date: z.iso.date('Format de date invalide'),
-        observationsClosingDate: z.iso.date('Format de date invalide'),
-        dueDate: z.iso.date('Format de date invalide').nullable(),
-        positionStartDate: z.iso.date('Format de date invalide').nullable(),
+        date: z.iso.date(invalidDate),
+        observationsClosingDate: z.iso.date(invalidDate),
+        dueDate: z.iso.date(invalidDate).nullable(),
+        positionStartDate: z.iso.date(invalidDate).nullable(),
       }),
     ),
     defaultValues: {
@@ -78,7 +82,9 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
           );
         },
         onError: () => {
-          setError(`root`, { message: 'Erreur lors de la modification de la transparence' });
+          setError(`root`, {
+            message: formatMessage({ defaultMessage: 'Erreur lors de la modification de la transparence' }),
+          });
         },
       },
     );
@@ -86,29 +92,32 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
 
   return (
     <form className="m-auto w-full max-w-120" onSubmit={handleSubmit(onSubmit)}>
-      {session ? <h1>Éditer "{session?.name}"</h1> : <h1>Éditer la transparence</h1>}
+      <h1>
+        <FormattedMessage defaultMessage='Éditer "{name}"' values={{ name: session.name }} />
+      </h1>
       {errors.root && (
-        <Alert className="fr-mb-2v" severity="error" title={errors.root.message} small description="" />
+        <Alert className="fr-mb-2v" description="" severity="error" small title={errors.root.message} />
       )}
 
       <Controller
-        name="name"
         control={control}
-        render={({ field: { value, onChange, ...field } }) => (
+        name="name"
+        render={({ field: { onChange, value, ...field } }) => (
           <Input
             className="w-full"
+            id="nom-transparence"
             label={
               <>
-                Nom de la transparence<span className="text-(--text-default-error)">*</span>
+                <FormattedMessage defaultMessage="Nom de la transparence" />
+                <span className="text-(--text-default-error)">*</span>
               </>
             }
-            id="nom-transparence"
             nativeInputProps={{
-              value,
-              onChange,
               autoFocus: true,
+              onChange,
+              value,
               ...field,
-              placeholder: 'Nom de la transparence',
+              placeholder: formatMessage({ defaultMessage: 'Nom de la transparence' }),
             }}
             state={errors.name ? 'error' : 'default'}
             stateRelatedMessage={errors.name?.message}
@@ -116,21 +125,22 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
         )}
       />
       <Controller
-        name="date"
         control={control}
-        render={({ field: { value, onChange, ...field } }) => (
+        name="date"
+        render={({ field: { onChange, value, ...field } }) => (
           <Input
             className="w-full"
+            id="date-transparence"
             label={
               <>
-                Date de la transparence<span className="text-(--text-default-error)">*</span>
+                <FormattedMessage defaultMessage="Date de la transparence" />
+                <span className="text-(--text-default-error)">*</span>
               </>
             }
-            id="date-transparence"
             nativeInputProps={{
+              onChange,
               type: 'date',
               value,
-              onChange,
               ...field,
             }}
             state={errors.date ? 'error' : 'default'}
@@ -140,21 +150,22 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
       />
 
       <Controller
-        name="observationsClosingDate"
         control={control}
-        render={({ field: { value, onChange, ...field } }) => (
+        name="observationsClosingDate"
+        render={({ field: { onChange, value, ...field } }) => (
           <Input
             className="w-full"
+            id="date-cloture-delai-observation"
             label={
               <>
-                Clôture du délai d'observation<span className="text-(--text-default-error)">*</span>
+                <FormattedMessage defaultMessage="Clôture du délai d'observation" />
+                <span className="text-(--text-default-error)">*</span>
               </>
             }
-            id="date-cloture-delai-observation"
             nativeInputProps={{
+              onChange,
               type: 'date',
               value,
-              onChange,
               ...field,
             }}
             state={errors.observationsClosingDate ? 'error' : 'default'}
@@ -163,17 +174,17 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
         )}
       />
       <Controller
-        name="dueDate"
         control={control}
-        render={({ field: { value, onChange, ...field } }) => (
+        name="dueDate"
+        render={({ field: { onChange, value, ...field } }) => (
           <Input
             className="w-full"
-            label="Date d'échéance"
             id="date-echeance"
+            label={<FormattedMessage defaultMessage="Date d'échéance" />}
             nativeInputProps={{
+              onChange,
               type: 'date',
               value: value ?? undefined,
-              onChange,
               ...field,
             }}
             state={errors.dueDate ? 'error' : 'default'}
@@ -182,17 +193,17 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
         )}
       />
       <Controller
-        name="positionStartDate"
         control={control}
-        render={({ field: { value, onChange, ...field } }) => (
+        name="positionStartDate"
+        render={({ field: { onChange, value, ...field } }) => (
           <Input
             className="w-full"
-            label="Date de prise de poste"
             id="date-prise-de-poste"
+            label={<FormattedMessage defaultMessage="Date de prise de poste" />}
             nativeInputProps={{
+              onChange,
               type: 'date',
               value: value ?? undefined,
-              onChange,
               ...field,
             }}
             state={errors.positionStartDate ? 'error' : 'default'}
@@ -201,20 +212,20 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
         )}
       />
       <ButtonsGroup
-        inlineLayoutWhen="always"
         buttons={[
           {
+            children: formatMessage({ defaultMessage: 'Annuler' }),
             id: 'annuler',
-            children: 'Annuler',
-            priority: 'tertiary',
             linkProps: { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id }) },
+            priority: 'tertiary',
           },
           {
+            children: formatMessage({ defaultMessage: 'Enregistrer' }),
             id: 'enregistrer',
-            children: 'Enregistrer',
             type: 'submit',
           },
         ]}
+        inlineLayoutWhen="always"
       />
     </form>
   );

@@ -9,6 +9,7 @@
 -- @param {String} $8:search?
 
 -- @param {String} $9:sessionId
+-- @param {Boolean} $10:missingEvaluation?
 
 SELECT COUNT(ddn.id)
 
@@ -72,5 +73,11 @@ WHERE (
 
   /* -- SEARCH -- */
   AND ($8::TEXT IS NULL OR ddn."search" @@ query)
+
+  /* -- MISSING EVALUATION -- */
+  AND (
+    /* missingEvaluation */$10::BOOLEAN IS NULL
+    OR ddn.missing_evaluation = /* missingEvaluation */$10::BOOLEAN
+  )
 )
 

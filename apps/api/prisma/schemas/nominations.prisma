@@ -60,6 +60,8 @@ model DossierDeNomination {
   outcomeComment    String?                          @map("outcome_comment")
   missingEvaluation Boolean                          @default(false) @map("missing_evaluation")
 
+  missingEvaluationComment String? @map("missing_evaluation_comment")
+
   number  Int?
   dueDate DateTime? @map("due_date") @db.Date
 

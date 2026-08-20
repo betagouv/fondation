@@ -136,6 +136,12 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
 
       return HttpResponse.json<NominationFilesStatusCountDto>({
         inProgress: files.filter(({ content, reporters }) => reporters.length && !content.outcome).length,
+        missingEvaluation: files.filter(({ missingEvaluation }) => missingEvaluation).length,
+        missingEvaluationWithComment: files.filter(
+          ({ missingEvaluation, missingEvaluationComment }) =>
+            missingEvaluation && !!missingEvaluationComment,
+        ).length,
+        total: files.length,
         unaffected: files.filter(({ reporters }) => !reporters.length).length,
         withOutcome: files.filter(({ content }) => !!content.outcome).length,
       });

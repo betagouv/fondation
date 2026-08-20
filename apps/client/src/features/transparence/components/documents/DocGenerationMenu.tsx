@@ -8,10 +8,15 @@ import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries'
 
 export function DocGenerationMenu(props: { sessionId: string }) {
   const { formatMessage } = useIntl();
-  const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId: props.sessionId });
+  const { data: readiness } = useIsSessionReadyForDocGenerationQuery({
+    sessionId: props.sessionId,
+  });
 
   const officialReportPath = useMemo(
-    () => generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId }),
+    () =>
+      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, {
+        sessionId: props.sessionId,
+      }),
     [props.sessionId],
   );
 
@@ -20,7 +25,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
 
   return (
     <MenuRoot>
-      <MenuTrigger iconId="fr-icon-folder-2-line" priority="tertiary no outline" size="small">
+      <MenuTrigger className="py-2!" iconId="fr-icon-folder-2-line" priority="primary" size="small">
         <FormattedMessage defaultMessage="Générer la documentation" />
         <i aria-hidden className="fr-icon-arrow-down-s-line fr-icon--sm fr-ml-1v" />
       </MenuTrigger>

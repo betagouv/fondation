@@ -9,6 +9,11 @@ import * as axeMatchers from 'vitest-axe/matchers';
 // Cast needed: setLink's props union includes an href-only variant that react-router's Link rejects
 setLink({ Link: Link as unknown as Parameters<typeof setLink>[0]['Link'] });
 
+// startReactDsfr installs the imperative `window.dsfr` runtime in the browser, jsdom has none,
+// so createModal().open()/close() would throw. Modals render their content whether open or not,
+// hence queries with `{ hidden: true }`
+Object.assign(window, { dsfr: () => ({ modal: { conceal: () => {}, disclose: () => {} } }) });
+
 expect.extend(axeMatchers);
 
 declare module 'vitest' {

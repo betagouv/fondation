@@ -61,9 +61,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@queries': resolve(__dirname, 'src/queries'),
-      '@api': resolve(__dirname, 'src/generated/api'),
-      '@': resolve(__dirname, 'src'),
+      '@queries': resolve(import.meta.dirname, 'src/queries'),
+      '@api': resolve(import.meta.dirname, 'src/generated/api'),
+      '@': resolve(import.meta.dirname, 'src'),
     },
   },
 });

@@ -1,7 +1,8 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import clsx from 'clsx';
-import { useCallback, useRef, useState } from 'react';
+import { type ChangeEvent, useCallback, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 
 import { useAlerts } from '@/shared/context/alerts';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
@@ -12,6 +13,7 @@ export const modal = createModal({
 });
 
 export const ImportAttachmentModal = (props: { sessionId: string }) => {
+  const { formatMessage } = useIntl();
   const alerts = useAlerts();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -19,7 +21,7 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
   const { mutate: importAttachments, isPending } = useAddNominationSessionAttachmentMutation();
 
   const onChangeAttachmentFile = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
       if (e.target.files && e.target.files.length > 0) {
         setAttachmentFiles(e.target.files);
@@ -44,43 +46,54 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
           inputRef.current.files = null;
         },
         onSuccess: () => {
-          alerts.pushAlert({ severity: 'success', title: 'Données actualisées' });
+          alerts.pushAlert({
+            severity: 'success',
+            title: formatMessage({ defaultMessage: 'Données actualisées' }),
+          });
 
           setAttachmentFiles(null);
           modal.close();
         },
-        onError: (error: Error) => {
-          console.error("Erreur lors de l'import de la pièce jointe:", error);
+        onError: () => {
+          alerts.pushAlert({
+            severity: 'error',
+            title: formatMessage({ defaultMessage: "L'import des pièces jointes a échoué" }),
+            description: formatMessage({
+              defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+            }),
+          });
         },
       },
     );
-  }, [attachmentFiles, setAttachmentFiles, props, importAttachments, alerts, inputRef]);
+  }, [attachmentFiles, setAttachmentFiles, props, importAttachments, alerts, formatMessage, inputRef]);
 
   return (
     <modal.Component
-      title={'Importer des pièces jointes'}
       buttons={[
         {
+          children: isPending
+            ? formatMessage({ defaultMessage: 'Import en cours...' })
+            : formatMessage({ defaultMessage: 'Importer' }),
           doClosesModal: false,
-          children: isPending ? 'Import en cours...' : 'Importer',
           nativeButtonProps: {
-            onClick: handleImportAttachment,
             disabled: !attachmentFiles || isPending,
+            onClick: handleImportAttachment,
           },
         },
       ]}
+      title={formatMessage({ defaultMessage: 'Importer des pièces jointes' })}
     >
       <div className={clsx('gap-8', 'fr-grid-row')}>
         <Upload
-          multiple
-          id="import-observations-transparence"
-          nativeInputProps={{
-            ref: inputRef,
-            onChange: onChangeAttachmentFile,
-            disabled: isPending,
-          }}
           hint={null}
+          id="import-observations-transparence"
           label={null}
+          multiple
+          nativeInputProps={{
+            disabled: isPending,
+            onChange: onChangeAttachmentFile,
+            ref: inputRef,
+          }}
         />
       </div>
     </modal.Component>

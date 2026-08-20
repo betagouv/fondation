@@ -18,6 +18,7 @@ import {
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
   SessionTransparenceFileReportersAffected,
@@ -724,7 +725,63 @@ describe('SessionTransparence', () => {
 
     expect(session.messages).toEqual([
       new SessionTransparenceFileMissingEvaluationUpdated('session-id', 'nomination-file-id-1', false),
+      new SessionTransparenceFileMissingEvaluationCommentUpdated('session-id', 'nomination-file-id-1', null),
     ]);
+  });
+
+  it('should comment a missing evaluation on a nomination file', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: 'SIEGE',
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: null,
+          docs: [],
+        },
+      ],
+    });
+
+    session.updateMissingEvaluationComment({
+      nominationFileId: 'nomination-file-id-1',
+      comment: 'Relancée le 12 août',
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceFileMissingEvaluationCommentUpdated(
+        'session-id',
+        'nomination-file-id-1',
+        'Relancée le 12 août',
+      ),
+    ]);
+  });
+
+  it('should throw when commenting a missing evaluation on a file whose decision is final', () => {
+    const session = SessionTransparence.from({
+      id: 'session-id',
+      formation: 'SIEGE',
+      version: null,
+      nominationFiles: [
+        {
+          id: 'nomination-file-id-1',
+          outcome: 'VALIDATED',
+          docs: [
+            {
+              agenda: { id: 'a1', outcome: 'SUSPENDED' },
+              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(() =>
+      session.updateMissingEvaluationComment({
+        nominationFileId: 'nomination-file-id-1',
+        comment: 'Relancée le 12 août',
+      }),
+    ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should throw when flagging a missing evaluation on a file whose decision is final', () => {

@@ -7,6 +7,7 @@ import type {
   ListedMemberSessionsDto,
   ListMembersData,
   UpdateAuditionDateDto,
+  UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
 } from '@api/types';
 
@@ -254,11 +255,17 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
         body: { missingEvaluation: mutation.missingEvaluation },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId, missingEvaluation }) => {
+    onSuccess: async (_, { sessionId, nominationFileId, missingEvaluation }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
-          file.id === nominationFileId ? { ...file, missingEvaluation } : file,
+          file.id === nominationFileId
+            ? {
+                ...file,
+                missingEvaluation,
+                missingEvaluationComment: missingEvaluation ? file.missingEvaluationComment : null,
+              }
+            : file,
         ),
       );
 
@@ -266,6 +273,42 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
         summaryKeys.detailsSummary({ sessionId, nominationFileId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, missingEvaluation } : old),
       );
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
+        }),
+      ]);
+    },
+  });
+}
+
+export function useUpdateNominationFileMissingEvaluationCommentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateMissingEvaluationCommentDto & { sessionId: string; nominationFileId: string },
+    ) => {
+      await $api.sessions.updateNominationFileMissingEvaluationComment({
+        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
+        body: { comment: mutation.comment },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, comment }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId ? { ...file, missingEvaluationComment: comment } : file,
+        ),
+      );
+
+      return queryClient.invalidateQueries({
+        queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
+      });
     },
   });
 }

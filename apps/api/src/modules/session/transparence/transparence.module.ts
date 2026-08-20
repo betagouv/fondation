@@ -27,6 +27,7 @@ import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/i
 import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { ListMissingEvaluationsAsExcelQuery } from './infrastructure/queries/list-missing-evaluations-as-excel.query';
 import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
@@ -62,6 +63,7 @@ import { SessionController } from './transparence.controller';
     InternalListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,
     ListNominationFileAttachmentsQuery,
+    ListMissingEvaluationsAsExcelQuery,
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,

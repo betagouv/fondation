@@ -141,14 +141,22 @@ export class Files implements OnApplicationBootstrap {
           return Promise.resolve({
             ...publicUrl,
             fileId: file.id,
-            publicUrl: new URL(`${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`),
+            publicUrl: new URL(`${this.config.originUrl}/api/files/v1/${publicUrl.id}`),
             existing: true,
           });
         }
 
         return this.generatePublicUrl(file);
       }),
-    ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
+    ).then((result) => {
+      for (const outcome of result) {
+        if (outcome.status === 'rejected') {
+          this.logger.error(`failed to build a public url`, outcome.reason);
+        }
+      }
+
+      return result.filter(isFulfilled).map(({ value }) => value);
+    });
 
     await this.db.tx.filePublicUrl.createMany({
       data: publicUrls
@@ -466,7 +474,7 @@ export class Files implements OnApplicationBootstrap {
     fileId: string;
   }> {
     const id = makeId('FilePublicUrlId');
-    const publicUrl = new URL(`${process.env.ORIGIN_URL}/api/files/v1/${id}`);
+    const publicUrl = new URL(`${this.config.originUrl}/api/files/v1/${id}`);
     const expiresAt = new Date(this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS);
     const url = new URL(
       await getSignedUrl(

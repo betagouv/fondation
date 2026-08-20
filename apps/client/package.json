@@ -15,7 +15,7 @@
     "types:check:test": "tsc --noEmit -p ./tsconfig.vitest.json",
     "test": "vitest",
     "test:watch": "vitest",
-    "update-icons": "react-dsfr update-icons",
+    "update-icons": "react-dsfr update-icons --silent",
     "predev": "pnpm run update-icons && rm -rf node_modules/.vite-app",
     "prebuild": "pnpm run update-icons",
     "storybook": "storybook dev -p 6006",

@@ -16,12 +16,11 @@ import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListedNominationFileAttachmentDto,
+  ListMissingEvaluationsAsExcelData,
   ListNominationFilesAsExcelData,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
-  NoneAffectationVersion,
   PaginatedNominationFiles,
-  SomeAffectationVersion,
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
@@ -107,10 +106,7 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
     queryFn: () =>
       $api.sessions
         .detailNominationSessionAffectationsVersion({ path: { sessionId } })
-        // FIXME: broken type generation with oneOf
-        // https://github.com/hey-api/openapi-ts/issues/3270
-        // ☝️ this is an AI responding...
-        .then(({ data = null }) => data as SomeAffectationVersion | NoneAffectationVersion | null),
+        .then(({ data = null }) => data),
   });
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
@@ -124,16 +120,17 @@ function selectSessionNominationFiles(data: InfiniteData<PaginatedNominationFile
   };
 }
 
+export type SessionNominationFilesFilters = {
+  missingEvaluation?: boolean;
+  reporterIds?: string[];
+  priorities?: (PrioriteEnum | 'null')[];
+  outcomes?: (NominationFileOutcomeEnum | null)[];
+  search?: string | null;
+};
+
 export const useInfiniteSessionNominationFilesQuery = (options: {
   sessionId: string;
-  filters:
-    | {
-        reporterIds?: string[];
-        priorities?: (PrioriteEnum | 'null')[];
-        outcomes?: (NominationFileOutcomeEnum | null)[];
-        search?: string | null;
-      }
-    | undefined;
+  filters: SessionNominationFilesFilters | undefined;
   sorting: [] | [{ id: NonNullable<ListNominationFilesData['query']>['sortBy']; desc: boolean }] | undefined;
 }) =>
   useInfiniteQuery({
@@ -149,6 +146,7 @@ export const useInfiniteSessionNominationFilesQuery = (options: {
           query: {
             limit: SESSION_NOMINATION_FILES_PAGE_SIZE,
             page: pageParam,
+            missingEvaluation: options.filters?.missingEvaluation,
             sortBy: options.sorting?.[0]?.id,
             sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
             priorities: options.filters?.priorities,
@@ -624,6 +622,27 @@ export const useListNominationFilesAsExcelMutation = () =>
       const url = client.buildUrl<ListNominationFilesAsExcelData>({
         url: '/api/sessions/v2/{sessionId}/files.xlsx',
         path: { sessionId },
+        baseUrl: getBaseUrl(),
+      });
+
+      const $a = document.createElement('a');
+      $a.href = url;
+      $a.target = '_blank';
+      $a.rel = 'noopener';
+      $a.style.display = 'none';
+
+      document.body.appendChild($a);
+      $a.click();
+      $a.remove();
+    },
+  });
+
+export const useListMissingEvaluationsAsExcelMutation = () =>
+  useMutation({
+    mutationFn: async (options: { sessionId: string }): Promise<void> => {
+      const url = client.buildUrl<ListMissingEvaluationsAsExcelData>({
+        url: '/api/sessions/v2/{sessionId}/files/missing-evaluations.xlsx',
+        path: { sessionId: options.sessionId },
         baseUrl: getBaseUrl(),
       });
 
