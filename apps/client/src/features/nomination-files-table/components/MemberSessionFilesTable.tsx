@@ -6,8 +6,8 @@ import type { SessionOutcome } from '../context/files-table.context';
 import { MemberReportsProvider } from '../context/MemberReportsProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
-import { SessionCount } from '@/features/transparence/components/session/SessionSummary';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { TotalBadge } from '@/shared/ui/total-badge';
 import type { FormationEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -103,9 +103,9 @@ function MemberSessionFilesTableInner(props: PropsWithChildren<{ filtersEnd?: Re
       columns={columns}
       filtersEnd={props.filtersEnd}
       summary={({ totalCount }) => (
-        <SessionCount count={totalCount}>
+        <TotalBadge value={totalCount}>
           <FormattedMessage defaultMessage="Total" />
-        </SessionCount>
+        </TotalBadge>
       )}
     >
       {props.children}

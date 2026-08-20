@@ -58,6 +58,52 @@ test.describe('Session Affectations E2E', () => {
     expect(files.data!.totalCount).toBe(files.data!.items.length);
   });
 
+  test('counts the nomination files by status along the affectation', async ({ agent, expect }) => {
+    const counts = async () => {
+      const { data } = await agent.sessions.countNominationFilesByStatus({ path: { sessionId } });
+      return data!;
+    };
+
+    expect(await counts()).toEqual({
+      inProgress: 0,
+      missingEvaluation: 0,
+      missingEvaluationWithComment: 0,
+      total: 1,
+      unaffected: 1,
+      withOutcome: 0,
+    });
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
+      throwOnError: true,
+    });
+
+    expect(await counts()).toEqual({
+      inProgress: 1,
+      missingEvaluation: 0,
+      missingEvaluationWithComment: 0,
+      total: 1,
+      unaffected: 0,
+      withOutcome: 0,
+    });
+
+    await agent.sessions.defineNominationFileOutcome({
+      path: { sessionId, nominationFileId },
+      body: { comment: null, outcome: 'VALIDATED' },
+      throwOnError: true,
+    });
+
+    expect(await counts()).toEqual({
+      inProgress: 0,
+      missingEvaluation: 0,
+      missingEvaluationWithComment: 0,
+      total: 1,
+      unaffected: 0,
+      withOutcome: 1,
+    });
+  });
+
   test('the affectation lifecycle preserves the report edition', async ({ agent, member, expect }) => {
     await agent.sessions.affectReporters({
       path: { sessionId },

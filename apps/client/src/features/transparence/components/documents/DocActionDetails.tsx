@@ -44,8 +44,6 @@ export function DocActionDetails(props: {
     const documentTab = tab.openDeferred();
     setIsActing(true);
 
-    // the table remounts its cells while the request is in flight, which detaches
-    // the mutation observer and drops mutate() callbacks; the promise survives it
     const details =
       doc.type === 'agenda'
         ? openAgenda({ sessionId, agendaId: doc.id })

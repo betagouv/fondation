@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Outlet, useParams } from 'react-router';
 
-import * as importAttachments from '@/features/transparence/components/attachments/ImportAttachmentModal';
+import { ImportAttachmentModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
 import { SessionTabsBar } from '@/features/transparence/components/session/SessionTabs';
 import { SessionValidationBanner } from '@/features/transparence/components/session/SessionValidationBanner';
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
@@ -69,7 +69,7 @@ export function TransparencePage() {
 
         <div className={'flex flex-col gap-8 overflow-x-clip'}>
           <div className="fr-container flex justify-between gap-x-6">
-            <importAttachments.ImportAttachmentModal sessionId={transparence.id} />
+            <ImportAttachmentModal sessionId={transparence.id} />
 
             <TableauDeBordResume {...transparence} />
           </div>

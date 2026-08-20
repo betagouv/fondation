@@ -1,9 +1,10 @@
 import { parseAsArrayOf, parseAsString, useQueryState } from 'nuqs';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext, useParams } from 'react-router';
 
+import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { DocActionAgendaFiles } from '@/features/transparence/components/documents/DocActionAgendaFiles';
 import { DocActionAgendaMetadata } from '@/features/transparence/components/documents/DocActionAgendaMetadata';
 import { DocActionDelete } from '@/features/transparence/components/documents/DocActionDelete';
@@ -11,10 +12,10 @@ import { DocActionDetails } from '@/features/transparence/components/documents/D
 import { DocActionUpdate } from '@/features/transparence/components/documents/DocActionUpdate';
 import { DocGenerationMenu } from '@/features/transparence/components/documents/DocGenerationMenu';
 import { SessionDocumentsTable } from '@/features/transparence/components/documents/SessionDocumentsTable';
-import { SessionCount, SessionStatusBadge } from '@/features/transparence/components/session/SessionSummary';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { SearchInput } from '@/shared/ui/search-input';
+import { TotalBadge } from '@/shared/ui/total-badge';
 import { unaccent } from '@/utils/string.utils';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 
@@ -32,12 +33,7 @@ export function TransparenceDocumentsTab() {
   const { isArchived } = useArchivedSession();
   const { filtersSlot } = useOutletContext<TransparenceOutletContext>();
 
-  const [currentlyActing, setCurrentlyActing] = useState<Record<string, boolean>>({});
-  const isActing = useMemo(() => Object.values(currentlyActing).some((x) => x), [currentlyActing]);
-  const setIsActing = useCallback(
-    (id: string) => (acting: boolean) => setCurrentlyActing((s) => ({ ...s, [id]: acting })),
-    [],
-  );
+  const [isActing, setIsActing] = useState(false);
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [types, setTypes] = useQueryState('type', parseAsArrayOf(parseAsString).withDefault([]));
@@ -98,16 +94,16 @@ export function TransparenceDocumentsTab() {
 
       <div className="flex min-h-10 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <SessionStatusBadge sessionId={sessionId!} />
-          <SessionCount count={allDocs.length}>
+          <AffectationVersionStatusBadge sessionId={sessionId!} />
+          <TotalBadge value={allDocs.length}>
             <FormattedMessage defaultMessage="Total" />
-          </SessionCount>
-          <SessionCount count={allDocs.filter(({ type }) => type === 'agenda').length}>
+          </TotalBadge>
+          <TotalBadge value={allDocs.filter(({ type }) => type === 'agenda').length}>
             <FormattedMessage defaultMessage="ODJ" />
-          </SessionCount>
-          <SessionCount count={allDocs.filter(({ type }) => type === 'officialReport').length}>
+          </TotalBadge>
+          <TotalBadge value={allDocs.filter(({ type }) => type === 'officialReport').length}>
             <FormattedMessage defaultMessage="PV" />
-          </SessionCount>
+          </TotalBadge>
         </div>
 
         {!isArchived && <DocGenerationMenu sessionId={sessionId!} />}
@@ -142,12 +138,7 @@ export function TransparenceDocumentsTab() {
         }
         docs={items}
         renderName={(doc) => (
-          <DocActionDetails
-            disabled={isActing}
-            doc={doc}
-            sessionId={sessionId!}
-            setIsActing={setIsActing('details')}
-          />
+          <DocActionDetails disabled={isActing} doc={doc} sessionId={sessionId!} setIsActing={setIsActing} />
         )}
       />
     </div>

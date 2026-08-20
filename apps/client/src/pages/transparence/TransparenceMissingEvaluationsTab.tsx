@@ -16,6 +16,7 @@ export function TransparenceMissingEvaluationsTab() {
 
   return (
     <MissingEvaluationsTable
+      canManage={!transparence.isArchived}
       filtersSlot={filtersSlot}
       formation={transparence.formation}
       outcomes={transparence.outcomes}

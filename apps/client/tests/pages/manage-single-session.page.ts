@@ -272,12 +272,25 @@ export class ManageSingleSessionPage {
     return modal;
   }
 
-  startAgendaGeneration(): Promise<GenerateAgendaPage> {
+  get documentsTab(): Locator {
+    return this.app.page.getByRole('link', { name: /^Documents?\b/ });
+  }
+
+  async goToDocumentsTab(): Promise<void> {
+    await this.documentsTab.click();
+    await this.app.page.waitForURL(/secretariat-general\/session\/[^/]+\/documents/);
+  }
+
+  async startAgendaGeneration(): Promise<GenerateAgendaPage> {
+    await this.goToDocumentsTab();
+
     const page = new GenerateAgendaPage(this.app);
     return page.goto();
   }
 
-  startOfficialReportGeneration(): Promise<GenerateOfficialReportPage> {
+  async startOfficialReportGeneration(): Promise<GenerateOfficialReportPage> {
+    await this.goToDocumentsTab();
+
     const page = new GenerateOfficialReportPage(this.app);
     return page.goto();
   }

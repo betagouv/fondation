@@ -260,7 +260,11 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
           file.id === nominationFileId
-            ? { ...file, missingEvaluation, missingEvaluationComment: null }
+            ? {
+                ...file,
+                missingEvaluation,
+                missingEvaluationComment: missingEvaluation ? file.missingEvaluationComment : null,
+              }
             : file,
         ),
       );

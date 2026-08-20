@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
-import { NominationFilesAffectationsStatus } from '@/features/nomination-files-table/components/NominationFilesAffectationsStatus';
+import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { SessionFilesTable } from '@/features/nomination-files-table/components/SessionFilesTable';
 import {
   useNominationFilesTable,
@@ -12,10 +12,10 @@ import {
 } from '@/features/nomination-files-table/context/files-table.context';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/useSessionFilesFilters';
-import { SessionCount } from '@/features/transparence/components/session/SessionSummary';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { rowCell } from '@/shared/ui/new-table';
+import { TotalBadge } from '@/shared/ui/total-badge';
 import type { FormationEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -152,16 +152,16 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
       summary={() => (
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <NominationFilesAffectationsStatus />
-            <SessionCount count={counts?.missingEvaluation ?? 0}>
+            <AffectationVersionStatusBadge sessionId={props.sessionId} />
+            <TotalBadge value={counts?.missingEvaluation ?? 0}>
               <FormattedMessage defaultMessage="Total" />
-            </SessionCount>
-            <SessionCount count={counts?.missingEvaluationWithComment ?? 0}>
+            </TotalBadge>
+            <TotalBadge value={counts?.missingEvaluationWithComment ?? 0}>
               <FormattedMessage
                 defaultMessage="{count, plural, one {Commentaire} other {Commentaires}}"
                 values={{ count: counts?.missingEvaluationWithComment ?? 0 }}
               />
-            </SessionCount>
+            </TotalBadge>
           </div>
 
           <Button
@@ -182,6 +182,7 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
 }
 
 export function MissingEvaluationsTable(props: {
+  canManage: boolean;
   filtersSlot: Element | null;
   formation: FormationEnum;
   outcomes: readonly SessionOutcome[];
@@ -189,6 +190,7 @@ export function MissingEvaluationsTable(props: {
 }) {
   return (
     <NominationFilesTableProvider
+      canManage={props.canManage}
       formation={props.formation}
       outcomes={props.outcomes}
       sessionId={props.sessionId}

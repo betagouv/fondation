@@ -7,19 +7,17 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext, useParams } from 'react-router';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
-import * as importAttachments from '@/features/transparence/components/attachments/ImportAttachmentModal';
+import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
+import { modal as importAttachmentsModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
 import { SessionAttachmentsTable } from '@/features/transparence/components/attachments/SessionAttachmentsTable';
-import {
-  SessionCount,
-  SessionSize,
-  SessionStatusBadge,
-} from '@/features/transparence/components/session/SessionSummary';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { useTab } from '@/shared/hooks/useTab';
 import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { IconButton } from '@/shared/ui/icon-button';
 import { SearchInput } from '@/shared/ui/search-input';
+import { TotalBadge } from '@/shared/ui/total-badge';
+import { formatFileSize } from '@/utils/file.utils';
 import { unaccent } from '@/utils/string.utils';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
@@ -54,15 +52,20 @@ export function TransparenceAttachmentsTab() {
   const { mutate: deleteAttachment } = useRemoveNominationSessionAttachmentMutation();
 
   const onOpen = useCallback(
-    (fileId: string) =>
+    (fileId: string) => {
+      const attachmentTab = tab.openDeferred();
+
       createUrl(
         { fileId, sessionId: sessionId! },
         {
+          onError: () => attachmentTab.cancel(),
           onSuccess: (response) => {
-            if (response) tab.open(response.url);
+            if (response) attachmentTab.settle(response.url);
+            else attachmentTab.cancel();
           },
         },
-      ),
+      );
+    },
     [createUrl, sessionId, tab],
   );
 
@@ -138,20 +141,20 @@ export function TransparenceAttachmentsTab() {
 
       <div className="flex min-h-10 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <SessionStatusBadge sessionId={sessionId!} />
-          <SessionCount count={allAttachments.length}>
+          <AffectationVersionStatusBadge sessionId={sessionId!} />
+          <TotalBadge value={allAttachments.length}>
             <FormattedMessage defaultMessage="Total" />
-          </SessionCount>
-          <SessionSize sizeInBytes={totalSizeInBytes}>
+          </TotalBadge>
+          <TotalBadge value={totalSizeInBytes > 0 ? formatFileSize(totalSizeInBytes) : 0}>
             <FormattedMessage defaultMessage="Taille" />
-          </SessionSize>
+          </TotalBadge>
         </div>
 
         {!isArchived && (
           <Button
             className="py-2!"
             iconId="fr-icon-add-line"
-            nativeButtonProps={importAttachments.modal.buttonProps}
+            nativeButtonProps={importAttachmentsModal.buttonProps}
             priority="primary"
             size="small"
           >

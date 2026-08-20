@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { countNominationFilesByStatusRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -14,74 +15,20 @@ export class CountNominationFilesByStatusQuery {
   ) {}
 
   async handle(query: { sessionId: string }): Promise<NominationFilesStatusCountDto> {
-    const [unaffected, inProgress, withOutcome, total, missingEvaluation, missingEvaluationWithComment] =
-      await this.db.withTransaction(async () => {
-        const version = await this.versionFinder.last({ sessionId: query.sessionId });
-        return [
-          await this.db.tx.dossierDeNomination.count({
-            where: {
-              outcome: null,
-              sessionId: query.sessionId,
-              reporterIds: {
-                none: version.map({
-                  /** @warning the '{}' matches files without any reporter, regardless of the version */
-                  none: () => ({}),
+    const [counts] = await this.db.withTransaction(async () => {
+      const version = await this.versionFinder.last({ sessionId: query.sessionId });
 
-                  some: ({ id: versionId }) => ({ versionId }),
-                }),
-              },
-            },
-          }),
+      return this.db.tx.$queryRawTyped(
+        countNominationFilesByStatusRawQuery(
+          query.sessionId,
+          version.optionalId ?? null,
+          NominationFileOutcome.nonFinalOutcomes(),
+          NominationFileOutcome.finalOutcomes(),
+        ),
+      );
+    });
 
-          await version.map({
-            none: async () => 0,
-            some: ({ id: versionId }) =>
-              this.db.tx.dossierDeNomination.count({
-                where: {
-                  sessionId: query.sessionId,
-                  OR: [
-                    { outcome: { in: NominationFileOutcome.nonFinalOutcomes() } },
-                    { outcome: null, reporterIds: { some: { versionId } } },
-                  ],
-                },
-              }),
-          }),
-
-          await version.map({
-            none: async () => 0,
-            some: () =>
-              this.db.tx.dossierDeNomination.count({
-                where: {
-                  sessionId: query.sessionId,
-                  outcome: { in: NominationFileOutcome.finalOutcomes() },
-                },
-              }),
-          }),
-
-          await this.db.tx.dossierDeNomination.count({ where: { sessionId: query.sessionId } }),
-
-          await this.db.tx.dossierDeNomination.count({
-            where: { missingEvaluation: true, sessionId: query.sessionId },
-          }),
-
-          await this.db.tx.dossierDeNomination.count({
-            where: {
-              missingEvaluation: true,
-              missingEvaluationComment: { not: null },
-              sessionId: query.sessionId,
-            },
-          }),
-        ] as const;
-      });
-
-    return {
-      unaffected,
-      inProgress,
-      withOutcome,
-      total,
-      missingEvaluation,
-      missingEvaluationWithComment,
-    };
+    return NominationFilesStatusCountDto.schema.parse(counts);
   }
 }
 

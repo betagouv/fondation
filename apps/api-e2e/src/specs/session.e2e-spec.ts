@@ -437,6 +437,41 @@ test.describe('Session E2E', () => {
       expect(await commentOf(nominationFileId)).toBeNull();
     });
 
+    test('should count the missing evaluations and the ones already commented', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const counts = async () => {
+        const { data } = await agent.sessions.countNominationFilesByStatus({
+          path: { sessionId: session.id },
+        });
+        return data!;
+      };
+
+      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const nominationFileId = initial.data!.items[0]!.id;
+      const total = initial.data!.totalCount;
+
+      expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: true },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 0, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluationComment({
+        path: { sessionId: session.id, nominationFileId },
+        body: { comment: 'Relancée le 12 août' },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 1, total });
+
+      await agent.sessions.updateNominationFileMissingEvaluation({
+        path: { sessionId: session.id, nominationFileId },
+        body: { missingEvaluation: false },
+      });
+      expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
+    });
+
     test('should not report an empty summary', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 

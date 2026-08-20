@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
-import type { SessionOutcome } from '../context/files-table.context';
+import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
@@ -10,13 +10,13 @@ import { rowCell } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+import { AffectationVersionStatusBadge } from './AffectationVersionStatusBadge';
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';
 import { NominationFileOutcome } from './cells/nomination-file-outcome/NominationFileOutcome';
 import { NominationFileStatusCell } from './cells/NominationFileStatusCell';
 import { ObservantsCell } from './cells/observations/ObservantsCell';
 import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
-import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
 import { NominationFilesExportButton } from './NominationFilesExportButton';
 import { NominationFilesPublishButton } from './NominationFilesPublishButton';
@@ -117,13 +117,14 @@ function useSgSessionFilesColumns() {
 }
 
 function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Element | null }>) {
+  const { sessionId } = useNominationFilesTable();
   const columns = useSgSessionFilesColumns();
 
   return (
     <SessionFilesTable columns={columns} filtersSlot={props.filtersSlot}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <NominationFilesAffectationsStatus />
+          <AffectationVersionStatusBadge sessionId={sessionId} />
           <NominationFilesStatusBadges />
         </div>
 
