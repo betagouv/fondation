@@ -202,6 +202,14 @@ class MagistratSidePanel {
     await this.deleteButton(name).click();
     await this.confirmDeleteButton.click();
   }
+
+  get missingEvaluationCheckbox(): Locator {
+    return this.dialog.getByRole('checkbox', { name: 'Évaluation manquante' });
+  }
+
+  async flagMissingEvaluation(): Promise<void> {
+    await this.missingEvaluationCheckbox.click({ force: true });
+  }
 }
 
 type MagistratTarget = string | { number: number } | { name: string };
@@ -293,5 +301,32 @@ export class ManageSingleSessionPage {
 
     const page = new GenerateOfficialReportPage(this.app);
     return page.goto();
+  }
+
+  get missingEvaluationsTab(): Locator {
+    return this.app.page.getByRole('link', { name: /^Évaluations? manquantes?\b/ });
+  }
+
+  async goToMissingEvaluationsTab(): Promise<void> {
+    await this.missingEvaluationsTab.click();
+    await this.app.page.waitForURL(/secretariat-general\/session\/[^/]+\/evaluations-manquantes/);
+  }
+
+  async commentMissingEvaluation(magistrat: string, comment: string): Promise<void> {
+    await this.sessionRow({ name: magistrat }).getByRole('button', { name: 'Ajouter' }).click();
+
+    const modal = this.app.page.locator('#missing-evaluation-comment');
+    await modal.getByRole('textbox').fill(comment);
+    await modal.getByRole('button', { name: 'Enregistrer' }).click();
+    await modal.waitFor({ state: 'hidden' });
+  }
+
+  async markMissingEvaluationAsDone(magistrat: string): Promise<void> {
+    await this.sessionRow({ name: magistrat }).getByRole('button', { name: 'Marquer comme ajoutée' }).click();
+
+    await this.app.page
+      .locator('#confirmation_modal')
+      .getByRole('button', { name: 'Confirmer', exact: true })
+      .click();
   }
 }

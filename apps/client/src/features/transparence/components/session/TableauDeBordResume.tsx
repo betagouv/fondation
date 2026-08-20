@@ -8,6 +8,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
+import { TransparenceActionsMenu } from './TransparenceActionsMenu';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
   const { isArchived } = useArchivedSession();
@@ -24,18 +25,22 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <TableauDeBordResumeDetails {...transparence} />
 
-        {!isArchived && (
-          <Button
-            iconId="fr-icon-settings-5-line"
-            linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
-            }}
-            priority="tertiary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Modifier" />
-          </Button>
-        )}
+        <div className="flex items-center gap-x-2">
+          {!isArchived && (
+            <Button
+              iconId="fr-icon-settings-5-line"
+              linkProps={{
+                to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
+              }}
+              priority="tertiary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Modifier" />
+            </Button>
+          )}
+
+          <TransparenceActionsMenu transparence={transparence} />
+        </div>
       </div>
     </div>
   );

@@ -93,8 +93,9 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
           "before:animate-spin before:content-['']": isMutationPending,
         })}
         disabled={isMutationPending}
-        iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-menu-fill'}
+        iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-more-2-fill'}
         priority="tertiary no outline"
+        size="small"
         title={formatMessage(
           { defaultMessage: 'Actions sur la transparence "{name}"' },
           { name: transparence.name },

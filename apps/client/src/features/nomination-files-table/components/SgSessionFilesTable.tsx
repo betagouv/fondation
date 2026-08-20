@@ -8,7 +8,10 @@ import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { rowCell } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import {
+  useListNominationFilesAsExcelMutation,
+  type SessionNominationFile,
+} from '@queries/nomination-sessions.queries';
 
 import { AffectationVersionStatusBadge } from './AffectationVersionStatusBadge';
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';
@@ -119,6 +122,7 @@ function useSgSessionFilesColumns() {
 function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Element | null }>) {
   const { sessionId } = useNominationFilesTable();
   const columns = useSgSessionFilesColumns();
+  const exportAsExcel = useListNominationFilesAsExcelMutation();
 
   return (
     <SessionFilesTable columns={columns} filtersSlot={props.filtersSlot}>
@@ -129,7 +133,10 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
         </div>
 
         <div className="flex items-center gap-2">
-          <NominationFilesExportButton />
+          <NominationFilesExportButton
+            disabled={exportAsExcel.isPending}
+            onExport={() => exportAsExcel.mutate({ sessionId })}
+          />
           <NominationFilesAutoAffectationButton />
           <NominationFilesPublishButton />
         </div>

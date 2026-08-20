@@ -120,17 +120,17 @@ function selectSessionNominationFiles(data: InfiniteData<PaginatedNominationFile
   };
 }
 
+export type SessionNominationFilesFilters = {
+  missingEvaluation?: boolean;
+  reporterIds?: string[];
+  priorities?: (PrioriteEnum | 'null')[];
+  outcomes?: (NominationFileOutcomeEnum | null)[];
+  search?: string | null;
+};
+
 export const useInfiniteSessionNominationFilesQuery = (options: {
   sessionId: string;
-  filters:
-    | {
-        missingEvaluation?: boolean;
-        reporterIds?: string[];
-        priorities?: (PrioriteEnum | 'null')[];
-        outcomes?: (NominationFileOutcomeEnum | null)[];
-        search?: string | null;
-      }
-    | undefined;
+  filters: SessionNominationFilesFilters | undefined;
   sorting: [] | [{ id: NonNullable<ListNominationFilesData['query']>['sortBy']; desc: boolean }] | undefined;
 }) =>
   useInfiniteQuery({

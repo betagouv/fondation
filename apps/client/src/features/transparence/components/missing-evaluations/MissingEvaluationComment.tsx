@@ -1,7 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { createContext, useCallback, useContext, useState, type PropsWithChildren } from 'react';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { createContext, useCallback, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
@@ -15,21 +16,18 @@ type EditedComment = { comment: string | null; magistrat: string; nominationFile
 const EditMissingEvaluationCommentContext = createContext<(edited: EditedComment) => void>(() => {});
 
 export function MissingEvaluationCommentProvider(props: PropsWithChildren<{ sessionId: string }>) {
-  const [edited, setEdited] = useState<{ edition: number; value: EditedComment } | null>(null);
+  const [edited, setEdited] = useState<EditedComment | null>(null);
 
   const edit = useCallback((next: EditedComment) => {
-    setEdited((previous) => ({ edition: (previous?.edition ?? 0) + 1, value: next }));
+    setEdited(next);
     modal.open();
   }, []);
 
   return (
     <EditMissingEvaluationCommentContext value={edit}>
       {props.children}
-      <MissingEvaluationCommentModal
-        edited={edited?.value ?? null}
-        key={edited?.edition ?? 0}
-        sessionId={props.sessionId}
-      />
+
+      <MissingEvaluationCommentModal edited={edited} sessionId={props.sessionId} />
     </EditMissingEvaluationCommentContext>
   );
 }
@@ -37,7 +35,13 @@ export function MissingEvaluationCommentProvider(props: PropsWithChildren<{ sess
 function MissingEvaluationCommentModal(props: { edited: EditedComment | null; sessionId: string }) {
   const { formatMessage } = useIntl();
   const { mutate, isPending, isError } = useUpdateNominationFileMissingEvaluationCommentMutation();
-  const [comment, setComment] = useState(props.edited?.comment ?? '');
+  const [comment, setComment] = useState('');
+
+  const isOpen = useIsModalOpen(modal);
+
+  useEffect(() => {
+    if (isOpen) setComment(props.edited?.comment ?? '');
+  }, [isOpen, props.edited]);
 
   const isUnchanged = (comment.trim() || null) === (props.edited?.comment ?? null);
 

@@ -2,7 +2,7 @@ import { parseAsArrayOf, parseAsString, useQueryState } from 'nuqs';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useOutletContext, useParams } from 'react-router';
+import { useOutletContext } from 'react-router';
 
 import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { DocActionAgendaFiles } from '@/features/transparence/components/documents/DocActionAgendaFiles';
@@ -29,16 +29,15 @@ function matchesSearch(name: string, search: string) {
 
 export function TransparenceDocumentsTab() {
   const { formatMessage } = useIntl();
-  const { sessionId } = useParams();
   const { isArchived } = useArchivedSession();
-  const { filtersSlot } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
 
   const [isActing, setIsActing] = useState(false);
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [types, setTypes] = useQueryState('type', parseAsArrayOf(parseAsString).withDefault([]));
 
-  const { data: docs } = useFindSessionDocsQuery({ sessionId: sessionId! });
+  const { data: docs } = useFindSessionDocsQuery({ sessionId: transparence.id });
 
   const allDocs = docs?.items ?? [];
   const items = allDocs.filter(
@@ -94,7 +93,7 @@ export function TransparenceDocumentsTab() {
 
       <div className="flex min-h-10 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <AffectationVersionStatusBadge sessionId={sessionId!} />
+          <AffectationVersionStatusBadge sessionId={transparence.id} />
           <TotalBadge value={allDocs.length}>
             <FormattedMessage defaultMessage="Total" />
           </TotalBadge>
@@ -106,7 +105,7 @@ export function TransparenceDocumentsTab() {
           </TotalBadge>
         </div>
 
-        {!isArchived && <DocGenerationMenu sessionId={sessionId!} />}
+        {!isArchived && <DocGenerationMenu sessionId={transparence.id} />}
       </div>
 
       <SessionDocumentsTable
@@ -119,26 +118,31 @@ export function TransparenceDocumentsTab() {
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
-                    sessionId={sessionId!}
+                    sessionId={transparence.id}
                   />
                   <DocActionAgendaMetadata
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
-                    sessionId={sessionId!}
+                    sessionId={transparence.id}
                   />
                 </>
               )}
               <div className="col-start-3">
-                <DocActionUpdate disabled={isActing} doc={doc} sessionId={sessionId!} />
+                <DocActionUpdate disabled={isActing} doc={doc} sessionId={transparence.id} />
               </div>
-              <DocActionDelete disabled={isActing} doc={doc} sessionId={sessionId!} />
+              <DocActionDelete disabled={isActing} doc={doc} sessionId={transparence.id} />
             </div>
           )
         }
         docs={items}
         renderName={(doc) => (
-          <DocActionDetails disabled={isActing} doc={doc} sessionId={sessionId!} setIsActing={setIsActing} />
+          <DocActionDetails
+            disabled={isActing}
+            doc={doc}
+            sessionId={transparence.id}
+            setIsActing={setIsActing}
+          />
         )}
       />
     </div>

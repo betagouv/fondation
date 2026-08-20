@@ -16,7 +16,7 @@ type DiscriminatedByTypeDto = Type<unknown> & {
  * exposes the right openapi schema for a response discriminated by `@type`
  *
  * @warning the OpenAPI discriminator falls back to the schema name when no mapping is given,
- * which breaks the generated client. The mapping is read from the `@type` literals to stay in sync.
+ * which breaks the generated client. The mapping is read from the `@type` literals to stay in sync
  */
 export function ApiOkDiscriminatedByType(
   ...dtos: readonly [DiscriminatedByTypeDto, DiscriminatedByTypeDto, ...DiscriminatedByTypeDto[]]

@@ -78,7 +78,7 @@ export function TransparencePage() {
 
             <SessionTabsBar transparence={transparence} />
 
-            <Outlet context={{ filtersSlot } satisfies TransparenceOutletContext} />
+            <Outlet context={{ filtersSlot, transparence } satisfies TransparenceOutletContext} />
           </div>
         </div>
       </AlertsProvider>

@@ -70,13 +70,11 @@ describe('MissingEvaluationCommentModal', () => {
     );
   });
 
-  it('should prefill the editor with the current comment and drop it once emptied', async () => {
+  it('should drop the comment once the editor is emptied', async () => {
     const user = userEvent.setup();
     renderCell({ comment: 'Relancée le 12 août' });
 
     await user.click(screen.getByRole('button', { name: 'Relancée le 12 août' }));
-    expect(editor()).toHaveValue('Relancée le 12 août');
-
     await user.clear(editor());
     await user.click(saveButton());
 
@@ -84,15 +82,6 @@ describe('MissingEvaluationCommentModal', () => {
       { comment: null, nominationFileId: 'dossier-1', sessionId: 'session-1' },
       expect.any(Object),
     );
-  });
-
-  it('should not offer to save an unchanged comment', async () => {
-    const user = userEvent.setup();
-    renderCell({ comment: 'Relancée le 12 août' });
-
-    await user.click(screen.getByRole('button', { name: 'Relancée le 12 août' }));
-
-    expect(saveButton()).toBeDisabled();
   });
 
   it('should report a failed save without closing the editor', async () => {

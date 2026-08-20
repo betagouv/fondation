@@ -4,7 +4,7 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useOutletContext, useParams } from 'react-router';
+import { useOutletContext } from 'react-router';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
 import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
@@ -29,9 +29,8 @@ import type { TransparenceOutletContext } from './transparence-outlet-context.ty
 
 export function TransparenceAttachmentsTab() {
   const { formatMessage } = useIntl();
-  const { sessionId } = useParams();
   const { isArchived } = useArchivedSession();
-  const { filtersSlot } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
   const tab = useTab();
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
@@ -46,7 +45,7 @@ export function TransparenceAttachmentsTab() {
   };
 
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
-    sessionId: sessionId!,
+    sessionId: transparence.id,
   });
   const { mutate: createUrl, isPending: isUrlPending } = useCreateNominationSessionAttachmentUrlMutation();
   const { mutate: deleteAttachment } = useRemoveNominationSessionAttachmentMutation();
@@ -56,7 +55,7 @@ export function TransparenceAttachmentsTab() {
       const attachmentTab = tab.openDeferred();
 
       createUrl(
-        { fileId, sessionId: sessionId! },
+        { fileId, sessionId: transparence.id },
         {
           onError: () => attachmentTab.cancel(),
           onSuccess: (response) => {
@@ -66,13 +65,13 @@ export function TransparenceAttachmentsTab() {
         },
       );
     },
-    [createUrl, sessionId, tab],
+    [createUrl, transparence.id, tab],
   );
 
   const onDownload = useCallback(
     (fileId: string) =>
       createUrl(
-        { fileId, sessionId: sessionId! },
+        { fileId, sessionId: transparence.id },
         {
           onSuccess: (response) => {
             if (!response) return;
@@ -81,7 +80,7 @@ export function TransparenceAttachmentsTab() {
           },
         },
       ),
-    [createUrl, sessionId, tab],
+    [createUrl, transparence.id, tab],
   );
 
   const allAttachments = attachments?.items ?? [];
@@ -141,7 +140,7 @@ export function TransparenceAttachmentsTab() {
 
       <div className="flex min-h-10 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <AffectationVersionStatusBadge sessionId={sessionId!} />
+          <AffectationVersionStatusBadge sessionId={transparence.id} />
           <TotalBadge value={allAttachments.length}>
             <FormattedMessage defaultMessage="Total" />
           </TotalBadge>
@@ -179,7 +178,7 @@ export function TransparenceAttachmentsTab() {
                 onDelete={() =>
                   deleteAttachment({
                     fileId: attachment.id,
-                    sessionId: sessionId!,
+                    sessionId: transparence.id,
                   })
                 }
               />

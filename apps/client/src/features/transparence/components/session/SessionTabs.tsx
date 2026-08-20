@@ -10,8 +10,6 @@ import {
   useNominationFilesStatusCountsQuery,
 } from '@queries/nomination-sessions.queries';
 
-import { TransparenceActionsMenu } from './TransparenceActionsMenu';
-
 function SessionTab(props: { count?: number; icon: string; label: string; to: string; end?: boolean }) {
   return (
     <li className="fr-p-0">
@@ -60,54 +58,50 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
   return (
     <div className="fr-my-4v">
       <div className="mx-[calc(50%-50vw)] bg-(--background-contrast-grey) px-[calc(50vw-50%)]">
-        <div className="flex items-center justify-between gap-4">
-          <nav aria-label={formatMessage({ defaultMessage: 'Sections de la transparence' })}>
-            <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-4">
-              <SessionTab
-                count={propositionsCount}
-                end
-                icon="fr-icon-list-unordered"
-                label={formatMessage(
-                  { defaultMessage: '{count, plural, one {Proposition} other {Propositions}}' },
-                  { count: propositionsCount },
-                )}
-                to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
-              />
-              <SessionTab
-                count={missingEvaluationsCount}
-                icon="fr-icon-draft-line"
-                label={formatMessage(
-                  {
-                    defaultMessage:
-                      '{count, plural, one {Évaluation manquante} other {Évaluations manquantes}}',
-                  },
-                  { count: missingEvaluationsCount },
-                )}
-                to={generatePath(ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS, params)}
-              />
-              <SessionTab
-                count={docsCount}
-                icon="fr-icon-folder-2-line"
-                label={formatMessage(
-                  { defaultMessage: '{count, plural, one {Document} other {Documents}}' },
-                  { count: docsCount },
-                )}
-                to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, params)}
-              />
-              <SessionTab
-                count={attachmentsCount}
-                icon="ri-image-line"
-                label={formatMessage(
-                  { defaultMessage: '{count, plural, one {Pièce jointe} other {Pièces jointes}}' },
-                  { count: attachmentsCount },
-                )}
-                to={generatePath(ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS, params)}
-              />
-            </ul>
-          </nav>
-
-          <TransparenceActionsMenu transparence={transparence} />
-        </div>
+        <nav aria-label={formatMessage({ defaultMessage: 'Sections de la transparence' })}>
+          <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-8">
+            <SessionTab
+              count={propositionsCount}
+              end
+              icon="fr-icon-list-unordered"
+              label={formatMessage(
+                { defaultMessage: '{count, plural, one {Proposition} other {Propositions}}' },
+                { count: propositionsCount },
+              )}
+              to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
+            />
+            <SessionTab
+              count={missingEvaluationsCount}
+              icon="fr-icon-draft-line"
+              label={formatMessage(
+                {
+                  defaultMessage:
+                    '{count, plural, one {Évaluation manquante} other {Évaluations manquantes}}',
+                },
+                { count: missingEvaluationsCount },
+              )}
+              to={generatePath(ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS, params)}
+            />
+            <SessionTab
+              count={docsCount}
+              icon="fr-icon-folder-2-line"
+              label={formatMessage(
+                { defaultMessage: '{count, plural, one {Document} other {Documents}}' },
+                { count: docsCount },
+              )}
+              to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, params)}
+            />
+            <SessionTab
+              count={attachmentsCount}
+              icon="ri-image-line"
+              label={formatMessage(
+                { defaultMessage: '{count, plural, one {Pièce jointe} other {Pièces jointes}}' },
+                { count: attachmentsCount },
+              )}
+              to={generatePath(ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS, params)}
+            />
+          </ul>
+        </nav>
       </div>
     </div>
   );

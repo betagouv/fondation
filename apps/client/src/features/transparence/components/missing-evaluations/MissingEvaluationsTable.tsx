@@ -1,10 +1,10 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, type CellContext } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
 import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
+import { NominationFilesExportButton } from '@/features/nomination-files-table/components/NominationFilesExportButton';
 import { SessionFilesTable } from '@/features/nomination-files-table/components/SessionFilesTable';
 import {
   useNominationFilesTable,
@@ -148,7 +148,7 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
       columns={columns}
       emptyLabel={formatMessage({ defaultMessage: 'Aucune évaluation manquante' })}
       filtersSlot={props.filtersSlot}
-      missingEvaluation
+      restrictTo={{ missingEvaluation: true }}
       summary={() => (
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -164,17 +164,10 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
             </TotalBadge>
           </div>
 
-          <Button
-            className="py-2!"
+          <NominationFilesExportButton
             disabled={exportAsExcel.isPending}
-            iconId="fr-icon-download-line"
-            iconPosition="right"
-            onClick={() => exportAsExcel.mutate({ sessionId: props.sessionId })}
-            priority="tertiary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Export .xlsx" />
-          </Button>
+            onExport={() => exportAsExcel.mutate({ sessionId: props.sessionId })}
+          />
         </div>
       )}
     />

@@ -2,21 +2,19 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useListNominationFilesAsExcelMutation } from '@queries/nomination-sessions.queries';
 
-export function NominationFilesExportButton() {
-  const { canManage, sessionId } = useNominationFilesTable();
-  const { mutate: exportAsExcel, isPending: isExporting } = useListNominationFilesAsExcelMutation();
+export function NominationFilesExportButton(props: { disabled: boolean; onExport: () => void }) {
+  const { canManage } = useNominationFilesTable();
 
   if (!canManage) return null;
 
   return (
     <Button
       className="py-2!"
-      disabled={isExporting}
+      disabled={props.disabled}
       iconId="fr-icon-download-line"
       iconPosition="right"
-      onClick={() => exportAsExcel({ sessionId })}
+      onClick={props.onExport}
       priority="tertiary"
       size="small"
     >

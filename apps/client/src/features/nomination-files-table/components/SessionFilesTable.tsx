@@ -19,6 +19,7 @@ import type { NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.type
 import {
   useInfiniteSessionNominationFilesQuery,
   type SessionNominationFile,
+  type SessionNominationFilesFilters,
 } from '@queries/nomination-sessions.queries';
 
 import { AddNominationFileAttachmentModalProvider } from './cells/magistrat-side-panel/components/attachments/context/AddNominationFileAttachmentModalProvider';
@@ -64,7 +65,7 @@ export function SessionFilesTable(
     emptyLabel?: string;
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
-    missingEvaluation?: boolean;
+    restrictTo?: SessionNominationFilesFilters;
     summary?: (session: { totalCount: number }) => ReactNode;
   }>,
 ) {
@@ -81,12 +82,12 @@ export function SessionFilesTable(
       sessionId,
       sorting: tableState.sorting,
       filters: {
-        missingEvaluation: props.missingEvaluation,
         search: tableState.globalFilter,
         priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
         reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
         outcomes: tableState.columnFilters.find(({ id }) => id === 'outcomes')
           ?.value as (NominationFileOutcomeEnum | null)[],
+        ...props.restrictTo,
       },
     });
   const nominationFiles = useMemo(() => data?.items ?? [], [data]);
