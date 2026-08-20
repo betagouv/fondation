@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session';
@@ -11,7 +12,7 @@ import {
   useRemoveNominationSessionAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
-export function NominationSessionAttachmentList(props: { sessionId: string; placeholder?: ReactNode }) {
+export function NominationSessionAttachmentList(props: { placeholder?: ReactNode; sessionId: string }) {
   const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
@@ -51,7 +52,9 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
     return props.placeholder !== undefined ? (
       props.placeholder
     ) : (
-      <div className="text-center text-sm font-normal text-(--text-mention-grey)">Aucune pièce jointe.</div>
+      <div className="text-center text-sm font-normal text-(--text-mention-grey)">
+        <FormattedMessage defaultMessage="Aucune pièce jointe" />
+      </div>
     );
 
   return (
@@ -59,10 +62,10 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
       {(attachments?.items ?? []).map((file) => (
         <li key={file.id} className="fr-pb-0 flex items-center gap-4">
           <Button
-            priority="tertiary no outline"
             className={clsx('inline truncate', { grow: !isSg })}
             disabled={isUrlPending || isDeletionPending}
             onClick={() => onCreateUrl(file.id)}
+            priority="tertiary no outline"
           >
             {file.name}
           </Button>
@@ -70,7 +73,12 @@ export function NominationSessionAttachmentList(props: { sessionId: string; plac
           {isSg && !isArchived && (
             <DeleteFileButton
               fileName={file.name}
-              onDelete={() => deleteAttachment({ fileId: file.id, sessionId: props.sessionId })}
+              onDelete={() =>
+                deleteAttachment({
+                  fileId: file.id,
+                  sessionId: props.sessionId,
+                })
+              }
             />
           )}
         </li>

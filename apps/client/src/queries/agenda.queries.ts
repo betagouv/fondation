@@ -199,22 +199,26 @@ export const useFindSessionDocsQuery = (query: { sessionId: string }) =>
 
 export const useDetailsSessionAgendaMutation = () =>
   useMutation({
-    mutationFn: (command: { sessionId: string; agendaId: string }) =>
-      $api.docs
-        .detailsSessionAgenda({
-          path: { sessionId: command.sessionId, agendaId: command.agendaId },
-        })
-        .then(({ data }) => data!),
+    mutationFn: async (command: { sessionId: string; agendaId: string }) => {
+      const { data, response } = await $api.docs.detailsSessionAgenda({
+        path: { sessionId: command.sessionId, agendaId: command.agendaId },
+      });
+
+      if (!data) throw new Error(`agenda document unavailable (${response?.status})`);
+      return data;
+    },
   });
 
 export const useDetailsSessionOfficialReportsMutation = () =>
   useMutation({
-    mutationFn: (command: { sessionId: string; officialReportId: string }) =>
-      $api.docs
-        .detailsSessionOfficialReport({
-          path: { sessionId: command.sessionId, officialReportId: command.officialReportId },
-        })
-        .then(({ data }) => data!),
+    mutationFn: async (command: { sessionId: string; officialReportId: string }) => {
+      const { data, response } = await $api.docs.detailsSessionOfficialReport({
+        path: { sessionId: command.sessionId, officialReportId: command.officialReportId },
+      });
+
+      if (!data) throw new Error(`official report document unavailable (${response?.status})`);
+      return data;
+    },
   });
 
 export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: string }) =>

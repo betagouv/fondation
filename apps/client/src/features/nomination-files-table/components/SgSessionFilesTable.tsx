@@ -1,11 +1,12 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo, type PropsWithChildren, type ReactNode } from 'react';
+import { useMemo, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
 import type { SessionOutcome } from '../context/files-table.context';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { rowCell } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -17,11 +18,27 @@ import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
 import { NominationFilesAffectationsStatus } from './NominationFilesAffectationsStatus';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
+import { NominationFilesExportButton } from './NominationFilesExportButton';
 import { NominationFilesPublishButton } from './NominationFilesPublishButton';
 import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 import { SessionFilesTable } from './SessionFilesTable';
 
 const h = createColumnHelper<SessionNominationFile>();
+
+const fileNumberCell = rowCell<SessionNominationFile>((file) => file.content.numeroDeDossier);
+const magistratCell = rowCell<SessionNominationFile>((file) => <SidePanelTrigger nominationFile={file} />);
+const posteCibleCell = rowCell<SessionNominationFile>((file) => (
+  <NominationFileTargetPositionCell nominationFile={file} />
+));
+const observantsCell = rowCell<SessionNominationFile>((file) => <ObservantsCell nominationFile={file} />);
+const prioritiesCell = rowCell<SessionNominationFile>((file) => (
+  <PriorityBadgeList priorities={file.priorities} />
+));
+const reportersCell = rowCell<SessionNominationFile>((file) => <ReportersCell dossier={file} />);
+const outcomeCell = rowCell<SessionNominationFile>((file) => <NominationFileOutcome nominationFile={file} />);
+const statusCell = rowCell<SessionNominationFile>((file) => (
+  <NominationFileStatusCell status={file.content.status} />
+));
 
 function useSgSessionFilesColumns() {
   const { formatMessage } = useIntl();
@@ -31,7 +48,7 @@ function useSgSessionFilesColumns() {
     () => [
       h.accessor('content.numeroDeDossier', {
         id: 'fileNumber',
-        cell: ({ cell }) => cell.getValue(),
+        cell: fileNumberCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'N°' }),
         size: 42,
@@ -40,7 +57,7 @@ function useSgSessionFilesColumns() {
 
       h.accessor('content.nomMagistrat', {
         id: 'name',
-        cell: ({ row }) => <SidePanelTrigger nominationFile={row.original} />,
+        cell: magistratCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Magistrat' }),
         size: 250,
@@ -48,7 +65,7 @@ function useSgSessionFilesColumns() {
 
       h.accessor('content.posteCible', {
         id: 'targetedGrade',
-        cell: ({ row }) => <NominationFileTargetPositionCell nominationFile={row.original} />,
+        cell: posteCibleCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Poste cible' }),
         size: 240,
@@ -56,14 +73,14 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.observants', {
-        cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
+        cell: observantsCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Observant(s)' }),
         size: 170,
       }),
 
       h.accessor('priorities', {
-        cell: ({ row }) => <PriorityBadgeList priorities={row.original.priorities} />,
+        cell: prioritiesCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Priorité(s)' }),
         meta: { filters: filters.priorities },
@@ -71,7 +88,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('reporters', {
-        cell: ({ row }) => <ReportersCell dossier={row.original} />,
+        cell: reportersCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
         meta: { filters: filters.reporters },
@@ -79,7 +96,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.outcome', {
-        cell: ({ row }) => <NominationFileOutcome nominationFile={row.original} />,
+        cell: outcomeCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Issue' }),
         meta: { filters: filters.outcomes },
@@ -87,7 +104,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.status', {
-        cell: ({ cell }) => <NominationFileStatusCell status={cell.getValue()} />,
+        cell: statusCell,
         enableSorting: false,
         header: () => (
           <span className="block text-center">{formatMessage({ defaultMessage: 'Statut' })}</span>
@@ -99,13 +116,11 @@ function useSgSessionFilesColumns() {
   );
 }
 
-function SgSessionFilesTableInner(props: PropsWithChildren<{ toolbar?: ReactNode }>) {
+function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Element | null }>) {
   const columns = useSgSessionFilesColumns();
 
   return (
-    <SessionFilesTable columns={columns}>
-      {props.toolbar}
-
+    <SessionFilesTable columns={columns} filtersSlot={props.filtersSlot}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <NominationFilesAffectationsStatus />
@@ -113,6 +128,7 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ toolbar?: ReactNode
         </div>
 
         <div className="flex items-center gap-2">
+          <NominationFilesExportButton />
           <NominationFilesAutoAffectationButton />
           <NominationFilesPublishButton />
         </div>
@@ -126,15 +142,15 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ toolbar?: ReactNode
 export function SgSessionFilesTable(
   props: PropsWithChildren<{
     canManage?: boolean;
+    filtersSlot?: Element | null;
     formation: FormationEnum;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
-    toolbar?: ReactNode;
   }>,
 ) {
   return (
     <NominationFilesTableProvider {...props}>
-      <SgSessionFilesTableInner toolbar={props.toolbar}>{props.children}</SgSessionFilesTableInner>
+      <SgSessionFilesTableInner filtersSlot={props.filtersSlot}>{props.children}</SgSessionFilesTableInner>
     </NominationFilesTableProvider>
   );
 }

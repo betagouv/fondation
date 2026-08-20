@@ -1,24 +1,8 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
-import { FormattedMessage } from 'react-intl';
-
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useDetailedNominationSessionAffectationsVersionQuery } from '@queries/nomination-sessions.queries';
+import { SessionStatusBadge } from '@/features/transparence/components/session/SessionSummary';
 
 export function NominationFilesAffectationsStatus() {
-  const { canManage, sessionId } = useNominationFilesTable();
-  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
+  const { sessionId } = useNominationFilesTable();
 
-  if (!canManage) return null;
-
-  const isBrouillon =
-    !affectationsVersion || !('status' in affectationsVersion) || affectationsVersion.status !== 'PUBLIEE';
-  return (
-    <Badge className="rounded-full" noIcon severity={isBrouillon ? 'info' : 'success'}>
-      {isBrouillon ? (
-        <FormattedMessage defaultMessage="Brouillon" />
-      ) : (
-        <FormattedMessage defaultMessage="Publiée" />
-      )}
-    </Badge>
-  );
+  return <SessionStatusBadge sessionId={sessionId} />;
 }

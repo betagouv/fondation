@@ -18,10 +18,10 @@ function StatusCount(props: { count: number; label: ReactNode; severity?: BadgeP
 }
 
 export function NominationFilesStatusBadges(props: { className?: string }) {
-  const { canManage, sessionId } = useNominationFilesTable();
+  const { sessionId } = useNominationFilesTable();
   const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId });
 
-  if (!counts || !canManage) return null;
+  if (!counts) return null;
 
   const { unaffected, inProgress, withOutcome } = counts;
 
@@ -43,7 +43,12 @@ export function NominationFilesStatusBadges(props: { className?: string }) {
       />
       <StatusCount
         count={withOutcome}
-        label={<FormattedMessage defaultMessage="Issue renseignée" />}
+        label={
+          <FormattedMessage
+            defaultMessage="{count, plural, one {Issue renseignée} other {Issues renseignées}}"
+            values={{ count: withOutcome }}
+          />
+        }
         severity="success"
       />
     </ul>

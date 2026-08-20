@@ -42,6 +42,7 @@ export function SessionValidationBanner(props: { session: { id: string; isValida
 
   return (
     <AlertBanner
+      align="center"
       className="fr-py-2v mx-[calc(50%-50vw)] justify-center px-[calc(50vw-50%)]"
       icon="fr-icon-warning-fill"
       message={

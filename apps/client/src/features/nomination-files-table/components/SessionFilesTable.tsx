@@ -7,6 +7,7 @@ import {
   type TableOptions,
 } from '@tanstack/react-table';
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -30,18 +31,22 @@ import { ObservationsModalProvider } from './cells/observations/context/Observat
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 
 function SessionFilesNewTable(props: {
+  emptyLabel: string;
   isLoading: boolean;
   onEndReached: () => void;
   table: Table<SessionNominationFile>;
 }) {
   const { activeId } = useSidePanel();
   const intl = useIntl();
+  const isEmpty = !props.isLoading && props.table.getRowModel().rows.length === 0;
 
   return (
     <NewTable
       ariaLabel={intl.formatMessage({ defaultMessage: 'Dossiers de la session' })}
-      className="h-screen"
-      emptyLabel={props.isLoading ? 'Chargement...' : 'Aucun résultat ne correspond aux valeurs filtrées'}
+      className={isEmpty ? undefined : 'max-h-screen'}
+      emptyLabel={
+        props.isLoading ? intl.formatMessage({ defaultMessage: 'Chargement...' }) : props.emptyLabel
+      }
       fluid
       isLoading={props.isLoading}
       onEndReached={props.onEndReached}
@@ -56,13 +61,18 @@ function SessionFilesNewTable(props: {
 export function SessionFilesTable(
   props: PropsWithChildren<{
     columns: TableOptions<SessionNominationFile>['columns'];
+    emptyLabel?: string;
     filtersEnd?: ReactNode;
+    filtersSlot?: Element | null;
+    missingEvaluation?: boolean;
+    summary?: (session: { totalCount: number }) => ReactNode;
   }>,
 ) {
+  const intl = useIntl();
   const { sessionId } = useNominationFilesTable();
   const [tableState, setTableState] = useQueryDataTableState({
     globalFilter: '',
-    sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedGrade'; desc: boolean }],
+    sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedGrade' | 'targetedPosition'; desc: boolean }],
     columnFilters: [] as { id: 'priorities' | 'reporters' | 'outcomes'; value: string[] }[],
   });
 
@@ -71,6 +81,7 @@ export function SessionFilesTable(
       sessionId,
       sorting: tableState.sorting,
       filters: {
+        missingEvaluation: props.missingEvaluation,
         search: tableState.globalFilter,
         priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
         reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
@@ -136,6 +147,25 @@ export function SessionFilesTable(
     state: { columnFilters: tableState.columnFilters, sorting: tableState.sorting },
   });
 
+  const filters = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-6">
+        <ReactTableFilterColumn table={table} />
+        {props.filtersEnd}
+      </div>
+      <SearchInput
+        className="w-72"
+        onChange={(value) => {
+          setSearch(value);
+          updateGlobalFilter(value);
+        }}
+        onClear={clearSearch}
+        placeholder={intl.formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+        value={search}
+      />
+    </div>
+  );
+
   return (
     <ObservationsModalProvider>
       <SidePanelProvider
@@ -151,23 +181,23 @@ export function SessionFilesTable(
             <AddNominationFileAttachmentModalProvider>
               <MagistratSidePanel sessionId={sessionId} />
               <div className="flex flex-col gap-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-6">
-                    <ReactTableFilterColumn table={table} />
-                    {props.filtersEnd}
-                  </div>
-                  <SearchInput
-                    className="w-72"
-                    onChange={(value) => {
-                      setSearch(value);
-                      updateGlobalFilter(value);
-                    }}
-                    onClear={clearSearch}
-                    value={search}
-                  />
+                {props.filtersSlot ? createPortal(filters, props.filtersSlot) : filters}
+
+                <div className="flex min-h-10 flex-col justify-center">
+                  {props.summary?.({ totalCount: data?.totalCount ?? 0 })}
+                  {props.children}
                 </div>
-                {props.children}
-                <SessionFilesNewTable isLoading={isLoading} onEndReached={fetchNextFilesPage} table={table} />
+                <SessionFilesNewTable
+                  emptyLabel={
+                    props.emptyLabel ??
+                    intl.formatMessage({
+                      defaultMessage: 'Aucun résultat ne correspond aux valeurs filtrées',
+                    })
+                  }
+                  isLoading={isLoading}
+                  onEndReached={fetchNextFilesPage}
+                  table={table}
+                />
               </div>
             </AddNominationFileAttachmentModalProvider>
           </NominationFileTargetPositionProvider>

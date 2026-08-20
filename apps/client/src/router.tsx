@@ -137,11 +137,43 @@ export const router = sentryCreateBrowserRouter([
               import('@/pages/transparence/TransparencePage').then(({ TransparencePage }) => ({
                 Component: TransparencePage,
               })),
+            children: [
+              {
+                index: true,
+                lazy: () =>
+                  import('@/pages/transparence/TransparencePropositionsTab').then(
+                    ({ TransparencePropositionsTab }) => ({ Component: TransparencePropositionsTab }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS,
+                lazy: () =>
+                  import('@/pages/transparence/TransparenceMissingEvaluationsTab').then(
+                    ({ TransparenceMissingEvaluationsTab }) => ({
+                      Component: TransparenceMissingEvaluationsTab,
+                    }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS,
+                lazy: () =>
+                  import('@/pages/transparence/TransparenceDocumentsTab').then(
+                    ({ TransparenceDocumentsTab }) => ({ Component: TransparenceDocumentsTab }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS,
+                lazy: () =>
+                  import('@/pages/transparence/TransparenceAttachmentsTab').then(
+                    ({ TransparenceAttachmentsTab }) => ({ Component: TransparenceAttachmentsTab }),
+                  ),
+              },
+            ],
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID_EDIT,
             lazy: () =>
-              import('@/features/transparence/components/TableauDeBordEditTransparence').then(
+              import('@/features/transparence/components/session/TableauDeBordEditTransparence').then(
                 ({ TableauDeBordEditTransparencePage }) => ({
                   Component: TableauDeBordEditTransparencePage,
                 }),
