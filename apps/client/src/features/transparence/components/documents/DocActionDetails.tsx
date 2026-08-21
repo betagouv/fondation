@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useAlerts } from '@/shared/context/alerts';
+import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useTab } from '@/shared/hooks/useTab';
 import type { FoundSessionDocsDto } from '@api/types';
 import {
@@ -20,6 +21,7 @@ export function DocActionDetails(props: {
 
   const { formatMessage } = useIntl();
   const alerts = useAlerts();
+  const describeFailure = useDocumentFailure();
   const tab = useTab();
   const { mutateAsync: openAgenda, isPending: isOpeningAgenda } = useDetailsSessionAgendaMutation();
   const { mutateAsync: openOfficialReport, isPending: isOpeningOfficialReport } =
@@ -27,21 +29,22 @@ export function DocActionDetails(props: {
 
   const onSettled = useCallback(() => setIsActing(false), [setIsActing]);
   const onFailure = useCallback(
-    () =>
+    (error: unknown) =>
       alerts.pushAlert({
         severity: 'error',
         title: formatMessage({
           defaultMessage: `Le document n'a pas pu être ouvert`,
         }),
-        description: formatMessage({
-          defaultMessage: 'Sa génération a échoué. Réessayez et prévenez le support si cela persiste.',
-        }),
+        description: describeFailure(error),
       }),
-    [alerts, formatMessage],
+    [alerts, describeFailure, formatMessage],
   );
 
   const onClick = useCallback(() => {
-    const documentTab = tab.openDeferred();
+    const documentTab = tab.openDeferred({
+      message: formatMessage({ defaultMessage: 'Préparation du document, merci de patienter...' }),
+      title: doc.name,
+    });
     setIsActing(true);
 
     const details =
@@ -51,12 +54,12 @@ export function DocActionDetails(props: {
 
     return details
       .then(({ url }) => documentTab.settle(url))
-      .catch(() => {
+      .catch((error: unknown) => {
         documentTab.cancel();
-        onFailure();
+        onFailure(error);
       })
       .finally(onSettled);
-  }, [sessionId, doc, setIsActing, onFailure, onSettled, openAgenda, openOfficialReport, tab]);
+  }, [sessionId, doc, formatMessage, setIsActing, onFailure, onSettled, openAgenda, openOfficialReport, tab]);
 
   return (
     <Button

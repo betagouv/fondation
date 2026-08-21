@@ -16,12 +16,14 @@ const mocks = vi.hoisted(() => ({
     type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
     addedAt: string;
   }[],
+  cancelTab: vi.fn(),
   createUrl: vi.fn(),
   download: vi.fn(),
   isSg: vi.fn(() => true),
   open: vi.fn(),
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
+  settleTab: vi.fn(),
   waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
 
@@ -31,7 +33,13 @@ vi.mock('./context/AddNominationFileAttachmentModalContext', () => ({
 vi.mock('@/shared/context/confirmation', () => ({
   useConfirmation: () => ({ buttonProps: {}, waitForConfirmation: mocks.waitForConfirmation }),
 }));
-vi.mock('@/shared/hooks/useTab', () => ({ useTab: () => ({ open: mocks.open, download: mocks.download }) }));
+vi.mock('@/shared/hooks/useTab', () => ({
+  useTab: () => ({
+    download: mocks.download,
+    open: mocks.open,
+    openDeferred: () => ({ cancel: mocks.cancelTab, settle: mocks.settleTab }),
+  }),
+}));
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
@@ -99,7 +107,7 @@ describe('Attachments listing', () => {
 });
 
 describe('Attachments actions', () => {
-  it('opens the file in a new tab when previewing', async () => {
+  it('settles the tab opened on click with the file url', async () => {
     mocks.createUrl.mockImplementation((_vars, options) =>
       options.onSuccess({ url: 'https://files/rapport.pdf' }),
     );
@@ -112,7 +120,18 @@ describe('Attachments actions', () => {
       { fileId: 'file-1', nominationFileId: 'nf-1', sessionId: 'session-1' },
       expect.any(Object),
     );
-    expect(mocks.open).toHaveBeenCalledWith('https://files/rapport.pdf');
+    expect(mocks.settleTab).toHaveBeenCalledWith('https://files/rapport.pdf');
+  });
+
+  it('closes the tab opened on click when the url cannot be created', async () => {
+    mocks.createUrl.mockImplementation((_vars, options) => options.onError());
+    const user = userEvent.setup();
+    renderAttachments();
+
+    await user.click(screen.getByRole('button', { name: 'rapport' }));
+
+    expect(mocks.cancelTab).toHaveBeenCalled();
+    expect(mocks.settleTab).not.toHaveBeenCalled();
   });
 
   it('downloads the file same-origin with the download flag', async () => {

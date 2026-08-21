@@ -126,15 +126,22 @@ function AttachmentItem(props: {
       : null;
 
   const onPreview = useCallback(() => {
+    const attachmentTab = tab.openDeferred({
+      message: formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+      title: props.name,
+    });
+
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
+        onError: () => attachmentTab.cancel(),
         onSuccess: (response) => {
-          if (response) tab.open(response.url);
+          if (response) attachmentTab.settle(response.url);
+          else attachmentTab.cancel();
         },
       },
     );
-  }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
+  }, [createUrl, formatMessage, props.fileId, props.name, props.nominationFileId, props.sessionId, tab]);
 
   const onDownload = useCallback(() => {
     createUrl(
