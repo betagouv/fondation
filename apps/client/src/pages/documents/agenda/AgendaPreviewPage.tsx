@@ -1,9 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import clsx from 'clsx';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { AgendaDocumentEditor } from '@/features/agenda/components/agenda-editor';
+import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useAgendaDocumentBlocksQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
@@ -11,6 +13,7 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 
 export function AgendaPreviewPage() {
   const navigate = useNavigate();
+  const describeFailure = useDocumentFailure();
 
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
 
@@ -21,7 +24,7 @@ export function AgendaPreviewPage() {
     force: true,
     sessionId: sessionId!,
     agendaId: agendaId!,
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
+    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
   });
 
   const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
@@ -101,13 +104,23 @@ export function AgendaPreviewPage() {
               <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
             </p>
           )}
+          {generatePdf.isError && (
+            <p className="fr-mb-0 text-(--text-default-error)" role="alert">
+              {describeFailure(generatePdf.error)}
+            </p>
+          )}
           <Button
+            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
             disabled={generatePdf.isPending || hasPendingRevalidation}
             iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
             iconPosition="right"
             onClick={() => generatePdf.mutate()}
           >
-            <FormattedMessage defaultMessage="Valider le document" />
+            {generatePdf.isPending ? (
+              <FormattedMessage defaultMessage="Génération en cours..." />
+            ) : (
+              <FormattedMessage defaultMessage="Valider le document" />
+            )}
           </Button>
         </div>
       </div>

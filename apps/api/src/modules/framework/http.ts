@@ -191,7 +191,6 @@ class HttpModule {
             const instance = axios.create();
             retry(instance, {
               onRetry(count) {
-                console.log('retry', count);
                 Sentry.getActiveSpan()?.setAttribute('http.request.resend_count', count);
               },
             });

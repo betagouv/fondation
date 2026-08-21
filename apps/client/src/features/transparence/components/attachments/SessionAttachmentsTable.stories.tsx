@@ -1,3 +1,4 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
@@ -31,6 +32,21 @@ const ATTACHMENTS: SessionAttachment[] = [
 
 const onDownload = fn().mockName('onDownload');
 const onDelete = fn().mockName('onDelete');
+const onOpen = fn().mockName('onOpen');
+
+function AttachmentName(attachment: SessionAttachment) {
+  return (
+    <Button
+      className="fr-btn--align-on-content grow truncate text-left"
+      onClick={() => onOpen(attachment.name)}
+      priority="tertiary no outline"
+      size="small"
+      title={`Ouvrir ${attachment.name}`}
+    >
+      {attachment.name}
+    </Button>
+  );
+}
 
 function AttachmentActions(attachment: SessionAttachment) {
   return (
@@ -57,7 +73,7 @@ const meta = {
   ],
   parameters: { controls: { include: ['attachments'] }, layout: 'padded' },
   tags: ['autodocs'],
-  args: { actions: AttachmentActions, attachments: ATTACHMENTS },
+  args: { actions: AttachmentActions, attachments: ATTACHMENTS, renderName: AttachmentName },
 } satisfies Meta<typeof SessionAttachmentsTable>;
 
 export default meta;

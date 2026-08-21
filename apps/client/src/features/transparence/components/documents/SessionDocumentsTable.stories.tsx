@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import { AlertsProvider } from '@/shared/context/alerts';
 import { ConfirmationProvider } from '@/shared/context/confirmation';
@@ -8,6 +9,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { DocActionAgendaFiles } from './DocActionAgendaFiles';
 import { DocActionAgendaMetadata } from './DocActionAgendaMetadata';
 import { DocActionDelete } from './DocActionDelete';
+import { DocActionDetails } from './DocActionDetails';
 import { DocActionUpdate } from './DocActionUpdate';
 import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsTable';
 
@@ -62,6 +64,12 @@ function DocActions(doc: SessionDocument) {
   );
 }
 
+const setIsActing = fn().mockName('setIsActing');
+
+function DocName(doc: SessionDocument) {
+  return <DocActionDetails disabled={false} doc={doc} sessionId={SESSION_ID} setIsActing={setIsActing} />;
+}
+
 const meta = {
   title: 'Session/Transparence/SessionDocumentsTable',
   component: SessionDocumentsTable,
@@ -81,7 +89,7 @@ const meta = {
   ],
   parameters: { controls: { include: ['docs'] }, layout: 'padded' },
   tags: ['autodocs'],
-  args: { actions: DocActions, docs: DOCS },
+  args: { actions: DocActions, docs: DOCS, renderName: DocName },
 } satisfies Meta<typeof SessionDocumentsTable>;
 
 export default meta;

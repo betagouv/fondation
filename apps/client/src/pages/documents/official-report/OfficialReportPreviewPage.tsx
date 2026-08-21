@@ -1,9 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import clsx from 'clsx';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { OfficialReportDocumentEditor } from '@/features/official-report/components/official-report-editor/OfficialReportDocumentEditor';
+import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -14,6 +16,7 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 
 export function OfficialReportPreviewPage() {
   const navigate = useNavigate();
+  const describeFailure = useDocumentFailure();
 
   const { officialReportId, sessionId } = useParams<{
     officialReportId: string;
@@ -29,7 +32,7 @@ export function OfficialReportPreviewPage() {
     force: true,
     sessionId: sessionId!,
     officialReportId: officialReportId!,
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! })),
+    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
   });
 
   const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
@@ -94,13 +97,23 @@ export function OfficialReportPreviewPage() {
               <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs, et doivent être validés" />
             </p>
           )}
+          {generatePdf.isError && (
+            <p className="fr-mb-0 text-(--text-default-error)" role="alert">
+              {describeFailure(generatePdf.error)}
+            </p>
+          )}
           <Button
+            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
             disabled={generatePdf.isPending || hasPendingRevalidation}
             iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
             iconPosition="right"
             onClick={() => generatePdf.mutate()}
           >
-            <FormattedMessage defaultMessage="Valider le document" />
+            {generatePdf.isPending ? (
+              <FormattedMessage defaultMessage="Génération en cours..." />
+            ) : (
+              <FormattedMessage defaultMessage="Valider le document" />
+            )}
           </Button>
         </div>
       </div>

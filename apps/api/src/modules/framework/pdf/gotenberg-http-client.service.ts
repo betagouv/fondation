@@ -1,7 +1,18 @@
 import { HttpService } from '@nestjs/axios';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
+function readErrorBody(data: unknown): string {
+  if (data == null) return '';
+  if (Buffer.isBuffer(data)) return data.toString('utf8').trim().slice(0, 500);
+  if (data instanceof ArrayBuffer) return Buffer.from(data).toString('utf8').trim().slice(0, 500);
+
+  return (typeof data === 'string' ? data : JSON.stringify(data)).trim().slice(0, 500);
+}
+
 export class GotenbergHttpClient {
+  private readonly logger = new Logger(GotenbergHttpClient.name);
   private readonly urls = {
     htmlToPdf: `/forms/chromium/convert/html`,
   };
@@ -34,11 +45,23 @@ export class GotenbergHttpClient {
       form.append('files', file);
     }
 
-    const url = new URL(this.urls.htmlToPdf, this.baseUrl).toString();
+    const url = this.endpoint(this.urls.htmlToPdf);
     const response = await firstValueFrom(
       this.http.post<ArrayBuffer>(url, form, { timeout: request.timeout, responseType: 'arraybuffer' }),
-    );
+    ).catch((error: unknown) => this.rethrow(url, error));
 
     return Buffer.from(response.data);
+  }
+
+  private endpoint(path: string): string {
+    return new URL(this.baseUrl.pathname.replace(/\/$/, '') + path, this.baseUrl).toString();
+  }
+
+  private rethrow(url: string, error: unknown): never {
+    if (!isAxiosError(error)) throw error;
+
+    const { status, data } = error.response ?? {};
+    this.logger.error(`POST ${url} - ${status ?? error.code ?? error.message} ${readErrorBody(data)}`);
+    throw new ServiceUnavailableException('PDF_RENDERER_UNAVAILABLE', { cause: error });
   }
 }

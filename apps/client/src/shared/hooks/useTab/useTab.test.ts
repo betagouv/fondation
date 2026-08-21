@@ -34,3 +34,34 @@ describe('useTab.download', () => {
     expect(click).toHaveBeenCalledOnce();
   });
 });
+
+describe('useTab.openDeferred', () => {
+  it('shows a pending message in the blank tab until the url settles', () => {
+    const tabDocument = document.implementation.createHTMLDocument();
+    const handle = { close: vi.fn(), document: tabDocument, location: { replace: vi.fn() } };
+    vi.spyOn(window, 'open').mockReturnValue(handle as unknown as Window);
+
+    const { result } = renderHook(() => useTab());
+    const deferred = result.current.openDeferred({
+      message: 'Préparation...',
+      title: 'Ordre du jour',
+    });
+
+    expect(tabDocument.title).toBe('Ordre du jour');
+    expect(tabDocument.body.textContent).toBe('Préparation...');
+
+    deferred.settle('https://files/agenda.pdf');
+    expect(handle.location.replace).toHaveBeenCalledWith('https://files/agenda.pdf');
+  });
+
+  it('opens a bare blank tab when no pending message is given', () => {
+    const tabDocument = document.implementation.createHTMLDocument();
+    const handle = { close: vi.fn(), document: tabDocument, location: { replace: vi.fn() } };
+    vi.spyOn(window, 'open').mockReturnValue(handle as unknown as Window);
+
+    const { result } = renderHook(() => useTab());
+    result.current.openDeferred();
+
+    expect(tabDocument.body.textContent).toBe('');
+  });
+});

@@ -3,6 +3,8 @@ import { http, HttpResponse } from 'msw';
 import type {
   CreatedSummaryDto,
   DetailedNominationFileAttachmentDto,
+  DetailedSessionAgenda,
+  DetailedSessionOfficialReportDto,
   DetailedUserResponseDto,
   GeneratedSummaryAttachmentPublicUrlDto,
   GetObservationFileUrlResponseDto,
@@ -44,6 +46,19 @@ export const sgAuthHandlers = [
 export const sessionDocsHandlers = [
   http.delete('*/api/docs/v1/agendas/:agendaId', noContent),
   http.delete('*/api/docs/v1/official-reports/:officialReportId', noContent),
+
+  http.get('*/api/docs/v1/sessions/:sessionId/agendas/:agendaId', ({ params }) =>
+    HttpResponse.json<DetailedSessionAgenda>({
+      id: String(params.agendaId),
+      url: FILE_URL,
+    }),
+  ),
+  http.get('*/api/docs/v1/sessions/:sessionId/official-reports/:officialReportId', ({ params }) =>
+    HttpResponse.json<DetailedSessionOfficialReportDto>({
+      id: String(params.officialReportId),
+      url: FILE_URL,
+    }),
+  ),
 ];
 
 export const sidePanelHandlers = [

@@ -52,7 +52,10 @@ export function TransparenceAttachmentsTab() {
 
   const onOpen = useCallback(
     (fileId: string) => {
-      const attachmentTab = tab.openDeferred();
+      const attachmentTab = tab.openDeferred({
+        message: formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+        title: formatMessage({ defaultMessage: 'Pièce jointe' }),
+      });
 
       createUrl(
         { fileId, sessionId: transparence.id },
@@ -65,7 +68,7 @@ export function TransparenceAttachmentsTab() {
         },
       );
     },
-    [createUrl, transparence.id, tab],
+    [createUrl, formatMessage, transparence.id, tab],
   );
 
   const onDownload = useCallback(
