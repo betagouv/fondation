@@ -13,7 +13,7 @@ import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemb
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { useOfficialReport } from '@/features/official-report/context/OfficialReportContext';
-import { Mandatory } from '@/shared/ui/Mandatory';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
@@ -196,9 +196,9 @@ export function OfficialReportForm() {
             stateRelatedMessage={errors.agendaId?.message}
             nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
             label={
-              <Mandatory>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Ordre du jour" />
-              </Mandatory>
+              </RequiredLabel>
             }
           >
             <option value="" disabled>
@@ -229,7 +229,7 @@ export function OfficialReportForm() {
             label={
               <FormattedMessage
                 defaultMessage={`<mandatory>Date de la séance</mandatory>`}
-                values={{ mandatory: (chunk) => <Mandatory>{chunk}</Mandatory> }}
+                values={{ mandatory: (chunk) => <RequiredLabel>{chunk}</RequiredLabel> }}
               />
             }
             nativeInputProps={{ type: 'date', ...field }}
@@ -245,9 +245,9 @@ export function OfficialReportForm() {
         render={({ field }) => (
           <Input
             label={
-              <Mandatory>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Heure de début de la séance" />
-              </Mandatory>
+              </RequiredLabel>
             }
             nativeInputProps={{ type: 'time', ...field }}
             state={errors.sessionMeetingStartingTime ? 'error' : 'default'}
@@ -262,9 +262,9 @@ export function OfficialReportForm() {
         render={({ field }) => (
           <Input
             label={
-              <Mandatory>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Heure de fin de la séance" />
-              </Mandatory>
+              </RequiredLabel>
             }
             nativeInputProps={{ type: 'time', ...field }}
             state={errors.sessionMeetingEndingTime ? 'error' : 'default'}
@@ -294,9 +294,9 @@ export function OfficialReportForm() {
           <Select
             disabled={field.disabled || isFetchingSecretaries}
             label={
-              <Mandatory>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage={'Secrétaire général'} />
-              </Mandatory>
+              </RequiredLabel>
             }
             nativeSelectProps={{
               value: field.value,
@@ -320,9 +320,9 @@ export function OfficialReportForm() {
 
       <JusticeContactSelector
         label={
-          <Mandatory>
+          <RequiredLabel>
             <FormattedMessage defaultMessage={`Représentant DSJ`} />
-          </Mandatory>
+          </RequiredLabel>
         }
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}

@@ -3,7 +3,7 @@ import React from 'react';
 import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { Mandatory } from '@/shared/ui/Mandatory';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import type { FormationEnum } from '@/types/enums.types';
 import { memberFullName } from '@/utils/user.utils';
 import type { FoundDocsMembersDto } from '@api/types';
@@ -58,9 +58,9 @@ export function ChairmanSelector(
     <>
       <Select
         label={
-          <Mandatory>
+          <RequiredLabel>
             <FormattedMessage defaultMessage={`Président de séance`} />
-          </Mandatory>
+          </RequiredLabel>
         }
         disabled={isMembersFetching || field.disabled}
         nativeSelectProps={{

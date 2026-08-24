@@ -40,7 +40,7 @@ _Quand ne pas utiliser l'anglais ?_
    Certains tests par exemple sont directement issus de discussions avec le produit.
 
 2. Lorsqu'un terme métier n'a pas vraiment d'équivalent.
-   Certaines traduction peuvent créer beaucoup de confusion, et parfois si le terme est trop spécifique
+   Certaines traduction peuvent créer beaucoup de confusion et parfois si le terme est trop spécifique
    en anglais il peut être mal connu. Autant utiliser le terme en français
 
 3. Dans les documents plus verbeux (comme celui-ci).

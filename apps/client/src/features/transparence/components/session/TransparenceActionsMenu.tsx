@@ -5,7 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
 import { useArchivedSession } from '@/shared/context/archived-session';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -19,7 +19,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
   const { formatMessage } = useIntl();
   const { isArchived } = useArchivedSession();
   const navigate = useNavigate();
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
 
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
   const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
@@ -110,7 +110,6 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
             })}
             disabled={isMutationPending}
             iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-fill'}
-            nativeButtonProps={confirmation.buttonProps}
             onClick={onArchive}
             style={{ color: colors.decisions.text.actionHigh.yellowTournesol.default }}
           >
@@ -125,7 +124,6 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
             })}
             disabled={isMutationPending}
             iconId={deleteSessionMutation.isPending ? `ri-loader-4-fill` : 'ri-delete-bin-fill'}
-            nativeButtonProps={confirmation.buttonProps}
             onClick={onDelete}
           >
             <FormattedMessage defaultMessage="Supprimer" />

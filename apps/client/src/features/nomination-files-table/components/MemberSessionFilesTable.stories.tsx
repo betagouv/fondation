@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AlertsProvider } from '@/shared/context/alerts';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { authHandlers } from '@/shared/storybook/msw.handlers';
 import { sessionFiles, sessionMemberReports } from '@/shared/storybook/session-files.fixtures';
 import { makeSessionHandlers, type SessionDataset } from '@/shared/storybook/session.handlers';
@@ -20,13 +21,15 @@ function MemberSessionFilesTableStory(props: { formation: FormationEnum; session
   return (
     <StoryQueryClient key={`${props.formation}-${props.sessionId}`}>
       <AlertsProvider>
-        <div className="fr-container fr-py-4v">
-          <MemberSessionFilesTable
-            formation={props.formation}
-            outcomes={makeSessionOutcomes(props.formation)}
-            sessionId={props.sessionId}
-          />
-        </div>
+        <ConfirmModalProvider>
+          <div className="fr-container fr-py-4v">
+            <MemberSessionFilesTable
+              formation={props.formation}
+              outcomes={makeSessionOutcomes(props.formation)}
+              sessionId={props.sessionId}
+            />
+          </div>
+        </ConfirmModalProvider>
       </AlertsProvider>
     </StoryQueryClient>
   );

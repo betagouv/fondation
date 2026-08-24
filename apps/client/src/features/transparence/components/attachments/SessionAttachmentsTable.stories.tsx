@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import { IconButton } from '@/shared/ui/icon-button';
 
@@ -66,9 +66,9 @@ const meta = {
   component: SessionAttachmentsTable,
   decorators: [
     (Story) => (
-      <ConfirmationProvider>
+      <ConfirmModalProvider>
         <Story />
-      </ConfirmationProvider>
+      </ConfirmModalProvider>
     ),
   ],
   parameters: { controls: { include: ['attachments'] }, layout: 'padded' },

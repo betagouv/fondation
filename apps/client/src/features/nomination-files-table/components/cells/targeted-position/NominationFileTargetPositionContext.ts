@@ -1,12 +1,21 @@
-import React from 'react';
+import { createContext, useContext } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type NominationFileTargetPositionContextType = {
-  nominationFile: SessionNominationFile | null;
-  setNominationFile: (file: SessionNominationFile | null) => void;
+  open: (nominationFile: SessionNominationFile) => void;
 };
 
-export const NominationFileTargetPositionContext = React.createContext(
-  null as unknown as NominationFileTargetPositionContextType,
-);
+/** @internal */
+export const NominationFileTargetPositionContext =
+  createContext<NominationFileTargetPositionContextType | null>(null);
+
+export function useNominationFileTargetPositionModal() {
+  const context = useContext(NominationFileTargetPositionContext);
+  if (!context)
+    throw new Error(
+      'useNominationFileTargetPositionModal must be used within NominationFileTargetPositionProvider',
+    );
+
+  return context;
+}

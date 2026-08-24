@@ -63,15 +63,6 @@ describe('modalReducer', () => {
     expect(modalReducer(closed, { type: 'edit', observation: OBSERVATION })).toBe(closed);
   });
 
-  it('requests delete directly (file passed) as standalone', () => {
-    expect(modalReducer(closed, { type: 'requestDelete', observation: OBSERVATION, file: FILE })).toEqual({
-      status: 'confirm-delete',
-      file: FILE,
-      observation: OBSERVATION,
-      standalone: true,
-    });
-  });
-
   it('exits a non-standalone flow back to the list view', () => {
     const editing: ModalState = {
       status: 'edit',
@@ -83,13 +74,13 @@ describe('modalReducer', () => {
   });
 
   it('exits a standalone flow straight to closed', () => {
-    const deleting: ModalState = {
-      status: 'confirm-delete',
+    const editing: ModalState = {
+      status: 'edit',
       file: FILE,
       observation: OBSERVATION,
       standalone: true,
     };
-    expect(modalReducer(deleting, { type: 'exit' })).toEqual({ status: 'closed' });
+    expect(modalReducer(editing, { type: 'exit' })).toEqual({ status: 'closed' });
   });
 
   it('exits the bare view to closed', () => {
@@ -97,13 +88,13 @@ describe('modalReducer', () => {
     expect(modalReducer(view, { type: 'exit' })).toEqual({ status: 'closed' });
   });
 
-  it('conceal always closes', () => {
+  it('close always closes', () => {
     const editing: ModalState = {
       status: 'edit',
       file: FILE,
       observation: OBSERVATION,
       standalone: false,
     };
-    expect(modalReducer(editing, { type: 'conceal' })).toEqual({ status: 'closed' });
+    expect(modalReducer(editing, { type: 'close' })).toEqual({ status: 'closed' });
   });
 });

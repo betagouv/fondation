@@ -9,6 +9,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -26,7 +27,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
   const { user } = useUser();
 
   const { session } = props;
-  const { mutateAsync: updateNominationSessionAsync } = useUpdateNominationSessionMutation();
+  const { mutate: updateNominationSession } = useUpdateNominationSessionMutation();
   const { mutate: validateSession } = useValidateSessionMutation();
 
   const invalidDate = formatMessage({ defaultMessage: 'Format de date invalide' });
@@ -66,7 +67,7 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
     dueDate: string | null;
     positionStartDate: string | null;
   }) => {
-    await updateNominationSessionAsync(
+    updateNominationSession(
       { sessionId: session.id, data },
       {
         onSuccess: () => {
@@ -107,10 +108,9 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             id="nom-transparence"
             label={
-              <>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Nom de la transparence" />
-                <span className="text-(--text-default-error)">*</span>
-              </>
+              </RequiredLabel>
             }
             nativeInputProps={{
               autoFocus: true,
@@ -132,10 +132,9 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             id="date-transparence"
             label={
-              <>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Date de la transparence" />
-                <span className="text-(--text-default-error)">*</span>
-              </>
+              </RequiredLabel>
             }
             nativeInputProps={{
               onChange,
@@ -157,10 +156,9 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
             className="w-full"
             id="date-cloture-delai-observation"
             label={
-              <>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Clôture du délai d'observation" />
-                <span className="text-(--text-default-error)">*</span>
-              </>
+              </RequiredLabel>
             }
             nativeInputProps={{
               onChange,

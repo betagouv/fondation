@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
@@ -65,10 +65,10 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
         >
           {attachments.map((file) => (
             <AttachmentItem
-              key={file.id}
               addedAt={file.addedAt}
               canDelete={canManage}
               fileId={file.id}
+              key={file.id}
               name={file.name}
               nominationFileId={props.nominationFileId}
               sessionId={props.sessionId}
@@ -112,7 +112,7 @@ function AttachmentItem(props: {
     isError: isRemoveError,
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
-  const { buttonProps, waitForConfirmation } = useConfirmation();
+  const { waitForConfirmation } = useConfirmModal();
 
   const { label, extension } = splitFileName(props.name);
   const meta = [extension?.toUpperCase(), props.size != null ? formatFileSize(props.size) : null]
@@ -231,7 +231,6 @@ function AttachmentItem(props: {
             <Button
               disabled={isRemovePending}
               iconId="fr-icon-delete-bin-line"
-              nativeButtonProps={buttonProps}
               onClick={onDelete}
               priority="tertiary no outline"
               size="small"

@@ -1,104 +1,126 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { createContext, useCallback, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { Modal } from '@/shared/ui/modal';
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
 
 export const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
 
-const modal = createModal({ id: 'missing-evaluation-comment', isOpenedByDefault: false });
-
 type EditedComment = { comment: string | null; magistrat: string; nominationFileId: string };
+type EditedCommentSession = { edited: EditedComment; id: number };
 
-const EditMissingEvaluationCommentContext = createContext<(edited: EditedComment) => void>(() => {});
+type EditState =
+  | { session: EditedCommentSession; status: 'closing' }
+  | { session: EditedCommentSession; status: 'editing' }
+  | { status: 'idle' };
+
+const EditMissingEvaluationCommentContext = createContext<((edited: EditedComment) => void) | null>(null);
 
 export function MissingEvaluationCommentProvider(props: PropsWithChildren<{ sessionId: string }>) {
-  const [edited, setEdited] = useState<EditedComment | null>(null);
+  const [state, setState] = useState<EditState>({ status: 'idle' });
+  const lastSessionId = useRef(0);
 
-  const edit = useCallback((next: EditedComment) => {
-    setEdited(next);
-    modal.open();
+  const edit = useCallback((edited: EditedComment) => {
+    lastSessionId.current += 1;
+    setState({ session: { edited, id: lastSessionId.current }, status: 'editing' });
   }, []);
+
+  const close = useCallback(
+    () =>
+      setState((current) =>
+        current.status === 'editing' ? { session: current.session, status: 'closing' } : current,
+      ),
+    [],
+  );
 
   return (
     <EditMissingEvaluationCommentContext value={edit}>
       {props.children}
 
-      <MissingEvaluationCommentModal edited={edited} sessionId={props.sessionId} />
+      {state.status !== 'idle' && (
+        <MissingEvaluationCommentModal
+          edited={state.session.edited}
+          key={state.session.id}
+          onClose={close}
+          onClosed={() =>
+            setState((current) => (current.status === 'closing' ? { status: 'idle' } : current))
+          }
+          open={state.status === 'editing'}
+          sessionId={props.sessionId}
+        />
+      )}
     </EditMissingEvaluationCommentContext>
   );
 }
 
-function MissingEvaluationCommentModal(props: { edited: EditedComment | null; sessionId: string }) {
+function MissingEvaluationCommentModal(props: {
+  edited: EditedComment;
+  onClose: () => void;
+  onClosed: () => void;
+  open: boolean;
+  sessionId: string;
+}) {
   const { formatMessage } = useIntl();
   const { mutate, isPending, isError } = useUpdateNominationFileMissingEvaluationCommentMutation();
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState(props.edited.comment ?? '');
 
-  const isOpen = useIsModalOpen(modal);
-
-  useEffect(() => {
-    if (isOpen) setComment(props.edited?.comment ?? '');
-  }, [isOpen, props.edited]);
-
-  const isUnchanged = (comment.trim() || null) === (props.edited?.comment ?? null);
+  const isUnchanged = (comment.trim() || null) === props.edited.comment;
 
   const onSave = useCallback(() => {
-    if (!props.edited) return;
-
     mutate(
       {
         comment: comment.trim() || null,
         nominationFileId: props.edited.nominationFileId,
         sessionId: props.sessionId,
       },
-      { onSuccess: () => modal.close() },
+      { onSuccess: props.onClose },
     );
-  }, [comment, mutate, props.edited, props.sessionId]);
+  }, [comment, mutate, props]);
 
   return (
-    <modal.Component
-      buttons={[
-        { children: <FormattedMessage defaultMessage="Annuler" />, priority: 'secondary' },
-        {
-          children: <FormattedMessage defaultMessage="Enregistrer" />,
-          disabled: isPending || isUnchanged,
-          doClosesModal: false,
-          onClick: onSave,
-          priority: 'primary',
-        },
-      ]}
-      title={<FormattedMessage defaultMessage="Commentaire" />}
-      topAnchor
-    >
-      <form>
-        <Input
-          hintText={formatMessage(
-            { defaultMessage: '{count} caractères maximum' },
-            { count: MISSING_EVALUATION_COMMENT_MAX_LENGTH },
+    <Modal
+      actions={
+        <>
+          {isError && (
+            <p className="fr-error-text fr-mt-0 mr-auto" role="alert">
+              <FormattedMessage defaultMessage="L'enregistrement a échoué" />
+            </p>
           )}
-          label={formatMessage(
-            { defaultMessage: 'Suivi de l’évaluation manquante de {magistrat}' },
-            { magistrat: props.edited?.magistrat ?? '' },
-          )}
-          nativeTextAreaProps={{
-            maxLength: MISSING_EVALUATION_COMMENT_MAX_LENGTH,
-            onChange: (event) => setComment(event.target.value),
-            rows: 3,
-            value: comment,
-          }}
-          textArea
-        />
 
-        {isError && (
-          <p className="fr-error-text fr-mt-0" role="alert">
-            <FormattedMessage defaultMessage="L'enregistrement a échoué" />
-          </p>
+          <Button disabled={isPending} onClick={props.onClose} priority="secondary">
+            <FormattedMessage defaultMessage="Annuler" />
+          </Button>
+          <Button disabled={isPending || isUnchanged} onClick={onSave}>
+            <FormattedMessage defaultMessage="Enregistrer" />
+          </Button>
+        </>
+      }
+      id="missing-evaluation-comment"
+      onClose={props.onClose}
+      onClosed={props.onClosed}
+      open={props.open}
+      title={<FormattedMessage defaultMessage="Commentaire" />}
+    >
+      <Input
+        hintText={formatMessage(
+          { defaultMessage: '{count} caractères maximum' },
+          { count: MISSING_EVALUATION_COMMENT_MAX_LENGTH },
         )}
-      </form>
-    </modal.Component>
+        label={formatMessage(
+          { defaultMessage: 'Suivi de l’évaluation manquante de {magistrat}' },
+          { magistrat: props.edited.magistrat },
+        )}
+        nativeTextAreaProps={{
+          maxLength: MISSING_EVALUATION_COMMENT_MAX_LENGTH,
+          onChange: (event) => setComment(event.target.value),
+          rows: 3,
+          value: comment,
+        }}
+        textArea
+      />
+    </Modal>
   );
 }
 
@@ -109,6 +131,7 @@ export function MissingEvaluationCommentCell(props: {
   nominationFileId: string;
 }) {
   const edit = useContext(EditMissingEvaluationCommentContext);
+  if (!edit) throw new Error('MissingEvaluationCommentCell must be used within a provider');
 
   if (props.disabled) {
     return props.comment ? <span className="text-sm">{props.comment}</span> : null;

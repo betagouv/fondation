@@ -30,8 +30,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock('./context/AddNominationFileAttachmentModalContext', () => ({
   useAddNominationFileAttachmentModal: () => ({ open: mocks.openAddAttachment }),
 }));
-vi.mock('@/shared/context/confirmation', () => ({
-  useConfirmation: () => ({ buttonProps: {}, waitForConfirmation: mocks.waitForConfirmation }),
+vi.mock('@/shared/context/confirm-modal', () => ({
+  useConfirmModal: () => ({ waitForConfirmation: mocks.waitForConfirmation }),
 }));
 vi.mock('@/shared/hooks/useTab', () => ({
   useTab: () => ({

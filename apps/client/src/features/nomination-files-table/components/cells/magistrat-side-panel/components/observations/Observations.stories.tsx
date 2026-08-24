@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { ObservationsModalProvider } from '../../../observations/context/ObservationsModalProvider';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
@@ -268,9 +269,11 @@ function ObservationsStory(props: ObservationsArgs) {
 
   return (
     <StoryQueryClient>
-      <ObservationsModalProvider>
-        <Observations nominationFile={nominationFile} sessionId={SESSION_ID} />
-      </ObservationsModalProvider>
+      <ConfirmModalProvider>
+        <ObservationsModalProvider>
+          <Observations nominationFile={nominationFile} sessionId={SESSION_ID} />
+        </ObservationsModalProvider>
+      </ConfirmModalProvider>
     </StoryQueryClient>
   );
 }

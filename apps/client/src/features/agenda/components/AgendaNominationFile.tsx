@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import './AgendaNominationFile.css';
 
-import { NominationFileOutcomeBadge } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
+import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { Marked } from '@/shared/ui/Marked';
 import type { FormationEnum } from '@/types/enums.types';
@@ -65,7 +65,7 @@ export function AgendaNominationFile(props: {
               </div>
               <div className="hidden md:block">
                 {props.file.outcome && (
-                  <NominationFileOutcomeBadge
+                  <OutcomeBadge
                     acronym
                     formation={props.formation}
                     label={props.file.outcome.label}

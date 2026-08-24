@@ -1,9 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
-import React from 'react';
+import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   presentationPlanKeys,
@@ -16,7 +16,9 @@ import {
 import { PresentationPlanContext } from './presentation-plan.context';
 import type { PresentationPlanContextType } from './presentation-plan.type';
 
-export function PresentationPlanProvider(props: React.PropsWithChildren) {
+const MANDATORY_METADATA = ['chairmanId', 'date', 'justiceContactId', 'secretaryId', 'time'] as const;
+
+export function PresentationPlanProvider(props: PropsWithChildren) {
   const { planId = null } = useParams<{ planId: string }>();
 
   const { data: metadata, isFetching: isFetchingMeta } = useJusticePresentationPlanMetadataQuery({
@@ -25,11 +27,13 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
 
   const {
     mutate: create,
+    error: creationError,
     isPending: isCreating,
     reset: resetCreation,
   } = useCreateJusticePresentationPlanMutation();
   const {
     mutate: update,
+    error: updateError,
     isPending: isUpdating,
     reset: resetUpdate,
   } = useUpdateJusticePresentationPlanMutation();
@@ -38,8 +42,8 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { formatMessage } = useIntl();
-  const { waitForConfirmation } = useConfirmation();
-  const [state, setState] = React.useState<PresentationPlanContextType['state']>({
+  const { waitForConfirmation } = useConfirmModal();
+  const [state, setState] = useState<PresentationPlanContextType['state']>({
     step: 'METADATA',
     formation: null,
     agendas: {},
@@ -52,7 +56,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     hasRenunciation: true,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!metadata) return;
 
     setState((s) => ({
@@ -73,15 +77,15 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     }));
   }, [metadata]);
 
-  const isDisabled = React.useMemo(() => {
+  const isDisabled = useMemo(() => {
     return isFetchingMeta || isCreating || isUpdating;
   }, [isFetchingMeta, isCreating, isUpdating]);
 
-  const goToMetadata = React.useCallback(() => {
+  const goToMetadata = useCallback(() => {
     setState((s) => ({ ...s, step: 'METADATA' }));
   }, []);
 
-  const initPlanCreation = React.useCallback(
+  const initPlanCreation = useCallback(
     (options: { agendaIds: string[]; formation: 'PARQUET' | 'SIEGE' }) => {
       setState((s) => ({
         ...s,
@@ -101,7 +105,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     [navigate, setState],
   );
 
-  const setMetadata = React.useCallback(
+  const setMetadata = useCallback(
     (options: {
       chairmanId: string;
       secretaryId: string;
@@ -120,12 +124,15 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
     [setState],
   );
 
-  const createPlan = React.useCallback(
+  const missingMetadata = MANDATORY_METADATA.filter((key) => !state[key]);
+  const hasAllMandatoryMetadata = missingMetadata.length === 0;
+
+  const createPlan = useCallback(
     async (options: { agendas: Record<string, string | null> }) => {
       setState((s) => ({ ...s, agendas: options.agendas }));
 
       if (!state.chairmanId || !state.secretaryId || !state.justiceContactId || !state.date || !state.time) {
-        throw new Error(`Invalid value`);
+        throw new Error(`Cannot create a presentation plan, missing ${missingMetadata.join(', ')}`);
       }
 
       if (planId) {
@@ -137,11 +144,11 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
               <p>
                 {metadata?.isManuallyEdited ? (
                   <FormattedMessage
-                    values={{ bold: (x) => <strong>{x}</strong> }}
                     defaultMessage={
                       `En confirmant, vous allez écraser l'ancienne version de la notice de restitution,` +
                       `<bold>y compris ses éditions manuelles</bold>, sans pouvoir les récupérer`
                     }
+                    values={{ bold: (x) => <strong>{x}</strong> }}
                   />
                 ) : (
                   <FormattedMessage
@@ -202,6 +209,7 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
       planId,
       update,
       create,
+      missingMetadata,
       resetPlan,
       navigate,
       queryClient,
@@ -221,6 +229,8 @@ export function PresentationPlanProvider(props: React.PropsWithChildren) {
         state,
         isFetching: isFetchingMeta,
         isDisabled,
+        hasAllMandatoryMetadata,
+        hasFailed: Boolean(creationError || updateError),
         goToMetadata,
         initPlanCreation,
         setMetadata,

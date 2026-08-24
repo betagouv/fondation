@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 
 export function MissingEvaluationDoneButton(props: {
@@ -12,7 +12,7 @@ export function MissingEvaluationDoneButton(props: {
   sessionId: string;
 }) {
   const { formatMessage } = useIntl();
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
   const { mutate, isPending } = useUpdateNominationFileMissingEvaluationMutation();
 
   const onClick = useCallback(async () => {
@@ -48,7 +48,6 @@ export function MissingEvaluationDoneButton(props: {
       disabled={props.disabled || isPending}
       iconId="ri-check-line"
       iconPosition="right"
-      nativeButtonProps={confirmation.buttonProps}
       onClick={onClick}
       priority="secondary"
       size="small"

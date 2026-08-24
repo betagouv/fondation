@@ -65,7 +65,11 @@ export function Tooltip(props: { children: ReactNode; className?: string; label:
         aria-describedby={bubbleId}
         className={clsx('inline-flex cursor-default', props.className)}
         onBlur={hide}
-        onFocus={show}
+        onFocus={(event) => {
+          // a dialog restores the focus to its trigger when it closes: only a keyboard focus should show the bubble
+          if (event.target instanceof Element && !event.target.matches(':focus-visible')) return;
+          show();
+        }}
         onKeyDown={(event) => event.key === 'Escape' && hide()}
         onPointerEnter={show}
         onPointerLeave={hide}

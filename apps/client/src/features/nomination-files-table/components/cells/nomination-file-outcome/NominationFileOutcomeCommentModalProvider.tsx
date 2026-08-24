@@ -1,46 +1,39 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 
+import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
 import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
-import { OutcomeCommentModalContext, type OutcomeCommentCallback } from './OutcomeCommentModalContext';
+import { OutcomeCommentModalContext, type OutcomeCommentEvent } from './OutcomeCommentModalContext';
+
+type OutcomeCommentQuestion = { initialComment: string | null; outcome: NominationFileOutcomeEnum };
 
 export function NominationFileOutcomeCommentModalProvider(props: { children: ReactNode }) {
-  const [outcome, setOutcome] = useState<NominationFileOutcomeEnum | null>(null);
-  const [initialComment, setInitialComment] = useState<string | null>(null);
-  const [commentCallback, setCommentCallback] = useState<OutcomeCommentCallback | null>(null);
+  const { answer, ask, forget, state } = useAwaitableModal<OutcomeCommentQuestion, OutcomeCommentEvent>({
+    type: 'drop',
+  });
 
-  const reset = useCallback(() => {
-    setOutcome(null);
-    setInitialComment(null);
-    setCommentCallback(null);
-  }, [setCommentCallback, setInitialComment, setOutcome]);
-
-  const onCommentChange = useCallback(
-    (comment: string | null) => {
-      commentCallback?.({ type: 'comment', value: comment });
-      reset();
-    },
-    [commentCallback, reset],
+  const waitForOutcomeComment = useCallback(
+    (outcome: NominationFileOutcomeEnum, initialComment: string | null = null) =>
+      ask({ initialComment, outcome }),
+    [ask],
   );
 
-  const onDrop = useCallback(() => {
-    commentCallback?.({ type: 'drop' });
-    reset();
-  }, [commentCallback, reset]);
+  const value = useMemo(() => ({ waitForOutcomeComment }), [waitForOutcomeComment]);
 
   return (
-    <OutcomeCommentModalContext
-      value={{
-        commentCallback,
-        initialComment,
-        outcome,
-        setCommentCallback,
-        setInitialComment,
-        setOutcome,
-      }}
-    >
-      <NominationFileOutcomeCommentModal onChange={onCommentChange} onDrop={onDrop} />
+    <OutcomeCommentModalContext value={value}>
+      {state.status !== 'idle' && (
+        <NominationFileOutcomeCommentModal
+          initialComment={state.question.initialComment}
+          key={state.id}
+          onClosed={forget}
+          onComment={(value) => answer({ type: 'comment', value })}
+          onDrop={() => answer({ type: 'drop' })}
+          open={state.status === 'asking'}
+          outcome={state.question.outcome}
+        />
+      )}
 
       {props.children}
     </OutcomeCommentModalContext>

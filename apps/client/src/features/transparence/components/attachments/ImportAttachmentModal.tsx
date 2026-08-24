@@ -1,49 +1,38 @@
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import clsx from 'clsx';
-import { type ChangeEvent, useCallback, useRef, useState } from 'react';
-import { useIntl } from 'react-intl';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useCallback, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
 import { useAlerts } from '@/shared/context/alerts';
+import { Modal } from '@/shared/ui/modal';
+import { Upload } from '@/shared/ui/upload';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
-export const modal = createModal({
-  id: 'modal-import-attachment-transparence',
-  isOpenedByDefault: false,
-});
-
-export const ImportAttachmentModal = (props: { sessionId: string }) => {
+export function ImportAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
   const { formatMessage } = useIntl();
   const alerts = useAlerts();
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [attachmentFiles, setAttachmentFiles] = useState<FileList | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [attempt, setAttempt] = useState(0);
   const { mutate: importAttachments, isPending } = useAddNominationSessionAttachmentMutation();
 
-  const onChangeAttachmentFile = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      e.preventDefault();
-      if (e.target.files && e.target.files.length > 0) {
-        setAttachmentFiles(e.target.files);
-      }
-    },
-    [setAttachmentFiles],
-  );
-
-  const handleImportAttachment = useCallback(() => {
-    if (!attachmentFiles) return;
+  const onImport = useCallback(() => {
+    if (files.length === 0) return;
 
     importAttachments(
+      { files, sessionId: props.sessionId },
       {
-        files: attachmentFiles,
-        sessionId: props.sessionId,
-      },
-      {
-        onSettled() {
-          if (!inputRef.current) return;
+        onError: () => {
+          setFiles([]);
+          setAttempt((current) => current + 1);
 
-          inputRef.current.value = '';
-          inputRef.current.files = null;
+          alerts.pushAlert({
+            description: formatMessage({
+              defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+            }),
+            severity: 'error',
+            title: formatMessage({ defaultMessage: "L'import des pièces jointes a échoué" }),
+          });
         },
         onSuccess: () => {
           alerts.pushAlert({
@@ -51,51 +40,36 @@ export const ImportAttachmentModal = (props: { sessionId: string }) => {
             title: formatMessage({ defaultMessage: 'Données actualisées' }),
           });
 
-          setAttachmentFiles(null);
-          modal.close();
-        },
-        onError: () => {
-          alerts.pushAlert({
-            severity: 'error',
-            title: formatMessage({ defaultMessage: "L'import des pièces jointes a échoué" }),
-            description: formatMessage({
-              defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
-            }),
-          });
+          props.onClose();
         },
       },
     );
-  }, [attachmentFiles, setAttachmentFiles, props, importAttachments, alerts, formatMessage, inputRef]);
+  }, [alerts, files, formatMessage, importAttachments, props]);
 
   return (
-    <modal.Component
-      buttons={[
-        {
-          children: isPending
-            ? formatMessage({ defaultMessage: 'Import en cours...' })
-            : formatMessage({ defaultMessage: 'Importer' }),
-          doClosesModal: false,
-          nativeButtonProps: {
-            disabled: !attachmentFiles || isPending,
-            onClick: handleImportAttachment,
-          },
-        },
-      ]}
-      title={formatMessage({ defaultMessage: 'Importer des pièces jointes' })}
+    <Modal
+      actions={
+        <Button disabled={files.length === 0 || isPending} onClick={onImport}>
+          {isPending ? (
+            <FormattedMessage defaultMessage="Import en cours..." />
+          ) : (
+            <FormattedMessage defaultMessage="Importer" />
+          )}
+        </Button>
+      }
+      onClose={props.onClose}
+      open={props.open}
+      title={<FormattedMessage defaultMessage="Importer des pièces jointes" />}
     >
-      <div className={clsx('gap-8', 'fr-grid-row')}>
-        <Upload
-          hint={null}
-          id="import-observations-transparence"
-          label={null}
-          multiple
-          nativeInputProps={{
-            disabled: isPending,
-            onChange: onChangeAttachmentFile,
-            ref: inputRef,
-          }}
-        />
-      </div>
-    </modal.Component>
+      <Upload
+        accept={DOCUMENT_FILE_TYPES}
+        hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+        isPending={isPending}
+        key={attempt}
+        label={<FormattedMessage defaultMessage="Importer un fichier" />}
+        multiple
+        onChange={setFiles}
+      />
+    </Modal>
   );
-};
+}

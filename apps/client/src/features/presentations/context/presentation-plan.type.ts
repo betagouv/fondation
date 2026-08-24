@@ -4,6 +4,8 @@ export type PresentationPlanContextType = {
   planId: string | null;
   isFetching: boolean;
   isDisabled: boolean;
+  hasAllMandatoryMetadata: boolean;
+  hasFailed: boolean;
   state: {
     step: 'METADATA' | 'AGENDA_COMMENTS';
     formation: FormationEnum | null;

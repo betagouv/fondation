@@ -2,12 +2,12 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { IconButton } from '@/shared/ui/icon-button';
 
 export function DeleteFileButton(props: { fileName: string; onDelete: () => void }) {
   const { formatMessage } = useIntl();
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
 
   const onDelete = useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
@@ -30,7 +30,6 @@ export function DeleteFileButton(props: { fileName: string; onDelete: () => void
 
   return (
     <IconButton
-      {...confirmation.buttonProps}
       iconId={ACTION_ICONS.delete}
       label={formatMessage({ defaultMessage: 'Supprimer {fileName}' }, { fileName: props.fileName })}
       onClick={onDelete}

@@ -12,8 +12,8 @@ vi.mock('@queries/members.queries', () => ({
   useUpdateNominationFileMissingEvaluationMutation: () => ({ mutate, isPending: false }),
 }));
 
-vi.mock('@/shared/context/confirmation', () => ({
-  useConfirmation: () => ({ buttonProps: {}, waitForConfirmation }),
+vi.mock('@/shared/context/confirm-modal', () => ({
+  useConfirmModal: () => ({ waitForConfirmation }),
 }));
 
 function renderButton(disabled = false) {

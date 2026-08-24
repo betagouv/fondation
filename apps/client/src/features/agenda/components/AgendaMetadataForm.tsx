@@ -3,12 +3,14 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { format } from 'date-fns';
-import React from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { FormattedMessage } from 'react-intl';
 import z from 'zod';
 
 import type { AgendaMetadata } from '@/features/agenda/context/AgendaContext.types';
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import type { FormationEnum } from '@/types/enums.types';
 import type { IconClassName } from '@/types/icons.types';
 import { dateOnlyCodec, dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
@@ -29,15 +31,15 @@ export function AgendaMetadataForm(props: {
   formation: FormationEnum;
   defaultValues?: AgendaMetadataFormValues | null;
   isSubmitting?: boolean;
-  submitLabel: React.ReactNode;
+  submitLabel: ReactNode;
   submitIconId?: IconClassName;
-  cancelLabel: React.ReactNode;
+  cancelLabel: ReactNode;
   onCancel(): void;
   onSubmit(metadata: AgendaMetadata): void;
   className?: string;
 }) {
   const { defaultValues: metadata } = props;
-  const defaultValues = React.useMemo(
+  const defaultValues = useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
       date: format(dateOnlyToDate(metadata?.date) ?? new Date(), 'yyyy-MM-dd'),
@@ -60,18 +62,18 @@ export function AgendaMetadataForm(props: {
 
   return (
     <form
-      onSubmit={handleSubmit((values) => props.onSubmit(values as AgendaMetadata))}
       className={clsx('mx-auto max-w-2xl', props.className)}
+      onSubmit={handleSubmit((values) => props.onSubmit(values as AgendaMetadata))}
     >
       <Controller
-        name="sessionMeetingDate"
         control={control}
+        name="sessionMeetingDate"
         render={({ field }) => (
           <Input
             label={
-              <>
-                Date de la séance<span className="text-(--text-default-error)">*</span>
-              </>
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Date de la séance" />
+              </RequiredLabel>
             }
             nativeInputProps={{ type: 'date', ...field }}
             state={errors.sessionMeetingDate ? 'error' : 'default'}
@@ -80,14 +82,14 @@ export function AgendaMetadataForm(props: {
         )}
       />
       <Controller
-        name="date"
         control={control}
+        name="date"
         render={({ field }) => (
           <Input
             label={
-              <>
-                Date de l'ordre du jour<span className="text-(--text-default-error)">*</span>
-              </>
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Date de l'ordre du jour" />
+              </RequiredLabel>
             }
             nativeInputProps={{ type: 'date', ...field }}
             state={errors.date ? 'error' : 'default'}
@@ -97,15 +99,14 @@ export function AgendaMetadataForm(props: {
       />
 
       <ChairmanSelector
-        name="chairmanId"
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
         formation={props.formation}
+        name="chairmanId"
       />
 
       <ButtonsGroup
         alignment="right"
-        inlineLayoutWhen="md and up"
         buttons={[
           { children: props.cancelLabel, priority: 'secondary', onClick: props.onCancel, type: 'button' },
           {
@@ -116,6 +117,7 @@ export function AgendaMetadataForm(props: {
             children: props.submitLabel,
           },
         ]}
+        inlineLayoutWhen="md and up"
       />
     </form>
   );

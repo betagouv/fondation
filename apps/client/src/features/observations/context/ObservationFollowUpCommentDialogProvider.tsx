@@ -1,27 +1,36 @@
-import React from 'react';
+import { useMemo, type PropsWithChildren } from 'react';
 
 import { ObservationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
+import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 import {
   ObservationFollowUpCommentContext,
-  type ObservationFollowUpCommentCallback,
+  type ObservationFollowUpCommentEvent,
 } from './ObservationFollowUpCommentContext';
 
-export function ObservationFollowUpCommentProvider(props: React.PropsWithChildren) {
-  const [followUp, setFollowUp] = React.useState<ObservationFollowupEnum | null>(null);
-  const [callback, setCallback] = React.useState<ObservationFollowUpCommentCallback | null>(null);
+export function ObservationFollowUpCommentProvider({ children }: PropsWithChildren) {
+  const { answer, ask, forget, state } = useAwaitableModal<
+    ObservationFollowupEnum,
+    ObservationFollowUpCommentEvent
+  >({ type: 'drop' });
 
-  const onDrop = React.useCallback(() => callback?.({ type: 'drop' }), [callback]);
-  const onChange = React.useCallback(
-    (value: string | null) => callback?.({ type: 'comment', value }),
-    [callback],
-  );
+  const value = useMemo(() => ({ waitForComment: ask }), [ask]);
 
   return (
-    <ObservationFollowUpCommentContext value={{ followUp, setFollowUp, callback, setCallback }}>
-      <ObservationFollowUpCommentModal followUp={followUp} onChange={onChange} onDrop={onDrop} />
-      {props.children}
+    <ObservationFollowUpCommentContext value={value}>
+      {state.status !== 'idle' && (
+        <ObservationFollowUpCommentModal
+          followUp={state.question}
+          key={state.id}
+          onClosed={forget}
+          onComment={(value) => answer({ type: 'comment', value })}
+          onDrop={() => answer({ type: 'drop' })}
+          open={state.status === 'asking'}
+        />
+      )}
+
+      {children}
     </ObservationFollowUpCommentContext>
   );
 }

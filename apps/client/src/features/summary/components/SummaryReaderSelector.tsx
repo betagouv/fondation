@@ -1,35 +1,31 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
 import clsx from 'clsx';
-import React from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { useCallback, useMemo, useState, type ComponentProps } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { Marked } from '@/shared/ui/Marked';
+import { Modal } from '@/shared/ui/modal';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { capitalize } from '@/utils/string.utils';
 import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 
-const summaryReadersModal = createModal({
-  id: `summaryReadersModal`,
-  isOpenedByDefault: false,
-});
-
 export function SummaryReaderSelector(
   props: {
     className?: string;
-    iconId?: React.ComponentProps<typeof Button>['iconId'];
-    priority?: React.ComponentProps<typeof Button>['priority'];
+    iconId?: ComponentProps<typeof Button>['iconId'];
+    priority?: ComponentProps<typeof Button>['priority'];
     rounded?: boolean;
-    size?: React.ComponentProps<typeof Button>['size'];
+    size?: ComponentProps<typeof Button>['size'];
     withCount?: boolean;
   } = {},
 ) {
   const { summary, canWriteSummary } = useSummary();
+  const [isSharing, setIsSharing] = useState(false);
+  const [openCount, setOpenCount] = useState(0);
 
   if (!canWriteSummary) return null;
 
@@ -48,9 +44,12 @@ export function SummaryReaderSelector(
     );
 
   const commonProps = {
-    ...summaryReadersModal.buttonProps,
     className: clsx(rounded && 'rounded-full', props.className) || undefined,
     disabled: summary.isArchived,
+    onClick: () => {
+      setOpenCount((current) => current + 1);
+      setIsSharing(true);
+    },
     priority: props.priority,
     size: props.size,
   };
@@ -65,7 +64,14 @@ export function SummaryReaderSelector(
 
   return (
     <>
-      <SummaryReaderModal />
+      {openCount > 0 && (
+        <SummaryReaderModal
+          key={openCount}
+          onClose={() => setIsSharing(false)}
+          onClosed={() => !isSharing && setOpenCount(0)}
+          open={isSharing}
+        />
+      )}
 
       {withCount && readersCount > 0 ? (
         <Tooltip
@@ -82,16 +88,15 @@ export function SummaryReaderSelector(
   );
 }
 
-function SummaryReaderModal() {
-  const intl = useIntl();
+function SummaryReaderModal(props: { onClose: () => void; onClosed: () => void; open: boolean }) {
   const { summary, sessionId, nominationFileId } = useSummary();
-  const originalReaderIds = React.useMemo(() => summary.summary.readers.map(({ id }) => id), [summary]);
-  const [state, setState] = React.useState<{ readers: string[]; isDirty: boolean }>({
+  const originalReaderIds = useMemo(() => summary.summary.readers.map(({ id }) => id), [summary]);
+  const [state, setState] = useState<{ readers: string[]; isDirty: boolean }>({
     isDirty: false,
     readers: originalReaderIds,
   });
 
-  const onChange = React.useCallback(
+  const onChange = useCallback(
     (readers: string[]) => {
       const isDirty = !(
         readers.length === originalReaderIds.length && readers.every((id) => originalReaderIds.includes(id))
@@ -99,86 +104,62 @@ function SummaryReaderModal() {
 
       setState({ isDirty, readers });
     },
-    [originalReaderIds, setState],
+    [originalReaderIds],
   );
 
-  const {
-    reset,
-    mutate: updateSummaryReaders,
-    isPending: isUpdatingReaders,
-  } = useUpdateSummaryReadersMutation();
-  const onConfirmSummaryReaders = React.useCallback(() => {
-    if (!state.isDirty) return;
+  const { mutate: updateSummaryReaders, isPending: isUpdatingReaders } = useUpdateSummaryReadersMutation();
+
+  const onConfirm = useCallback(() => {
+    if (!state.isDirty) {
+      props.onClose();
+      return;
+    }
 
     updateSummaryReaders(
       { sessionId, nominationFileId, readerIds: state.readers },
-      {
-        onSuccess() {
-          reset();
-          summaryReadersModal.close();
-          setState({ isDirty: false, readers: [] });
-        },
-      },
+      { onSuccess: props.onClose },
     );
-  }, [state, sessionId, nominationFileId, updateSummaryReaders, reset, setState]);
-
-  const isOpen = useIsModalOpen(summaryReadersModal, {
-    onConceal() {
-      reset();
-      setState({ isDirty: false, readers: [] });
-    },
-  });
-
-  const [shouldRender, setShouldRender] = React.useState(isOpen);
-  React.useEffect(() => {
-    if (isOpen) {
-      setShouldRender(true);
-      return;
-    }
-    // Keep the content mounted until the DSFR close animation ends, to avoid a flash while it fades out.
-    const closeAnimationMs = 300;
-    const timeout = setTimeout(() => setShouldRender(false), closeAnimationMs);
-    return () => clearTimeout(timeout);
-  }, [isOpen]);
+  }, [nominationFileId, props, sessionId, state, updateSummaryReaders]);
 
   return (
-    <summaryReadersModal.Component
-      title={intl.formatMessage({ defaultMessage: 'Partager cette synthèse' })}
-      buttons={[
-        {
-          children: intl.formatMessage({ defaultMessage: 'Annuler' }),
-          priority: 'secondary',
-          doClosesModal: true,
-          disabled: isUpdatingReaders,
-        },
-        {
-          doClosesModal: !isUpdatingReaders && !state.isDirty,
-          children: state.isDirty
-            ? intl.formatMessage({ defaultMessage: 'Partager' })
-            : intl.formatMessage({ defaultMessage: 'Ok' }),
-          priority: 'primary',
-          disabled: isUpdatingReaders,
-          onClick: onConfirmSummaryReaders,
-        },
-      ]}
+    <Modal
+      actions={
+        <>
+          <Button disabled={isUpdatingReaders} onClick={props.onClose} priority="secondary">
+            <FormattedMessage defaultMessage="Annuler" />
+          </Button>
+
+          <Button disabled={isUpdatingReaders} onClick={onConfirm}>
+            {state.isDirty ? (
+              <FormattedMessage defaultMessage="Partager" />
+            ) : (
+              <FormattedMessage defaultMessage="Ok" />
+            )}
+          </Button>
+        </>
+      }
+      onClose={props.onClose}
+      onClosed={props.onClosed}
+      open={props.open}
+      title={<FormattedMessage defaultMessage="Partager cette synthèse" />}
     >
-      {shouldRender ? <SummaryReaderAutocomplete readers={originalReaderIds} onChange={onChange} /> : null}
-    </summaryReadersModal.Component>
+      <SummaryReaderAutocomplete onChange={onChange} readers={originalReaderIds} />
+    </Modal>
   );
 }
 
 function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (readers: string[]) => unknown }) {
   const { sessionId, nominationFileId } = useSummary();
 
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useDebounce('', 600);
-  const [selectedReaderIds, setReaderIds] = React.useState(new Set<string>(props.readers));
+  const [selectedReaderIds, setReaderIds] = useState(new Set<string>(props.readers));
 
-  const [includeIds, setIncludeIds] = React.useState<string[] | undefined>(
+  const [includeIds, setIncludeIds] = useState<string[] | undefined>(
     selectedReaderIds.size ? [...selectedReaderIds] : undefined,
   );
 
-  const toggleReader = React.useCallback(
+  const toggleReader = useCallback(
     (id: string) => {
       let nextReaders: Set<string>;
       if (selectedReaderIds.has(id)) {
@@ -206,7 +187,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
     search: debouncedSearch,
   });
 
-  const checkboxOptions = React.useMemo(
+  const checkboxOptions = useMemo(
     () =>
       (readers?.items ?? []).map((x) => {
         return {
@@ -230,13 +211,11 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         renderInput={(inputProps) => (
           <input
             {...inputProps}
-            role="combobox"
-            autoComplete="off"
+            aria-autocomplete="list"
             aria-controls="summary_reader_list"
             aria-expanded={true}
-            aria-autocomplete="list"
+            autoComplete="off"
             className={`${inputProps.className} w-full`}
-            value={search}
             onChange={(e) => {
               const value = e.currentTarget.value;
 
@@ -244,6 +223,8 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
               setDebouncedSearch(value.trim());
               setIncludeIds(value.trim() === '' ? [...selectedReaderIds] : undefined);
             }}
+            role="combobox"
+            value={search}
           />
         )}
       />
@@ -261,7 +242,7 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
       {isError ? (
         <div className="fr-mt-4v flex flex-col items-start gap-2 text-sm text-(--text-default-error)">
           <FormattedMessage defaultMessage="Impossible de charger la liste des lecteurs." />
-          <Button priority="secondary" size="small" onClick={() => refetch()}>
+          <Button onClick={() => refetch()} priority="secondary" size="small">
             <FormattedMessage defaultMessage="Réessayer" />
           </Button>
         </div>
@@ -275,8 +256,8 @@ function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (reader
         </div>
       ) : (
         <Checkbox
-          id="summary_reader_list"
           className="fr-mt-4v fr-pb-24v max-h-60 overflow-auto"
+          id="summary_reader_list"
           options={checkboxOptions.map(({ label, value, checked }) => ({
             label,
             nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },

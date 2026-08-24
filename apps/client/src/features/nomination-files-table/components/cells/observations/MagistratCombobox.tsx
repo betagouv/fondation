@@ -5,7 +5,7 @@ import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent } from 
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
-import { Mandatory } from '@/shared/ui/Mandatory';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { fullNameUpperCase } from '@/utils/user.utils';
 import { useSearchMagistratsQuery, type MagistratSearchResult } from '@queries/observations.queries';
 
@@ -76,12 +76,12 @@ export function MagistratCombobox(props: {
     <div className="relative" onBlur={closeOnFocusLeave}>
       <Input
         classes={{ root: 'fr-mb-0' }}
-        hintText={intl.formatMessage({ defaultMessage: 'Nom, Prénom ou Adresse email pro' })}
+        hintText={intl.formatMessage({ defaultMessage: 'Nom, prénom ou adresse email pro' })}
         iconId="fr-icon-search-line"
         label={
-          <Mandatory>
+          <RequiredLabel>
             <FormattedMessage defaultMessage="Magistrat observant" />
-          </Mandatory>
+          </RequiredLabel>
         }
         nativeInputProps={{
           'aria-activedescendant': activeMagistrat ? optionId(activeMagistrat.id) : undefined,

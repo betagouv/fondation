@@ -3,16 +3,16 @@ import React from 'react';
 
 import { FormationEnum, type NominationFileOutcomeEnum } from '@/types/enums.types';
 
-import { useNominationFileOutcome } from './nomination-file-outcome-badge.utils';
+import { useOutcomeBadge } from './outcome-badge.utils';
 
-function InnerNominationFileOutcomeBadge(props: {
+function InnerOutcomeBadge(props: {
   acronym?: boolean;
   formation: FormationEnum;
   label?: string;
   outcome: NominationFileOutcomeEnum | null;
   small?: boolean;
 }) {
-  const { badge, acronym, icon, severity } = useNominationFileOutcome(props);
+  const { badge, acronym, icon, severity } = useOutcomeBadge(props);
 
   const badgeLabel = props.acronym === true ? acronym : badge.toUpperCase();
 
@@ -37,7 +37,7 @@ function InnerNominationFileOutcomeBadge(props: {
   );
 }
 
-export const NominationFileOutcomeBadge = React.memo(InnerNominationFileOutcomeBadge, (prev, props) =>
+export const OutcomeBadge = React.memo(InnerOutcomeBadge, (prev, props) =>
   (['acronym', 'formation', 'label', 'outcome', 'small'] as const).every((prop) =>
     prop === 'acronym' || prop === 'small'
       ? !!prev[prop] === !!props[prop]

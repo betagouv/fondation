@@ -10,8 +10,8 @@ const deleteAgenda = vi.fn();
 const deleteOfficialReport = vi.fn();
 const waitForConfirmation = vi.fn();
 
-vi.mock('@/shared/context/confirmation', () => ({
-  useConfirmation: () => ({ buttonProps: {}, waitForConfirmation }),
+vi.mock('@/shared/context/confirm-modal', () => ({
+  useConfirmModal: () => ({ waitForConfirmation }),
 }));
 
 vi.mock('@queries/agenda.queries', () => ({

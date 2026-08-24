@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { type FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
 import type { IconClassName } from '@/types/icons.types';
 
-const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
+const OUTCOME_BADGE_LABELS = {
   PARQUET: {
     VALIDATED: 'favorable',
     NON_VALIDATED: 'défavorable',
@@ -25,7 +25,7 @@ const NOMINATION_FILE_OUTCOME_BADGE_LABELS = {
   },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
-const NOMINATION_FILE_OUTCOME_ACRONYM = {
+const OUTCOME_BADGE_ACRONYM = {
   PARQUET: {
     VALIDATED: 'AF',
     NON_VALIDATED: 'AD',
@@ -46,7 +46,7 @@ const NOMINATION_FILE_OUTCOME_ACRONYM = {
   },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
-const NOMINATION_FILE_OUTCOME_ICON = {
+const OUTCOME_BADGE_ICON = {
   VALIDATED: 'fr-icon-success-fill',
   NON_VALIDATED: 'fr-icon-error-fill',
   SUSPENDED: 'ri-timer-fill',
@@ -56,7 +56,7 @@ const NOMINATION_FILE_OUTCOME_ICON = {
   WAITING_DSJ: 'ri-timer-fill',
 } as const satisfies Record<NominationFileOutcomeEnum, IconClassName | undefined>;
 
-const NOMINATION_FILE_OUTCOME_SEVERITY = {
+const OUTCOME_BADGE_SEVERITY = {
   VALIDATED: 'success',
   NON_VALIDATED: 'error',
   SUSPENDED: 'info',
@@ -66,7 +66,7 @@ const NOMINATION_FILE_OUTCOME_SEVERITY = {
   WAITING_DSJ: 'info',
 } as const satisfies Record<NominationFileOutcomeEnum, AlertProps.Severity | undefined>;
 
-export const useNominationFileOutcome = (outcome: {
+export const useOutcomeBadge = (outcome: {
   formation: FormationEnum;
   outcome: NominationFileOutcomeEnum | null;
 }) =>
@@ -80,10 +80,10 @@ export const useNominationFileOutcome = (outcome: {
             severity: undefined,
           }
         : {
-            badge: NOMINATION_FILE_OUTCOME_BADGE_LABELS[outcome.formation][outcome.outcome],
-            acronym: NOMINATION_FILE_OUTCOME_ACRONYM[outcome.formation][outcome.outcome],
-            icon: NOMINATION_FILE_OUTCOME_ICON[outcome.outcome],
-            severity: NOMINATION_FILE_OUTCOME_SEVERITY[outcome.outcome],
+            badge: OUTCOME_BADGE_LABELS[outcome.formation][outcome.outcome],
+            acronym: OUTCOME_BADGE_ACRONYM[outcome.formation][outcome.outcome],
+            icon: OUTCOME_BADGE_ICON[outcome.outcome],
+            severity: OUTCOME_BADGE_SEVERITY[outcome.outcome],
           },
     [outcome],
   );

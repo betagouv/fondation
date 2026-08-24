@@ -2,6 +2,7 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useAgenda } from '@/features/agenda/context/AgendaContext';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { memberFullName } from '@/utils/user.utils';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
@@ -22,10 +23,9 @@ export function AgendaChairmanSelect(props: {
   return (
     <Select
       label={
-        <>
+        <RequiredLabel>
           <FormattedMessage defaultMessage="Président de séance" />
-          <span className="text-(--text-default-error)">*</span>
-        </>
+        </RequiredLabel>
       }
       nativeSelectProps={{
         value: props.value,
@@ -35,7 +35,7 @@ export function AgendaChairmanSelect(props: {
       state={props.error ? 'error' : 'default'}
       stateRelatedMessage={props.error}
     >
-      <option value="" disabled>
+      <option disabled value="">
         {formatMessage({ defaultMessage: 'Sélectionner un président' })}
       </option>
       {chairmen.map((c) => (

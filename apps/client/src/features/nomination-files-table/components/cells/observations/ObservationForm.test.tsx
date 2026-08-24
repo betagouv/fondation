@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MagistratSearchResult, Observation } from '@queries/observations.queries';
 
 import { ObservationForm } from './ObservationForm';
+
+type FormState = { isDirty: boolean; isValid: boolean };
 
 const createObservation = vi.fn();
 const updateObservation = vi.fn();
@@ -62,12 +64,13 @@ const OBSERVATION: Observation = {
   },
 };
 
-function renderForm(observation?: Observation) {
+function renderForm(observation?: Observation, onFormStateChange?: (state: FormState) => void) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <ObservationForm
         nominationFileId="nomination-file"
         observation={observation}
+        onFormStateChange={onFormStateChange}
         onPending={vi.fn()}
         sessionId="session-1"
       />
@@ -198,6 +201,35 @@ describe('ObservationForm magistrat combobox', () => {
 });
 
 describe('ObservationForm', () => {
+  it('stays invalid until every mandatory field is filled', async () => {
+    const user = userEvent.setup();
+    const onFormStateChange = vi.fn<(state: FormState) => void>();
+    searchResults = [MARTIN];
+
+    renderForm(undefined, onFormStateChange);
+    const lastState = () => onFormStateChange.mock.lastCall?.[0];
+
+    expect(lastState()).toEqual({ isDirty: false, isValid: false });
+
+    await user.type(screen.getByLabelText(/Date de réception/), '2026-01-02');
+    expect(lastState()).toEqual({ isDirty: true, isValid: false });
+
+    const [option] = await search(user);
+    await user.click(option!);
+
+    expect(lastState()).toEqual({ isDirty: true, isValid: true });
+  });
+
+  it('becomes valid on its own when it opens on an existing observation', async () => {
+    const onFormStateChange = vi.fn<(state: FormState) => void>();
+
+    renderForm(OBSERVATION, onFormStateChange);
+
+    await waitFor(() =>
+      expect(onFormStateChange.mock.lastCall?.[0]).toEqual({ isDirty: false, isValid: true }),
+    );
+  });
+
   it('detaches the removed file and keeps the other one', async () => {
     const user = userEvent.setup();
     renderForm(OBSERVATION);

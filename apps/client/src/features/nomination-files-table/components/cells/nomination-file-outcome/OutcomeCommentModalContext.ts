@@ -1,44 +1,23 @@
-import { createContext, useCallback, useContext } from 'react';
+import { createContext, useContext } from 'react';
 
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
-import { nominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
-
-type OutcomeCommentCallbackEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
-export type OutcomeCommentCallback = (event: OutcomeCommentCallbackEvent) => unknown;
+export type OutcomeCommentEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
 
 type OutcomeCommentDialogContextType = {
-  commentCallback: OutcomeCommentCallback | null;
-  initialComment: string | null;
-  outcome: NominationFileOutcomeEnum | null;
-  setCommentCallback: (callback: OutcomeCommentCallback) => void;
-  setInitialComment: (value: string | null) => void;
-  setOutcome: (value: NominationFileOutcomeEnum) => void;
+  waitForOutcomeComment: (
+    outcome: NominationFileOutcomeEnum,
+    initialComment?: string | null,
+  ) => Promise<OutcomeCommentEvent>;
 };
 
 /** @internal */
-export const OutcomeCommentModalContext = createContext<OutcomeCommentDialogContextType>(
-  null as unknown as OutcomeCommentDialogContextType,
-);
+export const OutcomeCommentModalContext = createContext<OutcomeCommentDialogContextType | null>(null);
 
 export function useOutcomeCommentDialog() {
-  const { setCommentCallback, setInitialComment, setOutcome } = useContext(OutcomeCommentModalContext);
+  const context = useContext(OutcomeCommentModalContext);
+  if (!context)
+    throw new Error('useOutcomeCommentDialog must be used within NominationFileOutcomeCommentModalProvider');
 
-  const waitForOutcomeComment = useCallback(
-    (
-      outcome: NominationFileOutcomeEnum,
-      initialComment: string | null = null,
-    ): Promise<OutcomeCommentCallbackEvent> => {
-      setOutcome(outcome);
-      setInitialComment(initialComment);
-      return new Promise((resolve) => {
-        setCommentCallback(() => resolve);
-
-        nominationFileOutcomeCommentModal.open();
-      });
-    },
-    [setCommentCallback, setInitialComment, setOutcome],
-  );
-
-  return { waitForOutcomeComment };
+  return context;
 }

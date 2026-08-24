@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
-import { NominationFileOutcomeBadge } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcomeBadge';
+import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { NewTable } from '@/shared/ui/new-table/NewTable';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
@@ -103,7 +103,7 @@ export function MagistratNominationFilesTable({
           return (
             <span className="flex w-full justify-center">
               {outcome ? (
-                <NominationFileOutcomeBadge
+                <OutcomeBadge
                   acronym
                   formation={info.row.original.session.formation}
                   outcome={outcome.value}

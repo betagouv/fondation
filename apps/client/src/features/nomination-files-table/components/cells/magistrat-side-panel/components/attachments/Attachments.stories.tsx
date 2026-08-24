@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedNominationFileAttachmentDto } from '@api/types';
@@ -88,7 +88,7 @@ function AttachmentsStory(props: AttachmentsArgs) {
 
   return (
     <StoryQueryClient>
-      <ConfirmationProvider>
+      <ConfirmModalProvider>
         <AddNominationFileAttachmentModalProvider>
           <Attachments
             isArchived={props.isArchived}
@@ -96,7 +96,7 @@ function AttachmentsStory(props: AttachmentsArgs) {
             sessionId={SESSION_ID}
           />
         </AddNominationFileAttachmentModalProvider>
-      </ConfirmationProvider>
+      </ConfirmModalProvider>
     </StoryQueryClient>
   );
 }

@@ -6,15 +6,15 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
-import { useCallback, useRef, type FC } from 'react';
+import { useCallback, useRef } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { Mandatory } from '@/shared/ui/Mandatory';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { getSgBreadCrumb } from '@/utils/sg-breadcrumb.utils';
@@ -55,12 +55,13 @@ const nouvelleTransparenceDtoSchema = z.object({
 
 type FormSchema = z.infer<typeof nouvelleTransparenceDtoSchema>;
 
-const NouvelleTransparence: FC = () => {
+function NouvelleTransparence() {
+  const { formatMessage } = useIntl();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const breadcrumb = getSgBreadCrumb(ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE);
   const {
-    mutateAsync: addTransparencyAsync,
+    mutate: addTransparency,
     error: transparenceUploadError,
     reset: resetTransparencyMutation,
     isPending,
@@ -78,7 +79,7 @@ const NouvelleTransparence: FC = () => {
   const onSubmit: SubmitHandler<FormSchema> = useCallback(
     (dto) => {
       resetTransparencyMutation();
-      return addTransparencyAsync(dto, {
+      addTransparency(dto, {
         onSuccess: (_, { name }) => {
           resetTransparencyMutation();
           if (inputRef.current) {
@@ -90,21 +91,19 @@ const NouvelleTransparence: FC = () => {
         },
       });
     },
-    [resetTransparencyMutation, addTransparencyAsync, navigate],
+    [resetTransparencyMutation, addTransparency, navigate],
   );
 
   return (
     <PageContentLayout>
       <Breadcrumb
-        id="sg-nouvelle-transparence-breadcrumb"
-        ariaLabel="Fil d'Ariane du secrétariat général"
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du secrétariat général" })}
         breadcrumb={breadcrumb}
+        id="sg-nouvelle-transparence-breadcrumb"
       />
 
       <Notice
         className="fr-mb-6v mx-auto max-w-[480px]"
-        title="Risque de doublons"
-        severity="warning"
         description={
           <>
             L'application est directement connecté à LOLFI. L'import depuis une extract LODAM après le{' '}
@@ -119,6 +118,8 @@ const NouvelleTransparence: FC = () => {
             risque de créer des doublons.
           </>
         }
+        severity="warning"
+        title={formatMessage({ defaultMessage: 'Risque de doublons' })}
       />
 
       {transparenceUploadError ? (
@@ -130,21 +131,21 @@ const NouvelleTransparence: FC = () => {
 
       <form className="m-auto max-w-120" onSubmit={handleSubmit(onSubmit)}>
         <Controller<FormSchema, 'name'>
-          name="name"
           control={control}
+          name="name"
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label={
-                <>
-                  Nom de la transparence<span className="text-(--text-default-error)">*</span>
-                </>
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Nom de la transparence" />
+                </RequiredLabel>
               }
               id="nom-transparence"
               nativeInputProps={{
                 value,
                 onChange,
                 ...field,
-                placeholder: 'Nom de la transparence',
+                placeholder: formatMessage({ defaultMessage: 'Nom de la transparence' }),
               }}
               state={errors.name ? 'error' : 'default'}
               stateRelatedMessage={errors.name?.message}
@@ -152,14 +153,14 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'date'>
-          name="date"
           control={control}
+          name="date"
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label={
-                <>
-                  Date de la transparence<span className="text-(--text-default-error)">*</span>
-                </>
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Date de la transparence" />
+                </RequiredLabel>
               }
               id="date-transparence"
               nativeInputProps={{
@@ -174,14 +175,14 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'formation'>
-          name="formation"
           control={control}
+          name="formation"
           render={({ field: { value, onChange } }) => (
             <Select
               label={
-                <Mandatory>
+                <RequiredLabel>
                   <FormattedMessage defaultMessage="Formation" />
-                </Mandatory>
+                </RequiredLabel>
               }
               nativeSelectProps={{
                 value,
@@ -198,14 +199,14 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'observationClosingDate'>
-          name="observationClosingDate"
           control={control}
+          name="observationClosingDate"
           render={({ field: { value, onChange, ...field } }) => (
             <Input
               label={
-                <>
-                  Clôture du délai d'observation<span className="text-(--text-default-error)">*</span>
-                </>
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Clôture du délai d'observation" />
+                </RequiredLabel>
               }
               id="date-cloture-delai-observation"
               nativeInputProps={{
@@ -220,11 +221,11 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'dueDate'>
-          name="dueDate"
           control={control}
+          name="dueDate"
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Date d'échéance"
+              label={formatMessage({ defaultMessage: "Date d'échéance" })}
               id="date-echeance"
               nativeInputProps={{
                 type: 'date',
@@ -238,11 +239,11 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'positionStartDate'>
-          name="positionStartDate"
           control={control}
+          name="positionStartDate"
           render={({ field: { value, onChange, ...field } }) => (
             <Input
-              label="Date de prise de poste"
+              label={formatMessage({ defaultMessage: 'Date de prise de poste' })}
               id="date-prise-de-poste"
               nativeInputProps={{
                 type: 'date',
@@ -256,8 +257,8 @@ const NouvelleTransparence: FC = () => {
           )}
         />
         <Controller<FormSchema, 'file'>
-          name="file"
           control={control}
+          name="file"
           render={({ field: { onChange } }) => (
             <Upload
               id="nouvelle-transparence-file-upload"
@@ -273,11 +274,11 @@ const NouvelleTransparence: FC = () => {
                   }
                 },
               }}
-              hint="Format supporté : xlsx."
+              hint={formatMessage({ defaultMessage: 'Format supporté : xlsx.' })}
               label={
-                <>
-                  Fichier<span className="text-(--text-default-error)">*</span>
-                </>
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Fichier" />
+                </RequiredLabel>
               }
               state={errors.file ? 'error' : 'default'}
               stateRelatedMessage={errors.file?.message}
@@ -288,7 +289,7 @@ const NouvelleTransparence: FC = () => {
           buttons={[
             {
               id: 'annuler',
-              children: 'Annuler',
+              children: formatMessage({ defaultMessage: 'Annuler' }),
               priority: 'tertiary',
               type: 'reset',
               onClick: () => {
@@ -297,7 +298,7 @@ const NouvelleTransparence: FC = () => {
             },
             {
               id: 'enregistrer',
-              children: 'Enregistrer',
+              children: formatMessage({ defaultMessage: 'Enregistrer' }),
               type: 'submit',
               disabled: isPending,
             },
@@ -307,6 +308,6 @@ const NouvelleTransparence: FC = () => {
       </form>
     </PageContentLayout>
   );
-};
+}
 
 export default NouvelleTransparence;

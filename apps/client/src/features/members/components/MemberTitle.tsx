@@ -1,10 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Select from '@codegouvfr/react-dsfr/Select';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import React, { type SyntheticEvent } from 'react';
+import { useCallback, useMemo, useState, type SyntheticEvent } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useAlerts } from '@/shared/context/alerts';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useUpdateTitleMutation } from '@queries/members.queries';
 
 type MemberTitleValue = 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
@@ -25,29 +26,34 @@ function MemberTitleAction(props: {
   member: { id: string; role: MemberRole; title: MemberTitleValue | null };
 }) {
   const { member } = props;
-  const confirmation = useConfirmation();
+  const { formatMessage } = useIntl();
+  const confirmation = useConfirmModal();
   const alerts = useAlerts();
-  const [isEditing, setEditing] = React.useState<boolean>(false);
+  const [isEditing, setEditing] = useState<boolean>(false);
 
-  const assumedTitle = React.useMemo(() => getAssumedTitle(member.role), [member]);
+  const assumedTitle = useMemo(() => getAssumedTitle(member.role), [member]);
 
-  const { mutateAsync: updateTitle, isPending: isUpdating } = useUpdateTitleMutation({
+  const { mutate: updateTitle, isPending: isUpdating } = useUpdateTitleMutation({
     userId: member.id,
   });
 
-  const onUpdate = React.useCallback(
+  const onUpdate = useCallback(
     async (title: MemberTitleValue) => {
       const { isConfirmed } = await confirmation.waitForConfirmation({
-        title: 'Définir la distinction ?',
         content: (
-          <>
-            Définir la distinction de <span className="title">"{TITLE_LABELS[title]}"</span>.
-          </>
+          <FormattedMessage
+            defaultMessage='Définir la distinction de <name>"{title}"</name>.'
+            values={{
+              name: (chunks) => <span className="title">{chunks}</span>,
+              title: TITLE_LABELS[title],
+            }}
+          />
         ),
+        title: formatMessage({ defaultMessage: 'Définir la distinction ?' }),
       });
 
       if (isConfirmed) {
-        await updateTitle(title, {
+        updateTitle(title, {
           onSuccess() {
             setEditing(false);
           },
@@ -55,7 +61,7 @@ function MemberTitleAction(props: {
           onError: () => {
             alerts.pushAlert({
               severity: 'error',
-              title: 'Erreur pendant la définition de la distinction',
+              title: formatMessage({ defaultMessage: 'Erreur pendant la définition de la distinction' }),
             });
           },
         });
@@ -63,25 +69,29 @@ function MemberTitleAction(props: {
         setEditing(false);
       }
     },
-    [confirmation, alerts, updateTitle],
+    [alerts, confirmation, formatMessage, updateTitle],
   );
 
-  const onDelete = React.useCallback(
+  const onDelete = useCallback(
     async (e: SyntheticEvent | undefined) => {
       e?.preventDefault();
 
       const { isConfirmed } = await confirmation.waitForConfirmation({
-        title: 'Supprimer la distinction ?',
-        content: <p>Confirmer la suppression de la distinction. Vous pourrez la modifier ultérieurement</p>,
+        content: (
+          <p>
+            <FormattedMessage defaultMessage="Confirmer la suppression de la distinction. Vous pourrez la modifier ultérieurement" />
+          </p>
+        ),
+        title: formatMessage({ defaultMessage: 'Supprimer la distinction ?' }),
       });
 
       if (isConfirmed) {
-        await updateTitle(null, {
+        updateTitle(null, {
           onSuccess: () => setEditing(false),
           onError: () => {
             alerts.pushAlert({
               severity: 'error',
-              title: 'Erreur pendant la suppression de la distinction',
+              title: formatMessage({ defaultMessage: 'Erreur pendant la suppression de la distinction' }),
             });
           },
         });
@@ -89,7 +99,7 @@ function MemberTitleAction(props: {
         setEditing(false);
       }
     },
-    [confirmation, alerts, updateTitle],
+    [alerts, confirmation, formatMessage, updateTitle],
   );
 
   if (member.title) {
@@ -97,9 +107,9 @@ function MemberTitleAction(props: {
       <dd className="flex items-center gap-2">
         <Tag
           as="button"
+          className="transition-colors duration-100"
           iconId="ri-delete-bin-fill"
           nativeButtonProps={{ onClick: onDelete }}
-          className="transition-colors duration-100"
         >
           {TITLE_LABELS[member.title]}
         </Tag>
@@ -111,12 +121,15 @@ function MemberTitleAction(props: {
     return (
       <dd>
         <Button
-          priority="tertiary no outline"
-          size="small"
           iconId="fr-icon-edit-fill"
           onClick={() => onUpdate(assumedTitle)}
+          priority="tertiary no outline"
+          size="small"
         >
-          Définir "{TITLE_LABELS[assumedTitle]}"
+          <FormattedMessage
+            defaultMessage='Définir "{title}"'
+            values={{ title: TITLE_LABELS[assumedTitle] }}
+          />
         </Button>
       </dd>
     );
@@ -126,12 +139,12 @@ function MemberTitleAction(props: {
     return (
       <dd>
         <Button
-          size="small"
-          iconId="fr-icon-edit-fill"
-          priority="tertiary no outline"
-          onClick={() => setEditing(true)}
-          title="Défiinir une distinction"
           className="rounded-full"
+          iconId="fr-icon-edit-fill"
+          onClick={() => setEditing(true)}
+          priority="tertiary no outline"
+          size="small"
+          title={formatMessage({ defaultMessage: 'Définir une distinction' })}
         />
       </dd>
     );
@@ -140,27 +153,27 @@ function MemberTitleAction(props: {
   return (
     <dd className="items-top flex">
       <Select
-        label=""
         disabled={isUpdating}
+        label=""
         nativeSelectProps={{
           value: '',
           autoFocus: true,
           onChange: (e) => onUpdate(e.target.value as MemberTitleValue),
         }}
       >
-        <option value="" disabled>
-          Choisir une distinction
+        <option disabled value="">
+          {formatMessage({ defaultMessage: 'Choisir une distinction' })}
         </option>
 
-        <option value="PRESIDENT_SIEGE">Président Siège</option>
-        <option value="PRESIDENT_PARQUET">Président Parquet</option>
+        <option value="PRESIDENT_SIEGE">{TITLE_LABELS.PRESIDENT_SIEGE}</option>
+        <option value="PRESIDENT_PARQUET">{TITLE_LABELS.PRESIDENT_PARQUET}</option>
       </Select>
       <Button
         className="fr-mt-1v fr-ml-1v rounded-full"
-        priority="tertiary no outline"
         iconId="fr-icon-close-line"
         onClick={() => setEditing(false)}
-        title="Fermer"
+        priority="tertiary no outline"
+        title={formatMessage({ defaultMessage: 'Fermer' })}
       />
     </dd>
   );
@@ -171,7 +184,9 @@ export function MemberTitle(props: {
 }) {
   return (
     <div className="flex flex-row items-center justify-between">
-      <dt className="font-bold">Distinction</dt>
+      <dt className="font-bold">
+        <FormattedMessage defaultMessage="Distinction" />
+      </dt>
       <MemberTitleAction member={props.member} />
     </div>
   );

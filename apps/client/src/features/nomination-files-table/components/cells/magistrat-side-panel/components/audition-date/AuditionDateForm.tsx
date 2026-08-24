@@ -7,7 +7,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { isPastSchedule, toScheduledDate, type PlainTimeOnly } from '@/utils/time-only.util';
 import { useUpdateNominationFileAuditionDateMutation } from '@queries/members.queries';
@@ -100,7 +100,7 @@ export function AuditionDateForm(props: {
   const showIncompleteWarning = useUnsavedGuard('audition-date', isIncomplete);
 
   const [editingPastAudition, setEditingPastAudition] = useState(false);
-  const { buttonProps, waitForConfirmation } = useConfirmation();
+  const { waitForConfirmation } = useConfirmModal();
 
   const save = handleSubmit(({ date, time }) => {
     if (!isDirty) return;
@@ -194,13 +194,7 @@ export function AuditionDateForm(props: {
           <FormattedMessage defaultMessage="Audition" />
         </h3>
         {isLocked ? (
-          <Button
-            className="btn-compact"
-            nativeButtonProps={buttonProps}
-            onClick={editPastAudition}
-            priority="secondary"
-            size="small"
-          >
+          <Button className="btn-compact" onClick={editPastAudition} priority="secondary" size="small">
             <FormattedMessage defaultMessage="Modifier la date passée" />
           </Button>
         ) : (

@@ -18,9 +18,8 @@ const mocks = vi.hoisted(() => ({
   waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
 
-vi.mock('@/shared/context/confirmation', () => ({
-  useConfirmation: () => ({
-    buttonProps: {},
+vi.mock('@/shared/context/confirm-modal', () => ({
+  useConfirmModal: () => ({
     waitForConfirmation: mocks.waitForConfirmation,
   }),
 }));

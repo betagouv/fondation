@@ -15,7 +15,7 @@ import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemb
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
-import { Mandatory } from '@/shared/ui/Mandatory';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
@@ -125,7 +125,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
         render={({ field }) => (
           <Input
             disabled={isDisabled}
-            label={<Mandatory>Date de la séance</Mandatory>}
+            label={<RequiredLabel>Date de la séance</RequiredLabel>}
             nativeInputProps={{ type: 'date', ...field }}
             state={errors.date ? 'error' : 'default'}
             stateRelatedMessage={errors.date?.message}
@@ -137,7 +137,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
         control={control}
         render={({ field }) => (
           <Input
-            label={<Mandatory>Heure de la séance</Mandatory>}
+            label={<RequiredLabel>Heure de la séance</RequiredLabel>}
             nativeInputProps={{ type: 'time', ...field }}
             disabled={isDisabled}
             state={errors.time ? 'error' : 'default'}
@@ -159,7 +159,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
         render={({ field }) => (
           <Select
             disabled={isDisabled || isFetchingSecretaries}
-            label={<Mandatory>Secrétaire Général</Mandatory>}
+            label={<RequiredLabel>Secrétaire Général</RequiredLabel>}
             nativeSelectProps={{
               value: field.value,
               onChange: (e) => field.onChange(e.target.value),
@@ -188,9 +188,9 @@ export function PresentationMetadataStep(props: { className?: string }) {
 
       <JusticeContactSelector
         label={
-          <Mandatory>
+          <RequiredLabel>
             <FormattedMessage defaultMessage="Représentant DSJ" />
-          </Mandatory>
+          </RequiredLabel>
         }
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}

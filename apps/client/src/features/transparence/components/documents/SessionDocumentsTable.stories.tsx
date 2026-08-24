@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
 import { AlertsProvider } from '@/shared/context/alerts';
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { sessionDocsHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 
@@ -80,9 +80,9 @@ const meta = {
     (Story) => (
       <StoryQueryClient>
         <AlertsProvider>
-          <ConfirmationProvider>
+          <ConfirmModalProvider>
             <Story />
-          </ConfirmationProvider>
+          </ConfirmModalProvider>
         </AlertsProvider>
       </StoryQueryClient>
     ),

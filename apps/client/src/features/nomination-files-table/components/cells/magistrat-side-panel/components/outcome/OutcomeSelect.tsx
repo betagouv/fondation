@@ -1,9 +1,9 @@
 import { FormattedMessage } from 'react-intl';
 
 import { outcomeRequiresComment } from '../../../nomination-file-outcome/nomination-file-outcome.utils';
-import { NominationFileOutcomeBadge } from '../../../nomination-file-outcome/NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { Dropdown } from '@/shared/ui/dropdown';
 import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
@@ -48,7 +48,7 @@ export function OutcomeSelect(props: { nominationFile: SessionNominationFile }) 
 
   const options = outcomes.map(({ value }) => ({
     value,
-    label: <NominationFileOutcomeBadge formation={formation} outcome={value} small={false} />,
+    label: <OutcomeBadge formation={formation} outcome={value} small={false} />,
   }));
 
   return (

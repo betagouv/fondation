@@ -94,7 +94,7 @@ export function OfficialReportPreviewPage() {
         <div className="fr-px-4v fr-py-6v flex flex-col items-center gap-2 bg-(--background-default-grey)">
           {hasPendingRevalidation && (
             <p className="fr-mb-0 text-(--text-default-warning)">
-              <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs, et doivent être validés" />
+              <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs et doivent être validés" />
             </p>
           )}
           {generatePdf.isError && (
