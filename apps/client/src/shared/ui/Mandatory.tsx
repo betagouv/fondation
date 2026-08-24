@@ -1,10 +1,10 @@
-import React from 'react';
+import type { PropsWithChildren } from 'react';
 
-export function Mandatory(props: React.PropsWithChildren) {
+export function Mandatory(props: PropsWithChildren) {
   return (
-    <React.Fragment>
+    <>
       {props.children}
-      <span className="text-(--text-default-error)">*</span>:
-    </React.Fragment>
+      <span className="text-(--text-default-error)">&nbsp;*</span>
+    </>
   );
 }

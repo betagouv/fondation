@@ -9,10 +9,21 @@ import * as axeMatchers from 'vitest-axe/matchers';
 // Cast needed: setLink's props union includes an href-only variant that react-router's Link rejects
 setLink({ Link: Link as unknown as Parameters<typeof setLink>[0]['Link'] });
 
-// startReactDsfr installs the imperative `window.dsfr` runtime in the browser, jsdom has none,
-// so createModal().open()/close() would throw. Modals render their content whether open or not,
-// hence queries with `{ hidden: true }`
-Object.assign(window, { dsfr: () => ({ modal: { conceal: () => {}, disclose: () => {} } }) });
+// jsdom implements <dialog> but none of its methods, so our own Modal cannot open in tests
+Object.assign(HTMLDialogElement.prototype, {
+  close(this: HTMLDialogElement) {
+    if (!this.open) return;
+
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  },
+  show(this: HTMLDialogElement) {
+    this.open = true;
+  },
+  showModal(this: HTMLDialogElement) {
+    this.open = true;
+  },
+});
 
 expect.extend(axeMatchers);
 
