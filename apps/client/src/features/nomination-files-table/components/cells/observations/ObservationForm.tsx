@@ -1,12 +1,13 @@
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
-import { Mandatory } from '@/shared/ui/Mandatory';
+import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
+import { RequiredLabel } from '@/shared/ui/required-label';
+import { Upload } from '@/shared/ui/upload';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
@@ -18,8 +19,6 @@ import {
 import { MagistratCombobox } from './MagistratCombobox';
 import { ObservationExistingFiles } from './ObservationExistingFiles';
 import { ObservationLinkableAttachments } from './ObservationLinkableAttachments';
-
-const ACCEPTED_FILE_TYPES = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
 
 const observationFormSchema = z.object({
   magistratId: z.string().min(1, 'Champ obligatoire'),
@@ -37,18 +36,20 @@ type FormSchema = z.infer<typeof observationFormSchema>;
 export function ObservationForm({
   nominationFileId,
   observation,
+  onFormStateChange,
   onPending,
   onSuccess,
   sessionId,
 }: {
   nominationFileId: string;
   observation?: Observation;
+  onFormStateChange?: (state: { isDirty: boolean; isValid: boolean }) => void;
   onPending: (isPending: boolean) => unknown;
   onSuccess?: () => void;
   sessionId: string;
 }) {
   const intl = useIntl();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadKey, setUploadKey] = useState(0);
   const isEditing = !!observation;
 
   const {
@@ -57,7 +58,7 @@ export function ObservationForm({
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty, isValid },
   } = useForm<FormSchema>({
     resolver: zodResolver(observationFormSchema),
     defaultValues: {
@@ -110,6 +111,11 @@ export function ObservationForm({
     }
   }, [observation]);
 
+  useEffect(() => {
+    onFormStateChange?.({ isDirty, isValid });
+    return () => onFormStateChange?.({ isDirty: false, isValid: false });
+  }, [isDirty, isValid, onFormStateChange]);
+
   const handleMagistratChange = (magistrat: MagistratSearchResult | null) => {
     setSelectedMagistrat(magistrat);
     setValue('magistratId', magistrat?.id ?? '', { shouldValidate: true });
@@ -128,9 +134,7 @@ export function ObservationForm({
     setSelectedMagistrat(null);
     resetCreateMutation();
     resetUpdateMutation();
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setUploadKey((current) => current + 1);
   };
 
   const onSubmit = (data: FormSchema) => {
@@ -227,9 +231,9 @@ export function ObservationForm({
           <Input
             classes={{ root: 'fr-mb-0' }}
             label={
-              <Mandatory>
+              <RequiredLabel>
                 <FormattedMessage defaultMessage="Date de réception" />
-              </Mandatory>
+              </RequiredLabel>
             }
             nativeInputProps={{
               'aria-required': true,
@@ -271,26 +275,23 @@ export function ObservationForm({
         control={control}
         name="files"
         render={({ field }) => (
-          <Upload
-            hint={intl.formatMessage({ defaultMessage: 'Formats acceptés : JPEG, PNG, PDF, Word' })}
-            label={
-              isEditing ? (
+          <div>
+            <p className="fr-label fr-mb-2v">
+              {isEditing ? (
                 <FormattedMessage defaultMessage="Ajouter des fichiers" />
               ) : (
                 <FormattedMessage defaultMessage="Pièces jointes" />
-              )
-            }
-            nativeInputProps={{
-              accept: ACCEPTED_FILE_TYPES,
-              multiple: true,
-              onChange: (e) => {
-                if (e.target.files) {
-                  field.onChange(Array.from(e.target.files));
-                }
-              },
-              ref: fileInputRef,
-            }}
-          />
+              )}
+            </p>
+            <Upload
+              accept={DOCUMENT_FILE_TYPES}
+              hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+              key={uploadKey}
+              label={<FormattedMessage defaultMessage="Importer un fichier" />}
+              multiple
+              onChange={field.onChange}
+            />
+          </div>
         )}
       />
       {files.length > 0 && (

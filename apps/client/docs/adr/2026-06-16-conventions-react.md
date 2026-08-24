@@ -52,7 +52,7 @@ est un bon candidat, mais un peu trop systématique.
 
 ## [B] Les composants sont des fonctions
 
-1. Les composants sont des fonctions, et doivent donc utiliser le mot-clé `function`.
+1. Les composants sont des fonctions et doivent donc utiliser le mot-clé `function`.
 2. On n'utilise pas d'export par défaut.
 
 ```tsx
@@ -63,7 +63,7 @@ export function Card(props: React.PropsWithChildren) {
 
 ### Exceptions
 
-1. On a besoin de respecter un type précis (très rare, et globalement à éviter)
+1. On a besoin de respecter un type précis (très rare et globalement à éviter)
 2. On utilise `React.memo` ou équivalent (obsolète avec React Compiler ?)
 
 ## [C] Les props sont typés en "inline"

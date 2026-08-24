@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
-import React from 'react';
+import { useCallback, useState, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
-import { useConfirmation } from '@/shared/context/confirmation/useConfirmation.hook';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { agendaKeys, useCreateAgendaMutation } from '@queries/agenda.queries';
@@ -18,21 +18,21 @@ const STEPS = {
   2: { index: 2, title: 'Métadonnées' },
 } as const satisfies Record<1 | 2, AgendaStep>;
 
-export function AgendaProvider(props: React.PropsWithChildren) {
+export function AgendaProvider(props: PropsWithChildren) {
   const { formatMessage } = useIntl();
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const { waitForConfirmation } = useConfirmation();
+  const { waitForConfirmation } = useConfirmModal();
   const queryClient = useQueryClient();
   const basket = useAgendaBasket(sessionId);
 
   const createAgenda = useCreateAgendaMutation();
 
-  const { data: session, isFetching: sessionFetching } = useDetailedNominationSessionQuery({
+  const { data: session, isLoading: isLoadingSession } = useDetailedNominationSessionQuery({
     sessionId,
   });
 
-  const [state, setState] = React.useState<{
+  const [state, setState] = useState<{
     stepIndex: 1 | 2;
     error: string | null;
     selectedFileIds: string[] | null;
@@ -42,27 +42,29 @@ export function AgendaProvider(props: React.PropsWithChildren) {
     selectedFileIds: null,
   });
 
-  const goToFiles = React.useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), [setState]);
-  const goToMetadata = React.useCallback(
-    (selectedFileIds: readonly string[]) => {
-      setState((s) => ({ ...s, selectedFileIds: [...selectedFileIds], stepIndex: 2 }));
-    },
-    [setState],
-  );
+  const goToFiles = useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), []);
+  const goToMetadata = useCallback((selectedFileIds: readonly string[]) => {
+    setState((s) => ({ ...s, selectedFileIds: [...selectedFileIds], stepIndex: 2 }));
+  }, []);
 
-  const cancel = React.useCallback(() => {
+  const cancel = useCallback(() => {
     basket.clear();
     navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }));
   }, [navigate, sessionId, basket]);
 
-  const submit = React.useCallback(
+  const submit = useCallback(
     async (metadata: AgendaMetadata) => {
       const nominationFileIds = state.selectedFileIds;
       if (!nominationFileIds || nominationFileIds.length === 0) {
         const { isConfirmed } = await waitForConfirmation({
-          title: 'Sélection manquante',
-          content: 'Merci de sélectionner au moins une proposition avant de continuer',
-          i18n: { confirm: "Retourner à l'étape 1", cancel: 'Rester sur cette étape' },
+          content: formatMessage({
+            defaultMessage: 'Merci de sélectionner au moins une proposition avant de continuer',
+          }),
+          i18n: {
+            cancel: formatMessage({ defaultMessage: 'Rester sur cette étape' }),
+            confirm: formatMessage({ defaultMessage: "Retourner à l'étape 1" }),
+          },
+          title: formatMessage({ defaultMessage: 'Sélection manquante' }),
         });
         if (isConfirmed) goToFiles();
         return;
@@ -92,8 +94,8 @@ export function AgendaProvider(props: React.PropsWithChildren) {
           onError: async (error) => {
             const defaultError = formatMessage({ defaultMessage: `Impossible de créer l'ordre du jour` });
             if (error instanceof HttpException) {
-              const body = await error.response.json();
-              setState((s) => ({ ...s, error: body.validationError || defaultError }));
+              const body = await error.response.json().catch(() => null);
+              setState((s) => ({ ...s, error: body?.validationError || defaultError }));
             } else {
               setState((s) => ({ ...s, error: defaultError }));
             }
@@ -132,7 +134,7 @@ export function AgendaProvider(props: React.PropsWithChildren) {
         cancel,
       }}
     >
-      {sessionFetching ? <span className="ri-loader-4-line animate-spin" /> : props.children}
+      {isLoadingSession ? <span className="ri-loader-4-line animate-spin" /> : props.children}
     </AgendaContext>
   );
 }

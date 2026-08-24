@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import { Modal } from '@/shared/ui/modal';
 import { Tooltip } from '@/shared/ui/tooltip';
 
 import { JuridictionAutocomplete } from './JurisdictionAutocomplete';
@@ -15,7 +15,7 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
     <>
       <ul className="fr-p-0 flex list-none flex-row flex-wrap items-center gap-x-2">
         {props.selected.slice(0, 4).map(({ id, label }) => (
-          <li key={`jurisdiction_${id}`} className="shrink-0 grow-0">
+          <li className="shrink-0 grow-0" key={`jurisdiction_${id}`}>
             <Tag>{label ?? id}</Tag>
           </li>
         ))}
@@ -32,10 +32,10 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
               }
             >
               <Tag
-                small
                 nativeButtonProps={{
                   className: 'shrink-0 cursor-help whitespace-nowrap',
                 }}
+                small
               >
                 {`(+${props.selected.length - 4})`}
               </Tag>
@@ -47,50 +47,58 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
   );
 }
 
-const modal = createModal({ id: `jurisdiction-selector-modal`, isOpenedByDefault: false });
 function JurisdictionSelectorModal(props: {
-  selected: readonly { id: string; label: string | null }[];
   onChange?: (selected: readonly string[]) => Promise<unknown>;
+  onClose: () => void;
+  onClosed: () => void;
+  open: boolean;
+  selected: readonly { id: string; label: string | null }[];
 }) {
   const [isChanging, setIsChanging] = useState(false);
   const [didChange, setDidChange] = useState(false);
   const [selected, setSelected] = useState<string[]>(props.selected.map(({ id }) => id));
-  const isOpen = useIsModalOpen(modal);
+
+  const save = async () => {
+    setIsChanging(true);
+    try {
+      await props.onChange?.(selected);
+      props.onClose();
+    } finally {
+      setIsChanging(false);
+    }
+  };
 
   return (
-    <div className="text-left">
-      <modal.Component
-        title="Sélection des juridictions"
-        size="large"
-        buttons={[
-          { children: 'Annuler' },
-          {
-            children: isChanging ? 'Sauvegarde...' : 'Sauvegarder',
-            disabled: !didChange || isChanging,
-            doClosesModal: false,
-            onClick: async () => {
-              setIsChanging(true);
-              try {
-                await props.onChange?.(selected);
-                modal.close();
-              } finally {
-                setIsChanging(false);
-              }
-            },
-          },
-        ]}
-      >
-        {isOpen ? (
-          <JuridictionAutocomplete
-            selected={props.selected}
-            onChange={(newSelected) => {
-              setSelected(newSelected);
-              setDidChange(true);
-            }}
-          />
-        ) : null}
-      </modal.Component>
-    </div>
+    <Modal
+      actions={
+        <>
+          <Button disabled={isChanging} onClick={props.onClose} priority="secondary">
+            <FormattedMessage defaultMessage="Annuler" />
+          </Button>
+
+          <Button disabled={!didChange || isChanging} onClick={save}>
+            {isChanging ? (
+              <FormattedMessage defaultMessage="Sauvegarde..." />
+            ) : (
+              <FormattedMessage defaultMessage="Sauvegarder" />
+            )}
+          </Button>
+        </>
+      }
+      onClose={props.onClose}
+      onClosed={props.onClosed}
+      open={props.open}
+      size="large"
+      title={<FormattedMessage defaultMessage="Sélection des juridictions" />}
+    >
+      <JuridictionAutocomplete
+        onChange={(newSelected) => {
+          setSelected(newSelected);
+          setDidChange(true);
+        }}
+        selected={props.selected}
+      />
+    </Modal>
   );
 }
 
@@ -98,22 +106,38 @@ export function JurisdictionSelector(props: {
   selected?: readonly { id: string; label: string | null }[];
   onChange?: (selected: readonly string[]) => Promise<unknown>;
 }) {
+  const { formatMessage } = useIntl();
+  const [isEditing, setIsEditing] = useState(false);
+  const [openCount, setOpenCount] = useState(0);
   const selected = props.selected ?? [];
 
   return (
     <div className="flex items-center gap-x-2">
       <JurisdictionSelectorSelected selected={selected} />
       <Button
-        size="small"
         className="rounded-full"
         iconId="fr-icon-edit-fill"
+        onClick={() => {
+          setOpenCount((current) => current + 1);
+          setIsEditing(true);
+        }}
         priority="tertiary no outline"
-        title="Éditer les juridictions exclues"
-        nativeButtonProps={modal.buttonProps}
-        onClick={() => modal.open()}
+        size="small"
+        title={formatMessage({ defaultMessage: 'Éditer les juridictions exclues' })}
       />
 
-      <JurisdictionSelectorModal selected={selected} onChange={props.onChange} />
+      {openCount > 0 && (
+        <div className="text-left">
+          <JurisdictionSelectorModal
+            key={openCount}
+            onChange={props.onChange}
+            onClose={() => setIsEditing(false)}
+            onClosed={() => !isEditing && setOpenCount(0)}
+            open={isEditing}
+            selected={selected}
+          />
+        </div>
+      )}
     </div>
   );
 }

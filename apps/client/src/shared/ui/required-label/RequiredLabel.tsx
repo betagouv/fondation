@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
-export function Mandatory(props: PropsWithChildren) {
+export function RequiredLabel(props: PropsWithChildren) {
   return (
     <>
       {props.children}

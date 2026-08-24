@@ -11,6 +11,7 @@ export function Modal(props: {
   actions?: ReactNode;
   children: ReactNode;
   closeOnBackdrop?: boolean;
+  id?: string;
   onClose: () => void;
   /** the fade out is over: the caller can drop whatever it kept alive to render this modal */
   onClosed?: () => void;
@@ -65,8 +66,11 @@ export function Modal(props: {
       className={clsx(
         'm-auto w-[calc(100vw-2rem)] border-0 bg-transparent p-0 transition-opacity duration-300 backdrop:bg-[rgba(22,22,22,0.64)] backdrop:transition-opacity backdrop:duration-300 motion-reduce:transition-none',
         isRevealed ? 'opacity-100 backdrop:opacity-100' : 'opacity-0 backdrop:opacity-0',
+        !props.open && 'pointer-events-none',
         SIZE_CLASSES[props.size ?? 'medium'],
       )}
+      id={props.id}
+      inert={!props.open}
       onCancel={(event) => {
         // a file input dismissed without a selection fires its own `cancel`, and that one bubbles
         if (event.target !== event.currentTarget) return;

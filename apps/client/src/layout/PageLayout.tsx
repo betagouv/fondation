@@ -2,14 +2,14 @@ import type { PropsWithChildren } from 'react';
 
 import { BanneredLayout } from '@/shared/components/banners';
 import { ArchivedSessionProvider } from '@/shared/context/archived-session';
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 
 import { AppFooter } from './AppFooter';
 import { AppHeader } from './header/Header';
 
 export function PageLayout({ children }: PropsWithChildren) {
   return (
-    <ConfirmationProvider>
+    <ConfirmModalProvider>
       <ArchivedSessionProvider>
         <BanneredLayout>
           <div className={`flex min-h-screen flex-col`}>
@@ -21,6 +21,6 @@ export function PageLayout({ children }: PropsWithChildren) {
           </div>
         </BanneredLayout>
       </ArchivedSessionProvider>
-    </ConfirmationProvider>
+    </ConfirmModalProvider>
   );
 }

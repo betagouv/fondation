@@ -1,10 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage } from 'react-intl';
 
-import { NominationFileOutcomeBadge } from '../../../nomination-file-outcome/NominationFileOutcomeBadge';
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import {
   useDefineNominationFileOutcomeMutation,
   type SessionNominationFile,
@@ -26,7 +26,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
         {isSg ? (
           <OutcomeSelect nominationFile={props.nominationFile} />
         ) : (
-          <NominationFileOutcomeBadge formation={formation} outcome={outcome?.value ?? null} small={false} />
+          <OutcomeBadge formation={formation} outcome={outcome?.value ?? null} small={false} />
         )}
       </div>
       {isSg && outcome && (

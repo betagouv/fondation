@@ -1,14 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import type { OnChangeFn, SortingState } from '@tanstack/react-table';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext } from 'react-router';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
 import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
-import { modal as importAttachmentsModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
+import { ImportAttachmentModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
 import { SessionAttachmentsTable } from '@/features/transparence/components/attachments/SessionAttachmentsTable';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { useTab } from '@/shared/hooks/useTab';
@@ -32,6 +32,7 @@ export function TransparenceAttachmentsTab() {
   const { isArchived } = useArchivedSession();
   const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
   const tab = useTab();
+  const [isImporting, setIsImporting] = useState(false);
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [sort, setSort] = useQueryState('sort', parseAsString);
@@ -156,7 +157,7 @@ export function TransparenceAttachmentsTab() {
           <Button
             className="py-2!"
             iconId="fr-icon-add-line"
-            nativeButtonProps={importAttachmentsModal.buttonProps}
+            onClick={() => setIsImporting(true)}
             priority="primary"
             size="small"
           >
@@ -164,6 +165,12 @@ export function TransparenceAttachmentsTab() {
           </Button>
         )}
       </div>
+
+      <ImportAttachmentModal
+        onClose={() => setIsImporting(false)}
+        open={isImporting}
+        sessionId={transparence.id}
+      />
 
       <SessionAttachmentsTable
         actions={(attachment) => (

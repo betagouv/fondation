@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AlertsProvider } from '@/shared/context/alerts';
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
 import { sessionFiles, sessionMembers } from '@/shared/storybook/session-files.fixtures';
 import { makeSessionHandlers, type SessionDataset } from '@/shared/storybook/session.handlers';
@@ -36,7 +36,7 @@ function SgSessionFilesTableStory(props: {
   return (
     <StoryQueryClient key={`${props.canManage}-${props.formation}-${props.sessionId}`}>
       <AlertsProvider>
-        <ConfirmationProvider>
+        <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
             <SgSessionFilesTable
               canManage={props.canManage}
@@ -45,7 +45,7 @@ function SgSessionFilesTableStory(props: {
               sessionId={props.sessionId}
             />
           </div>
-        </ConfirmationProvider>
+        </ConfirmModalProvider>
       </AlertsProvider>
     </StoryQueryClient>
   );

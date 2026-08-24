@@ -37,7 +37,7 @@ des lignes chargées ? Le passage au défilement infini faisait échouer ce cas 
    propriétaire traduit le filtre en une liste de `nominationFileIds`. Cette primitive existe
    déjà pour la règle 4. Elle reste privée : le comptage total ne la connaît pas et l'exposer
    fausserait la pagination.
-4. **Le socle sert aussi un dossier seul.** La même requête, restreinte à un identifiant, et le
+4. **Le socle sert aussi un dossier seul.** La même requête, restreinte à un identifiant et le
    même mapping (`loadFiles`) servent l'endpoint `GET /:sessionId/files/:nominationFileId`. Il
    répond un objet identique à un item de la liste. Un test e2e le vérifie. Un dossier étranger
    à la session répond 404.

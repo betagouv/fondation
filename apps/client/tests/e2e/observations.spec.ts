@@ -122,8 +122,7 @@ test.describe('observations', () => {
 
       // Quand je clique sur "Sauvegarder"
       await modal.saveButton.click();
-      // Et que je ferme la boite de dialogue puis le panneau
-      await modal.closeButton.click();
+      // Alors la boite de dialogue se ferme d'elle-même puis je ferme le panneau
       await modal.dialog.waitFor({ state: 'hidden' });
       await app.pages.session.closeMagistratDetails();
     });
@@ -143,8 +142,7 @@ test.describe('observations', () => {
       await modal.fillHistory('Mise à jour');
 
       await modal.saveButton.click();
-      await test.expect(modal.saveButton).toBeHidden();
-      await modal.closeButton.click();
+      await modal.dialog.waitFor({ state: 'hidden' });
 
       const modalWithEdition = await app.pages.session.openObservationModal({ number: 1 }, 'edit');
 

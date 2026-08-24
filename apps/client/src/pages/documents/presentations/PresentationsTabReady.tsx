@@ -1,14 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import React from 'react';
+import { useCallback, type MouseEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { PresentationAgendaSelectionList } from '@/features/presentations/components/PresentationAgendaSelectionList';
 import { usePresentPlanModal } from '@/features/presentations/context/present-plan-modal.context';
-import { PresentPlanModalProvider } from '@/features/presentations/context/PresentatPlanModalProvider';
-import { useConfirmation } from '@/shared/context/confirmation';
+import { PresentPlanModalProvider } from '@/features/presentations/context/PresentPlanModalProvider';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -30,7 +30,7 @@ export function PresentationsTabReady() {
 }
 
 function InnerPresentationsTabReady() {
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
   const { $t } = useIntl();
   const { data: plans, isFetching: isFetchingPlans } = useListNonPresentedPlansQuery();
   const { data: agendas, isFetching: isFetchingAgendas } = useListPresentationPlansAgendasQuery();
@@ -50,8 +50,8 @@ function InnerPresentationsTabReady() {
     return { id: item.id, formation, date, time, startTime: item.time, initials };
   });
 
-  const onClickOnPresentationPlan = React.useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onClickOnPresentationPlan = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
       const { planId } = e.currentTarget.dataset;
       if (!planId) return;
 
@@ -60,8 +60,8 @@ function InnerPresentationsTabReady() {
     [openPdf],
   );
 
-  const onClickPresent = React.useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onClickPresent = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
       const { planId } = e.currentTarget.dataset;
       if (!planId) return;
 
@@ -73,8 +73,8 @@ function InnerPresentationsTabReady() {
     [planItems, presentPlanModal],
   );
 
-  const onClickDelete = React.useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onClickDelete = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
       const { planId: presentationPlanId } = e.currentTarget.dataset;
       if (!presentationPlanId) return;
 
@@ -124,49 +124,49 @@ function InnerPresentationsTabReady() {
 
           <ul className="fr-m-0 fr-p-0 list-none">
             {planItems.map(({ startTime: _, ...item }) => (
-              <li key={item.id} className="flex items-center">
+              <li className="flex items-center" key={item.id}>
                 <Button
-                  size="small"
-                  priority="tertiary no outline"
-                  iconId="ri-file-pdf-2-line"
                   disabled={openPdf.isPending}
-                  onClick={onClickOnPresentationPlan}
+                  iconId="ri-file-pdf-2-line"
                   nativeButtonProps={{ ['data-plan-id']: item.id }}
+                  onClick={onClickOnPresentationPlan}
+                  priority="tertiary no outline"
+                  size="small"
                 >
                   <FormattedMessage
-                    values={item}
                     defaultMessage="NDR {date, date, dateOnlyShort}, {time, time, short} - {initials} - {formation}"
+                    values={item}
                   />
                 </Button>
 
                 <div className="actions fr-ml-10v flex items-center gap-x-2">
                   <Button
-                    size="small"
-                    title={$t({ defaultMessage: 'Marquer restitué' })}
                     className="bg-(--background-contrast-yellow-moutarde)! font-bold text-(--text-action-high-yellow-moutarde)! uppercase hover:bg-(--background-contrast-yellow-moutarde-hover)! active:bg-(--background-contrast-yellow-moutarde-active)!"
                     nativeButtonProps={{ onClick: onClickPresent, 'data-plan-id': item.id }}
+                    size="small"
+                    title={$t({ defaultMessage: 'Marquer restitué' })}
                   >
                     <FormattedMessage defaultMessage="Restituer" />
                   </Button>
 
                   <Button
-                    title={$t({ defaultMessage: `Éditer` })}
-                    size="small"
                     className="rounded-full"
-                    priority="tertiary no outline"
                     iconId="fr-icon-edit-fill"
                     linkProps={{
                       to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: item.id }),
                     }}
+                    priority="tertiary no outline"
+                    size="small"
+                    title={$t({ defaultMessage: `Éditer` })}
                   />
 
                   <Button
-                    title={$t({ defaultMessage: `Supprimer` })}
-                    size="small"
                     className="rounded-full hover:text-(--text-default-error)"
-                    priority="tertiary no outline"
                     iconId="fr-icon-delete-bin-fill"
                     nativeButtonProps={{ 'data-plan-id': item.id, onClick: onClickDelete }}
+                    priority="tertiary no outline"
+                    size="small"
+                    title={$t({ defaultMessage: `Supprimer` })}
                   />
                 </div>
               </li>

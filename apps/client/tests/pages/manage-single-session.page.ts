@@ -58,18 +58,6 @@ class ObservationModal {
   get saveButton(): Locator {
     return this.page.getByRole('button', { name: /(?:Créer|Enregistrer)/ });
   }
-
-  get cancelButton(): Locator {
-    return this.page.getByRole('button', { name: 'Annuler' });
-  }
-
-  get backButton(): Locator {
-    return this.page.getByRole('button', { name: 'Annuler' });
-  }
-
-  get closeButton(): Locator {
-    return this.dialog.locator(this.page.getByRole('button', { name: 'Fermer' })).first();
-  }
 }
 
 class MagistratSidePanel {
@@ -182,7 +170,7 @@ class MagistratSidePanel {
   }
 
   private get confirmDeleteButton(): Locator {
-    return this.page.locator('#confirmation_modal').getByRole('button', { name: 'Supprimer', exact: true });
+    return this.page.locator('#modal-confirm').getByRole('button', { name: 'Supprimer', exact: true });
   }
 
   async addAttachment(file: File, type = 'Fiche de juridiction'): Promise<void> {
@@ -325,7 +313,7 @@ export class ManageSingleSessionPage {
     await this.sessionRow({ name: magistrat }).getByRole('button', { name: 'Marquer comme ajoutée' }).click();
 
     await this.app.page
-      .locator('#confirmation_modal')
+      .locator('#modal-confirm')
       .getByRole('button', { name: 'Confirmer', exact: true })
       .click();
   }

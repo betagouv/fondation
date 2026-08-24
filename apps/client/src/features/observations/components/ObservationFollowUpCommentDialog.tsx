@@ -1,105 +1,66 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import React, { type FormEvent } from 'react';
+import { useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import { Modal } from '@/shared/ui/modal';
+import { RequiredLabel } from '@/shared/ui/required-label';
 import type { ObservationFollowupEnum } from '@/types/enums.types';
 
-export const observationFollowUpCommentModal = createModal({
-  isOpenedByDefault: false,
-  id: `observation-follow-up-comment-modal`,
-});
-
 export function ObservationFollowUpCommentModal(props: {
-  followUp: ObservationFollowupEnum | null;
-  onChange: (value: string | null) => unknown;
-  onDrop: () => unknown;
+  followUp: ObservationFollowupEnum;
+  onClosed: () => void;
+  onComment: (value: string | null) => void;
+  onDrop: () => void;
+  open: boolean;
 }) {
-  const [willDrop, setWillDrop] = React.useState<boolean>(true);
-  const [comment, setComment] = React.useState<string | null>(null);
+  const { formatMessage } = useIntl();
+  const [comment, setComment] = useState<string | null>(null);
 
-  const isCommentRequired = React.useMemo(() => props.followUp === 'INTERESTING', [props.followUp]);
-  const hint = `Commentaire obligatoire`;
-
-  const error = React.useMemo(() => {
-    if (isCommentRequired && comment !== null && !comment.trim()) return hint;
-    return null;
-  }, [isCommentRequired, comment, hint]);
-
-  const preventSubmit = React.useCallback((e: FormEvent) => e.preventDefault(), []);
-
-  const onConceal = React.useCallback(() => {
-    if (willDrop) props.onDrop();
-
-    setComment(null);
-    setWillDrop(true);
-  }, [props, willDrop, setComment, setWillDrop]);
-
-  useIsModalOpen(observationFollowUpCommentModal, { onConceal });
-
-  const onCancel = React.useCallback(() => {
-    if (isCommentRequired) return;
-
-    setWillDrop(false);
-    observationFollowUpCommentModal.close();
-  }, [setWillDrop, isCommentRequired]);
-
-  const onSave = React.useCallback(() => {
-    if (isCommentRequired && !comment?.trim()) return;
-
-    props.onChange(comment?.trim() || null);
-
-    setWillDrop(false);
-    observationFollowUpCommentModal.close();
-  }, [comment, isCommentRequired, props]);
+  const isCommentRequired = props.followUp === 'INTERESTING';
+  const isCommentValid = Boolean(comment?.trim());
+  const hint = formatMessage({ defaultMessage: 'Commentaire obligatoire' });
+  const label = <FormattedMessage defaultMessage="Commentaire sur la suite donnée à cette observation" />;
+  const isEmptied = isCommentRequired && comment !== null && !isCommentValid;
 
   return (
-    <observationFollowUpCommentModal.Component
-      title="Commentaire"
-      concealingBackdrop
-      buttons={[
-        {
-          children: 'Sans commentaire',
-          priority: 'secondary',
-          onClick: onCancel,
-          disabled: isCommentRequired,
-          title: isCommentRequired ? hint : undefined,
-          doClosesModal: false,
-        },
-        {
-          children: 'Sauvegarder',
-          priority: 'primary',
-          onClick: onSave,
-          disabled: isCommentRequired && !comment?.trim(),
-          title: isCommentRequired && !comment?.trim() ? hint : undefined,
-          doClosesModal: false,
-        },
-      ]}
+    <Modal
+      actions={
+        <>
+          <Button
+            disabled={isCommentRequired}
+            onClick={() => props.onComment(null)}
+            priority="secondary"
+            title={isCommentRequired ? hint : undefined}
+          >
+            <FormattedMessage defaultMessage="Sans commentaire" />
+          </Button>
+          <Button
+            disabled={isCommentRequired && !isCommentValid}
+            onClick={() => props.onComment(comment?.trim() || null)}
+            title={isCommentRequired && !isCommentValid ? hint : undefined}
+          >
+            <FormattedMessage defaultMessage="Sauvegarder" />
+          </Button>
+        </>
+      }
+      onClose={props.onDrop}
+      onClosed={props.onClosed}
+      open={props.open}
+      title={<FormattedMessage defaultMessage="Commentaire" />}
     >
-      <form onSubmit={preventSubmit}>
-        <Input
-          textArea
-          label={
-            isCommentRequired ? (
-              <>
-                commentaire sur la suite donnée à cette observation{' '}
-                <span className="text-(--text-default-error)">*</span>
-              </>
-            ) : (
-              'commentaire sur la suite donnée à cette observation'
-            )
-          }
-          hintText={error ? <span className="text-(--text-default-error)">{error}</span> : null}
-          nativeTextAreaProps={{
-            name: 'observation_follow_up_comment',
-            value: comment || '',
-            required: isCommentRequired,
-            onChange(event) {
-              setComment(event.target.value);
-            },
-          }}
-        />
-      </form>
-    </observationFollowUpCommentModal.Component>
+      <Input
+        hintText={isEmptied ? <span className="text-(--text-default-error)">{hint}</span> : null}
+        label={isCommentRequired ? <RequiredLabel>{label}</RequiredLabel> : label}
+        nativeTextAreaProps={{
+          name: 'observation_follow_up_comment',
+          onChange: (event) => setComment(event.target.value),
+          required: isCommentRequired,
+          rows: 3,
+          value: comment ?? '',
+        }}
+        textArea
+      />
+    </Modal>
   );
 }

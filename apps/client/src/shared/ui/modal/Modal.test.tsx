@@ -61,10 +61,11 @@ describe('Modal', () => {
 
       const view = render(ui(true));
       view.rerender(ui(false));
-      expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Action', hidden: true })).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute('inert');
 
       act(() => vi.advanceTimersByTime(300));
-      expect(screen.queryByRole('button', { name: 'Action' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Action', hidden: true })).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }

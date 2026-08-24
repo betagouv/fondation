@@ -15,10 +15,9 @@ vi.mock('@queries/members.queries', () => ({
   }),
 }));
 
-const editor = () =>
-  screen.getByRole('textbox', { hidden: true, name: /Suivi de l’évaluation manquante de DUPONT Marie/ });
+const editor = () => screen.getByRole('textbox', { name: /Suivi de l’évaluation manquante de DUPONT Marie/ });
 
-const saveButton = () => screen.getByRole('button', { hidden: true, name: 'Enregistrer' });
+const saveButton = () => screen.getByRole('button', { name: 'Enregistrer' });
 
 function renderCell(props: { comment?: string | null; disabled?: boolean } = {}) {
   return render(
@@ -91,6 +90,6 @@ describe('MissingEvaluationCommentModal', () => {
 
     await user.click(screen.getByRole('button', { name: 'Ajouter' }));
 
-    expect(screen.getByRole('alert', { hidden: true })).toHaveTextContent("L'enregistrement a échoué");
+    expect(screen.getByRole('alert')).toHaveTextContent("L'enregistrement a échoué");
   });
 });

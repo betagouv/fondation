@@ -65,6 +65,17 @@
         "valid-typeof": "error",
         "no-array-constructor": "error",
         "no-unused-expressions": "error",
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@codegouvfr/react-dsfr/Modal", "@codegouvfr/react-dsfr/Modal/*"],
+                "message": "Import Modal from @/shared/ui/modal: createModal builds a global instance driven outside of React."
+              }
+            ]
+          }
+        ],
         "typescript/ban-ts-comment": "error",
         "typescript/no-duplicate-enum-values": "error",
         "typescript/no-empty-object-type": "error",

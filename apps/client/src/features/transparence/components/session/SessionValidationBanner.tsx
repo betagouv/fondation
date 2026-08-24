@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useUser } from '@queries/auth.queries';
 import { useValidateSessionMutation } from '@queries/nomination-sessions.queries';
@@ -9,7 +9,7 @@ import { useValidateSessionMutation } from '@queries/nomination-sessions.queries
 export function SessionValidationBanner(props: { session: { id: string; isValidated: boolean } }) {
   const { formatMessage } = useIntl();
   const { user } = useUser();
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
   const { mutate: validateSession, isError, isPending } = useValidateSessionMutation();
 
   const onValidate = async () => {
@@ -53,13 +53,7 @@ export function SessionValidationBanner(props: { session: { id: string; isValida
       }
       tone="warning"
     >
-      <Button
-        disabled={isPending}
-        nativeButtonProps={confirmation.buttonProps}
-        onClick={onValidate}
-        priority="tertiary no outline"
-        size="small"
-      >
+      <Button disabled={isPending} onClick={onValidate} priority="tertiary no outline" size="small">
         <FormattedMessage defaultMessage="Valider les données" />
       </Button>
 

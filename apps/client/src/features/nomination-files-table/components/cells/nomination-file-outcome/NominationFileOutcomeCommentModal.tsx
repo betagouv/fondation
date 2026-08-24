@@ -1,118 +1,75 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { Modal } from '@/shared/ui/modal';
+import { RequiredLabel } from '@/shared/ui/required-label';
+import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
 import { outcomeRequiresComment, sessionOutcomeLabel } from './nomination-file-outcome.utils';
-import { OutcomeCommentModalContext } from './OutcomeCommentModalContext';
-
-export const nominationFileOutcomeCommentModal = createModal({
-  id: 'nominationFileOutcomeCommentModal',
-  isOpenedByDefault: false,
-});
 
 export function NominationFileOutcomeCommentModal(props: {
-  onChange: (comment: string | null) => unknown;
-  onDrop: () => unknown;
+  initialComment: string | null;
+  onClosed: () => void;
+  onComment: (comment: string | null) => void;
+  onDrop: () => void;
+  open: boolean;
+  outcome: NominationFileOutcomeEnum;
 }) {
   const { formatMessage } = useIntl();
-  const { outcome, initialComment } = useContext(OutcomeCommentModalContext);
   const { outcomes } = useNominationFilesTable();
 
-  const [hasError, setError] = useState(false);
-  const [comment, setComment] = useState<string | null>(null);
-  const [closedByUser, setClosedByUser] = useState(true);
+  const [comment, setComment] = useState(props.initialComment);
 
-  const isCommentRequired = useMemo(() => outcomeRequiresComment(outcomes, outcome), [outcomes, outcome]);
-
+  const isCommentRequired = outcomeRequiresComment(outcomes, props.outcome);
   const isCommentValid = (comment?.trim().length ?? 0) > 0;
-  const isUnchanged = (comment?.trim() || null) === initialComment;
+  const isUnchanged = (comment?.trim() || null) === props.initialComment;
   const hint = formatMessage(
     { defaultMessage: `L'issue "{label}" nécessite un commentaire` },
-    { label: (outcome && sessionOutcomeLabel(outcomes, outcome)) ?? '' },
+    { label: sessionOutcomeLabel(outcomes, props.outcome) ?? '' },
   );
-
-  const isOpen = useIsModalOpen(nominationFileOutcomeCommentModal, {
-    onConceal() {
-      if (closedByUser) props.onDrop();
-
-      setError(false);
-      setComment(null);
-      setClosedByUser(true);
-    },
-  });
-
-  useEffect(() => {
-    if (isOpen) setComment(initialComment);
-  }, [isOpen, initialComment]);
-
-  const onCancelClick = useCallback(() => {
-    if (isCommentRequired) return;
-
-    props.onChange(null);
-    setClosedByUser(false);
-    nominationFileOutcomeCommentModal.close();
-  }, [props, isCommentRequired]);
-
-  const onConfirmClick = useCallback(() => {
-    if (isCommentRequired && !isCommentValid) {
-      setError(true);
-      return;
-    }
-
-    props.onChange(comment?.trim() || null);
-    setClosedByUser(false);
-    nominationFileOutcomeCommentModal.close();
-    setComment(null);
-  }, [props, comment, isCommentRequired, isCommentValid]);
+  const label = <FormattedMessage defaultMessage="Commentaire concernant l'issue de ce dossier" />;
 
   return (
-    <nominationFileOutcomeCommentModal.Component
-      buttons={[
-        {
-          children: <FormattedMessage defaultMessage="Sans commentaire" />,
-          disabled: isCommentRequired,
-          doClosesModal: false,
-          onClick: onCancelClick,
-          priority: 'secondary',
-          title: isCommentRequired ? hint : undefined,
-        },
-        {
-          children: <FormattedMessage defaultMessage="Sauvegarder" />,
-          disabled: isUnchanged || (isCommentRequired && !isCommentValid),
-          doClosesModal: false,
-          onClick: onConfirmClick,
-          priority: 'primary',
-        },
-      ]}
-      concealingBackdrop={!isCommentRequired}
+    <Modal
+      actions={
+        <>
+          <Button
+            disabled={isCommentRequired}
+            onClick={() => props.onComment(null)}
+            priority="secondary"
+            title={isCommentRequired ? hint : undefined}
+          >
+            <FormattedMessage defaultMessage="Sans commentaire" />
+          </Button>
+          <Button
+            disabled={isUnchanged || (isCommentRequired && !isCommentValid)}
+            onClick={() => props.onComment(comment?.trim() || null)}
+            title={isCommentRequired && !isCommentValid ? hint : undefined}
+          >
+            <FormattedMessage defaultMessage="Sauvegarder" />
+          </Button>
+        </>
+      }
+      closeOnBackdrop={!isCommentRequired}
+      onClose={props.onDrop}
+      onClosed={props.onClosed}
+      open={props.open}
       title={<FormattedMessage defaultMessage="Commentaire" />}
-      topAnchor
     >
-      <form>
-        <Input
-          hintText={hasError ? <span className="text-(--text-default-error)">{hint}</span> : undefined}
-          label={
-            <>
-              <FormattedMessage defaultMessage="Commentaire concernant l'issue de ce dossier" />
-              {isCommentRequired && <span className="text-(--text-default-error)">*</span>}
-            </>
-          }
-          nativeTextAreaProps={{
-            onChange: (event) => {
-              setComment(event.target.value || null);
-
-              if (hasError) setError(false);
-            },
-            required: isCommentRequired,
-            value: comment || '',
-          }}
-          textArea
-        />
-      </form>
-    </nominationFileOutcomeCommentModal.Component>
+      <Input
+        hintText={isCommentRequired ? hint : null}
+        label={isCommentRequired ? <RequiredLabel>{label}</RequiredLabel> : label}
+        nativeTextAreaProps={{
+          onChange: (event) => setComment(event.target.value || null),
+          required: isCommentRequired,
+          rows: 3,
+          value: comment ?? '',
+        }}
+        textArea
+      />
+    </Modal>
   );
 }

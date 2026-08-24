@@ -1,14 +1,17 @@
-import React, { useContext } from 'react';
+import { createContext, useContext } from 'react';
 
-import type { PresentPlanModalContextType } from './present-plan-modal.type';
+export type PresentedPlan = { planId: string; startTime: { hours: number; minutes: number } };
 
-export const PresentPlanModalContext = React.createContext<PresentPlanModalContextType>(
-  null as unknown as PresentPlanModalContextType,
-);
+type PresentPlanModalContextType = {
+  presentPlan: (plan: PresentedPlan) => void;
+};
 
-export function usePresentPlanModal(): PresentPlanModalContextType {
-  const ctx = useContext(PresentPlanModalContext);
-  if (!ctx) throw new Error(`Unknown PresentPlanModalContext`);
+/** @internal */
+export const PresentPlanModalContext = createContext<PresentPlanModalContextType | null>(null);
 
-  return ctx;
+export function usePresentPlanModal() {
+  const context = useContext(PresentPlanModalContext);
+  if (!context) throw new Error('usePresentPlanModal must be used within a PresentPlanModalProvider');
+
+  return context;
 }

@@ -1,6 +1,5 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
@@ -9,8 +8,7 @@ import { Tooltip } from '@/shared/ui/tooltip';
 import { unaccent } from '@/utils/string.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { NominationFileTargetPositionContext } from './NominationFileTargetPositionContext';
-import { nominationFileTargetPositionModal } from './NominationFileTargetPositionProvider';
+import { useNominationFileTargetPositionModal } from './NominationFileTargetPositionContext';
 
 const alertColor = colors.decisions.text.default.warning.default;
 
@@ -36,13 +34,8 @@ function useHearingAlert(nominationFile: SessionNominationFile): boolean {
 
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
   const { formatMessage } = useIntl();
-  const { setNominationFile } = useContext(NominationFileTargetPositionContext);
+  const { open } = useNominationFileTargetPositionModal();
   const hasAlert = useHearingAlert(props.nominationFile);
-
-  const onClick = useCallback(() => {
-    setNominationFile(props.nominationFile);
-    nominationFileTargetPositionModal.open();
-  }, [props.nominationFile, setNominationFile]);
 
   const label = (
     <span className="leading-6">
@@ -58,9 +51,8 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
   return (
     <Tooltip label={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>
       <Button
-        aria-controls={nominationFileTargetPositionModal.id}
         className="group fr-px-0"
-        onClick={onClick}
+        onClick={() => open(props.nominationFile)}
         priority="tertiary no outline"
         size="small"
       >

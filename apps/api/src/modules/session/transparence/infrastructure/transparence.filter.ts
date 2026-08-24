@@ -101,7 +101,7 @@ export class TransparenceExceptionFilter implements NestInterceptor {
 
           if (err instanceof SessionTransparenceIsArchived) {
             return new ForbiddenException({
-              validationErrors: [`la session est archivée, et ne peut pas être modifiée`],
+              validationErrors: [`la session est archivée et ne peut pas être modifiée`],
             });
           }
 

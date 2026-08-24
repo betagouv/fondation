@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NominationFilesTableContext } from '@/features/nomination-files-table/context/files-table.context';
-import { ConfirmationProvider } from '@/shared/context/confirmation';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
@@ -28,7 +28,7 @@ function AuditionDateStory(props: { auditionDateTime: number | null; view: View 
 
   return (
     <StoryQueryClient>
-      <ConfirmationProvider>
+      <ConfirmModalProvider>
         <NominationFilesTableContext
           value={{
             canManage: true,
@@ -43,7 +43,7 @@ function AuditionDateStory(props: { auditionDateTime: number | null; view: View 
             nominationFile={nominationFile}
           />
         </NominationFilesTableContext>
-      </ConfirmationProvider>
+      </ConfirmModalProvider>
     </StoryQueryClient>
   );
 }

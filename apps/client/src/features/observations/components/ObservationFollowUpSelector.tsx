@@ -1,8 +1,9 @@
 import Select from '@codegouvfr/react-dsfr/Select';
-import React from 'react';
+import { useCallback, useState, type ChangeEvent } from 'react';
+import { useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { useObservationFollowUpCommentDialog } from '@/features/observations/hooks/useObservationFollowUpCommentDialog';
+import { useObservationFollowUpCommentDialog } from '@/features/observations/context/ObservationFollowUpCommentContext';
 import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumLabels,
@@ -19,13 +20,14 @@ export function ObservationFollowUpSelector(props: {
   comment: string | null;
   onChange?: (data: { followUp: ObservationFollowupEnum | null; comment: string | null }) => unknown;
 }) {
+  const { formatMessage } = useIntl();
   const isSg = useIsSg();
-  const { mutateAsync, reset, isPending } = useFollowUpOnObservationMutation();
+  const { mutate: followUpOnObservation, reset, isPending } = useFollowUpOnObservationMutation();
   const { waitForComment } = useObservationFollowUpCommentDialog();
-  const [selected, select] = React.useState(props.followUp ?? 'null');
+  const [selected, select] = useState(props.followUp ?? 'null');
 
-  const onChange = React.useCallback(
-    async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const onChange = useCallback(
+    async (e: ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value.trim() as ObservationFollowupEnum | 'null';
 
       select(value);
@@ -44,7 +46,7 @@ export function ObservationFollowUpSelector(props: {
 
       const followUp = value === 'null' ? null : value;
       const { sessionId, nominationFileId, observationId } = props;
-      await mutateAsync(
+      followUpOnObservation(
         {
           sessionId,
           nominationFileId,
@@ -62,7 +64,7 @@ export function ObservationFollowUpSelector(props: {
         },
       );
     },
-    [props, select, waitForComment, mutateAsync, reset],
+    [props, select, waitForComment, followUpOnObservation, reset],
   );
 
   if (!isSg) return null;
@@ -70,9 +72,9 @@ export function ObservationFollowUpSelector(props: {
   return (
     <div>
       <Select
-        disabled={props.isArchived}
-        label="Suite"
         className="fr-mb-0"
+        disabled={props.isArchived}
+        label={formatMessage({ defaultMessage: 'Suite' })}
         nativeSelectProps={{
           onChange,
           value: selected,
@@ -80,7 +82,7 @@ export function ObservationFollowUpSelector(props: {
         }}
       >
         <option key="observation_followUp_null" value={'null'}>
-          Aucune
+          {formatMessage({ defaultMessage: 'Aucune' })}
         </option>
         {Object.values(ObservationFollowUpEnum).map((value) => (
           <option key={`observation_followUp_${value}`} value={value}>

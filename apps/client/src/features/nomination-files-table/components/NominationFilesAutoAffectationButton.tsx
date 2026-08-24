@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 
 import { useNominationFilesTable } from '../context/files-table.context';
 import { useAlerts } from '@/shared/context/alerts';
-import { confirmationModal, useConfirmation } from '@/shared/context/confirmation';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
@@ -16,10 +16,10 @@ import { MemberExclusionSelector } from './MemberExclusionSelector';
 
 export function NominationFilesAutoAffectationButton() {
   const alerts = useAlerts();
-  const confirmation = useConfirmation();
+  const confirmation = useConfirmModal();
   const { formatMessage } = useIntl();
   const { canManage, formation, sessionId } = useNominationFilesTable();
-  const { mutateAsync: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
+  const { mutate: autoAffectation, isPending: isAutoAffecting } = useAutoAffectationMutation();
   const excludedMemberIdsRef = useRef<string[]>([]);
 
   const { data, isFetching } = useCountUnaffectedFilesQuery({ enabled: canManage, sessionId });
@@ -58,7 +58,7 @@ export function NominationFilesAutoAffectationButton() {
               }
               values={{
                 link: (x) => (
-                  <Link onClick={() => confirmationModal.close()} to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>
+                  <Link onClick={confirmation.cancel} to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>
                     {x}
                   </Link>
                 ),
@@ -80,7 +80,7 @@ export function NominationFilesAutoAffectationButton() {
 
     if (!isConfirmed) return;
 
-    await autoAffectation(
+    autoAffectation(
       {
         sessionId,
         excludedMemberIds: excludedMemberIdsRef.current.length ? excludedMemberIdsRef.current : undefined,
@@ -111,9 +111,8 @@ export function NominationFilesAutoAffectationButton() {
 
   return (
     <Button
-      {...confirmation.buttonProps}
       className="py-2!"
-      disabled={isAutoAffecting || !unaffectedFilesCount}
+      disabled={isAutoAffecting || isFetching || !unaffectedFilesCount}
       iconId={isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line'}
       onClick={onAutoAffectation}
       priority="secondary"
