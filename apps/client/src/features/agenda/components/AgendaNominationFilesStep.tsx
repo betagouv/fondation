@@ -15,7 +15,6 @@ export function AgendaNominationFilesStep(props: { className?: string }) {
       sessionId={session.id}
       formation={session.formation}
       defaultSelectedFileIds={basket.fileIds.length > 0 ? basket.fileIds : null}
-      onSelectionChange={basket.set}
       onCancel={cancel}
       onSubmit={goToMetadata}
       renderSubmitLabel={(count) => (

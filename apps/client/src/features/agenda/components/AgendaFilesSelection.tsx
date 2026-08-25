@@ -38,7 +38,11 @@ export function AgendaFilesSelection(props: {
   const nominationFiles = React.useMemo(() => data?.items ?? [], [data]);
 
   const initialSelection = React.useMemo(() => {
-    if (props.defaultSelectedFileIds) return props.defaultSelectedFileIds;
+    if (props.defaultSelectedFileIds) {
+      const availableIds = new Set(nominationFiles.map(({ id }) => id));
+      return props.defaultSelectedFileIds.filter((id) => availableIds.has(id));
+    }
+
     return nominationFiles.flatMap((f) =>
       f.outcome?.value !== 'SUSPENDED' && f.reporters.length > 0 ? [f.id] : [],
     );
