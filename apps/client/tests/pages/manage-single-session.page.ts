@@ -231,6 +231,26 @@ export class ManageSingleSessionPage {
       .first();
   }
 
+  async selectFiles(...selectors: readonly ({ number: number } | { name: string })[]): Promise<void> {
+    await this.app.page.getByRole('button', { name: 'Sélectionner des propositions' }).click();
+
+    for (const selector of selectors) {
+      await this.sessionRow(selector).getByRole('checkbox').click();
+    }
+  }
+
+  get addSelectionToAgendaButton(): Locator {
+    return this.app.page.getByRole('button', { name: "Ajouter à l'ODJ" });
+  }
+
+  get removeSelectionFromAgendaButton(): Locator {
+    return this.app.page.getByRole('button', { name: "Retirer de l'ODJ" });
+  }
+
+  get agendaBasket(): Locator {
+    return this.app.page.getByRole('button', { name: /ODJ en préparation/ });
+  }
+
   async editAffectation(
     magistrat: MagistratTarget,
     selection: { priorities?: readonly (string | RegExp)[]; reporters?: readonly (string | RegExp)[] },

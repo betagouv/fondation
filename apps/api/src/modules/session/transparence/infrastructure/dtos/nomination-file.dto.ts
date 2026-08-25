@@ -78,6 +78,8 @@ export class ListNominationFilesQueryDto extends createSortableDto(
       )
       .optional(),
 
+    nominationFileIds: z.preprocess(toNullableArray, z.array(z.uuid()).optional()).optional(),
+
     search: z
       .string()
       .trim()

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
@@ -7,7 +7,6 @@ import { getNewAgendaPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
 
 export function DocGenerationMenu(props: { sessionId: string }) {
-  const { formatMessage } = useIntl();
   const { data: readiness } = useIsSessionReadyForDocGenerationQuery({
     sessionId: props.sessionId,
   });
@@ -36,14 +35,13 @@ export function DocGenerationMenu(props: { sessionId: string }) {
             <FormattedMessage defaultMessage="Ordre du jour" />
           </MenuItem>
         ) : (
-          <MenuItem
-            disabled
-            iconId="ri-calendar-line"
-            title={formatMessage({
-              defaultMessage: "Aucun dossier n'est disponible pour un ordre du jour",
-            })}
-          >
-            <FormattedMessage defaultMessage="Ordre du jour" />
+          <MenuItem disabled iconId="ri-calendar-line">
+            <span className="flex flex-col items-start text-left">
+              <FormattedMessage defaultMessage="Ordre du jour" />
+              <span className="text-xs font-normal text-(--text-mention-grey)">
+                <FormattedMessage defaultMessage="Aucun dossier n'est disponible" />
+              </span>
+            </span>
           </MenuItem>
         )}
 
@@ -52,15 +50,13 @@ export function DocGenerationMenu(props: { sessionId: string }) {
             <FormattedMessage defaultMessage="Procès verbal" />
           </MenuItem>
         ) : (
-          <MenuItem
-            disabled
-            iconId="ri-file-text-line"
-            title={formatMessage({
-              defaultMessage:
-                "Chaque dossier d'un ordre du jour doit avoir une issue et un rapporteur publié pour générer le procès verbal",
-            })}
-          >
-            <FormattedMessage defaultMessage="Procès verbal" />
+          <MenuItem disabled iconId="ri-file-text-line">
+            <span className="flex flex-col items-start text-left">
+              <FormattedMessage defaultMessage="Procès verbal" />
+              <span className="text-xs font-normal text-(--text-mention-grey)">
+                <FormattedMessage defaultMessage="Chaque dossier de l'ODJ doit avoir une issue et un rapporteur publié" />
+              </span>
+            </span>
           </MenuItem>
         )}
       </MenuContent>

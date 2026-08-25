@@ -28,6 +28,10 @@ const sessions: Record<string, SessionDataset> = {
   empty: { files: [] },
 };
 
+function prepareAgenda(fileIds: readonly string[], sessionId = 'draft') {
+  localStorage.setItem(`fondation.agenda-basket.${sessionId}`, JSON.stringify({ fileIds }));
+}
+
 function SgSessionFilesTableStory(props: {
   canManage: boolean;
   formation: FormationEnum;
@@ -56,6 +60,7 @@ const meta = {
   component: SgSessionFilesTableStory,
   beforeEach: ({ msw }) => {
     msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));
+    prepareAgenda([]);
   },
   parameters: {
     layout: 'fullscreen',
@@ -78,6 +83,13 @@ export const Playground: Story = {};
 
 export const PublishedAffectations: Story = {
   args: { sessionId: 'published' },
+};
+
+export const WithOdj: Story = {
+  beforeEach: ({ msw }) => {
+    msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));
+    prepareAgenda(['dossier-1', 'dossier-2', 'dossier-3']);
+  },
 };
 
 export const Archived: Story = {

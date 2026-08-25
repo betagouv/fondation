@@ -193,6 +193,7 @@ export class TransparenceService {
     user: { role: RoleEnum; id: string };
     filters: {
       missingEvaluation: boolean | undefined;
+      nominationFileIds: readonly string[] | undefined;
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
       priorities: readonly (PriorityEnum | null)[];
       reporterIds: readonly (string | null)[];

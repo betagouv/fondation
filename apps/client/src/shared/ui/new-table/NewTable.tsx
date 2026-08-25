@@ -197,11 +197,14 @@ export function NewTable<Data extends RowData>(props: {
                 >
                   {row.getVisibleCells().map((cell) => {
                     const sticky = cell.column.columnDef.meta?.sticky;
+                    const cellClassName = cell.column.columnDef.meta?.cellClassName?.(row);
                     return (
                       <div
                         className={clsx(
                           'flex items-center overflow-hidden px-4 py-3 wrap-break-word',
-                          sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey) bg-inherit',
+                          sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey)',
+                          sticky && !cellClassName && 'bg-inherit',
+                          cellClassName,
                         )}
                         key={cell.id}
                         role="cell"

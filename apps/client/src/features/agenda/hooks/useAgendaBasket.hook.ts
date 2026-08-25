@@ -33,7 +33,7 @@ export function useAgendaBasket(sessionId: string): AgendaBasket {
         setState({ fileIds: fileIds.filter((id) => !removed.has(id)) });
       },
       set: (next) => setState({ fileIds: Array.from(new Set(next)) }),
-      clear: () => clear(),
+      clear,
     };
   }, [fileIds, setState, clear]);
 }

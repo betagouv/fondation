@@ -221,6 +221,7 @@ export class SessionController {
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       filters: {
         missingEvaluation: query.missingEvaluation,
+        nominationFileIds: query.nominationFileIds,
         outcomes: query.outcomes,
         priorities: query.priorities ?? [],
         reporterIds: query.reporterIds ?? [],

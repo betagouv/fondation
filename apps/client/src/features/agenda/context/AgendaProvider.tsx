@@ -48,9 +48,8 @@ export function AgendaProvider(props: PropsWithChildren) {
   }, []);
 
   const cancel = useCallback(() => {
-    basket.clear();
     navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }));
-  }, [navigate, sessionId, basket]);
+  }, [navigate, sessionId]);
 
   const submit = useCallback(
     async (metadata: AgendaMetadata) => {

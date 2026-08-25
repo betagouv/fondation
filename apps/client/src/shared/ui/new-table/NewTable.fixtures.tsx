@@ -48,12 +48,14 @@ const ROW_TINTS = {
 export function DemoTable(props: {
   enableSorting?: boolean;
   height?: number;
+  lockedRowIds?: readonly string[];
   rowCount?: number;
   rowTint?: keyof typeof ROW_TINTS;
+  unvirtualized?: boolean;
   withSelection?: boolean;
 }) {
   const data = useMemo(() => makePeople(props.rowCount ?? 100), [props.rowCount]);
-  const selectionColumn = useSelectionColumn<Person>();
+  const selectionColumn = useSelectionColumn<Person>({ lockedLabel: 'déjà traitée' });
 
   const columns = useMemo(
     () => (props.withSelection ? [selectionColumn, ...peopleColumns] : peopleColumns),
@@ -63,7 +65,9 @@ export function DemoTable(props: {
   const table = useReactTable({
     columns,
     data,
-    enableRowSelection: props.withSelection ?? false,
+    enableRowSelection: props.lockedRowIds
+      ? (row) => !props.lockedRowIds?.includes(row.id)
+      : (props.withSelection ?? false),
     enableSorting: props.enableSorting ?? false,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
@@ -76,6 +80,7 @@ export function DemoTable(props: {
         emptyLabel="Aucune donnée"
         rowTint={props.rowTint ? () => ROW_TINTS[props.rowTint!] : undefined}
         table={table}
+        unvirtualized={props.unvirtualized}
       />
     </div>
   );

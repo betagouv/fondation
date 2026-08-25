@@ -272,6 +272,28 @@ test.describe('Session E2E', () => {
       expect(detailed.data).toEqual(listed);
     }, 10_000);
 
+    test('should list the nomination files it is asked for', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const [wanted] = files.data!.items;
+
+      const restricted = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        query: { nominationFileIds: [wanted!.id] },
+      });
+
+      expect(restricted.data!.items.map(({ id }) => id)).toEqual([wanted!.id]);
+      expect(restricted.data!.totalCount).toBe(1);
+
+      const none = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        query: { nominationFileIds: [randomUUID()] },
+      });
+
+      expect(none.data!.items).toEqual([]);
+      expect(none.data!.totalCount).toBe(0);
+    }, 10_000);
+
     test('should not detail a nomination file outside of the session', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const otherSession = await sessions.createOne(TREVOUX_SESSION);

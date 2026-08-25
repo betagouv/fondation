@@ -18,7 +18,7 @@ export function Checkbox(props: {
       <input
         aria-label={props.label}
         checked={props.checked}
-        className="peer size-4 cursor-pointer appearance-none rounded-sm border border-(--border-action-high-blue-france) bg-(--background-default-grey) checked:bg-(--background-action-high-blue-france) indeterminate:bg-(--background-action-high-blue-france) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france) disabled:cursor-not-allowed disabled:opacity-50"
+        className="peer size-4 cursor-pointer appearance-none rounded-sm border border-(--border-action-high-blue-france) bg-(--background-default-grey) checked:bg-(--background-action-high-blue-france) indeterminate:bg-(--background-action-high-blue-france) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france) disabled:cursor-not-allowed disabled:border-(--border-default-grey) disabled:bg-(--background-disabled-grey)"
         disabled={props.disabled}
         onChange={props.onChange}
         ref={ref}

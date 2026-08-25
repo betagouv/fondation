@@ -57,12 +57,15 @@ export class ListNominationFilesQuery {
     sorting: Sortable<ListNominationFilesQueryDto>;
     filters: {
       missingEvaluation: boolean | undefined;
+      nominationFileIds: readonly string[] | undefined;
       outcomes: readonly (NominationFileOutcomeEnum | null)[];
       priorities: readonly (PriorityEnum | null)[];
       reporterIds: readonly (string | null)[];
       search: string | null;
     };
   }): Promise<PaginatedNominationFiles> {
+    const nominationFileIds = query.filters.nominationFileIds ? [...query.filters.nominationFileIds] : null;
+
     const [totalCount, items] = await this.db.withTransaction(async () => {
       const session = await this.findVisibleSession(query);
       if (!session) return [0, [] as NominationFileAffectationItem[]] as const;
@@ -84,13 +87,14 @@ export class ListNominationFilesQuery {
           where.search,
           query.sessionId,
           where.missingEvaluation,
+          nominationFileIds,
         ),
       );
 
       return [
         Number(txCount ?? 0n),
         await this.loadFiles({
-          nominationFileIds: null,
+          nominationFileIds,
           pagination: query.pagination,
           session,
           sessionId: query.sessionId,

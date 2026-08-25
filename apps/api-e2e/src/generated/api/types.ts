@@ -2274,6 +2274,7 @@ export type ListNominationFilesData = {
         outcomes?: string;
         priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE' | 'null'>;
         reporterIds?: Array<string | null>;
+        nominationFileIds?: Array<string>;
         search?: string;
         missingEvaluation?: string | boolean;
         /**

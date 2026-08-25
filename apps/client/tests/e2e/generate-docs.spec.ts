@@ -176,4 +176,36 @@ test.describe('Générer un ordre du jour', () => {
 
     await officialReportPage.submit();
   });
+
+  test('prépare un ordre du jour à partir des propositions cochées dans le tableau', async ({ app }) => {
+    const page = app.pages.session;
+
+    // Quand je coche 2 propositions dans le tableau
+    await page.selectFiles({ name: 'BOURDIEU PIERRE' }, { name: 'HARENDT ANNA' });
+
+    // Et que je les ajoute à l'ordre du jour
+    await page.addSelectionToAgendaButton.click();
+
+    // Alors l'ordre du jour en préparation contient ces 2 propositions
+    await test.expect(page.agendaBasket).toContainText('2');
+
+    // Et quand je filtre le tableau sur l'ordre du jour en préparation
+    await page.agendaBasket.click();
+
+    // Alors seules ces 2 propositions restent affichées
+    await test.expect(page.sessionRow({ name: 'BOURDIEU PIERRE' })).toBeVisible();
+    await test.expect(page.sessionRow({ name: 'GRAMSCI ANTONIO' })).toBeHidden();
+
+    // Et quand j'en retire une depuis ce tableau filtré
+    await page.selectFiles({ name: 'HARENDT ANNA' });
+    await page.removeSelectionFromAgendaButton.click();
+
+    // Alors elle quitte l'ordre du jour en préparation
+    await test.expect(page.agendaBasket).toContainText('1');
+    await test.expect(page.sessionRow({ name: 'HARENDT ANNA' })).toBeHidden();
+
+    // Et la génération d'un ordre du jour démarre avec la proposition restante
+    const agendaPage = await page.startAgendaGeneration();
+    await test.expect(agendaPage.selectAllFilesCheckbox).toHaveAccessibleName(/1 proposition sélectionnée/);
+  });
 });
