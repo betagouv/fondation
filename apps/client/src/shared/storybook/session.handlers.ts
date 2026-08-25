@@ -17,6 +17,7 @@ type ListedMember = PaginatedMemberListItemDto['items'][number];
 
 export type SessionDataset = {
   affectationsVersion?: SomeAffectationVersion;
+  agendaEligibleFileIds?: readonly string[];
   files: readonly SessionNominationFile[];
   memberReports?: ListedMemberSessionReportsDto['items'];
   members?: readonly ListedMember[];
@@ -181,6 +182,22 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
           items: datasetOf(params.sessionId).memberReports ?? [],
         }),
     ),
+
+    http.get('*/api/docs/v1/sessions/:sessionId/files', ({ params }) => {
+      const { agendaEligibleFileIds, files } = datasetOf(params.sessionId);
+      const eligible = agendaEligibleFileIds
+        ? files.filter(({ id }) => agendaEligibleFileIds.includes(id))
+        : files;
+
+      return HttpResponse.json({
+        items: eligible.map((file) => ({
+          id: file.id,
+          number: file.content.numeroDeDossier,
+          outcome: file.content.outcome,
+          reporters: file.reporters,
+        })),
+      });
+    }),
 
     http.get('*/api/docs/v1/sessions/:sessionId/readiness', ({ params }) =>
       HttpResponse.json<DocGenerationSessionReadinessDto>({

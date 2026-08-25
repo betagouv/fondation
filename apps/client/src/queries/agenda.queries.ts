@@ -179,8 +179,9 @@ export const useAgendaDocumentBlocksQuery = (query: { id: string | undefined | n
         .then(({ data = null }) => data),
   });
 
-export const useFindAgendaNominationFilesQuery = (query: { sessionId: string }) =>
+export const useFindAgendaNominationFilesQuery = (query: { enabled?: boolean; sessionId: string }) =>
   useQuery({
+    enabled: query.enabled ?? true,
     queryKey: agendaKeys.findAgendaNominationFiles({ sessionId: query.sessionId }),
     queryFn: () =>
       $api.docs

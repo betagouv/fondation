@@ -12,7 +12,13 @@ import { FormationEnum } from '@/types/enums.types';
 import { SgSessionFilesTable } from './SgSessionFilesTable';
 
 const sessions: Record<string, SessionDataset> = {
-  draft: { files: sessionFiles, members: sessionMembers },
+  draft: {
+    agendaEligibleFileIds: sessionFiles
+      .filter(({ content }) => content.status.value !== 'DSJ_REPORTED')
+      .map(({ id }) => id),
+    files: sessionFiles,
+    members: sessionMembers,
+  },
   published: {
     affectationsVersion: {
       '@type': 'fr.csm.fondation.affectations.version.some',

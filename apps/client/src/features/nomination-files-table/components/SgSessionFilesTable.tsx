@@ -9,6 +9,7 @@ import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
+import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import {
   useListNominationFilesAsExcelMutation,
   type SessionNominationFile,
@@ -128,10 +129,8 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
   const { canManage, sessionId } = useNominationFilesTable();
   const basket = useAgendaBasket(sessionId);
   const fileColumns = useSgSessionFilesColumns();
-  const selectionColumn = useSelectionColumn<SessionNominationFile>({
-    lockedLabel: formatMessage({ defaultMessage: "déjà dans l'ODJ en préparation" }),
-  });
   const exportAsExcel = useListNominationFilesAsExcelMutation();
+  const { data: agendaFiles } = useFindAgendaNominationFilesQuery({ enabled: canManage, sessionId });
 
   const [isSelecting, setSelecting] = useState(false);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -155,10 +154,52 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
   const isSelectable = canManage && isSelecting;
   const isFilteringBasketFiles = isFilteringBasket && !basket.isEmpty;
 
-  const canSelectRow = useCallback(
-    (row: Row<SessionNominationFile>) => isFilteringBasketFiles || !basket.has(row.original.id),
-    [basket, isFilteringBasketFiles],
+  const agendaFileIds = useMemo(
+    () => (agendaFiles ? new Set(agendaFiles.items.map(({ id }) => id)) : null),
+    [agendaFiles],
   );
+
+  useEffect(() => {
+    if (!agendaFileIds || isFilteringBasketFiles) return;
+
+    setRowSelection((selection) =>
+      Object.keys(selection).every((id) => agendaFileIds.has(id))
+        ? selection
+        : Object.fromEntries(Object.entries(selection).filter(([id]) => agendaFileIds.has(id))),
+    );
+  }, [agendaFileIds, isFilteringBasketFiles]);
+
+  const canSelectRow = useCallback(
+    (row: Row<SessionNominationFile>) => {
+      if (isFilteringBasketFiles) return true;
+      if (basket.has(row.original.id)) return false;
+
+      return !agendaFileIds || agendaFileIds.has(row.original.id);
+    },
+    [agendaFileIds, basket, isFilteringBasketFiles],
+  );
+
+  const lockedLabel = useCallback(
+    (row: Row<SessionNominationFile>) => {
+      const { content, id } = row.original;
+      if (basket.has(id)) {
+        return formatMessage({ defaultMessage: "Déjà dans l'ODJ en préparation" });
+      }
+
+      if (content.status.value === 'DSJ_REPORTED') {
+        return formatMessage({ defaultMessage: 'Déjà acté en PV de restitution' });
+      }
+
+      if (!content.detectedMagistratId || !content.jurisdictions.targeted) {
+        return formatMessage({ defaultMessage: 'Magistrat ou poste cible non identifié' });
+      }
+
+      return formatMessage({ defaultMessage: 'Ne peut pas figurer dans un ordre du jour' });
+    },
+    [basket, formatMessage],
+  );
+
+  const selectionColumn = useSelectionColumn<SessionNominationFile>({ lockedLabel });
 
   const columns = useMemo(
     () => (isSelectable ? [selectionColumn, ...fileColumns] : fileColumns),
