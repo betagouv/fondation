@@ -49,6 +49,9 @@ export function AgendaFilesSelection(props: {
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [props.defaultSelectedFileIds, nominationFiles]);
 
+  const droppedCount =
+    data && props.defaultSelectedFileIds ? props.defaultSelectedFileIds.length - initialSelection.length : 0;
+
   const selection = useSelection({
     items: nominationFiles,
     toString: ({ id }) => id,
@@ -119,6 +122,18 @@ export function AgendaFilesSelection(props: {
           />
         )}
       </div>
+
+      {droppedCount > 0 && (
+        <p className="fr-pl-2v fr-mt-1v fr-mb-0 text-sm text-(--text-mention-grey)">
+          <FormattedMessage
+            values={{ count: droppedCount }}
+            defaultMessage={`{count, plural,
+              one {1 proposition préparée ne peut pas figurer dans un ordre du jour : elle a été écartée}
+              other {{count, number} propositions préparées ne peuvent pas figurer dans un ordre du jour : elles ont été écartées}}`}
+          />
+        </p>
+      )}
+
       <div ref={scrollRef} className="fr-mt-2v h-[42vh] min-h-64 overflow-y-scroll">
         {filtered.length === 0 && (
           <p className="fr-pt-4v text-center text-(--text-mention-grey)">

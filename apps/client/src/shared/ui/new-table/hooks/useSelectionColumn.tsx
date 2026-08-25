@@ -1,4 +1,4 @@
-import { type ColumnDef, type RowData } from '@tanstack/react-table';
+import { type ColumnDef, type Row, type RowData } from '@tanstack/react-table';
 import { useMemo, useRef } from 'react';
 
 import { Checkbox } from '../Checkbox';
@@ -7,7 +7,7 @@ import { Tooltip } from '@/shared/ui/tooltip';
 const SELECTION_COLUMN_SIZE = 48;
 
 export function useSelectionColumn<Data extends RowData>(options?: {
-  lockedLabel?: string;
+  lockedLabel?: (row: Row<Data>) => string;
 }): ColumnDef<Data> {
   const lastSelectedRef = useRef<string | null>(null);
   const lockedLabel = options?.lockedLabel;
@@ -28,15 +28,12 @@ export function useSelectionColumn<Data extends RowData>(options?: {
         />
       ),
       cell: ({ row, table }) => {
+        const locked = row.getCanSelect() ? undefined : lockedLabel?.(row);
         const checkbox = (
           <Checkbox
             checked={row.getIsSelected()}
             disabled={!row.getCanSelect()}
-            label={
-              row.getCanSelect() || !lockedLabel
-                ? `Sélectionner la ligne ${row.index + 1}`
-                : `Ligne ${row.index + 1} : ${lockedLabel}`
-            }
+            label={locked ? `Ligne ${row.index + 1} : ${locked}` : `Sélectionner la ligne ${row.index + 1}`}
             onChange={(event) => {
               const shouldSelect = event.currentTarget.checked;
               const hasShift = (event.nativeEvent as MouseEvent).shiftKey;
@@ -64,10 +61,10 @@ export function useSelectionColumn<Data extends RowData>(options?: {
           />
         );
 
-        if (row.getCanSelect() || !lockedLabel) return checkbox;
+        if (!locked) return checkbox;
 
         return (
-          <Tooltip className="w-full items-center self-stretch" label={lockedLabel}>
+          <Tooltip className="w-full items-center self-stretch" label={locked}>
             {checkbox}
           </Tooltip>
         );

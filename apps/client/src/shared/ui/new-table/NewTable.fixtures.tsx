@@ -55,7 +55,9 @@ export function DemoTable(props: {
   withSelection?: boolean;
 }) {
   const data = useMemo(() => makePeople(props.rowCount ?? 100), [props.rowCount]);
-  const selectionColumn = useSelectionColumn<Person>({ lockedLabel: 'déjà traitée' });
+  const selectionColumn = useSelectionColumn<Person>({
+    lockedLabel: (row) => (row.index % 2 === 0 ? 'déjà traitée' : 'hors périmètre'),
+  });
 
   const columns = useMemo(
     () => (props.withSelection ? [selectionColumn, ...peopleColumns] : peopleColumns),

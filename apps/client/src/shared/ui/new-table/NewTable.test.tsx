@@ -39,14 +39,15 @@ describe('NewTable', () => {
 
     expect(screen.getByLabelText('Sélectionner la ligne 1')).toBeChecked();
     expect(screen.getByLabelText('Sélectionner la ligne 3')).toBeChecked();
-    expect(screen.getByLabelText('Ligne 2 : déjà traitée')).not.toBeChecked();
+    expect(screen.getByLabelText('Ligne 2 : hors périmètre')).not.toBeChecked();
   });
 
-  it('locks out the rows the table refuses to select, and says why', () => {
-    render(<DemoTable lockedRowIds={['person-0']} rowCount={5} unvirtualized withSelection />);
+  it('locks out the rows the table refuses to select, and says why for each of them', () => {
+    render(<DemoTable lockedRowIds={['person-0', 'person-1']} rowCount={5} unvirtualized withSelection />);
 
     expect(screen.getByLabelText('Ligne 1 : déjà traitée')).toBeDisabled();
-    expect(screen.getByLabelText('Sélectionner la ligne 2')).toBeEnabled();
+    expect(screen.getByLabelText('Ligne 2 : hors périmètre')).toBeDisabled();
+    expect(screen.getByLabelText('Sélectionner la ligne 3')).toBeEnabled();
   });
 
   it('toggles the sort state of a column when its header is clicked', async () => {
