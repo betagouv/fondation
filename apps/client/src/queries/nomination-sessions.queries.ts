@@ -122,6 +122,7 @@ function selectSessionNominationFiles(data: InfiniteData<PaginatedNominationFile
 
 export type SessionNominationFilesFilters = {
   missingEvaluation?: boolean;
+  nominationFileIds?: readonly string[];
   reporterIds?: string[];
   priorities?: (PrioriteEnum | 'null')[];
   outcomes?: (NominationFileOutcomeEnum | null)[];
@@ -147,6 +148,9 @@ export const useInfiniteSessionNominationFilesQuery = (options: {
             limit: SESSION_NOMINATION_FILES_PAGE_SIZE,
             page: pageParam,
             missingEvaluation: options.filters?.missingEvaluation,
+            nominationFileIds: options.filters?.nominationFileIds
+              ? [...options.filters.nominationFileIds]
+              : undefined,
             sortBy: options.sorting?.[0]?.id,
             sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
             priorities: options.filters?.priorities,

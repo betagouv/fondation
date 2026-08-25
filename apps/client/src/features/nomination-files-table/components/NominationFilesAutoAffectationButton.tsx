@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { useAlerts } from '@/shared/context/alerts';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAutoAffectationMutation,
@@ -109,23 +110,29 @@ export function NominationFilesAutoAffectationButton() {
 
   if (!canManage) return null;
 
-  return (
+  const isBusy = isAutoAffecting || isFetching;
+  const nothingToAffect =
+    !isBusy && !unaffectedFilesCount
+      ? formatMessage({ defaultMessage: 'Tous les dossiers ont des rapporteurs attribués' })
+      : null;
+
+  const button = (
     <Button
-      className="py-2!"
-      disabled={isAutoAffecting || isFetching || !unaffectedFilesCount}
+      className="py-2! aria-disabled:cursor-not-allowed aria-disabled:text-(--text-disabled-grey) aria-disabled:shadow-[inset_0_0_0_1px_var(--border-disabled-grey)]"
+      disabled={isBusy}
       iconId={isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line'}
-      onClick={onAutoAffectation}
+      nativeButtonProps={nothingToAffect ? { 'aria-disabled': true } : undefined}
+      onClick={nothingToAffect ? undefined : onAutoAffectation}
       priority="secondary"
       size="small"
-      title={
-        unaffectedFilesCount
-          ? undefined
-          : formatMessage({ defaultMessage: 'Tous les dossiers ont des rapporteurs attribués' })
-      }
     >
       {isAutoAffecting
         ? formatMessage({ defaultMessage: 'En cours...' })
         : formatMessage({ defaultMessage: 'Attribuer les rapports' })}
     </Button>
   );
+
+  if (!nothingToAffect) return button;
+
+  return <Tooltip label={nothingToAffect}>{button}</Tooltip>;
 }

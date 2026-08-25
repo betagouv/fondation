@@ -2,6 +2,9 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnFiltersState,
+  type OnChangeFn,
+  type Row,
+  type RowSelectionState,
   type SortingState,
   type Table,
   type TableOptions,
@@ -61,11 +64,14 @@ function SessionFilesNewTable(props: {
 
 export function SessionFilesTable(
   props: PropsWithChildren<{
+    canSelectRow?: (row: Row<SessionNominationFile>) => boolean;
     columns: TableOptions<SessionNominationFile>['columns'];
     emptyLabel?: string;
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
+    onRowSelectionChange?: OnChangeFn<RowSelectionState>;
     restrictTo?: SessionNominationFilesFilters;
+    rowSelection?: RowSelectionState;
     summary?: (session: { totalCount: number }) => ReactNode;
   }>,
 ) {
@@ -139,18 +145,24 @@ export function SessionFilesTable(
   const table = useReactTable({
     columns: props.columns,
     data: nominationFiles,
+    enableRowSelection: props.canSelectRow ?? !!props.onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     manualFiltering: true,
     manualSorting: true,
     onColumnFiltersChange,
+    onRowSelectionChange: props.onRowSelectionChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, sorting: tableState.sorting },
+    state: {
+      columnFilters: tableState.columnFilters,
+      rowSelection: props.rowSelection ?? {},
+      sorting: tableState.sorting,
+    },
   });
 
   const filters = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
         <ReactTableFilterColumn table={table} />
         {props.filtersEnd}
       </div>

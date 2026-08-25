@@ -19,6 +19,11 @@ const meta = {
       control: 'boolean',
       description: 'Active la colonne de sélection (checkbox + select-all + shift-click).',
     },
+    lockedRowIds: {
+      control: 'object',
+      description:
+        'Lignes non sélectionnables (`person-0`, `person-1`...) : case désactivée, cellule grisée et tooltip expliquant pourquoi. Demande withSelection pour que la colonne soit affichée.',
+    },
     rowTint: {
       control: 'inline-radio',
       options: [undefined, 'blue', 'yellow'],
@@ -46,6 +51,10 @@ export const Playground: Story = {};
 
 export const WithSelection: Story = {
   args: { withSelection: true },
+};
+
+export const LockedRows: Story = {
+  args: { lockedRowIds: ['person-1', 'person-3'], rowCount: 8, withSelection: true },
 };
 
 export const Sorting: Story = {

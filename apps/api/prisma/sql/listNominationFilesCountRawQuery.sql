@@ -10,6 +10,7 @@
 
 -- @param {String} $9:sessionId
 -- @param {Boolean} $10:missingEvaluation?
+-- @param $11:nominationFileIds?
 
 SELECT COUNT(ddn.id)
 
@@ -78,6 +79,12 @@ WHERE (
   AND (
     /* missingEvaluation */$10::BOOLEAN IS NULL
     OR ddn.missing_evaluation = /* missingEvaluation */$10::BOOLEAN
+  )
+
+  /* -- NOMINATION FILES -- */
+  AND (
+    /* nominationFileIds */$11::UUID[] IS NULL
+    OR ddn.id = ANY(/* nominationFileIds */$11::UUID[])
   )
 )
 

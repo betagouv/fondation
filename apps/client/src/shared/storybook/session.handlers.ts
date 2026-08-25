@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { GradeEnum } from '@/types/enums.types';
 import type {
   CountedUnaffectedFilesDto,
+  DocGenerationSessionReadinessDto,
   ListedCurrentlyAffectedReportersDto,
   ListedMemberSessionReportsDto,
   NominationFilesStatusCountDto,
@@ -68,8 +69,10 @@ function matchesFilters(file: SessionNominationFile, query: URLSearchParams) {
   const priorities = query.getAll('priorities');
   const reporterIds = query.getAll('reporterIds');
   const outcomes = query.get('outcomes')?.split(',').filter(Boolean) ?? [];
+  const nominationFileIds = query.getAll('nominationFileIds');
   const fileReporterIds = file.reporters.map(({ id }) => id);
 
+  if (nominationFileIds.length && !nominationFileIds.includes(file.id)) return false;
   if (search && !matchesSearch(file, search)) return false;
   if (priorities.length && !matchesAny(file.priorities, priorities)) return false;
   if (reporterIds.length && !matchesAny(fileReporterIds, reporterIds)) return false;
@@ -177,6 +180,14 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
         HttpResponse.json<ListedMemberSessionReportsDto>({
           items: datasetOf(params.sessionId).memberReports ?? [],
         }),
+    ),
+
+    http.get('*/api/docs/v1/sessions/:sessionId/readiness', ({ params }) =>
+      HttpResponse.json<DocGenerationSessionReadinessDto>({
+        canCreateAgenda: datasetOf(params.sessionId).files.length > 0,
+        canCreateOfficialReport: false,
+        isReady: datasetOf(params.sessionId).files.length > 0,
+      }),
     ),
 
     http.get('*/api/members/v1', () =>

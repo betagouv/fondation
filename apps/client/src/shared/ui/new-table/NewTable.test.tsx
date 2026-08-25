@@ -28,6 +28,27 @@ describe('NewTable', () => {
     expect(screen.getByLabelText('Désélectionner toutes les lignes')).toBeInTheDocument();
   });
 
+  it('leaves the locked rows out of a shift range', async () => {
+    const user = userEvent.setup();
+    render(<DemoTable lockedRowIds={['person-1']} rowCount={5} unvirtualized withSelection />);
+
+    await user.click(screen.getByLabelText('Sélectionner la ligne 1'));
+    await user.keyboard('{Shift>}');
+    await user.click(screen.getByLabelText('Sélectionner la ligne 3'));
+    await user.keyboard('{/Shift}');
+
+    expect(screen.getByLabelText('Sélectionner la ligne 1')).toBeChecked();
+    expect(screen.getByLabelText('Sélectionner la ligne 3')).toBeChecked();
+    expect(screen.getByLabelText('Ligne 2 : déjà traitée')).not.toBeChecked();
+  });
+
+  it('locks out the rows the table refuses to select, and says why', () => {
+    render(<DemoTable lockedRowIds={['person-0']} rowCount={5} unvirtualized withSelection />);
+
+    expect(screen.getByLabelText('Ligne 1 : déjà traitée')).toBeDisabled();
+    expect(screen.getByLabelText('Sélectionner la ligne 2')).toBeEnabled();
+  });
+
   it('toggles the sort state of a column when its header is clicked', async () => {
     const user = userEvent.setup();
     render(<DemoTable enableSorting rowCount={50} />);

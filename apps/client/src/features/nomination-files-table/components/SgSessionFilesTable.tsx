@@ -1,12 +1,13 @@
-import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo, type PropsWithChildren } from 'react';
+import { createColumnHelper, type Row, type RowSelectionState } from '@tanstack/react-table';
+import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
+import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
-import { rowCell } from '@/shared/ui/new-table';
+import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
 import {
   useListNominationFilesAsExcelMutation,
@@ -20,9 +21,12 @@ import { NominationFileStatusCell } from './cells/NominationFileStatusCell';
 import { ObservantsCell } from './cells/observations/ObservantsCell';
 import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
+import { NominationFilesAgendaBasket } from './NominationFilesAgendaBasket';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
 import { NominationFilesExportButton } from './NominationFilesExportButton';
 import { NominationFilesPublishButton } from './NominationFilesPublishButton';
+import { NominationFilesSelectionBar } from './NominationFilesSelectionBar';
+import { NominationFilesSelectionModeButton } from './NominationFilesSelectionModeButton';
 import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 import { SessionFilesTable } from './SessionFilesTable';
 
@@ -120,27 +124,95 @@ function useSgSessionFilesColumns() {
 }
 
 function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Element | null }>) {
-  const { sessionId } = useNominationFilesTable();
-  const columns = useSgSessionFilesColumns();
+  const { formatMessage } = useIntl();
+  const { canManage, sessionId } = useNominationFilesTable();
+  const basket = useAgendaBasket(sessionId);
+  const fileColumns = useSgSessionFilesColumns();
+  const selectionColumn = useSelectionColumn<SessionNominationFile>({
+    lockedLabel: formatMessage({ defaultMessage: "déjà dans l'ODJ en préparation" }),
+  });
   const exportAsExcel = useListNominationFilesAsExcelMutation();
 
-  return (
-    <SessionFilesTable columns={columns} filtersSlot={props.filtersSlot}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <AffectationVersionStatusBadge sessionId={sessionId} />
-          <NominationFilesStatusBadges />
-        </div>
+  const [isSelecting, setSelecting] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [isFilteringBasket, setFilteringBasket] = useState(false);
+  const clearSelection = useCallback(() => setRowSelection({}), []);
+  const enterSelection = useCallback(() => setSelecting(true), []);
+  const exitSelection = useCallback(() => {
+    setSelecting(false);
+    setRowSelection({});
+  }, []);
 
-        <div className="flex items-center gap-2">
-          <NominationFilesExportButton
-            disabled={exportAsExcel.isPending}
-            onExport={() => exportAsExcel.mutate({ sessionId })}
-          />
-          <NominationFilesAutoAffectationButton />
-          <NominationFilesPublishButton />
+  const toggleBasketFilter = useCallback(() => {
+    setFilteringBasket((filtering) => !filtering);
+    setRowSelection({});
+  }, []);
+
+  useEffect(() => {
+    if (basket.isEmpty) setFilteringBasket(false);
+  }, [basket.isEmpty]);
+
+  const isSelectable = canManage && isSelecting;
+  const isFilteringBasketFiles = isFilteringBasket && !basket.isEmpty;
+
+  const canSelectRow = useCallback(
+    (row: Row<SessionNominationFile>) => isFilteringBasketFiles || !basket.has(row.original.id),
+    [basket, isFilteringBasketFiles],
+  );
+
+  const columns = useMemo(
+    () => (isSelectable ? [selectionColumn, ...fileColumns] : fileColumns),
+    [fileColumns, isSelectable, selectionColumn],
+  );
+  const selectedFileIds = useMemo(
+    () => Object.entries(rowSelection).flatMap(([id, isSelected]) => (isSelected ? [id] : [])),
+    [rowSelection],
+  );
+
+  return (
+    <SessionFilesTable
+      canSelectRow={isSelectable ? canSelectRow : undefined}
+      columns={columns}
+      filtersEnd={
+        <NominationFilesAgendaBasket
+          basket={basket}
+          isFiltering={isFilteringBasketFiles}
+          onToggleFilter={toggleBasketFilter}
+        />
+      }
+      filtersSlot={props.filtersSlot}
+      onRowSelectionChange={isSelectable ? setRowSelection : undefined}
+      restrictTo={isFilteringBasketFiles ? { nominationFileIds: basket.fileIds } : undefined}
+      rowSelection={rowSelection}
+    >
+      {isSelectable ? (
+        <NominationFilesSelectionBar
+          basket={basket}
+          isFilteringBasket={isFilteringBasketFiles}
+          onClear={clearSelection}
+          onExit={exitSelection}
+          selectedFileIds={selectedFileIds}
+        />
+      ) : (
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <AffectationVersionStatusBadge sessionId={sessionId} />
+            <NominationFilesStatusBadges />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <NominationFilesExportButton
+              disabled={exportAsExcel.isPending}
+              onExport={() => exportAsExcel.mutate({ sessionId })}
+            />
+            <NominationFilesAutoAffectationButton />
+            <NominationFilesPublishButton />
+            {canManage && (
+              <NominationFilesSelectionModeButton isSelecting={false} onToggle={enterSelection} />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {props.children}
     </SessionFilesTable>
