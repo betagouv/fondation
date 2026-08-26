@@ -46,7 +46,7 @@ jobs:
         run: |
           # In Scalingo dashboard, we set the PROJECT_DIR environment variable to storybook
           mkdir -p scalingo/storybook
-          cp -r apps/client/storybook-static "$_"
+          cp -r apps/client/build/storybook "$_"
           cp -r apps/client/.storybook/scalingo/* "$_"
           cp apps/client/.storybook/scalingo/.buildpacks "$_"
           tar -czf storybook-scalingo.tar.gz scalingo

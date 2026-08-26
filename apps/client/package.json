@@ -19,7 +19,7 @@
     "predev": "pnpm run update-icons && rm -rf node_modules/.vite-app",
     "prebuild": "pnpm run update-icons",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build --output-dir build/storybook",
     "msw:init": "msw init .storybook/public --save",
     "prestorybook": "pnpm run update-icons",
     "prebuild-storybook": "pnpm run update-icons",
