@@ -1,7 +1,7 @@
-import { FormattedDate, useIntl } from 'react-intl';
+import { useIntl } from 'react-intl';
 
 import type { NominationSessionFileStatus } from '@/types/enums.types';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 
 export function NominationFileStatusCell(props: { status: NominationSessionFileStatus }) {
   const { formatMessage } = useIntl();
@@ -29,9 +29,7 @@ export function NominationFileStatusCell(props: { status: NominationSessionFileS
       </span>
 
       {props.status.date && (
-        <span className="text-xs text-(--text-mention-grey)">
-          <FormattedDate format="dateOnlyShort" value={dateOnlyToDate(props.status.date)} />
-        </span>
+        <span className="text-xs text-(--text-mention-grey)">{formatDateOnly(props.status.date)}</span>
       )}
     </span>
   );

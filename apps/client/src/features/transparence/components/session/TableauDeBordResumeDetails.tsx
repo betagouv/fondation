@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
 
@@ -10,14 +10,7 @@ function Detail(props: { date: PlainDateOnly | null | undefined; label: ReactNod
     <div className="flex items-baseline gap-x-2">
       <span className="text-sm leading-6 font-normal text-(--text-mention-grey)">{props.label}</span>
       <span className="text-sm leading-6 font-normal text-(--text-default-grey) lining-nums">
-        {props.date ? (
-          <FormattedMessage
-            defaultMessage="{date, date, dateOnlyShort}"
-            values={{ date: dateOnlyToDate(props.date) }}
-          />
-        ) : (
-          '-'
-        )}
+        {props.date ? formatDateOnly(props.date) : '-'}
       </span>
     </div>
   );

@@ -17,8 +17,8 @@ export function AuditionScheduledBanner(props: {
   if (!scheduledAt) return null;
 
   const values = {
-    date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-    time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+    date: formatDate(scheduledAt, { format: 'zonedDateShort' }),
+    time: formatTime(scheduledAt, { format: 'zonedTimeShort' }),
   };
 
   return (

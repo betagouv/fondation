@@ -11,7 +11,7 @@ import { PresentPlanModalProvider } from '@/features/presentations/context/Prese
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useToasts } from '@/shared/ui/toast';
 import { FormationEnumLabel } from '@/types/enums.types';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { timeOnlyToDate } from '@/utils/time-only.util';
 import { toInitials } from '@/utils/user.utils';
@@ -45,7 +45,7 @@ function InnerPresentationsTabReady() {
 
   const planItems = (plans?.items ?? []).map((item) => {
     const formation = FormationEnumLabel[item.formation];
-    const date = dateOnlyToDate(item.date);
+    const date = formatDateOnly(item.date);
     const time = timeOnlyToDate(item.time);
     const initials = toInitials(item.chairman);
 
@@ -145,7 +145,7 @@ function InnerPresentationsTabReady() {
                   size="small"
                 >
                   <FormattedMessage
-                    defaultMessage="NDR {date, date, dateOnlyShort}, {time, time, short} - {initials} - {formation}"
+                    defaultMessage="NDR {date}, {time, time, short} - {initials} - {formation}"
                     values={item}
                   />
                 </Button>

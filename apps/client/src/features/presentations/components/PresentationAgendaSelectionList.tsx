@@ -6,7 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
 import { useSelection } from '@/shared/hooks/useSelection';
 import { FormationEnumLabel, TypeDeSaisineEnum } from '@/types/enums.types';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { compareDateOnly, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { toInitials } from '@/utils/user.utils';
 
@@ -37,17 +37,17 @@ export function PresentationAgendaSelectionList(props: {
       formationItems
         .map(({ id, sessionMeetingDate, chairman, session }) => ({
           id,
-          date: dateOnlyToDate(sessionMeetingDate),
+          date: sessionMeetingDate,
           label: formatMessage(
-            { defaultMessage: `ODJ {sessionMeetingDate, date, short} {sessionName} - {initials}` },
+            { defaultMessage: `ODJ {sessionMeetingDate} {sessionName} - {initials}` },
             {
-              sessionMeetingDate: dateOnlyToDate(sessionMeetingDate),
+              sessionMeetingDate: formatDateOnly(sessionMeetingDate),
               initials: toInitials(chairman),
               sessionName: normalizeSessionName(session),
             },
           ),
         }))
-        .sort((a, b) => a.date.getTime() - b.date.getTime()),
+        .sort((a, b) => compareDateOnly(a.date, b.date)),
     [formationItems, formatMessage],
   );
 

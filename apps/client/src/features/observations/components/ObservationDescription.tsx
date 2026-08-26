@@ -1,11 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { format } from 'date-fns';
 import React from 'react';
 import { useDebounce } from 'use-debounce';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { dateOnlyToIso } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
 
@@ -27,7 +26,7 @@ function ObservationDescriptionEditor(props: {
   React.useEffect(() => {
     mutate({
       description: debouncedDescription,
-      dateReception: format(dateOnlyToDate(props.observation.receptionDate), 'yyyy-MM-dd'),
+      dateReception: dateOnlyToIso(props.observation.receptionDate),
       magistratId: props.observation.observant.id,
       observationId: props.observation.id,
       nominationFileId: props.nominationFileId,

@@ -8,10 +8,10 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { FormattedDate, useIntl } from 'react-intl';
+import { useIntl } from 'react-intl';
 
 import { NewTable, rowCell } from '@/shared/ui/new-table';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { compareDateOnly, formatDateOnly } from '@/utils/date-only.util';
 import { formatFileSize } from '@/utils/file.utils';
 import type { ListedNominationSessionAttachmentDto } from '@api/types';
 
@@ -29,9 +29,7 @@ function NameCell(props: CellContext<SessionAttachment, string>) {
   return renderName?.(props.row.original) ?? props.cell.getValue();
 }
 
-const addedAtCell = rowCell<SessionAttachment>((attachment) => (
-  <FormattedDate value={dateOnlyToDate(attachment.addedAt)} />
-));
+const addedAtCell = rowCell<SessionAttachment>((attachment) => formatDateOnly(attachment.addedAt));
 
 const sizeCell = rowCell<SessionAttachment>((attachment) =>
   attachment.sizeInBytes ? formatFileSize(attachment.sizeInBytes) : null,
@@ -40,10 +38,6 @@ const sizeCell = rowCell<SessionAttachment>((attachment) =>
 function ActionsCell(props: CellContext<SessionAttachment, unknown>) {
   const { actions } = useContext(SessionAttachmentsTableContext);
   return actions?.(props.row.original) ?? null;
-}
-
-function addedAtTime(attachment: SessionAttachment) {
-  return dateOnlyToDate(attachment.addedAt).getTime();
 }
 
 export function SessionAttachmentsTable(props: {
@@ -72,7 +66,7 @@ export function SessionAttachmentsTable(props: {
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Ajoutée le' }),
         size: 160,
-        sortingFn: (a, b) => addedAtTime(a.original) - addedAtTime(b.original),
+        sortingFn: (a, b) => compareDateOnly(a.original.addedAt, b.original.addedAt),
       }),
 
       h.accessor('sizeInBytes', {

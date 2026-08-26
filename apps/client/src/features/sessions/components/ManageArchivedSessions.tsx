@@ -1,12 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedArchivedNominationSessionsDto } from '@api/types';
 import { useListedArchivedGdsNominationSessionsQuery } from '@queries/archived-nomination-sessions.queries';
@@ -47,7 +46,7 @@ const columns = [
     enableSorting: true,
     sortDescFirst: false,
     header: 'Date de publication',
-    cell: ({ cell }) => format(dateOnlyToDate(cell.getValue()), 'dd/MM/yyyy'),
+    cell: ({ cell }) => formatDateOnly(cell.getValue()),
   }),
 
   h.accessor('dueDate', {
@@ -56,7 +55,7 @@ const columns = [
     header: "Date d'échéance",
     cell: ({ cell }) => {
       const val = cell.getValue();
-      return val ? format(dateOnlyToDate(val), 'dd/MM/yyyy') : null;
+      return val ? formatDateOnly(val) : null;
     },
   }),
 ];

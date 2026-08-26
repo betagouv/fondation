@@ -3,7 +3,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { FormattedAge, FormattedPositionDuration } from '@/i18n/components';
 import { DetailsCard } from '@/shared/ui/details';
-import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { gradeAndPositionLabel } from '@/utils/position.utils';
 import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
@@ -72,12 +72,7 @@ export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagist
 function InfoDate(props: { date: PlainDateOnly | null }) {
   if (!props.date) return '-';
 
-  return (
-    <FormattedMessage
-      defaultMessage="{date, date, dateOnlyShort}"
-      values={{ date: dateOnlyToDate(props.date) }}
-    />
-  );
+  return formatDateOnly(props.date);
 }
 
 function InfoList(props: { children: React.ReactNode }) {

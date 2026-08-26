@@ -11,6 +11,9 @@ export default mergeConfig(
     test: {
       globals: true,
       environment: 'jsdom',
+      // Pins the suite to one zone, as the api does: without it TZ is unset, so a spec restoring
+      // it writes the string "undefined" and leaves the rest of the worker in a broken zone
+      env: { TZ: 'Etc/UTC' },
       setupFiles: ['./vitest.setup.ts'],
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
       css: false,

@@ -5,7 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { DetailedReportDto } from '@/generated/api/types';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 
@@ -53,8 +53,8 @@ export function ObservationCard({
       desc={
         <span className={clsx(cx('fr-mb-0', 'fr-text--light'), 'text-sm')}>
           <FormattedMessage
-            defaultMessage="Observation du {date, date, dateOnlyShort}"
-            values={{ date: dateOnlyToDate(dateObj) }}
+            defaultMessage="Observation du {date}"
+            values={{ date: formatDateOnly(dateObj) }}
           />
         </span>
       }

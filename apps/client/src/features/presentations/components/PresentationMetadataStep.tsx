@@ -16,7 +16,7 @@ import { ChairmanSelector } from '@/features/documents/components/ChairmanSelect
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { usePresentationPlan } from '@/features/presentations/context/presentation-plan.context';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { dateOnlyToIso } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import { useDetailsAgendaMetadataQuery, useListSecretariesGeneralQuery } from '@queries/agenda.queries';
@@ -40,7 +40,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
 
   const secretaries = secretariesData?.items ?? [];
 
-  const defaultDate = format(dateOnlyToDate(state.date) ?? new Date(), 'yyyy-MM-dd');
+  const defaultDate = dateOnlyToIso(state.date) ?? format(new Date(), 'yyyy-MM-dd');
   const defaultTime = state.time
     ? `${String(state.time.hours).padStart(2, '0')}:${String(state.time.minutes).padStart(2, '0')}`
     : '';
@@ -94,9 +94,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
       (form) => ({
         ...form,
         chairmanId: agenda?.chairmanId ?? form.chairmanId,
-        date: agenda?.sessionMeetingDate
-          ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
-          : form.date,
+        date: agenda?.sessionMeetingDate ? dateOnlyToIso(agenda.sessionMeetingDate) : form.date,
       }),
       { shouldDirty: true, shouldTouch: true, shouldValidate: true },
     );
