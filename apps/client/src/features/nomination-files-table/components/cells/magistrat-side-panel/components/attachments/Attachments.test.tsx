@@ -10,15 +10,15 @@ import { Attachments } from './Attachments';
 
 const mocks = vi.hoisted(() => ({
   attachments: [] as {
+    addedAt: string;
     id: string;
     name: string;
     size: number | null;
     type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
-    addedAt: string;
   }[],
   cancelTab: vi.fn(),
   createUrl: vi.fn(),
-  download: vi.fn(),
+  downloadFile: vi.fn(),
   isSg: vi.fn(() => true),
   open: vi.fn(),
   openAddAttachment: vi.fn(),
@@ -35,29 +35,36 @@ vi.mock('@/shared/context/confirm-modal', () => ({
 }));
 vi.mock('@/shared/hooks/useTab', () => ({
   useTab: () => ({
-    download: mocks.download,
     open: mocks.open,
     openDeferred: () => ({ cancel: mocks.cancelTab, settle: mocks.settleTab }),
   }),
 }));
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
-vi.mock('@queries/nomination-sessions.queries', () => ({
-  useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
-  useCreateNominationFileAttachmentUrlMutation: () => ({
-    mutate: mocks.createUrl,
-    isPending: false,
+vi.mock('@queries/files.queries', () => ({
+  useDownloadFileMutation: () => ({
     isError: false,
+    isPending: false,
+    mutate: mocks.downloadFile,
     reset: vi.fn(),
   }),
-  useRemoveNominationFileAttachmentMutation: () => ({
-    mutate: mocks.remove,
-    isPending: false,
+}));
+vi.mock('@queries/nomination-sessions.queries', () => ({
+  useCreateNominationFileAttachmentUrlMutation: () => ({
     isError: false,
+    isPending: false,
+    mutate: mocks.createUrl,
+    reset: vi.fn(),
+  }),
+  useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
+  useRemoveNominationFileAttachmentMutation: () => ({
+    isError: false,
+    isPending: false,
+    mutate: mocks.remove,
     reset: vi.fn(),
   }),
 }));
 
-const PROPS = { nominationFileId: 'nf-1', sessionId: 'session-1', isArchived: false };
+const PROPS = { isArchived: false, nominationFileId: 'nf-1', sessionId: 'session-1' };
 
 function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
   return render(
@@ -72,11 +79,11 @@ beforeEach(() => {
   mocks.isSg.mockReturnValue(true);
   mocks.attachments = [
     {
+      addedAt: '2026-06-18T09:30:00.000Z',
       id: 'file-1',
       name: 'rapport.pdf',
       size: 2048,
       type: 'FICHE_DE_JURIDICTION',
-      addedAt: '2026-06-18T09:30:00.000Z',
     },
   ];
 });
@@ -134,16 +141,19 @@ describe('Attachments actions', () => {
     expect(mocks.settleTab).not.toHaveBeenCalled();
   });
 
-  it('downloads the file same-origin with the download flag', async () => {
+  it('downloads the file from the url the api returned', async () => {
     mocks.createUrl.mockImplementation((_vars, options) =>
-      options.onSuccess({ url: 'http://localhost:3000/api/files/v1/abc' }),
+      options.onSuccess({ url: 'https://api.example/api/files/v1/abc' }),
     );
     const user = userEvent.setup();
     renderAttachments();
 
     await user.click(screen.getByRole('button', { name: 'Télécharger rapport.pdf' }));
 
-    expect(mocks.download).toHaveBeenCalledWith('/api/files/v1/abc?download');
+    expect(mocks.downloadFile).toHaveBeenCalledWith({
+      name: 'rapport.pdf',
+      url: 'https://api.example/api/files/v1/abc',
+    });
   });
 
   it('removes the file once the deletion is confirmed', async () => {

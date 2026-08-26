@@ -6,12 +6,13 @@ import { FormattedMessage } from 'react-intl';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryReaderSelector } from '@/features/summary/components/SummaryReaderSelector';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
+import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { ExpandableText } from '@/shared/ui/expandable-text';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
-import { useGenerateSummaryAttachmentPublicUrlMutation, useSummaryQuery } from '@queries/summary.queries';
+import { useSummaryQuery } from '@queries/summary.queries';
 
 import { containsImage, toPlainText } from './summary-text';
 import { SummaryButton } from './SummaryButton';
@@ -199,7 +200,7 @@ function SummaryAttachments(props: {
   nominationFileId: string;
   sessionId: string;
 }) {
-  const { mutate: openAttachment, isPending } = useGenerateSummaryAttachmentPublicUrlMutation();
+  const { isPending, open: openAttachment } = useOpenSummaryAttachment();
   const { nominationFileId, sessionId } = props;
   const [expanded, setExpanded] = useState(false);
   const count = props.attachments.length;
@@ -230,7 +231,7 @@ function SummaryAttachments(props: {
                 className="px-0! underline underline-offset-3 before:no-underline [&::before]:mr-1!"
                 disabled={isPending}
                 iconId="ri-file-text-line"
-                onClick={() => openAttachment({ sessionId, nominationFileId, fileId: id })}
+                onClick={() => openAttachment({ fileId: id, name, nominationFileId, sessionId })}
                 priority="tertiary no outline"
                 size="small"
               >

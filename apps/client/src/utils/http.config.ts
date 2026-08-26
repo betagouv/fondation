@@ -14,6 +14,7 @@ export const LONG_RUNNING_ROUTES = [
   '/api/docs/v1/presentation-plans/{planId}/url',
   '/api/docs/v1/sessions/{sessionId}/agendas/{agendaId}',
   '/api/docs/v1/sessions/{sessionId}/official-reports/{officialReportId}',
+  '/api/files/v1/{fileUrlId}',
   '/api/sessions/v2/{sessionId}/files.xlsx',
   '/api/sessions/v2/{sessionId}/files/missing-evaluations.xlsx',
 ] as const;
@@ -34,7 +35,6 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   ...config,
   baseUrl: getBaseUrl(),
   credentials: 'include',
-  throwOnError: true,
   fetch: async (init) => {
     const url = typeof init === 'string' ? init : init instanceof URL ? init.toString() : init.url;
     const isLongRunningUrl = LONG_RUNNING_PATTERNS.some((pattern) => pattern.test(url));
@@ -46,4 +46,5 @@ export const createClientConfig: CreateClientConfig = (config) => ({
     const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeout) });
     return httpAssert(response);
   },
+  throwOnError: true,
 });

@@ -35,14 +35,20 @@ export const useMyReportQuery = (props: {
     queryKey: reportKeys.myReport({ nominationFileId: props.nominationFileId }),
   });
 
-export function generateReportFilePublicUrl(props: { reportId: string; fileNames: readonly string[] }) {
-  return $api.reports
-    .getReportFilesUrl({
-      path: { reportId: props.reportId },
-      query: { fileNames: props.fileNames as string[] },
-    })
-    .then(({ data }) => data ?? null);
-}
+export const useGenerateReportFilePublicUrlMutation = () =>
+  useMutation({
+    mutationFn: async (mutation: { fileName: string; reportId: string }): Promise<string> => {
+      const { data } = await $api.reports.getReportFilesUrl({
+        path: { reportId: mutation.reportId },
+        query: { fileNames: [mutation.fileName] },
+      });
+
+      const [file] = data?.items ?? [];
+      if (!file) throw new Error(`no public url for ${mutation.fileName}`);
+
+      return file.url;
+    },
+  });
 
 function updateCommentScreenshots(
   html: string,

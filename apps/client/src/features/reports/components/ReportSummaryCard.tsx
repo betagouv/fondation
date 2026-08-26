@@ -5,17 +5,17 @@ import React from 'react';
 import './ReportSummaryCard.css';
 
 import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
+import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import type { DetailedReportDto } from '@api/types';
-import { useGenerateSummaryAttachmentPublicUrlMutation } from '@queries/summary.queries';
 
 import { Card } from './Card';
 
 export function ReportSummaryCard(props: {
-  sessionId: string;
   nominationFileId: string;
+  sessionId: string;
   summary: DetailedReportDto['summary'];
 }) {
-  const { mutate } = useGenerateSummaryAttachmentPublicUrlMutation();
+  const { open: openAttachment } = useOpenSummaryAttachment();
   const html = React.useMemo(() => convertTitleNodes(props.summary?.content ?? ''), [props.summary]);
 
   if (!html) return null;
@@ -26,17 +26,8 @@ export function ReportSummaryCard(props: {
       <article className="report__summary" dangerouslySetInnerHTML={{ __html: html }} />
       {(props.summary?.attachments.length ?? 0) > 0 ? (
         <ButtonsGroup
-          inlineLayoutWhen="md and up"
           buttons={
             (props.summary?.attachments ?? []).map(({ fileId, name, type }) => ({
-              onClick: () =>
-                mutate({
-                  fileId,
-                  nominationFileId: props.nominationFileId,
-                  sessionId: props.sessionId,
-                }),
-              priority: 'tertiary no outline',
-              iconPosition: 'left',
               children: name,
               iconId:
                 type === 'application/pdf'
@@ -44,8 +35,18 @@ export function ReportSummaryCard(props: {
                   : type.startsWith('image/')
                     ? 'ri-file-image-fill'
                     : 'ri-file-fille',
+              iconPosition: 'left',
+              onClick: () =>
+                openAttachment({
+                  fileId,
+                  name,
+                  nominationFileId: props.nominationFileId,
+                  sessionId: props.sessionId,
+                }),
+              priority: 'tertiary no outline',
             })) as unknown as [ButtonProps, ...ButtonProps[]]
           }
+          inlineLayoutWhen="md and up"
         />
       ) : null}
     </Card>

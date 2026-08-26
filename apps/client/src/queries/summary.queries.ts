@@ -99,23 +99,17 @@ export function useDetachSummaryFilesMutation() {
 
 export const useGenerateSummaryAttachmentPublicUrlMutation = () =>
   useMutation({
-    async mutationFn(mutation: { sessionId: string; nominationFileId: string; fileId: string }) {
-      const { sessionId, nominationFileId, fileId } = mutation;
+    async mutationFn(mutation: {
+      fileId: string;
+      nominationFileId: string;
+      sessionId: string;
+    }): Promise<string | null> {
+      const { fileId, nominationFileId, sessionId } = mutation;
       const { data } = await $api.summaries.generateAttachmentPublicUrl({
-        path: { sessionId, nominationFileId, fileId },
+        path: { fileId, nominationFileId, sessionId },
       });
 
-      if (!data) return;
-
-      const $a = document.createElement('a');
-      $a.href = data.url;
-      $a.target = '_blank';
-      $a.rel = 'noopener noreferrer';
-
-      document.body.appendChild($a);
-
-      $a.click();
-      $a.remove();
+      return data?.url ?? null;
     },
   });
 

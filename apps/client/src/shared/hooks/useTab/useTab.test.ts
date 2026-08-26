@@ -5,8 +5,8 @@ import { useTab } from './useTab';
 
 afterEach(() => vi.restoreAllMocks());
 
-describe('useTab.download', () => {
-  it('triggers a download through a transient anchor', () => {
+describe('useTab.open', () => {
+  it('opens the url through a transient anchor', () => {
     const appended: HTMLAnchorElement[] = [];
     vi.spyOn(document.body, 'appendChild').mockImplementation((node) => {
       appended.push(node as HTMLAnchorElement);
@@ -15,12 +15,12 @@ describe('useTab.download', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     const { result } = renderHook(() => useTab());
-    act(() => result.current.download('https://files/report.pdf?download'));
+    act(() => result.current.open('https://files/report.pdf'));
 
     expect(click).toHaveBeenCalledOnce();
     const anchor = appended.find((node) => node.tagName === 'A')!;
-    expect(anchor.href).toBe('https://files/report.pdf?download');
-    expect(anchor.download).toBe('');
+    expect(anchor.href).toBe('https://files/report.pdf');
+    expect(anchor.target).toBe('_blank');
     expect(anchor.rel).toBe('noopener');
   });
 
@@ -29,7 +29,7 @@ describe('useTab.download', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     const { result } = renderHook(() => useTab());
-    act(() => result.current.download(new URL('https://files/report.pdf')));
+    act(() => result.current.open(new URL('https://files/report.pdf')));
 
     expect(click).toHaveBeenCalledOnce();
   });

@@ -18,6 +18,8 @@ describe('LONG_RUNNING_ROUTES', () => {
     ['/api/docs/v1/sessions/s1/new-official-reports/agendas', false],
     ['/api/docs/v1/agendas/a1', false],
     ['/api/docs/v1/presentation-plans/p1/html', false],
+    ['/api/files/v1/f1', true],
+    ['https://api.dev/api/files/v1/f1?download=', true],
     ['/api/sessions/v2/s1/files.xlsx', true],
     ['/api/sessions/v2/s1/files/missing-evaluations.xlsx', true],
     ['/api/sessions/v2/s1/files', false],

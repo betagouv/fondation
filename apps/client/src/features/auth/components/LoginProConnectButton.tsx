@@ -12,9 +12,7 @@ export function LoginProConnectButton() {
   const onPrepare = () => {
     prepareLoginMutation.mutate(undefined, {
       onSuccess({ data }) {
-        const $a = document.createElement('a');
-        $a.href = data!.url;
-        $a.click();
+        if (data) window.location.href = data.url;
       },
     });
   };
