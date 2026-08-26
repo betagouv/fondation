@@ -10,6 +10,7 @@ import { docFileName } from '../../../shared/domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
+import { DateOnly } from 'src/utils/date-only';
 
 import { FindAgendaDocumentQuery } from './find-agenda-document.query';
 
@@ -60,7 +61,7 @@ export class FindAgendaDocumentPdfQuery {
     const name = docFileName({
       type: 'AGENDA',
       formation: agenda.formation,
-      date: agenda.sessionMeetingDate,
+      date: DateOnly.fromUtcDate(agenda.sessionMeetingDate),
       sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
       chairman: { firstName: agenda.chairmanFirstName, lastName: agenda.chairmanLastName },

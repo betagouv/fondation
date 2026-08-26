@@ -15,6 +15,7 @@ import { AgendaBlockFile } from '../../../domain/agenda-doc-block';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { DateOnly } from 'src/utils/date-only';
 
 const html = oneLine;
 
@@ -30,8 +31,8 @@ type AgendaRenderContextNominationFile = {
 };
 
 export type AgendaRenderContext = {
-  date: Date;
-  sessionMeetingDate: Date;
+  date: DateOnly;
+  sessionMeetingDate: DateOnly;
   formation: FormationEnum;
   chairman: {
     firstName: string;

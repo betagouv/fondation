@@ -10,6 +10,7 @@ import { formatDate } from 'date-fns';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
+import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 
@@ -59,7 +60,8 @@ export class FindPresentationPlanDocumentPdfQuery {
     const html = await this.findPresentationPlanDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
-    const name = `Notice de restitution - ${formation === 'SIEGE' ? 'Siège' : 'Parquet'} - ${formatDate(plan.date, 'dd-MM-yyyy')}.pdf`;
+    const planDate = DateOnly.fromUtcDate(plan.date).toLocalStartOfDay();
+    const name = `Notice de restitution - ${formation === 'SIEGE' ? 'Siège' : 'Parquet'} - ${formatDate(planDate, 'dd-MM-yyyy')}.pdf`;
     const fileId = makeId('FileId');
     const path = `docs/${fileId}.pdf`;
 

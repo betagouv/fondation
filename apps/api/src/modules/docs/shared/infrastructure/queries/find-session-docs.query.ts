@@ -6,6 +6,7 @@ import z from 'zod';
 import { docFileName } from '../../domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class FindSessionDocsQuery {
@@ -53,7 +54,7 @@ export class FindSessionDocsQuery {
             formation: null,
             type: 'AGENDA',
             sessionName: null,
-            date: file.sessionMeetingDate,
+            date: DateOnly.fromUtcDate(file.sessionMeetingDate),
             typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
             chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
           }),
@@ -66,7 +67,7 @@ export class FindSessionDocsQuery {
           name: docFileName({
             formation: null,
             sessionName: null,
-            date: file.sessionMeetingDate,
+            date: DateOnly.fromUtcDate(file.sessionMeetingDate),
             type: 'OFFICIAL_REPORT',
             typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
             chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },

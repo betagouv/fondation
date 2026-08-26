@@ -1,14 +1,15 @@
 import { load } from 'cheerio';
 
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { DateOnly } from 'src/utils/date-only';
 
 import { agendaBlocks, AgendaRenderContext, agendaTemplate } from './agenda.html';
 
 describe('agendaTemplate', () => {
   const baseContext = {
     chairman: { firstName: `léon`, lastName: 'blum', gender: GenderEnum.MALE, title: 'PRESIDENT_SIEGE' },
-    date: new Date('2026-07-01'),
-    sessionMeetingDate: new Date('2026-07-01'),
+    date: new DateOnly(2026, 7, 1),
+    sessionMeetingDate: new DateOnly(2026, 7, 1),
     formation: 'SIEGE',
     nominationFiles: [
       {
@@ -30,6 +31,15 @@ describe('agendaTemplate', () => {
 
     const $ = load(content);
     expect($('main').html()).toMatchSnapshot();
+  });
+
+  // Zone independence is proven where the formatter lives, in helpers.spec: here we only check
+  // that the rendering context carries the day it was given, rather than an instant
+  it('dates the agenda on the day it was set', () => {
+    const $ = load(agendaTemplate.render(baseContext));
+
+    expect($('.date').text()).toBe('Séance du 1er juillet 2026');
+    expect($('.redaction-place').text()).toBe('Fait à Paris, le 1er juillet 2026');
   });
 
   it('should render as blocks', () => {

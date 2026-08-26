@@ -1,6 +1,5 @@
 import { load } from 'cheerio';
 import { html } from 'common-tags';
-import { format } from 'date-fns';
 
 import {
   commonDocumentCss,
@@ -19,7 +18,7 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
-import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
+import { TimeOnly, timeOnlyToString } from 'src/utils/time-only';
 
 function css(): string {
   return /* css */ `
@@ -256,7 +255,7 @@ function presentationPlanSessionSection(ctx: {
 }
 
 function endingTime(time: TimeOnly): string {
-  return html`Heure de fin de la séance de restitution&nbsp;: ${format(timeOnlyToDate(time), 'HH:mm')}`;
+  return html`Heure de fin de la séance de restitution&nbsp;: ${timeOnlyToString(time)}`;
 }
 
 function content(ctx: {
@@ -293,7 +292,7 @@ function content(ctx: {
     <ul>
       <li>DSJ&nbsp;: ${ctx.justiceContactName}</li>
       <li>SG&nbsp;: ${fullname(ctx.secretary)}</li>
-      <li>Heure de début de la séance de restitution&nbsp;: ${format(timeOnlyToDate(ctx.time), 'HH:mm')}</li>
+      <li>Heure de début de la séance de restitution&nbsp;: ${timeOnlyToString(ctx.time)}</li>
       ${ctx.endingTime ? html`<li>${endingTime(ctx.endingTime)}</li>` : ''}
     </ul>
   `;

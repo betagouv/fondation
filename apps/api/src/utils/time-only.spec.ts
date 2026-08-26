@@ -1,6 +1,22 @@
-import { dateToTimeOnly, timeOnlyToDate } from './time-only';
+import { FRENCH_TIME_ZONES } from './french-time-zones';
+import { dateToTimeOnly, timeOnlyToDate, timeOnlyToString } from './time-only';
+
+const systemTimeZone = process.env.TZ;
+afterEach(() => {
+  process.env.TZ = systemTimeZone;
+});
+
+function inTimeZone<T>(timeZone: string, read: () => T): T {
+  process.env.TZ = timeZone;
+  return read();
+}
 
 describe('TimeOnly', () => {
+  it.each(FRENCH_TIME_ZONES)('prints the hour it was given, from %s', (timeZone) => {
+    expect(inTimeZone(timeZone, () => timeOnlyToString({ hours: 9, minutes: 30, seconds: 0 }))).toBe('09:30');
+    expect(inTimeZone(timeZone, () => timeOnlyToString({ hours: 14, minutes: 0, seconds: 0 }))).toBe('14:00');
+  });
+
   it('should parse time to a valid date', () => {
     const date = timeOnlyToDate({ hours: 10, minutes: 0, seconds: 0 });
 
