@@ -250,7 +250,7 @@ test.describe('Session E2E', () => {
           name: fileToAttach.name,
           size: fileToAttach.size,
           type: 'FICHE_DE_JURIDICTION',
-          addedAt: expect.any(String),
+          addedAt: { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) },
         },
       ]);
 

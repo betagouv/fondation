@@ -5,17 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { frFormat } from '@/i18n/formats';
+import type { ListedNominationFileAttachmentDto } from '@api/types';
 
 import { Attachments } from './Attachments';
 
 const mocks = vi.hoisted(() => ({
-  attachments: [] as {
-    addedAt: string;
-    id: string;
-    name: string;
-    size: number | null;
-    type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
-  }[],
+  attachments: [] as ListedNominationFileAttachmentDto['items'],
   cancelTab: vi.fn(),
   createUrl: vi.fn(),
   downloadFile: vi.fn(),
@@ -79,7 +74,7 @@ beforeEach(() => {
   mocks.isSg.mockReturnValue(true);
   mocks.attachments = [
     {
-      addedAt: '2026-06-18T09:30:00.000Z',
+      addedAt: { year: 2026, month: 6, day: 18 },
       id: 'file-1',
       name: 'rapport.pdf',
       size: 2048,
