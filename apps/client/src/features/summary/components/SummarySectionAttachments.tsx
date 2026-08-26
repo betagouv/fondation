@@ -4,12 +4,9 @@ import { useCallback, useRef, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
+import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import {
-  useAttachSummaryFilesMutation,
-  useDetachSummaryFilesMutation,
-  useGenerateSummaryAttachmentPublicUrlMutation,
-} from '@queries/summary.queries';
+import { useAttachSummaryFilesMutation, useDetachSummaryFilesMutation } from '@queries/summary.queries';
 
 import { SummarySectionCard } from './SummarySectionCard';
 
@@ -85,30 +82,32 @@ function SummaryAttachmentInput() {
 }
 
 function SummaryAttachment(props: { fileId: string; name: string }) {
-  const { canWriteSummary, sessionId, nominationFileId } = useSummary();
+  const { canWriteSummary, nominationFileId, sessionId } = useSummary();
   const { formatMessage } = useIntl();
 
-  const { mutate: openAttachment, isPending: isGenerating } = useGenerateSummaryAttachmentPublicUrlMutation();
+  const { isPending: isGenerating, open: openAttachment } = useOpenSummaryAttachment();
   const onOpenAttachment = useCallback(() => {
-    openAttachment({ sessionId, nominationFileId, fileId: props.fileId });
-  }, [openAttachment, sessionId, nominationFileId, props.fileId]);
+    openAttachment({ fileId: props.fileId, name: props.name, nominationFileId, sessionId });
+  }, [nominationFileId, openAttachment, props.fileId, props.name, sessionId]);
 
   const { mutate: detach, isPending: detachingIsPending } = useDetachSummaryFilesMutation();
   const { waitForConfirmation } = useConfirmModal();
   const onDeleteAttachment = useCallback(async () => {
     const { isConfirmed } = await waitForConfirmation({
-      title: formatMessage({ defaultMessage: 'Veuillez confirmer la suppression du fichier' }),
-      content: formatMessage({ defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.' }),
+      content: formatMessage({
+        defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.',
+      }),
       i18n: {
         cancel: formatMessage({ defaultMessage: 'Annuler' }),
         confirm: formatMessage({ defaultMessage: 'Supprimer le fichier' }),
       },
+      title: formatMessage({ defaultMessage: 'Veuillez confirmer la suppression du fichier' }),
     });
 
     if (!isConfirmed) return;
 
-    detach({ sessionId, nominationFileId, fileIds: [props.fileId] });
-  }, [sessionId, nominationFileId, detach, formatMessage, props.fileId, waitForConfirmation]);
+    detach({ fileIds: [props.fileId], nominationFileId, sessionId });
+  }, [detach, formatMessage, nominationFileId, props.fileId, sessionId, waitForConfirmation]);
 
   return (
     <li className="flex">

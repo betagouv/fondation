@@ -1,11 +1,13 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, type ReactNode } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session';
+import { useTab } from '@/shared/hooks/useTab';
 import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
+import { useToasts } from '@/shared/ui/toast';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
@@ -13,6 +15,9 @@ import {
 } from '@queries/nomination-sessions.queries';
 
 export function NominationSessionAttachmentList(props: { placeholder?: ReactNode; sessionId: string }) {
+  const { formatMessage } = useIntl();
+  const toasts = useToasts();
+  const tab = useTab();
   const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const { data: attachments } = useListNominationSessionAttachmentsQuery({
@@ -21,28 +26,41 @@ export function NominationSessionAttachmentList(props: { placeholder?: ReactNode
 
   const { mutate: createUrl, isPending: isUrlPending } = useCreateNominationSessionAttachmentUrlMutation();
 
-  const onCreateUrl = useCallback(
-    (fileId: string) => {
+  const notifyOpeningFailure = useCallback(
+    (name: string) =>
+      toasts.error({
+        description: formatMessage({
+          defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+        }),
+        title: formatMessage({ defaultMessage: 'L\'ouverture de "{name}" a échoué' }, { name }),
+      }),
+    [formatMessage, toasts],
+  );
+
+  const onOpen = useCallback(
+    (file: { id: string; name: string }) => {
+      const attachmentTab = tab.openDeferred({
+        message: formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+        title: file.name,
+      });
+
       createUrl(
-        { sessionId: props.sessionId, fileId },
+        { fileId: file.id, sessionId: props.sessionId },
         {
+          onError: () => {
+            attachmentTab.cancel();
+            notifyOpeningFailure(file.name);
+          },
           onSuccess: (response) => {
-            if (!response) throw new Error(`failed to download`);
+            if (response) return attachmentTab.settle(response.url);
 
-            const a = document.createElement('a');
-            a.href = response.url;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-
-            document.body.appendChild(a);
-
-            a.click();
-            a.remove();
+            attachmentTab.cancel();
+            notifyOpeningFailure(file.name);
           },
         },
       );
     },
-    [createUrl, props.sessionId],
+    [createUrl, formatMessage, notifyOpeningFailure, props.sessionId, tab],
   );
 
   const { mutate: deleteAttachment, isPending: isDeletionPending } =
@@ -64,7 +82,7 @@ export function NominationSessionAttachmentList(props: { placeholder?: ReactNode
           <Button
             className={clsx('inline truncate', { grow: !isSg })}
             disabled={isUrlPending || isDeletionPending}
-            onClick={() => onCreateUrl(file.id)}
+            onClick={() => onOpen(file)}
             priority="tertiary no outline"
           >
             {file.name}

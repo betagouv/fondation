@@ -287,40 +287,14 @@ export const useCreateNominationSessionFromLodamMutation = () =>
         return data;
       } catch (err) {
         if (err instanceof HttpException && err.statusCode === 400) {
-          const { validationErrors } = await err.response.json();
-          throw Object.assign(new Error(), { validationErrors });
+          const body = await err.response.json().catch(() => null);
+          if (body) throw Object.assign(new Error(), { validationErrors: body.validationErrors });
         }
 
         throw err;
       }
     },
   });
-
-export function useUpdateNominationSessionObserversFromLodamMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: { file: File; sessionId: string }) => {
-      try {
-        await $api.sessions.updateSessionObservers({
-          path: { sessionId: input.sessionId },
-          body: { file: input.file },
-        });
-      } catch (err) {
-        if (err instanceof HttpException && err.statusCode === 400) {
-          const { validationErrors } = await err.response.json();
-          throw Object.assign(new Error(), { validationErrors });
-        }
-
-        throw err;
-      }
-    },
-    onSuccess: (_data, { sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
-      }),
-  });
-}
 
 export function useAddNominationSessionAttachmentMutation() {
   const queryClient = useQueryClient();
@@ -599,9 +573,6 @@ export const getListCurrentlyAffectedReportersQueryOptions = (options: { session
       return data ?? null;
     },
   }) as const;
-
-export const useListCurrentlyAffectedReportersQuery = (options: { sessionId: string }) =>
-  useQuery(getListCurrentlyAffectedReportersQueryOptions(options));
 
 export const useCountUnaffectedFilesQuery = (options: { enabled?: boolean; sessionId: string }) =>
   useQuery({

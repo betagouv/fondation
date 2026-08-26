@@ -8,6 +8,7 @@ import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
+import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationFileAttachmentUrlMutation,
   useListNominationFileAttachmentsQuery,
@@ -19,7 +20,7 @@ import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeT
 
 export const ATTACHMENTS_SECTION_ID = 'magistrat-attachments-section';
 
-export function Attachments(props: { nominationFileId: string; sessionId: string; isArchived: boolean }) {
+export function Attachments(props: { isArchived: boolean; nominationFileId: string; sessionId: string }) {
   const isSg = useIsSgNavigation();
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
@@ -89,12 +90,12 @@ export function Attachments(props: { nominationFileId: string; sessionId: string
 }
 
 function AttachmentItem(props: {
-  fileId: string;
-  nominationFileId: string;
-  sessionId: string;
   addedAt: string;
   canDelete: boolean;
+  fileId: string;
   name: string;
+  nominationFileId: string;
+  sessionId: string;
   size: number | null;
   type: NominationFileAttachmentTypeEnum;
 }) {
@@ -106,6 +107,12 @@ function AttachmentItem(props: {
     isError: isUrlError,
     reset: resetUrl,
   } = useCreateNominationFileAttachmentUrlMutation();
+  const {
+    mutate: download,
+    isPending: isDownloadPending,
+    isError: isDownloadError,
+    reset: resetDownload,
+  } = useDownloadFileMutation();
   const {
     mutate: remove,
     isPending: isRemovePending,
@@ -119,11 +126,12 @@ function AttachmentItem(props: {
     .filter(Boolean)
     .join(' - ');
 
-  const error = isUrlError
-    ? formatMessage({ defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.' })
-    : isRemoveError
-      ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
-      : null;
+  const error =
+    isUrlError || isDownloadError
+      ? formatMessage({ defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.' })
+      : isRemoveError
+        ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
+        : null;
 
   const onPreview = useCallback(() => {
     const attachmentTab = tab.openDeferred({
@@ -148,17 +156,14 @@ function AttachmentItem(props: {
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
         onSuccess: (response) => {
-          if (!response) return;
-          const { pathname } = new URL(response.url);
-          tab.download(`${pathname}?download`);
+          if (response) download({ name: props.name, url: response.url });
         },
       },
     );
-  }, [createUrl, tab, props.sessionId, props.nominationFileId, props.fileId]);
+  }, [createUrl, download, props.fileId, props.name, props.nominationFileId, props.sessionId]);
 
   const onDelete = useCallback(async () => {
     const { isConfirmed } = await waitForConfirmation({
-      title: formatMessage({ defaultMessage: 'Supprimer la pièce jointe' }),
       content: (
         <p>
           <FormattedMessage
@@ -171,17 +176,18 @@ function AttachmentItem(props: {
         cancel: formatMessage({ defaultMessage: 'Annuler' }),
         confirm: formatMessage({ defaultMessage: 'Supprimer' }),
       },
+      title: formatMessage({ defaultMessage: 'Supprimer la pièce jointe' }),
     });
     if (!isConfirmed) return;
     remove({ fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId });
   }, [
-    waitForConfirmation,
-    remove,
     formatMessage,
-    props.name,
-    props.sessionId,
-    props.nominationFileId,
     props.fileId,
+    props.name,
+    props.nominationFileId,
+    props.sessionId,
+    remove,
+    waitForConfirmation,
   ]);
 
   return (
@@ -205,7 +211,7 @@ function AttachmentItem(props: {
           />
           <button
             className="-mx-1 -my-0.5 truncate border-0 bg-transparent px-1 py-0.5 text-left text-(--text-action-high-blue-france) underline underline-offset-2 hover:bg-(--background-default-grey-hover) disabled:opacity-50"
-            disabled={isUrlPending || isRemovePending}
+            disabled={isUrlPending || isDownloadPending || isRemovePending}
             onClick={onPreview}
             title={formatMessage(
               { defaultMessage: 'Ouvrir {name} dans un nouvel onglet' },
@@ -220,7 +226,7 @@ function AttachmentItem(props: {
 
         <div className="flex shrink-0 items-center gap-1">
           <Button
-            disabled={isUrlPending || isRemovePending}
+            disabled={isUrlPending || isDownloadPending || isRemovePending}
             iconId="fr-icon-download-line"
             onClick={onDownload}
             priority="tertiary no outline"
@@ -247,6 +253,7 @@ function AttachmentItem(props: {
           description={error}
           onClose={() => {
             resetUrl();
+            resetDownload();
             resetRemove();
           }}
           severity="error"

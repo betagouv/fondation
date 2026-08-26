@@ -25,8 +25,8 @@ export function useTab() {
     const $a = document.createElement('a');
     $a.href = url.toString();
     $a.rel = 'noopener';
-    $a.target = '_blank';
     $a.style.display = 'none';
+    $a.target = '_blank';
 
     document.body.appendChild($a);
     $a.click();
@@ -55,17 +55,5 @@ export function useTab() {
     [open],
   );
 
-  const download = useCallback((url: URL | string) => {
-    const $a = document.createElement('a');
-    $a.href = url.toString();
-    $a.rel = 'noopener';
-    $a.download = '';
-    $a.style.display = 'none';
-
-    document.body.appendChild($a);
-    $a.click();
-    $a.remove();
-  }, []);
-
-  return { open, openDeferred, download };
+  return { open, openDeferred };
 }

@@ -20,6 +20,7 @@ import { useToasts } from '@/shared/ui/toast';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatFileSize } from '@/utils/file.utils';
 import { unaccent } from '@/utils/string.utils';
+import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationSessionAttachmentUrlMutation,
   useListNominationSessionAttachmentsQuery,
@@ -51,6 +52,7 @@ export function TransparenceAttachmentsTab() {
     sessionId: transparence.id,
   });
   const { mutate: createUrl, isPending: isUrlPending } = useCreateNominationSessionAttachmentUrlMutation();
+  const { mutate: download, isPending: isDownloadPending } = useDownloadFileMutation();
   const { mutate: deleteAttachment } = useRemoveNominationSessionAttachmentMutation();
 
   const onOpen = useCallback(
@@ -71,22 +73,36 @@ export function TransparenceAttachmentsTab() {
         },
       );
     },
-    [createUrl, formatMessage, transparence.id, tab],
+    [createUrl, formatMessage, tab, transparence.id],
+  );
+
+  const notifyDownloadFailure = useCallback(
+    (name: string) =>
+      toasts.error({
+        description: formatMessage({
+          defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+        }),
+        title: formatMessage({ defaultMessage: 'Le téléchargement de "{name}" a échoué' }, { name }),
+      }),
+    [formatMessage, toasts],
   );
 
   const onDownload = useCallback(
-    (fileId: string) =>
+    (attachment: { id: string; name: string }) =>
       createUrl(
-        { fileId, sessionId: transparence.id },
+        { fileId: attachment.id, sessionId: transparence.id },
         {
+          onError: () => notifyDownloadFailure(attachment.name),
           onSuccess: (response) => {
             if (!response) return;
-            const { pathname } = new URL(response.url);
-            tab.download(`${pathname}?download`);
+            download(
+              { name: attachment.name, url: response.url },
+              { onError: () => notifyDownloadFailure(attachment.name) },
+            );
           },
         },
       ),
-    [createUrl, transparence.id, tab],
+    [createUrl, download, notifyDownloadFailure, transparence.id],
   );
 
   const allAttachments = attachments?.items ?? [];
@@ -178,10 +194,10 @@ export function TransparenceAttachmentsTab() {
         actions={(attachment) => (
           <div className="-ml-2 flex items-center gap-1">
             <IconButton
-              disabled={isUrlPending}
+              disabled={isUrlPending || isDownloadPending}
               iconId={ACTION_ICONS.download}
               label={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: attachment.name })}
-              onClick={() => onDownload(attachment.id)}
+              onClick={() => onDownload(attachment)}
             />
 
             {!isArchived && (

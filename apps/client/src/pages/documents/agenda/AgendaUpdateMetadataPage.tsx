@@ -25,21 +25,21 @@ export function AgendaUpdateMetadataPage() {
   const onSubmit = React.useCallback(
     (values: AgendaMetadata) => {
       update.mutate(values, {
-        onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId })),
         onError: async (err) => {
           const defaultError = formatMessage({
             defaultMessage: `Impossible de mettre à jour les métadonnées`,
           });
           if (err instanceof HttpException) {
-            const body = await err.response.json();
-            setError(body.validationError || defaultError);
+            const body = await err.response.json().catch(() => null);
+            setError(body?.validationError || defaultError);
           } else {
             setError(defaultError);
           }
         },
+        onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
       });
     },
-    [update, navigate, sessionId, agendaId, formatMessage],
+    [agendaId, formatMessage, navigate, sessionId, update],
   );
 
   const onCancel = React.useCallback(
@@ -50,7 +50,7 @@ export function AgendaUpdateMetadataPage() {
   return (
     <div className="fr-container fr-py-4v">
       <AgendaBreadCrumb />
-      {error && <Alert className="fr-mb-6v" title={error} as="h2" severity="error" closable />}
+      {error && <Alert as="h2" className="fr-mb-6v" closable severity="error" title={error} />}
       <h1>
         <FormattedMessage defaultMessage="Métadonnées de l'ordre du jour" />
       </h1>
@@ -58,14 +58,14 @@ export function AgendaUpdateMetadataPage() {
         <span className="ri-loader-4-line animate-spin" />
       ) : (
         <AgendaMetadataForm
-          formation={session?.formation ?? 'SIEGE'}
-          defaultValues={metadata}
-          isSubmitting={update.isPending}
-          submitLabel={<FormattedMessage defaultMessage="Enregistrer les métadonnées" />}
-          submitIconId="ri-save-line"
           cancelLabel={<FormattedMessage defaultMessage="Annuler" />}
+          defaultValues={metadata}
+          formation={session?.formation ?? 'SIEGE'}
+          isSubmitting={update.isPending}
           onCancel={onCancel}
           onSubmit={onSubmit}
+          submitIconId="ri-save-line"
+          submitLabel={<FormattedMessage defaultMessage="Enregistrer les métadonnées" />}
         />
       )}
     </div>
