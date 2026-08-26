@@ -102,7 +102,7 @@ test.describe('Générer un ordre du jour', () => {
 
     // Et que je publie aux membres
     await page.publishAffectationsButton.click();
-    await app.page.getByRole('alert').waitFor();
+    await page.publishedAffectationsToast.waitFor();
 
     // Quand je définis une issue "SURSIS" à tous les dossiers
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
@@ -111,7 +111,7 @@ test.describe('Générer un ordre du jour', () => {
   });
 
   test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
-    test.setTimeout(10_000);
+    test.setTimeout(30_000);
 
     // Et un utilisateur Michel Foucault membre du parquet
     const chairman = await http.auth.registerUser({

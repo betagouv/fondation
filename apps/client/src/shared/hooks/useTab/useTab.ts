@@ -4,13 +4,17 @@ function fillPendingTab(handle: Window, pending: { message: string; title: strin
   try {
     const { document: tab } = handle;
     tab.documentElement.lang = 'fr';
+    tab.documentElement.style.colorScheme = 'light dark';
     tab.title = pending.title;
 
     const paragraph = tab.createElement('p');
     paragraph.textContent = pending.message;
-    paragraph.style.cssText = 'font-family: system-ui, sans-serif; margin: 2rem';
+    paragraph.style.cssText = 'color: CanvasText; font-family: system-ui, sans-serif; margin: 2rem';
 
-    tab.body?.appendChild(paragraph);
+    if (tab.body) {
+      tab.body.style.cssText = 'background: Canvas; margin: 0';
+      tab.body.appendChild(paragraph);
+    }
   } catch {
     // an unwritable blank tab is not worth failing the navigation for
   }

@@ -1,3 +1,4 @@
+export { contentDisposition } from './content-disposition';
 export { Files } from './files';
 export { FilesModule } from './files.module';
 export { type FondationFile } from './files.types';

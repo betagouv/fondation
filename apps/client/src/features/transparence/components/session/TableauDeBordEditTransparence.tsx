@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { RequiredLabel } from '@/shared/ui/required-label';
+import { useToasts } from '@/shared/ui/toast';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -23,6 +24,7 @@ import {
 function TableauDeBordEditTransparence(props: { session: DetailedNominationSessionDto }) {
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
+  const toasts = useToasts();
 
   const { user } = useUser();
 
@@ -71,6 +73,10 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
       { sessionId: session.id, data },
       {
         onSuccess: () => {
+          toasts.success({
+            title: formatMessage({ defaultMessage: 'Transparence "{name}" modifiée' }, { name: data.name }),
+          });
+
           if (session.isValidated || !user) {
             return navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id }));
           }

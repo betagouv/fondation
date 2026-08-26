@@ -8,7 +8,7 @@ import {
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
+import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
 import { FindAgendaDocumentQuery } from './find-agenda-document.query';
@@ -50,7 +50,7 @@ export class FindAgendaDocumentPdfQuery {
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,
-        disposition: `inline; filename=${encodeURIComponent(agenda.pdf.name)}`,
+        disposition: contentDisposition({ name: agenda.pdf.name }),
       });
     }
 
@@ -80,7 +80,7 @@ export class FindAgendaDocumentPdfQuery {
     }
 
     return new StreamableFile(buffer, {
-      disposition: `inline; filename=${encodeURIComponent(name)}`,
+      disposition: contentDisposition({ name }),
       type: FILE_MIME_TYPES.pdf,
     });
   }

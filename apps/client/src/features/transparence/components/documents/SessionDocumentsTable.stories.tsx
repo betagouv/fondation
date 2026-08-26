@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { AlertsProvider } from '@/shared/context/alerts';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { sessionDocsHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 
 import { DocActionAgendaFiles } from './DocActionAgendaFiles';
 import { DocActionAgendaMetadata } from './DocActionAgendaMetadata';
@@ -79,11 +79,11 @@ const meta = {
   decorators: [
     (Story) => (
       <StoryQueryClient>
-        <AlertsProvider>
+        <ToastProvider>
           <ConfirmModalProvider>
             <Story />
           </ConfirmModalProvider>
-        </AlertsProvider>
+        </ToastProvider>
       </StoryQueryClient>
     ),
   ],

@@ -4,6 +4,7 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import { ToastProvider } from '@/shared/ui/toast';
 
 import { NominationFilesSelectionBar } from './NominationFilesSelectionBar';
 
@@ -29,13 +30,15 @@ function renderBar(
 
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <NominationFilesSelectionBar
-        basket={basket}
-        isFilteringBasket={options.isFilteringBasket ?? false}
-        onClear={onClear}
-        onExit={onExit}
-        selectedFileIds={selectedFileIds}
-      />
+      <ToastProvider>
+        <NominationFilesSelectionBar
+          basket={basket}
+          isFilteringBasket={options.isFilteringBasket ?? false}
+          onClear={onClear}
+          onExit={onExit}
+          selectedFileIds={selectedFileIds}
+        />
+      </ToastProvider>
     </IntlProvider>,
   );
 
@@ -56,6 +59,7 @@ describe('NominationFilesSelectionBar', () => {
 
     expect(add).toHaveBeenCalledWith(['dossier-1', 'dossier-2']);
     expect(onExit).toHaveBeenCalled();
+    expect(screen.getByText("2 propositions ajoutées à l'ODJ en préparation")).toBeVisible();
   });
 
   it('should drop the selection without touching the basket', async () => {
@@ -91,6 +95,7 @@ describe('NominationFilesSelectionBar', () => {
 
     expect(remove).toHaveBeenCalledWith(['dossier-1']);
     expect(onExit).toHaveBeenCalled();
+    expect(screen.getByText("1 proposition retirée de l'ODJ en préparation")).toBeVisible();
   });
 
   it('should wait for a selection before taking files out of the agenda', () => {

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatFileSize, splitFileName } from './file.utils';
+import { fileNameFromResponse, formatFileSize, splitFileName } from './file.utils';
+
+const responseWith = (disposition?: string) =>
+  new Response(null, { headers: disposition ? { 'content-disposition': disposition } : {} });
 
 describe('formatFileSize', () => {
   it('formats bytes', () => {
@@ -31,5 +34,42 @@ describe('splitFileName', () => {
   it('handles names without extension', () => {
     expect(splitFileName('candidature')).toEqual({ label: 'candidature', extension: null });
     expect(splitFileName('.gitignore')).toEqual({ label: '.gitignore', extension: null });
+  });
+});
+
+describe('fileNameFromResponse', () => {
+  it('reads the quoted name', () => {
+    expect(fileNameFromResponse(responseWith('inline; filename="agenda.pdf"'), 'repli.pdf')).toBe(
+      'agenda.pdf',
+    );
+  });
+
+  it('prefers the extended name over the degraded quoted one', () => {
+    const disposition = `attachment; filename="L'?uvre.pdf"; filename*=UTF-8''L%27%C5%93uvre.pdf`;
+
+    expect(fileNameFromResponse(responseWith(disposition), 'repli.pdf')).toBe(`L'œuvre.pdf`);
+  });
+
+  it('reads an extended name standing on its own', () => {
+    const disposition = `attachment; filename*=UTF-8''L%27%C5%93uvre.pdf`;
+
+    expect(fileNameFromResponse(responseWith(disposition), 'repli.pdf')).toBe(`L'œuvre.pdf`);
+  });
+
+  it('falls back rather than fail on a malformed escape', () => {
+    const disposition = `attachment; filename*=UTF-8''bad%ZZ.pdf`;
+
+    expect(fileNameFromResponse(responseWith(disposition), 'repli.pdf')).toBe('repli.pdf');
+  });
+
+  it('keeps the quoted name when the extended one is unusable', () => {
+    const disposition = `attachment; filename="agenda.pdf"; filename*=UTF-8''bad%ZZ.pdf`;
+
+    expect(fileNameFromResponse(responseWith(disposition), 'repli.pdf')).toBe('agenda.pdf');
+  });
+
+  it('falls back without a header or without a response', () => {
+    expect(fileNameFromResponse(responseWith(), 'repli.pdf')).toBe('repli.pdf');
+    expect(fileNameFromResponse(undefined, 'repli.pdf')).toBe('repli.pdf');
   });
 });

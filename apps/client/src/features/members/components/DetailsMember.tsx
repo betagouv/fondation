@@ -1,4 +1,3 @@
-import { AlertsProvider } from '@/shared/context/alerts';
 import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
@@ -57,11 +56,7 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
               </dd>
             </div>
 
-            <AlertsProvider>
-              <AlertsProvider.Alerts />
-
-              <MemberTitle member={props.member} />
-            </AlertsProvider>
+            <MemberTitle member={props.member} />
 
             <MemberDisplayTitle member={props.member} />
           </dl>

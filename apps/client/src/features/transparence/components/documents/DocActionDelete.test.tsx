@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ToastProvider } from '@/shared/ui/toast';
+
 import { DocActionDelete } from './DocActionDelete';
 import type { SessionDocument } from './SessionDocumentsTable';
 
@@ -40,7 +42,9 @@ async function clickDelete(doc: SessionDocument) {
   const user = userEvent.setup();
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <DocActionDelete disabled={false} doc={doc} sessionId="session-1" />
+      <ToastProvider>
+        <DocActionDelete disabled={false} doc={doc} sessionId="session-1" />
+      </ToastProvider>
     </IntlProvider>,
   );
 
@@ -76,16 +80,17 @@ describe('DocActionDelete', () => {
   it('should delete an agenda', async () => {
     await clickDelete(AGENDA);
 
-    expect(deleteAgenda).toHaveBeenCalledWith({ agendaId: AGENDA.id });
+    expect(deleteAgenda).toHaveBeenCalledWith({ agendaId: AGENDA.id }, expect.anything());
     expect(deleteOfficialReport).not.toHaveBeenCalled();
   });
 
   it('should delete an official report', async () => {
     await clickDelete(OFFICIAL_REPORT);
 
-    expect(deleteOfficialReport).toHaveBeenCalledWith({
-      officialReportId: OFFICIAL_REPORT.id,
-    });
+    expect(deleteOfficialReport).toHaveBeenCalledWith(
+      { officialReportId: OFFICIAL_REPORT.id },
+      expect.anything(),
+    );
     expect(deleteAgenda).not.toHaveBeenCalled();
   });
 

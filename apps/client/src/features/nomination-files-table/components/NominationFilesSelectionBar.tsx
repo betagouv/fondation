@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
 import type { AgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
 
@@ -42,6 +43,7 @@ export function NominationFilesSelectionBar(props: {
 }) {
   const { basket, isFilteringBasket, onClear, onExit, selectedFileIds } = props;
   const { formatMessage } = useIntl();
+  const toasts = useToasts();
   const { sessionId } = useNominationFilesTable();
   const { data: readiness } = useIsSessionReadyForDocGenerationQuery({ sessionId });
 
@@ -53,16 +55,39 @@ export function NominationFilesSelectionBar(props: {
   const onAddToAgenda = useCallback(() => {
     basket.add(selectedFileIds);
     onExit();
-  }, [basket, onExit, selectedFileIds]);
+    toasts.success({
+      title: formatMessage(
+        {
+          defaultMessage: `{count, plural,
+            one {1 proposition ajoutée à l'ODJ en préparation}
+            other {{count, number} propositions ajoutées à l'ODJ en préparation}}`,
+        },
+        { count: selectedFileIds.length },
+      ),
+    });
+  }, [basket, formatMessage, onExit, selectedFileIds, toasts]);
 
   const onRemoveFromAgenda = useCallback(() => {
     basket.remove(selectedFileIds);
     onExit();
-  }, [basket, onExit, selectedFileIds]);
+    toasts.success({
+      title: formatMessage(
+        {
+          defaultMessage: `{count, plural,
+            one {1 proposition retirée de l'ODJ en préparation}
+            other {{count, number} propositions retirées de l'ODJ en préparation}}`,
+        },
+        { count: selectedFileIds.length },
+      ),
+    });
+  }, [basket, formatMessage, onExit, selectedFileIds, toasts]);
 
   return (
-    <div className="fr-pl-4v flex min-h-10 items-center justify-between gap-4 bg-(--background-alt-blue-france)">
-      <p aria-live="polite" className="fr-m-0 text-sm font-medium">
+    <div className="flex min-h-10 items-center justify-between gap-4">
+      <p
+        aria-live="polite"
+        className="fr-px-4v fr-m-0 flex min-h-10 items-center bg-(--background-alt-blue-france) text-sm font-medium"
+      >
         <FormattedMessage
           defaultMessage={`{count, plural,
             =0 {Aucune proposition sélectionnée}

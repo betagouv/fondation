@@ -36,6 +36,7 @@ import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
+import { contentDisposition } from './content-disposition';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 
@@ -439,7 +440,7 @@ export class Files implements OnApplicationBootstrap {
       expiresAt: file.expiresAt,
       file: new StreamableFile(response.data, {
         type: filenameToMimeType(file.file.name),
-        disposition: `${options?.download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(file.file.name)}"`,
+        disposition: contentDisposition({ download: options?.download, name: file.file.name }),
       }),
     };
   }

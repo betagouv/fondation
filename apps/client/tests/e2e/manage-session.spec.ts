@@ -150,5 +150,19 @@ test.describe('Gérer les sessions', () => {
       await test.expect(priorities).toContainText('Outre-mer');
       await test.expect(priorities).toContainText('Étoilé');
     });
+
+    test(`j'exporte les dossiers au format xlsx`, async ({ app }) => {
+      const page = app.pages.session;
+
+      // Quand je demande l'export du tableau
+      const [download] = await Promise.all([
+        app.page.waitForEvent('download'),
+        page.exportAsExcelButton.click(),
+      ]);
+
+      // Alors le fichier reçu porte le nom daté envoyé par le serveur
+      test.expect(download.suggestedFilename()).toMatch(/^dossiers-nomination-\d{4}-\d{2}-\d{2}\.xlsx$/);
+      test.expect(await download.failure()).toBeNull();
+    });
   });
 });

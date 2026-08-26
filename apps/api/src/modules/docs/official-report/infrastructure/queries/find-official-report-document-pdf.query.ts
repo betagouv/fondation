@@ -8,7 +8,7 @@ import {
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
+import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 
 import { FindOfficialReportDocumentQuery } from './find-official-report-document.query';
@@ -48,7 +48,7 @@ export class FindOfficialReportDocumentPdfQuery {
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,
-        disposition: `inline; filename=${encodeURIComponent(officialReport.pdf.name)}`,
+        disposition: contentDisposition({ name: officialReport.pdf.name }),
       });
     }
 
@@ -80,7 +80,7 @@ export class FindOfficialReportDocumentPdfQuery {
     }
 
     return new StreamableFile(buffer, {
-      disposition: `inline; filename=${encodeURIComponent(name)}`,
+      disposition: contentDisposition({ name }),
       type: FILE_MIME_TYPES.pdf,
     });
   }

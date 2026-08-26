@@ -21,6 +21,7 @@ import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../../clock';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
+import { contentDisposition } from '../content-disposition';
 import { filenameToMimeType } from '../mime-type';
 import * as time from 'src/utils/time';
 
@@ -173,7 +174,7 @@ export class S3Storage implements Storage {
         object.name
           ? {
               type: filenameToMimeType(object.name),
-              disposition: `inline; filename="${encodeURIComponent(object.name)}"`,
+              disposition: contentDisposition({ name: object.name }),
             }
           : undefined,
       ),

@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
+import { useExportFailure } from '../hooks/useExportFailure';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
@@ -130,6 +131,7 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
   const basket = useAgendaBasket(sessionId);
   const fileColumns = useSgSessionFilesColumns();
   const exportAsExcel = useListNominationFilesAsExcelMutation();
+  const onExportFailure = useExportFailure();
   const { data: agendaFiles } = useFindAgendaNominationFilesQuery({ enabled: canManage, sessionId });
 
   const [isSelecting, setSelecting] = useState(false);
@@ -179,24 +181,26 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
     [agendaFileIds, basket, isFilteringBasketFiles],
   );
 
+  const ineligibilityReasons = useMemo(
+    () => new Map((agendaFiles?.ineligible ?? []).map(({ id, reason }) => [id, reason])),
+    [agendaFiles],
+  );
+
   const lockedLabel = useCallback(
     (row: Row<SessionNominationFile>) => {
-      const { content, id } = row.original;
-      if (basket.has(id)) {
-        return formatMessage({ defaultMessage: "Déjà dans l'ODJ en préparation" });
-      }
+      const reason = ineligibilityReasons.get(row.original.id);
+      if (!reason) return formatMessage({ defaultMessage: "Déjà dans l'ODJ en préparation" });
 
-      if (content.status.value === 'DSJ_REPORTED') {
-        return formatMessage({ defaultMessage: 'Déjà acté en PV de restitution' });
+      switch (reason) {
+        case 'REPORTED':
+          return formatMessage({ defaultMessage: 'Déjà acté en PV de restitution' });
+        case 'UNIDENTIFIED':
+          return formatMessage({ defaultMessage: 'Magistrat ou poste non identifié' });
+        default:
+          return formatMessage({ defaultMessage: 'Ne peut pas figurer dans un ordre du jour' });
       }
-
-      if (!content.detectedMagistratId || !content.jurisdictions.targeted) {
-        return formatMessage({ defaultMessage: 'Magistrat ou poste cible non identifié' });
-      }
-
-      return formatMessage({ defaultMessage: 'Ne peut pas figurer dans un ordre du jour' });
     },
-    [basket, formatMessage],
+    [formatMessage, ineligibilityReasons],
   );
 
   const selectionColumn = useSelectionColumn<SessionNominationFile>({ lockedLabel });
@@ -244,7 +248,7 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
           <div className="flex items-center gap-2">
             <NominationFilesExportButton
               disabled={exportAsExcel.isPending}
-              onExport={() => exportAsExcel.mutate({ sessionId })}
+              onExport={() => exportAsExcel.mutate({ sessionId }, { onError: onExportFailure })}
             />
             <NominationFilesAutoAffectationButton />
             <NominationFilesPublishButton />

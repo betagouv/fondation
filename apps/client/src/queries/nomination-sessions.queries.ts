@@ -7,17 +7,14 @@ import {
 } from '@tanstack/react-query';
 
 import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
+import { fileNameFromResponse, saveBlob } from '@/utils/file.utils';
 import { HttpException } from '@/utils/http-exception';
-import { getBaseUrl } from '@/utils/http.config';
 import { multipartJson } from '@/utils/multipart-json';
-import { client } from '@api/client';
 import * as $api from '@api/sdk';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListedNominationFileAttachmentDto,
-  ListMissingEvaluationsAsExcelData,
-  ListNominationFilesAsExcelData,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
   PaginatedNominationFiles,
@@ -622,43 +619,24 @@ export const useCountUnaffectedFilesQuery = (options: { enabled?: boolean; sessi
 export const useListNominationFilesAsExcelMutation = () =>
   useMutation({
     mutationFn: async (options: { sessionId: string }): Promise<void> => {
-      const { sessionId } = options;
-      const url = client.buildUrl<ListNominationFilesAsExcelData>({
-        url: '/api/sessions/v2/{sessionId}/files.xlsx',
-        path: { sessionId },
-        baseUrl: getBaseUrl(),
+      const { data, response } = await $api.sessions.listNominationFilesAsExcel({
+        parseAs: 'blob',
+        path: { sessionId: options.sessionId },
       });
 
-      const $a = document.createElement('a');
-      $a.href = url;
-      $a.target = '_blank';
-      $a.rel = 'noopener';
-      $a.style.display = 'none';
-
-      document.body.appendChild($a);
-      $a.click();
-      $a.remove();
+      saveBlob(data as Blob, fileNameFromResponse(response, 'dossiers.xlsx'));
     },
   });
 
 export const useListMissingEvaluationsAsExcelMutation = () =>
   useMutation({
     mutationFn: async (options: { sessionId: string }): Promise<void> => {
-      const url = client.buildUrl<ListMissingEvaluationsAsExcelData>({
-        url: '/api/sessions/v2/{sessionId}/files/missing-evaluations.xlsx',
+      const { data, response } = await $api.sessions.listMissingEvaluationsAsExcel({
+        parseAs: 'blob',
         path: { sessionId: options.sessionId },
-        baseUrl: getBaseUrl(),
       });
 
-      const $a = document.createElement('a');
-      $a.href = url;
-      $a.target = '_blank';
-      $a.rel = 'noopener';
-      $a.style.display = 'none';
-
-      document.body.appendChild($a);
-      $a.click();
-      $a.remove();
+      saveBlob(data as Blob, fileNameFromResponse(response, 'evaluations-manquantes.xlsx'));
     },
   });
 

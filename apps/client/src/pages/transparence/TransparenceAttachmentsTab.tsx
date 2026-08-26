@@ -16,6 +16,7 @@ import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { IconButton } from '@/shared/ui/icon-button';
 import { SearchInput } from '@/shared/ui/search-input';
+import { useToasts } from '@/shared/ui/toast';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatFileSize } from '@/utils/file.utils';
 import { unaccent } from '@/utils/string.utils';
@@ -29,6 +30,7 @@ import type { TransparenceOutletContext } from './transparence-outlet-context.ty
 
 export function TransparenceAttachmentsTab() {
   const { formatMessage } = useIntl();
+  const toasts = useToasts();
   const { isArchived } = useArchivedSession();
   const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
   const tab = useTab();
@@ -186,10 +188,21 @@ export function TransparenceAttachmentsTab() {
               <DeleteFileButton
                 fileName={attachment.name}
                 onDelete={() =>
-                  deleteAttachment({
-                    fileId: attachment.id,
-                    sessionId: transparence.id,
-                  })
+                  deleteAttachment(
+                    { fileId: attachment.id, sessionId: transparence.id },
+                    {
+                      onError: () =>
+                        toasts.error({
+                          description: formatMessage({
+                            defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+                          }),
+                          title: formatMessage(
+                            { defaultMessage: 'La suppression de "{name}" a échoué' },
+                            { name: attachment.name },
+                          ),
+                        }),
+                    },
+                  )
                 }
               />
             )}
