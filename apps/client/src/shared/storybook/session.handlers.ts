@@ -190,6 +190,12 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
         : files;
 
       return HttpResponse.json({
+        ineligible: files
+          .filter(({ id }) => !eligible.some((file) => file.id === id))
+          .map(({ content, id }) => ({
+            id,
+            reason: content.status.value === 'DSJ_REPORTED' ? 'REPORTED' : 'UNIDENTIFIED',
+          })),
         items: eligible.map((file) => ({
           id: file.id,
           number: file.content.numeroDeDossier,

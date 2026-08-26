@@ -12,7 +12,7 @@ import {
   FoundDocsMembersDto,
   SearchJusticeContactsQueryDto,
 } from './docs.dto';
-import { FoundDocsNominationFiles } from './finders/docs-nomination-files.finder';
+import { FoundAgendaNominationFiles } from './finders/docs-nomination-files.finder';
 import { FoundJusticeContactsDto } from './queries/find-justice-contacts.query';
 import { FoundSessionDocsDto } from './queries/find-session-docs.query';
 import { DocGenerationSessionReadinessDto } from './queries/is-session-ready-for-doc-generation.query';
@@ -84,8 +84,8 @@ export class DocsController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/sessions/:sessionId/files')
-  @ZodResponse({ type: FoundDocsNominationFiles, status: HttpStatus.OK })
-  findAgendaNominationFiles(@Param('sessionId') sessionId: string): Promise<FoundDocsNominationFiles> {
+  @ZodResponse({ type: FoundAgendaNominationFiles, status: HttpStatus.OK })
+  findAgendaNominationFiles(@Param('sessionId') sessionId: string): Promise<FoundAgendaNominationFiles> {
     return this.docs.findDocsNominationFiles({ sessionId });
   }
 }

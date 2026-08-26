@@ -3,13 +3,13 @@ import { IntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FormationEnum } from '@/types/enums.types';
-import type { FoundDocsNominationFiles } from '@api/types';
+import type { FoundAgendaNominationFiles } from '@api/types';
 
 import { AgendaNominationFile } from './AgendaNominationFile';
 
 function makeDocsNominationFile(
-  overrides?: Partial<FoundDocsNominationFiles['items'][number]>,
-): FoundDocsNominationFiles['items'][number] {
+  overrides?: Partial<FoundAgendaNominationFiles['items'][number]>,
+): FoundAgendaNominationFiles['items'][number] {
   return {
     id: 'file-1',
     number: 1,
@@ -26,7 +26,7 @@ function makeDocsNominationFile(
   };
 }
 
-function renderFile(file: FoundDocsNominationFiles['items'][number]) {
+function renderFile(file: FoundAgendaNominationFiles['items'][number]) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <AgendaNominationFile
