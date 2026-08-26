@@ -17,7 +17,11 @@ export class AppModule {
     const config = app.get<ApiConfig>(API_CONFIG_TOKEN);
 
     app.disable('x-powered-by');
-    app.enableCors({ origin: config.frontendOriginUrl, credentials: true });
+    app.enableCors({
+      exposedHeaders: ['Content-Disposition'],
+      origin: config.frontendOriginUrl,
+      credentials: true,
+    });
     app.use(cookieParser(config.cookieSecret));
     app.enableShutdownHooks();
 

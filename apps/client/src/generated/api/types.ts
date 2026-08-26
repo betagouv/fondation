@@ -1042,7 +1042,7 @@ export type DocGenerationSessionReadinessDto = {
     canCreateOfficialReport: boolean;
 };
 
-export type FoundDocsNominationFiles = {
+export type FoundAgendaNominationFiles = {
     items: Array<{
         id: string;
         number: number;
@@ -1075,6 +1075,10 @@ export type FoundDocsNominationFiles = {
             functionId: string | null;
             jurisdictionId: string | null;
         };
+    }>;
+    ineligible: Array<{
+        id: string;
+        reason: 'REPORTED' | 'UNIDENTIFIED';
     }>;
 };
 
@@ -3120,7 +3124,7 @@ export type FindAgendaNominationFilesData = {
 };
 
 export type FindAgendaNominationFilesResponses = {
-    200: FoundDocsNominationFiles;
+    200: FoundAgendaNominationFiles;
 };
 
 export type FindAgendaNominationFilesResponse = FindAgendaNominationFilesResponses[keyof FindAgendaNominationFilesResponses];

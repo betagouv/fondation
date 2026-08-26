@@ -8,7 +8,7 @@ import {
 import { formatDate } from 'date-fns';
 
 import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
+import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
@@ -51,7 +51,7 @@ export class FindPresentationPlanDocumentPdfQuery {
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,
-        disposition: `inline; filename=${encodeURIComponent(plan.pdf.name)}`,
+        disposition: contentDisposition({ name: plan.pdf.name }),
       });
     }
 
@@ -84,7 +84,7 @@ export class FindPresentationPlanDocumentPdfQuery {
 
     return new StreamableFile(buffer, {
       type: FILE_MIME_TYPES.pdf,
-      disposition: `inline; filename=${encodeURIComponent(name)}`,
+      disposition: contentDisposition({ name }),
     });
   }
 }

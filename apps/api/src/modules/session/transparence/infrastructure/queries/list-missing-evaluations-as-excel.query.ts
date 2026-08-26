@@ -3,7 +3,7 @@ import { build } from 'node-xlsx';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { capitalize } from 'src/utils/capitalize';
 
 const COLUMNS = [
@@ -84,7 +84,10 @@ export class ListMissingEvaluationsAsExcelQuery {
 
     return new StreamableFile(Buffer.from(xlsx), {
       type: FILE_MIME_TYPES.xlsx,
-      disposition: `inline; filename="${encodeURIComponent(`evaluations-manquantes-${new Date().toISOString().split('T')[0]}.xlsx`)}"`,
+      disposition: contentDisposition({
+        download: true,
+        name: `evaluations-manquantes-${new Date().toISOString().split('T')[0]}.xlsx`,
+      }),
     });
   }
 }

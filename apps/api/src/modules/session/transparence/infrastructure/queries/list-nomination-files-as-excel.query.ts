@@ -4,7 +4,7 @@ import { build } from 'node-xlsx';
 import { nominationFileOutcomeLabel } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { capitalize } from 'src/utils/capitalize';
@@ -142,7 +142,10 @@ export class ListNominationFilesAsExcelQuery {
 
     return new StreamableFile(Buffer.from(xlsx), {
       type: FILE_MIME_TYPES.xlsx,
-      disposition: `inline; filename="${encodeURIComponent(`dossiers-nomination-${new Date().toISOString().split('T')[0]}.xlsx`)}"`,
+      disposition: contentDisposition({
+        download: true,
+        name: `dossiers-nomination-${new Date().toISOString().split('T')[0]}.xlsx`,
+      }),
     });
   }
 }

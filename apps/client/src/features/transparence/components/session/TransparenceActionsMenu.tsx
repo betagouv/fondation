@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
+import { useToasts } from '@/shared/ui/toast';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import {
@@ -20,6 +21,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
   const { isArchived } = useArchivedSession();
   const navigate = useNavigate();
   const confirmation = useConfirmModal();
+  const toasts = useToasts();
 
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
   const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
@@ -45,9 +47,27 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
     if (!isConfirmed) return;
 
     archiveSessionMutation.mutate(undefined, {
-      onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION),
+      onError: () =>
+        toasts.error({
+          description: formatMessage({
+            defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+          }),
+          title: formatMessage(
+            { defaultMessage: `L'archivage de "{name}" a échoué` },
+            { name: transparence.name },
+          ),
+        }),
+      onSuccess: () => {
+        navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+        toasts.success({
+          title: formatMessage(
+            { defaultMessage: 'Transparence "{name}" archivée' },
+            { name: transparence.name },
+          ),
+        });
+      },
     });
-  }, [archiveSessionMutation, confirmation, formatMessage, navigate, transparence.name]);
+  }, [archiveSessionMutation, confirmation, formatMessage, navigate, toasts, transparence.name]);
 
   const onDelete = useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
@@ -76,9 +96,27 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
     if (!isConfirmed) return;
 
     deleteSessionMutation.mutate(undefined, {
-      onSuccess: () => navigate(ROUTE_PATHS.SG.MANAGE_SESSION),
+      onError: () =>
+        toasts.error({
+          description: formatMessage({
+            defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+          }),
+          title: formatMessage(
+            { defaultMessage: `La suppression de "{name}" a échoué` },
+            { name: transparence.name },
+          ),
+        }),
+      onSuccess: () => {
+        navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+        toasts.success({
+          title: formatMessage(
+            { defaultMessage: 'Transparence "{name}" supprimée' },
+            { name: transparence.name },
+          ),
+        });
+      },
     });
-  }, [confirmation, deleteSessionMutation, formatMessage, navigate, transparence.name]);
+  }, [confirmation, deleteSessionMutation, formatMessage, navigate, toasts, transparence.name]);
 
   const isMutationPending = deleteSessionMutation.isPending || archiveSessionMutation.isPending;
 

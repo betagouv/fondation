@@ -1,5 +1,5 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Outlet, useParams } from 'react-router';
 
@@ -7,7 +7,6 @@ import { SessionTabsBar } from '@/features/transparence/components/session/Sessi
 import { SessionValidationBanner } from '@/features/transparence/components/session/SessionValidationBanner';
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
-import { AlertsProvider } from '@/shared/context/alerts';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -19,9 +18,6 @@ export function TransparencePage() {
   const { formatMessage } = useIntl();
   const { sessionId } = useParams();
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
-  const alertRef = useCallback((ref: HTMLUListElement | null) => {
-    ref?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, []);
 
   const { data: transparence, isPending, isError } = useDetailedNominationSessionQuery({ sessionId });
 
@@ -53,32 +49,28 @@ export function TransparencePage() {
 
   return (
     <ArchiveBannerPortal isArchived={transparence.isArchived}>
-      <AlertsProvider>
-        <div className={cx('fr-container')}>
-          <SessionValidationBanner session={transparence} />
+      <div className={cx('fr-container')}>
+        <SessionValidationBanner session={transparence} />
 
-          <Breadcrumb
-            ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
-            breadcrumb={breadcrumb}
-            id="transparence-details-breadcrumb"
-          />
+        <Breadcrumb
+          ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
+          breadcrumb={breadcrumb}
+          id="transparence-details-breadcrumb"
+        />
+      </div>
 
-          <AlertsProvider.Alerts ref={alertRef} />
+      <div className={'flex flex-col gap-8 overflow-x-clip'}>
+        <div className="fr-container flex justify-between gap-x-6">
+          <TableauDeBordResume {...transparence} />
         </div>
+        <div className="fr-container fr-mb-8v flex flex-col gap-y-4">
+          <div className="min-h-10" ref={setFiltersSlot} />
 
-        <div className={'flex flex-col gap-8 overflow-x-clip'}>
-          <div className="fr-container flex justify-between gap-x-6">
-            <TableauDeBordResume {...transparence} />
-          </div>
-          <div className="fr-container fr-mb-8v flex flex-col gap-y-4">
-            <div className="min-h-10" ref={setFiltersSlot} />
+          <SessionTabsBar transparence={transparence} />
 
-            <SessionTabsBar transparence={transparence} />
-
-            <Outlet context={{ filtersSlot, transparence } satisfies TransparenceOutletContext} />
-          </div>
+          <Outlet context={{ filtersSlot, transparence } satisfies TransparenceOutletContext} />
         </div>
-      </AlertsProvider>
+      </div>
     </ArchiveBannerPortal>
   );
 }

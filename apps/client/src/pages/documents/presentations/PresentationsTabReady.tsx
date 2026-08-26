@@ -9,6 +9,7 @@ import { PresentationAgendaSelectionList } from '@/features/presentations/compon
 import { usePresentPlanModal } from '@/features/presentations/context/present-plan-modal.context';
 import { PresentPlanModalProvider } from '@/features/presentations/context/PresentPlanModalProvider';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useToasts } from '@/shared/ui/toast';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToDate } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -31,6 +32,7 @@ export function PresentationsTabReady() {
 
 function InnerPresentationsTabReady() {
   const confirmation = useConfirmModal();
+  const toasts = useToasts();
   const { $t } = useIntl();
   const { data: plans, isFetching: isFetchingPlans } = useListNonPresentedPlansQuery();
   const { data: agendas, isFetching: isFetchingAgendas } = useListPresentationPlansAgendasQuery();
@@ -94,9 +96,18 @@ function InnerPresentationsTabReady() {
 
       if (!isConfirmed) return;
 
-      mutateDeletion.mutate({ presentationPlanId });
+      mutateDeletion.mutate(
+        { presentationPlanId },
+        {
+          onError: () =>
+            toasts.error({
+              description: $t({ defaultMessage: 'Réessayez et prévenez le support si cela persiste.' }),
+              title: $t({ defaultMessage: 'La suppression de la notice a échoué' }),
+            }),
+        },
+      );
     },
-    [confirmation, mutateDeletion, $t],
+    [confirmation, mutateDeletion, toasts, $t],
   );
 
   if (isFetching) {

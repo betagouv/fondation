@@ -243,6 +243,7 @@ test.describe('Docs Service', () => {
 
     const foundAfter = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundAfter.data!.items).toHaveLength(1);
+    expect(foundAfter.data!.ineligible).toEqual([{ id: firstFileId, reason: 'REPORTED' }]);
 
     const duplicateAgenda = await agent.docs.createAgenda({
       path: { sessionId },

@@ -9,11 +9,11 @@ import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { Marked } from '@/shared/ui/Marked';
 import type { FormationEnum } from '@/types/enums.types';
 import { gradeAndPositionLabel } from '@/utils/position.utils';
-import type { FoundDocsNominationFiles } from '@api/types';
+import type { FoundAgendaNominationFiles } from '@api/types';
 
 export function AgendaNominationFile(props: {
   checked: boolean;
-  file: FoundDocsNominationFiles['items'][number];
+  file: FoundAgendaNominationFiles['items'][number];
   formation: FormationEnum;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   search: string;

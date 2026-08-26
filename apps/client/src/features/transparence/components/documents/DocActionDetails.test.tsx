@@ -7,7 +7,7 @@ import { DocActionDetails } from './DocActionDetails';
 
 const openAgenda = vi.fn();
 const openOfficialReport = vi.fn();
-const pushAlert = vi.fn();
+const error = vi.fn();
 
 vi.mock('@queries/agenda.queries', () => ({
   useDetailsSessionAgendaMutation: () => ({
@@ -20,8 +20,8 @@ vi.mock('@queries/agenda.queries', () => ({
   }),
 }));
 
-vi.mock('@/shared/context/alerts', () => ({
-  useAlerts: () => ({ pushAlert }),
+vi.mock('@/shared/ui/toast', () => ({
+  useToasts: () => ({ error }),
 }));
 
 function renderDocActionDetails(setIsActing = vi.fn()) {
@@ -55,7 +55,7 @@ describe('DocActionDetails', () => {
   beforeEach(() => {
     openAgenda.mockReset();
     openOfficialReport.mockReset();
-    pushAlert.mockClear();
+    error.mockClear();
   });
 
   it('should ask for the agenda document when its name is clicked', async () => {
@@ -100,7 +100,9 @@ describe('DocActionDetails', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ordre du jour du 12 mars' }));
 
     await waitFor(() =>
-      expect(pushAlert).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' })),
+      expect(error).toHaveBeenCalledWith(
+        expect.objectContaining({ title: `Le document n'a pas pu être ouvert` }),
+      ),
     );
     expect(close).toHaveBeenCalled();
     expect(setIsActing).toHaveBeenLastCalledWith(false);

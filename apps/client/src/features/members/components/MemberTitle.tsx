@@ -4,8 +4,8 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useCallback, useMemo, useState, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useAlerts } from '@/shared/context/alerts';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useToasts } from '@/shared/ui/toast';
 import { useUpdateTitleMutation } from '@queries/members.queries';
 
 type MemberTitleValue = 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE';
@@ -28,7 +28,7 @@ function MemberTitleAction(props: {
   const { member } = props;
   const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
-  const alerts = useAlerts();
+  const toasts = useToasts();
   const [isEditing, setEditing] = useState<boolean>(false);
 
   const assumedTitle = useMemo(() => getAssumedTitle(member.role), [member]);
@@ -59,8 +59,7 @@ function MemberTitleAction(props: {
           },
 
           onError: () => {
-            alerts.pushAlert({
-              severity: 'error',
+            toasts.error({
               title: formatMessage({ defaultMessage: 'Erreur pendant la définition de la distinction' }),
             });
           },
@@ -69,7 +68,7 @@ function MemberTitleAction(props: {
         setEditing(false);
       }
     },
-    [alerts, confirmation, formatMessage, updateTitle],
+    [confirmation, formatMessage, toasts, updateTitle],
   );
 
   const onDelete = useCallback(
@@ -89,8 +88,7 @@ function MemberTitleAction(props: {
         updateTitle(null, {
           onSuccess: () => setEditing(false),
           onError: () => {
-            alerts.pushAlert({
-              severity: 'error',
+            toasts.error({
               title: formatMessage({ defaultMessage: 'Erreur pendant la suppression de la distinction' }),
             });
           },
@@ -99,7 +97,7 @@ function MemberTitleAction(props: {
         setEditing(false);
       }
     },
-    [alerts, confirmation, formatMessage, updateTitle],
+    [confirmation, formatMessage, toasts, updateTitle],
   );
 
   if (member.title) {

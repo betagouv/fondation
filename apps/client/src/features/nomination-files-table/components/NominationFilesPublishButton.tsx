@@ -3,14 +3,14 @@ import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useAlerts } from '@/shared/context/alerts';
+import { useToasts } from '@/shared/ui/toast';
 import {
   useDetailedNominationSessionAffectationsVersionQuery,
   usePublishVersionMutation,
 } from '@queries/nomination-sessions.queries';
 
 export function NominationFilesPublishButton() {
-  const alerts = useAlerts();
+  const toasts = useToasts();
   const { formatMessage } = useIntl();
   const { canManage, sessionId } = useNominationFilesTable();
   const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
@@ -21,21 +21,19 @@ export function NominationFilesPublishButton() {
       { sessionId },
       {
         onSuccess: () => {
-          alerts.pushAlert({
-            severity: 'success',
+          toasts.success({
             title: formatMessage({ defaultMessage: 'Session publiée avec succès' }),
           });
         },
 
         onError: () => {
-          alerts.pushAlert({
-            severity: 'error',
+          toasts.error({
             title: formatMessage({ defaultMessage: 'Erreur lors de la publication des affectations' }),
           });
         },
       },
     );
-  }, [alerts, formatMessage, publishAffectations, sessionId]);
+  }, [formatMessage, publishAffectations, sessionId, toasts]);
 
   const hasNoVersionYet = affectationsVersion?.version === 0;
   const isDraft =

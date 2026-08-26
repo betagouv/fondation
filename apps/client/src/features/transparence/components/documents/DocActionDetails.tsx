@@ -2,9 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
-import { useAlerts } from '@/shared/context/alerts';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useTab } from '@/shared/hooks/useTab';
+import { useToasts } from '@/shared/ui/toast';
 import type { FoundSessionDocsDto } from '@api/types';
 import {
   useDetailsSessionAgendaMutation,
@@ -20,7 +20,7 @@ export function DocActionDetails(props: {
   const { disabled, doc, sessionId, setIsActing } = props;
 
   const { formatMessage } = useIntl();
-  const alerts = useAlerts();
+  const toasts = useToasts();
   const describeFailure = useDocumentFailure();
   const tab = useTab();
   const { mutateAsync: openAgenda, isPending: isOpeningAgenda } = useDetailsSessionAgendaMutation();
@@ -30,14 +30,13 @@ export function DocActionDetails(props: {
   const onSettled = useCallback(() => setIsActing(false), [setIsActing]);
   const onFailure = useCallback(
     (error: unknown) =>
-      alerts.pushAlert({
-        severity: 'error',
+      toasts.error({
+        description: describeFailure(error),
         title: formatMessage({
           defaultMessage: `Le document n'a pas pu être ouvert`,
         }),
-        description: describeFailure(error),
       }),
-    [alerts, describeFailure, formatMessage],
+    [describeFailure, formatMessage, toasts],
   );
 
   const onClick = useCallback(() => {

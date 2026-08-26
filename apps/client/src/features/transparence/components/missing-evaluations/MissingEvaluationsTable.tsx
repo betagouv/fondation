@@ -11,6 +11,7 @@ import {
   type SessionOutcome,
 } from '@/features/nomination-files-table/context/files-table.context';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { useExportFailure } from '@/features/nomination-files-table/hooks/useExportFailure';
 import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/useSessionFilesFilters';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
@@ -141,6 +142,7 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
   const { formatMessage } = useIntl();
   const columns = useMissingEvaluationsColumns();
   const exportAsExcel = useListMissingEvaluationsAsExcelMutation();
+  const onExportFailure = useExportFailure();
   const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId: props.sessionId });
 
   return (
@@ -166,7 +168,9 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
 
           <NominationFilesExportButton
             disabled={exportAsExcel.isPending}
-            onExport={() => exportAsExcel.mutate({ sessionId: props.sessionId })}
+            onExport={() =>
+              exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
+            }
           />
         </div>
       )}

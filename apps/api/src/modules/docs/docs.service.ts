@@ -11,7 +11,7 @@ import { PresentationPlansService } from './presentation-plan/presentation-plans
 import { FoundDocsMembersDto } from './shared/infrastructure/docs.dto';
 import {
   DocsNominationFilesFinder,
-  FoundDocsNominationFiles,
+  FoundAgendaNominationFiles,
 } from './shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   NominationFileLinkedDoc,
@@ -88,8 +88,8 @@ export class DocsService {
     return { items: items.map(({ role: _r, ...m }) => m) };
   }
 
-  findDocsNominationFiles(query: { sessionId: string }): Promise<FoundDocsNominationFiles> {
-    return this.docsNominationFilesFinder.findNonReported(query);
+  findDocsNominationFiles(query: { sessionId: string }): Promise<FoundAgendaNominationFiles> {
+    return this.docsNominationFilesFinder.findForAgenda(query);
   }
 
   internalFindNominationFilesLinkedDocs(query: {

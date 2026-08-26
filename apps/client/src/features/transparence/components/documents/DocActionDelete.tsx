@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { ACTION_ICONS } from '@/constants/icons.constants';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { IconButton } from '@/shared/ui/icon-button';
+import { useToasts } from '@/shared/ui/toast';
 import type { FoundSessionDocsDto } from '@api/types';
 import { useDeleteAgenda, useDeleteOfficialReportMutation } from '@queries/agenda.queries';
 
@@ -16,6 +17,7 @@ export function DocActionDelete(props: {
 
   const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
+  const toasts = useToasts();
   const { mutate: deleteAgenda, isPending: isDeletingAgenda } = useDeleteAgenda(sessionId);
   const { mutate: deleteOfficialReport, isPending: isDeletingOfficialReport } =
     useDeleteOfficialReportMutation(sessionId);
@@ -44,10 +46,18 @@ export function DocActionDelete(props: {
       return;
     }
 
+    const onError = () =>
+      toasts.error({
+        description: formatMessage({
+          defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
+        }),
+        title: formatMessage({ defaultMessage: 'La suppression de "{name}" a échoué' }, { name: doc.name }),
+      });
+
     return doc.type === 'agenda'
-      ? deleteAgenda({ agendaId: doc.id })
-      : deleteOfficialReport({ officialReportId: doc.id });
-  }, [confirmation, doc, deleteAgenda, deleteOfficialReport, formatMessage]);
+      ? deleteAgenda({ agendaId: doc.id }, { onError })
+      : deleteOfficialReport({ officialReportId: doc.id }, { onError });
+  }, [confirmation, doc, deleteAgenda, deleteOfficialReport, formatMessage, toasts]);
 
   return (
     <IconButton

@@ -5,7 +5,7 @@ import type {
   DetailedReportDto,
   DetailedUserResponseDto,
   FollowUpOnObservationDto,
-  FoundDocsNominationFiles,
+  FoundAgendaNominationFiles,
   PaginatedNominationFiles,
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
@@ -133,5 +133,5 @@ export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
 export type NominationSessionFileStatus = PaginatedNominationFiles['items'][number]['content']['status'];
 
 export type DocNominationFileOutcomeEnum = NonNullable<
-  FoundDocsNominationFiles['items'][number]['outcome']
+  FoundAgendaNominationFiles['items'][number]['outcome']
 >['value'];

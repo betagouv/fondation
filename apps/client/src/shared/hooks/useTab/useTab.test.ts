@@ -49,6 +49,7 @@ describe('useTab.openDeferred', () => {
 
     expect(tabDocument.title).toBe('Ordre du jour');
     expect(tabDocument.body.textContent).toBe('Préparation...');
+    expect(tabDocument.documentElement.style.colorScheme).toBe('light dark');
 
     deferred.settle('https://files/agenda.pdf');
     expect(handle.location.replace).toHaveBeenCalledWith('https://files/agenda.pdf');

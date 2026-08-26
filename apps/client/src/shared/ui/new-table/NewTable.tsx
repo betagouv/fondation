@@ -181,14 +181,19 @@ export function NewTable<Data extends RowData>(props: {
           {(props.unvirtualized ? rows.map((_, index) => ({ index, start: 0 })) : virtualRows).map(
             (virtualRow) => {
               const row = rows[virtualRow.index];
+              const isSelected = row.getIsSelected();
+              const opensSelection = isSelected && !rows[virtualRow.index - 1]?.getIsSelected();
+              const closesSelection = isSelected && !rows[virtualRow.index + 1]?.getIsSelected();
               return (
                 <div
                   aria-rowindex={virtualRow.index + 1}
-                  aria-selected={row.getCanSelect() ? row.getIsSelected() : undefined}
+                  aria-selected={row.getCanSelect() ? isSelected : undefined}
                   className={clsx(
                     'flex min-h-12 w-full border-b border-(--border-default-grey)',
                     'motion-safe:transition-colors motion-safe:duration-200 motion-safe:ease-out',
-                    props.rowTint?.(row) ?? 'aria-selected:bg-(--background-open-blue-france)',
+                    props.rowTint?.(row),
+                    opensSelection && 'border-t border-t-(--border-active-blue-france)',
+                    closesSelection && 'border-b-(--border-active-blue-france)',
                   )}
                   data-index={virtualRow.index}
                   key={row.id}

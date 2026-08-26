@@ -270,6 +270,16 @@ export class ManageSingleSessionPage {
     return this.app.page.getByRole('button', { name: 'Publier aux membres' });
   }
 
+  get exportAsExcelButton(): Locator {
+    return this.app.page.getByRole('button', { name: 'Export .xlsx' });
+  }
+
+  get publishedAffectationsToast(): Locator {
+    return this.app.page
+      .getByRole('region', { name: 'Notifications' })
+      .getByText('Session publiée avec succès');
+  }
+
   closeMagistratDetails(): Promise<void> {
     return new MagistratSidePanel(this.app).close();
   }

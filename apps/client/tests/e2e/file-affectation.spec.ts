@@ -108,7 +108,7 @@ test.describe('Affectations', () => {
 
       // Et que je publie les affectations
       await page.publishAffectationsButton.click();
-      await test.expect(app.page.getByRole('alert')).toBeVisible();
+      await test.expect(page.publishedAffectationsToast).toBeVisible();
 
       // Et que je bascule sur la vue du membre
       await memberApp.page.reload();

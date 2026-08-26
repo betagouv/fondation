@@ -45,7 +45,20 @@ export class InternalFindDocsNominationFilesQuery {
       ),
     );
 
-    return { items: await z.array(SqlNominationFilesSchema).parseAsync(rows) };
+    const items = await z.array(SqlNominationFilesSchema).parseAsync(rows);
+    const identified = new Set(items.map(({ id }) => id));
+    const sessionFiles = await this.db.tx.dossierDeNomination.findMany({
+      select: { id: true },
+      where: {
+        sessionId: query.sessionId,
+        ...(query.ids ? { id: { in: [...query.ids] } } : {}),
+      },
+    });
+
+    return {
+      items,
+      unidentifiedIds: sessionFiles.flatMap(({ id }) => (identified.has(id) ? [] : [id])),
+    };
   }
 }
 
@@ -193,6 +206,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
 
         reporters: z.array(
           z.object({
+            id: z.string(),
             gender: z.enum(GenderEnum),
             firstName: z.string().trim().nonempty(),
             lastName: z.string().trim().nonempty(),
@@ -207,5 +221,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
           .nullable(),
       }),
     ),
+
+    unidentifiedIds: z.array(z.uuid()),
   }),
 ) {}

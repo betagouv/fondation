@@ -4,8 +4,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import { useAlerts } from '@/shared/context/alerts';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -16,7 +16,7 @@ import {
 import { MemberExclusionSelector } from './MemberExclusionSelector';
 
 export function NominationFilesAutoAffectationButton() {
-  const alerts = useAlerts();
+  const toasts = useToasts();
   const confirmation = useConfirmModal();
   const { formatMessage } = useIntl();
   const { canManage, formation, sessionId } = useNominationFilesTable();
@@ -88,23 +88,34 @@ export function NominationFilesAutoAffectationButton() {
       },
       {
         onError: () => {
-          alerts.pushAlert({
-            severity: 'error',
+          toasts.error({
             title: formatMessage({
               defaultMessage: `Erreur lors de l'attribution automatique des rapports.`,
             }),
           });
         },
+        onSuccess: () => {
+          toasts.success({
+            title: formatMessage(
+              {
+                defaultMessage: `{count, plural,
+                  one {1 dossier affecté automatiquement}
+                  other {{count, number} dossiers affectés automatiquement}}`,
+              },
+              { count: unaffectedFilesCount },
+            ),
+          });
+        },
       },
     );
   }, [
-    alerts,
     autoAffectation,
     confirmation,
     formatMessage,
     formation,
     isFetching,
     sessionId,
+    toasts,
     unaffectedFilesCount,
   ]);
 
