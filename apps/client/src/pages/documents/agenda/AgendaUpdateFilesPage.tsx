@@ -26,22 +26,22 @@ export function AgendaUpdateFilesPage() {
       update.mutate(
         { nominationFileIds: [...nominationFileIds] },
         {
-          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId })),
           onError: async (err) => {
             const defaultError = formatMessage({
               defaultMessage: `Impossible de mettre à jour les propositions`,
             });
             if (err instanceof HttpException) {
-              const body = await err.response.json();
-              setError(body.validationError || defaultError);
+              const body = await err.response.json().catch(() => null);
+              setError(body?.validationError || defaultError);
             } else {
               setError(defaultError);
             }
           },
+          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
         },
       );
     },
-    [update, navigate, sessionId, agendaId, formatMessage],
+    [agendaId, formatMessage, navigate, sessionId, update],
   );
 
   const onCancel = React.useCallback(
@@ -52,7 +52,7 @@ export function AgendaUpdateFilesPage() {
   return (
     <div className="fr-container fr-py-4v">
       <AgendaBreadCrumb />
-      {error && <Alert className="fr-mb-6v" title={error} as="h2" severity="error" closable />}
+      {error && <Alert as="h2" className="fr-mb-6v" closable severity="error" title={error} />}
       <h1>
         <FormattedMessage defaultMessage="Propositions de l'ordre du jour" />
       </h1>
@@ -60,21 +60,21 @@ export function AgendaUpdateFilesPage() {
         <span className="ri-loader-4-line animate-spin" />
       ) : (
         <AgendaFilesSelection
-          sessionId={sessionId}
-          formation={session?.formation ?? 'SIEGE'}
-          defaultSelectedFileIds={files?.items}
-          isSubmitting={update.isPending}
           cancelLabel={<FormattedMessage defaultMessage="Annuler" />}
+          defaultSelectedFileIds={files?.items}
+          formation={session?.formation ?? 'SIEGE'}
+          isSubmitting={update.isPending}
           onCancel={onCancel}
           onSubmit={onSubmit}
           renderSubmitLabel={(count) => (
             <FormattedMessage
-              values={{ count }}
               defaultMessage={`{count, plural,
                 =0 {En attente de sélection}
                 other {Enregistrer les propositions}}`}
+              values={{ count }}
             />
           )}
+          sessionId={sessionId}
         />
       )}
     </div>

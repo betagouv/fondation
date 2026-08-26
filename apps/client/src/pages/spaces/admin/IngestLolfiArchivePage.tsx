@@ -55,18 +55,22 @@ export function IngestLolfiArchivePage() {
         { archive: dto.archive },
         {
           async onError(error) {
+            const defaultError = formatMessage({
+              defaultMessage: "L'ingestion de l'archive a échoué. Veuillez réessayer.",
+            });
+
             if (!(error instanceof HttpException)) {
-              setAsyncErrors([`Erreur: ${String(error)}`]);
+              setAsyncErrors([defaultError]);
               return;
             }
 
-            const { errors } = (await error.response.json()) as IngestedLolfiArchiveDto;
-            setAsyncErrors(errors ? errors.map(({ message }) => message) : null);
-          },
-          onSuccess: (data) => {
-            if (data?.id) {
-              return navigate(generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: String(data.id) }));
+            const body = (await error.response.json().catch(() => null)) as IngestedLolfiArchiveDto | null;
+            if (!body) {
+              setAsyncErrors([defaultError]);
+              return;
             }
+
+            setAsyncErrors(body.errors ? body.errors.map(({ message }) => message) : null);
           },
           onSettled() {
             if (inputRef.current) {
@@ -74,10 +78,15 @@ export function IngestLolfiArchivePage() {
               inputRef.current.files = null;
             }
           },
+          onSuccess: (data) => {
+            if (data?.id) {
+              return navigate(generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: String(data.id) }));
+            }
+          },
         },
       );
     },
-    [resetMutation, ingestArchive, navigate],
+    [formatMessage, ingestArchive, navigate, resetMutation],
   );
 
   return (
@@ -108,10 +117,14 @@ export function IngestLolfiArchivePage() {
           name="archive"
           render={({ field: { onChange } }) => (
             <Upload
+              hint={formatMessage({ defaultMessage: 'Format supporté : .zip' })}
               id="lolfi-archive-upload"
+              label={
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Archive LOLFI" />
+                </RequiredLabel>
+              }
               nativeInputProps={{
-                type: 'file',
-                ref: inputRef,
                 onChange: (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -119,13 +132,9 @@ export function IngestLolfiArchivePage() {
                     onChange(file);
                   }
                 },
+                ref: inputRef,
+                type: 'file',
               }}
-              hint={formatMessage({ defaultMessage: 'Format supporté : .zip' })}
-              label={
-                <RequiredLabel>
-                  <FormattedMessage defaultMessage="Archive LOLFI" />
-                </RequiredLabel>
-              }
               state={errors.archive || asyncErrors ? 'error' : 'default'}
               stateRelatedMessage={errors.archive?.message}
             />
