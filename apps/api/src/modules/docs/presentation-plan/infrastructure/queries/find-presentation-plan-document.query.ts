@@ -133,7 +133,7 @@ export class FindPresentationPlanDocumentQuery {
 
     const html = this.presentationPlanRenderer.html({
       sessions,
-      date: DateOnly.fromDate(plan.date),
+      date: DateOnly.fromUtcDate(plan.date),
       time: dateToTimeOnly(plan.time),
       hasRenunciation: plan.hasRenunciation,
       justiceContactName: plan.justiceDepartmentContactName,

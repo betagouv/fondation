@@ -78,16 +78,16 @@ export class DetailNominationSessionQuery {
       name: session.name,
       formation,
       outcomes: NominationFileOutcome.selectableOutcomes(formation),
-      observationsClosingDate: DateOnly.fromDate(
+      observationsClosingDate: DateOnly.fromUtcDate(
         assertIsDefined(
           session.transparenceGds?.observationsClosingDate,
           `${session.id} no observation closing date`,
         ),
       ).toJson(),
-      date: DateOnly.fromDate(session.date).toJson(),
-      dueDate: DateOnly.fromOptionalDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
+      date: DateOnly.fromUtcDate(session.date).toJson(),
+      dueDate: DateOnly.fromOptionalUtcDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
       positionStartDate:
-        DateOnly.fromOptionalDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
+        DateOnly.fromOptionalUtcDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
       isValidated: session.validatedAt !== null,
       isDeletable,

@@ -133,7 +133,7 @@ export class GetObservationDetailsQuery {
       return {
         id: observation.id,
         isArchived: !!session?.archivedAt,
-        receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
+        receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
         description: observation.description,
@@ -161,7 +161,7 @@ export class GetObservationDetailsQuery {
           number: obs.nominationFile.number,
           magistratName: obs.nominationFile.name,
           proposedPosition: obs.nominationFile.targetedPosition,
-          observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
+          observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
         })),
 
         isMemberReporter: isUserReporter,

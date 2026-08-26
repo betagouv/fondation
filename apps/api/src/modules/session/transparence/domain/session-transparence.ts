@@ -1,5 +1,3 @@
-import { addWeeks } from 'date-fns';
-
 import { NominationFileDocsSnapshot } from '../../shared/types/nomination-file';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import * as policies from 'src/modules/session/shared/policies/nomination-file.policies';
@@ -347,8 +345,7 @@ export class SessionTransparence {
       nominationFiles: [],
     });
 
-    const observationClosingDate =
-      command.observationClosingDate ?? DateOnly.fromDate(addWeeks(command.date.toDate(), 1));
+    const observationClosingDate = command.observationClosingDate ?? command.date.plusDays(7);
 
     session.#messages.push(
       new SessionTransparenceCreated(

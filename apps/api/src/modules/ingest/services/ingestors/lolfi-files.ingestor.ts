@@ -65,7 +65,7 @@ export class LolfiFilesIngestor {
             values.map((s) => ({
               name: s.libelle,
               id: s.num_session,
-              creationDate: DateOnly.fromDate(s.date_publication),
+              creationDate: DateOnly.fromUtcDate(s.date_publication),
             })),
           )
           .catch((err) => {

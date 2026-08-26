@@ -41,7 +41,7 @@ export class ListNonPresentedPlansQuery {
           {
             id: plan.id,
             time: dateToTimeOnly(plan.time),
-            date: DateOnly.fromDate(plan.date).toJson(),
+            date: DateOnly.fromUtcDate(plan.date).toJson(),
             formation: prismaFormationEnumToFormationEnum(formation),
             chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
           },

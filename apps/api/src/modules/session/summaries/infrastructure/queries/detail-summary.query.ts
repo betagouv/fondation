@@ -149,12 +149,12 @@ export class DetailSummaryQuery {
       formation: prismaFormationEnumToFormationEnum(session.formation),
       grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
       targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
-      birthDate: DateOnly.fromOptionalDate(nominationFile.birthDate)?.toJson() ?? null,
-      auditionDate: DateOnly.fromOptionalDate(nominationFile.auditionDate)?.toJson() ?? null,
+      birthDate: DateOnly.fromOptionalUtcDate(nominationFile.birthDate)?.toJson() ?? null,
+      auditionDate: DateOnly.fromOptionalUtcDate(nominationFile.auditionDate)?.toJson() ?? null,
       auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
       missingEvaluation: nominationFile.missingEvaluation,
-      lastRankingDate: DateOnly.fromOptionalDate(nominationFile.lastRankingDate)?.toJson() ?? null,
-      lastPositionDate: DateOnly.fromOptionalDate(nominationFile.lastPositionDate)?.toJson() ?? null,
+      lastRankingDate: DateOnly.fromOptionalUtcDate(nominationFile.lastRankingDate)?.toJson() ?? null,
+      lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
       priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: nominationFile.priorities[0]
         ? prismaPrioriteEnumToPriorityEnum(nominationFile.priorities[0])

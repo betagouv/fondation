@@ -192,7 +192,7 @@ export class DetailReportQuery {
         usage: f.usage,
       })),
 
-      auditionDate: DateOnly.fromOptionalDate(report.nominationFile.auditionDate)?.toJson() ?? null,
+      auditionDate: DateOnly.fromOptionalUtcDate(report.nominationFile.auditionDate)?.toJson() ?? null,
       auditionExpected: isAuditionExpected(report.nominationFile),
       auditionTime: report.nominationFile.auditionTime
         ? dateToTimeOnly(report.nominationFile.auditionTime)
@@ -201,7 +201,7 @@ export class DetailReportQuery {
       missingEvaluation: report.nominationFile.missingEvaluation,
 
       biography: report.nominationFile.biography,
-      birthDate: DateOnly.fromOptionalDate(report.nominationFile.birthDate)?.toJson() ?? null,
+      birthDate: DateOnly.fromOptionalUtcDate(report.nominationFile.birthDate)?.toJson() ?? null,
       currentPosition: report.nominationFile.currentPosition,
       dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
       folderNumber: report.nominationFile.number,
@@ -216,9 +216,10 @@ export class DetailReportQuery {
         ? prismaPrioriteEnumToPriorityEnum(report.nominationFile.priorities[0])
         : null,
 
-      dateTransparence: DateOnly.fromDate(report.nominationFile.session.date).toJson(),
+      dateTransparence: DateOnly.fromUtcDate(report.nominationFile.session.date).toJson(),
       dueDate:
-        DateOnly.fromOptionalDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ?? null,
+        DateOnly.fromOptionalUtcDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ??
+        null,
       formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
@@ -226,7 +227,7 @@ export class DetailReportQuery {
 
       observations: report.nominationFile.observations.map((obs) => ({
         id: obs.id,
-        dateReception: DateOnly.fromDate(obs.dateReception).toJson(),
+        dateReception: DateOnly.fromUtcDate(obs.dateReception).toJson(),
         magistrat: obs.magistrat,
         hasDescription: !!obs.description.trim(),
         hasUserComment: obs.memberComments.some(({ comment }) => !!comment.trim()),

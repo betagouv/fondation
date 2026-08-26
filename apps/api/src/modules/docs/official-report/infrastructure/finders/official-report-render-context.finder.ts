@@ -188,7 +188,7 @@ export class OfficialReportRenderContextFinder {
     ) as Record<Id<'NominationFileId'>, { html: string; isOutdated: boolean }>;
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
-      date: DateOnly.fromDate(report.sessionMeetingDate),
+      date: DateOnly.fromUtcDate(report.sessionMeetingDate),
       startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
       endTime: dateToTimeOnly(report.sessionMeetingEndingTime),
     });
@@ -200,8 +200,8 @@ export class OfficialReportRenderContextFinder {
       members: membersList,
       hasRenouncement: report.hasRenunciation,
       justiceDepartmentContact: report.justiceDepartmentContactName,
-      session: { id: agenda.sessionId, date: DateOnly.fromDate(session.date) },
-      agenda: { id: agenda.id, formation, date: DateOnly.fromDate(agenda.date) },
+      session: { id: agenda.sessionId, date: DateOnly.fromUtcDate(session.date) },
+      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agenda.date) },
       userDefinedBlocks: {
         intro: userDefinedInto,
         conclusion: userDefinedConclusion,

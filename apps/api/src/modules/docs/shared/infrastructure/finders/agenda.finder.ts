@@ -157,7 +157,7 @@ export class AgendaFinder {
           firstName: item.chairmanFirstName,
         },
 
-        date: DateOnly.fromDate(item.date).toJson(),
+        date: DateOnly.fromUtcDate(item.date).toJson(),
         session: {
           id: item.sessionId,
           name: item.sessionName,
@@ -165,7 +165,7 @@ export class AgendaFinder {
           date: sessions.get(item.sessionId)!.date,
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),
-        sessionMeetingDate: DateOnly.fromDate(item.sessionMeetingDate).toJson(),
+        sessionMeetingDate: DateOnly.fromUtcDate(item.sessionMeetingDate).toJson(),
         officialReportId: item.officialReportId,
         presentationPlan: item.justicePresentationPlan
           ? {
