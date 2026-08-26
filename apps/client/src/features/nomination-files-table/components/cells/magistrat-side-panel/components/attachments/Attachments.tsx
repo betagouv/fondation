@@ -7,6 +7,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
+import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
@@ -90,7 +91,7 @@ export function Attachments(props: { isArchived: boolean; nominationFileId: stri
 }
 
 function AttachmentItem(props: {
-  addedAt: string;
+  addedAt: PlainDateOnly;
   canDelete: boolean;
   fileId: string;
   name: string;
@@ -196,8 +197,8 @@ function AttachmentItem(props: {
         <NominationFileAttachmentTypeTag type={props.type} />
         <span className="text-sm text-(--text-mention-grey)">
           <FormattedMessage
-            defaultMessage="Ajoutée le {date, date, dateOnlyShort}"
-            values={{ date: new Date(props.addedAt) }}
+            defaultMessage="Ajoutée le {date}"
+            values={{ date: formatDateOnly(props.addedAt) }}
           />
         </span>
       </div>

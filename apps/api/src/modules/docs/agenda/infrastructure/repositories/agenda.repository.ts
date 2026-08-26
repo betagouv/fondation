@@ -79,8 +79,8 @@ export class AgendaRepository {
     const snapshot = AgendaSnapshot.from({
       agendaId: makeId('AgendaId', foundAgenda.id),
       chairmanId: foundAgenda.chairmanId,
-      date: DateOnly.fromDate(foundAgenda.date),
-      sessionMeetingDate: DateOnly.fromDate(foundAgenda.sessionMeetingDate),
+      date: DateOnly.fromUtcDate(foundAgenda.date),
+      sessionMeetingDate: DateOnly.fromUtcDate(foundAgenda.sessionMeetingDate),
       nominationFileIds: new Set(
         foundAgenda.nominationFiles.flatMap((f) => (f.nominationFileId ? [f.nominationFileId] : [])),
       ),

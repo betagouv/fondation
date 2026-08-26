@@ -16,7 +16,7 @@ function TextValue(props: { label: string; value: ReactNode }) {
 }
 
 export function IdentityList(props: {
-  birthDate: Date | PlainDateOnly | null;
+  birthDate: PlainDateOnly | null;
   currentPosition: string | null;
   grade: string | null;
   positionDuration?: ReactNode;

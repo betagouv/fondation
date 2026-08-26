@@ -1,10 +1,9 @@
-import { format } from 'date-fns';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { type FormationEnum, FormationEnumLabel } from '@/types/enums.types';
-import { dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { dateOnlyToIso, formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
 
 export function HeaderReportList({
@@ -73,15 +72,13 @@ export function HeaderReportList({
 }
 
 function DisplayedDate(props: { dateOnly: PlainDateOnly | null | undefined }) {
-  const intl = useIntl();
   if (!props.dateOnly) return null;
 
-  const date = dateOnlyToDate(props.dateOnly);
-  const iso = format(date, 'yyyy-MM-dd');
+  const iso = dateOnlyToIso(props.dateOnly);
 
   return (
     <time dateTime={iso} title={iso}>
-      {intl.formatDate(date, { format: 'dateOnlyShort' })}
+      {formatDateOnly(props.dateOnly)}
     </time>
   );
 }

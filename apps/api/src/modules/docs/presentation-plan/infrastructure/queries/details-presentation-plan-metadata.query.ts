@@ -47,7 +47,7 @@ export class DetailsPresentationPlanMetadataQuery {
       isPresented: plan.isPresented,
       isManuallyEdited: plan.isManuallyEdited,
       hasRenunciation: plan.hasRenunciation,
-      date: DateOnly.fromDate(plan.date).toJson(),
+      date: DateOnly.fromUtcDate(plan.date).toJson(),
       time: dateToTimeOnly(plan.time),
       formation: prismaFormationEnumToFormationEnum(assertIsDefined(plan.agendas[0]).agenda.formation),
       agendas: plan.agendas.map(({ agendaId, comment }) => ({

@@ -46,7 +46,7 @@ export class ListPresentedPlansQuery {
       items: items.map((item) => ({
         ...item,
         time: dateToTimeOnly(item.time),
-        date: DateOnly.fromDate(item.date).toJson(),
+        date: DateOnly.fromUtcDate(item.date).toJson(),
         chairman: { firstName: item.chairmanFirstName, lastName: item.chairmanLastName },
       })),
     });

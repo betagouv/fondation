@@ -12,6 +12,10 @@ export function timeOnlyToDate(time: TimeOnly): Date {
   return new Date(Date.UTC(2026, 0, 10, time.hours, time.minutes, time.seconds, 0));
 }
 
+export function timeOnlyToString(time: TimeOnly): string {
+  return [time.hours, time.minutes].map((x) => x.toString().padStart(2, '0')).join(':');
+}
+
 export function dateToTimeOnly(date: Date): TimeOnly {
   const hours = date.getUTCHours();
   const minutes = date.getUTCMinutes();

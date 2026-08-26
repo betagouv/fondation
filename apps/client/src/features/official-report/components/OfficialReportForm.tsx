@@ -15,7 +15,7 @@ import { JusticeContactSelector } from '@/features/documents/components/JusticeC
 import { useOfficialReport } from '@/features/official-report/context/OfficialReportContext';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { FormationEnumLabel } from '@/types/enums.types';
-import { dateOnlyCodec, dateOnlyToDate } from '@/utils/date-only.util';
+import { dateOnlyCodec, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { capitalize } from '@/utils/string.utils';
 import { formTimeOnlyCodec, timeOnlyToDate, timeOnlyToString } from '@/utils/time-only.util';
@@ -88,7 +88,7 @@ export function OfficialReportForm() {
 
   const defaultValues = React.useMemo(
     () => ({
-      sessionMeetingDate: format(dateOnlyToDate(metadata?.sessionMeetingDate) ?? new Date(), 'yyyy-MM-dd'),
+      sessionMeetingDate: dateOnlyToIso(metadata?.sessionMeetingDate) ?? format(new Date(), 'yyyy-MM-dd'),
       sessionMeetingStartingTime: metadata?.sessionMeetingStartingTime
         ? (timeOnlyToString(metadata.sessionMeetingStartingTime, 'HH:mm') ?? '')
         : '',
@@ -146,7 +146,7 @@ export function OfficialReportForm() {
               ? agenda.presentationPlan.justiceContactId
               : form.justiceContactId,
             sessionMeetingDate: agenda.sessionMeetingDate
-              ? dateOnlyToDate(agenda.sessionMeetingDate).toISOString().split('T')[0]
+              ? dateOnlyToIso(agenda.sessionMeetingDate)
               : form.sessionMeetingDate,
             sessionMeetingStartingTime: agenda.presentationPlan?.startTime
               ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
@@ -207,9 +207,9 @@ export function OfficialReportForm() {
             {(agendas?.items ?? []).map((agenda) => (
               <option value={agenda.id} key={agenda.id}>
                 <FormattedMessage
-                  defaultMessage={`ODJ {date, date, dateOnlyShort} - {name} - {initials} - {formation}`}
+                  defaultMessage={`ODJ {date} - {name} - {initials} - {formation}`}
                   values={{
-                    date: dateOnlyToDate(agenda.sessionMeetingDate),
+                    date: formatDateOnly(agenda.sessionMeetingDate),
                     initials: toInitials(agenda.chairman),
                     name: normalizeSessionName(agenda.session),
                     formation: capitalize(FormationEnumLabel[agenda.formation]),

@@ -25,7 +25,7 @@ export class ListNominationSessionAttachmentsQuery {
       items: session.attachments.map(({ file }) => ({
         id: file.id,
         name: file.name,
-        addedAt: DateOnly.fromDate(file.createdAt).toJson(),
+        addedAt: DateOnly.fromInstantInParis(file.createdAt).toJson(),
         sizeInBytes: file.sizeInBytes,
       })),
     };

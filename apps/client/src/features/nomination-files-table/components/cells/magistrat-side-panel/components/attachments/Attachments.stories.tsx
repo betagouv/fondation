@@ -13,22 +13,33 @@ import { AddNominationFileAttachmentModalProvider } from './context/AddNominatio
 
 const SESSION_ID = 'session-1';
 
+function today() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}
+
 const SAMPLE_FILES: ListedNominationFileAttachmentDto['items'] = [
   {
     id: 'a1',
     name: 'cv-camille-durand.pdf',
     size: 248_900,
     type: 'FICHE_DE_JURIDICTION',
-    addedAt: '2026-06-18T09:30:00.000Z',
+    addedAt: { year: 2026, month: 6, day: 18 },
   },
   {
     id: 'a2',
     name: 'lettre-de-motivation.pdf',
     size: 51_200,
     type: 'NOTE_INTENTION',
-    addedAt: '2026-06-18T10:05:00.000Z',
+    addedAt: { year: 2026, month: 6, day: 18 },
   },
-  { id: 'a3', name: 'photo-identite.png', size: null, type: 'AUTRE', addedAt: '2026-06-19T08:00:00.000Z' },
+  {
+    id: 'a3',
+    name: 'photo-identite.png',
+    size: null,
+    type: 'AUTRE',
+    addedAt: { year: 2026, month: 6, day: 19 },
+  },
 ];
 
 const VIEWS = ['sg', 'member'] as const;
@@ -63,7 +74,7 @@ const attachmentHandlers = [
           name: file.name,
           size: file.size,
           type,
-          addedAt: new Date().toISOString(),
+          addedAt: today(),
         }));
 
       attachmentsByNominationFile.set(nominationFileId, [...attachmentsOf(nominationFileId), ...uploaded]);

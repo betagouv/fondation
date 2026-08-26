@@ -49,7 +49,7 @@ describe(`auto affectation workload`, () => {
   `('workload for incoherent $grade for $date should be $expected', ({ grade, sessionDate, expected }) => {
     const workload = AutoAffectationWorkload.from({
       grade,
-      sessionDate: DateOnly.fromDate(new Date(sessionDate)),
+      sessionDate: DateOnly.fromUtcDate(new Date(sessionDate)),
     });
     expect(workload.toNumber()).toBe(expected);
   });

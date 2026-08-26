@@ -13,7 +13,7 @@ import { ChairmanSelector } from '@/features/documents/components/ChairmanSelect
 import { RequiredLabel } from '@/shared/ui/required-label';
 import type { FormationEnum } from '@/types/enums.types';
 import type { IconClassName } from '@/types/icons.types';
-import { dateOnlyCodec, dateOnlyToDate, type PlainDateOnly } from '@/utils/date-only.util';
+import { dateOnlyCodec, dateOnlyToIso, type PlainDateOnly } from '@/utils/date-only.util';
 
 type AgendaMetadataFormValues = {
   chairmanId?: string | null;
@@ -42,10 +42,8 @@ export function AgendaMetadataForm(props: {
   const defaultValues = useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
-      date: format(dateOnlyToDate(metadata?.date) ?? new Date(), 'yyyy-MM-dd'),
-      sessionMeetingDate: metadata?.sessionMeetingDate
-        ? format(dateOnlyToDate(metadata.sessionMeetingDate), 'yyyy-MM-dd')
-        : '',
+      date: dateOnlyToIso(metadata?.date) ?? format(new Date(), 'yyyy-MM-dd'),
+      sessionMeetingDate: metadata?.sessionMeetingDate ? dateOnlyToIso(metadata.sessionMeetingDate) : '',
     }),
     [metadata],
   );

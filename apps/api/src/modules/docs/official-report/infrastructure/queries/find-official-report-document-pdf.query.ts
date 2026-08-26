@@ -10,6 +10,7 @@ import { docFileName } from '../../../shared/domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
+import { DateOnly } from 'src/utils/date-only';
 
 import { FindOfficialReportDocumentQuery } from './find-official-report-document.query';
 
@@ -61,7 +62,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const name = docFileName({
       type: 'OFFICIAL_REPORT',
       formation: agenda.formation,
-      date: officialReport.sessionMeetingDate,
+      date: DateOnly.fromUtcDate(officialReport.sessionMeetingDate),
       sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
       chairman: { firstName: officialReport.chairmanFirstName, lastName: officialReport.chairmanLastName },

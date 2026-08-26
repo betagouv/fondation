@@ -35,7 +35,8 @@ export class LolfiNominationSessionFinder {
           lolfiSessionId: props.id,
           date: props.creationDate,
           typeDeSaisine: 'TRANSPARENCE_GDS',
-          name: props.name ?? `Transparence du ${format(props.creationDate.toDate(), 'dd/MM/yyyy')}`,
+          name:
+            props.name ?? `Transparence du ${format(props.creationDate.toLocalStartOfDay(), 'dd/MM/yyyy')}`,
 
           dueDate: null,
           positionStartDate: null,

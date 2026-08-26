@@ -44,14 +44,14 @@ export class DetailMagistratQuery {
         firstName: magistrat.firstName,
         lastName: magistrat.lastName,
         usedName: magistrat.usedName,
-        birthDate: magistrat.birthDate ? DateOnly.fromDate(magistrat.birthDate).toJson() : null,
+        birthDate: magistrat.birthDate ? DateOnly.fromUtcDate(magistrat.birthDate).toJson() : null,
         grade: magistrat.grade,
-        gradeDate: magistrat.gradeDate ? DateOnly.fromDate(magistrat.gradeDate).toJson() : null,
+        gradeDate: magistrat.gradeDate ? DateOnly.fromUtcDate(magistrat.gradeDate).toJson() : null,
         nominationDate: magistrat.nominationDate
-          ? DateOnly.fromDate(magistrat.nominationDate).toJson()
+          ? DateOnly.fromUtcDate(magistrat.nominationDate).toJson()
           : null,
         installationDate: magistrat.installationDate
-          ? DateOnly.fromDate(magistrat.installationDate).toJson()
+          ? DateOnly.fromUtcDate(magistrat.installationDate).toJson()
           : null,
         professionalEmail: magistrat.professionalEmail,
         currentPosition,

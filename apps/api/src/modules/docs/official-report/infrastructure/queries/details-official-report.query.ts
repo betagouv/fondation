@@ -44,7 +44,7 @@ export class DetailsOfficialReportQuery {
       secretaryId: report.secretaryId,
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       isManuallyEdited: report.isManuallyEdited,
-      sessionMeetingDate: DateOnly.fromDate(report.sessionMeetingDate).toJson(),
+      sessionMeetingDate: DateOnly.fromUtcDate(report.sessionMeetingDate).toJson(),
       sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
       sessionMeetingEndingTime: dateToTimeOnly(report.sessionMeetingEndingTime),
     };

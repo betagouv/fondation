@@ -1,6 +1,3 @@
-import { formatDate } from 'date-fns';
-import { fr as dateLocaleFr } from 'date-fns/locale/fr';
-
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { capitalize } from 'src/utils/capitalize';
@@ -44,16 +41,28 @@ export function displayTitled(props: {
   return `${output}, ${title[0]!.toLowerCase() + title.slice(1)}`;
 }
 
+const shortDate = new Intl.DateTimeFormat('fr', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: 'UTC',
+  year: 'numeric',
+});
+
+const longDate = new Intl.DateTimeFormat('fr', {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+  year: 'numeric',
+});
+
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
-export function date(date: Date | DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): string {
-  const d =
-    date instanceof Date ? date : date instanceof DateOnly ? date.toDate() : DateOnly.fromJson(date).toDate();
+export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): string {
+  const dateOnly = date instanceof DateOnly ? date : DateOnly.fromJson(date);
+  if (format === 'dd/MM/yyyy') return shortDate.format(dateOnly.toDate());
 
-  const formatted = formatDate(d, format, { locale: dateLocaleFr });
-
-  if (formatted.match(/1er/)) return formatted.replace(/^1er/, `1<sup>er</sup>`);
-
-  return formatted;
+  // In French only the first of the month takes an ordinal
+  const formatted = longDate.format(dateOnly.toDate());
+  return dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted;
 }
 
 const elidingInitials = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'h']);

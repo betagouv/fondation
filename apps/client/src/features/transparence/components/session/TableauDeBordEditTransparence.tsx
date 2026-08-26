@@ -2,7 +2,6 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -11,7 +10,7 @@ import { z } from 'zod';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { useToasts } from '@/shared/ui/toast';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { dateOnlyToIso } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
@@ -51,14 +50,12 @@ function TableauDeBordEditTransparence(props: { session: DetailedNominationSessi
     ),
     defaultValues: {
       name: session?.name ?? '',
-      date: session?.date ? format(dateOnlyToDate(session.date), 'yyyy-MM-dd') : '',
+      date: session?.date ? dateOnlyToIso(session.date) : '',
       observationsClosingDate: session?.observationsClosingDate
-        ? format(dateOnlyToDate(session.observationsClosingDate), 'yyyy-MM-dd')
+        ? dateOnlyToIso(session.observationsClosingDate)
         : '',
-      dueDate: session?.dueDate ? format(dateOnlyToDate(session.dueDate), 'yyyy-MM-dd') : null,
-      positionStartDate: session?.positionStartDate
-        ? format(dateOnlyToDate(session.positionStartDate), 'yyyy-MM-dd')
-        : null,
+      dueDate: session?.dueDate ? dateOnlyToIso(session.dueDate) : null,
+      positionStartDate: session?.positionStartDate ? dateOnlyToIso(session.positionStartDate) : null,
     },
   });
 

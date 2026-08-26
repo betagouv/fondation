@@ -54,7 +54,7 @@ export class ListMagistratObservationsQuery {
         return [
           {
             id: observation.id,
-            dateReception: DateOnly.fromDate(observation.dateReception).toJson(),
+            dateReception: DateOnly.fromUtcDate(observation.dateReception).toJson(),
             nominationFile,
           },
         ];

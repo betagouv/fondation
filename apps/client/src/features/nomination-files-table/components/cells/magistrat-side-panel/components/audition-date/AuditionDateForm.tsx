@@ -130,8 +130,8 @@ export function AuditionDateForm(props: {
           <FormattedMessage
             defaultMessage="Cette audition a eu lieu le {date} à {time}. Voulez-vous vraiment la modifier ?"
             values={{
-              date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-              time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+              date: formatDate(scheduledAt, { format: 'zonedDateShort' }),
+              time: formatTime(scheduledAt, { format: 'zonedTimeShort' }),
             }}
           />
         </p>
@@ -156,16 +156,16 @@ export function AuditionDateForm(props: {
               <FormattedMessage
                 defaultMessage="Une audition a eu lieu le {date} à {time}"
                 values={{
-                  date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-                  time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+                  date: formatDate(scheduledAt, { format: 'zonedDateShort' }),
+                  time: formatTime(scheduledAt, { format: 'zonedTimeShort' }),
                 }}
               />
             ) : (
               <FormattedMessage
                 defaultMessage="Une audition est prévue le {date} à {time}"
                 values={{
-                  date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-                  time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+                  date: formatDate(scheduledAt, { format: 'zonedDateShort' }),
+                  time: formatTime(scheduledAt, { format: 'zonedTimeShort' }),
                 }}
               />
             )

@@ -11,6 +11,7 @@ import {
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { formatObservers } from '@/features/reports/utils/formatters';
 import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
+import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -136,8 +137,8 @@ function ObservationCard({ observation, file }: { observation: Observation; file
         <div className="fr-mt-2v flex items-center justify-between gap-2">
           <span className="text-sm-plus text-(--text-default-grey)">
             <FormattedMessage
-              defaultMessage="Reçue le {date, date, dateOnlyShort}"
-              values={{ date: new Date(observation.dateReception) }}
+              defaultMessage="Reçue le {date}"
+              values={{ date: formatDateOnly(dateOnlyFromIso(observation.dateReception)) }}
             />
           </span>
           {isExpandable && (

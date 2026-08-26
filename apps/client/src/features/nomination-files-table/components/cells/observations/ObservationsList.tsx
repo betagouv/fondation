@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 import {
@@ -37,8 +38,8 @@ function ObservationCard(props: {
         <div>
           <div className="text-sm text-(--text-mention-grey)">
             <FormattedMessage
-              defaultMessage="Reçue le {date, date, dateOnlyShort}"
-              values={{ date: new Date(props.observation.dateReception) }}
+              defaultMessage="Reçue le {date}"
+              values={{ date: formatDateOnly(dateOnlyFromIso(props.observation.dateReception)) }}
             />
           </div>
           {props.observation.magistrat && (
@@ -122,7 +123,7 @@ function ObservationCard(props: {
       {props.observation.createdBy && (
         <div className="fr-mt-3v text-xs text-(--text-disabled-grey)">
           <FormattedMessage
-            defaultMessage="Créée par {name} le {date, date, dateOnlyShort}"
+            defaultMessage="Créée par {name} le {date, date, zonedDateShort}"
             values={{
               date: new Date(props.observation.createdAt),
               name: `${props.observation.createdBy.lastName} ${props.observation.createdBy.firstName}`,

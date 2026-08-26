@@ -411,12 +411,12 @@ export class SessionTransparenceRepository {
     });
 
     if (isDefined(existingSession)) {
-      const date = message.date.toDate();
-      const [day, month, year] = ([date.getDate(), date.getMonth() + 1, date.getFullYear()] as const).map(
-        (x) => x.toString().padStart(2, '0'),
-      );
+      const { day, month, year } = message.date.toJson();
+      const [paddedDay, paddedMonth] = [day, month].map((x) => x.toString().padStart(2, '0'));
 
-      throw new ConflictException(`La session "T ${day}/${month}/${year} - ${message.name}" existe déjà`);
+      throw new ConflictException(
+        `La session "T ${paddedDay}/${paddedMonth}/${year} - ${message.name}" existe déjà`,
+      );
     }
 
     await this.db.tx.session.create({

@@ -9,7 +9,7 @@ import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
@@ -82,12 +82,7 @@ export function ObservationDetailsContent({
                 <dt className="fr-col-4 fr-text--bold">
                   <FormattedMessage defaultMessage="Date de réception :" />
                 </dt>
-                <dd className="fr-col-8 fr-m-0">
-                  <FormattedMessage
-                    defaultMessage="{date, date, dateOnlyShort}"
-                    values={{ date: dateOnlyToDate(observation.receptionDate) }}
-                  />
-                </dd>
+                <dd className="fr-col-8 fr-m-0">{formatDateOnly(observation.receptionDate)}</dd>
               </div>
               <div className="fr-grid-row fr-mb-4v">
                 <dt className="fr-col-4 fr-text--bold">

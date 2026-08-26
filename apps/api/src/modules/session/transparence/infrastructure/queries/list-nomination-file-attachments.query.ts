@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { Db } from 'src/modules/framework/database';
 import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
 @Injectable()
 export class ListNominationFileAttachmentsQuery {
@@ -34,7 +35,7 @@ export class ListNominationFileAttachmentsQuery {
         name: file.name,
         size: file.sizeInBytes,
         type,
-        addedAt: createdAt.toISOString(),
+        addedAt: DateOnly.fromInstantInParis(createdAt).toJson(),
       })),
     };
   }
@@ -48,7 +49,7 @@ export class ListedNominationFileAttachmentDto extends createZodDto(
         name: z.string(),
         size: z.number().int().nullable(),
         type: z.enum(NominationFileAttachmentTypeEnum),
-        addedAt: z.iso.datetime(),
+        addedAt: dateOnlyJsonSchema,
       }),
     ),
   }),

@@ -7,6 +7,7 @@ import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
+import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class AgendaRenderContextFinder {
@@ -51,9 +52,9 @@ export class AgendaRenderContextFinder {
     );
 
     return {
-      date: agenda.date,
+      date: DateOnly.fromUtcDate(agenda.date),
       formation: prismaFormationEnumToFormationEnum(agenda.formation),
-      sessionMeetingDate: agenda.sessionMeetingDate,
+      sessionMeetingDate: DateOnly.fromUtcDate(agenda.sessionMeetingDate),
       chairman: {
         firstName: agenda.chairmanFirstName,
         lastName: agenda.chairmanLastName,

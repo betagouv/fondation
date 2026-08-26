@@ -6,6 +6,7 @@ import { ObservationForm } from '../ObservationForm';
 import { ObservationsList } from '../ObservationsList';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { Modal } from '@/shared/ui/modal';
+import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { useDeleteObservationMutation, type Observation } from '@queries/observations.queries';
 
 import { ObservationsModalContext, type ActiveFile } from './ObservationsModalContext';
@@ -91,10 +92,10 @@ export function ObservationsModalProvider({ children }: PropsWithChildren) {
         content: (
           <p>
             <FormattedMessage
-              defaultMessage="Êtes-vous sûr de vouloir supprimer cette observation du <b>{date, date, dateOnlyShort}</b> ?"
+              defaultMessage="Êtes-vous sûr de vouloir supprimer cette observation du <b>{date}</b> ?"
               values={{
                 b: (chunks) => <strong>{chunks}</strong>,
-                date: new Date(observation.dateReception),
+                date: formatDateOnly(dateOnlyFromIso(observation.dateReception)),
               }}
             />
           </p>

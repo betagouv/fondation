@@ -74,8 +74,8 @@ export class ListNominationSessionsQuery {
       id: s.id,
       name: s.name,
       formation: prismaFormationEnumToFormationEnum(s.formation),
-      date: DateOnly.fromDate(s.date).toJson(),
-      dueDate: DateOnly.fromOptionalDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
+      date: DateOnly.fromUtcDate(s.date).toJson(),
+      dueDate: DateOnly.fromOptionalUtcDate(s.transparenceGds?.dueDate)?.toJson() ?? null,
       typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(s.typeDeSaisine),
       status: ListNominationSessionsQuery.computeStatus(s, reportedIds),
     }));

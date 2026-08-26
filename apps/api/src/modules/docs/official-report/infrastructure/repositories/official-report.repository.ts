@@ -128,7 +128,7 @@ export class OfficialReportRepository {
       agenda: {
         id: rawAgenda.id,
         officialReportId: rawAgenda.officialReportId,
-        date: DateOnly.fromDate(rawAgenda.date),
+        date: DateOnly.fromUtcDate(rawAgenda.date),
         formation: prismaFormationEnumToFormationEnum(rawAgenda.formation),
         session: { id: rawAgenda.sessionId, date: DateOnly.fromJson(date) },
       },
@@ -170,7 +170,7 @@ export class OfficialReportRepository {
     const files = await this.findOfficialReportFiles({ id: query.id });
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
-      date: DateOnly.fromDate(officialReport.sessionMeetingDate),
+      date: DateOnly.fromUtcDate(officialReport.sessionMeetingDate),
       startTime: dateToTimeOnly(officialReport.sessionMeetingStartingTime),
       endTime: dateToTimeOnly(officialReport.sessionMeetingEndingTime),
     });

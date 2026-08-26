@@ -8,7 +8,7 @@ import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { NewTable } from '@/shared/ui/new-table/NewTable';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { isPastSchedule, toScheduledDate } from '@/utils/time-only.util';
 import type { ListedMagistratNominationFilesDto } from '@api/types';
@@ -65,11 +65,7 @@ export function MagistratNominationFilesTable({
               <span className="mt-2 text-xs text-(--text-mention-grey)">
                 {formatMessage(
                   { defaultMessage: 'Publiée le {date}' },
-                  {
-                    date: formatDate(dateOnlyToDate(session.date), {
-                      format: 'dateOnlyShort',
-                    }),
-                  },
+                  { date: formatDateOnly(session.date) },
                 )}
               </span>
             </span>
@@ -134,8 +130,8 @@ export function MagistratNominationFilesTable({
           }
 
           const values = {
-            date: formatDate(scheduledAt, { format: 'dateOnlyShort' }),
-            time: formatTime(scheduledAt, { format: 'timeOnlyShort' }),
+            date: formatDate(scheduledAt, { format: 'zonedDateShort' }),
+            time: formatTime(scheduledAt, { format: 'zonedTimeShort' }),
           };
 
           return isPastSchedule(auditionDate, auditionTime)

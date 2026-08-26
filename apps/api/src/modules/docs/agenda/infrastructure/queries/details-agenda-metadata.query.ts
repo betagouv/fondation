@@ -28,8 +28,8 @@ export class DetailsAgendaMetadataQuery {
       id: agenda.id,
       chairmanId: agenda.chairmanId,
       isManuallyEdited: agenda.isManuallyEdited,
-      date: DateOnly.fromDate(agenda.date).toJson(),
-      sessionMeetingDate: DateOnly.fromDate(agenda.sessionMeetingDate).toJson(),
+      date: DateOnly.fromUtcDate(agenda.date).toJson(),
+      sessionMeetingDate: DateOnly.fromUtcDate(agenda.sessionMeetingDate).toJson(),
     };
   }
 }

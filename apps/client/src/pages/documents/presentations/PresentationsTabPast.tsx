@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { dateOnlyToDate } from '@/utils/date-only.util';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { timeOnlyToDate } from '@/utils/time-only.util';
 import { toInitials } from '@/utils/user.utils';
 import {
@@ -17,7 +17,7 @@ export function PresentationsTabPast() {
 
   const viewItems = (pastPresentations?.items ?? []).map((item) => ({
     id: item.id,
-    date: dateOnlyToDate(item.date),
+    date: formatDateOnly(item.date),
     time: timeOnlyToDate(item.time),
     formation: item.formation === 'SIEGE' ? 'siège' : 'parquet',
     initials: toInitials(item.chairman),
@@ -57,7 +57,7 @@ export function PresentationsTabPast() {
               >
                 <FormattedMessage
                   values={item}
-                  defaultMessage={`NDR {date, date, dateOnlyShort}, {time, time, short} - {initials} - {formation}`}
+                  defaultMessage={`NDR {date}, {time, time, short} - {initials} - {formation}`}
                 />
               </Button>
             </li>

@@ -52,7 +52,7 @@ export class AutoAffectationsFinder {
       nominationFileIds: predicate.nominationFileIds,
     });
 
-    const date = DateOnly.fromDate(session.date);
+    const date = DateOnly.fromUtcDate(session.date);
     const formation = prismaFormationEnumToFormationEnum(session.formation);
     const members = await this.findMembers({
       date,
