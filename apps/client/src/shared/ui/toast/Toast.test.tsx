@@ -101,7 +101,7 @@ describe('Toast', () => {
     expect(within(notifications()).queryByText('La publication a échoué')).not.toBeInTheDocument();
   });
 
-  it('keeps a toast carrying an action until it is dismissed', () => {
+  it('leaves the longest reading time to a toast carrying an action', () => {
     vi.useFakeTimers();
     const onClick = vi.fn();
     const { trigger, wait } = renderToast('success', {
@@ -110,9 +110,22 @@ describe('Toast', () => {
     });
 
     trigger();
-    wait(60_000);
+    wait(9_000);
 
     fireEvent.click(within(notifications()).getByRole('button', { name: "Voir l'ODJ" }));
     expect(onClick).toHaveBeenCalled();
+  });
+
+  it('dismisses a toast carrying an action once that reading time is over', () => {
+    vi.useFakeTimers();
+    const { trigger, wait } = renderToast('success', {
+      action: { label: "Voir l'ODJ", onClick: vi.fn() },
+      title: '3 propositions ajoutées',
+    });
+
+    trigger();
+    wait(11_000);
+
+    expect(screen.queryByText('3 propositions ajoutées')).not.toBeInTheDocument();
   });
 });

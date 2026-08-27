@@ -27,7 +27,7 @@ function useHearingAlert(nominationFile: SessionNominationFile): boolean {
   const isSg = useIsSg();
   const { isAlertHidden, posteCible } = nominationFile.content;
 
-  if (!isSg || isAlertHidden || !posteCible) return false;
+  if (!isSg || isAlertHidden || nominationFile.hasJurisdictionSheet || !posteCible) return false;
 
   return HEARING_ALERT_POSITIONS.some((x) => x.test(normalizePosition(posteCible)));
 }

@@ -36,7 +36,7 @@ export function useToasts() {
         manager.add({
           ...optionsOf(notice),
           priority: 'low',
-          timeout: notice.action ? 0 : readingTimeMs(notice),
+          timeout: notice.action ? MAX_TIMEOUT_MS : readingTimeMs(notice),
           type: 'success',
         }),
     }),

@@ -295,6 +295,7 @@ export class ListNominationFilesQuery {
             }
           : null,
         hasAttachment: x.hasAttachment,
+        hasJurisdictionSheet: x.hasJurisdictionSheet,
       };
     });
   }
@@ -407,6 +408,7 @@ const RawListedNominationFiles = z.array(
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
     hasAttachment: z.boolean(),
+    hasJurisdictionSheet: z.boolean(),
     queryRank: z.number().nullable(),
 
     memberMemo: z.string().nullable(),
@@ -501,6 +503,7 @@ const NominationFileAffectationItemSchema = z.object({
   memo: z.string().nullable(),
   summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
   hasAttachment: z.boolean(),
+  hasJurisdictionSheet: z.boolean(),
 });
 
 export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;
