@@ -7,7 +7,12 @@ import { agendaBlocks, AgendaRenderContext, agendaTemplate } from './agenda.html
 
 describe('agendaTemplate', () => {
   const baseContext = {
-    chairman: { firstName: `léon`, lastName: 'blum', gender: GenderEnum.MALE, title: 'PRESIDENT_SIEGE' },
+    chairman: {
+      firstName: `barbara`,
+      lastName: 'mcclintock',
+      gender: GenderEnum.FEMALE,
+      title: 'PRESIDENT_SIEGE',
+    },
     date: new DateOnly(2026, 7, 1),
     sessionMeetingDate: new DateOnly(2026, 7, 1),
     formation: 'SIEGE',
@@ -15,12 +20,12 @@ describe('agendaTemplate', () => {
       {
         id: 1n,
         number: 1,
-        name: `MME Simone Veil`,
+        name: `MME Émilie du CHÂTELET`,
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'appel de Lyon",
         targetedPosition: "présidente à la cour d'appel de Grenoble",
         targetedGrade: 'G3',
-        reporters: ['M. Michel FOUCAULT'],
+        reporters: ['MME Rosalind FRANKLIN'],
       },
     ],
     userDefinedBlocks: { files: new Map() },
@@ -49,7 +54,7 @@ describe('agendaTemplate', () => {
         {
           "edited": false,
           "generatedHtml": undefined,
-          "html": "<strong>MME Simone Veil</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de M. Michel FOUCAULT.",
+          "html": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "id": 1n,
           "kind": "file",
           "outdated": false,
@@ -74,7 +79,7 @@ describe('agendaTemplate', () => {
       [
         {
           "edited": true,
-          "generatedHtml": "<strong>MME Simone Veil</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de M. Michel FOUCAULT.",
+          "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "html": "<span>custom html</span>",
           "id": 1n,
           "kind": "file",
