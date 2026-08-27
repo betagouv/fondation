@@ -1,79 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ComponentProps, PropsWithChildren } from 'react';
-
-import { AuditionNotice } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/audition-date/AuditionNotice';
-import { MissingSecondReporterNotice } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/header/MissingSecondReporterNotice';
-import { MissingEvaluation as MissingEvaluationBanner } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/missing-evaluation/MissingEvaluation';
-import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
-import type { ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
-import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
-import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
-import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import type { ComponentProps } from 'react';
 
 import { AlertBanner, AlertBannerAction } from './AlertBanner';
 
 const LAYOUT = 'rounded px-4 py-3';
-const SESSION_ID = 'session-1';
-const NO_CONTROLS = { controls: { disable: true }, layout: 'padded' };
 
-const UPCOMING = {
-  auditionDate: { day: 15, month: 6, year: 2029 },
-  auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-};
-const PAST = {
-  auditionDate: { day: 10, month: 1, year: 2020 },
-  auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-};
-
-const LYON = "Cour d'appel de Lyon";
-const RENNES = "Cour d'appel de Rennes";
-
-function conflict(memberName: string, jurisdiction: string): ExcludedJurisdictionConflict {
-  return { fileId: 'file-1', fileNumber: 12, jurisdiction, memberId: memberName, memberName };
-}
-
-const EXCLUSIONS = [
-  [conflict('Camille COMMUN', LYON)],
-  [conflict('Camille COMMUN', LYON), conflict('Sophie SIÈGE', LYON)],
-  [conflict('Camille COMMUN', LYON), conflict('Camille COMMUN', RENNES), conflict('Sophie SIÈGE', LYON)],
-];
-
-const GUTTER = 'px-8';
-const BLEEDS_BOTTOM = 'px-8 pb-8';
-const STACK = 'flex flex-col gap-4';
-
-const ACTION_ONLY = {
-  className: { table: { disable: true } },
-  icon: { table: { disable: true } },
-  message: { table: { disable: true } },
-  tone: { table: { disable: true } },
-};
-
-function Notice(props: PropsWithChildren<{ className: string }>) {
-  return <div className={props.className}>{props.children}</div>;
-}
-
-const MISSING_EVALUATION_FILES = [
-  makeSessionNominationFile({ id: 'flagged-file', missingEvaluation: true }),
-  makeSessionNominationFile({ id: 'complete-file', missingEvaluation: false }),
-];
-
-function MissingEvaluationBanners() {
-  const nominationFiles = useSeededNominationFiles({
-    files: MISSING_EVALUATION_FILES,
-    sessionId: SESSION_ID,
-  });
-
-  return (
-    <div className={STACK}>
-      {nominationFiles.map((nominationFile) => (
-        <Notice className={GUTTER} key={nominationFile.id}>
-          <MissingEvaluationBanner editable nominationFile={nominationFile} sessionId={SESSION_ID} />
-        </Notice>
-      ))}
-    </div>
-  );
-}
+const TONES = ['error', 'warning', 'info', 'neutral'] as const;
 
 function AlertBannerStory({
   buttonAction,
@@ -92,14 +24,16 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
+    align: { control: 'inline-radio', options: ['start', 'center'] },
     buttonAction: { control: 'boolean' },
     children: { table: { disable: true } },
     className: { table: { disable: true } },
     icon: { control: 'text' },
     message: { control: 'text' },
-    tone: { control: 'inline-radio', options: ['info', 'warning'] },
+    tone: { control: 'inline-radio', options: TONES },
   },
   args: {
+    align: 'center',
     buttonAction: true,
     className: LAYOUT,
     icon: 'fr-icon-warning-fill',
@@ -114,48 +48,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const Audition: Story = {
-  argTypes: ACTION_ONLY,
-  render: ({ buttonAction }) => (
-    <div className={STACK}>
-      <Notice className={GUTTER}>
-        <AuditionNotice auditionDate={null} auditionMissing auditionTime={null} editable={buttonAction} />
-      </Notice>
-      <Notice className={GUTTER}>
-        <AuditionNotice {...UPCOMING} auditionMissing={false} editable={buttonAction} />
-      </Notice>
-      <Notice className={GUTTER}>
-        <AuditionNotice {...PAST} auditionMissing={false} editable={buttonAction} />
-      </Notice>
-    </div>
-  ),
-};
-
-export const ExcludedJurisdiction: Story = {
-  parameters: NO_CONTROLS,
-  render: () => (
-    <div className={STACK}>
-      {EXCLUSIONS.map((conflicts) => (
-        <ExcludedJurisdictionNotice conflicts={conflicts} key={JSON.stringify(conflicts)} />
+export const Tones: Story = {
+  parameters: { controls: { disable: true } },
+  render: ({ buttonAction, icon }) => (
+    <div className="flex flex-col gap-4">
+      {TONES.map((tone) => (
+        <AlertBannerStory
+          buttonAction={buttonAction}
+          className={LAYOUT}
+          icon={icon}
+          key={tone}
+          message={`Une alerte au ton ${tone}`}
+          tone={tone}
+        />
       ))}
     </div>
-  ),
-};
-
-export const MissingEvaluation: Story = {
-  parameters: NO_CONTROLS,
-  render: () => (
-    <StoryQueryClient>
-      <MissingEvaluationBanners />
-    </StoryQueryClient>
-  ),
-};
-
-export const MissingSecondReporter: Story = {
-  argTypes: ACTION_ONLY,
-  render: ({ buttonAction }) => (
-    <Notice className={BLEEDS_BOTTOM}>
-      <MissingSecondReporterNotice editable={buttonAction} onAffect={() => {}} />
-    </Notice>
   ),
 };

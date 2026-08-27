@@ -49,12 +49,6 @@ export default definePreview({
         order: [
           'Guide',
           'Design Tokens',
-          'Shared',
-          'Features',
-          [
-            'Documents',
-            ['DocumentEditor', ['Agenda', 'OfficialReport', 'PresentationNotice'], 'DocumentScreen'],
-          ],
           'Session',
           [
             'Transparence',
@@ -65,6 +59,12 @@ export default definePreview({
               'SessionDocumentsTable',
             ],
           ],
+          'Features',
+          [
+            'Documents',
+            ['DocumentEditor', ['Agenda', 'OfficialReport', 'PresentationNotice'], 'DocumentScreen'],
+          ],
+          'Shared',
         ],
       },
     },

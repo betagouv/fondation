@@ -232,7 +232,7 @@ const meta = {
   argTypes: {
     audition: {
       control: 'inline-radio',
-      description: 'expected, scheduled et past décrivent un poste auditionné, qui attend 2 rapporteurs',
+      description: 'expected, scheduled and past all describe an auditioned position, expecting 2 reporters',
       options: AUDITION_SCENARIOS,
     },
     excludedJurisdiction: { control: 'inline-radio', options: EXCLUSION_SCENARIOS },
