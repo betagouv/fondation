@@ -1,0 +1,25 @@
+{
+  "name": "documents-assets",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Letterhead and fonts of the official documents, shared by the api renderers and the front-end",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "scripts": {
+    "types:check": "tsc --noEmit -p .",
+    "build": "tsc -p tsconfig.build.json",
+    "lint:check": "oxlint",
+    "lint": "oxlint --fix",
+    "test": "node --test --require @swc-node/register test/*.test.ts"
+  },
+  "devDependencies": {
+    "@swc-node/register": "1.11.1",
+    "@types/node": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:"
+  }
+}
