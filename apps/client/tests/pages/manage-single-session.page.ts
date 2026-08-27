@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 import { GenerateAgendaPage } from './generate-agenda.page';
 import { GenerateOfficialReportPage } from './generate-official-report.page';
@@ -191,12 +191,13 @@ class MagistratSidePanel {
     await this.confirmDeleteButton.click();
   }
 
-  get missingEvaluationCheckbox(): Locator {
+  get missingEvaluationToggle(): Locator {
     return this.dialog.getByRole('checkbox', { name: 'Évaluation manquante' });
   }
 
   async flagMissingEvaluation(): Promise<void> {
-    await this.missingEvaluationCheckbox.click({ force: true });
+    await expect(this.missingEvaluationToggle).toBeInViewport();
+    await this.missingEvaluationToggle.click({ force: true });
   }
 }
 
