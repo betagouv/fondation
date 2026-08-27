@@ -1,72 +1,75 @@
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-const SECTION_ID = 'magistrat-missing-evaluation-section';
+const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 
-/** DSFR hides the focus ring unless `:focus-visible` matches, which never happens when we focus the checkbox from the notice after a mouse click */
-const ALWAYS_SHOW_FOCUS_RING = '[&_input:focus+label::before]:[outline-style:solid]';
-
-function focusCheckbox() {
-  const section = document.getElementById(SECTION_ID);
-  section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  section?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.focus({ preventScroll: true });
-}
-
-export function MissingEvaluationNotice(props: { editable: boolean; missingEvaluation: boolean }) {
-  if (!props.missingEvaluation) return null;
-
-  return (
-    <AlertBanner
-      className="-mx-8 -mt-10 px-8 py-4"
-      icon="fr-icon-draft-line"
-      message={<FormattedMessage defaultMessage="Évaluation manquante dans le dossier administratif LOLFI" />}
-      tone="warning"
-    >
-      {props.editable && (
-        <AlertBannerAction onClick={focusCheckbox}>
-          <FormattedMessage defaultMessage="Modifier" />
-        </AlertBannerAction>
-      )}
-    </AlertBanner>
-  );
-}
-
-export function MissingEvaluation(props: { nominationFile: SessionNominationFile; sessionId: string }) {
-  const { nominationFile, sessionId } = props;
+export function MissingEvaluation(props: {
+  editable: boolean;
+  nominationFile: SessionNominationFile;
+  sessionId: string;
+}) {
+  const { editable, nominationFile, sessionId } = props;
+  const { missingEvaluation } = nominationFile;
   const { formatMessage } = useIntl();
   const { mutate, isError: saveFailed } = useUpdateNominationFileMissingEvaluationMutation();
 
-  const editable = nominationFile.content.isUpdatable;
-  if (!editable && !nominationFile.missingEvaluation) return null;
+  const updatable = editable && nominationFile.content.isUpdatable;
+  if (!missingEvaluation && !updatable) return null;
+
+  const label = formatMessage({
+    defaultMessage: 'Évaluation manquante dans le dossier administratif LOLFI',
+  });
 
   return (
-    <div className={ALWAYS_SHOW_FOCUS_RING} id={SECTION_ID}>
-      <Checkbox
-        options={[
-          {
-            label: formatMessage({ defaultMessage: 'Évaluation manquante' }),
-            nativeInputProps: {
-              checked: nominationFile.missingEvaluation,
-              disabled: !editable,
-              onChange: (event) =>
-                mutate({
-                  missingEvaluation: event.target.checked,
-                  nominationFileId: nominationFile.id,
-                  sessionId,
-                }),
-            },
-          },
-        ]}
-      />
-      {saveFailed && (
-        <p className="fr-error-text fr-mt-0" role="alert">
-          {formatMessage({ defaultMessage: "L'enregistrement a échoué" })}
-        </p>
+    <AlertBanner
+      align="center"
+      className={BANNER_LAYOUT}
+      icon="fr-icon-draft-line"
+      message={
+        <>
+          {label}
+          {saveFailed && (
+            <span className="fr-error-text fr-mb-0 block" role="alert">
+              <FormattedMessage defaultMessage="L'enregistrement a échoué" />
+            </span>
+          )}
+        </>
+      }
+      tone={missingEvaluation ? 'warning' : 'neutral'}
+    >
+      {editable && (
+        <ToggleSwitch
+          checked={missingEvaluation}
+          className="ml-auto w-auto shrink-0"
+          classes={{
+            input: 'inset-0! h-full! w-full!',
+            label:
+              'w-auto! text-sm! leading-6! whitespace-nowrap text-(--text-action-high-blue-france) before:ml-2!',
+          }}
+          disabled={!nominationFile.content.isUpdatable}
+          label={
+            <>
+              <span className="fr-sr-only">{label}</span>
+              <span aria-hidden className="w-8 text-right">
+                {missingEvaluation ? (
+                  <FormattedMessage defaultMessage="Oui" />
+                ) : (
+                  <FormattedMessage defaultMessage="Non" />
+                )}
+              </span>
+            </>
+          }
+          labelPosition="left"
+          onChange={(checked) =>
+            mutate({ missingEvaluation: checked, nominationFileId: nominationFile.id, sessionId })
+          }
+          showCheckedHint={false}
+        />
       )}
-    </div>
+    </AlertBanner>
   );
 }

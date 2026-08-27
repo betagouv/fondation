@@ -9,7 +9,7 @@ import { Biography } from './biography/Biography';
 import { CareerInfo } from './career-info/CareerInfo';
 import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
-import { MissingEvaluation, MissingEvaluationNotice } from './missing-evaluation/MissingEvaluation';
+import { MissingEvaluation } from './missing-evaluation/MissingEvaluation';
 import { Observations } from './observations/Observations';
 import { Outcome } from './outcome/Outcome';
 import { SgComment } from './sg-comment/SgComment';
@@ -28,16 +28,20 @@ export function MagistratSidePanelContent(props: {
   return (
     <div className="flex flex-col gap-10 pb-10">
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
-      <AuditionNotice
-        auditionDate={nominationFile.auditionDate}
-        auditionMissing={auditionMissing}
-        auditionTime={nominationFile.auditionTime}
-        editable={auditionEditable}
-      />
-      <MissingEvaluationNotice
-        editable={isSgContext && nominationFile.content.isUpdatable}
-        missingEvaluation={nominationFile.missingEvaluation}
-      />
+      <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
+        <AuditionNotice
+          auditionDate={nominationFile.auditionDate}
+          auditionMissing={auditionMissing}
+          auditionTime={nominationFile.auditionTime}
+          editable={auditionEditable}
+        />
+        <MissingEvaluation
+          editable={isSgContext}
+          key={`${nominationFile.id}-missing-evaluation`}
+          nominationFile={nominationFile}
+          sessionId={sessionId}
+        />
+      </div>
       <Outcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <CareerInfo content={nominationFile.content} />
       <Biography historique={historique} />
@@ -64,13 +68,6 @@ export function MagistratSidePanelContent(props: {
           editable={auditionEditable}
           key={`${nominationFile.id}-audition`}
           nominationFile={nominationFile}
-        />
-      )}
-      {isSgContext && (
-        <MissingEvaluation
-          key={`${nominationFile.id}-missing-evaluation`}
-          nominationFile={nominationFile}
-          sessionId={sessionId}
         />
       )}
     </div>

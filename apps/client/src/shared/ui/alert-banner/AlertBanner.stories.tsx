@@ -3,14 +3,17 @@ import type { ComponentProps, PropsWithChildren } from 'react';
 
 import { AuditionNotice } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/audition-date/AuditionNotice';
 import { MissingSecondReporterNotice } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/header/MissingSecondReporterNotice';
-import { MissingEvaluationNotice } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/missing-evaluation/MissingEvaluation';
+import { MissingEvaluation as MissingEvaluationBanner } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/missing-evaluation/MissingEvaluation';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
 import type { ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
+import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 
 import { AlertBanner, AlertBannerAction } from './AlertBanner';
 
 const LAYOUT = 'rounded px-4 py-3';
-
+const SESSION_ID = 'session-1';
 const NO_CONTROLS = { controls: { disable: true }, layout: 'padded' };
 
 const UPCOMING = {
@@ -35,7 +38,7 @@ const EXCLUSIONS = [
   [conflict('Camille COMMUN', LYON), conflict('Camille COMMUN', RENNES), conflict('Sophie SIÈGE', LYON)],
 ];
 
-const BLEEDS_TOP = 'px-8 pt-10';
+const GUTTER = 'px-8';
 const BLEEDS_BOTTOM = 'px-8 pb-8';
 const STACK = 'flex flex-col gap-4';
 
@@ -48,6 +51,28 @@ const ACTION_ONLY = {
 
 function Notice(props: PropsWithChildren<{ className: string }>) {
   return <div className={props.className}>{props.children}</div>;
+}
+
+const MISSING_EVALUATION_FILES = [
+  makeSessionNominationFile({ id: 'flagged-file', missingEvaluation: true }),
+  makeSessionNominationFile({ id: 'complete-file', missingEvaluation: false }),
+];
+
+function MissingEvaluationBanners() {
+  const nominationFiles = useSeededNominationFiles({
+    files: MISSING_EVALUATION_FILES,
+    sessionId: SESSION_ID,
+  });
+
+  return (
+    <div className={STACK}>
+      {nominationFiles.map((nominationFile) => (
+        <Notice className={GUTTER} key={nominationFile.id}>
+          <MissingEvaluationBanner editable nominationFile={nominationFile} sessionId={SESSION_ID} />
+        </Notice>
+      ))}
+    </div>
+  );
 }
 
 function AlertBannerStory({
@@ -93,13 +118,13 @@ export const Audition: Story = {
   argTypes: ACTION_ONLY,
   render: ({ buttonAction }) => (
     <div className={STACK}>
-      <Notice className={BLEEDS_TOP}>
+      <Notice className={GUTTER}>
         <AuditionNotice auditionDate={null} auditionMissing auditionTime={null} editable={buttonAction} />
       </Notice>
-      <Notice className={BLEEDS_TOP}>
+      <Notice className={GUTTER}>
         <AuditionNotice {...UPCOMING} auditionMissing={false} editable={buttonAction} />
       </Notice>
-      <Notice className={BLEEDS_TOP}>
+      <Notice className={GUTTER}>
         <AuditionNotice {...PAST} auditionMissing={false} editable={buttonAction} />
       </Notice>
     </div>
@@ -118,11 +143,11 @@ export const ExcludedJurisdiction: Story = {
 };
 
 export const MissingEvaluation: Story = {
-  argTypes: ACTION_ONLY,
-  render: ({ buttonAction }) => (
-    <Notice className={BLEEDS_TOP}>
-      <MissingEvaluationNotice editable={buttonAction} missingEvaluation />
-    </Notice>
+  parameters: NO_CONTROLS,
+  render: () => (
+    <StoryQueryClient>
+      <MissingEvaluationBanners />
+    </StoryQueryClient>
   ),
 };
 
