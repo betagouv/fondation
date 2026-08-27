@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const ItalicButton: FC = () => {
+export function ItalicButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const ItalicButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="fr-icon-italic"
-      title="Italique"
-      mark="italic"
       disabled={!!disabled}
+      iconId="fr-icon-italic"
+      mark="italic"
       onClick={toggleItalic}
+      title="Italique"
     />
   );
-};
+}

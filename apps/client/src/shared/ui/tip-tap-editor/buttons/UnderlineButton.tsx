@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const UnderlineButton: FC = () => {
+export function UnderlineButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const UnderlineButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="ri-underline"
-      title="Souligner"
-      mark="underline"
       disabled={!!disabled}
+      iconId="ri-underline"
+      mark="underline"
       onClick={toggleUnderline}
+      title="Souligner"
     />
   );
-};
+}

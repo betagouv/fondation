@@ -1,6 +1,6 @@
 import { useArchivedSession } from '@/shared/context/archived-session';
+import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
-import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
 
 import { Card } from './Card';
 
@@ -13,14 +13,14 @@ export type TextareaCardProps = {
   uploadFiles?: FilesUploader;
 };
 
-export const TextareaCard: React.FC<TextareaCardProps> = ({
+export function TextareaCard({
   cardId,
   titleId,
   label,
   content,
   onContentChange,
   uploadFiles,
-}) => {
+}: TextareaCardProps) {
   const { isArchived } = useArchivedSession();
 
   return (
@@ -42,4 +42,4 @@ export const TextareaCard: React.FC<TextareaCardProps> = ({
       )}
     </Card>
   );
-};
+}

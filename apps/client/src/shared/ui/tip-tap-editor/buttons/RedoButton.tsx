@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const RedoButton: FC = () => {
+export function RedoButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const RedoButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="fr-icon-arrow-go-forward-line"
-      title="Rétablir"
-      mark="redo"
       disabled={!!disabled}
+      iconId="fr-icon-arrow-go-forward-line"
+      mark="redo"
       onClick={redoChanges}
+      title="Rétablir"
     />
   );
-};
+}

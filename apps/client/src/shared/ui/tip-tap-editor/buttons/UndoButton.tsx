@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const UndoButton: FC = () => {
+export function UndoButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const UndoButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="fr-icon-arrow-go-back-line"
-      title="Annuler"
-      mark="undo"
       disabled={!!disabled}
+      iconId="fr-icon-arrow-go-back-line"
+      mark="undo"
       onClick={undoChanges}
+      title="Annuler"
     />
   );
-};
+}

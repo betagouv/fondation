@@ -102,12 +102,6 @@ li {
 .ProseMirror > div > div {
   min-width: var(--fondation-editor-min-width);
   max-width: 100%;
-  /* width: max-content; */
-}
-
-.tiptap-editor-wrapper {
-  padding: 1rem;
-  background-color: white;
 }
 
 .tiptap [data-resize-container] {
@@ -120,7 +114,6 @@ li {
   &.ProseMirror-selectednode [data-resize-handle] {
     position: absolute;
     background: var(--border-action-high-info);
-    /* border: 1px solid var(--border-action-high-info); */
 
     &[data-resize-handle='top-left'],
     &[data-resize-handle='top-right'],

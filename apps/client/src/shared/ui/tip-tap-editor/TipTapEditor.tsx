@@ -1,6 +1,6 @@
 import { EditorContent, EditorContext, useEditor, type EditorContextValue } from '@tiptap/react';
 import clsx from 'clsx';
-import React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useBeforeUnloadOrUnmount } from '@/shared/hooks/useBeforeUnload';
@@ -16,12 +16,12 @@ type TipTapEditorProps = {
   uploadFiles?: FilesUploader;
 };
 
-export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps) => {
+export const TipTapEditor = ({ value, onChange, ariaLabelledby, uploadFiles }: TipTapEditorProps) => {
   const extensions = useTipTapExtensions({ uploadFiles });
 
   const onChangeDebounced = useDebouncedCallback(onChange, 2_000);
-  const [html, setHtml] = React.useState<string>(value ?? '');
-  const onUpdate = React.useCallback(
+  const [html, setHtml] = useState<string>(value ?? '');
+  const onUpdate = useCallback(
     (value: string) => {
       setHtml(value);
       onChangeDebounced(value);
@@ -29,11 +29,12 @@ export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps
     [setHtml, onChangeDebounced],
   );
 
-  const isDirty = React.useMemo(() => value !== html, [value, html]);
+  const isDirty = useMemo(() => value !== html, [value, html]);
 
   const editor = useEditor({
     content: value,
     extensions,
+    editorProps: { attributes: { 'aria-labelledby': ariaLabelledby } },
     onUpdate: ({ editor }) => {
       onUpdate(editor.getHTML());
     },
@@ -43,14 +44,15 @@ export const TipTapEditor = ({ value, onChange, uploadFiles }: TipTapEditorProps
     onChangeDebounced.flush();
   });
 
-  const providerValue = React.useMemo((): EditorContextValue => ({ editor }), [editor]);
+  const providerValue = useMemo((): EditorContextValue => ({ editor }), [editor]);
 
   return (
     <EditorContext.Provider value={providerValue}>
-      <div className="tiptap-editor-wrapper">
+      <div className="fr-p-4v bg-(--background-default-grey)">
         <MenuBar />
         <EditorContent editor={editor} />
         <div
+          aria-live="polite"
           className={clsx(
             "fr-p-2v flex items-center text-xs before:mr-1 before:size-4! before:content-['']",
             {

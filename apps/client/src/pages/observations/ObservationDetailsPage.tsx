@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -6,7 +6,7 @@ import { ObservationDetailsContent } from '@/features/observations/components/Ob
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
-import type { FilesUploader } from '@/shared/ui/tip-tap-editor/extensions/editor-file-uploader';
+import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAttachObservationMemberCommentScreenshotsMutation,
@@ -42,7 +42,7 @@ export function ObservationDetailsPage() {
   const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
   const { mutateAsync: attachFiles } = useAttachObservationMemberCommentScreenshotsMutation();
 
-  const uploadFiles = React.useCallback<FilesUploader>(
+  const uploadFiles = useCallback<FilesUploader>(
     async (files: readonly File[]) => {
       const result = await attachFiles({
         sessionId: sessionId ?? '',
