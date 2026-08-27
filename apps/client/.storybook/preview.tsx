@@ -51,6 +51,10 @@ export default definePreview({
           'Design Tokens',
           'Shared',
           'Features',
+          [
+            'Documents',
+            ['DocumentEditor', ['Agenda', 'OfficialReport', 'PresentationNotice'], 'DocumentScreen'],
+          ],
           'Session',
           [
             'Transparence',

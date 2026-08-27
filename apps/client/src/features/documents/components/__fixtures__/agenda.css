@@ -1,0 +1,58 @@
+main {
+  .content p {
+    text-indent: 2rem;
+    text-align: justify;
+    text-wrap: pretty;
+    line-height: 1.5rem;
+    break-inside: avoid;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+
+  .header {
+    .subtitle-row {
+      margin-top: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    p.introduction {
+      text-indent: 0;
+      text-align: left;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-family: Montserrat, sans-serif;
+      margin: 0;
+      text-align: left;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .date {
+      font-size: 0.9rem;
+      margin: 0;
+      text-align: left;
+    }
+  }
+
+  .footer {
+    break-before: avoid;
+    break-inside: avoid;
+    margin-top: 3rem;
+    font-size: 0.8rem;
+
+    .signature {
+      margin-top: 5rem;
+      text-align: right;
+    }
+  }
+}

@@ -1,10 +1,10 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import React from 'react';
+import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { AgendaBreadCrumb } from '@/features/agenda/components/AgendaBreadcrumb';
-import { AgendaFilesSelection } from '@/features/agenda/components/AgendaFilesSelection';
+import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
+import { AgendaFilesSelection } from '@/features/documents/components/agenda/AgendaFilesSelection';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailsAgendaFilesQuery, useUpdateAgendaFilesMutation } from '@queries/agenda.queries';
@@ -15,13 +15,13 @@ export function AgendaUpdateFilesPage() {
   const { sessionId = '', agendaId = '' } = useParams<{ sessionId: string; agendaId: string }>();
   const navigate = useNavigate();
 
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
   const { data: files, isFetching } = useDetailsAgendaFilesQuery({ agendaId });
   const update = useUpdateAgendaFilesMutation(sessionId, agendaId);
 
-  const onSubmit = React.useCallback(
+  const onSubmit = useCallback(
     (nominationFileIds: readonly string[]) => {
       update.mutate(
         { nominationFileIds: [...nominationFileIds] },
@@ -44,7 +44,7 @@ export function AgendaUpdateFilesPage() {
     [agendaId, formatMessage, navigate, sessionId, update],
   );
 
-  const onCancel = React.useCallback(
+  const onCancel = useCallback(
     () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId })),
     [navigate, sessionId],
   );

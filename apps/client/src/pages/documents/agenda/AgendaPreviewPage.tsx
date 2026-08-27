@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { AgendaDocumentEditor } from '@/features/agenda/components/agenda-editor';
+import { AgendaDocumentEditor } from '@/features/documents/components/agenda/editor';
+import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useAgendaDocumentBlocksQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
@@ -30,8 +32,49 @@ export function AgendaPreviewPage() {
   const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
 
   return (
-    <>
-      <div className="fr-container">
+    <DocumentScreen
+      actions={
+        <>
+          <Button
+            iconId="ri-file-list-3-line"
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+                agendaId: agendaId!,
+                sessionId: sessionId!,
+              }),
+            }}
+            priority="secondary"
+          >
+            <FormattedMessage defaultMessage="Propositions" />
+          </Button>
+          <Button
+            iconId="ri-calendar-event-line"
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+                agendaId: agendaId!,
+                sessionId: sessionId!,
+              }),
+            }}
+            priority="secondary"
+          >
+            <FormattedMessage defaultMessage="Métadonnées" />
+          </Button>
+          <Button
+            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
+            disabled={generatePdf.isPending || hasPendingRevalidation}
+            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            iconPosition="right"
+            onClick={() => generatePdf.mutate()}
+          >
+            {generatePdf.isPending ? (
+              <FormattedMessage defaultMessage="Génération en cours..." />
+            ) : (
+              <FormattedMessage defaultMessage="Valider le document" />
+            )}
+          </Button>
+        </>
+      }
+      breadcrumb={
         <Breadcrumb
           id="breadcrumb"
           ariaLabel="fil d'Ariane"
@@ -47,83 +90,47 @@ export function AgendaPreviewPage() {
             ],
           }}
         />
-      </div>
-
-      <div className="fr-pt-5v mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
-          <h1 className="fr-mb-0">
-            <FormattedMessage defaultMessage="Ordre du jour" />
-          </h1>
-          <div className="flex items-center gap-2">
-            <Button
-              size="small"
-              priority="secondary"
-              iconId="ri-file-list-3-line"
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
-                  agendaId: agendaId!,
-                  sessionId: sessionId!,
-                }),
-              }}
-            >
-              <FormattedMessage defaultMessage="Propositions" />
-            </Button>
-            <Button
-              size="small"
-              priority="secondary"
-              iconId="ri-calendar-event-line"
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
-                  agendaId: agendaId!,
-                  sessionId: sessionId!,
-                }),
-              }}
-            >
-              <FormattedMessage defaultMessage="Métadonnées" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
-          {!isFetchedAfterMount || !agendaId || !document ? (
-            <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
-          ) : (
-            <AgendaDocumentEditor
-              key={agendaId}
-              sessionId={sessionId!}
-              agendaId={agendaId}
-              blocks={document.blocks}
-              onPendingRevalidationChange={setHasPendingRevalidation}
-            />
-          )}
-        </div>
-
-        <div className="fr-px-4v fr-py-6v flex flex-col items-center gap-2 bg-(--background-default-grey)">
-          {hasPendingRevalidation && (
-            <p className="fr-mb-0 text-(--text-default-warning)">
-              <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
-            </p>
-          )}
-          {generatePdf.isError && (
-            <p className="fr-mb-0 text-(--text-default-error)" role="alert">
-              {describeFailure(generatePdf.error)}
-            </p>
-          )}
-          <Button
-            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
-            disabled={generatePdf.isPending || hasPendingRevalidation}
-            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-            iconPosition="right"
-            onClick={() => generatePdf.mutate()}
-          >
-            {generatePdf.isPending ? (
-              <FormattedMessage defaultMessage="Génération en cours..." />
-            ) : (
-              <FormattedMessage defaultMessage="Valider le document" />
+      }
+      notices={
+        <>
+          {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
+          <div role="status">
+            {hasPendingRevalidation && (
+              <AlertBanner
+                className="fr-mt-4v px-4 py-3"
+                icon="fr-icon-warning-fill"
+                message={
+                  <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
+                }
+                tone="warning"
+              />
             )}
-          </Button>
-        </div>
-      </div>
-    </>
+          </div>
+          <div role="alert">
+            {generatePdf.isError && (
+              <AlertBanner
+                className="fr-mt-4v px-4 py-3"
+                icon="fr-icon-error-fill"
+                message={describeFailure(generatePdf.error)}
+                tone="error"
+              />
+            )}
+          </div>
+        </>
+      }
+      title={<FormattedMessage defaultMessage="Ordre du jour" />}
+    >
+      {!isFetchedAfterMount || !agendaId || !document ? (
+        <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
+      ) : (
+        <AgendaDocumentEditor
+          key={agendaId}
+          sessionId={sessionId!}
+          agendaId={agendaId}
+          blocks={document.blocks}
+          onPendingRevalidationChange={setHasPendingRevalidation}
+        />
+      )}
+    </DocumentScreen>
   );
 }

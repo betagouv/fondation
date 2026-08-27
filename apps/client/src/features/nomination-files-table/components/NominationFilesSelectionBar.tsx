@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import type { AgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import type { AgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
 import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';

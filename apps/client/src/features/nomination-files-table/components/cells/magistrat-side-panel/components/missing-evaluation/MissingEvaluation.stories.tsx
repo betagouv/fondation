@@ -38,7 +38,7 @@ function MissingEvaluationStory(props: { isUpdatable: boolean; missingEvaluation
 }
 
 const meta = {
-  title: 'Features/MagistratSidePanel/MissingEvaluation',
+  title: 'Features/SidePanel/MissingEvaluation',
   component: MissingEvaluationStory,
   parameters: { layout: 'padded', router: SG_ROUTE },
   tags: ['autodocs'],

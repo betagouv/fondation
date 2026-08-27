@@ -279,7 +279,7 @@ function ObservationsStory(props: ObservationsArgs) {
 }
 
 const meta = {
-  title: 'Features/MagistratSidePanel/Observations',
+  title: 'Features/SidePanel/Observations',
   component: ObservationsStory,
   beforeEach: ({ args, msw }) => {
     msw.use(...observationHandlers);

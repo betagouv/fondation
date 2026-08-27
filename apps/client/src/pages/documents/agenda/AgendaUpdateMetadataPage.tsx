@@ -1,11 +1,11 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import React from 'react';
+import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { AgendaBreadCrumb } from '@/features/agenda/components/AgendaBreadcrumb';
-import { AgendaMetadataForm } from '@/features/agenda/components/AgendaMetadataForm';
-import type { AgendaMetadata } from '@/features/agenda/context/AgendaContext.types';
+import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
+import { AgendaMetadataForm } from '@/features/documents/components/agenda/AgendaMetadataForm';
+import type { AgendaMetadata } from '@/features/documents/context/AgendaContext.types';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailsAgendaMetadataQuery, useUpdateAgendaMetadataMutation } from '@queries/agenda.queries';
@@ -16,13 +16,13 @@ export function AgendaUpdateMetadataPage() {
   const { sessionId = '', agendaId = '' } = useParams<{ sessionId: string; agendaId: string }>();
   const navigate = useNavigate();
 
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
   const { data: metadata, isFetching } = useDetailsAgendaMetadataQuery({ agendaId });
   const update = useUpdateAgendaMetadataMutation(sessionId, agendaId);
 
-  const onSubmit = React.useCallback(
+  const onSubmit = useCallback(
     (values: AgendaMetadata) => {
       update.mutate(values, {
         onError: async (err) => {
@@ -42,7 +42,7 @@ export function AgendaUpdateMetadataPage() {
     [agendaId, formatMessage, navigate, sessionId, update],
   );
 
-  const onCancel = React.useCallback(
+  const onCancel = useCallback(
     () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId })),
     [navigate, sessionId],
   );

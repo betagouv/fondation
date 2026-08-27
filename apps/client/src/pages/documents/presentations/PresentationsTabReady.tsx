@@ -5,9 +5,9 @@ import { useCallback, type MouseEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { PresentationAgendaSelectionList } from '@/features/presentations/components/PresentationAgendaSelectionList';
-import { usePresentPlanModal } from '@/features/presentations/context/present-plan-modal.context';
-import { PresentPlanModalProvider } from '@/features/presentations/context/PresentPlanModalProvider';
+import { PresentationAgendaSelectionList } from '@/features/documents/components/presentations/PresentationAgendaSelectionList';
+import { usePresentPlanModal } from '@/features/documents/context/present-plan-modal.context';
+import { PresentPlanModalProvider } from '@/features/documents/context/PresentPlanModalProvider';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useToasts } from '@/shared/ui/toast';
 import { FormationEnumLabel } from '@/types/enums.types';

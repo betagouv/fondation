@@ -1,6 +1,6 @@
-import { OfficialReportBreadCrumb } from '@/features/official-report/components/OfficialReportBreadCrumb';
-import { OfficialReportForm } from '@/features/official-report/components/OfficialReportForm';
-import { OfficialReportProvider } from '@/features/official-report/context/OfficialReportProvider';
+import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
+import { OfficialReportForm } from '@/features/documents/components/official-report/OfficialReportForm';
+import { OfficialReportProvider } from '@/features/documents/context/OfficialReportProvider';
 
 export function CreateOrUpdateOfficialReportPage() {
   return (

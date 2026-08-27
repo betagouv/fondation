@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import type { AgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
 import { ToastProvider } from '@/shared/ui/toast';
 
 import { NominationFilesSelectionBar } from './NominationFilesSelectionBar';

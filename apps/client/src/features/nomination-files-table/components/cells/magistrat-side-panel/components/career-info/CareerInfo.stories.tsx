@@ -5,7 +5,7 @@ import { makeSessionNominationFile } from '@/test-utils/factories/session-nomina
 import { CareerInfo } from './CareerInfo';
 
 const meta = {
-  title: 'Features/MagistratSidePanel/CareerInfo',
+  title: 'Features/SidePanel/CareerInfo',
   component: CareerInfo,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],

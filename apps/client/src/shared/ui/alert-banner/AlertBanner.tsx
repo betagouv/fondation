@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
 const TONES = {
+  error: 'bg-(--background-contrast-error) text-(--text-default-error)',
   info: 'bg-(--background-contrast-info) text-(--text-default-info)',
   warning: 'bg-(--background-contrast-warning) text-(--text-default-warning)',
 };
