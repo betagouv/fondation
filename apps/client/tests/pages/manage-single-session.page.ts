@@ -150,7 +150,7 @@ class MagistratSidePanel {
   }
 
   private get attachmentsSection(): Locator {
-    return this.dialog.locator('#magistrat-attachments-section');
+    return this.dialog.locator('[id^="magistrat-attachments-"]');
   }
 
   private get addAttachmentModal(): Locator {

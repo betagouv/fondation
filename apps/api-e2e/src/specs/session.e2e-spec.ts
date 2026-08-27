@@ -164,6 +164,7 @@ test.describe('Session E2E', () => {
           }),
         ],
         hasAttachment: false,
+        hasJurisdictionSheet: false,
       } satisfies NominationFile);
 
       expect(nominationFiles.data!.items).toContainEqual({
@@ -221,6 +222,7 @@ test.describe('Session E2E', () => {
           }),
         ]),
         hasAttachment: false,
+        hasJurisdictionSheet: false,
       } satisfies NominationFile);
     });
 
@@ -257,6 +259,31 @@ test.describe('Session E2E', () => {
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
+      expect(updatedFile?.hasJurisdictionSheet).toBe(true);
+    });
+
+    test('should only flag a jurisdiction sheet for that very type', async ({ agent, expect }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
+
+      const filesBefore = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const nominationFileId = filesBefore.data!.items[0]!.id;
+
+      const uploadRes = await agent.sessions.uploadNominationFileAttachments({
+        path: { sessionId, nominationFileId },
+        body: {
+          files: [makeFile({ type: 'application/pdf', name: 'intention.pdf' })],
+          form: attachmentForm({ type: 'NOTE_INTENTION' }),
+        },
+      });
+      expect(uploadRes.response?.status).toBe(204);
+
+      const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
+      expect(updatedFile?.hasAttachment).toBe(true);
+      expect(updatedFile?.hasJurisdictionSheet).toBe(false);
     });
 
     test('should detail a nomination file exactly as the list serves it', async ({ agent, sessions, expect }) => {

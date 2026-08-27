@@ -1,13 +1,16 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import { revealAttachments } from '../magistrat-side-panel/components/attachments/attachments-section';
+import { useSidePanel } from '../magistrat-side-panel/context/side-panel.context';
 import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
 import { Modal } from '@/shared/ui/modal';
+import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';
 import {
-  useAddNominationSessionAttachmentMutation,
+  useAddNominationFileAttachmentsMutation,
   useNominationFilesAlertMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
@@ -19,12 +22,16 @@ export function NominationFileTargetPositionModal(props: {
   open: boolean;
   sessionId: string;
 }) {
+  const { formatMessage } = useIntl();
+  const sidePanel = useSidePanel();
+  const toasts = useToasts();
+
   const [attempt, setAttempt] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
   const [hasFailed, setHasFailed] = useState(false);
 
   const { mutateAsync: addAttachment, isPending: isAddingAttachment } =
-    useAddNominationSessionAttachmentMutation();
+    useAddNominationFileAttachmentsMutation();
   const { mutateAsync: deleteAlert, isPending: isDeletingAlert } = useNominationFilesAlertMutation({
     sessionId: props.sessionId,
   });
@@ -40,7 +47,12 @@ export function NominationFileTargetPositionModal(props: {
     setHasFailed(false);
 
     try {
-      await addAttachment({ files, sessionId: props.sessionId });
+      await addAttachment({
+        files,
+        nominationFileId: props.nominationFile.id,
+        sessionId: props.sessionId,
+        type: 'FICHE_DE_JURIDICTION',
+      });
     } catch {
       setHasFailed(true);
       setFiles([]);
@@ -48,8 +60,22 @@ export function NominationFileTargetPositionModal(props: {
       return;
     }
 
-    await dismissAlert();
-  }, [addAttachment, dismissAlert, files, props.sessionId]);
+    toasts.success({
+      action: {
+        label: formatMessage({ defaultMessage: 'Voir les pièces jointes' }),
+        onClick: () => {
+          sidePanel.open(props.nominationFile.id);
+          revealAttachments(props.nominationFile.id);
+        },
+      },
+      description: formatMessage({
+        defaultMessage: 'À retrouver dans les pièces jointes du magistrat.',
+      }),
+      title: formatMessage({ defaultMessage: 'Fiche de juridiction importée' }),
+    });
+
+    props.onClose();
+  }, [addAttachment, files, formatMessage, props, sidePanel, toasts]);
 
   return (
     <Modal
@@ -79,7 +105,7 @@ export function NominationFileTargetPositionModal(props: {
         />
       </p>
       <p>
-        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes de la session." />
+        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat, accessibles en cliquant sur son nom dans le tableau." />
       </p>
 
       {hasFailed && (
@@ -89,10 +115,7 @@ export function NominationFileTargetPositionModal(props: {
           description={
             <>
               <p>
-                <FormattedMessage
-                  defaultMessage="Il y a eu une erreur pendant le téléchargement {count, plural, one {du fichier} other {des fichiers}}."
-                  values={{ count: files.length }}
-                />
+                <FormattedMessage defaultMessage="Il y a eu une erreur pendant le téléchargement du fichier." />
               </p>
               <p>
                 <FormattedMessage defaultMessage="Merci de réessayer." />
@@ -112,7 +135,6 @@ export function NominationFileTargetPositionModal(props: {
         isPending={isPending}
         key={attempt}
         label={<FormattedMessage defaultMessage="Importer un fichier" />}
-        multiple
         onChange={setFiles}
       />
     </Modal>

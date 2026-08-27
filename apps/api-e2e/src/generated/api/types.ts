@@ -422,6 +422,7 @@ export type PaginatedNominationFiles = {
             canWrite: boolean;
         } | null;
         hasAttachment: boolean;
+        hasJurisdictionSheet: boolean;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -668,6 +669,7 @@ export type DetailedNominationFileDto = {
         canWrite: boolean;
     } | null;
     hasAttachment: boolean;
+    hasJurisdictionSheet: boolean;
 };
 
 export type DetailedNominationSessionDto = {

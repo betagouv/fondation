@@ -16,10 +16,9 @@ import {
   useRemoveNominationFileAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
+import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
-
-export const ATTACHMENTS_SECTION_ID = 'magistrat-attachments-section';
 
 export function Attachments(props: { isArchived: boolean; nominationFileId: string; sessionId: string }) {
   const isSg = useIsSgNavigation();
@@ -36,7 +35,7 @@ export function Attachments(props: { isArchived: boolean; nominationFileId: stri
   if (attachments.length === 0 && !canManage) return null;
 
   return (
-    <div id={ATTACHMENTS_SECTION_ID}>
+    <div id={attachmentsSectionId(props.nominationFileId)}>
       <div className="fr-mb-4v flex items-center justify-between gap-4">
         <p className="fr-mb-0 text-xl font-semibold" id={labelId}>
           <FormattedMessage
