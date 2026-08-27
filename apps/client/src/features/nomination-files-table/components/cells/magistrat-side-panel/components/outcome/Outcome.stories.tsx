@@ -55,7 +55,7 @@ function OutcomeStory(props: {
 }
 
 const meta = {
-  title: 'Features/MagistratSidePanel/Outcome',
+  title: 'Features/SidePanel/Outcome',
   component: OutcomeStory,
   beforeEach: ({ msw }) => {
     msw.use(...authHandlers);

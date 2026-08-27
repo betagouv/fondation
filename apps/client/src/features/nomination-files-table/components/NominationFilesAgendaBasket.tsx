@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { FormattedMessage } from 'react-intl';
 
-import type { AgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import type { AgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
 
 export function NominationFilesAgendaBasket(props: {
   basket: AgendaBasket;

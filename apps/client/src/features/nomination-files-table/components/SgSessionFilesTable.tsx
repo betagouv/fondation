@@ -6,7 +6,7 @@ import { useNominationFilesTable, type SessionOutcome } from '../context/files-t
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useExportFailure } from '../hooks/useExportFailure';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
-import { useAgendaBasket } from '@/features/agenda/hooks/useAgendaBasket.hook';
+import { useAgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
