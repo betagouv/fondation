@@ -18,6 +18,7 @@ export function DocActionAgendaFiles(props: {
       disabled={props.disabled}
       iconId={ACTION_ICONS.agendaFiles}
       label={formatMessage({ defaultMessage: 'Modifier les propositions de {name}' }, { name: props.name })}
+      small
       to={generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
         agendaId: props.agendaId,
         sessionId: props.sessionId,

@@ -1,8 +1,6 @@
-import clsx from 'clsx';
 import { useIntl } from 'react-intl';
-import { Link } from 'react-router';
 
-import { Tooltip } from '@/shared/ui/tooltip';
+import { IconLink } from '@/shared/ui/icon-button';
 import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 
 export function DetailsLink(props: {
@@ -15,19 +13,13 @@ export function DetailsLink(props: {
 
   if (!props.magistratId) return null;
 
-  const label = formatMessage({ defaultMessage: 'Vers la fiche magistrat' });
-
   return (
-    <Tooltip label={label}>
-      <Link
-        aria-label={label}
-        className={clsx(
-          'fr-btn fr-btn--tertiary-no-outline fr-icon-user-line rounded-full',
-          props.small && 'fr-btn--sm',
-          props.className,
-        )}
-        to={getMagistratDetailsPath({ context: props.context, magistratId: props.magistratId })}
-      />
-    </Tooltip>
+    <IconLink
+      className={props.className}
+      iconId="fr-icon-user-line"
+      label={formatMessage({ defaultMessage: 'Vers la fiche magistrat' })}
+      small={props.small}
+      to={getMagistratDetailsPath({ context: props.context, magistratId: props.magistratId })}
+    />
   );
 }

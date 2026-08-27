@@ -1,46 +1,32 @@
-import clsx from 'clsx';
 import { useIntl } from 'react-intl';
-import { generatePath, Link } from 'react-router';
+import { generatePath } from 'react-router';
 
-import { Tooltip } from '@/shared/ui/tooltip';
+import { IconLink } from '@/shared/ui/icon-button';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 type LolfiTarget = { href: string } | { name?: string | null; nominationFileId: string; sessionId: string };
 
+function lolfiPath(target: Exclude<LolfiTarget, { href: string }>) {
+  return {
+    pathname: generatePath(ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI, {
+      sessionId: target.sessionId,
+      fileId: target.nominationFileId,
+    }),
+    search: target.name ? '?' + new URLSearchParams({ name: target.name }).toString() : undefined,
+  };
+}
+
 export function LolfiLink(props: { className?: string; small?: boolean } & LolfiTarget) {
   const { formatMessage } = useIntl();
-  const label = formatMessage({ defaultMessage: 'Vers LOLFI' });
-
-  const className = clsx(
-    'fr-btn fr-btn--tertiary-no-outline fr-icon-external-link-line rounded-full',
-    props.small && 'fr-btn--sm',
-    props.className,
-  );
 
   return (
-    <Tooltip label={label}>
-      {'href' in props ? (
-        <a
-          aria-label={label}
-          className={className}
-          href={props.href}
-          rel="noopener external noreferrer"
-          target="_blank"
-        />
-      ) : (
-        <Link
-          aria-label={label}
-          className={className}
-          target="_blank"
-          to={{
-            pathname: generatePath(ROUTE_PATHS.REDIRECT_MAGISTRAT_LOLFI, {
-              sessionId: props.sessionId,
-              fileId: props.nominationFileId,
-            }),
-            search: props.name ? '?' + new URLSearchParams({ name: props.name }).toString() : undefined,
-          }}
-        />
-      )}
-    </Tooltip>
+    <IconLink
+      className={props.className}
+      iconId="fr-icon-external-link-line"
+      label={formatMessage({ defaultMessage: 'Vers LOLFI' })}
+      newTab
+      small={props.small}
+      to={'href' in props ? props.href : lolfiPath(props)}
+    />
   );
 }

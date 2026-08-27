@@ -33,6 +33,7 @@ export function DeleteFileButton(props: { fileName: string; onDelete: () => void
       iconId={ACTION_ICONS.delete}
       label={formatMessage({ defaultMessage: 'Supprimer {fileName}' }, { fileName: props.fileName })}
       onClick={onDelete}
+      small
     />
   );
 }

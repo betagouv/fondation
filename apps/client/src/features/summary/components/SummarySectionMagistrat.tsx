@@ -4,7 +4,9 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
 import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { DetailsLink } from '@/shared/components/details-link';
 import { IdentityList } from '@/shared/components/identity-list';
+import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { AlertBanner } from '@/shared/ui/alert-banner';
@@ -24,14 +26,10 @@ export function SummarySectionMagistrat() {
           </div>
         )}
         <h1 className="fr-mb-0">
-          <TitleNameIcons
-            detailsLink={{
-              context: isSg ? 'sg' : 'membre',
-              magistratId: summary.detectedMagistratId,
-            }}
-            lolfi={{ sessionId, nominationFileId }}
-            name={summary.name}
-          />
+          <TitleNameIcons name={summary.name}>
+            <DetailsLink context={isSg ? 'sg' : 'membre'} magistratId={summary.detectedMagistratId} />
+            <LolfiLink name={summary.name} nominationFileId={nominationFileId} sessionId={sessionId} />
+          </TitleNameIcons>
         </h1>
       </header>
 

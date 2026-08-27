@@ -35,6 +35,7 @@ export function DocActionUpdate(props: {
       disabled={disabled}
       iconId={ACTION_ICONS.edit}
       label={formatMessage({ defaultMessage: 'Modifier {name}' }, { name: doc.name })}
+      small
       to={to}
     />
   );

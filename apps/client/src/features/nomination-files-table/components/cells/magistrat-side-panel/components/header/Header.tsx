@@ -16,6 +16,8 @@ import {
 } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { DetailsLink } from '@/shared/components/details-link';
+import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { DropdownHandle } from '@/shared/ui/dropdown';
@@ -111,15 +113,19 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
             <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
           <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
-            <TitleNameIcons
-              detailsLink={{
-                context: isSgContext ? 'sg' : 'membre',
-                magistratId: nominationFile.content.detectedMagistratId,
-              }}
-              lolfi={{ nominationFileId: nominationFile.id, sessionId }}
-              name={nomMagistrat}
-              small
-            />
+            <TitleNameIcons name={nomMagistrat}>
+              <DetailsLink
+                context={isSgContext ? 'sg' : 'membre'}
+                magistratId={nominationFile.content.detectedMagistratId}
+                small
+              />
+              <LolfiLink
+                name={nomMagistrat}
+                nominationFileId={nominationFile.id}
+                sessionId={sessionId}
+                small
+              />
+            </TitleNameIcons>
           </h2>
         </div>
         {canEdit &&

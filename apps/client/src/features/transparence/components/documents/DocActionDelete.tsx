@@ -65,6 +65,7 @@ export function DocActionDelete(props: {
       iconId={ACTION_ICONS.delete}
       label={formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: doc.name })}
       onClick={onDeleteDoc}
+      small
     />
   );
 }
