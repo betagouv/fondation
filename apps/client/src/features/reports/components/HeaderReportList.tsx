@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { type FormationEnum, FormationEnumLabel } from '@/types/enums.types';
-import { dateOnlyToIso, formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import {
+  dateOnlyToIso,
+  formatDateOnly,
+  formatLongDateOnly,
+  type PlainDateOnly,
+} from '@/utils/date-only.util';
 import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
 
 export function HeaderReportList({
@@ -41,17 +46,15 @@ export function HeaderReportList({
           <span className="fr-p-1v shrink-0 rounded-sm bg-(--background-contrast-grey) text-xs font-semibold text-(--text-mention-grey) uppercase">
             {FormationEnumLabel[formation]}
           </span>
-          {transparency}
+          <span className="text-(--text-title-blue-france)">{transparency}</span>
+          <span aria-hidden className="text-(--text-title-blue-france)">
+            -
+          </span>
+          <time className="text-(--text-default-grey)" dateTime={dateOnlyToIso(dateTransparence)}>
+            {formatLongDateOnly(dateTransparence)}
+          </time>
         </h1>
         <dl className="m-0 p-0 text-sm leading-6">
-          <div className="flex gap-x-2">
-            <dt className="text-(--text-mention-grey)">
-              <FormattedMessage defaultMessage="Publiée le" />
-            </dt>
-            <dd className="m-0 p-0 text-(--text-default-grey)">
-              <DisplayedDate dateOnly={dateTransparence} />
-            </dd>
-          </div>
           {dueDate && (
             <div className="flex gap-x-2">
               <dt className="p-0 text-(--text-mention-grey)">
