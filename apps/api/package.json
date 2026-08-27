@@ -45,6 +45,7 @@
     "common-tags": "1.8.2",
     "cookie-parser": "1.4.7",
     "date-fns": "4.4.0",
+    "documents-assets": "workspace:*",
     "exif-be-gone": "1.5.1",
     "nest-commander": "3.20.1",
     "nestjs-cls": "6.2.1",

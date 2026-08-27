@@ -58,6 +58,7 @@
     "@tiptap/react": "3.29.2",
     "clsx": "2.1.1",
     "date-fns": "4.4.0",
+    "documents-assets": "workspace:*",
     "nuqs": "2.9.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
