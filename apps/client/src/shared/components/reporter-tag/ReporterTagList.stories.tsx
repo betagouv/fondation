@@ -12,13 +12,10 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    details: { table: { disable: true } },
-    enableTooltip: { control: 'boolean' },
     max: { control: { type: 'number', min: 1 } },
     reporters: { table: { disable: true } },
   },
   args: {
-    enableTooltip: true,
     max: 3,
     reporters: [
       { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' },
@@ -37,3 +34,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
+
+export const ExcludedJurisdiction: Story = {
+  args: {
+    reporters: [
+      { ...CAMILLE, excludedTitle: "Juridiction exclue pour Camille COMMUN : Cour d'appel de Lyon" },
+      PAUL,
+      SOPHIE,
+    ],
+  },
+};

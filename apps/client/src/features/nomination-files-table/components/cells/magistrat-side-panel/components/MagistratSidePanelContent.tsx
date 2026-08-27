@@ -28,7 +28,7 @@ export function MagistratSidePanelContent(props: {
   return (
     <div className="flex flex-col gap-10 pb-10">
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
-      <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
+      <div className="-mt-10 *:border-t *:border-(--border-open-blue-france)">
         <AuditionNotice
           auditionDate={nominationFile.auditionDate}
           auditionMissing={auditionMissing}

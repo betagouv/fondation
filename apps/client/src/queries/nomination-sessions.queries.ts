@@ -14,7 +14,6 @@ import * as $api from '@api/sdk';
 import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
-  ListedNominationFileAttachmentDto,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
   PaginatedNominationFiles,
@@ -370,12 +369,6 @@ export const useAddNominationFileAttachmentsMutation = () => {
       });
     },
     onSuccess: async (_data, { nominationFileId, sessionId }) => {
-      queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        mapCachedNominationFiles((item) =>
-          item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
-        ),
-      );
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
       });
@@ -391,19 +384,7 @@ export const useRemoveNominationFileAttachmentMutation = () => {
         path: { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       });
     },
-    onSuccess: async (_data, { fileId, nominationFileId, sessionId }) => {
-      const attachments = queryClient.getQueryData<ListedNominationFileAttachmentDto>(
-        sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
-      );
-      const hasAttachment = (attachments?.items ?? []).some((item) => item.id !== fileId);
-
-      queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        mapCachedNominationFiles((item) =>
-          item.id === nominationFileId ? { ...item, hasAttachment } : item,
-        ),
-      );
-
+    onSuccess: async (_data, { nominationFileId, sessionId }) => {
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
       });

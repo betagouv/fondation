@@ -1,20 +1,6 @@
-import { colors } from '@codegouvfr/react-dsfr';
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import clsx from 'clsx';
-
-import { Tooltip } from '@/shared/ui/tooltip';
 
 import { ReporterTag } from './ReporterTag';
-
-const excludedJurisdictionIcon = (
-  <Tooltip label="Juridiction exclue pour Honorine VALROSE : Cour d'appel de Lyon">
-    <i
-      className={clsx(cx('fr-icon-warning-fill'), 'fr-icon--sm shrink-0')}
-      style={{ color: colors.decisions.text.default.warning.default }}
-    />
-  </Tooltip>
-);
 
 const meta = {
   title: 'Shared/ReporterTag',
@@ -23,9 +9,9 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     enableTooltip: { control: 'boolean' },
-    icon: { table: { disable: true } },
+    excludedTitle: { control: 'text' },
     isCurrentUser: { control: 'boolean' },
-    reporter: { control: 'object' },
+    reporter: { table: { disable: true } },
   },
   args: {
     enableTooltip: true,
@@ -41,8 +27,7 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 
 export const ExcludedJurisdiction: Story = {
-  args: { enableTooltip: false },
-  render: (args) => <ReporterTag icon={excludedJurisdictionIcon} {...args} />,
+  args: { excludedTitle: "Juridiction exclue pour Honorine VALROSE : Cour d'appel de Lyon" },
 };
 
 export const CurrentUser: Story = {

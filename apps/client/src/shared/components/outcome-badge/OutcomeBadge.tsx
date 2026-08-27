@@ -12,7 +12,7 @@ function InnerOutcomeBadge(props: {
   outcome: NominationFileOutcomeEnum | null;
   small?: boolean;
 }) {
-  const { badge, acronym, icon, severity } = useOutcomeBadge(props);
+  const { badge, acronym, severity } = useOutcomeBadge(props);
 
   const badgeLabel = props.acronym === true ? acronym : badge.toUpperCase();
 
@@ -29,9 +29,6 @@ function InnerOutcomeBadge(props: {
       severity={severity}
       small={props.small ?? true}
     >
-      {icon && (
-        <i className={`fr-mr-1v leading-3 before:size-3! before:align-middle before:content-[""] ${icon}`} />
-      )}
       {badgeLabel}
     </Badge>
   );

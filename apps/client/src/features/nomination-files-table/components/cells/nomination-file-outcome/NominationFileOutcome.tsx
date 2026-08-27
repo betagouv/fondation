@@ -21,7 +21,7 @@ export function NominationFileOutcome(props: { nominationFile: SessionNomination
 
   return (
     <Tooltip label={outcome.comment}>
-      <div className="flex flex-col items-center" style={{ '--icon-size': '10px' } as CSSProperties}>
+      <div className="flex items-center gap-1" style={{ '--icon-size': '10px' } as CSSProperties}>
         <OutcomeBadge acronym formation={formation} label={label} outcome={outcome.value} />
         <i className="ri-message-3-line fr-icon--sm text-(--text-action-high-blue-france)" />
       </div>
