@@ -543,7 +543,11 @@ export type ListedNominationFileAttachmentDto = {
         name: string;
         size: number | null;
         type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
-        addedAt: string;
+        addedAt: {
+            year: number;
+            month: number;
+            day: number;
+        };
     }>;
 };
 
