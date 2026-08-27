@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useQuery } from '@tanstack/react-query';
 
 import { NominationFileOutcomeCommentModalProvider } from '../../../nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { authHandlers } from '@/shared/storybook/msw.handlers';
+import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
-import { sessionKeys, type SessionNominationFile } from '@queries/nomination-sessions.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { Outcome } from './Outcome';
 
@@ -17,14 +17,10 @@ const SESSION_ID = 'session-1';
 const outcomes = Object.values(NominationFileOutcomeEnum);
 
 function SeededOutcome(props: { nominationFile: SessionNominationFile }) {
-  const { data } = useQuery({
-    queryFn: () => ({ items: [props.nominationFile] }),
-    queryKey: sessionKeys.listSessionNominationFiles({ sessionId: SESSION_ID }),
-    staleTime: Infinity,
+  const [nominationFile = props.nominationFile] = useSeededNominationFiles({
+    files: [props.nominationFile],
+    sessionId: SESSION_ID,
   });
-
-  const nominationFile = data?.items[0];
-  if (!nominationFile) return null;
 
   return <Outcome nominationFile={nominationFile} />;
 }

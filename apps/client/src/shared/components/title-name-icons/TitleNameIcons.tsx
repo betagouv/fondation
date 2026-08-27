@@ -1,15 +1,6 @@
-import { DetailsLink } from '@/shared/components/details-link';
-import { LolfiLink } from '@/shared/components/lolfi-link';
+import type { ReactNode } from 'react';
 
-export function TitleNameIcons(props: {
-  detailsLink?: {
-    context: 'sg' | 'membre';
-    magistratId: string | null | undefined;
-  };
-  lolfi: { href: string } | { nominationFileId: string; sessionId: string };
-  name: string | null;
-  small?: boolean;
-}) {
+export function TitleNameIcons(props: { children: ReactNode; name: string | null }) {
   const words = (props.name ?? '').split(' ');
   const tail = words.pop();
   const start = words.join(' ');
@@ -19,25 +10,7 @@ export function TitleNameIcons(props: {
       {start && `${start} `}
       <span className="inline-flex items-center whitespace-nowrap">
         {tail}
-        <span className="ml-2 inline-flex items-center">
-          {props.detailsLink && (
-            <DetailsLink
-              context={props.detailsLink.context}
-              magistratId={props.detailsLink.magistratId}
-              small={props.small}
-            />
-          )}
-          {'href' in props.lolfi ? (
-            <LolfiLink href={props.lolfi.href} small={props.small} />
-          ) : (
-            <LolfiLink
-              name={props.name}
-              nominationFileId={props.lolfi.nominationFileId}
-              sessionId={props.lolfi.sessionId}
-              small={props.small}
-            />
-          )}
-        </span>
+        <span className="ml-2 inline-flex items-center">{props.children}</span>
       </span>
     </>
   );

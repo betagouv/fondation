@@ -6,7 +6,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 export type AuditionExpectation = {
   auditionMissing: boolean;
-  label: string | null;
+  labels: string[];
   reportersMissing: boolean;
 };
 
@@ -27,17 +27,15 @@ export function useAuditionExpectation(
   );
   const reportersAnnounced = isSg && reportersMissing;
 
-  function label() {
-    if (auditionMissing && reportersAnnounced)
-      return formatMessage({
-        defaultMessage: 'Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste',
-      });
-    if (auditionMissing) return formatMessage({ defaultMessage: 'Une audition est à prévoir pour ce poste' });
+  function labels() {
+    const announcements: string[] = [];
+    if (auditionMissing)
+      announcements.push(formatMessage({ defaultMessage: 'Une audition est à prévoir pour ce poste' }));
     if (reportersAnnounced)
-      return formatMessage({ defaultMessage: '2 rapporteurs sont attendus pour ce poste' });
+      announcements.push(formatMessage({ defaultMessage: '2 rapporteurs sont attendus pour ce poste' }));
 
-    return null;
+    return announcements;
   }
 
-  return { auditionMissing, label: label(), reportersMissing };
+  return { auditionMissing, labels: labels(), reportersMissing };
 }

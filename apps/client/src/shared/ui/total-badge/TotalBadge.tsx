@@ -1,13 +1,17 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
+import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import type { ReactNode } from 'react';
 
-export function TotalBadge(props: { children: ReactNode; value: NonNullable<ReactNode> }) {
+export function TotalBadge(props: {
+  children: ReactNode;
+  severity?: BadgeProps['severity'];
+  value: NonNullable<ReactNode>;
+}) {
   return (
-    <p className="fr-m-0 flex items-center gap-2 text-sm">
+    <span className="inline-flex items-center gap-2 text-sm">
       {props.children}
-      <Badge as="span" className="normal-case" noIcon small>
+      <Badge as="span" className="normal-case" noIcon severity={props.severity} small>
         {props.value}
       </Badge>
-    </p>
+    </span>
   );
 }

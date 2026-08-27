@@ -374,11 +374,7 @@ export const useAddNominationFileAttachmentsMutation = () => {
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
           item.id === nominationFileId
-            ? {
-                ...item,
-                hasAttachment: true,
-                hasJurisdictionSheet: item.hasJurisdictionSheet || type === 'FICHE_DE_JURIDICTION',
-              }
+            ? { ...item, hasJurisdictionSheet: item.hasJurisdictionSheet || type === 'FICHE_DE_JURIDICTION' }
             : item,
         ),
       );
@@ -409,11 +405,7 @@ export const useRemoveNominationFileAttachmentMutation = () => {
           { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
           mapCachedNominationFiles((item) =>
             item.id === nominationFileId
-              ? {
-                  ...item,
-                  hasAttachment: remaining.length > 0,
-                  hasJurisdictionSheet: remaining.some((x) => x.type === 'FICHE_DE_JURIDICTION'),
-                }
+              ? { ...item, hasJurisdictionSheet: remaining.some((x) => x.type === 'FICHE_DE_JURIDICTION') }
               : item,
           ),
         );

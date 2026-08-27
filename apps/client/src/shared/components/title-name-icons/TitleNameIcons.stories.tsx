@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import clsx from 'clsx';
 
+import { DetailsLink } from '@/shared/components/details-link';
+import { LolfiLink } from '@/shared/components/lolfi-link';
+
 import { TitleNameIcons } from './TitleNameIcons';
 
 const meta = {
@@ -9,8 +12,7 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    detailsLink: { table: { disable: true } },
-    lolfi: { table: { disable: true } },
+    children: { table: { disable: true } },
   },
 } satisfies Meta<typeof TitleNameIcons>;
 
@@ -38,15 +40,14 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   },
   render: (args) => (
     <h2 className={clsx('fr-h3 fr-mb-0', args.titleColor === 'blue' && 'text-(--text-title-blue-france)')}>
-      <TitleNameIcons
-        detailsLink={{
-          context: 'membre',
-          magistratId: args.hasDetectedMagistrat ? 'magistrat-1' : null,
-        }}
-        lolfi={{ sessionId: 'session-1', nominationFileId: 'file-1' }}
-        name={args.name}
-        small={args.small}
-      />
+      <TitleNameIcons name={args.name}>
+        <DetailsLink
+          context="membre"
+          magistratId={args.hasDetectedMagistrat ? 'magistrat-1' : null}
+          small={args.small}
+        />
+        <LolfiLink name={args.name} nominationFileId="file-1" sessionId="session-1" small={args.small} />
+      </TitleNameIcons>
     </h2>
   ),
 };
@@ -54,11 +55,9 @@ export const Playground: StoryObj<PlaygroundArgs> = {
 export const LolfiOnly: StoryObj = {
   render: () => (
     <h2 className="fr-h3 fr-mb-0">
-      <TitleNameIcons
-        lolfi={{ href: 'https://lolfi.example.fr/magistrat/1' }}
-        name="Mme DUPONT Anne-Charlotte"
-        small
-      />
+      <TitleNameIcons name="Mme DUPONT Anne-Charlotte">
+        <LolfiLink href="https://lolfi.example.fr/magistrat/1" small />
+      </TitleNameIcons>
     </h2>
   ),
 };

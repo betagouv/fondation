@@ -2,7 +2,6 @@ import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import { useMemo } from 'react';
 
 import { type FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
-import type { IconClassName } from '@/types/icons.types';
 
 const OUTCOME_BADGE_LABELS = {
   PARQUET: {
@@ -46,16 +45,6 @@ const OUTCOME_BADGE_ACRONYM = {
   },
 } as const satisfies Record<FormationEnum, Record<NominationFileOutcomeEnum, string>>;
 
-const OUTCOME_BADGE_ICON = {
-  VALIDATED: 'fr-icon-success-fill',
-  NON_VALIDATED: 'fr-icon-error-fill',
-  SUSPENDED: 'ri-timer-fill',
-  REMOVED: 'fr-icon-warning-fill',
-  WITHDRAWN: undefined,
-  ASSESSING: 'ri-timer-fill',
-  WAITING_DSJ: 'ri-timer-fill',
-} as const satisfies Record<NominationFileOutcomeEnum, IconClassName | undefined>;
-
 const OUTCOME_BADGE_SEVERITY = {
   VALIDATED: 'success',
   NON_VALIDATED: 'error',
@@ -76,13 +65,11 @@ export const useOutcomeBadge = (outcome: {
         ? {
             badge: '',
             acronym: '',
-            icon: undefined,
             severity: undefined,
           }
         : {
             badge: OUTCOME_BADGE_LABELS[outcome.formation][outcome.outcome],
             acronym: OUTCOME_BADGE_ACRONYM[outcome.formation][outcome.outcome],
-            icon: OUTCOME_BADGE_ICON[outcome.outcome],
             severity: OUTCOME_BADGE_SEVERITY[outcome.outcome],
           },
     [outcome],

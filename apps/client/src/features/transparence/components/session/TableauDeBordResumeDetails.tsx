@@ -17,11 +17,10 @@ function Detail(props: { date: PlainDateOnly | null | undefined; label: ReactNod
 }
 
 export const TableauDeBordResumeDetails = (transparence: DetailedNominationSessionDto) => {
-  const { date, dueDate, observationsClosingDate, positionStartDate } = transparence;
+  const { dueDate, observationsClosingDate, positionStartDate } = transparence;
 
   return (
     <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-      <Detail date={date} label={<FormattedMessage defaultMessage="Publiée le" />} />
       <Detail
         date={observationsClosingDate}
         label={<FormattedMessage defaultMessage="Délai d'observation" />}

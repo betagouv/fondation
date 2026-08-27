@@ -2,10 +2,14 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
+const ALERTING = 'text-sm-plus font-medium';
+const RESOLVED = 'text-sm leading-6';
+
 const TONES = {
-  error: 'bg-(--background-contrast-error) text-(--text-default-error)',
-  info: 'bg-(--background-contrast-info) text-(--text-default-info)',
-  warning: 'bg-(--background-contrast-warning) text-(--text-default-warning)',
+  error: `bg-(--background-contrast-error) text-(--text-default-error) ${ALERTING}`,
+  info: `bg-(--background-contrast-info) text-(--text-default-info) ${RESOLVED}`,
+  neutral: `bg-(--background-contrast-grey) text-(--text-default-grey) ${RESOLVED}`,
+  warning: `bg-(--background-contrast-warning) text-(--text-default-warning) ${ALERTING}`,
 };
 
 export function AlertBanner(props: {
@@ -19,7 +23,7 @@ export function AlertBanner(props: {
   return (
     <div
       className={clsx(
-        'flex min-h-6 gap-2 text-sm-plus font-medium',
+        'flex min-h-6 gap-2',
         props.align === 'center' ? 'items-center' : 'items-start',
         TONES[props.tone],
         props.className,

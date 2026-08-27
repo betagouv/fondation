@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate } from 'react-router';
 
+import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -81,10 +82,10 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
           </p>
           <h1 className="fr-h2 fr-mb-0">
             <TitleNameIcons
-              lolfi={{ href: magistrat.externalUrl }}
               name={`${capitalize(magistrat.civilite.toLowerCase())} ${fullNameCapitalized(magistrat)}`}
-              small
-            />
+            >
+              <LolfiLink href={magistrat.externalUrl} small />
+            </TitleNameIcons>
           </h1>
         </div>
       </div>

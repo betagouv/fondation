@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { AuditionNotice } from '../audition-date/AuditionNotice';
-import { MissingEvaluationNotice } from '../missing-evaluation/MissingEvaluation';
+import { MissingEvaluation } from '../missing-evaluation/MissingEvaluation';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
@@ -14,6 +15,7 @@ import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys, type ListMembersOptions } from '@queries/members.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { reportKeys } from '@queries/reports.queries';
 
 import { Header } from './Header';
@@ -25,6 +27,27 @@ const priorities = Object.values(PrioriteEnum);
 
 const REPORTER_SCENARIOS = ['none', 'others', 'you'] as const;
 type ReporterScenario = (typeof REPORTER_SCENARIOS)[number];
+
+const AUDITION_SCENARIOS = ['none', 'expected', 'scheduled', 'past'] as const;
+type AuditionScenario = (typeof AUDITION_SCENARIOS)[number];
+
+const AUDITIONED_POSITION = { auditionExpected: true, expectedReportersCount: 2 };
+const SCHEDULED_AT = {
+  auditionDate: { year: 2026, month: 9, day: 15 },
+  auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+};
+const HELD_AT = {
+  auditionDate: { year: 2020, month: 1, day: 10 },
+  auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+};
+
+function auditionFor(scenario: AuditionScenario) {
+  if (scenario === 'scheduled') return { ...AUDITIONED_POSITION, ...SCHEDULED_AT };
+  if (scenario === 'past') return { ...AUDITIONED_POSITION, ...HELD_AT };
+  if (scenario === 'expected') return { ...AUDITIONED_POSITION, auditionDate: null, auditionTime: null };
+
+  return { auditionDate: null, auditionExpected: false, auditionTime: null, expectedReportersCount: null };
+}
 
 const OTHER_REPORTERS = [
   { firstName: 'Marie', id: 'reporter-1', lastName: 'Lefevre' },
@@ -125,12 +148,33 @@ function seedQueries(
 const VIEWS = ['sg', 'sgArchived', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
+function HeaderNotices(props: { editable: boolean; nominationFile: SessionNominationFile }) {
+  const [nominationFile = props.nominationFile] = useSeededNominationFiles({
+    files: [props.nominationFile],
+    sessionId: SESSION_ID,
+  });
+
+  return (
+    <div className="flex flex-col gap-10">
+      <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
+      <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
+        <AuditionNotice
+          auditionDate={nominationFile.auditionDate}
+          auditionMissing={isAuditionMissing(nominationFile)}
+          auditionTime={nominationFile.auditionTime}
+          editable={props.editable && nominationFile.canScheduleAudition}
+        />
+        <MissingEvaluation editable={props.editable} nominationFile={nominationFile} sessionId={SESSION_ID} />
+      </div>
+    </div>
+  );
+}
+
 function HeaderStory(props: {
-  auditionScheduled?: boolean;
-  auditionedPosition?: boolean;
+  audition: AuditionScenario;
   excludedJurisdiction?: ExclusionScenario;
+  magistratName: string;
   missingEvaluation?: boolean;
-  nomMagistrat: string;
   priorities: PrioriteEnum[];
   reporters: ReporterScenario;
   view: View;
@@ -144,14 +188,11 @@ function HeaderStory(props: {
   }, [isSg, navigate]);
 
   const nominationFile = makeSessionNominationFile({
-    auditionDate: props.auditionScheduled ? { year: 2026, month: 9, day: 15 } : null,
-    auditionExpected: !!props.auditionedPosition,
-    auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
+    ...auditionFor(props.audition),
     content: {
       jurisdictions: jurisdictionsFor(props.excludedJurisdiction ?? 'none'),
-      nomMagistrat: props.nomMagistrat,
+      nomMagistrat: props.magistratName,
     },
-    expectedReportersCount: props.auditionedPosition ? 2 : null,
     missingEvaluation: !!props.missingEvaluation,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
@@ -161,7 +202,7 @@ function HeaderStory(props: {
 
   return (
     <StoryQueryClient
-      key={`${props.view}-${props.reporters}-${props.excludedJurisdiction}`}
+      key={JSON.stringify(props)}
       seed={(client) =>
         seedQueries(
           client,
@@ -177,19 +218,7 @@ function HeaderStory(props: {
         outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
         sessionId={SESSION_ID}
       >
-        <div className="flex flex-col gap-10">
-          <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
-          <AuditionNotice
-            auditionDate={nominationFile.auditionDate}
-            auditionMissing={isAuditionMissing(nominationFile)}
-            auditionTime={nominationFile.auditionTime}
-            editable={isSg && nominationFile.canScheduleAudition}
-          />
-          <MissingEvaluationNotice
-            editable={isSg && nominationFile.content.isUpdatable}
-            missingEvaluation={nominationFile.missingEvaluation}
-          />
-        </div>
+        <HeaderNotices editable={isSg} nominationFile={nominationFile} />
       </NominationFilesTableProvider>
     </StoryQueryClient>
   );
@@ -201,21 +230,23 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    auditionScheduled: { control: 'boolean' },
-    auditionedPosition: { control: 'boolean' },
+    audition: {
+      control: 'inline-radio',
+      description: 'expected, scheduled and past all describe an auditioned position, expecting 2 reporters',
+      options: AUDITION_SCENARIOS,
+    },
     excludedJurisdiction: { control: 'inline-radio', options: EXCLUSION_SCENARIOS },
+    magistratName: { control: 'text' },
     missingEvaluation: { control: 'boolean' },
-    nomMagistrat: { control: 'text' },
     priorities: { control: 'check', options: priorities },
     reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
     view: { table: { disable: true } },
   },
   args: {
-    auditionScheduled: false,
-    auditionedPosition: false,
+    audition: 'none',
     excludedJurisdiction: 'none',
+    magistratName: 'Camille DURAND',
     missingEvaluation: false,
-    nomMagistrat: 'Camille DURAND',
     priorities: [PrioriteEnum.ETOILE],
     reporters: 'others',
     view: 'sg',
@@ -227,7 +258,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {
-  args: { priorities: [PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER], reporters: 'others', view: 'sg' },
+  args: {
+    audition: 'past',
+    missingEvaluation: false,
+    priorities: [PrioriteEnum.ETOILE, PrioriteEnum.OUTRE_MER],
+    reporters: 'others',
+    view: 'sg',
+  },
   argTypes: {
     reporters: { control: 'inline-radio', options: ['none', 'others'] },
     view: { control: 'inline-radio', options: ['sg', 'sgArchived'], table: { disable: false } },

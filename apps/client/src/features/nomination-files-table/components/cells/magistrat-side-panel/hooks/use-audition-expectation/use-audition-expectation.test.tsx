@@ -44,7 +44,7 @@ describe('useAuditionExpectation', () => {
   it('announces both the audition and the missing reporters to the secretariat', () => {
     expect(renderExpectation({ ...AUDITIONED, reporters: REPORTERS.slice(0, 1) })).toEqual({
       auditionMissing: true,
-      label: 'Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste',
+      labels: ['Une audition est à prévoir pour ce poste', '2 rapporteurs sont attendus pour ce poste'],
       reportersMissing: true,
     });
   });
@@ -52,7 +52,7 @@ describe('useAuditionExpectation', () => {
   it('announces the missing reporters once the audition is scheduled', () => {
     expect(renderExpectation({ ...AUDITIONED, auditionDate: SCHEDULED, reporters: [] })).toEqual({
       auditionMissing: false,
-      label: '2 rapporteurs sont attendus pour ce poste',
+      labels: ['2 rapporteurs sont attendus pour ce poste'],
       reportersMissing: true,
     });
   });
@@ -62,7 +62,7 @@ describe('useAuditionExpectation', () => {
       renderExpectation({ ...AUDITIONED, reporters: REPORTERS.slice(0, 1) }, { route: MEMBER_ROUTE }),
     ).toEqual({
       auditionMissing: true,
-      label: 'Une audition est à prévoir pour ce poste',
+      labels: ['Une audition est à prévoir pour ce poste'],
       reportersMissing: true,
     });
   });
@@ -70,7 +70,7 @@ describe('useAuditionExpectation', () => {
   it('announces nothing once the audition is scheduled and both reporters are affected', () => {
     expect(renderExpectation({ ...AUDITIONED, auditionDate: SCHEDULED, reporters: REPORTERS })).toEqual({
       auditionMissing: false,
-      label: null,
+      labels: [],
       reportersMissing: false,
     });
   });
@@ -83,13 +83,13 @@ describe('useAuditionExpectation', () => {
         content: { isUpdatable: false },
         reporters: REPORTERS.slice(0, 1),
       }),
-    ).toEqual({ auditionMissing: false, label: null, reportersMissing: false });
+    ).toEqual({ auditionMissing: false, labels: [], reportersMissing: false });
   });
 
   it('follows the reporters being selected rather than the affected ones', () => {
     expect(renderExpectation({ ...AUDITIONED, reporters: [] }, { selectedReportersCount: 2 })).toEqual({
       auditionMissing: true,
-      label: 'Une audition est à prévoir pour ce poste',
+      labels: ['Une audition est à prévoir pour ce poste'],
       reportersMissing: false,
     });
   });

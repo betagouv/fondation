@@ -8,7 +8,7 @@ import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 import { AUDITION_SECTION_ID } from './AuditionDate';
 import { AUDITION_DATE_INPUT_ID } from './AuditionDateForm';
 
-const NOTICE_LAYOUT = '-mx-8 -mt-10 px-8 py-4';
+const NOTICE_LAYOUT = '-mx-8 px-8 py-4';
 
 export function AuditionNotice(props: {
   auditionDate: PlainDateOnly | null;

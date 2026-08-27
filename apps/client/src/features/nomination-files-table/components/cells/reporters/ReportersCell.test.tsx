@@ -45,26 +45,31 @@ function renderCell(
 }
 
 describe('ReportersCell', () => {
-  it('names every reporter in the single tooltip of the list', () => {
+  it('names each reporter in its own tooltip, and addresses the current user', () => {
     renderCell([]);
 
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Camille COMMUN et Paul PARQUET');
+    expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
+      'Camille COMMUN',
+      'Vous',
+    ]);
   });
 
-  it('adds the excluded jurisdiction of a reporter to that same tooltip', () => {
+  it('states the excluded jurisdiction in the tooltip of the reporter it concerns', () => {
     renderCell([LYON]);
 
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+    expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
-    );
+      'Vous',
+    ]);
   });
 
-  it('gathers the reporters sharing a jurisdiction on a single line, as the notice does', () => {
+  it('states it for every reporter sharing that jurisdiction', () => {
     renderCell([LYON], [LYON]);
 
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-      `Juridiction exclue pour Camille COMMUN et Paul PARQUET : ${LYON.label}`,
-    );
+    expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
+      `Juridiction exclue pour Paul PARQUET : ${LYON.label}`,
+    ]);
   });
 
   it('flags the excluded reporter only, and leaves the icon silent for screen readers', () => {
@@ -72,7 +77,7 @@ describe('ReportersCell', () => {
 
     const [camille, paul] = screen.getAllByRole('listitem');
     expect(within(camille).getByText('CC')).toBeInTheDocument();
-    expect(container.querySelectorAll('.fr-icon-warning-fill')).toHaveLength(1);
+    expect(container.querySelectorAll('.fr-icon-error-line')).toHaveLength(1);
     expect(within(paul).queryByRole('img')).not.toBeInTheDocument();
   });
 });

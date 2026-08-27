@@ -47,7 +47,7 @@ describe('SidePanelTrigger', () => {
     renderTrigger({
       auditionDate: { year: 2099, month: 4, day: 12 },
       content: { nomMagistrat: 'DUPONT DE LA TOUR Anne-Charlotte' },
-      hasAttachment: true,
+      memo: 'un mémo',
     });
 
     const nowrapGroup = screen
@@ -57,7 +57,40 @@ describe('SidePanelTrigger', () => {
     expect(nowrapGroup).toHaveTextContent('Anne-Charlotte');
     expect(nowrapGroup).not.toHaveTextContent('TOUR');
     expect(nowrapGroup).toContainElement(
-      screen.getByRole('img', { name: 'Au moins une pièce jointe est présente' }),
+      screen.getByRole('img', { name: 'Ce dossier a des annotations (mémo)' }),
     );
+  });
+
+  it('should not display an attachment icon', () => {
+    renderTrigger({ hasAttachment: true });
+
+    expect(screen.queryByRole('img', { name: 'Au moins une pièce jointe est présente' })).toBeNull();
+  });
+
+  it('should warn about the missing evaluation next to the name', () => {
+    renderTrigger({ missingEvaluation: true });
+
+    expect(screen.getByRole('button')).toHaveAccessibleDescription(
+      'Évaluation manquante dans le dossier administratif LOLFI',
+    );
+  });
+
+  it('should gather the expected audition and the missing evaluation in a single warning', () => {
+    renderTrigger({ auditionExpected: true, missingEvaluation: true });
+
+    expect(screen.getByRole('button')).toHaveAccessibleDescription(
+      'Une audition est à prévoir pour ce poste. Évaluation manquante dans le dossier administratif LOLFI',
+    );
+  });
+
+  it('should list the warnings one per line in the tooltip', () => {
+    const { container } = renderTrigger({ auditionExpected: true, missingEvaluation: true });
+
+    const lines = container.querySelectorAll('[role="tooltip"] li');
+
+    expect([...lines].map((line) => line.textContent)).toEqual([
+      '- Une audition est à prévoir pour ce poste',
+      '- Évaluation manquante dans le dossier administratif LOLFI',
+    ]);
   });
 });

@@ -11,8 +11,22 @@ const dateOnlyFormatter = new Intl.DateTimeFormat('fr', {
   year: 'numeric',
 });
 
+const longDateOnlyFormatter = new Intl.DateTimeFormat('fr', {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+  year: 'numeric',
+});
+
 export function formatDateOnly(dateOnly: PlainDateOnly): string {
   return dateOnlyFormatter.format(Date.UTC(dateOnly.year, dateOnly.month - 1, dateOnly.day));
+}
+
+export function formatLongDateOnly(dateOnly: PlainDateOnly): string {
+  return longDateOnlyFormatter
+    .formatToParts(Date.UTC(dateOnly.year, dateOnly.month - 1, dateOnly.day))
+    .map((part) => (part.type === 'day' && part.value === '1' ? '1er' : part.value))
+    .join('');
 }
 
 export function dateOnlyToIso(dateOnly: PlainDateOnly): string;

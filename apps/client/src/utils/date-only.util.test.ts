@@ -7,6 +7,7 @@ import {
   dateOnlyToIso,
   dateOnlyToLocalStartOfDay,
   formatDateOnly,
+  formatLongDateOnly,
 } from './date-only.util';
 
 const FIRST_OF_JUNE = { day: 1, month: 6, year: 2026 };
@@ -48,6 +49,22 @@ describe('formatDateOnly', () => {
   it('keeps the day a calendar date carries, not the day its instant falls on', () => {
     expect(formatDateOnly({ day: 31, month: 12, year: 2026 })).toBe('31/12/2026');
     expect(formatDateOnly({ day: 1, month: 1, year: 2027 })).toBe('01/01/2027');
+  });
+});
+
+describe('formatLongDateOnly', () => {
+  it.each(FRENCH_TIME_ZONES)('reads the same day from %s', async (timeZone) => {
+    vi.resetModules();
+    process.env.TZ = timeZone;
+    const { formatLongDateOnly: reloaded } = await import('./date-only.util');
+
+    expect(reloaded(FIRST_OF_JUNE)).toBe('1er juin 2026');
+  });
+
+  it('writes the first of the month as an ordinal', () => {
+    expect(formatLongDateOnly({ day: 1, month: 4, year: 2026 })).toBe('1er avril 2026');
+    expect(formatLongDateOnly({ day: 2, month: 4, year: 2026 })).toBe('2 avril 2026');
+    expect(formatLongDateOnly({ day: 21, month: 11, year: 2026 })).toBe('21 novembre 2026');
   });
 });
 

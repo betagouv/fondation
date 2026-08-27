@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 
 import { Tooltip } from '@/shared/ui/tooltip';
 
-const ICON_CLASS = clsx(cx('fr-icon-warning-fill'), 'fr-icon--sm', 'shrink-0', 'align-middle');
+const ICON_CLASS = clsx(cx('fr-icon-error-line'), 'fr-icon--sm', 'shrink-0', 'align-middle');
 const ICON_STYLE = { color: colors.decisions.text.default.warning.default };
 
 export function ExcludedJurisdictionIcon(props: { title?: string }) {

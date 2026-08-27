@@ -198,6 +198,7 @@ export function TransparenceAttachmentsTab() {
               iconId={ACTION_ICONS.download}
               label={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: attachment.name })}
               onClick={() => onDownload(attachment)}
+              small
             />
 
             {!isArchived && (
