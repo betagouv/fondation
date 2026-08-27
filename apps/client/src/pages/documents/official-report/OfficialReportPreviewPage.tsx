@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { OfficialReportDocumentEditor } from '@/features/official-report/components/official-report-editor/OfficialReportDocumentEditor';
+import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
+import { OfficialReportDocumentEditor } from '@/features/documents/components/official-report/editor/OfficialReportDocumentEditor';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -38,8 +40,37 @@ export function OfficialReportPreviewPage() {
   const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
 
   return (
-    <>
-      <div className="fr-container">
+    <DocumentScreen
+      actions={
+        <>
+          <Button
+            iconId="ri-edit-fill"
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+                officialReportId: officialReportId!,
+                sessionId: sessionId!,
+              }),
+            }}
+            priority="secondary"
+          >
+            <FormattedMessage defaultMessage="Métadonnées" />
+          </Button>
+          <Button
+            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
+            disabled={generatePdf.isPending || hasPendingRevalidation}
+            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            iconPosition="right"
+            onClick={() => generatePdf.mutate()}
+          >
+            {generatePdf.isPending ? (
+              <FormattedMessage defaultMessage="Génération en cours..." />
+            ) : (
+              <FormattedMessage defaultMessage="Valider le document" />
+            )}
+          </Button>
+        </>
+      }
+      breadcrumb={
         <Breadcrumb
           id="breadcrumb"
           ariaLabel="fil d'Ariane"
@@ -55,68 +86,47 @@ export function OfficialReportPreviewPage() {
             ],
           }}
         />
-      </div>
-
-      <div className="fr-pt-5v mx-auto flex h-[calc(100svh-3rem)] max-w-7xl flex-col">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
-          <h1 className="fr-mb-0">
-            <FormattedMessage defaultMessage="PV de restitution" />
-          </h1>
-          <Button
-            size="small"
-            priority="secondary"
-            iconId="ri-edit-fill"
-            linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
-                officialReportId: officialReportId!,
-                sessionId: sessionId!,
-              }),
-            }}
-          >
-            <FormattedMessage defaultMessage="Métadonnées" />
-          </Button>
-        </div>
-
-        <div className="fr-mt-6v flex min-h-0 flex-1 gap-6">
-          {!isFetchedAfterMount || !officialReportId || !document ? (
-            <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
-          ) : (
-            <OfficialReportDocumentEditor
-              key={officialReportId}
-              sessionId={sessionId!}
-              officialReportId={officialReportId}
-              blocks={document.blocks}
-              onPendingRevalidationChange={setHasPendingRevalidation}
-            />
-          )}
-        </div>
-
-        <div className="fr-px-4v fr-py-6v flex flex-col items-center gap-2 bg-(--background-default-grey)">
-          {hasPendingRevalidation && (
-            <p className="fr-mb-0 text-(--text-default-warning)">
-              <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs et doivent être validés" />
-            </p>
-          )}
-          {generatePdf.isError && (
-            <p className="fr-mb-0 text-(--text-default-error)" role="alert">
-              {describeFailure(generatePdf.error)}
-            </p>
-          )}
-          <Button
-            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
-            disabled={generatePdf.isPending || hasPendingRevalidation}
-            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-            iconPosition="right"
-            onClick={() => generatePdf.mutate()}
-          >
-            {generatePdf.isPending ? (
-              <FormattedMessage defaultMessage="Génération en cours..." />
-            ) : (
-              <FormattedMessage defaultMessage="Valider le document" />
+      }
+      notices={
+        <>
+          {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
+          <div role="status">
+            {hasPendingRevalidation && (
+              <AlertBanner
+                className="fr-mt-4v px-4 py-3"
+                icon="fr-icon-warning-fill"
+                message={
+                  <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs et doivent être validés" />
+                }
+                tone="warning"
+              />
             )}
-          </Button>
-        </div>
-      </div>
-    </>
+          </div>
+          <div role="alert">
+            {generatePdf.isError && (
+              <AlertBanner
+                className="fr-mt-4v px-4 py-3"
+                icon="fr-icon-error-fill"
+                message={describeFailure(generatePdf.error)}
+                tone="error"
+              />
+            )}
+          </div>
+        </>
+      }
+      title={<FormattedMessage defaultMessage="PV de restitution" />}
+    >
+      {!isFetchedAfterMount || !officialReportId || !document ? (
+        <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
+      ) : (
+        <OfficialReportDocumentEditor
+          key={officialReportId}
+          sessionId={sessionId!}
+          officialReportId={officialReportId}
+          blocks={document.blocks}
+          onPendingRevalidationChange={setHasPendingRevalidation}
+        />
+      )}
+    </DocumentScreen>
   );
 }

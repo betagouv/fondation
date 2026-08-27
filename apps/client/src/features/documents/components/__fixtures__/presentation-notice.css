@@ -1,0 +1,39 @@
+h1 {
+  margin-bottom: 0;
+}
+
+h2 {
+  color: var(--deep-blue);
+  font-size: 1rem;
+  margin-top: 0.25rem;
+}
+
+h3 {
+  color: var(--gold);
+  break-after: avoid;
+
+  &:first-of-type {
+    margin-top: 3rem;
+  }
+}
+
+main {
+  ul {
+    list-style: none;
+    padding-left: 1rem;
+  }
+
+  p {
+    line-height: 1.5rem;
+  }
+
+  li {
+    font-size: 0.8rem;
+    line-height: 1.5rem;
+    break-inside: avoid;
+  }
+
+  li + li {
+    margin-top: 1rem;
+  }
+}

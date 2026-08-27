@@ -1,3 +1,7 @@
+:root {
+  --document-bar-offset: 0px;
+}
+
 .ProseMirror-selectednode:has(.doc-block) {
   outline: none;
 }

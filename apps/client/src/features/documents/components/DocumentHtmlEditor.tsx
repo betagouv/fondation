@@ -7,16 +7,19 @@ import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
-import React from 'react';
+import clsx from 'clsx';
+import { useCallback, useMemo } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
-import './DocumentEditor.css';
+import {
+  BoldButton,
+  BulletListButton,
+  ItalicButton,
+  RedoButton,
+  UndoButton,
+} from '@/shared/ui/tip-tap-editor';
 
-import { BoldButton } from '@/shared/ui/tip-tap-editor/buttons/BoldButton';
-import { BulletListButton } from '@/shared/ui/tip-tap-editor/buttons/BulletListButton';
-import { ItalicButton } from '@/shared/ui/tip-tap-editor/buttons/ItalicButton';
-import { RedoButton } from '@/shared/ui/tip-tap-editor/buttons/RedoButton';
-import { UndoButton } from '@/shared/ui/tip-tap-editor/buttons/UndoButton';
+import { DOCUMENT_CONTENT_CLASSES } from './document-content';
 
 function extractEditableContent(html: string | undefined | null): string {
   const doc = new DOMParser().parseFromString(html ?? '', 'text/html');
@@ -24,12 +27,12 @@ function extractEditableContent(html: string | undefined | null): string {
 }
 
 function useContentReinjector(originalHtml: string | undefined | null) {
-  const parsedDoc = React.useMemo(
+  const parsedDoc = useMemo(
     () => new DOMParser().parseFromString(originalHtml ?? '', 'text/html'),
     [originalHtml],
   );
 
-  return React.useCallback(
+  return useCallback(
     (updatedContent: string) => {
       const editableNode = parsedDoc.querySelector('[data-editable-content]');
       if (editableNode) editableNode.innerHTML = updatedContent;
@@ -39,7 +42,7 @@ function useContentReinjector(originalHtml: string | undefined | null) {
   );
 }
 
-export function DocumentEditor(props: {
+export function DocumentHtmlEditor(props: {
   title: string;
   html: string | undefined | null;
   onHtmlChange: (fullHtml: string) => void;
@@ -79,7 +82,10 @@ export function DocumentEditor(props: {
         </div>
       </EditorContext>
 
-      <EditorContent editor={editor} className="fr-p-4v min-h-100 [&_.tiptap]:outline-none" />
+      <EditorContent
+        editor={editor}
+        className={clsx('fr-p-4v min-h-100 [&_.tiptap]:outline-none', DOCUMENT_CONTENT_CLASSES)}
+      />
     </div>
   );
 }
