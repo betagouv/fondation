@@ -43,12 +43,25 @@ function css(): string {
       }
     }
 
-    li {
-      font-size: 0.8rem;
-    }
+    main {
+      ul {
+        list-style: none;
+        padding-left: 1rem;
+      }
 
-    li + li {
-      margin-top: 1rem;
+      p {
+        line-height: 1.5rem;
+      }
+
+      li {
+        font-size: 0.8rem;
+        line-height: 1.5rem;
+        break-inside: avoid;
+      }
+
+      li + li {
+        margin-top: 1rem;
+      }
     }
   `;
 }

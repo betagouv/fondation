@@ -8,8 +8,8 @@ exports[`agendaTemplate > should render 1`] = `
               <div class="drapeau"></div>
             </footer>
 
-            <div class="content" data-editable-content=""><p data-file="1"><strong>MME Simone Veil</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de M. Michel FOUCAULT.</p></div>
+            <div class="content" data-editable-content=""><p data-file="1"><strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.</p></div>
 
-            <div class="footer"><p class="redaction-place">Fait à Paris, le 1<sup>er</sup> juillet 2026</p> <p class="signature">Le président, Léon&nbsp;BLUM</p></div>
+            <div class="footer"><p class="redaction-place">Fait à Paris, le 1<sup>er</sup> juillet 2026</p> <p class="signature">La présidente, Barbara&nbsp;MCCLINTOCK</p></div>
           "
 `;

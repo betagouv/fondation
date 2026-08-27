@@ -11,10 +11,10 @@ const baseCtx = {
   date: DateOnly.fromJson({ day: 1, month: 7, year: 2026 }),
   formation: 'SIEGE',
   hasRenunciation: true,
-  justiceContactName: 'MME Lucie AUBRAC, représentante de la DSJ',
+  justiceContactName: 'MME Marie CURIE, représentante de la DSJ',
   secretary: {
-    firstName: 'catherine',
-    lastName: 'dior',
+    firstName: 'ada',
+    lastName: 'lovelace',
   },
   time: { hours: 18, minutes: 0, seconds: 0 },
   typeDeSaisine: 'TRANSPARENCE_GDS',
@@ -27,16 +27,16 @@ const baseCtx = {
       agendas: [
         {
           chairman: {
-            firstName: 'simone',
-            lastName: 'michel-levy',
+            firstName: 'irène',
+            lastName: 'joliot-curie',
           },
           comments: [
             `Le Conseil regrette de n'avoir été saisi que trop tard de la situation, ` +
-              `particulièrement pour M. Léon BLUM dont l'évaluation ne nous a pas été fournie.`,
+              `particulièrement pour MME Barbara McCLINTOCK dont l'évaluation ne nous a pas été fournie.`,
           ],
           nominationFiles: [
             {
-              name: 'MME Simonne Mathieu',
+              name: 'MME Françoise BARRÉ-SINOUSSI',
               number: 1,
               agendaId: `a-1`,
               targetedGrade: 'G3',
@@ -45,7 +45,7 @@ const baseCtx = {
               outcomeComment: null,
             },
             {
-              name: 'MME Marcelle Henry',
+              name: 'MME Jacqueline FERRAND',
               targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Reims`,
               outcome: 'NON_VALIDATED',
@@ -54,7 +54,7 @@ const baseCtx = {
               number: 2,
             },
             {
-              name: 'M. Léon BLUM',
+              name: 'MME Barbara McCLINTOCK',
               number: 3,
               agendaId: `a-1`,
               outcomeComment: `Sans évaluation il n'est pas possible de confirmer la proposition`,
@@ -63,7 +63,7 @@ const baseCtx = {
               outcome: 'NON_VALIDATED',
             },
             {
-              name: 'MME Mélinée MANOUCHIAN',
+              name: 'MME Marthe GAUTIER',
               targetedGrade: 'G3',
               targetedPosition: `présidente à la cour d'appel de Marseille`,
               outcome: 'SUSPENDED',
@@ -72,7 +72,7 @@ const baseCtx = {
               outcomeComment: null,
             },
             {
-              name: 'MME Mélinée MANOUCHIAN',
+              name: 'MME Marthe GAUTIER',
               number: 5,
               agendaId: 'a-1',
               outcomeComment: null,
