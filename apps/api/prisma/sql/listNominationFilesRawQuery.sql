@@ -51,6 +51,12 @@ SELECT
     WHERE nfa.nomination_file_id = ddn.id
   ) AS "hasAttachment",
 
+  EXISTS (
+    SELECT 1
+    FROM nominations_context.nomination_file_attachment AS nfa
+    WHERE nfa.nomination_file_id = ddn.id AND nfa."type" = 'FICHE_DE_JURIDICTION'
+  ) AS "hasJurisdictionSheet",
+
   TS_RANK(ddn."search", query) AS "queryRank",
 
   summaries."summary" AS summary,

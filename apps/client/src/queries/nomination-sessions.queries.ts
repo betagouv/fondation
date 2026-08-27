@@ -369,11 +369,17 @@ export const useAddNominationFileAttachmentsMutation = () => {
         },
       });
     },
-    onSuccess: async (_data, { nominationFileId, sessionId }) => {
+    onSuccess: async (_data, { nominationFileId, sessionId, type }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
-          item.id === nominationFileId ? { ...item, hasAttachment: true } : item,
+          item.id === nominationFileId
+            ? {
+                ...item,
+                hasAttachment: true,
+                hasJurisdictionSheet: item.hasJurisdictionSheet || type === 'FICHE_DE_JURIDICTION',
+              }
+            : item,
         ),
       );
       await queryClient.invalidateQueries({
@@ -395,14 +401,28 @@ export const useRemoveNominationFileAttachmentMutation = () => {
       const attachments = queryClient.getQueryData<ListedNominationFileAttachmentDto>(
         sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
       );
-      const hasAttachment = (attachments?.items ?? []).some((item) => item.id !== fileId);
 
-      queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        mapCachedNominationFiles((item) =>
-          item.id === nominationFileId ? { ...item, hasAttachment } : item,
-        ),
-      );
+      const remaining = attachments?.items.filter((item) => item.id !== fileId);
+
+      if (remaining) {
+        queryClient.setQueriesData(
+          { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+          mapCachedNominationFiles((item) =>
+            item.id === nominationFileId
+              ? {
+                  ...item,
+                  hasAttachment: remaining.length > 0,
+                  hasJurisdictionSheet: remaining.some((x) => x.type === 'FICHE_DE_JURIDICTION'),
+                }
+              : item,
+          ),
+        );
+      } else {
+        // nothing tells what is left on that file: let the listing say it
+        await queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        });
+      }
 
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),

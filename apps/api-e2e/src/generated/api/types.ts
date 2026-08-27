@@ -422,6 +422,7 @@ export type PaginatedNominationFiles = {
             canWrite: boolean;
         } | null;
         hasAttachment: boolean;
+        hasJurisdictionSheet: boolean;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -543,7 +544,11 @@ export type ListedNominationFileAttachmentDto = {
         name: string;
         size: number | null;
         type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
-        addedAt: string;
+        addedAt: {
+            year: number;
+            month: number;
+            day: number;
+        };
     }>;
 };
 
@@ -664,6 +669,7 @@ export type DetailedNominationFileDto = {
         canWrite: boolean;
     } | null;
     hasAttachment: boolean;
+    hasJurisdictionSheet: boolean;
 };
 
 export type DetailedNominationSessionDto = {
