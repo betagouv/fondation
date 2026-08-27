@@ -27,10 +27,10 @@ export const ImageUploadButton: React.FC = () => {
   return (
     <>
       <EditorButton
+        disabled={false}
+        iconId="fr-icon-image-add-line"
         onClick={handleClick}
         title="Ajouter une capture d'écran"
-        iconId="fr-icon-image-add-line"
-        disabled={false}
       />
       <input
         ref={fileInputRef}

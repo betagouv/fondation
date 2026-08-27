@@ -1,11 +1,8 @@
 import { documentFontFaces, documentLogo } from 'documents-assets';
 
-import { stripIndent } from 'common-tags';
-
 import type { Pretty, UnionToIntersection } from 'src/utils/types';
 
 import { Template, TemplateFunction } from './templates.types';
-const html = stripIndent;
 
 export function commonDocumentCss(): string {
   return /*css */ `

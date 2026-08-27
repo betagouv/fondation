@@ -5,7 +5,10 @@
   "description": "Letterhead and fonts of the official documents, shared by the api renderers and the front-end",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "assets"],
+  "files": [
+    "dist",
+    "assets"
+  ],
   "scripts": {
     "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",

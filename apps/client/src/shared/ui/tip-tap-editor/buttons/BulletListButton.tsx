@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const BulletListButton: FC = () => {
+export function BulletListButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const BulletListButton: FC = () => {
 
   return (
     <EditorButton
+      disabled={!!disabled}
       iconId="fr-icon-list-unordered"
-      title="Liste à puces"
       mark="bulletList"
       onClick={toggleBulletList}
-      disabled={!!disabled}
+      title="Liste à puces"
     />
   );
-};
+}

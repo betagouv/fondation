@@ -2,9 +2,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ESNext",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "outDir": "./dist",
     "rootDir": ".",
     "declaration": true,
@@ -13,12 +11,7 @@
     "skipLibCheck": true,
     "strict": true,
     "incremental": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "./src/**/*",
-    "./test/**/*"
-  ]
+  "include": ["./src/**/*", "./test/**/*"]
 }

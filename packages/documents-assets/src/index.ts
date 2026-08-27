@@ -14,7 +14,6 @@ export const DOCUMENT_FONTS = [
   { family: 'Montserrat', file: 'Montserrat-Black.woff2', style: 'normal', weight: 900 },
 ] as const;
 
-
 let fontFaces: string | undefined;
 
 export function documentFontFaces(): string {

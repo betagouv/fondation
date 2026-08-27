@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const OrderedListButton: FC = () => {
+export function OrderedListButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const OrderedListButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="fr-icon-list-ordered"
-      title="Liste ordonnée"
-      mark="orderedList"
       disabled={!!disabled}
+      iconId="fr-icon-list-ordered"
+      mark="orderedList"
       onClick={toggleOrderedList}
+      title="Liste ordonnée"
     />
   );
-};
+}
