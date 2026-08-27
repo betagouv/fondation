@@ -1,11 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { headingLevels } from '../extensions/constant';
 
 import { EditorButton } from './EditorButton';
 
-export const BoldButton: FC = () => {
+export function BoldButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -24,6 +23,6 @@ export const BoldButton: FC = () => {
   };
 
   return (
-    <EditorButton iconId="fr-icon-bold" title="Gras" mark="bold" disabled={!!disabled} onClick={toggleBold} />
+    <EditorButton disabled={!!disabled} iconId="fr-icon-bold" mark="bold" onClick={toggleBold} title="Gras" />
   );
-};
+}

@@ -3,5 +3,3 @@ export type HeadingLevel = (typeof headingLevels)[number];
 
 export const dataFileIdKey = 'data-file-id';
 export const dataFileNameKey = 'data-file-name';
-export const dataIsScreenshotKey = 'data-is-screenshot';
-export const fileKey = 'file';

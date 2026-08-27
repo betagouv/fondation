@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const IndentIncreaseButton: FC = () => {
+export function IndentIncreaseButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -22,10 +21,10 @@ export const IndentIncreaseButton: FC = () => {
 
   return (
     <EditorButton
-      onClick={increaseIndent}
       disabled={!!disabled}
       iconId="ri-indent-increase"
+      onClick={increaseIndent}
       title="Augmenter le retrait"
     />
   );
-};
+}

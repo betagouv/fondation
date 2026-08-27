@@ -1,9 +1,8 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import type { FC } from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const HighlightButton: FC = () => {
+export function HighlightButton() {
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -17,11 +16,11 @@ export const HighlightButton: FC = () => {
 
   return (
     <EditorButton
-      iconId="fr-icon-mark-pen-line"
-      title="Surligner"
-      mark="highlight"
       disabled={!!disabled}
+      iconId="fr-icon-mark-pen-line"
+      mark="highlight"
       onClick={toggleHighlight}
+      title="Surligner"
     />
   );
-};
+}

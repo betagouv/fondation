@@ -39,11 +39,11 @@ export const TextColorButton = () => {
   return (
     <div className="relative">
       <EditorButton
-        onClick={() => inputRef.current?.click()}
         disabled={!!isDisabled}
-        title="Couleur du texte"
-        style={{ color: textColor }}
         iconId="ri-font-color"
+        onClick={() => inputRef.current?.click()}
+        style={{ color: textColor }}
+        title="Couleur du texte"
       />
       <input
         ref={inputRef}
