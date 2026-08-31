@@ -46,6 +46,13 @@ describe('MissingEvaluationCommentCell', () => {
     expect(screen.getByRole('button', { name: 'Ajouter' })).toBeEnabled();
   });
 
+  it('should show the whole comment next to an edit button', () => {
+    const { container } = renderCell({ comment: 'Relancée le 12 août' });
+
+    expect(container).toHaveTextContent('Relancée le 12 août Modifier');
+    expect(screen.getByRole('button', { name: 'Modifier' })).toBeEnabled();
+  });
+
   it('should show the comment as plain text on a file that can no longer be updated', () => {
     renderCell({ comment: 'Relancée le 12 août', disabled: true });
 
@@ -73,7 +80,7 @@ describe('MissingEvaluationCommentModal', () => {
     const user = userEvent.setup();
     renderCell({ comment: 'Relancée le 12 août' });
 
-    await user.click(screen.getByRole('button', { name: 'Relancée le 12 août' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
     await user.clear(editor());
     await user.click(saveButton());
 
