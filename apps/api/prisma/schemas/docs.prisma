@@ -110,9 +110,10 @@ model OfficialReport {
   conclusionHtml     String? @map("conclusion_html")
   conclusionOutdated Boolean @default(false) @map("conclusion_outdated")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  authorId  String?  @map("author_id") @db.Uuid
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  authorId    String?   @map("author_id") @db.Uuid
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  validatedAt DateTime? @map("validated_at")
 
   justiceDepartmentContactId   BigInt? @map("justice_department_contact_id")
   justiceDepartmentContactName String  @map("justice_department_contact_name")

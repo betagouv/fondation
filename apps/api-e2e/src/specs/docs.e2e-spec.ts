@@ -114,7 +114,7 @@ test.describe('Docs Service', () => {
     const beforeAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(beforeAgenda.data!.items, plannedFile!.id)).toEqual({
       value: 'TO_REPORT',
-      date: null,
+      dates: [],
     });
 
     const agenda = await agent.docs.createAgenda({
@@ -131,11 +131,11 @@ test.describe('Docs Service', () => {
     const afterAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(afterAgenda.data!.items, plannedFile!.id)).toEqual({
       value: 'DSJ_PLANNED',
-      date: { day: 10, month: 2, year: 2026 },
+      dates: [{ day: 10, month: 2, year: 2026 }],
     });
     expect(statusOf(afterAgenda.data!.items, untouchedFile!.id)).toEqual({
       value: 'TO_REPORT',
-      date: null,
+      dates: [],
     });
 
     const justiceContact = await agent.docs.createJusticeContact({
@@ -166,7 +166,7 @@ test.describe('Docs Service', () => {
     const afterOfficialReport = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(afterOfficialReport.data!.items, plannedFile!.id)).toEqual({
       value: 'DSJ_PLANNED',
-      date: { day: 10, month: 2, year: 2026 },
+      dates: [{ day: 10, month: 2, year: 2026 }],
     });
   });
 
@@ -243,7 +243,7 @@ test.describe('Docs Service', () => {
 
     const foundAfter = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     expect(foundAfter.data!.items).toHaveLength(1);
-    expect(foundAfter.data!.ineligible).toEqual([{ id: firstFileId, reason: 'REPORTED' }]);
+    expect(foundAfter.data!.ineligible).toEqual([{ id: firstFileId, reason: 'DRAFT_REPORTED' }]);
 
     const duplicateAgenda = await agent.docs.createAgenda({
       path: { sessionId },

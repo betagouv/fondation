@@ -116,7 +116,7 @@ export function SessionDocumentsTable(props: {
     <SessionDocumentsTableContext.Provider value={renderers}>
       <NewTable
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
-        emptyLabel={formatMessage({ defaultMessage: 'Aucun document généré' })}
+        emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid
         table={table}
         unvirtualized

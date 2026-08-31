@@ -11,7 +11,7 @@ export type NominationSessionFileStatusEnum = (typeof NOMINATION_SESSION_FILE_ST
 
 export type NominationSessionFileStatus = {
   value: NominationSessionFileStatusEnum;
-  date: Date | null;
+  dates: Date[];
 };
 
 type LinkedDoc = {
@@ -30,7 +30,10 @@ export function transparenceFileStatus(file: {
 }): NominationSessionFileStatus {
   const planned = file.docs.filter((doc) => !doc.officialReport?.isValidated);
   if (planned.length > 0) {
-    return { value: 'DSJ_PLANNED', date: mostRecent(planned.map(({ agenda }) => agenda.sessionMeetingDate)) };
+    return {
+      value: 'DSJ_PLANNED',
+      dates: mostRecentFirst(planned.map(({ agenda }) => agenda.sessionMeetingDate)),
+    };
   }
 
   const reported = file.docs.flatMap((doc) =>
@@ -38,9 +41,9 @@ export function transparenceFileStatus(file: {
       ? [doc.officialReport.sessionMeetingDate]
       : [],
   );
-  if (reported.length > 0) return { value: 'DSJ_REPORTED', date: mostRecent(reported) };
+  if (reported.length > 0) return { value: 'DSJ_REPORTED', dates: mostRecentFirst(reported) };
 
-  return { value: 'TO_REPORT', date: null };
+  return { value: 'TO_REPORT', dates: [] };
 }
 
 function restitutes(
@@ -52,6 +55,7 @@ function restitutes(
   );
 }
 
-function mostRecent(dates: readonly Date[]): Date | null {
-  return dates.reduce<Date | null>((latest, date) => (!latest || date > latest ? date : latest), null);
+function mostRecentFirst(dates: readonly Date[]): Date[] {
+  const byTime = new Map(dates.map((date) => [date.getTime(), date]));
+  return [...byTime.values()].sort((a, b) => b.getTime() - a.getTime());
 }

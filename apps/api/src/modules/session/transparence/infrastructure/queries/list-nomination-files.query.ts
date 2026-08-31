@@ -243,7 +243,10 @@ export class ListNominationFilesQuery {
             : null,
           isAlertHidden: x.alertHidden,
           isUpdatable: x.isUpdatable,
-          status: { ...x.status, date: DateOnly.fromOptionalUtcDate(x.status.date)?.toJson() ?? null },
+          status: {
+            value: x.status.value,
+            dates: x.status.dates.map((date) => DateOnly.fromUtcDate(date).toJson()),
+          },
         },
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         comment: x.comment,
@@ -375,7 +378,7 @@ const NominationFileContentSchema = z.object({
   isUpdatable: z.boolean(),
   status: z.object({
     value: z.enum(NOMINATION_SESSION_FILE_STATUSES),
-    date: dateOnlyJsonSchema.nullable(),
+    dates: z.array(dateOnlyJsonSchema),
   }),
 });
 

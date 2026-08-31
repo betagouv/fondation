@@ -19,7 +19,7 @@ export class FindSessionDocsQuery {
       select: { typeDeSaisine: true },
     });
     const agendaFiles = await this.db.tx.agenda.findMany({
-      where: { sessionId: query.sessionId, html: { not: null } },
+      where: { sessionId: query.sessionId },
       select: {
         id: true,
         date: true,
@@ -30,7 +30,7 @@ export class FindSessionDocsQuery {
       },
     });
     const officialReportFiles = await this.db.tx.officialReport.findMany({
-      where: { html: { not: null }, agendas: { some: { sessionId: query.sessionId } } },
+      where: { agendas: { some: { sessionId: query.sessionId } } },
       select: {
         id: true,
         chairmanLastName: true,

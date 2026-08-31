@@ -355,22 +355,15 @@ export const useOfficialReportDocumentQuery = (query: { id: string | undefined |
         .then(({ data = null }) => data),
   });
 
-export function useGenerateOfficialReportPdfMutation(mutation: {
+export function useValidateOfficialReportMutation(mutation: {
   sessionId: string;
-  force: boolean;
   officialReportId: string;
   onSuccess?: () => unknown;
 }) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs
-        .generateOfficialReportPdf({
-          path: { officialReportId: mutation.officialReportId },
-          query: { force: mutation.force },
-          parseAs: 'stream',
-        })
-        .then(({ response }) => response?.body?.cancel()),
+      $api.docs.validateOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({

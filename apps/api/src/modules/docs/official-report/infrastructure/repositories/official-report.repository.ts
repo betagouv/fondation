@@ -27,6 +27,7 @@ import {
   OfficialReportSectionTitleEdited,
   OfficialReportSectionTitleReset,
   OfficialReportUpdated,
+  OfficialReportValidated,
 } from '../../domain/official-report';
 import { OfficialReportAgenda } from '../../domain/official-report-agenda';
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
@@ -75,6 +76,9 @@ export class OfficialReportRepository {
 
         introHtml: true,
         conclusionHtml: true,
+
+        pdfId: true,
+        validatedAt: true,
 
         agendas: {
           select: { id: true, formation: true, officialReportId: true, sessionId: true, date: true },
@@ -193,6 +197,8 @@ export class OfficialReportRepository {
     return OfficialReport.from({
       id: officialReportId,
       snapshot: snapshot,
+      isDocumentStored: isDefined(officialReport.pdfId),
+      validatedAt: officialReport.validatedAt,
     });
   }
 
@@ -284,6 +290,8 @@ export class OfficialReportRepository {
         await this.persistOfficialReportSectionIntroEdited(message);
       } else if (message instanceof OfficialReportSectionIntroReset) {
         await this.persistOfficialReportSectionIntroReset(message);
+      } else if (message instanceof OfficialReportValidated) {
+        await this.persistOfficialReportValidated(message);
       } else if (message instanceof OfficialReportInvalidated) {
         await this.persistOfficialReportInvalidated(message);
       } else {
@@ -608,6 +616,13 @@ export class OfficialReportRepository {
     await this.recomputeState(message.officialReportId);
   }
 
+  private async persistOfficialReportValidated(message: OfficialReportValidated) {
+    await this.db.tx.officialReport.update({
+      where: { id: message.officialReportId },
+      data: { validatedAt: message.validatedAt },
+    });
+  }
+
   private async recomputeState(id: Id<'OfficialReportId'>): Promise<void> {
     await this.recomputeOutdated(id);
     await this.recomputeManuallyEdited(id);
@@ -619,7 +634,10 @@ export class OfficialReportRepository {
       where: { id },
       select: { pdf: { select: { id: true, path: true } } },
     });
-    await this.db.tx.officialReport.update({ where: { id }, data: { html: null, pdfId: null } });
+    await this.db.tx.officialReport.update({
+      where: { id },
+      data: { html: null, pdfId: null, validatedAt: null },
+    });
 
     if (!report || !report.pdf) return;
     this.files.delete([{ id: report.pdf.id, path: report.pdf.path }]);

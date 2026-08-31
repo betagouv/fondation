@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { OfficialReportDocumentNotStored } from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
   InvalidChairmanDuty,
@@ -58,6 +59,12 @@ export class OfficialReportsFilter implements NestInterceptor {
           if (err instanceof OfficialReportMeetingSessionEndingTimeBeforeStartingTime) {
             return new BadRequestException({
               validationError: `L'heure de fin de séance, doit être après l'heure de début de séance`,
+            });
+          }
+
+          if (err instanceof OfficialReportDocumentNotStored) {
+            return new BadRequestException({
+              validationError: `Le document n'a pas pu être enregistré, le PV n'est donc pas validé`,
             });
           }
 

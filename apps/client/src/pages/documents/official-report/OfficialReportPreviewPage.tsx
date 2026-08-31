@@ -10,10 +10,7 @@ import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import {
-  useGenerateOfficialReportPdfMutation,
-  useOfficialReportDocumentQuery,
-} from '@queries/agenda.queries';
+import { useOfficialReportDocumentQuery, useValidateOfficialReportMutation } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function OfficialReportPreviewPage() {
@@ -30,8 +27,7 @@ export function OfficialReportPreviewPage() {
     id: officialReportId,
   });
 
-  const generatePdf = useGenerateOfficialReportPdfMutation({
-    force: true,
+  const validate = useValidateOfficialReportMutation({
     sessionId: sessionId!,
     officialReportId: officialReportId!,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
@@ -56,14 +52,14 @@ export function OfficialReportPreviewPage() {
             <FormattedMessage defaultMessage="Métadonnées" />
           </Button>
           <Button
-            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
-            disabled={generatePdf.isPending || hasPendingRevalidation}
-            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+            className={clsx({ 'after:animate-spin': validate.isPending })}
+            disabled={validate.isPending || hasPendingRevalidation}
+            iconId={validate.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
             iconPosition="right"
-            onClick={() => generatePdf.mutate()}
+            onClick={() => validate.mutate()}
           >
-            {generatePdf.isPending ? (
-              <FormattedMessage defaultMessage="Génération en cours..." />
+            {validate.isPending ? (
+              <FormattedMessage defaultMessage="Validation en cours..." />
             ) : (
               <FormattedMessage defaultMessage="Valider le document" />
             )}
@@ -103,11 +99,11 @@ export function OfficialReportPreviewPage() {
             )}
           </div>
           <div role="alert">
-            {generatePdf.isError && (
+            {validate.isError && (
               <AlertBanner
                 className="fr-mt-4v px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={describeFailure(generatePdf.error)}
+                message={describeFailure(validate.error)}
                 tone="error"
               />
             )}

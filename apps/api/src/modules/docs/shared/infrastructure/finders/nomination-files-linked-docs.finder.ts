@@ -40,7 +40,7 @@ export class NominationFilesLinkedDocsFinder {
           select: {
             outcome: true,
             officialReportId: true,
-            officialReport: { select: { pdfId: true, sessionMeetingDate: true } },
+            officialReport: { select: { validatedAt: true, sessionMeetingDate: true } },
           },
         },
       },
@@ -57,7 +57,7 @@ export class NominationFilesLinkedDocsFinder {
             officialReport: inclusion
               ? {
                   id: inclusion.officialReportId,
-                  isValidated: isDefined(inclusion.officialReport.pdfId),
+                  isValidated: isDefined(inclusion.officialReport.validatedAt),
                   outcome: inclusion.outcome,
                   sessionMeetingDate: inclusion.officialReport.sessionMeetingDate,
                 }

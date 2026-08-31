@@ -31,14 +31,14 @@ describe('transparenceFileStatus', () => {
   it('waits as long as the file belongs to no document', () => {
     expect(transparenceFileStatus({ docs: [], outcome: null })).toEqual({
       value: 'TO_REPORT',
-      date: null,
+      dates: [],
     });
   });
 
   it('is planned once listed in an agenda, dated after that agenda', () => {
     expect(transparenceFileStatus({ docs: [makeDoc({})], outcome: 'VALIDATED' })).toEqual({
       value: 'DSJ_PLANNED',
-      date: AGENDA_DATE,
+      dates: [AGENDA_DATE],
     });
   });
 
@@ -47,7 +47,7 @@ describe('transparenceFileStatus', () => {
 
     expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
       value: 'DSJ_PLANNED',
-      date: AGENDA_DATE,
+      dates: [AGENDA_DATE],
     });
   });
 
@@ -56,7 +56,7 @@ describe('transparenceFileStatus', () => {
 
     expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
       value: 'DSJ_REPORTED',
-      date: OFFICIAL_REPORT_DATE,
+      dates: [OFFICIAL_REPORT_DATE],
     });
   });
 
@@ -65,7 +65,7 @@ describe('transparenceFileStatus', () => {
 
     expect(
       transparenceFileStatus({ docs, outcome: 'SUSPENDED' satisfies NominationFileOutcomeEnum }),
-    ).toEqual({ value: 'DSJ_REPORTED', date: OFFICIAL_REPORT_DATE });
+    ).toEqual({ value: 'DSJ_REPORTED', dates: [OFFICIAL_REPORT_DATE] });
   });
 
   it('waits again when a file reported as suspended gets a final outcome', () => {
@@ -73,17 +73,26 @@ describe('transparenceFileStatus', () => {
 
     expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
       value: 'TO_REPORT',
-      date: null,
+      dates: [],
     });
   });
 
-  it('keeps the most recent agenda when several are still pending', () => {
+  it('lists every pending agenda, most recent first', () => {
     const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
     const docs = [makeDoc({}), makeDoc({ agendaDate: lastAgendaDate })];
 
     expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
       value: 'DSJ_PLANNED',
-      date: lastAgendaDate,
+      dates: [lastAgendaDate, AGENDA_DATE],
+    });
+  });
+
+  it('keeps one date per meeting when two agendas share it', () => {
+    const docs = [makeDoc({}), makeDoc({})];
+
+    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
+      value: 'DSJ_PLANNED',
+      dates: [AGENDA_DATE],
     });
   });
 });
