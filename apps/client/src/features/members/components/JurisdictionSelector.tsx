@@ -54,9 +54,11 @@ function JurisdictionSelectorModal(props: {
   open: boolean;
   selected: readonly { id: string; label: string | null }[];
 }) {
+  const originalIds = props.selected.map(({ id }) => id);
   const [isChanging, setIsChanging] = useState(false);
-  const [didChange, setDidChange] = useState(false);
-  const [selected, setSelected] = useState<string[]>(props.selected.map(({ id }) => id));
+  const [selected, setSelected] = useState<string[]>(originalIds);
+
+  const isDirty = selected.length !== originalIds.length || selected.some((id) => !originalIds.includes(id));
 
   const save = async () => {
     setIsChanging(true);
@@ -76,7 +78,7 @@ function JurisdictionSelectorModal(props: {
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
 
-          <Button disabled={!didChange || isChanging} onClick={save}>
+          <Button disabled={!isDirty || isChanging} onClick={save}>
             {isChanging ? (
               <FormattedMessage defaultMessage="Sauvegarde..." />
             ) : (
@@ -91,13 +93,7 @@ function JurisdictionSelectorModal(props: {
       size="large"
       title={<FormattedMessage defaultMessage="Sélection des juridictions" />}
     >
-      <JuridictionAutocomplete
-        onChange={(newSelected) => {
-          setSelected(newSelected);
-          setDidChange(true);
-        }}
-        selected={props.selected}
-      />
+      <JuridictionAutocomplete onChange={setSelected} selected={props.selected} />
     </Modal>
   );
 }

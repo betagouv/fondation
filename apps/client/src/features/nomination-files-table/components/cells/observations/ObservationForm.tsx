@@ -118,14 +118,14 @@ export function ObservationForm({
 
   const handleMagistratChange = (magistrat: MagistratSearchResult | null) => {
     setSelectedMagistrat(magistrat);
-    setValue('magistratId', magistrat?.id ?? '', { shouldValidate: true });
+    setValue('magistratId', magistrat?.id ?? '', { shouldDirty: true, shouldValidate: true });
   };
 
   const handleRemoveExistingFile = (fileId: string) => {
     setValue(
       'keptFileIds',
       keptFileIds.filter((id) => id !== fileId),
-      { shouldValidate: true },
+      { shouldDirty: true, shouldValidate: true },
     );
   };
 
