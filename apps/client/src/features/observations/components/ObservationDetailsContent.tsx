@@ -7,6 +7,7 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { BiographyList } from '@/shared/components/biography-list';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
+import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import { formatDateOnly } from '@/utils/date-only.util';
@@ -88,19 +89,20 @@ export function ObservationDetailsContent({
                 <dt className="fr-col-4 fr-text--bold">
                   <FormattedMessage defaultMessage="Magistrat observé :" />
                 </dt>
-                <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
-                  {observation.observedMagistrat?.name}
-                  <DetailsLink
-                    context={context}
-                    magistratId={observation.observedMagistrat?.detectedMagistratId}
-                    small
-                  />
-                  <LolfiLink
-                    sessionId={sessionId}
-                    nominationFileId={nominationFileId}
-                    name={observation.observedMagistrat?.name}
-                    small
-                  />
+                <dd className="fr-col-8 fr-m-0">
+                  <TitleNameIcons name={observation.observedMagistrat?.name ?? null}>
+                    <DetailsLink
+                      context={context}
+                      magistratId={observation.observedMagistrat?.detectedMagistratId}
+                      small
+                    />
+                    <LolfiLink
+                      sessionId={sessionId}
+                      nominationFileId={nominationFileId}
+                      name={observation.observedMagistrat?.name}
+                      small
+                    />
+                  </TitleNameIcons>
                 </dd>
               </div>
               <div className="fr-grid-row fr-mb-4v">
@@ -121,10 +123,11 @@ export function ObservationDetailsContent({
                 <dt className="fr-col-4 fr-text--bold">
                   <FormattedMessage defaultMessage="NOM Prénom :" />
                 </dt>
-                <dd className="fr-col-8 fr-m-0 flex items-center gap-2">
-                  <span>{fullNameUpperCase(observant)}</span>
-                  <DetailsLink context={context} magistratId={observant.id} small />
-                  <LolfiLink href={observant.externalUrl} small />
+                <dd className="fr-col-8 fr-m-0">
+                  <TitleNameIcons name={fullNameUpperCase(observant)}>
+                    <DetailsLink context={context} magistratId={observant.id} small />
+                    <LolfiLink href={observant.externalUrl} small />
+                  </TitleNameIcons>
                 </dd>
               </div>
               {candidacy && (
