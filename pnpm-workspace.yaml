@@ -4,7 +4,7 @@ packages:
 
 catalog:
   'zod': 4.4.3
-  '@faker-js/faker': 10.5.0
+  '@faker-js/faker': 10.6.0
   'oxlint': 1.78.0
   'oxlint-tsgolint': 0.25.0
   'typescript': 6.0.3
