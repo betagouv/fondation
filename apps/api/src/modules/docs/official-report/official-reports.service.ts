@@ -7,6 +7,7 @@ import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-fi
 import { OfficialReportInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { Clock } from 'src/modules/framework/clock';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 
@@ -50,6 +51,7 @@ export class OfficialReportsService {
 
     private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
 
+    private readonly clock: Clock,
     private readonly auth: SimpleAuthService,
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
@@ -256,6 +258,12 @@ export class OfficialReportsService {
 
   resetOfficialReportDocument(command: { id: string }): Promise<void> {
     return this.withOfficialReport(command.id, (report) => report.resetDocument());
+  }
+
+  async validateOfficialReport(command: { id: string }): Promise<void> {
+    // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
+    await this.findOfficialReportDocumentPdfQuery.handle({ id: command.id, forceNew: true });
+    await this.withOfficialReport(command.id, (report) => report.validate({ at: this.clock.now() }));
   }
 
   editOfficialReportIntro(command: { id: string; html: string; outdated: boolean }): Promise<void> {

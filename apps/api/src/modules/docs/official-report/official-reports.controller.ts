@@ -167,6 +167,13 @@ export class OfficialReportsController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Post('/official-reports/:officialReportId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  validateOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
+    return this.officialReports.validateOfficialReport({ id: officialReportId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/official-reports/:officialReportId/blocks')
   @ZodResponse({ type: DetailedOfficialReportDocumentDto, status: HttpStatus.OK })
   detailsOfficialReportDocument(

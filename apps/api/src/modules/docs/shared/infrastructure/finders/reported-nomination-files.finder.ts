@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { ReportedNominationFileCollection } from '../../domain/reported-nomination-file-collection';
 import { Db } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ReportedNominationFilesFinder {
@@ -22,13 +22,19 @@ export class ReportedNominationFilesFinder {
         nominationFileId: { in: [...query.fileIds] },
         officialReportId: { not: query.ignoreOfficialReportId },
       },
-      select: { nominationFileId: true, officialReportId: true, outcome: true },
+      select: {
+        nominationFileId: true,
+        officialReportId: true,
+        outcome: true,
+        officialReport: { select: { validatedAt: true } },
+      },
     });
 
     return ReportedNominationFileCollection.from(
       files.map((f) => ({
         outcome: f.outcome,
         officialReportId: f.officialReportId,
+        isValidated: isDefined(f.officialReport.validatedAt),
         nominationFileId: assertIsDefined(f.nominationFileId, `nomination file was deleted`),
       })),
     );

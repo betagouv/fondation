@@ -87,7 +87,12 @@ describe('Agenda', () => {
       Agenda.create({
         ...props,
         reportedFiles: ReportedNominationFileCollection.from([
-          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+          {
+            nominationFileId: props.nominationFiles[0].id,
+            officialReportId,
+            outcome: 'VALIDATED',
+            isValidated: true,
+          },
         ]),
       });
 
@@ -103,7 +108,12 @@ describe('Agenda', () => {
         authorId: props.authorId,
         nominationFileIds: new Set(props.nominationFiles.map((nf) => nf.id)),
         reportedFiles: ReportedNominationFileCollection.from([
-          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+          {
+            nominationFileId: props.nominationFiles[0].id,
+            officialReportId,
+            outcome: 'VALIDATED',
+            isValidated: true,
+          },
         ]),
       });
 
@@ -119,7 +129,12 @@ describe('Agenda', () => {
         authorId: props.authorId,
         nominationFileIds: new Set(props.nominationFiles.map((nf) => nf.id)),
         reportedFiles: ReportedNominationFileCollection.from([
-          { nominationFileId: props.nominationFiles[0].id, officialReportId, outcome: 'VALIDATED' },
+          {
+            nominationFileId: props.nominationFiles[0].id,
+            officialReportId,
+            outcome: 'VALIDATED',
+            isValidated: true,
+          },
         ]),
       });
 

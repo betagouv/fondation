@@ -105,6 +105,13 @@ export class OfficialReportSectionIntroReset {
   ) {}
 }
 
+export class OfficialReportValidated {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly validatedAt: Date,
+  ) {}
+}
+
 export class OfficialReportInvalidated {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
@@ -127,7 +134,12 @@ export type OfficialReportEvent =
   | OfficialReportSectionTitleReset
   | OfficialReportSectionIntroEdited
   | OfficialReportSectionIntroReset
+  | OfficialReportValidated
   | OfficialReportInvalidated;
+
+export class OfficialReportDocumentNotStored extends Error {}
+
+type OfficialReportState = { isDocumentStored: boolean; validatedAt: Date | null };
 
 export class OfficialReport {
   readonly #messages: OfficialReportEvent[] = [];
@@ -142,10 +154,14 @@ export class OfficialReport {
   private constructor(
     readonly id: Id<'OfficialReportId'>,
     readonly snapshot: OfficialReportSnapshot,
+    private readonly state: OfficialReportState,
   ) {}
 
-  static from(props: { id: Id<'OfficialReportId'>; snapshot: OfficialReportSnapshot }) {
-    return new OfficialReport(props.id, props.snapshot);
+  static from(props: { id: Id<'OfficialReportId'>; snapshot: OfficialReportSnapshot } & OfficialReportState) {
+    return new OfficialReport(props.id, props.snapshot, {
+      isDocumentStored: props.isDocumentStored,
+      validatedAt: props.validatedAt,
+    });
   }
 
   static create(command: {
@@ -159,11 +175,19 @@ export class OfficialReport {
         files: new Map(),
         manuallyEditedPart: { intro: false, conclusion: false },
       }),
+      { isDocumentStored: false, validatedAt: null },
     );
 
     report.#messages.push(new OfficialReportCreated(report.id, command.authorId, report.snapshot));
 
     return report;
+  }
+
+  validate(command: { at: Date }): void {
+    if (this.state.validatedAt) return;
+    if (!this.state.isDocumentStored) throw new OfficialReportDocumentNotStored();
+
+    this.#messages.push(new OfficialReportValidated(this.id, command.at));
   }
 
   invalidate(command: InvalidateOfficialReportCommand): void {

@@ -193,7 +193,9 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
 
       switch (reason) {
         case 'REPORTED':
-          return formatMessage({ defaultMessage: 'Déjà acté en PV de restitution' });
+          return formatMessage({ defaultMessage: 'Déjà acté dans un procès-verbal' });
+        case 'DRAFT_REPORTED':
+          return formatMessage({ defaultMessage: 'Déjà inscrit dans un procès-verbal en préparation' });
         case 'UNIDENTIFIED':
           return formatMessage({ defaultMessage: 'Magistrat ou poste non identifié' });
         default:

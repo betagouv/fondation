@@ -28,7 +28,6 @@ export class DetailsSessionAgendaQuery {
       where: {
         id: query.agendaId,
         sessionId: query.sessionId,
-        html: { not: null },
       },
       select: { id: true, pdf: { select: { id: true } } },
     });

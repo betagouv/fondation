@@ -28,9 +28,11 @@ export function NominationFileStatusCell(props: { status: NominationSessionFileS
         <span className="fr-sr-only">{doc.label}</span>
       </span>
 
-      {props.status.date && (
-        <span className="text-xs text-(--text-mention-grey)">{formatDateOnly(props.status.date)}</span>
-      )}
+      {props.status.dates.map((date) => (
+        <span className="text-xs text-(--text-mention-grey)" key={formatDateOnly(date)}>
+          {formatDateOnly(date)}
+        </span>
+      ))}
     </span>
   );
 }

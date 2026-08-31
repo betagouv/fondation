@@ -25,7 +25,7 @@ export class DetailsSessionOfficialReportQuery {
   }): Promise<DetailedSessionOfficialReportDto> {
     const officialReport = await this.db.withTransaction(() =>
       this.db.tx.officialReport.findUnique({
-        where: { id: query.officialReportId, html: { not: null } },
+        where: { id: query.officialReportId },
         select: { id: true, pdf: { select: { id: true } } },
       }),
     );

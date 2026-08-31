@@ -372,11 +372,11 @@ export type PaginatedNominationFiles = {
             isUpdatable: boolean;
             status: {
                 value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
-                date: {
+                dates: Array<{
                     year: number;
                     month: number;
                     day: number;
-                } | null;
+                }>;
             };
         };
         comment: string | null;
@@ -619,11 +619,11 @@ export type DetailedNominationFileDto = {
         isUpdatable: boolean;
         status: {
             value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
-            date: {
+            dates: Array<{
                 year: number;
                 month: number;
                 day: number;
-            } | null;
+            }>;
         };
     };
     comment: string | null;
@@ -1084,7 +1084,7 @@ export type FoundAgendaNominationFiles = {
     }>;
     ineligible: Array<{
         id: string;
-        reason: 'REPORTED' | 'UNIDENTIFIED';
+        reason: 'REPORTED' | 'DRAFT_REPORTED' | 'UNIDENTIFIED';
     }>;
 };
 
@@ -3459,6 +3459,21 @@ export type UpdateOfficialReportResponses = {
 };
 
 export type UpdateOfficialReportResponse = UpdateOfficialReportResponses[keyof UpdateOfficialReportResponses];
+
+export type ValidateOfficialReportData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/validation';
+};
+
+export type ValidateOfficialReportResponses = {
+    204: void;
+};
+
+export type ValidateOfficialReportResponse = ValidateOfficialReportResponses[keyof ValidateOfficialReportResponses];
 
 export type DetailsOfficialReportDocumentData = {
     body?: never;
