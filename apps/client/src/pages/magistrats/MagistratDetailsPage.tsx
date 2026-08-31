@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Navigate, useParams } from 'react-router';
 
@@ -14,6 +15,8 @@ export function MagistratDetailsPage() {
   const context = isSgContext ? 'sg' : 'membre';
 
   const { data: magistrat, isLoading, isError } = useMagistratDetailsQuery({ magistratId });
+
+  useEffect(() => window.scrollTo({ top: 0 }), [magistratId]);
 
   if (isLoading) {
     return (

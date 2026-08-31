@@ -105,7 +105,7 @@ export function NominationFileTargetPositionModal(props: {
         />
       </p>
       <p>
-        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat, accessibles en cliquant sur son nom dans le tableau." />
+        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat dans le panneau latéral." />
       </p>
 
       {hasFailed && (
