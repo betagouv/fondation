@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 
 export function MissingEvaluationDoneButton(props: {
@@ -42,17 +43,28 @@ export function MissingEvaluationDoneButton(props: {
     });
   }, [confirmation, formatMessage, mutate, props.magistrat, props.nominationFileId, props.sessionId]);
 
-  return (
+  const button = (
     <Button
       className="whitespace-nowrap"
       disabled={props.disabled || isPending}
-      iconId="ri-check-line"
-      iconPosition="right"
       onClick={onClick}
       priority="secondary"
       size="small"
     >
       <FormattedMessage defaultMessage="Marquer comme ajoutée" />
     </Button>
+  );
+
+  if (!props.disabled) return button;
+
+  return (
+    <Tooltip
+      label={formatMessage({
+        defaultMessage:
+          'Proposition figée : son issue est actée dans un procès-verbal ou la session est archivée',
+      })}
+    >
+      {button}
+    </Tooltip>
   );
 }

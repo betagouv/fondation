@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { AuditionNotice } from '../audition-date/AuditionNotice';
+import { FrozenFileNotice } from '../frozen-file/FrozenFileNotice';
 import { MissingEvaluation } from '../missing-evaluation/MissingEvaluation';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
@@ -40,6 +41,7 @@ const HELD_AT = {
   auditionDate: { year: 2020, month: 1, day: 10 },
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
 };
+const REPORTED_ON = { year: 2026, month: 6, day: 8 };
 
 function auditionFor(scenario: AuditionScenario) {
   if (scenario === 'scheduled') return { ...AUDITIONED_POSITION, ...SCHEDULED_AT };
@@ -158,6 +160,9 @@ function HeaderNotices(props: { editable: boolean; nominationFile: SessionNomina
     <div className="flex flex-col gap-10">
       <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
       <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
+        {!nominationFile.content.isUpdatable && (
+          <FrozenFileNotice isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
+        )}
         <AuditionNotice
           auditionDate={nominationFile.auditionDate}
           auditionMissing={isAuditionMissing(nominationFile)}
@@ -176,11 +181,14 @@ function HeaderStory(props: {
   magistratName: string;
   missingEvaluation?: boolean;
   priorities: PrioriteEnum[];
+  reportedInOfficialReport?: boolean;
   reporters: ReporterScenario;
   view: View;
 }) {
   const isSg = props.view !== 'member';
   const canManage = props.view === 'sg';
+  const isArchived = props.view === 'sgArchived';
+  const isUpdatable = !isArchived && !props.reportedInOfficialReport;
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -189,10 +197,16 @@ function HeaderStory(props: {
 
   const nominationFile = makeSessionNominationFile({
     ...auditionFor(props.audition),
+    canScheduleAudition: isUpdatable,
     content: {
+      isUpdatable,
       jurisdictions: jurisdictionsFor(props.excludedJurisdiction ?? 'none'),
       nomMagistrat: props.magistratName,
+      status: props.reportedInOfficialReport
+        ? { value: 'DSJ_REPORTED', dates: [REPORTED_ON] }
+        : { value: 'TO_REPORT', dates: [] },
     },
+    isArchived,
     missingEvaluation: !!props.missingEvaluation,
     priorities: props.priorities,
     reporters: reportersFor(props.reporters),
@@ -239,6 +253,10 @@ const meta = {
     magistratName: { control: 'text' },
     missingEvaluation: { control: 'boolean' },
     priorities: { control: 'check', options: priorities },
+    reportedInOfficialReport: {
+      control: 'boolean',
+      description: 'the file outcome is acted in an official report, so it can no longer be updated',
+    },
     reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
     view: { table: { disable: true } },
   },
@@ -248,6 +266,7 @@ const meta = {
     magistratName: 'Camille DURAND',
     missingEvaluation: false,
     priorities: [PrioriteEnum.ETOILE],
+    reportedInOfficialReport: false,
     reporters: 'others',
     view: 'sg',
   },

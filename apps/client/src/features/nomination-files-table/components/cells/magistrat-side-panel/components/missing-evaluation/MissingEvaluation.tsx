@@ -24,6 +24,36 @@ export function MissingEvaluation(props: {
     defaultMessage: 'Évaluation manquante dans le dossier administratif LOLFI',
   });
 
+  const toggle = (
+    <ToggleSwitch
+      checked={missingEvaluation}
+      className="ml-auto w-auto shrink-0"
+      classes={{
+        input: 'inset-0! h-full! w-full!',
+        label:
+          'w-auto! text-sm! leading-6! whitespace-nowrap text-(--text-action-high-blue-france) before:ml-2!',
+      }}
+      disabled={!nominationFile.content.isUpdatable}
+      label={
+        <>
+          <span className="fr-sr-only">{label}</span>
+          <span aria-hidden className="w-8 text-right">
+            {missingEvaluation ? (
+              <FormattedMessage defaultMessage="Oui" />
+            ) : (
+              <FormattedMessage defaultMessage="Non" />
+            )}
+          </span>
+        </>
+      }
+      labelPosition="left"
+      onChange={(checked) =>
+        mutate({ missingEvaluation: checked, nominationFileId: nominationFile.id, sessionId })
+      }
+      showCheckedHint={false}
+    />
+  );
+
   return (
     <AlertBanner
       align="center"
@@ -41,35 +71,7 @@ export function MissingEvaluation(props: {
       }
       tone={missingEvaluation ? 'warning' : 'neutral'}
     >
-      {editable && (
-        <ToggleSwitch
-          checked={missingEvaluation}
-          className="ml-auto w-auto shrink-0"
-          classes={{
-            input: 'inset-0! h-full! w-full!',
-            label:
-              'w-auto! text-sm! leading-6! whitespace-nowrap text-(--text-action-high-blue-france) before:ml-2!',
-          }}
-          disabled={!nominationFile.content.isUpdatable}
-          label={
-            <>
-              <span className="fr-sr-only">{label}</span>
-              <span aria-hidden className="w-8 text-right">
-                {missingEvaluation ? (
-                  <FormattedMessage defaultMessage="Oui" />
-                ) : (
-                  <FormattedMessage defaultMessage="Non" />
-                )}
-              </span>
-            </>
-          }
-          labelPosition="left"
-          onChange={(checked) =>
-            mutate({ missingEvaluation: checked, nominationFileId: nominationFile.id, sessionId })
-          }
-          showCheckedHint={false}
-        />
-      )}
+      {editable && toggle}
     </AlertBanner>
   );
 }

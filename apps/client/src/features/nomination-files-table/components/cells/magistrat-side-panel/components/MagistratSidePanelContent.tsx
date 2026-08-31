@@ -7,6 +7,7 @@ import { AuditionDate } from './audition-date/AuditionDate';
 import { AuditionNotice } from './audition-date/AuditionNotice';
 import { Biography } from './biography/Biography';
 import { CareerInfo } from './career-info/CareerInfo';
+import { FrozenFileNotice } from './frozen-file/FrozenFileNotice';
 import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
 import { MissingEvaluation } from './missing-evaluation/MissingEvaluation';
@@ -24,11 +25,15 @@ export function MagistratSidePanelContent(props: {
   const { auditionMissing } = useAuditionExpectation(nominationFile);
   const isSgContext = useIsSgNavigation();
   const auditionEditable = isSgContext && nominationFile.canScheduleAudition;
+  const isFrozen = !nominationFile.content.isUpdatable;
 
   return (
     <div className="flex flex-col gap-10 pb-10">
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
       <div className="-mt-10 *:border-t *:border-(--border-open-blue-france)">
+        {isFrozen && (
+          <FrozenFileNotice isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
+        )}
         <AuditionNotice
           auditionDate={nominationFile.auditionDate}
           auditionMissing={auditionMissing}
@@ -58,7 +63,7 @@ export function MagistratSidePanelContent(props: {
         sessionId={sessionId}
       />
       <Attachments
-        isArchived={nominationFile.isArchived}
+        isUpdatable={nominationFile.content.isUpdatable}
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
       />
