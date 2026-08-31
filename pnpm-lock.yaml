@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@faker-js/faker':
-      specifier: 10.5.0
-      version: 10.5.0
+      specifier: 10.6.0
+      version: 10.6.0
     '@hey-api/openapi-ts':
       specifier: 0.99.0
       version: 0.99.0
@@ -168,7 +168,7 @@ importers:
     devDependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 10.5.0
+        version: 10.6.0
       '@nestjs/cli':
         specifier: 11.0.24
         version: 11.0.24(@swc/core@1.15.41)(@types/node@26.2.0)(esbuild@0.27.7)(lightningcss@1.33.0)(postcss@8.5.25)(prettier@3.8.3)
@@ -237,7 +237,7 @@ importers:
     devDependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 10.5.0
+        version: 10.6.0
       '@hey-api/openapi-ts':
         specifier: 'catalog:'
         version: 0.99.0(typescript@6.0.3)
@@ -385,7 +385,7 @@ importers:
         version: 9.39.5
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 10.5.0
+        version: 10.6.0
       '@formatjs/unplugin':
         specifier: 1.2.4
         version: 1.2.4(esbuild@0.27.7)(rolldown@1.2.3)(vite@8.2.0(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.47.1))(webpack@5.106.2(@swc/core@1.15.41)(esbuild@0.27.7)(lightningcss@1.33.0)(postcss@8.5.25))
@@ -508,7 +508,7 @@ importers:
     dependencies:
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 10.5.0
+        version: 10.6.0
       date-fns:
         specifier: 4.2.1
         version: 4.2.1
@@ -1066,8 +1066,8 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@faker-js/faker@10.5.0':
-    resolution: {integrity: sha512-bsxD8WLS5lIj7aaoCx1YJkktqYj5vlBUE6HWzu2Q51ksrGJ0H737ECCKlFU7Yf8Br45z9t99frBp/J7kzbMPAg==}
+  '@faker-js/faker@10.6.0':
+    resolution: {integrity: sha512-3RQHgEtvL1Frl/d1cSreo7qhJ3Gk1OdNUai/CtZ8G+wYeRQnJih3s9xJ9/kgYekPQRdwgh0HXRPqMlzWGwivIQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
 
   '@fig/complete-commander@3.2.0':
@@ -7518,7 +7518,7 @@ snapshots:
 
   '@exodus/bytes@1.15.1': {}
 
-  '@faker-js/faker@10.5.0': {}
+  '@faker-js/faker@10.6.0': {}
 
   '@fig/complete-commander@3.2.0(commander@11.1.0)':
     dependencies:
