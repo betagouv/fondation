@@ -33,7 +33,7 @@ export function DocActionDelete(props: {
               values={{ name: doc.name }}
             />
           </p>
-          {doc.type === 'agenda' && doc.isLinkedToOfficialReport && (
+          {doc.type === 'agenda' && doc.officialReportId && (
             <p className="font-bold">
               <FormattedMessage defaultMessage="Cela entraînera la suppression du PV lié." />
             </p>

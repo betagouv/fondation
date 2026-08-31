@@ -49,7 +49,7 @@ export class FindSessionDocsQuery {
           id: file.id,
           type: 'agenda' as const,
           date: file.sessionMeetingDate,
-          isLinkedToOfficialReport: !!file.officialReportId,
+          officialReportId: file.officialReportId,
           name: docFileName({
             formation: null,
             type: 'AGENDA',
@@ -91,7 +91,7 @@ export class FoundSessionDocsDto extends createZodDto(
           type: z.enum(['agenda']),
           id: z.string(),
           name: z.string(),
-          isLinkedToOfficialReport: z.boolean(),
+          officialReportId: z.string().nullable(),
         }),
         z.object({
           type: z.enum(['officialReport']),

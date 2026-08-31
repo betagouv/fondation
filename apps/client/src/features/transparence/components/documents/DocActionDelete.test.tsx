@@ -28,7 +28,7 @@ const AGENDA: SessionDocument = {
   id: 'agenda-1',
   type: 'agenda',
   name: 'Ordre du jour du 12 mars 2028',
-  isLinkedToOfficialReport: false,
+  officialReportId: null,
 };
 
 const OFFICIAL_REPORT: SessionDocument = {
@@ -95,7 +95,7 @@ describe('DocActionDelete', () => {
   });
 
   it('should warn that the linked official report goes with the agenda', async () => {
-    await clickDelete({ ...AGENDA, isLinkedToOfficialReport: true });
+    await clickDelete({ ...AGENDA, officialReportId: 'official-report-1' });
 
     const { content } = waitForConfirmation.mock.calls[0][0];
     render(

@@ -85,10 +85,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
             <SessionTab
               count={docsCount}
               icon="fr-icon-folder-2-line"
-              label={formatMessage(
-                { defaultMessage: '{count, plural, one {Document} other {Documents}}' },
-                { count: docsCount },
-              )}
+              label={formatMessage({ defaultMessage: 'Documents (ODJ et PV)' })}
               to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, params)}
             />
             <SessionTab

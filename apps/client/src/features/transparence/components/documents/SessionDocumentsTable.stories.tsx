@@ -20,13 +20,19 @@ const DOCS: SessionDocument[] = [
     id: 'agenda-1',
     type: 'agenda',
     name: 'Ordre du jour du 12 mars 2028 - Mme MARTIN Camille',
-    isLinkedToOfficialReport: true,
+    officialReportId: 'official-report-1',
   },
   {
     id: 'agenda-2',
     type: 'agenda',
     name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
-    isLinkedToOfficialReport: false,
+    officialReportId: null,
+  },
+  {
+    id: 'agenda-3',
+    type: 'agenda',
+    name: 'Ordre du jour du 8 janvier 2028 - M. BERNARD Lucas',
+    officialReportId: 'official-report-2',
   },
   {
     id: 'official-report-1',
@@ -37,7 +43,7 @@ const DOCS: SessionDocument[] = [
   {
     id: 'official-report-2',
     type: 'officialReport',
-    name: 'Procès-verbal du 4 février 2028 - M. BERNARD Lucas',
+    name: 'Procès-verbal du 8 janvier 2028 - M. BERNARD Lucas',
     outdated: true,
   },
 ];
@@ -102,6 +108,38 @@ export const Empty: Story = {
   args: { docs: [] },
 };
 
+/** two agendas covered by the same official report: the three rows form a single frame */
+export const AgendasSharingAnOfficialReport: Story = {
+  args: {
+    docs: [
+      {
+        id: 'agenda-siege',
+        type: 'agenda',
+        name: 'Ordre du jour du 12 mars 2028 - Siège',
+        officialReportId: 'official-report-1',
+      },
+      {
+        id: 'agenda-parquet',
+        type: 'agenda',
+        name: 'Ordre du jour du 12 mars 2028 - Parquet',
+        officialReportId: 'official-report-1',
+      },
+      {
+        id: 'official-report-1',
+        type: 'officialReport',
+        name: 'Procès-verbal du 12 mars 2028 - Mme MARTIN Camille',
+        outdated: false,
+      },
+      {
+        id: 'agenda-orphan',
+        type: 'agenda',
+        name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
+        officialReportId: null,
+      },
+    ],
+  },
+};
+
 export const Archived: Story = {
   args: { actions: undefined },
 };
@@ -114,7 +152,7 @@ export const ManyRows: Story = {
             id: `agenda-${index}`,
             type: 'agenda' as const,
             name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
-            isLinkedToOfficialReport: index % 4 === 0,
+            officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
           }
         : {
             id: `official-report-${index}`,

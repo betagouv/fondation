@@ -11,6 +11,12 @@ import { DocActionDelete } from '@/features/transparence/components/documents/Do
 import { DocActionDetails } from '@/features/transparence/components/documents/DocActionDetails';
 import { DocActionUpdate } from '@/features/transparence/components/documents/DocActionUpdate';
 import { DocGenerationMenu } from '@/features/transparence/components/documents/DocGenerationMenu';
+import {
+  groupSessionDocuments,
+  sessionDocumentGroupState,
+  SESSION_DOCUMENT_GROUP_STATES,
+  type SessionDocumentGroupState,
+} from '@/features/transparence/components/documents/session-document-groups';
 import { SessionDocumentsTable } from '@/features/transparence/components/documents/SessionDocumentsTable';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
@@ -20,8 +26,6 @@ import { unaccent } from '@/utils/string.utils';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
 
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
-
-const DOC_TYPES = ['agenda', 'officialReport'] as const;
 
 function matchesSearch(name: string, search: string) {
   return unaccent(name).toLowerCase().includes(unaccent(search).toLowerCase());
@@ -35,19 +39,24 @@ export function TransparenceDocumentsTab() {
   const [isActing, setIsActing] = useState(false);
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [types, setTypes] = useQueryState('type', parseAsArrayOf(parseAsString).withDefault([]));
+  const [states, setStates] = useQueryState('etat', parseAsArrayOf(parseAsString).withDefault([]));
 
   const { data: docs } = useFindSessionDocsQuery({ sessionId: transparence.id });
 
   const allDocs = docs?.items ?? [];
-  const items = allDocs.filter(
-    (doc) => (types.length === 0 || types.includes(doc.type)) && (!search || matchesSearch(doc.name, search)),
-  );
+  const items = groupSessionDocuments(allDocs)
+    .filter(
+      (group) =>
+        (states.length === 0 || states.includes(sessionDocumentGroupState(group))) &&
+        (!search || group.some((doc) => matchesSearch(doc.name, search))),
+    )
+    .flat();
 
-  const isFiltered = types.length > 0 || !!search.trim();
-  const typeLabels: Record<(typeof DOC_TYPES)[number], string> = {
-    agenda: formatMessage({ defaultMessage: 'Ordre du jour' }),
-    officialReport: formatMessage({ defaultMessage: 'Procès-verbal' }),
+  const isFiltered = states.length > 0 || !!search.trim();
+  const stateLabels: Record<SessionDocumentGroupState, string> = {
+    awaitingOfficialReport: formatMessage({ defaultMessage: 'PV attendu' }),
+    outdatedOfficialReport: formatMessage({ defaultMessage: 'PV à vérifier' }),
+    upToDate: formatMessage({ defaultMessage: 'PV à jour' }),
   };
 
   const filters = (
@@ -65,13 +74,13 @@ export function TransparenceDocumentsTab() {
         </span>
 
         <DropdownFilter
-          onSelectionChange={(selection) => setTypes(selection.length ? selection : null)}
-          options={DOC_TYPES.map((value) => ({
-            label: typeLabels[value],
+          onSelectionChange={(selection) => setStates(selection.length ? selection : null)}
+          options={SESSION_DOCUMENT_GROUP_STATES.map((value) => ({
+            label: stateLabels[value],
             value,
           }))}
-          selectedValues={types}
-          tagName={formatMessage({ defaultMessage: 'Type de document' })}
+          selectedValues={states}
+          tagName={formatMessage({ defaultMessage: 'État du procès-verbal' })}
         />
       </div>
 

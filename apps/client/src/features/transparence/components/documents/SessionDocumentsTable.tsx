@@ -6,23 +6,39 @@ import {
   useReactTable,
   type CellContext,
 } from '@tanstack/react-table';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { NewTable, rowCell } from '@/shared/ui/new-table';
-import type { FoundSessionDocsDto } from '@api/types';
 
-export type SessionDocument = FoundSessionDocsDto['items'][number];
+import { groupSessionDocuments, type SessionDocument } from './session-document-groups';
+
+export type { SessionDocument } from './session-document-groups';
+
+const HIGHLIGHT_DURATION = 3000;
+
+type Association = { agendasCount: number; associatedIds: string[] };
 
 const h = createColumnHelper<SessionDocument>();
 
 const SessionDocumentsTableContext = createContext<{
   actions?: (doc: SessionDocument) => ReactNode;
+  associations?: ReadonlyMap<string, Association>;
+  highlightAssociated?: (doc: SessionDocument) => void;
   renderName?: (doc: SessionDocument) => ReactNode;
 }>({});
 
 function DocumentState(props: { doc: SessionDocument }) {
-  if (props.doc.type === 'agenda' && !props.doc.isLinkedToOfficialReport) {
+  if (props.doc.type === 'agenda' && !props.doc.officialReportId) {
     return (
       <Badge as="span" className="rounded-full" noIcon severity="error" small>
         <FormattedMessage defaultMessage="pv attendu" />
@@ -54,7 +70,40 @@ function NameCell(props: CellContext<SessionDocument, string>) {
   return renderName?.(props.row.original) ?? props.cell.getValue();
 }
 
-const stateCell = rowCell<SessionDocument>((doc) => <DocumentState doc={doc} />);
+function AssociationLink(props: { association: Association; doc: SessionDocument }) {
+  const { highlightAssociated } = useContext(SessionDocumentsTableContext);
+  const { association, doc } = props;
+
+  return (
+    <button
+      className="cursor-pointer border-none bg-transparent p-0 text-left text-(--text-action-high-blue-france) underline"
+      onClick={() => highlightAssociated?.(doc)}
+      type="button"
+    >
+      {doc.type === 'agenda' ? (
+        <FormattedMessage defaultMessage="Voir le PV associé" />
+      ) : (
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Voir l'ODJ associé} other {Voir les # ODJ associés}}"
+          values={{ count: association.agendasCount }}
+        />
+      )}
+    </button>
+  );
+}
+
+function StateCell(props: CellContext<SessionDocument, unknown>) {
+  const { associations } = useContext(SessionDocumentsTableContext);
+  const doc = props.row.original;
+  const association = associations?.get(doc.id);
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {association && <AssociationLink association={association} doc={doc} />}
+      <DocumentState doc={doc} />
+    </div>
+  );
+}
 
 function ActionsCell(props: CellContext<SessionDocument, unknown>) {
   const { actions } = useContext(SessionDocumentsTableContext);
@@ -69,7 +118,49 @@ export function SessionDocumentsTable(props: {
   const { formatMessage } = useIntl();
   const { actions, renderName } = props;
 
-  const renderers = useMemo(() => ({ actions, renderName }), [actions, renderName]);
+  const groups = useMemo(() => groupSessionDocuments(props.docs), [props.docs]);
+  const data = useMemo(() => groups.flat(), [groups]);
+
+  const associations = useMemo(
+    () =>
+      new Map(
+        groups
+          .filter((group) => group.length > 1)
+          .flatMap((group): [string, Association][] => {
+            const agendasCount = group.filter((doc) => doc.type === 'agenda').length;
+            return group.map((doc) => [
+              doc.id,
+              {
+                agendasCount,
+                associatedIds: group.filter((other) => other.type !== doc.type).map((other) => other.id),
+              },
+            ]);
+          }),
+      ),
+    [groups],
+  );
+
+  const [highlightedIds, setHighlightedIds] = useState<readonly string[]>([]);
+  const highlightTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(highlightTimeout.current), []);
+
+  const highlightAssociated = useCallback(
+    (doc: SessionDocument) => {
+      const association = associations.get(doc.id);
+      if (!association) return;
+
+      clearTimeout(highlightTimeout.current);
+      setHighlightedIds(association.associatedIds);
+      highlightTimeout.current = setTimeout(() => setHighlightedIds([]), HIGHLIGHT_DURATION);
+    },
+    [associations],
+  );
+
+  const renderers = useMemo(
+    () => ({ actions, associations, highlightAssociated, renderName }),
+    [actions, associations, highlightAssociated, renderName],
+  );
 
   const columns = useMemo(
     () => [
@@ -89,9 +180,9 @@ export function SessionDocumentsTable(props: {
 
       h.display({
         id: 'state',
-        cell: stateCell,
+        cell: StateCell,
         header: formatMessage({ defaultMessage: 'État' }),
-        size: 140,
+        size: 240,
       }),
 
       h.display({
@@ -106,7 +197,7 @@ export function SessionDocumentsTable(props: {
 
   const table = useReactTable({
     columns,
-    data: props.docs as SessionDocument[],
+    data,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     getSortedRowModel: getSortedRowModel(),
@@ -118,6 +209,7 @@ export function SessionDocumentsTable(props: {
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid
+        rowTint={(row) => (highlightedIds.includes(row.id) ? 'bg-(--background-alt-blue-france)' : undefined)}
         table={table}
         unvirtualized
         visibleRows={10}

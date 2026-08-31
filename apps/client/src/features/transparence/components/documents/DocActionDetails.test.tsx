@@ -40,7 +40,7 @@ function renderDocActionDetails(setIsActing = vi.fn()) {
           id: 'agenda-1',
           type: 'agenda',
           name: 'Ordre du jour du 12 mars',
-          isLinkedToOfficialReport: false,
+          officialReportId: null,
         }}
         sessionId="session-1"
         setIsActing={setIsActing}
