@@ -184,12 +184,32 @@ describe('OfficialReportSnapshot', () => {
       const diff = snapshot.invalidate({
         id: 'or-1',
         type: 'SessionDateUpdated',
-        payload: { sessionId: 'session-1', date: { year: 2027, month: 1, day: 1 } },
+        payload: {
+          sessionId: 'session-1',
+          currentDate: { year: 2027, month: 1, day: 1 },
+          previousDate: { year: 2027, month: 1, day: 2 },
+        },
       });
 
       expect(diff.intro).toBe('OUTDATED');
       expect(diff.conclusion).toBe('NOOP');
       expect(diff.hasAny).toBe(true);
+    });
+
+    it('marks the intro outdated when the session date was null', () => {
+      const { snapshot } = makeSnapshot();
+
+      const diff = snapshot.invalidate({
+        id: 'or-1',
+        type: 'SessionDateUpdated',
+        payload: {
+          sessionId: 'session-1',
+          currentDate: { year: 2027, month: 1, day: 1 },
+          previousDate: null,
+        },
+      });
+
+      expect(diff.intro).toBe('OUTDATED');
     });
 
     it('does nothing when the session date is unchanged', () => {
@@ -213,7 +233,11 @@ describe('OfficialReportSnapshot', () => {
       const diff = snapshot.invalidate({
         id: 'or-1',
         type: 'SessionDateUpdated',
-        payload: { sessionId: 'session-1', date: { year: 2026, month: 2, day: 20 } },
+        payload: {
+          sessionId: 'session-1',
+          currentDate: { year: 2026, month: 2, day: 20 },
+          previousDate: { year: 2026, month: 2, day: 20 },
+        },
       });
 
       expect(diff.hasAny).toBe(false);
@@ -225,7 +249,11 @@ describe('OfficialReportSnapshot', () => {
       const diff = snapshot.invalidate({
         id: 'or-1',
         type: 'AgendaDateUpdated',
-        payload: { agendaId: 'agenda-1', date: { year: 2027, month: 1, day: 1 } },
+        payload: {
+          agendaId: 'agenda-1',
+          currentDate: { year: 2027, month: 1, day: 1 },
+          previousDate: { year: 2027, month: 1, day: 2 },
+        },
       });
 
       expect(diff.intro).toBe('OUTDATED');
