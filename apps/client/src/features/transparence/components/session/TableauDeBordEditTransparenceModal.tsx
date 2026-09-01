@@ -31,10 +31,13 @@ export function TableauDeBordEditTransparenceModal(props: {
   const { user } = useUser();
 
   const { session } = props;
-  const { mutate: updateNominationSession, isPending } = useUpdateNominationSessionMutation();
-  const { mutate: validateSession } = useValidateSessionMutation();
+  const { mutate: updateNominationSession, isPending: isUpdating } = useUpdateNominationSessionMutation();
+  const { mutate: validateSession, isPending: isValidating } = useValidateSessionMutation();
+
+  const isSaving = isUpdating || isValidating;
 
   const invalidDate = formatMessage({ defaultMessage: 'Format de date invalide' });
+  const clearableDate = z.iso.date(invalidDate).nullable().or(z.literal(''));
 
   const {
     control,
@@ -47,8 +50,8 @@ export function TableauDeBordEditTransparenceModal(props: {
         name: z.string().nonempty(),
         date: z.iso.date(invalidDate),
         observationsClosingDate: z.iso.date(invalidDate),
-        dueDate: z.iso.date(invalidDate).nullable(),
-        positionStartDate: z.iso.date(invalidDate).nullable(),
+        dueDate: clearableDate,
+        positionStartDate: clearableDate,
       }),
     ),
     defaultValues: {
@@ -70,18 +73,23 @@ export function TableauDeBordEditTransparenceModal(props: {
     positionStartDate: string | null;
   }) => {
     updateNominationSession(
-      { sessionId: session.id, data },
+      {
+        sessionId: session.id,
+        data: {
+          ...data,
+          dueDate: data.dueDate || null,
+          positionStartDate: data.positionStartDate || null,
+        },
+      },
       {
         onSuccess: () => {
           toasts.success({
             title: formatMessage({ defaultMessage: 'Transparence "{name}" modifiée' }, { name: data.name }),
           });
 
-          if (!session.isValidated && user) {
-            validateSession({ userId: user.id, sessionId: session.id });
-          }
+          if (session.isValidated || !user) return props.onClose();
 
-          props.onClose();
+          validateSession({ sessionId: session.id, userId: user.id }, { onSettled: () => props.onClose() });
         },
         onError: () => {
           setError(`root`, {
@@ -96,10 +104,10 @@ export function TableauDeBordEditTransparenceModal(props: {
     <Modal
       actions={
         <>
-          <Button disabled={isPending} onClick={props.onClose} priority="secondary">
+          <Button disabled={isSaving} onClick={props.onClose} priority="secondary">
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
-          <Button disabled={isPending || !isDirty} nativeButtonProps={{ form: FORM_ID, type: 'submit' }}>
+          <Button disabled={isSaving || !isDirty} nativeButtonProps={{ form: FORM_ID, type: 'submit' }}>
             <FormattedMessage defaultMessage="Enregistrer" />
           </Button>
         </>
