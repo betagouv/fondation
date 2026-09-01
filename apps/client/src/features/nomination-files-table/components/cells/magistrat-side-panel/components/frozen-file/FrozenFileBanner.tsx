@@ -4,16 +4,20 @@ import { AlertBanner } from '@/shared/ui/alert-banner';
 import type { NominationSessionFileStatus } from '@/types/enums.types';
 import { formatLongDateOnly } from '@/utils/date-only.util';
 
-const NOTICE_LAYOUT = '-mx-8 px-8 py-4';
+const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 
 type FrozenFile = { isArchived: boolean; status: NominationSessionFileStatus };
+
+function officialReportDate(status: NominationSessionFileStatus) {
+  return status.value === 'DSJ_REPORTED' ? status.dates[0] : undefined;
+}
 
 function frozenMessage({ isArchived, status }: FrozenFile) {
   if (isArchived) {
     return <FormattedMessage defaultMessage="Session archivée : ce dossier n'est plus modifiable" />;
   }
 
-  const [reportedOn] = status.dates;
+  const reportedOn = officialReportDate(status);
   if (!reportedOn) {
     return (
       <FormattedMessage defaultMessage="Dossier acté dans un procès-verbal : il n'est plus modifiable" />
@@ -28,11 +32,11 @@ function frozenMessage({ isArchived, status }: FrozenFile) {
   );
 }
 
-export function FrozenFileNotice(props: FrozenFile) {
+export function FrozenFileBanner(props: FrozenFile) {
   return (
     <AlertBanner
       align="center"
-      className={NOTICE_LAYOUT}
+      className={BANNER_LAYOUT}
       icon="fr-icon-lock-line"
       message={frozenMessage(props)}
       tone="neutral"

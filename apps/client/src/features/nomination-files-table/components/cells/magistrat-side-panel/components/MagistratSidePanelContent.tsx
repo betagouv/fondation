@@ -3,11 +3,11 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { Attachments } from './attachments/Attachments';
+import { AuditionBanner } from './audition-date/AuditionBanner';
 import { AuditionDate } from './audition-date/AuditionDate';
-import { AuditionNotice } from './audition-date/AuditionNotice';
 import { Biography } from './biography/Biography';
 import { CareerInfo } from './career-info/CareerInfo';
-import { FrozenFileNotice } from './frozen-file/FrozenFileNotice';
+import { FrozenFileBanner } from './frozen-file/FrozenFileBanner';
 import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
 import { MissingEvaluation } from './missing-evaluation/MissingEvaluation';
@@ -32,9 +32,9 @@ export function MagistratSidePanelContent(props: {
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
       <div className="-mt-10 *:border-t *:border-(--border-open-blue-france)">
         {isFrozen && (
-          <FrozenFileNotice isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
+          <FrozenFileBanner isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
         )}
-        <AuditionNotice
+        <AuditionBanner
           auditionDate={nominationFile.auditionDate}
           auditionMissing={auditionMissing}
           auditionTime={nominationFile.auditionTime}

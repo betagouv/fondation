@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 
-export function MissingSecondReporterNotice(props: { editable: boolean; onAffect: () => void }) {
+export function MissingSecondReporterBanner(props: { editable: boolean; onAffect: () => void }) {
   return (
     <AlertBanner
       className="fr-mb-n8v -mx-8 px-8 py-4"

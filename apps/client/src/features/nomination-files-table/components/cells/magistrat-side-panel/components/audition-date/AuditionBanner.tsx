@@ -8,9 +8,9 @@ import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 import { AUDITION_SECTION_ID } from './AuditionDate';
 import { AUDITION_DATE_INPUT_ID } from './AuditionDateForm';
 
-const NOTICE_LAYOUT = '-mx-8 px-8 py-4';
+const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 
-export function AuditionNotice(props: {
+export function AuditionBanner(props: {
   auditionDate: PlainDateOnly | null;
   auditionMissing: boolean;
   auditionTime: PlainTimeOnly | null;
@@ -26,7 +26,7 @@ export function AuditionNotice(props: {
   if (auditionMissing) {
     return (
       <AlertBanner
-        className={NOTICE_LAYOUT}
+        className={BANNER_LAYOUT}
         icon="fr-icon-warning-fill"
         message={<FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />}
         tone="warning"
@@ -41,7 +41,7 @@ export function AuditionNotice(props: {
   }
 
   return (
-    <AuditionScheduledBanner className={NOTICE_LAYOUT} date={auditionDate} time={auditionTime}>
+    <AuditionScheduledBanner className={BANNER_LAYOUT} date={auditionDate} time={auditionTime}>
       {editable && !isPastSchedule(auditionDate, auditionTime) && (
         <AlertBannerAction onClick={goToDateField}>
           <FormattedMessage defaultMessage="Modifier" />

@@ -3,8 +3,8 @@ import { QueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-import { AuditionNotice } from '../audition-date/AuditionNotice';
-import { FrozenFileNotice } from '../frozen-file/FrozenFileNotice';
+import { AuditionBanner } from '../audition-date/AuditionBanner';
+import { FrozenFileBanner } from '../frozen-file/FrozenFileBanner';
 import { MissingEvaluation } from '../missing-evaluation/MissingEvaluation';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
@@ -150,7 +150,7 @@ function seedQueries(
 const VIEWS = ['sg', 'sgArchived', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
-function HeaderNotices(props: { editable: boolean; nominationFile: SessionNominationFile }) {
+function HeaderBanners(props: { editable: boolean; nominationFile: SessionNominationFile }) {
   const [nominationFile = props.nominationFile] = useSeededNominationFiles({
     files: [props.nominationFile],
     sessionId: SESSION_ID,
@@ -161,9 +161,9 @@ function HeaderNotices(props: { editable: boolean; nominationFile: SessionNomina
       <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
       <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
         {!nominationFile.content.isUpdatable && (
-          <FrozenFileNotice isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
+          <FrozenFileBanner isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
         )}
-        <AuditionNotice
+        <AuditionBanner
           auditionDate={nominationFile.auditionDate}
           auditionMissing={isAuditionMissing(nominationFile)}
           auditionTime={nominationFile.auditionTime}
@@ -232,7 +232,7 @@ function HeaderStory(props: {
         outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
         sessionId={SESSION_ID}
       >
-        <HeaderNotices editable={isSg} nominationFile={nominationFile} />
+        <HeaderBanners editable={isSg} nominationFile={nominationFile} />
       </NominationFilesTableProvider>
     </StoryQueryClient>
   );
