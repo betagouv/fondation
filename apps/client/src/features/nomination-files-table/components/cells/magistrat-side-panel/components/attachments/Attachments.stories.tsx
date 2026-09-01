@@ -45,12 +45,12 @@ const SAMPLE_FILES: ListedNominationFileAttachmentDto['items'] = [
 const VIEWS = ['sg', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
-type AttachmentsArgs = { hasFiles: boolean; isArchived: boolean; view: View };
+type AttachmentsArgs = { hasFiles: boolean; isUpdatable: boolean; view: View };
 
 const attachmentsByNominationFile = new Map<string, ListedNominationFileAttachmentDto['items']>();
 
 const nominationFileIdFor = (args: AttachmentsArgs) =>
-  `file-${args.view}-${args.hasFiles}-${args.isArchived}`;
+  `file-${args.view}-${args.hasFiles}-${args.isUpdatable}`;
 
 const attachmentsOf = (nominationFileId: string) => attachmentsByNominationFile.get(nominationFileId) ?? [];
 
@@ -102,7 +102,7 @@ function AttachmentsStory(props: AttachmentsArgs) {
       <ConfirmModalProvider>
         <AddNominationFileAttachmentModalProvider>
           <Attachments
-            isArchived={props.isArchived}
+            isUpdatable={props.isUpdatable}
             nominationFileId={nominationFileIdFor(props)}
             sessionId={SESSION_ID}
           />
@@ -128,10 +128,10 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     hasFiles: { control: 'boolean' },
-    isArchived: { control: 'boolean' },
+    isUpdatable: { control: 'boolean' },
     view: { control: 'inline-radio', options: VIEWS },
   },
-  args: { hasFiles: true, isArchived: false, view: 'sg' },
+  args: { hasFiles: true, isUpdatable: true, view: 'sg' },
 } satisfies Meta<typeof AttachmentsStory>;
 
 export default meta;

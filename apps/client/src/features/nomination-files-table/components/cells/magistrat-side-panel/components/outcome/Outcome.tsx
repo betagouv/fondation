@@ -15,7 +15,9 @@ import { OutcomeSelect } from './OutcomeSelect';
 export function Outcome(props: { nominationFile: SessionNominationFile }) {
   const { formation } = useNominationFilesTable();
   const isSg = useIsSgNavigation();
-  const { outcome } = props.nominationFile.content;
+  const { isUpdatable, outcome } = props.nominationFile.content;
+
+  const editable = isSg && isUpdatable;
 
   return (
     <div className="flex flex-col gap-2">
@@ -23,7 +25,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
         <FormattedMessage defaultMessage="Issue" />
       </label>
       <div className="self-start">
-        {isSg ? (
+        {editable ? (
           <OutcomeSelect nominationFile={props.nominationFile} />
         ) : (
           <OutcomeBadge formation={formation} outcome={outcome?.value ?? null} small={false} />
@@ -32,6 +34,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
       {isSg && outcome && (
         <OutcomeComment
           comment={outcome.comment}
+          editable={editable}
           nominationFileId={props.nominationFile.id}
           outcome={outcome.value}
         />
@@ -42,6 +45,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
 
 function OutcomeComment(props: {
   comment: string | null;
+  editable: boolean;
   nominationFileId: string;
   outcome: NonNullable<SessionNominationFile['content']['outcome']>['value'];
 }) {
@@ -57,6 +61,8 @@ function OutcomeComment(props: {
     if (event.type === 'comment') mutate({ comment: event.value, outcome: props.outcome });
   };
 
+  if (!props.editable && !props.comment) return null;
+
   return (
     <div className="fr-mt-3v flex items-center gap-2">
       <i
@@ -66,18 +72,20 @@ function OutcomeComment(props: {
       <p className="fr-mb-0 min-w-0 grow text-sm wrap-break-word text-(--text-mention-grey)">
         {props.comment || <FormattedMessage defaultMessage="Aucun commentaire" />}
       </p>
-      <Button
-        className="relative -top-2 btn-compact shrink-0"
-        onClick={edit}
-        priority="secondary"
-        size="small"
-      >
-        {props.comment ? (
-          <FormattedMessage defaultMessage="Modifier" />
-        ) : (
-          <FormattedMessage defaultMessage="Ajouter" />
-        )}
-      </Button>
+      {props.editable && (
+        <Button
+          className="relative -top-2 btn-compact shrink-0"
+          onClick={edit}
+          priority="secondary"
+          size="small"
+        >
+          {props.comment ? (
+            <FormattedMessage defaultMessage="Modifier" />
+          ) : (
+            <FormattedMessage defaultMessage="Ajouter" />
+          )}
+        </Button>
+      )}
     </div>
   );
 }

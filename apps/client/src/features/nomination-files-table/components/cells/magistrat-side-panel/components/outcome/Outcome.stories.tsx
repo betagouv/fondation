@@ -28,15 +28,19 @@ function SeededOutcome(props: { nominationFile: SessionNominationFile }) {
 function OutcomeStory(props: {
   comment: string | null;
   formation: FormationEnum;
+  isUpdatable?: boolean;
   outcome: NominationFileOutcomeEnum | null;
 }) {
   const sessionOutcomes = makeSessionOutcomes(props.formation);
   const nominationFile = makeSessionNominationFile({
-    content: { outcome: props.outcome ? { comment: props.comment, value: props.outcome } : null },
+    content: {
+      isUpdatable: props.isUpdatable ?? true,
+      outcome: props.outcome ? { comment: props.comment, value: props.outcome } : null,
+    },
   });
 
   return (
-    <StoryQueryClient key={`${props.comment}-${props.formation}-${props.outcome}`}>
+    <StoryQueryClient key={`${props.comment}-${props.formation}-${props.isUpdatable}-${props.outcome}`}>
       <NominationFilesTableProvider
         formation={props.formation}
         outcomes={sessionOutcomes}
@@ -64,11 +68,16 @@ const meta = {
   argTypes: {
     comment: { control: 'text' },
     formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
+    isUpdatable: {
+      control: 'boolean',
+      description: 'a file acted in an official report, or held by an archived session, is read only',
+    },
     outcome: { control: 'select', options: [null, ...outcomes] },
   },
   args: {
     comment: 'Profil conforme aux attentes de la formation.',
     formation: FormationEnum.SIEGE,
+    isUpdatable: true,
     outcome: NominationFileOutcomeEnum.VALIDATED,
   },
 } satisfies Meta<typeof OutcomeStory>;

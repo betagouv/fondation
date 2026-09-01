@@ -1,18 +1,19 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { generatePath } from 'react-router';
 
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToIso, formatLongDateOnly } from '@/utils/date-only.util';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 
+import { TableauDeBordEditTransparenceModal } from './TableauDeBordEditTransparenceModal';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
 import { TransparenceActionsMenu } from './TransparenceActionsMenu';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
   const { isArchived } = useArchivedSession();
+  const [editStatus, setEditStatus] = useState<'closing' | 'editing' | 'idle'>('idle');
 
   return (
     <div className="fr-px-2v flex w-full flex-col gap-y-3">
@@ -40,9 +41,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
           {!isArchived && (
             <Button
               iconId="fr-icon-settings-5-line"
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID_EDIT, { sessionId: transparence.id }),
-              }}
+              onClick={() => setEditStatus('editing')}
               priority="tertiary"
               size="small"
             >
@@ -53,6 +52,15 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
           <TransparenceActionsMenu transparence={transparence} />
         </div>
       </div>
+
+      {editStatus !== 'idle' && (
+        <TableauDeBordEditTransparenceModal
+          onClose={() => setEditStatus('closing')}
+          onClosed={() => setEditStatus('idle')}
+          open={editStatus === 'editing'}
+          session={transparence}
+        />
+      )}
     </div>
   );
 };

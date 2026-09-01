@@ -28,7 +28,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
-import { MissingSecondReporterNotice } from './MissingSecondReporterNotice';
+import { MissingSecondReporterBanner } from './MissingSecondReporterBanner';
 
 export const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
 
@@ -188,7 +188,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
         </div>
       )}
       {isSgContext && reportersMissing && (
-        <MissingSecondReporterNotice editable={canEdit && !isEditing} onAffect={affectReporters} />
+        <MissingSecondReporterBanner editable={canEdit && !isEditing} onAffect={affectReporters} />
       )}
     </div>
   );

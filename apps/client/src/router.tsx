@@ -171,15 +171,6 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
           {
-            path: ROUTE_PATHS.SG.SESSION_ID_EDIT,
-            lazy: () =>
-              import('@/features/transparence/components/session/TableauDeBordEditTransparence').then(
-                ({ TableauDeBordEditTransparencePage }) => ({
-                  Component: TableauDeBordEditTransparencePage,
-                }),
-              ),
-          },
-          {
             path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({

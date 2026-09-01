@@ -2,9 +2,11 @@ import { useCallback } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/context/side-panel.context';
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -59,6 +61,8 @@ export function ObservationDetailsPage() {
     [attachFiles, sessionId, nominationFileId, observationId],
   );
 
+  useScrollToTop(observationId);
+
   if (isLoading) {
     return (
       <PageContentLayout fullBackgroundGreen={true}>
@@ -91,14 +95,19 @@ export function ObservationDetailsPage() {
     });
   };
 
+  const openedSidePanel = `?${new URLSearchParams({ [SIDE_PANEL_DOSSIER_PARAM]: nominationFileId })}`;
+
   const backLink = isSgContext
-    ? { to: `/secretariat-general/session/${sessionId}`, label: 'Retour à la session' }
+    ? {
+        to: `/secretariat-general/session/${sessionId}${openedSidePanel}`,
+        label: 'Retour à la session',
+      }
     : reportId
       ? {
           to: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId),
           label: 'Retour au rapport',
         }
-      : { to: getDetailSessionGdsPath({ sessionId }), label: 'Retour à la session' };
+      : { to: `${getDetailSessionGdsPath({ sessionId })}${openedSidePanel}`, label: 'Retour à la session' };
 
   return (
     <ArchiveBannerPortal isArchived={observation.isArchived}>

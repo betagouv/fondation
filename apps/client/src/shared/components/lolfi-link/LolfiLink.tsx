@@ -1,8 +1,11 @@
+import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { IconLink } from '@/shared/ui/icon-button';
+import { IconLink } from '@/shared/ui/icon-link';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+
+const ICON_SIZE_CLASS = '[&::before]:[--icon-size:1.08rem]';
 
 type LolfiTarget = { href: string } | { name?: string | null; nominationFileId: string; sessionId: string };
 
@@ -21,7 +24,7 @@ export function LolfiLink(props: { className?: string; small?: boolean } & Lolfi
 
   return (
     <IconLink
-      className={props.className}
+      className={clsx(props.className, props.small && ICON_SIZE_CLASS)}
       iconId="fr-icon-external-link-line"
       label={formatMessage({ defaultMessage: 'Vers LOLFI' })}
       newTab

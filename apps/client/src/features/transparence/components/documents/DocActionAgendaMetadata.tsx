@@ -2,7 +2,7 @@ import { useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
-import { IconLink } from '@/shared/ui/icon-button';
+import { IconLink } from '@/shared/ui/icon-link';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function DocActionAgendaMetadata(props: {

@@ -53,7 +53,7 @@ describe('SessionTabsBar', () => {
       'href',
       '/secretariat-general/session/session-1/evaluations-manquantes',
     );
-    expect(screen.getByRole('link', { name: 'Documents 2' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Documents (ODJ et PV) 2' })).toHaveAttribute(
       'href',
       '/secretariat-general/session/session-1/documents',
     );
@@ -67,7 +67,7 @@ describe('SessionTabsBar', () => {
     renderBar();
 
     expect(screen.getByRole('link', { name: 'Propositions 12' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Documents 2' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Documents (ODJ et PV) 2' })).not.toHaveAttribute('aria-current');
   });
 
   it('should mark the attachments as the current section on their own path', () => {

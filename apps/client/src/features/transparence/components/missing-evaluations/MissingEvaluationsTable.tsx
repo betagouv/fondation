@@ -1,7 +1,6 @@
 import { createColumnHelper, type CellContext } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, Link } from 'react-router';
 
 import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { NominationFilesExportButton } from '@/features/nomination-files-table/components/NominationFilesExportButton';
@@ -18,7 +17,6 @@ import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { rowCell } from '@/shared/ui/new-table';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import type { FormationEnum } from '@/types/enums.types';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useListMissingEvaluationsAsExcelMutation,
   useNominationFilesStatusCountsQuery,
@@ -32,29 +30,17 @@ const h = createColumnHelper<SessionNominationFile>();
 
 const fileNumberCell = rowCell<SessionNominationFile>((file) => file.content.numeroDeDossier);
 
-function MagistratCell(props: CellContext<SessionNominationFile, string>) {
-  const { sessionId } = useNominationFilesTable();
-  const file = props.row.original;
-
-  return (
-    <div className="flex flex-col items-start gap-y-0.5">
-      <Link
-        to={{
-          pathname: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
-          search: `?dossier=${file.id}`,
-        }}
-      >
-        {file.content.nomMagistrat}
-      </Link>
-      <span className="text-xs leading-5">
-        <GradeAndPosition grade={file.content.grade} position={file.content.posteActuel} />
-      </span>
-    </div>
-  );
-}
+const magistratCell = rowCell<SessionNominationFile>((file) => (
+  <div className="flex flex-col items-start gap-y-0.5">
+    <span className="font-medium text-(--text-default-grey)">{file.content.nomMagistrat}</span>
+    <span className="text-xs leading-5">
+      <GradeAndPosition boldGrade={false} grade={file.content.grade} position={file.content.posteActuel} />
+    </span>
+  </div>
+));
 
 const posteCibleCell = rowCell<SessionNominationFile>((file) => (
-  <GradeAndPosition grade={file.content.gradeCible} position={file.content.posteCible} />
+  <GradeAndPosition boldGrade={false} grade={file.content.gradeCible} position={file.content.posteCible} />
 ));
 const reportersCell = rowCell<SessionNominationFile>((file) => (
   <ReporterTagList reporters={file.reporters} />
@@ -98,7 +84,7 @@ function useMissingEvaluationsColumns() {
 
       h.accessor('content.nomMagistrat', {
         id: 'name',
-        cell: MagistratCell,
+        cell: magistratCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Magistrat' }),
         size: 250,
@@ -117,7 +103,7 @@ function useMissingEvaluationsColumns() {
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
         meta: { filters: filters.reporters },
-        size: 130,
+        size: 150,
       }),
 
       h.accessor('missingEvaluationComment', {
@@ -131,7 +117,7 @@ function useMissingEvaluationsColumns() {
         id: 'status',
         cell: EvaluationStatusCell,
         header: formatMessage({ defaultMessage: 'Statut de l’évaluation' }),
-        size: 220,
+        size: 200,
       }),
     ],
     [filters, formatMessage],

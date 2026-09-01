@@ -3,6 +3,7 @@ import { Navigate, useParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { MagistratDetailsContent } from '@/features/magistrats/components/MagistratDetailsContent';
+import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
@@ -14,6 +15,8 @@ export function MagistratDetailsPage() {
   const context = isSgContext ? 'sg' : 'membre';
 
   const { data: magistrat, isLoading, isError } = useMagistratDetailsQuery({ magistratId });
+
+  useScrollToTop(magistratId);
 
   if (isLoading) {
     return (

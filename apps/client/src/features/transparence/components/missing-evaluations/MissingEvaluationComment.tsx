@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
+import clsx from 'clsx';
 import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -7,6 +8,9 @@ import { Modal } from '@/shared/ui/modal';
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
 
 export const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
+
+const REVEALED_WHERE_HOVER_EXISTS =
+  '[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:opacity-100';
 
 type EditedComment = { comment: string | null; magistrat: string; nominationFileId: string };
 type EditedCommentSession = { edited: EditedComment; id: number };
@@ -130,27 +134,66 @@ export function MissingEvaluationCommentCell(props: {
   magistrat: string;
   nominationFileId: string;
 }) {
+  const { formatMessage } = useIntl();
   const edit = useContext(EditMissingEvaluationCommentContext);
   if (!edit) throw new Error('MissingEvaluationCommentCell must be used within a provider');
 
+  const openModal = () =>
+    edit({
+      comment: props.comment,
+      magistrat: props.magistrat,
+      nominationFileId: props.nominationFileId,
+    });
+
   if (props.disabled) {
-    return props.comment ? <span className="text-sm">{props.comment}</span> : null;
+    return props.comment ? <CommentText>{props.comment}</CommentText> : null;
   }
 
+  if (!props.comment) {
+    return (
+      <Button
+        aria-label={formatMessage(
+          { defaultMessage: 'Ajouter un commentaire pour {magistrat}' },
+          { magistrat: props.magistrat },
+        )}
+        className="fr-btn--align-on-content"
+        onClick={openModal}
+        priority="tertiary no outline"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Ajouter" />
+      </Button>
+    );
+  }
+
+  const lastSpace = props.comment.trimEnd().lastIndexOf(' ');
+
   return (
-    <Button
-      className="fr-btn--align-on-content text-left whitespace-normal"
-      onClick={() =>
-        edit({
-          comment: props.comment,
-          magistrat: props.magistrat,
-          nominationFileId: props.nominationFileId,
-        })
-      }
-      priority="tertiary no outline"
-      size="small"
-    >
-      {props.comment ?? <FormattedMessage defaultMessage="Ajouter" />}
-    </Button>
+    <CommentText>
+      {props.comment.slice(0, lastSpace + 1)}
+      <span className="whitespace-nowrap">
+        {props.comment.slice(lastSpace + 1)}{' '}
+        <button
+          aria-label={formatMessage(
+            { defaultMessage: 'Modifier le commentaire de {magistrat}' },
+            { magistrat: props.magistrat },
+          )}
+          className={clsx(
+            'border-0 bg-transparent p-0 align-baseline text-sm/6 font-medium text-(--text-action-high-blue-france)',
+            REVEALED_WHERE_HOVER_EXISTS,
+          )}
+          onClick={openModal}
+          type="button"
+        >
+          <FormattedMessage defaultMessage="Modifier" />
+        </button>
+      </span>
+    </CommentText>
+  );
+}
+
+function CommentText(props: PropsWithChildren) {
+  return (
+    <span className="group min-w-0 text-sm/6 font-normal text-(--text-default-grey)">{props.children}</span>
   );
 }

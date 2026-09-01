@@ -61,5 +61,14 @@ describe('MissingEvaluationDoneButton', () => {
     renderButton(true);
 
     expect(screen.getByRole('button', { name: /Marquer comme ajoutée/ })).toBeDisabled();
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+      'Proposition figée : son issue est actée dans un procès-verbal ou la session est archivée',
+    );
+  });
+
+  it('should not explain anything while the action is available', () => {
+    renderButton();
+
+    expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument();
   });
 });

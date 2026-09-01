@@ -169,7 +169,7 @@ export function ObservationsModalProvider({ children }: PropsWithChildren) {
               <FormattedMessage defaultMessage="Retour" />
             </Button>
             <Button
-              disabled={isPending || !form.isValid}
+              disabled={isPending || !form.isValid || !form.isDirty}
               nativeButtonProps={{ form: 'observation-form', type: 'submit' }}
             >
               <FormattedMessage defaultMessage="Enregistrer" />

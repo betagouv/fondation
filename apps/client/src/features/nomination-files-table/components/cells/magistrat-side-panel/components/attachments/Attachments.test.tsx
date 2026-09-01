@@ -59,7 +59,7 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
   }),
 }));
 
-const PROPS = { isArchived: false, nominationFileId: 'nf-1', sessionId: 'session-1' };
+const PROPS = { isUpdatable: true, nominationFileId: 'nf-1', sessionId: 'session-1' };
 
 function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
   return render(
@@ -198,8 +198,8 @@ describe('Attachments permissions', () => {
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 
-  it('hides delete and upload when the file is archived', () => {
-    renderAttachments({ isArchived: true });
+  it('hides delete and upload on a file that can no longer be updated', () => {
+    renderAttachments({ isUpdatable: false });
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();

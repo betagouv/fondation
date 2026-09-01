@@ -94,7 +94,7 @@ export function NominationFileTargetPositionModal(props: {
       open={props.open}
       title={<FormattedMessage defaultMessage="Fiche de juridiction" />}
     >
-      <p>
+      <p className="leading-7">
         <FormattedMessage
           defaultMessage="Le poste de <bold>{position}</bold> pour la proposition {reference} peut nécessiter une fiche de juridiction."
           values={{
@@ -104,8 +104,8 @@ export function NominationFileTargetPositionModal(props: {
           }}
         />
       </p>
-      <p>
-        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat, accessibles en cliquant sur son nom dans le tableau." />
+      <p className="leading-7">
+        <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat dans le panneau latéral." />
       </p>
 
       {hasFailed && (

@@ -20,7 +20,7 @@ import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
 
-export function Attachments(props: { isArchived: boolean; nominationFileId: string; sessionId: string }) {
+export function Attachments(props: { isUpdatable: boolean; nominationFileId: string; sessionId: string }) {
   const isSg = useIsSgNavigation();
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
@@ -29,7 +29,7 @@ export function Attachments(props: { isArchived: boolean; nominationFileId: stri
   });
 
   const attachments = data?.items ?? [];
-  const canManage = isSg && !props.isArchived;
+  const canManage = isSg && props.isUpdatable;
   const labelId = `attachments-${props.nominationFileId}`;
 
   if (attachments.length === 0 && !canManage) return null;

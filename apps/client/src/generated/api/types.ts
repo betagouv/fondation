@@ -1033,7 +1033,7 @@ export type FoundSessionDocsDto = {
         type: 'agenda';
         id: string;
         name: string;
-        isLinkedToOfficialReport: boolean;
+        officialReportId: string | null;
     } | {
         type: 'officialReport';
         id: string;
