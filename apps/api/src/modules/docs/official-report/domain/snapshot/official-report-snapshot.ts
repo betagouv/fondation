@@ -38,11 +38,14 @@ export class OfficialReportSnapshot {
     switch (command.type) {
       case 'SessionDateUpdated':
         return this.invalidateIntroIf(
-          !this.meta.agenda.session.date.equals(DateOnly.fromJson(command.payload.date)),
+          !command.payload.previousDate ||
+            !this.meta.agenda.session.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
       case 'AgendaDateUpdated':
-        return this.invalidateIntroIf(!this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.date)));
+        return this.invalidateIntroIf(
+          !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
+        );
 
       case 'NominationFilesReportersUpdated':
       case 'NominationFilesOutcomeUpdated':

@@ -49,6 +49,7 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { assertNever } from 'src/utils/assert-never';
+import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { timeOnlyToDate } from 'src/utils/time-only';
@@ -537,7 +538,11 @@ export class SessionTransparenceRepository {
     if (message.data.date.toDate().getTime() !== old?.date.getTime()) {
       invalidations.push({
         type: 'SessionDateUpdated',
-        payload: { sessionId: message.sessionId, date: message.data.date.toJson() },
+        payload: {
+          sessionId: message.sessionId,
+          currentDate: message.data.date.toJson(),
+          previousDate: old?.date ? DateOnly.fromUtcDate(old.date).toJson() : null,
+        },
       });
     }
 

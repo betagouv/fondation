@@ -4,6 +4,8 @@ test.describe('Générer un ordre du jour', () => {
   let sessionName: string;
 
   test.beforeEach(async ({ app, registerUser }) => {
+    test.setTimeout(10_000);
+
     if (sessionName) {
       await app.pages.manageSessions.goto();
       await app.pages.manageSessions.sessionRow(sessionName).click();

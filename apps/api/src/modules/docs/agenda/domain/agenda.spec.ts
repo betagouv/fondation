@@ -186,7 +186,11 @@ describe('Agenda', () => {
       officialReportInvalidations: [
         {
           type: 'AgendaDateUpdated',
-          payload: { agendaId: agenda.id, date: date.toJson() },
+          payload: {
+            agendaId: agenda.id,
+            currentDate: date.toJson(),
+            previousDate: props.date.toJson(),
+          },
         } satisfies OfficialReportInvalidation,
       ],
     });

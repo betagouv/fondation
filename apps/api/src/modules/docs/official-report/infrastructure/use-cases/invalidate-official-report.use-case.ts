@@ -145,7 +145,11 @@ export class InternalInvalidateOfficialReportUseCase {
       {
         type: 'AgendaDateUpdated',
         id: agenda.officialReportId,
-        payload: { agendaId: agenda.id, date: query.invalidation.payload.date },
+        payload: {
+          agendaId: agenda.id,
+          currentDate: query.invalidation.payload.currentDate,
+          previousDate: query.invalidation.payload.previousDate,
+        },
       },
     ];
   }
@@ -165,7 +169,11 @@ export class InternalInvalidateOfficialReportUseCase {
       .map((agenda) => ({
         type: 'SessionDateUpdated',
         id: agenda.officialReportId,
-        payload: { sessionId: agenda.sessionId, date: query.invalidation.payload.date },
+        payload: {
+          sessionId: agenda.sessionId,
+          currentDate: query.invalidation.payload.currentDate,
+          previousDate: query.invalidation.payload.previousDate,
+        },
       }));
   }
 

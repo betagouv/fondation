@@ -4,11 +4,11 @@ import { DateOnlyJson } from 'src/utils/date-only';
 export type OfficialReportInvalidation =
   | {
       type: 'SessionDateUpdated';
-      payload: { sessionId: string; date: DateOnlyJson };
+      payload: { sessionId: string; currentDate: DateOnlyJson; previousDate: DateOnlyJson | null };
     }
   | {
       type: 'AgendaDateUpdated';
-      payload: { agendaId: string; date: DateOnlyJson };
+      payload: { agendaId: string; currentDate: DateOnlyJson; previousDate: DateOnlyJson };
     }
   | {
       type: 'AgendaNominationFilesUpdated';

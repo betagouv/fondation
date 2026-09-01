@@ -40,7 +40,16 @@ export class AgendaSnapshot {
     if (!hasAny) return { hasAny: false };
 
     const officialReportInvalidations: OfficialReportInvalidation[] = dateChanged
-      ? [{ type: 'AgendaDateUpdated', payload: { agendaId: this.agendaId, date: next.date.toJson() } }]
+      ? [
+          {
+            type: 'AgendaDateUpdated',
+            payload: {
+              agendaId: this.agendaId,
+              currentDate: next.date.toJson(),
+              previousDate: this.date.toJson(),
+            },
+          },
+        ]
       : [];
 
     return { hasAny: true, metadata: next, officialReportInvalidations };
