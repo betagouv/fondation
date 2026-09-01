@@ -9,13 +9,14 @@ import { DocActionAgendaFiles } from '@/features/transparence/components/documen
 import { DocActionAgendaMetadata } from '@/features/transparence/components/documents/DocActionAgendaMetadata';
 import { DocActionDelete } from '@/features/transparence/components/documents/DocActionDelete';
 import { DocActionDetails } from '@/features/transparence/components/documents/DocActionDetails';
+import { DocActionOfficialReportMetadata } from '@/features/transparence/components/documents/DocActionOfficialReportMetadata';
 import { DocActionUpdate } from '@/features/transparence/components/documents/DocActionUpdate';
 import { DocGenerationMenu } from '@/features/transparence/components/documents/DocGenerationMenu';
 import {
   groupSessionDocuments,
   isSessionDocumentGroupState,
-  sessionDocumentGroupState,
   SESSION_DOCUMENT_GROUP_STATES,
+  sessionDocumentGroupState,
   type SessionDocumentGroupState,
 } from '@/features/transparence/components/documents/session-document-groups';
 import { SessionDocumentsTable } from '@/features/transparence/components/documents/SessionDocumentsTable';
@@ -137,6 +138,14 @@ export function TransparenceDocumentsTab() {
                     sessionId={transparence.id}
                   />
                 </>
+              )}
+              {doc.type === 'officialReport' && (
+                <DocActionOfficialReportMetadata
+                  className="col-start-2"
+                  disabled={isActing}
+                  officialReport={doc}
+                  sessionId={transparence.id}
+                />
               )}
               <div className="col-start-3">
                 <DocActionUpdate disabled={isActing} doc={doc} sessionId={transparence.id} />
