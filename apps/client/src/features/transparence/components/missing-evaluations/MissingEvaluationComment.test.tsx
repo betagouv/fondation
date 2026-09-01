@@ -43,14 +43,14 @@ describe('MissingEvaluationCommentCell', () => {
   it('should invite to add a comment when there is none', () => {
     renderCell();
 
-    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Ajouter un commentaire pour DUPONT Marie' })).toBeEnabled();
   });
 
-  it('should show the whole comment next to an edit button', () => {
+  it('should show the whole comment next to an edit button naming the magistrat', () => {
     const { container } = renderCell({ comment: 'Relancée le 12 août' });
 
     expect(container).toHaveTextContent('Relancée le 12 août Modifier');
-    expect(screen.getByRole('button', { name: 'Modifier' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Modifier le commentaire de DUPONT Marie' })).toBeEnabled();
   });
 
   it('should show the comment as plain text on a file that can no longer be updated', () => {
@@ -66,7 +66,7 @@ describe('MissingEvaluationCommentModal', () => {
     const user = userEvent.setup();
     renderCell();
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter' }));
+    await user.click(screen.getByRole('button', { name: 'Ajouter un commentaire pour DUPONT Marie' }));
     await user.type(editor(), '  Relancée le 12 août  ');
     await user.click(saveButton());
 
@@ -80,7 +80,7 @@ describe('MissingEvaluationCommentModal', () => {
     const user = userEvent.setup();
     renderCell({ comment: 'Relancée le 12 août' });
 
-    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Modifier le commentaire de DUPONT Marie' }));
     await user.clear(editor());
     await user.click(saveButton());
 
@@ -95,7 +95,7 @@ describe('MissingEvaluationCommentModal', () => {
     const user = userEvent.setup();
     renderCell();
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter' }));
+    await user.click(screen.getByRole('button', { name: 'Ajouter un commentaire pour DUPONT Marie' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent("L'enregistrement a échoué");
   });

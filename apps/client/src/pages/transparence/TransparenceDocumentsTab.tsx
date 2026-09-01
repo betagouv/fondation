@@ -13,6 +13,7 @@ import { DocActionUpdate } from '@/features/transparence/components/documents/Do
 import { DocGenerationMenu } from '@/features/transparence/components/documents/DocGenerationMenu';
 import {
   groupSessionDocuments,
+  isSessionDocumentGroupState,
   sessionDocumentGroupState,
   SESSION_DOCUMENT_GROUP_STATES,
   type SessionDocumentGroupState,
@@ -39,18 +40,18 @@ export function TransparenceDocumentsTab() {
   const [isActing, setIsActing] = useState(false);
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [states, setStates] = useQueryState('etat', parseAsArrayOf(parseAsString).withDefault([]));
+  const [selectedStates, setStates] = useQueryState('etat', parseAsArrayOf(parseAsString).withDefault([]));
 
   const { data: docs } = useFindSessionDocsQuery({ sessionId: transparence.id });
 
   const allDocs = docs?.items ?? [];
-  const items = groupSessionDocuments(allDocs)
-    .filter(
-      (group) =>
-        (states.length === 0 || states.includes(sessionDocumentGroupState(group))) &&
-        (!search || group.some((doc) => matchesSearch(doc.name, search))),
-    )
-    .flat();
+  const states = selectedStates.filter(isSessionDocumentGroupState);
+  const groups = groupSessionDocuments(allDocs).filter(
+    (group) =>
+      (states.length === 0 || states.includes(sessionDocumentGroupState(group))) &&
+      (!search || group.some((doc) => matchesSearch(doc.name, search))),
+  );
+  const shownDocsCount = groups.reduce((count, group) => count + group.length, 0);
 
   const isFiltered = states.length > 0 || !!search.trim();
   const stateLabels: Record<SessionDocumentGroupState, string> = {
@@ -66,7 +67,7 @@ export function TransparenceDocumentsTab() {
           {isFiltered ? (
             <FormattedMessage
               defaultMessage="{count, plural, one {# document} other {# documents}}"
-              values={{ count: items.length }}
+              values={{ count: shownDocsCount }}
             />
           ) : (
             <FormattedMessage defaultMessage="Filtrer par" />
@@ -144,7 +145,7 @@ export function TransparenceDocumentsTab() {
             </div>
           )
         }
-        docs={items}
+        groups={groups}
         renderName={(doc) => (
           <DocActionDetails
             disabled={isActing}

@@ -11,6 +11,7 @@ import { DocActionAgendaMetadata } from './DocActionAgendaMetadata';
 import { DocActionDelete } from './DocActionDelete';
 import { DocActionDetails } from './DocActionDetails';
 import { DocActionUpdate } from './DocActionUpdate';
+import { groupSessionDocuments } from './session-document-groups';
 import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsTable';
 
 const SESSION_ID = 'session-1';
@@ -93,9 +94,9 @@ const meta = {
       </StoryQueryClient>
     ),
   ],
-  parameters: { controls: { include: ['docs'] }, layout: 'padded' },
+  parameters: { controls: { include: ['groups'] }, layout: 'padded' },
   tags: ['autodocs'],
-  args: { actions: DocActions, docs: DOCS, renderName: DocName },
+  args: { actions: DocActions, groups: groupSessionDocuments(DOCS), renderName: DocName },
 } satisfies Meta<typeof SessionDocumentsTable>;
 
 export default meta;
@@ -105,13 +106,13 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 
 export const Empty: Story = {
-  args: { docs: [] },
+  args: { groups: [] },
 };
 
 /** two agendas covered by the same official report: the three rows form a single frame */
 export const AgendasSharingAnOfficialReport: Story = {
   args: {
-    docs: [
+    groups: groupSessionDocuments([
       {
         id: 'agenda-siege',
         type: 'agenda',
@@ -136,7 +137,7 @@ export const AgendasSharingAnOfficialReport: Story = {
         name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
         officialReportId: null,
       },
-    ],
+    ]),
   },
 };
 
@@ -146,20 +147,22 @@ export const Archived: Story = {
 
 export const ManyRows: Story = {
   args: {
-    docs: Array.from({ length: 50 }, (_, index) =>
-      index % 2 === 0
-        ? {
-            id: `agenda-${index}`,
-            type: 'agenda' as const,
-            name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
-            officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
-          }
-        : {
-            id: `official-report-${index}`,
-            type: 'officialReport' as const,
-            name: `Procès-verbal du ${(index % 28) + 1} mars 2028`,
-            outdated: index % 5 === 0,
-          },
+    groups: groupSessionDocuments(
+      Array.from({ length: 50 }, (_, index) =>
+        index % 2 === 0
+          ? {
+              id: `agenda-${index}`,
+              type: 'agenda' as const,
+              name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
+              officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
+            }
+          : {
+              id: `official-report-${index}`,
+              type: 'officialReport' as const,
+              name: `Procès-verbal du ${(index % 28) + 1} mars 2028`,
+              outdated: index % 5 === 0,
+            },
+      ),
     ),
   },
 };

@@ -97,7 +97,7 @@ export function Modal(props: {
               <FormattedMessage defaultMessage="Fermer" />
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto px-8 pb-6 [&>p]:leading-7">
+          <div className="flex-1 overflow-y-auto px-8 pb-6">
             <h1 className="mb-4 text-2xl leading-8 font-bold text-(--text-title-grey)" id={titleId}>
               {title}
             </h1>

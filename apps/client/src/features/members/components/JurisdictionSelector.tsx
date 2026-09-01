@@ -58,7 +58,8 @@ function JurisdictionSelectorModal(props: {
   const [isChanging, setIsChanging] = useState(false);
   const [selected, setSelected] = useState<string[]>(originalIds);
 
-  const isDirty = selected.length !== originalIds.length || selected.some((id) => !originalIds.includes(id));
+  const original = new Set(originalIds);
+  const isDirty = selected.length !== original.size || selected.some((id) => !original.has(id));
 
   const save = async () => {
     setIsChanging(true);

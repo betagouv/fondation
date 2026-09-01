@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
+import clsx from 'clsx';
 import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -7,6 +8,9 @@ import { Modal } from '@/shared/ui/modal';
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
 
 export const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
+
+const REVEALED_WHERE_HOVER_EXISTS =
+  '[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:opacity-100';
 
 type EditedComment = { comment: string | null; magistrat: string; nominationFileId: string };
 type EditedCommentSession = { edited: EditedComment; id: number };
@@ -148,14 +152,14 @@ export function MissingEvaluationCommentCell(props: {
   if (!props.comment) {
     return (
       <Button
+        aria-label={formatMessage(
+          { defaultMessage: 'Ajouter un commentaire pour {magistrat}' },
+          { magistrat: props.magistrat },
+        )}
         className="fr-btn--align-on-content"
         onClick={openModal}
         priority="tertiary no outline"
         size="small"
-        title={formatMessage(
-          { defaultMessage: 'Ajouter un commentaire pour {magistrat}' },
-          { magistrat: props.magistrat },
-        )}
       >
         <FormattedMessage defaultMessage="Ajouter" />
       </Button>
@@ -170,12 +174,15 @@ export function MissingEvaluationCommentCell(props: {
       <span className="whitespace-nowrap">
         {props.comment.slice(lastSpace + 1)}{' '}
         <button
-          className="border-0 bg-transparent p-0 align-baseline text-sm/6 font-medium text-(--text-action-high-blue-france) opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-          onClick={openModal}
-          title={formatMessage(
+          aria-label={formatMessage(
             { defaultMessage: 'Modifier le commentaire de {magistrat}' },
             { magistrat: props.magistrat },
           )}
+          className={clsx(
+            'border-0 bg-transparent p-0 align-baseline text-sm/6 font-medium text-(--text-action-high-blue-france)',
+            REVEALED_WHERE_HOVER_EXISTS,
+          )}
+          onClick={openModal}
           type="button"
         >
           <FormattedMessage defaultMessage="Modifier" />

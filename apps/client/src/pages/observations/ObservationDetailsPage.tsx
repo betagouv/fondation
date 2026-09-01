@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -6,6 +6,7 @@ import { SIDE_PANEL_DOSSIER_PARAM } from '@/features/nomination-files-table/comp
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -60,7 +61,7 @@ export function ObservationDetailsPage() {
     [attachFiles, sessionId, nominationFileId, observationId],
   );
 
-  useEffect(() => window.scrollTo({ top: 0 }), [observationId]);
+  useScrollToTop(observationId);
 
   if (isLoading) {
     return (

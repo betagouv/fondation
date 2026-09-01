@@ -2,13 +2,15 @@ import type { FoundSessionDocsDto } from '@api/types';
 
 export type SessionDocument = FoundSessionDocsDto['items'][number];
 
-const DOC_GROUP_STATES = ['awaitingOfficialReport', 'outdatedOfficialReport', 'upToDate'] as const;
+export const SESSION_DOCUMENT_GROUP_STATES = [
+  'awaitingOfficialReport',
+  'outdatedOfficialReport',
+  'upToDate',
+] as const;
 
-export type SessionDocumentGroupState = (typeof DOC_GROUP_STATES)[number];
+export type SessionDocumentGroupState = (typeof SESSION_DOCUMENT_GROUP_STATES)[number];
 
-export const SESSION_DOCUMENT_GROUP_STATES: readonly SessionDocumentGroupState[] = DOC_GROUP_STATES;
-
-export function officialReportGroup(doc: SessionDocument) {
+function officialReportGroup(doc: SessionDocument) {
   return doc.type === 'agenda' ? (doc.officialReportId ?? doc.id) : doc.id;
 }
 
@@ -23,4 +25,19 @@ export function sessionDocumentGroupState(group: readonly SessionDocument[]): Se
   const officialReport = group.find((doc) => doc.type === 'officialReport');
   if (!officialReport) return 'awaitingOfficialReport';
   return officialReport.outdated ? 'outdatedOfficialReport' : 'upToDate';
+}
+
+export function isSessionDocumentGroupState(value: string): value is SessionDocumentGroupState {
+  return SESSION_DOCUMENT_GROUP_STATES.some((state) => state === value);
+}
+
+export function sessionDocumentStates(
+  groups: readonly (readonly SessionDocument[])[],
+): Map<string, SessionDocumentGroupState> {
+  return new Map(
+    groups.flatMap((group) => {
+      const bearer = group.find((doc) => doc.type === 'officialReport') ?? group[0];
+      return bearer ? [[bearer.id, sessionDocumentGroupState(group)] as const] : [];
+    }),
+  );
 }

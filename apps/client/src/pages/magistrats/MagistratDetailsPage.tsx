@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Navigate, useParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { MagistratDetailsContent } from '@/features/magistrats/components/MagistratDetailsContent';
+import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
@@ -16,7 +16,7 @@ export function MagistratDetailsPage() {
 
   const { data: magistrat, isLoading, isError } = useMagistratDetailsQuery({ magistratId });
 
-  useEffect(() => window.scrollTo({ top: 0 }), [magistratId]);
+  useScrollToTop(magistratId);
 
   if (isLoading) {
     return (
