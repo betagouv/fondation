@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useIntl } from 'react-intl';
 
-import { IconLink } from '@/shared/ui/icon-button';
+import { IconLink } from '@/shared/ui/icon-link';
 import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 
 const ICON_SIZE_CLASS = '[&::before]:[--icon-size:1.15rem]';

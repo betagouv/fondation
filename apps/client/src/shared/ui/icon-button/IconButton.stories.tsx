@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { fn } from 'storybook/test';
 
 import { ACTION_ICONS } from '@/constants/icons.constants';
 
-import { IconButton, IconLink } from './IconButton';
+import { IconButton } from './IconButton';
 
 function Row(props: { children: ReactNode; label: string }) {
   return (
@@ -15,12 +15,29 @@ function Row(props: { children: ReactNode; label: string }) {
   );
 }
 
-const ACTIONS = [
-  { iconId: ACTION_ICONS.download, label: 'Télécharger' },
-  { iconId: ACTION_ICONS.edit, label: 'Modifier' },
-  { iconId: ACTION_ICONS.delete, label: 'Supprimer' },
-  { iconId: ACTION_ICONS.agendaFiles, label: "Propositions de l'ordre du jour" },
-  { iconId: ACTION_ICONS.agendaMetadata, label: "Métadonnées de l'ordre du jour" },
+const BUTTONS: (ComponentProps<typeof IconButton> & { title: string })[] = [
+  {
+    iconId: ACTION_ICONS.download,
+    label: 'Télécharger la pièce jointe',
+    title: 'Télécharger une pièce jointe',
+  },
+  {
+    disabled: true,
+    iconId: ACTION_ICONS.download,
+    label: 'Télécharger la pièce jointe',
+    title: 'Télécharger pendant un téléchargement en cours',
+  },
+  {
+    iconId: ACTION_ICONS.delete,
+    label: 'Supprimer le document',
+    title: 'Supprimer un document ou un fichier',
+  },
+  {
+    disabled: true,
+    iconId: ACTION_ICONS.delete,
+    label: 'Supprimer le document',
+    title: 'Supprimer sans en avoir le droit',
+  },
 ];
 
 const meta = {
@@ -49,41 +66,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const ActionIcons: Story = {
+export const Buttons: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="flex flex-col gap-4">
-      {ACTIONS.map((action) => (
-        <Row key={action.iconId} label={action.label}>
-          <IconButton iconId={action.iconId} label={action.label} small />
+      {BUTTONS.map(({ title, ...button }) => (
+        <Row key={title} label={title}>
+          <IconButton {...button} onClick={fn()} small />
+          <IconButton {...button} onClick={fn()} />
         </Row>
       ))}
-    </div>
-  ),
-};
-
-export const Links: Story = {
-  parameters: { controls: { disable: true } },
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <Row label="Modifier">
-        <IconLink iconId={ACTION_ICONS.edit} label="Modifier le document" to="/documents/1" />
-      </Row>
-      <Row label="Modifier en petit">
-        <IconLink iconId={ACTION_ICONS.edit} label="Modifier le document" small to="/documents/1" />
-      </Row>
-      <Row label="Modifier sans en avoir le droit">
-        <IconLink disabled iconId={ACTION_ICONS.edit} label="Modifier le document" small to="/documents/1" />
-      </Row>
-      <Row label="Ouvrir LOLFI en nouvel onglet">
-        <IconLink
-          iconId="fr-icon-external-link-line"
-          label="Vers LOLFI"
-          newTab
-          small
-          to="https://lolfi.example.fr/magistrat/1"
-        />
-      </Row>
     </div>
   ),
 };
