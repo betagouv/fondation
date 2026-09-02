@@ -6,7 +6,7 @@ import { insertNominationRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
-import { RawLolfiDate } from './lolfi-ingestor.util';
+import { LOLFI_FLUSH_TRANSACTION, RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiTransparencesIngestor {
@@ -91,42 +91,35 @@ export class LolfiTransparencesIngestor {
   }) {
     return this.prisma
       .$transaction(async (tx) => {
+        const errors = [...props.errors];
+
         if (props.items.length > 0) {
           const unknown = await tx.$queryRawTyped(insertNominationRawQuery(props.items));
 
-          if (unknown.length > 0) {
-            for (const u of unknown) {
-              const entityId = u.id;
-              if (!entityId) continue;
+          for (const u of unknown) {
+            const entityId = u.id;
+            if (!entityId) continue;
 
-              const error =
-                u.unknownMagistratId !== null
-                  ? `Magistrat "${u.unknownMagistratId}" inconnu`
-                  : u.unknownSessionId !== null
-                    ? `Session "${u.unknownSessionId}" inconnu`
-                    : u.unknownTargetPositionId !== null
-                      ? `Poste (<num_emploi_cible>) "${u.unknownTargetPositionId}" inconnu`
-                      : u.unknownCurrentPositionId !== null
-                        ? `Poste (<affectation>) ${u.unknownCurrentPositionId} inconnu`
-                        : null;
+            const error =
+              u.unknownMagistratId !== null
+                ? `Magistrat "${u.unknownMagistratId}" inconnu`
+                : u.unknownSessionId !== null
+                  ? `Session "${u.unknownSessionId}" inconnu`
+                  : u.unknownTargetPositionId !== null
+                    ? `Poste (<num_emploi_cible>) "${u.unknownTargetPositionId}" inconnu`
+                    : u.unknownCurrentPositionId !== null
+                      ? `Poste (<affectation>) ${u.unknownCurrentPositionId} inconnu`
+                      : null;
 
-              if (!error) continue;
+            if (!error) continue;
 
-              await tx.ingestionJobFileError.create({
-                data: {
-                  error,
-                  entityId: String(entityId),
-                  fileId: props.fileId,
-                  jobId: props.jobId,
-                },
-              });
-            }
+            errors.push({ entityId: String(entityId), error });
           }
         }
 
-        if (props.errors.length > 0) {
+        if (errors.length > 0) {
           await tx.ingestionJobFileError.createMany({
-            data: props.errors.map(({ entityId, error }) => ({
+            data: errors.map(({ entityId, error }) => ({
               error,
               entityId,
               jobId: props.jobId,
@@ -134,7 +127,7 @@ export class LolfiTransparencesIngestor {
             })),
           });
         }
-      })
+      }, LOLFI_FLUSH_TRANSACTION)
       .catch((error) => {
         this.logger.error(`Failed flushing TRANSPARENCES.xml chunk`, error);
         props.result.success = false;

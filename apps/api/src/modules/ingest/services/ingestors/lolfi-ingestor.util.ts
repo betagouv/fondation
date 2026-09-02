@@ -1,5 +1,7 @@
 import z from 'zod';
 
+export const LOLFI_FLUSH_TRANSACTION = { maxWait: 5_000, timeout: 20_000 };
+
 export const RawLolfiDate = z
   .string()
   .trim()

@@ -6,7 +6,7 @@ import { insertCandidateWishesRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
-import { RawLolfiDate } from './lolfi-ingestor.util';
+import { LOLFI_FLUSH_TRANSACTION, RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiDesiderataIngestor {
@@ -91,38 +91,31 @@ export class LolfiDesiderataIngestor {
   }) {
     return this.prisma
       .$transaction(async (tx) => {
+        const errors = [...props.errors];
+
         if (props.items.length > 0) {
           const unknown = await tx.$queryRawTyped(insertCandidateWishesRawQuery(props.items));
 
-          if (unknown.length > 0) {
-            for (const u of unknown) {
-              const entityId = u.id;
-              if (!entityId) continue;
+          for (const u of unknown) {
+            const entityId = u.id;
+            if (!entityId) continue;
 
-              const error =
-                u.unknownCandidateId !== null
-                  ? `Candidat "${u.unknownCandidateId}" inconnu`
-                  : u.unknownPositionId !== null
-                    ? `Poste "${u.unknownPositionId}" inconnu`
-                    : null;
+            const error =
+              u.unknownCandidateId !== null
+                ? `Candidat "${u.unknownCandidateId}" inconnu`
+                : u.unknownPositionId !== null
+                  ? `Poste "${u.unknownPositionId}" inconnu`
+                  : null;
 
-              if (!error) continue;
+            if (!error) continue;
 
-              await tx.ingestionJobFileError.create({
-                data: {
-                  error,
-                  entityId: String(entityId),
-                  fileId: props.fileId,
-                  jobId: props.jobId,
-                },
-              });
-            }
+            errors.push({ entityId: String(entityId), error });
           }
         }
 
-        if (props.errors.length > 0) {
+        if (errors.length > 0) {
           await tx.ingestionJobFileError.createMany({
-            data: props.errors.map(({ entityId, error }) => ({
+            data: errors.map(({ entityId, error }) => ({
               error,
               entityId,
               jobId: props.jobId,
@@ -130,7 +123,7 @@ export class LolfiDesiderataIngestor {
             })),
           });
         }
-      })
+      }, LOLFI_FLUSH_TRANSACTION)
       .catch((error) => {
         this.logger.error(`Failed flushing DESIDERATA.xml chunk`, error);
         props.result.success = false;
