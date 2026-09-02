@@ -1,7 +1,7 @@
 import { pipeline } from 'node:stream/promises';
 import { inspect } from 'node:util';
 
-import { Propagation, Transactional } from '@nestjs-cls/transactional';
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 import { fr } from 'zod/locales';
@@ -33,21 +33,16 @@ export class JobFileIngestor {
     let start: number;
     const { job, file } = options;
     try {
-      await this.db.withTransaction(Propagation.RequiresNew, async () => {
-        const startedAt = this.clock.now();
-        if (file.sha256 === file.lastSha256) {
-          const { success } = await this.succeedJobFile({ file, startedAt, jobId: job.id });
-          if (success) this.logger.log(`${options.file.name} sha256 did not change. Exitting`);
-          return { success };
-        }
-
+      const startedAt = this.clock.now();
+      if (file.sha256 === file.lastSha256) {
+        await this.succeedJobFile({ file, startedAt, jobId: job.id });
+      } else {
         await this.db.tx.ingestionJobFile.update({
           where: { primaryKey: { jobId: job.id, fileId: file.id } },
           data: { status: 'RUNNING', startedAt },
         });
-      });
+      }
 
-      // The file is fetched from S3 outside of any transaction.
       const fileContent$ = await this.files.getFile({ fileId: file.id });
       if (!fileContent$) {
         return this.failJobFile({

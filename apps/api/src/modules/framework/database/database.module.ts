@@ -17,7 +17,10 @@ import { PrismaService } from './prisma.service';
       middleware: { mount: true },
       plugins: [
         new ClsPluginTransactional({
-          adapter: new TransactionalAdapterPrisma({ prismaInjectionToken: PrismaService }),
+          adapter: new TransactionalAdapterPrisma({
+            prismaInjectionToken: PrismaService,
+            defaultTxOptions: { maxWait: 5_000, timeout: 20_000 },
+          }),
         }),
       ],
     }),
