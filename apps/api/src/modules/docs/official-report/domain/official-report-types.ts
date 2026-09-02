@@ -70,5 +70,9 @@ export type OfficialReportSnapshotDiff = {
         action: 'create';
         nominationFileId: string;
       }
+    | {
+        action: 'delete';
+        nominationFileId: string;
+      }
   )[];
 };

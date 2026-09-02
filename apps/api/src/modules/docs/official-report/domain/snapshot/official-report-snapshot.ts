@@ -109,6 +109,15 @@ class OfficialReportSnapshotFilesCollection {
     return file.diff(next);
   }
 
+  private deletedFiles(
+    files: readonly { nominationFileId: string }[],
+  ): OfficialReportSnapshotDiff['files'][number][] {
+    const nextFileIds = new Set(files.map(({ nominationFileId }) => nominationFileId));
+    const missingFileIds = new Set(this.files.keys()).difference(nextFileIds);
+
+    return Array.from(missingFileIds).map((nominationFileId) => ({ action: 'delete', nominationFileId }));
+  }
+
   diff(next: {
     files: readonly {
       nominationFileId: string;
@@ -116,7 +125,7 @@ class OfficialReportSnapshotFilesCollection {
       outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
   }): OfficialReportSnapshotDiff['files'] {
-    return next.files.flatMap((file) => this.diffFile(file));
+    return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));
   }
 }
 

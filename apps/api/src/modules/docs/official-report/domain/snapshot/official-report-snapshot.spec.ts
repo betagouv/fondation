@@ -366,6 +366,21 @@ describe('OfficialReportSnapshot', () => {
 
       expect(diff).toMatchObject({ intro: 'NOOP', conclusion: 'NOOP', hasAny: true });
     });
+
+    it('should delete a file', () => {
+      const { snapshot } = makeSnapshot();
+      const diff = snapshot.invalidate({
+        id: 'or-1',
+        type: 'AgendaNominationFilesUpdated',
+        payload: {
+          files: [
+            { nominationFileId: 'file-2', outcome: { value: 'VALIDATED', comment: null }, reporters: [] },
+          ],
+        },
+      });
+
+      expect(diff.files).toContainEqual({ action: 'delete', nominationFileId: 'file-1' });
+    });
   });
 });
 
