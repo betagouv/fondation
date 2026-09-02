@@ -11,7 +11,6 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { noop } from 'src/utils/noop';
 
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
 import { LolfiDesiderataIngestor } from './lolfi-desiderata.ingestor';
@@ -54,7 +53,7 @@ export class LolfiFilesIngestor {
       if (signal.aborted) return { success: true };
 
       if (!success) {
-        this.failJob(jobId).catch(noop);
+        await this.failJob(jobId);
         return { success };
       }
 
@@ -88,7 +87,7 @@ export class LolfiFilesIngestor {
   private async succeedJob(jobId: number): Promise<void> {
     await this.db.tx.ingestionJob
       .update({
-        where: { id: jobId },
+        where: { id: jobId, status: 'RUNNING' },
         data: {
           status: 'SUCCEEDED',
           endedAt: this.clock.now(),
@@ -99,19 +98,22 @@ export class LolfiFilesIngestor {
       });
   }
 
-  @Transactional(Propagation.RequiresNew)
   private async failJob(jobId: number, error?: unknown): Promise<void> {
     await this.db.tx.ingestionJob
       .update({
-        where: { id: jobId },
-        data: {
-          status: 'FAILED',
-          endedAt: this.clock.now(),
-          errors: error ? { create: { error: inspect(error) } } : undefined,
-        },
+        where: { id: jobId, status: 'RUNNING' },
+        data: { status: 'FAILED', endedAt: this.clock.now() },
       })
-      .catch((error) => {
-        this.logger.error(`Failed failing job #${jobId}`, error);
+      .catch((updateError) => {
+        this.logger.error(`Failed failing job #${jobId}`, updateError);
+      });
+
+    if (!error) return;
+
+    await this.db.tx.ingestionJobError
+      .create({ data: { jobId, error: inspect(error) } })
+      .catch((createError) => {
+        this.logger.error(`Failed recording the error of job #${jobId}`, createError);
       });
   }
 
@@ -258,20 +260,19 @@ export class LolfiFilesIngestor {
     return Promise.resolve({ success: true });
   }
 
-  @Transactional()
   private async cancel(jobId: number) {
     try {
-      await this.db.tx.ingestionJobFile.updateMany({
-        where: { status: 'IDLE', jobId },
-        data: { status: 'CANCELED' },
-      });
-
       await this.db.tx.ingestionJob.updateMany({
         data: { status: 'CANCELED', endedAt: this.clock.now() },
         where: {
           id: jobId,
           status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
         },
+      });
+
+      await this.db.tx.ingestionJobFile.updateMany({
+        where: { status: 'IDLE', jobId },
+        data: { status: 'CANCELED' },
       });
     } catch (e) {
       this.logger.error(`Failed to write job as canceled`, e);

@@ -92,44 +92,37 @@ export class LolfiMagistratsIngestor {
     result: { success: boolean };
   }) {
     try {
+      const errors = [...props.errors];
+
       if (props.items.length > 0) {
         const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
 
-        if (unknown.length > 0) {
-          for (const u of unknown) {
-            const entityId = u.id;
-            if (!entityId) continue;
+        for (const u of unknown) {
+          const entityId = u.id;
+          if (!entityId) continue;
 
-            const error =
-              u.unknownGrade !== null
-                ? `Grade "${u.unknownGrade}" inconnu`
-                : u.unknownPositionId !== null
-                  ? `Poste "${u.unknownPositionId}" inconnu`
-                  : u.unknownAdminPosition !== null
-                    ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
-                    : u.unknownPrevAdminPosition !== null
-                      ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
-                      : u.unknownPrevAdminPosition2 !== null
-                        ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
-                        : null;
+          const error =
+            u.unknownGrade !== null
+              ? `Grade "${u.unknownGrade}" inconnu`
+              : u.unknownPositionId !== null
+                ? `Poste "${u.unknownPositionId}" inconnu`
+                : u.unknownAdminPosition !== null
+                  ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
+                  : u.unknownPrevAdminPosition !== null
+                    ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
+                    : u.unknownPrevAdminPosition2 !== null
+                      ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
+                      : null;
 
-            if (!error) continue;
+          if (!error) continue;
 
-            await this.db.tx.ingestionJobFileError.create({
-              data: {
-                error,
-                entityId: String(entityId),
-                fileId: props.fileId,
-                jobId: props.jobId,
-              },
-            });
-          }
+          errors.push({ entityId: String(entityId), error });
         }
       }
 
-      if (props.errors.length > 0) {
+      if (errors.length > 0) {
         await this.db.tx.ingestionJobFileError.createMany({
-          data: props.errors.map(({ entityId, error }) => ({
+          data: errors.map(({ entityId, error }) => ({
             error,
             entityId,
             jobId: props.jobId,

@@ -85,32 +85,35 @@ export class LolfiPostesIngestor {
     try {
       const unknown = await this.db.tx.$queryRawTyped(insertPositionsRawQuery(props.items));
 
-      if (unknown.length > 0) {
-        for (const u of unknown) {
-          const entityId = u.id;
-          if (!entityId) continue;
+      const errors: { entityId: string; error: string }[] = [];
+      for (const u of unknown) {
+        const entityId = u.id;
+        if (!entityId) continue;
 
-          const error =
-            u.unknownFunctionId !== null
-              ? `Fonction "${u.unknownFunctionId}" inconnue`
-              : u.unknownGradeId !== null
-                ? `Grade "${u.unknownFunctionId}" inconnu`
-                : u.unknownJurisdictionId !== null
-                  ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
-                  : u.unknownJurisdictionTypeId !== null
-                    ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
-                    : null;
-          if (!error) continue;
+        const error =
+          u.unknownFunctionId !== null
+            ? `Fonction "${u.unknownFunctionId}" inconnue`
+            : u.unknownGradeId !== null
+              ? `Grade "${u.unknownGradeId}" inconnu`
+              : u.unknownJurisdictionId !== null
+                ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
+                : u.unknownJurisdictionTypeId !== null
+                  ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
+                  : null;
+        if (!error) continue;
 
-          await this.db.tx.ingestionJobFileError.create({
-            data: {
-              error,
-              entityId: String(entityId),
-              fileId: props.fileId,
-              jobId: props.jobId,
-            },
-          });
-        }
+        errors.push({ entityId: String(entityId), error });
+      }
+
+      if (errors.length > 0) {
+        await this.db.tx.ingestionJobFileError.createMany({
+          data: errors.map(({ entityId, error }) => ({
+            error,
+            entityId,
+            jobId: props.jobId,
+            fileId: props.fileId,
+          })),
+        });
       }
     } catch (error) {
       this.logger.error(`Failed flushing POSTES_2.xml chunk`, error);
