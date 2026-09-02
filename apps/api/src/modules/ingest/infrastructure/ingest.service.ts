@@ -2,6 +2,7 @@ import { inspect } from 'node:util';
 
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 
+import { isExpired } from '../domain/expired-job';
 import { withLolfiFileRequirements } from '../domain/requirements';
 import { JobRunner } from '../jobs';
 import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
@@ -47,14 +48,19 @@ export class IngestService {
         errors: (IngestedLolfiArchiveFailed | { type: 'Unknown'; message: string })[];
       }
   > {
-    const runningJobExists = await this.prisma.ingestionJob.findFirst({
+    const runningJob = await this.prisma.ingestionJob.findFirst({
       where: { status: 'RUNNING' },
-      select: { id: true },
+      select: { id: true, startedAt: true },
     });
 
-    if (runningJobExists) {
-      this.logger.error(`Job #${runningJobExists.id} already running`);
-      throw new ConflictException();
+    if (runningJob) {
+      if (!isExpired(runningJob, this.clock.now())) {
+        this.logger.error(`Job #${runningJob.id} already running`);
+        throw new ConflictException();
+      }
+
+      this.logger.warn(`Job #${runningJob.id} has been running for too long. Failing it`);
+      await this.expireJob(runningJob.id);
     }
 
     const start = this.clock.now();
@@ -100,6 +106,32 @@ export class IngestService {
 
       return { id: jobId, status: 'STARTED' };
     });
+  }
+
+  private async expireJob(jobId: number): Promise<void> {
+    const endedAt = this.clock.now();
+
+    await this.prisma.ingestionJob.update({
+      where: { id: jobId },
+      data: { status: 'FAILED', endedAt },
+    });
+
+    await this.prisma.ingestionJobFile
+      .updateMany({
+        where: { jobId, status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] } },
+        data: { status: 'FAILED', endedAt },
+      })
+      .catch((error) => {
+        this.logger.error(`Failed failing the files of job #${jobId}`, error);
+      });
+
+    await this.prisma.ingestionJobError
+      .create({
+        data: { jobId, error: `Job abandonné: aucun statut final n'a été écrit` },
+      })
+      .catch((error) => {
+        this.logger.error(`Failed recording the error of job #${jobId}`, error);
+      });
   }
 
   private async prepareJob(props: {

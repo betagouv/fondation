@@ -6,6 +6,7 @@ import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
+import { LOLFI_FLUSH_TRANSACTION } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiPostesIngestor {
@@ -84,34 +85,37 @@ export class LolfiPostesIngestor {
       .$transaction(async (tx) => {
         const unknown = await tx.$queryRawTyped(insertPositionsRawQuery(props.items));
 
-        if (unknown.length > 0) {
-          for (const u of unknown) {
-            const entityId = u.id;
-            if (!entityId) continue;
+        const errors: { entityId: string; error: string }[] = [];
+        for (const u of unknown) {
+          const entityId = u.id;
+          if (!entityId) continue;
 
-            const error =
-              u.unknownFunctionId !== null
-                ? `Fonction "${u.unknownFunctionId}" inconnue`
-                : u.unknownGradeId !== null
-                  ? `Grade "${u.unknownFunctionId}" inconnu`
-                  : u.unknownJurisdictionId !== null
-                    ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
-                    : u.unknownJurisdictionTypeId !== null
-                      ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
-                      : null;
-            if (!error) continue;
+          const error =
+            u.unknownFunctionId !== null
+              ? `Fonction "${u.unknownFunctionId}" inconnue`
+              : u.unknownGradeId !== null
+                ? `Grade "${u.unknownGradeId}" inconnu`
+                : u.unknownJurisdictionId !== null
+                  ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
+                  : u.unknownJurisdictionTypeId !== null
+                    ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
+                    : null;
+          if (!error) continue;
 
-            await tx.ingestionJobFileError.create({
-              data: {
-                error,
-                entityId: String(entityId),
-                fileId: props.fileId,
-                jobId: props.jobId,
-              },
-            });
-          }
+          errors.push({ entityId: String(entityId), error });
         }
-      })
+
+        if (errors.length > 0) {
+          await tx.ingestionJobFileError.createMany({
+            data: errors.map(({ entityId, error }) => ({
+              error,
+              entityId,
+              jobId: props.jobId,
+              fileId: props.fileId,
+            })),
+          });
+        }
+      }, LOLFI_FLUSH_TRANSACTION)
       .catch((error) => {
         this.logger.error(`Failed flushing POSTES_2.xml chunk`, error);
         props.result.success = false;
