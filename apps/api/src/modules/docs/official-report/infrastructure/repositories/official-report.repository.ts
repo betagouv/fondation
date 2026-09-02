@@ -377,6 +377,16 @@ export class OfficialReportRepository {
       });
     }
 
+    const filesToDelete = message.diff.files
+      .filter((file) => file.action === 'delete')
+      .map((file) => file.nominationFileId);
+
+    if (filesToDelete.length > 0) {
+      await this.db.tx.officialReportNominationFile.deleteMany({
+        where: { nominationFileId: { in: filesToDelete } },
+      });
+    }
+
     await this.db.tx.officialReport.update({
       where: { id: message.officialReportId },
       data: {
