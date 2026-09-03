@@ -1,6 +1,11 @@
-import { ConflictException, Logger, Module, NotFoundException } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConflictException, Inject, Logger, Module, NotFoundException } from '@nestjs/common';
+import { format } from 'date-fns';
 import { Command, CommandRunner, Option } from 'nest-commander';
+import { lastValueFrom } from 'rxjs';
 import z from 'zod';
+
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';
@@ -36,7 +41,10 @@ export class IngestLolfiCommand extends CommandRunner {
         success = false;
       }
 
-      if (!success) throw new Error(`#${options.jobId} failed`);
+      if (!success) {
+        this.logger.error(`#${options.jobId} failed`);
+        process.exitCode = 1;
+      }
     });
   }
 
@@ -61,8 +69,54 @@ export class IngestLolfiCommand extends CommandRunner {
   }
 }
 
+@Command({ name: 'lolfi-freshness' })
+export class LolfiFreshnessCommand extends CommandRunner {
+  private readonly logger = new Logger(LolfiFreshnessCommand.name);
+
+  constructor(
+    private readonly ingestor: IngestService,
+    private readonly http: HttpService,
+    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
+  ) {
+    super();
+  }
+
+  async run(): Promise<void> {
+    const { stale, lastSuccessAt } = await this.ingestor.checkIngestionFreshness();
+    const since = lastSuccessAt ? format(lastSuccessAt, 'dd/MM/yyyy') : 'jamais';
+
+    if (!stale) {
+      this.logger.log(`Dernière ingestion LOLFI réussie le ${since}`);
+      return;
+    }
+
+    const message = `Aucune ingestion LOLFI réussie depuis le ${since}`;
+    this.logger.error(message);
+    await this.notify(message);
+
+    process.exitCode = 1;
+  }
+
+  private async notify(text: string): Promise<void> {
+    const webhook = this.config.mattermostWebhook;
+    if (!webhook) {
+      this.logger.warn(`Aucun webhook Mattermost configuré, alerte non envoyée`);
+      return;
+    }
+
+    const attachment = {
+      text,
+      color: '#dc2626',
+      title: ":alert: Ingestion LOLFI à l'arrêt",
+      fields: [{ short: true, title: 'CC', value: '- @jessica.kossibale\n- @remi.boureau.lienard' }],
+    };
+
+    await lastValueFrom(this.http.post(webhook, { attachments: [attachment] }));
+  }
+}
+
 @Module({
   imports: [IngestModule],
-  providers: [IngestLolfiCommand],
+  providers: [IngestLolfiCommand, LolfiFreshnessCommand],
 })
 export class IngestCliModule {}

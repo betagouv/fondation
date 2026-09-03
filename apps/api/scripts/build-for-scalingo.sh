@@ -32,5 +32,5 @@ temp=$(basename $(mktemp -d)) && \
   jq ".scripts = {build: \"$postinstall\"} | del(.jest)" package.json > "$temp/package.json" && \
   jq 'del(.scripts,.jest)' apps/api/package.json > "$temp/apps/api/package.json" && \
   jq 'del(.scripts,.types)' packages/shared-models/package.json > "$temp/packages/shared-models/package.json" && \
-  mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile} "$temp" && \
+  mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile,cron.json} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"
