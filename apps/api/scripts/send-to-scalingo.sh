@@ -41,12 +41,15 @@ function log {
 function notify_mattermost {
   env=$1
 
-  if [[ $env = 'production' ]]; then
+  if [[ $env = 'PROD' ]]; then
     webhook="$SCALINGO_PROD"
     token="$SCALINGO_PROD_API_KEY"
-  else
+  elif [[ $env = 'PREPROD' ]]; then
     webhook="$SCALINGO_PREPROD"
     token="$SCALINGO_PREPROD_API_KEY"
+  else
+    log "environnement inconnu '$env', alerte non envoyée" 'ERROR'
+    return 1
   fi
 
   text=$2
@@ -64,7 +67,7 @@ function notify_mattermost {
     ]
   }";
 
-  if curl --retry-max-time 30 --silent \
+  if curl --retry 3 --retry-max-time 30 --silent --show-error --fail \
     --data "{ \"attachments\": [$attachment] }" \
     --header 'Content-type: application/json' \
     --header "Authorization: Bearer $token" \
