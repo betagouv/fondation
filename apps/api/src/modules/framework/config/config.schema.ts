@@ -57,6 +57,8 @@ export const ConfigSchema = z.object({
 
   mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
 
+  lolfiScriptDigest: z.prefault(z.string().nullish(), process.env.LOLFI_SCRIPT_DIGEST),
+
   s3: z.preprocess(
     () => ({}),
     z.object({

@@ -8,6 +8,7 @@ import { FilesModule } from './files';
 import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
+import { MattermostModule } from './mattermost';
 import { ObservabilityModule } from './observability';
 
 @Global()
@@ -21,8 +22,17 @@ import { ObservabilityModule } from './observability';
     ForwardsModule,
     HealthModule.register(),
     HttpModule.register(),
+    MattermostModule,
     ObservabilityModule,
   ],
-  exports: [ClockModule, ConfigModule, DatabaseModule, FilesModule, HttpModule, ObservabilityModule],
+  exports: [
+    ClockModule,
+    ConfigModule,
+    DatabaseModule,
+    FilesModule,
+    HttpModule,
+    MattermostModule,
+    ObservabilityModule,
+  ],
 })
 export class FrameworkModule {}

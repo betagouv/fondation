@@ -32,6 +32,12 @@ export const AuthedUser = createParamDecorator((_, ctx: ExecutionContext) => {
   return user;
 });
 
+export const IsMachine = createParamDecorator((_, ctx: ExecutionContext) => {
+  const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();
+
+  return user?.type === 'machine';
+});
+
 const META_ROLES = Symbol();
 
 @Injectable()
