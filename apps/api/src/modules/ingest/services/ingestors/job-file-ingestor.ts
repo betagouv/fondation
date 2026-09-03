@@ -35,13 +35,15 @@ export class JobFileIngestor {
     try {
       const startedAt = this.clock.now();
       if (file.sha256 === file.lastSha256) {
-        await this.succeedJobFile({ file, startedAt, jobId: job.id });
-      } else {
-        await this.db.tx.ingestionJobFile.update({
-          where: { primaryKey: { jobId: job.id, fileId: file.id } },
-          data: { status: 'RUNNING', startedAt },
-        });
+        this.logger.log(`${file.name} sha256 did not change. Skipping`);
+
+        return this.succeedJobFile({ file, startedAt, jobId: job.id });
       }
+
+      await this.db.tx.ingestionJobFile.update({
+        where: { primaryKey: { jobId: job.id, fileId: file.id } },
+        data: { status: 'RUNNING', startedAt },
+      });
 
       const fileContent$ = await this.files.getFile({ fileId: file.id });
       if (!fileContent$) {
