@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
 
+import { LolfiSessionsFinder } from './infrastructure/finders/lolfi-sessions.finder';
 import { IngestController } from './infrastructure/ingest.controller';
 import { IngestService } from './infrastructure/ingest.service';
 import { InternalDetailsLolfiSessionQuery } from './infrastructure/queries/internal-details-lolfi-session.query';
@@ -44,6 +45,7 @@ import { LolfiCryptoService } from './services/lolfi-crypto.service';
     LolfiTransparencesIngestor,
     LolfiTypeJuridictionIngestor,
     InternalDetailsLolfiSessionQuery,
+    LolfiSessionsFinder,
   ],
 })
 export class IngestModule {}
