@@ -10,6 +10,7 @@ import { FilesModule } from './files';
 import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
+import { MattermostModule } from './mattermost';
 import { ObservabilityModule } from './observability';
 import { PdfModule } from './pdf';
 
@@ -24,6 +25,7 @@ import { PdfModule } from './pdf';
     ForwardsModule,
     HealthModule.register(),
     HttpModule.register(),
+    MattermostModule,
     ObservabilityModule,
     PdfModule,
     EventEmitterModule.forRoot(),
@@ -35,6 +37,7 @@ import { PdfModule } from './pdf';
     DatabaseModule,
     FilesModule,
     HttpModule,
+    MattermostModule,
     ObservabilityModule,
     PdfModule,
   ],
