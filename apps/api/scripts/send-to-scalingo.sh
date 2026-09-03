@@ -4,25 +4,30 @@
 #   Script géré par le CSM (Conseil Supérieur de la Magistrature)   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-if [[ -f $HOME/.profile ]]; then
-  . $HOME/.profile;
+ENV_FILE=$1
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  printf "usage: %s <fichier d'environnement>\n" "$0" >&2
+  exit 1
 fi
 
+. "$ENV_FILE"
+
 BASEDIR="$HOME/lolfi2fondation"
+LOGS_DIR="$BASEDIR/logs/$ENV_LABEL"
 TODAY=$(date -I)
 LOGS_CHECKED=""
 
-mkdir -p "$BASEDIR"
+mkdir -p "$LOGS_DIR"
 
 function log {
   msg=$1
   level=${2:-LOG}
 
-  mkdir -p "$BASEDIR/logs"
-  log_file="$BASEDIR/logs/$TODAY.log"
+  log_file="$LOGS_DIR/$TODAY.log"
 
   if [[ -z "$LOGS_CHECKED" ]]; then
-    find "$BASEDIR/logs" -name "*.log" -mtime +10 -delete
+    find "$LOGS_DIR" -name "*.log" -mtime +10 -delete
     LOGS_CHECKED="true"
   fi
 
@@ -38,37 +43,35 @@ function log {
   printf "%s %b[%s]%b %s\n" "$(date -Iseconds)" "$color" "$level" "\033[0m" "$msg"
 }
 
-function notify_mattermost {
-  env=$1
-
-  if [[ $env = 'production' ]]; then
-    webhook="$SCALINGO_PROD"
-    token="$SCALINGO_PROD_API_KEY"
+function script_digest {
+  if command -v sha256sum > /dev/null; then
+    sha256sum "$0" | cut -c1-12
   else
-    webhook="$SCALINGO_PREPROD"
-    token="$SCALINGO_PREPROD_API_KEY"
+    shasum -a 256 "$0" | cut -c1-12
   fi
+}
 
-  text=$2
+function notify_mattermost {
+  text=$1
   log "Notifying mattermost with '$text'" 'DEBUG'
 
   attachment="{
     \"text\": \"$text\",
     \"color\": \"#dc2626\",
-    \"title\": \":alert: Import LOLFI en échec\",
+    \"title\": \":alert: Import LOLFI en échec ($ENV_LABEL)\",
     \"fields\": [
       {
         \"title\": \"CC\",
-        \"value\": \"- @jquagliatini\n- @remi.boureau.lienard\"
+        \"value\": \"- @jessica.kossibale\n- @remi.boureau.lienard\"
       }
     ]
   }";
 
-  if curl --retry-max-time 30 --silent \
+  if curl --retry 3 --retry-max-time 30 --silent --show-error --fail \
     --data "{ \"attachments\": [$attachment] }" \
     --header 'Content-type: application/json' \
-    --header "Authorization: Bearer $token" \
-    -X POST "$webhook/api/f/m";
+    --header "Authorization: Bearer $SCALINGO_TOKEN" \
+    -X POST "$SCALINGO_URL/api/f/m";
   then
     log "Notified mattermost successfully" 'DEBUG'
   else
@@ -76,60 +79,45 @@ function notify_mattermost {
   fi
 }
 
-if ! which curl > /dev/null; then
-  log "commande inconnue 'curl'" 'FATAL'
-  exit 1;
-fi
-
-for env in "$DATA_PATH_PROD" "$DATA_PATH_PREPROD"; do
-  if [[ ! -d "$env" ]]; then
-    log "fichiers introuvables" 'FATAL'
-    return 1;
+for var in ENV_LABEL SCALINGO_URL SCALINGO_TOKEN DATA_PATH; do
+  if [[ -z "${!var}" ]]; then
+    log "$var manquant dans $ENV_FILE" 'FATAL'
+    exit 1
   fi
 done
 
+if ! which curl > /dev/null; then
+  log "commande inconnue 'curl'" 'FATAL'
+  exit 1
+fi
+
+if [[ ! -d "$DATA_PATH" ]]; then
+  log "dépôt introuvable: $DATA_PATH" 'FATAL'
+  exit 1
+fi
+
 function run {
-  env=$1
-  if [[ $env != 'PROD' && $env != 'PREPROD' ]]; then
-    log "environnement inconnu $env" 'FATAL'
-    return 1;
-  fi
-
   mkdir -p "$BASEDIR/ftp_history"
-  if [[ -f "$BASEDIR/$TODAY.$env.success" ]]; then
+  if [[ -f "$BASEDIR/$TODAY.$ENV_LABEL.success" ]]; then
     log "Already succeeded. Exiting"
-    return;
+    return
   fi
 
-  ATTEMPT_COUNT=$(cat "$BASEDIR/$TODAY.$env.attempt" 2>/dev/null)
+  ATTEMPT_COUNT=$(cat "$BASEDIR/$TODAY.$ENV_LABEL.attempt" 2>/dev/null)
   ATTEMPT_COUNT=${ATTEMPT_COUNT:-1}
 
-  if [[ $env == 'PROD' ]]; then
-    base_url=$SCALINGO_PROD
-    token=$SCALINGO_PROD_API_KEY
-    path=$DATA_PATH_PROD
-  elif [[ $env == 'PREPROD' ]]; then
-    base_url=$SCALINGO_PREPROD
-    token=$SCALINGO_PREPROD_API_KEY
-    path=$DATA_PATH_PREPROD
-  fi
-
-  index=0
   failed=0
-  for filename in $(ls -rt "$path"/* | head -n1); do
-    log "sending $filename to $env"
-
-    index=$(( index + 1 ))
-    if [[ $index -gt 1 ]]; then sleep 1; fi
+  for filename in $(ls -rt "$DATA_PATH"/* | head -n1); do
+    log "sending $filename to $ENV_LABEL"
 
     if curl --silent --fail --retry-max-time 120 \
-      --header "Authorization: Bearer ${token}" \
+      --header "Authorization: Bearer $SCALINGO_TOKEN" \
+      --header "X-Script-Digest: $(script_digest)" \
       --form "file=@${filename};type=application/pkcs7-mime" \
-      "$base_url"/api/ingest/v1/lolfi;
+      "$SCALINGO_URL/api/ingest/v1/lolfi";
     then
-      name=$(basename "$filename")
-      mkdir -p "$BASEDIR/ftp_history/$env/$TODAY"
-      mv "$filename" "$BASEDIR/ftp_history/$env/$TODAY"
+      mkdir -p "$BASEDIR/ftp_history/$ENV_LABEL/$TODAY"
+      mv "$filename" "$BASEDIR/ftp_history/$ENV_LABEL/$TODAY"
     else
       failed=$(( failed + 1 ))
       log "failed sending $filename" 'ERROR'
@@ -137,26 +125,21 @@ function run {
   done
 
   if [[ $failed -eq 0 ]]; then
-    rm "$BASEDIR"/*".$env."{attempt,success}
-    date -Iseconds > "$BASEDIR/$TODAY.$env.success"
+    rm -f "$BASEDIR"/*".$ENV_LABEL."{attempt,success}
+    date -Iseconds > "$BASEDIR/$TODAY.$ENV_LABEL.success"
     return
-  else
-    if [[ $ATTEMPT_COUNT -eq 3 ]]; then
-      log "Plus de 3 échecs" 'ERROR'
-
-      notify_mattermost $env "Plus de 3 échecs à l'import"
-      return 1;
-    fi
-
-    log "$(( ATTEMPT_COUNT )) tentatives en échec" 'ERROR'
-    echo $(( ATTEMPT_COUNT + 1 )) > "$BASEDIR/$TODAY.$env".attempt
   fi
+
+  if [[ $ATTEMPT_COUNT -eq 3 ]]; then
+    log "Plus de 3 échecs" 'ERROR'
+    notify_mattermost "Plus de 3 échecs à l'import"
+    return 1
+  fi
+
+  log "$(( ATTEMPT_COUNT )) tentatives en échec" 'ERROR'
+  echo $(( ATTEMPT_COUNT + 1 )) > "$BASEDIR/$TODAY.$ENV_LABEL.attempt"
 
   return 0
 }
 
-
-run 'PREPROD'; status_preprod=$?
-run 'PROD'; status_prod=$?
-
-if [[ $status_preprod -ne 0 || $status_prod -ne 0 ]]; then exit 1; fi
+run
