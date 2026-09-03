@@ -62,7 +62,7 @@ function notify_mattermost {
     \"fields\": [
       {
         \"title\": \"CC\",
-        \"value\": \"- @jquagliatini\n- @remi.boureau.lienard\"
+        \"value\": \"- @jessica.kossibale\n- @remi.boureau.lienard\"
       }
     ]
   }";
