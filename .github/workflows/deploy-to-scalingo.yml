@@ -28,6 +28,13 @@ jobs:
     concurrency: ${{ inputs.environment }}
 
     steps:
+      - name: Checkout the relay script
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+          sparse-checkout: apps/api/scripts/send-to-scalingo.sh
+          sparse-checkout-cone-mode: false
+
       - name: Download api artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -47,7 +54,10 @@ jobs:
         run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
 
       - name: Update remote version envvar
-        run: scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_API_APP_NAME} env-set APP_VERSION=${INPUTS_TAGS_CURRENT}
+        run: |
+          digest=$(sha256sum apps/api/scripts/send-to-scalingo.sh | cut -c1-12)
+          scalingo --region ${VARS_SCALINGO_APP_REGION} --app ${VARS_SCALINGO_API_APP_NAME} \
+            env-set APP_VERSION=${INPUTS_TAGS_CURRENT} LOLFI_SCRIPT_DIGEST=${digest}
         env:
           VARS_SCALINGO_APP_REGION: ${{ vars.SCALINGO_APP_REGION }}
           VARS_SCALINGO_API_APP_NAME: ${{ vars.SCALINGO_API_APP_NAME }}

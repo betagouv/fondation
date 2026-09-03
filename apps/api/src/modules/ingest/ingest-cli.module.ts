@@ -1,11 +1,9 @@
-import { HttpService } from '@nestjs/axios';
-import { ConflictException, Inject, Logger, Module, NotFoundException } from '@nestjs/common';
+import { ConflictException, Logger, Module, NotFoundException } from '@nestjs/common';
 import { format } from 'date-fns';
 import { Command, CommandRunner, Option } from 'nest-commander';
-import { lastValueFrom } from 'rxjs';
 import z from 'zod';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { Mattermost } from 'src/modules/framework/mattermost';
 
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';
@@ -75,8 +73,7 @@ export class LolfiFreshnessCommand extends CommandRunner {
 
   constructor(
     private readonly ingestor: IngestService,
-    private readonly http: HttpService,
-    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
+    private readonly mattermost: Mattermost,
   ) {
     super();
   }
@@ -92,26 +89,10 @@ export class LolfiFreshnessCommand extends CommandRunner {
 
     const message = `Aucune ingestion LOLFI réussie depuis le ${since}`;
     this.logger.error(message);
-    await this.notify(message);
+
+    await this.mattermost.alert({ title: ":alert: Ingestion LOLFI à l'arrêt", text: message });
 
     process.exitCode = 1;
-  }
-
-  private async notify(text: string): Promise<void> {
-    const webhook = this.config.mattermostWebhook;
-    if (!webhook) {
-      this.logger.warn(`Aucun webhook Mattermost configuré, alerte non envoyée`);
-      return;
-    }
-
-    const attachment = {
-      text,
-      color: '#dc2626',
-      title: ":alert: Ingestion LOLFI à l'arrêt",
-      fields: [{ short: true, title: 'CC', value: '- @jessica.kossibale\n- @remi.boureau.lienard' }],
-    };
-
-    await lastValueFrom(this.http.post(webhook, { attachments: [attachment] }));
   }
 }
 
