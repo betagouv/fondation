@@ -5,6 +5,7 @@ import { ClsModule } from 'nestjs-cls';
 import { Pool } from 'pg';
 
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import * as time from 'src/utils/time';
 
 import { PG_POOL_TOKEN } from './database.constants';
 import { Db } from './db';
@@ -19,7 +20,7 @@ import { PrismaService } from './prisma.service';
         new ClsPluginTransactional({
           adapter: new TransactionalAdapterPrisma({
             prismaInjectionToken: PrismaService,
-            defaultTxOptions: { maxWait: 5_000, timeout: 20_000 },
+            defaultTxOptions: { maxWait: 5 * time.SECONDS, timeout: 20 * time.SECONDS },
           }),
         }),
       ],

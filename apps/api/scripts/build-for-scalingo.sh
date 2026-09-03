@@ -27,5 +27,5 @@ temp=$(basename $(mktemp -d)) && \
   jq 'del(.scripts)' apps/api/package.json > "$temp/apps/api/package.json" && \
   jq 'del(.scripts)' packages/documents-assets/package.json \
     > "$temp/packages/documents-assets/package.json" && \
-  mv apps/api/scalingo/{.buildpacks,Procfile} "$temp" && \
+  mv apps/api/scalingo/{.buildpacks,Procfile,cron.json} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"

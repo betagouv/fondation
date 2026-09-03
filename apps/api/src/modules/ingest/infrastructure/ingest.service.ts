@@ -4,6 +4,7 @@ import { ConflictException, Injectable, Logger } from '@nestjs/common';
 
 import { isExpired } from '../domain/expired-job';
 import { withLolfiFileRequirements } from '../domain/requirements';
+import { isStale } from '../domain/stale-ingestion';
 import { JobRunner } from '../jobs';
 import { LolfiFilesIngestor } from '../services/ingestors/lolfi-files.ingestor';
 import {
@@ -168,6 +169,18 @@ export class IngestService {
     }
 
     return job.id;
+  }
+
+  async checkIngestionFreshness(): Promise<{ stale: boolean; lastSuccessAt: Date | null }> {
+    const lastSucceededJob = await this.db.tx.ingestionJob.findFirst({
+      orderBy: { endedAt: 'desc' },
+      where: { status: 'SUCCEEDED' },
+      select: { endedAt: true },
+    });
+
+    const lastSuccessAt = lastSucceededJob?.endedAt ?? null;
+
+    return { lastSuccessAt, stale: isStale(lastSuccessAt, this.clock.now()) };
   }
 
   internalDetailsLolfiSession(sessionId: number): Promise<DetailedLolfiSession> {
