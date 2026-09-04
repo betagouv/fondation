@@ -51,4 +51,4 @@ minimumReleaseAgeExclude:
   # Renovate security update: react-router@8.3.0
   - react-router@8.3.0
   # Renovate security update: @tiptap/core@3.30.4
-  - "@tiptap/core@3.30.4"
+  - '@tiptap/core@3.30.4'
