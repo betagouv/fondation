@@ -1,9 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { PrismaService } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
@@ -11,18 +10,12 @@ import { RawLolfiDate } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiSessionsIngestor {
-  private readonly FLAG_ENABLE_LOLFI_SESSIONS: true | Date;
   private readonly logger = new Logger(LolfiSessionsIngestor.name);
 
   constructor(
     private readonly ingestor: JobFileIngestor,
     private readonly prisma: PrismaService,
-
-    @Inject(API_CONFIG_TOKEN)
-    config: ApiConfig,
-  ) {
-    this.FLAG_ENABLE_LOLFI_SESSIONS = config.isProduction ? new Date(Date.UTC(2026, 5, 1)) : true;
-  }
+  ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
     return file.name === 'SESSIONS.xml';
@@ -31,7 +24,7 @@ export class LolfiSessionsIngestor {
   async ingest(options: {
     job: Pick<LolfiJob, 'id'>;
     file: LolfiJob['files'][number];
-  }): Promise<{ success: false } | { success: true; values: RawSession[] }> {
+  }): Promise<{ success: boolean }> {
     const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
@@ -65,12 +58,7 @@ export class LolfiSessionsIngestor {
       file: options.file,
     });
 
-    const finalSuccess = success && mappingResult.success;
-    if (finalSuccess) {
-      return { success: true, values: this.cleanResult(accumulator) };
-    }
-
-    return { success: finalSuccess };
+    return { success: success && mappingResult.success };
   }
 
   private flush(props: { items: RawSession[]; jobId: number; fileId: string; result: { success: boolean } }) {
@@ -78,13 +66,6 @@ export class LolfiSessionsIngestor {
       this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
       props.result.success = false;
     });
-  }
-
-  private cleanResult(values: readonly RawSession[]): RawSession[] {
-    if (this.FLAG_ENABLE_LOLFI_SESSIONS === true) return [...values];
-
-    const flagDate = this.FLAG_ENABLE_LOLFI_SESSIONS.getTime();
-    return values.filter((value) => flagDate <= value.date_publication.getTime());
   }
 }
 
