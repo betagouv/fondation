@@ -432,11 +432,7 @@ export class Files implements OnApplicationBootstrap {
   }
 
   async getFile(props: { fileId: string; tx?: Prisma.TransactionClient }): Promise<Readable | null> {
-    if (!props.tx) {
-      return this.prisma.$transaction((tx) => this.getFile({ ...props, tx }));
-    }
-
-    const storedFile = await props.tx.file.findUnique({
+    const storedFile = await (props.tx ?? this.prisma).file.findUnique({
       where: { id: props.fileId },
       select: { path: true },
     });
