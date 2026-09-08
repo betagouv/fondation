@@ -30,6 +30,7 @@ import {
   HydratedNominationFilesFinder,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
+import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import { NominationSessionFinder } from './finders/transparence-session.finder';
 import { UnreportedSessionFilesCountFinder } from './finders/unreported-transparence-files-count.finder';
@@ -122,6 +123,7 @@ export class TransparenceService {
     private readonly db: Db,
     readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
 
     private readonly events: EventEmitter2,
@@ -622,6 +624,13 @@ export class TransparenceService {
         }
       });
     }
+  }
+
+  /** @internal */
+  internalFindSynchronisedLolfiSessions(query: {
+    lolfiSessionIds: readonly number[];
+  }): Promise<Map<number, Set<FormationEnum>>> {
+    return this.synchronisedLolfiSessionsFinder.find(query.lolfiSessionIds);
   }
 
   async internalFindNominationFiles(query: {

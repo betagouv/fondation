@@ -17,11 +17,11 @@ export class Mattermost {
     @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {}
 
-  async alert(props: { title: string; text: string }): Promise<void> {
+  async alert(props: { title: string; text: string }): Promise<boolean> {
     const webhook = this.config.mattermostWebhook;
     if (!webhook) {
       this.logger.warn(`Aucun webhook Mattermost configuré, alerte non envoyée`);
-      return;
+      return false;
     }
 
     const attachment = {
@@ -30,10 +30,14 @@ export class Mattermost {
       fields: [{ short: true, title: 'CC', value: RECIPIENTS }],
     };
 
-    await lastValueFrom(this.http.post(webhook, { attachments: [attachment] })).catch((error) => {
-      this.logger.error(`Failed alerting mattermost`, error);
-      Sentry.captureException(error);
-    });
+    return lastValueFrom(this.http.post(webhook, { attachments: [attachment] }))
+      .then(() => true)
+      .catch((error) => {
+        this.logger.error(`Failed alerting mattermost`, error);
+        Sentry.captureException(error);
+
+        return false;
+      });
   }
 }
 

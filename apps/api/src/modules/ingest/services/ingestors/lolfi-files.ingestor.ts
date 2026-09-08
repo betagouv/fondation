@@ -2,13 +2,22 @@ import { inspect } from 'node:util';
 
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
+import { format } from 'date-fns';
 
+import { incompleteTransparenceReason } from '../../domain/incomplete-transparence';
 import { dag } from '../../domain/requirements';
-import { LolfiSessionsFinder } from '../../infrastructure/finders/lolfi-sessions.finder';
+import {
+  LolfiSessionsFinder,
+  LolfiSessionToSynchronise,
+} from '../../infrastructure/finders/lolfi-sessions.finder';
+import { TransparenceAnomaliesRepository } from '../../infrastructure/transparence-anomalies.repository';
 import { LolfiJob } from '../lolfi-job.type';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
+import { Mattermost } from 'src/modules/framework/mattermost';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -27,10 +36,13 @@ import { LolfiTypeJuridictionIngestor } from './lolfi-type-juridiction.ingestor'
 @Injectable()
 export class LolfiFilesIngestor {
   private readonly logger = new Logger(LolfiFilesIngestor.name);
+  private readonly frontendOriginUrl: string;
 
   constructor(
     private readonly clock: Clock,
     private readonly db: Db,
+    private readonly mattermost: Mattermost,
+    @Inject(API_CONFIG_TOKEN) config: ApiConfig,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
     private readonly gradeIngestor: LolfiGradesIngestor,
@@ -43,9 +55,12 @@ export class LolfiFilesIngestor {
     private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
     private readonly nominationsIngestor: LolfiTransparencesIngestor,
     private readonly lolfiSessions: LolfiSessionsFinder,
+    private readonly anomalies: TransparenceAnomaliesRepository,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
-  ) {}
+  ) {
+    this.frontendOriginUrl = config.frontendOriginUrl;
+  }
 
   async ingest(jobId: number, signal: AbortSignal): Promise<{ success: boolean }> {
     try {
@@ -59,7 +74,7 @@ export class LolfiFilesIngestor {
       }
 
       await this.succeedJob(jobId);
-      await this.synchroniseSessions();
+      await this.synchroniseSessions(jobId);
 
       return { success };
     } catch (e) {
@@ -72,12 +87,79 @@ export class LolfiFilesIngestor {
     }
   }
 
-  private async synchroniseSessions(): Promise<void> {
+  private async synchroniseSessions(jobId: number): Promise<void> {
     const sessions = await this.lolfiSessions.find();
 
     await this.sessions.internalIngestLolfiSessions(sessions).catch((error) => {
       this.logger.error(`error while creating sessions`, error);
+      Sentry.captureException(error);
     });
+
+    await this.reportIncompleteTransparences(jobId, sessions).catch((error) => {
+      this.logger.error(`error while reporting the incomplete transparences`, error);
+      Sentry.captureException(error);
+    });
+  }
+
+  private async reportIncompleteTransparences(
+    jobId: number,
+    sessions: readonly LolfiSessionToSynchronise[],
+  ): Promise<void> {
+    const lolfiSessionIds = sessions.map(({ id }) => id);
+    const [withSession, designations, alerted] = await Promise.all([
+      this.sessions.internalFindSynchronisedLolfiSessions({ lolfiSessionIds }),
+      this.lolfiSessions.findDesignations(lolfiSessionIds),
+      this.anomalies.findAlerted(lolfiSessionIds),
+    ]);
+
+    const restored: number[] = [];
+    const now = this.clock.now();
+
+    for (const transparence of sessions) {
+      const reason = incompleteTransparenceReason(
+        {
+          designations: designations.get(transparence.id),
+          formationsWithSession: withSession.get(transparence.id) ?? new Set(),
+          publishedAt: transparence.creationDate.toDate(),
+        },
+        now,
+      );
+
+      if (!reason) {
+        if (alerted.has(transparence.id)) restored.push(transparence.id);
+        continue;
+      }
+
+      const label = transparence.name ?? 'sans libellé';
+      const publishedOn = format(transparence.creationDate.toLocalStartOfDay(), 'dd/MM/yyyy');
+      const message = `Transparence "${label}" (${transparence.id}) du ${publishedOn}: ${reason}`;
+
+      this.logger.warn(message);
+      await this.db.tx.ingestionJobError.create({ data: { jobId, error: message } }).catch((error) => {
+        this.logger.error(`Failed recording the transparence ${transparence.id} of job #${jobId}`, error);
+      });
+
+      // The job keeps reporting it every night, only the channel is spared the repetition
+      if (alerted.get(transparence.id) === reason) continue;
+
+      const sent = await this.mattermost.alert({
+        title: ':alert: Transparence LOLFI incomplète',
+        text: `${message}\n\n${this.frontendOriginUrl}/admin/jobs/${jobId}`,
+      });
+
+      if (!sent) continue;
+
+      await this.anomalies
+        .recordAlert({ lolfiSessionId: transparence.id, reason, alertedAt: now })
+        .catch((error) => {
+          this.logger.error(`Failed recording the alert of transparence ${transparence.id}`, error);
+        });
+    }
+
+    if (restored.length === 0) return;
+
+    // Uncaught on purpose: unlike the writes above, a failure here would swallow an identical relapse
+    await this.anomalies.forget(restored);
   }
 
   @Transactional(Propagation.RequiresNew)

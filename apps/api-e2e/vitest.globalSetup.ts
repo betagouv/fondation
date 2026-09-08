@@ -1,5 +1,7 @@
 // oxlint-disable no-console
 import { spawn } from 'node:child_process';
+import * as http from 'node:http';
+import { type AddressInfo } from 'node:net';
 
 import postgres from 'postgres';
 import { type TestProject } from 'vitest/node';
@@ -25,12 +27,14 @@ function makeOnData(source: 'stdout' | 'stderr', resolve: (url: string) => void)
   };
 }
 
+const databaseUrl = process.env.DATABASE_URL ?? 'postgres://fondation:secret@localhost:5435/fondation_test';
+
 async function truncate() {
-  const dbUrl = process.env.DATABASE_URL ?? 'postgres://fondation:secret@localhost:5435/fondation_test';
-  const sql = postgres(dbUrl, { onnotice: () => {} });
+  const sql = postgres(databaseUrl, { onnotice: () => {} });
   await sql`
     truncate "identity_and_access_context"."users" cascade;
 
+    truncate "data_administration_context"."session" cascade;
     truncate "data_administration_context"."jurisdictions" cascade;
     truncate "data_administration_context"."function" cascade;
     truncate "data_administration_context"."grade" cascade;
@@ -43,6 +47,7 @@ async function truncate() {
     truncate "files_context"."files" cascade;
 
     truncate "jobs"."ingestion_job" cascade;
+    truncate "jobs"."lolfi_transparence_anomaly" cascade;
 
     truncate "docs"."agenda" cascade;
   `.simple();
@@ -142,7 +147,44 @@ async function seed(apiUrl: string) {
   ]);
 }
 
-async function startServer(provide: TestProject['provide']): Promise<[apiUrl: string, teardown: () => void]> {
+async function startAlertCollector(
+  provide: TestProject['provide'],
+): Promise<[mattermostUrl: string, teardown: () => void]> {
+  const alerts: unknown[] = [];
+
+  const collector = http.createServer((request, response) => {
+    if (request.method === 'GET') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(alerts));
+      return;
+    }
+
+    const chunks: Buffer[] = [];
+    request.on('data', (chunk: Buffer) => chunks.push(chunk));
+    request.on('end', () => {
+      try {
+        alerts.push(JSON.parse(Buffer.concat(chunks).toString()));
+      } catch {
+        console.error(`Unreadable alert: ${Buffer.concat(chunks).toString()}`);
+      }
+
+      response.end();
+    });
+  });
+
+  await new Promise<void>((resolve) => collector.listen(0, '127.0.0.1', resolve));
+
+  const { port } = collector.address() as AddressInfo;
+  const mattermostUrl = `http://127.0.0.1:${port}/alerts`;
+  provide('mattermostUrl', mattermostUrl);
+
+  return [mattermostUrl, () => collector.close()];
+}
+
+async function startServer(
+  provide: TestProject['provide'],
+  mattermostUrl: string,
+): Promise<[apiUrl: string, teardown: () => void]> {
   if (process.env.API_URL) {
     provide('apiUrl', process.env.API_URL);
     return [
@@ -154,7 +196,7 @@ async function startServer(provide: TestProject['provide']): Promise<[apiUrl: st
   }
 
   const server = spawn('pnpm', ['--filter', 'api', 'start:e2e'], {
-    env: { ...process.env, PORT: '0' },
+    env: { ...process.env, PORT: '0', MATTERMOST_WEBHOOK: mattermostUrl },
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: true,
   });
@@ -205,8 +247,13 @@ async function startServer(provide: TestProject['provide']): Promise<[apiUrl: st
 
 export default async function setup({ provide }: TestProject) {
   await truncate();
-  const [apiUrl, teardown] = await startServer(provide);
+  provide('databaseUrl', databaseUrl);
+  const [mattermostUrl, stopCollector] = await startAlertCollector(provide);
+  const [apiUrl, teardown] = await startServer(provide, mattermostUrl);
   await seed(apiUrl);
 
-  return teardown;
+  return () => {
+    teardown();
+    stopCollector();
+  };
 }

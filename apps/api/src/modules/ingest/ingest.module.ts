@@ -6,6 +6,7 @@ import { LolfiSessionsFinder } from './infrastructure/finders/lolfi-sessions.fin
 import { IngestController } from './infrastructure/ingest.controller';
 import { IngestService } from './infrastructure/ingest.service';
 import { InternalDetailsLolfiSessionQuery } from './infrastructure/queries/internal-details-lolfi-session.query';
+import { TransparenceAnomaliesRepository } from './infrastructure/transparence-anomalies.repository';
 import { JobsModule } from './jobs/jobs.module';
 import { JobFileIngestor } from './services/ingestors/job-file-ingestor';
 import { LolfiCandidatsIngestor } from './services/ingestors/lolfi-candidats.ingestor';
@@ -46,6 +47,7 @@ import { LolfiCryptoService } from './services/lolfi-crypto.service';
     LolfiTypeJuridictionIngestor,
     InternalDetailsLolfiSessionQuery,
     LolfiSessionsFinder,
+    TransparenceAnomaliesRepository,
   ],
 })
 export class IngestModule {}
