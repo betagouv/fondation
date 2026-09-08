@@ -11,6 +11,7 @@ import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
+import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
@@ -73,6 +74,7 @@ import { SessionController } from './transparence.controller';
     NominationFileJurisdictionsFinder,
     NominationSessionFinder,
     SessionTransparenceRepository,
+    SynchronisedLolfiSessionsFinder,
     TransparenceFilesFinder,
     TransparenceService,
     UnaffectedFilesFinder,

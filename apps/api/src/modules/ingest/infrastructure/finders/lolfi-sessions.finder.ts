@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { ReceivedDesignations } from '../../domain/incomplete-transparence';
+import { countLolfiSessionDesignations } from 'src/generated/prisma/sql';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
 import { DateOnly } from 'src/utils/date-only';
@@ -34,5 +36,19 @@ export class LolfiSessionsFinder {
       name: label,
       creationDate: DateOnly.fromUtcDate(createdAt),
     }));
+  }
+
+  async findDesignations(sessionIds: readonly number[]): Promise<Map<number, ReceivedDesignations>> {
+    const sessions = await this.db.tx.$queryRawTyped(countLolfiSessionDesignations([...sessionIds]));
+
+    return new Map(
+      sessions.map(({ sessionId, candidatures, siege, parquet }) => [
+        sessionId,
+        {
+          candidatures: candidatures ?? 0,
+          perFormation: { SIEGE: siege ?? 0, PARQUET: parquet ?? 0 },
+        },
+      ]),
+    );
   }
 }

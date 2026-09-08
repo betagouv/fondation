@@ -46,6 +46,7 @@ export type LolfiData = {
       rank?: number;
       id?: number;
       civilite?: 'M.' | 'MME';
+      designated?: boolean;
       position: LolfiPosition;
       targetPosition: LolfiPosition;
     }[];
