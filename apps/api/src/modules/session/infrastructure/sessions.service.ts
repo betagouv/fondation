@@ -23,6 +23,7 @@ import { UnreportedSessionFilesCountFinder } from './finders/count-unreported-fi
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationSessionFileFinder } from './finders/nomination-session-file.finder';
 import { NominationSessionFinder } from './finders/nomination-session.finder';
+import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -101,8 +102,16 @@ export class SessionService {
     private readonly prisma: PrismaService,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
   ) {}
+
+  /** @internal */
+  internalFindSynchronisedLolfiSessions(query: {
+    lolfiSessionIds: readonly number[];
+  }): Promise<Map<number, Set<Magistrat.Formation>>> {
+    return this.synchronisedLolfiSessionsFinder.find(query.lolfiSessionIds);
+  }
 
   /** @internal */
   listMemberSessions(query: {

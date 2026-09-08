@@ -314,7 +314,7 @@ export async function* generateLolfiFiles(
           num_emploi_cible: candidate.targetPosition.id,
           type_mouvement: candidate.targetPosition.grade == candidate.position.grade ? 'E' : 'A',
           ta: 2024,
-          resultat: 1,
+          resultat: candidate.designated === false ? 0 : 1,
           id: candidate.id,
           affectation: candidate.position.id,
           date_grade: null,

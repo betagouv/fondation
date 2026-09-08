@@ -11,17 +11,12 @@ import { IngestedLolfiArchiveDto } from '../../src/modules/ingest/infrastructure
 import { DetailedJobDto } from '../../src/modules/ingest/jobs/queries/details-job.query';
 import { assertIsDefined } from '../../src/utils/is-defined';
 
-export async function createSession(options: {
+export async function ingestSessions(options: {
   cookie: string;
-  session: LolfiData['sessions'][number];
+  sessions: LolfiData['sessions'];
   http: ReturnType<typeof supertest.agent>;
-}): Promise<{ id: string }> {
-  const sessionId = options.session.id || randomInt(100, 1e6);
-  const sessionName = `${options.session.name || 'Transparence annuelle'}`;
-
-  const archive = await generateLolfiArchive({
-    sessions: [{ ...options.session, name: sessionName, id: sessionId }],
-  });
+}): Promise<number> {
+  const archive = await generateLolfiArchive({ sessions: options.sessions });
 
   const ingestionResponse = await options.http
     .post('/api/ingest/v1/lolfi')
@@ -34,26 +29,58 @@ export async function createSession(options: {
 
   const { id: jobId } = ingestionResponse.body as IngestedLolfiArchiveDto;
   await waitForExpect(async () => {
-    const jobResponse = await options.http
-      .get(`/api/jobs/v1/${jobId}`)
-      .set({ cookie: options.cookie })
-      .expect(HttpStatus.OK);
+    const job = await detailsJob({ ...options, jobId });
 
-    const status: PrismaJobStatusEnum = (jobResponse.body as DetailedJobDto).status;
-    if (status === 'FAILED') {
-      console.error((jobResponse.body as DetailedJobDto).errors);
-      console.error((jobResponse.body as DetailedJobDto).files.map((file) => file.errors));
-      expect(status).toBe('FAILED');
+    if (job.status === 'FAILED') {
+      console.error(job.errors);
+      console.error(job.files.map((file) => file.errors));
+      expect(job.status).toBe('FAILED');
     }
 
-    expect(status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
+    expect(job.status).toBe('SUCCEEDED' satisfies PrismaJobStatusEnum);
   }, /* timeout */ 2_000);
 
-  const sessionResponse = await options.http
-    .get('/api/sessions/v2/garde-des-sceaux')
-    .query({ search: `${sessionName} (${sessionId})` })
+  return jobId;
+}
+
+export async function detailsJob(options: {
+  cookie: string;
+  jobId: number;
+  http: ReturnType<typeof supertest.agent>;
+}): Promise<DetailedJobDto> {
+  const jobResponse = await options.http
+    .get(`/api/jobs/v1/${options.jobId}`)
     .set({ cookie: options.cookie })
     .expect(HttpStatus.OK);
 
-  return { id: assertIsDefined(sessionResponse.body.items[0], `unknown session "${sessionName}"`).id };
+  return jobResponse.body as DetailedJobDto;
+}
+
+export async function createSession(options: {
+  cookie: string;
+  session: LolfiData['sessions'][number];
+  http: ReturnType<typeof supertest.agent>;
+}): Promise<{ id: string }> {
+  const sessionId = options.session.id || randomInt(100, 1e6);
+  const sessionName = `${options.session.name || 'Transparence annuelle'}`;
+
+  await ingestSessions({
+    ...options,
+    sessions: [{ ...options.session, name: sessionName, id: sessionId }],
+  });
+
+  // The job is SUCCEEDED before the sessions are synchronised, so the session appears a moment later
+  let session: { id: string } | undefined;
+  await waitForExpect(async () => {
+    const sessionResponse = await options.http
+      .get('/api/sessions/v2/garde-des-sceaux')
+      .query({ search: `${sessionName} (${sessionId})` })
+      .set({ cookie: options.cookie })
+      .expect(HttpStatus.OK);
+
+    session = sessionResponse.body.items[0];
+    expect(session).toBeDefined();
+  }, /* timeout */ 2_000);
+
+  return { id: assertIsDefined(session, `unknown session "${sessionName}"`).id };
 }
