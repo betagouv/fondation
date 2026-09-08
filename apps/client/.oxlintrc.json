@@ -55,7 +55,7 @@
         "no-unsafe-optional-chaining": "error",
         "no-unused-labels": "error",
         "no-unused-private-class-members": "error",
-        "no-unused-vars": "error",
+        "no-unused-vars": ["error", { "ignoreRestSiblings": true }],
         "no-useless-backreference": "error",
         "no-useless-catch": "error",
         "no-useless-escape": "error",
@@ -112,6 +112,12 @@
         "registerProcessor": "readonly",
         "sampleRate": "readonly",
         "WorkletGlobalScope": "readonly"
+      }
+    },
+    {
+      "files": ["src/types/enums.types.ts"],
+      "rules": {
+        "typescript/no-redeclare": "off"
       }
     }
   ]
