@@ -53,7 +53,7 @@ export class DocsNominationFilesFinder {
     const reportedState = (id: string) => reportedNominationFiles.reportedState({ nominationFileId: id });
 
     return {
-      items: sessionNominationFiles.filter(({ id }) => reportedState(id) === 'NONE'),
+      items: sessionNominationFiles,
       ineligible: [
         ...sessionNominationFiles.flatMap(({ id }) => {
           const state = reportedState(id);

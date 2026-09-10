@@ -1,4 +1,3 @@
-import { ReportedNominationFileCollection } from '../../shared/domain/reported-nomination-file-collection';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -128,23 +127,8 @@ export class Agenda {
     return diff;
   }
 
-  updateFiles(command: {
-    authorId: string;
-    nominationFileIds: Set<string>;
-    reportedFiles: ReportedNominationFileCollection;
-  }): AgendaFilesDiff {
+  updateFiles(command: { authorId: string; nominationFileIds: Set<string> }): AgendaFilesDiff {
     if (command.nominationFileIds.size === 0) throw new EmptyAgenda();
-
-    const reportedFiles = [...command.nominationFileIds].filter((fileId) =>
-      command.reportedFiles.isReported({
-        nominationFileId: fileId,
-        ignoreOfficialReportId: this.officialReportId ?? undefined,
-      }),
-    );
-
-    if (reportedFiles.length) {
-      throw new AgendaFilesAlreadyReported(reportedFiles);
-    }
 
     const diff = assertIsDefined(this.snapshot).diffFiles({
       fileIds: new Set(command.nominationFileIds),
@@ -185,16 +169,8 @@ export class Agenda {
     date: DateOnly;
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
-    reportedFiles: ReportedNominationFileCollection;
   }): Agenda {
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
-
-    const reportedFiles = props.nominationFiles.filter((file) =>
-      props.reportedFiles.isReported({ nominationFileId: file.id }),
-    );
-    if (reportedFiles.length) {
-      throw new AgendaFilesAlreadyReported(reportedFiles.map(({ id }) => id));
-    }
 
     const agenda = Agenda.from({
       id: makeId('AgendaId'),
