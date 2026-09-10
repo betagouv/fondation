@@ -175,3 +175,35 @@ from
       and ddn.created_at >= month_window."date"
       and ddn.created_at < (month_window."date" + interval '1 month')
   ) as files_count on true;
+
+---
+
+/** Mesure des sessions actives */
+
+with month_range as (
+  select generate_series (
+    ((extract (year from current_date))::int || '-01-01')::date,
+    current_date,
+    '1 month'::interval
+  ) as "date"
+)
+
+select
+  to_char("date", 'MM/YYYY') as "date",
+  potential_count as "total",
+  potential_member_count as "membres",
+  potential_sg_count as "sg"
+from
+  month_range
+  left join lateral (
+    select
+      count(distinct s.user_id) as potential_count,
+      count(distinct s.user_id) filter (where u.role != ALL('{ADMIN,ADJOINT_SECRETAIRE_GENERAL}'::identity_and_access_context.role[])) as potential_member_count,
+      count(distinct s.user_id) filter (where u.role = ANY('{ADMIN,ADJOINT_SECRETAIRE_GENERAL}'::identity_and_access_context.role[])) as potential_sg_count
+
+    from identity_and_access_context.sessions s
+      inner join identity_and_access_context.users u on u.id = s.user_id
+    where
+      (s.created_at >= month_range."date" and s.created_at < (month_range."date" + '1 month'::interval))
+      or (s.expires_at >= month_range."date" and s.expires_at < (month_range."date" + '1 month'::interval))
+  ) on true;
