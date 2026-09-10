@@ -166,6 +166,7 @@ describe('OfficialReportSnapshot', () => {
 
     const firstFile = diff.files[0]!;
 
+    expect(firstFile.action).toBe('update');
     assert.ok(firstFile.action === 'update');
 
     expect(firstFile.id).toBe(file.id);
