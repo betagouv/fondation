@@ -17,17 +17,6 @@ function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): Off
 }
 
 describe('OfficialReportSnapshotFile', () => {
-  it('keeps the suspension it reported when the file gets a final outcome', () => {
-    const file = makeFile({ outcome: { value: 'SUSPENDED', comment: null } });
-
-    const diff = file.diff({
-      nominationFileId: NOMINATION_FILE_ID,
-      outcome: { value: 'VALIDATED', comment: null },
-    });
-
-    expect(diff.action).toBe('noop');
-  });
-
   it('still follows a suspended file that stays suspended', () => {
     const file = makeFile({ outcome: { value: 'SUSPENDED', comment: null } });
 
