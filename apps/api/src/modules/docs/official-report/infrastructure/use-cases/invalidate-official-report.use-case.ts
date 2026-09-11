@@ -105,10 +105,9 @@ export class InternalInvalidateOfficialReportUseCase {
         isDefined(nominationFileId) ? [nominationFileId] : [],
       );
 
-      const { items } = await this.docsNominationFilesFinder.findNonReported({
+      const { items } = await this.docsNominationFilesFinder.find({
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
-        ignoreOfficialReportId: agenda.officialReportId,
       });
 
       output.push({
@@ -207,10 +206,9 @@ export class InternalInvalidateOfficialReportUseCase {
         isDefined(nominationFileId) ? [nominationFileId] : [],
       );
 
-      const { items } = await this.docsNominationFilesFinder.findNonReported({
+      const { items } = await this.docsNominationFilesFinder.find({
         ids: nominationFileIds,
         sessionId: agenda.sessionId,
-        ignoreOfficialReportId: agenda.officialReportId,
       });
 
       output.push({

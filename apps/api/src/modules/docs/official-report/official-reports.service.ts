@@ -182,7 +182,7 @@ export class OfficialReportsService {
       throw new NotFoundException();
     }
 
-    const { items: agendaFiles } = await this.docsNominationFilesFinder.findNonReportedByAgendaIds({
+    const { items: agendaFiles } = await this.docsNominationFilesFinder.findByAgendaIds({
       ignoreOfficialReportId: report.id,
       agendaIds: new Set(agendas.map(({ id }) => id)),
     });

@@ -88,34 +88,7 @@ export class DocsNominationFilesFinder {
   }
 
   @Transactional()
-  async findNonReported(query: {
-    sessionId: string;
-    formation?: FormationEnum;
-    ignoreOfficialReportId?: string;
-    ids?: readonly string[];
-  }): Promise<FoundDocsNominationFiles> {
-    const { items: sessionNominationFiles } = await this.find(query);
-    if (sessionNominationFiles.length === 0) return { items: [] };
-
-    const fileIds = new Set(sessionNominationFiles.map((f) => f.id));
-    const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
-      fileIds,
-      ignoreOfficialReportId: query.ignoreOfficialReportId,
-    });
-
-    const items = sessionNominationFiles.filter(
-      (file) =>
-        !reportedNominationFiles.isReported({
-          nominationFileId: file.id,
-          ignoreOfficialReportId: query.ignoreOfficialReportId,
-        }),
-    );
-
-    return { items };
-  }
-
-  @Transactional()
-  async findNonReportedByAgendaIds(query: {
+  async findByAgendaIds(query: {
     agendaIds: Set<string>;
     ignoreOfficialReportId?: string;
   }): Promise<FoundDocsNominationFiles> {
@@ -135,12 +108,10 @@ export class DocsNominationFilesFinder {
 
     const allItems: FoundDocsNominationFiles['items'] = [];
     for (const [sessionId, list] of bySessionId) {
-      const { items } = await this.findNonReported({
+      const { items } = await this.find({
         sessionId,
         ids: list.flatMap((x): string[] =>
-          x.nominationFiles
-            .map(({ nominationFileId }) => nominationFileId)
-            .filter((x): x is string => Boolean(x)),
+          x.nominationFiles.map(({ nominationFileId }) => nominationFileId!),
         ),
       });
 

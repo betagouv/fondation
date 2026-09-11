@@ -353,7 +353,6 @@ export class OfficialReportRepository {
       const files = await this.resolveNominationFiles({
         sessionId,
         ids: filesToCreate,
-        officialReportId: message.officialReportId,
       });
 
       await this.db.tx.officialReportNominationFile.createMany({
@@ -442,20 +441,14 @@ export class OfficialReportRepository {
 
     return this.resolveNominationFiles({
       sessionId: agenda.sessionId,
-      officialReportId: message.id,
       ids: agenda.nominationFiles.flatMap((file) => (file.nominationFileId ? [file.nominationFileId] : [])),
     });
   }
 
-  private async resolveNominationFiles(query: {
-    sessionId: string;
-    ids: readonly string[];
-    officialReportId: string;
-  }) {
-    const { items } = await this.nominationFilesFinder.findNonReported({
+  private async resolveNominationFiles(query: { sessionId: string; ids: readonly string[] }) {
+    const { items } = await this.nominationFilesFinder.find({
       ids: query.ids,
       sessionId: query.sessionId,
-      ignoreOfficialReportId: query.officialReportId,
     });
 
     return items
