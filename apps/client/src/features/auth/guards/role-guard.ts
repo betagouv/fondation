@@ -1,5 +1,6 @@
 import { redirect } from 'react-router';
 
+import * as matomo from '@/utils/matomo';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { sessionQueryOptions } from '@queries/auth.queries';
 import { queryClient } from '@queries/query-client';
@@ -19,8 +20,15 @@ export function roleGuard(authorizedRoles: readonly unknown[]) {
       return cached;
     });
 
-    if (isAuthorized(user, authorizedRoles)) return null;
+    if (isAuthorized(user, authorizedRoles)) {
+      if (user) {
+        matomo.identifyUser(user);
+      }
 
+      return null;
+    }
+
+    matomo.resetUser();
     return redirect(ROUTE_PATHS.LOGIN);
   };
 }
