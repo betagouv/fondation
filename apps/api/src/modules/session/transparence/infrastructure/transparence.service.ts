@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/node';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
-import { OfficialReportsInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -232,8 +232,8 @@ export class TransparenceService {
 
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
-        OfficialReportsInvalidatedIntegrationEvent.name,
-        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+        DocInvalidatedIntegrationEvent.name,
+        new DocInvalidatedIntegrationEvent(invalidation),
       );
     }
   }
@@ -488,8 +488,8 @@ export class TransparenceService {
 
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
-        OfficialReportsInvalidatedIntegrationEvent.name,
-        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+        DocInvalidatedIntegrationEvent.name,
+        new DocInvalidatedIntegrationEvent(invalidation),
       );
     }
   }
@@ -532,8 +532,8 @@ export class TransparenceService {
 
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
-        OfficialReportsInvalidatedIntegrationEvent.name,
-        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+        DocInvalidatedIntegrationEvent.name,
+        new DocInvalidatedIntegrationEvent(invalidation),
       );
     }
   }

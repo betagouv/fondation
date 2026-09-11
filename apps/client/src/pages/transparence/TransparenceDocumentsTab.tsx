@@ -59,6 +59,7 @@ export function TransparenceDocumentsTab() {
     awaitingOfficialReport: formatMessage({ defaultMessage: 'PV attendu' }),
     outdatedOfficialReport: formatMessage({ defaultMessage: 'PV à vérifier' }),
     upToDate: formatMessage({ defaultMessage: 'PV à jour' }),
+    outdatedAgenda: formatMessage({ defaultMessage: 'ODJ à vérifier' }),
   };
 
   const filters = (

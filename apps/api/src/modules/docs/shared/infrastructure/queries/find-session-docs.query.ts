@@ -27,6 +27,7 @@ export class FindSessionDocsQuery {
         sessionMeetingDate: true,
         chairmanFirstName: true,
         chairmanLastName: true,
+        outdated: true,
       },
     });
     const officialReportFiles = await this.db.tx.officialReport.findMany({
@@ -50,6 +51,7 @@ export class FindSessionDocsQuery {
           type: 'agenda' as const,
           date: file.sessionMeetingDate,
           officialReportId: file.officialReportId,
+          outdated: file.outdated,
           name: docFileName({
             formation: null,
             type: 'AGENDA',
@@ -92,6 +94,7 @@ export class FoundSessionDocsDto extends createZodDto(
           id: z.string(),
           name: z.string(),
           officialReportId: z.string().nullable(),
+          outdated: z.boolean(),
         }),
         z.object({
           type: z.enum(['officialReport']),

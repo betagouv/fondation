@@ -1,5 +1,5 @@
 import { DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
-import { OfficialReportInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
 
 import { OfficialReportAgenda } from './official-report-agenda';
 import { OfficialReportChairman } from './official-report-chairman';
@@ -26,7 +26,7 @@ export type UpdateOfficialReportCommand = {
 };
 
 export type InvalidateOfficialReportCommand = { id: string } & (
-  | Extract<OfficialReportInvalidation, { type: 'SessionDateUpdated' | 'AgendaDateUpdated' }>
+  | Extract<DocInvalidation, { type: 'SessionDateUpdated' | 'AgendaDateUpdated' }>
   | {
       type: 'NominationFilesOutcomeUpdated';
       payload: {

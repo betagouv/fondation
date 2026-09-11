@@ -56,6 +56,13 @@ export class AgendaFilesUpdated {
   ) {}
 }
 
+export class AgendaFilesReportersUpdated {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly files: readonly { id: bigint; reporters: readonly string[]; isOutdated: boolean }[],
+  ) {}
+}
+
 export class AgendaFileBlockEdited {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
@@ -78,7 +85,8 @@ export type AgendaEvent =
   | AgendaFilesUpdated
   | AgendaDeleted
   | AgendaFileBlockEdited
-  | AgendaFileBlockReset;
+  | AgendaFileBlockReset
+  | AgendaFilesReportersUpdated;
 
 export class EmptyAgenda extends Error {}
 
@@ -141,6 +149,17 @@ export class Agenda {
     }
 
     return diff;
+  }
+
+  updateFilesReporters(command: {
+    nominationFiles: readonly { id: string; reporters: readonly string[] }[];
+  }): void {
+    if (command.nominationFiles.length === 0) throw new EmptyAgenda();
+
+    const diff = assertIsDefined(this.snapshot).diffReporters(command);
+    if (diff.hasAny) {
+      this.#messages.push(new AgendaFilesReportersUpdated(this.id, diff.updated));
+    }
   }
 
   delete(): void {

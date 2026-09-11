@@ -4,7 +4,7 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
-import { OfficialReportInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { Clock } from 'src/modules/framework/clock';
@@ -345,7 +345,7 @@ export class OfficialReportsService {
     );
   }
 
-  async internalInvalidateOfficialReport(command: OfficialReportInvalidation): Promise<void> {
+  async internalInvalidateOfficialReport(command: DocInvalidation): Promise<void> {
     await this.internalInvalidateOfficialReportUseCase.handle(command);
   }
 

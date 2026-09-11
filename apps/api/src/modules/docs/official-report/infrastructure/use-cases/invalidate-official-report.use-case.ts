@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
@@ -19,7 +19,7 @@ export class InternalInvalidateOfficialReportUseCase {
   ) {}
 
   @Transactional()
-  async handle(invalidation: OfficialReportInvalidation): Promise<void> {
+  async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
         return this.invalidate(await this.mapSessionAffectationVersionPublished({ invalidation }));
@@ -53,7 +53,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }
 
   private async mapNominationFileOutcomeUpdated(query: {
-    invalidation: Extract<OfficialReportInvalidation, { type: 'NominationFileOutcomeUpdated' }>;
+    invalidation: Extract<DocInvalidation, { type: 'NominationFileOutcomeUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const { nominationFileId, comment, outcome } = query.invalidation.payload;
 
@@ -80,7 +80,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }
 
   private async mapAgendaNominationFilesUpdated(query: {
-    invalidation: Extract<OfficialReportInvalidation, { type: 'AgendaNominationFilesUpdated' }>;
+    invalidation: Extract<DocInvalidation, { type: 'AgendaNominationFilesUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const agendas = await this.db.tx.agenda.findMany({
       where: { id: query.invalidation.payload.agendaId, officialReportId: { not: null } },
@@ -131,7 +131,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }
 
   private async mapAgendaDateUpdated(query: {
-    invalidation: Extract<OfficialReportInvalidation, { type: 'AgendaDateUpdated' }>;
+    invalidation: Extract<DocInvalidation, { type: 'AgendaDateUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const agenda = await this.db.tx.agenda.findUnique({
       where: { id: query.invalidation.payload.agendaId },
@@ -154,7 +154,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }
 
   private async mapSessionDateUpdated(query: {
-    invalidation: Extract<OfficialReportInvalidation, { type: 'SessionDateUpdated' }>;
+    invalidation: Extract<DocInvalidation, { type: 'SessionDateUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.invalidation.payload.sessionId, officialReportId: { not: null } },
@@ -177,7 +177,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }
 
   private async mapSessionAffectationVersionPublished(query: {
-    invalidation: Extract<OfficialReportInvalidation, { type: 'SessionAffectationVersionPublished' }>;
+    invalidation: Extract<DocInvalidation, { type: 'SessionAffectationVersionPublished' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
     const { invalidation } = query;
 

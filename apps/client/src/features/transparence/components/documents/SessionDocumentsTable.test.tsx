@@ -19,6 +19,7 @@ const DOCS: SessionDocument[] = [
     type: 'agenda',
     name: 'Ordre du jour du 12 mars',
     officialReportId: null,
+    outdated: false,
   },
   {
     id: 'pv-1',
@@ -74,9 +75,15 @@ describe('SessionDocumentsTable', () => {
   it('should place an official report right after the agendas it covers', () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
-        { id: 'agenda-orphan', type: 'agenda', name: 'ODJ sans PV', officialReportId: null },
-        { id: 'agenda-parquet', type: 'agenda', name: 'ODJ parquet', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
+        { id: 'agenda-orphan', type: 'agenda', name: 'ODJ sans PV', officialReportId: null, outdated: false },
+        {
+          id: 'agenda-parquet',
+          type: 'agenda',
+          name: 'ODJ parquet',
+          officialReportId: 'pv-1',
+          outdated: false,
+        },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false },
       ]),
     );
@@ -92,9 +99,9 @@ describe('SessionDocumentsTable', () => {
   it('should group the documents until the reader asks for a sort by type', async () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false },
-        { id: 'agenda-orphan', type: 'agenda', name: 'ODJ sans PV', officialReportId: null },
+        { id: 'agenda-orphan', type: 'agenda', name: 'ODJ sans PV', officialReportId: null, outdated: false },
       ]),
     );
 
@@ -116,8 +123,14 @@ describe('SessionDocumentsTable', () => {
   it('should offer to see the associated documents from both sides', () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
-        { id: 'agenda-parquet', type: 'agenda', name: 'ODJ parquet', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
+        {
+          id: 'agenda-parquet',
+          type: 'agenda',
+          name: 'ODJ parquet',
+          officialReportId: 'pv-1',
+          outdated: false,
+        },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false },
       ]),
     );
@@ -129,8 +142,14 @@ describe('SessionDocumentsTable', () => {
   it('should highlight the associated document', async () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
-        { id: 'agenda-parquet', type: 'agenda', name: 'ODJ parquet', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
+        {
+          id: 'agenda-parquet',
+          type: 'agenda',
+          name: 'ODJ parquet',
+          officialReportId: 'pv-1',
+          outdated: false,
+        },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false },
       ]),
     );
@@ -145,8 +164,14 @@ describe('SessionDocumentsTable', () => {
   it('should name the highlighted documents to a screen reader', async () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
-        { id: 'agenda-parquet', type: 'agenda', name: 'ODJ parquet', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
+        {
+          id: 'agenda-parquet',
+          type: 'agenda',
+          name: 'ODJ parquet',
+          officialReportId: 'pv-1',
+          outdated: false,
+        },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false },
       ]),
     );
@@ -166,13 +191,29 @@ describe('SessionDocumentsTable', () => {
   it('should badge the official report rather than the agendas it covers', () => {
     render(
       table([
-        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1' },
-        { id: 'agenda-parquet', type: 'agenda', name: 'ODJ parquet', officialReportId: 'pv-1' },
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: 'pv-1', outdated: false },
+        {
+          id: 'agenda-parquet',
+          type: 'agenda',
+          name: 'ODJ parquet',
+          officialReportId: 'pv-1',
+          outdated: false,
+        },
         { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: true },
       ]),
     );
 
     expect(screen.getAllByText('À vérifier')).toHaveLength(1);
     expect(screen.queryByText('pv attendu')).not.toBeInTheDocument();
+  });
+
+  it('should badge the agenda when outdated', () => {
+    render(
+      table([
+        { id: 'agenda-siege', type: 'agenda', name: 'ODJ siège', officialReportId: null, outdated: true },
+      ]),
+    );
+
+    expect(screen.getAllByText('À vérifier')).toHaveLength(1);
   });
 });

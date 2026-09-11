@@ -29,6 +29,7 @@ const AGENDA: SessionDocument = {
   type: 'agenda',
   name: 'Ordre du jour du 12 mars 2028',
   officialReportId: null,
+  outdated: false,
 };
 
 const OFFICIAL_REPORT: SessionDocument = {

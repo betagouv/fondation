@@ -11,18 +11,21 @@ const AGENDA_SIEGE: SessionDocument = {
   type: 'agenda',
   name: 'ODJ siège',
   officialReportId: 'pv-1',
+  outdated: false,
 };
 const AGENDA_PARQUET: SessionDocument = {
   id: 'agenda-parquet',
   type: 'agenda',
   name: 'ODJ parquet',
   officialReportId: 'pv-1',
+  outdated: false,
 };
 const AGENDA_SANS_PV: SessionDocument = {
   id: 'agenda-orphan',
   type: 'agenda',
   name: 'ODJ sans PV',
   officialReportId: null,
+  outdated: false,
 };
 const PV: SessionDocument = { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false };
 
