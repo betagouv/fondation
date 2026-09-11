@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { OfficialReportInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -59,7 +59,14 @@ describe('Agenda', () => {
         date: props.date,
         sessionMeetingDate: props.sessionMeetingDate,
         chairmanId: props.chairman.id,
-        nominationFileIds: new Set([props.nominationFiles[0].id]),
+        nominationFiles: [
+          {
+            id: 1n,
+            isManuallyEdited: false,
+            nominationFileId: props.nominationFiles[0].id,
+            reporters: props.nominationFiles[0].reporters,
+          },
+        ],
         ...snapshot,
       }),
 
@@ -140,7 +147,7 @@ describe('Agenda', () => {
             currentDate: date.toJson(),
             previousDate: props.date.toJson(),
           },
-        } satisfies OfficialReportInvalidation,
+        } satisfies DocInvalidation,
       ],
     });
   });

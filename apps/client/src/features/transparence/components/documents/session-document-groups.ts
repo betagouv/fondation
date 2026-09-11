@@ -6,6 +6,7 @@ export const SESSION_DOCUMENT_GROUP_STATES = [
   'awaitingOfficialReport',
   'outdatedOfficialReport',
   'upToDate',
+  'outdatedAgenda',
 ] as const;
 
 export type SessionDocumentGroupState = (typeof SESSION_DOCUMENT_GROUP_STATES)[number];
@@ -36,8 +37,24 @@ export function sessionDocumentStates(
 ): Map<string, SessionDocumentGroupState> {
   return new Map(
     groups.flatMap((group) => {
-      const bearer = group.find((doc) => doc.type === 'officialReport') ?? group[0];
-      return bearer ? [[bearer.id, sessionDocumentGroupState(group)] as const] : [];
+      let groupStateByItemIdEntries: [string, SessionDocumentGroupState][] = [];
+
+      const agenda = group.find(({ type }) => type === 'agenda');
+      if (agenda?.outdated) {
+        groupStateByItemIdEntries.push([agenda.id, 'outdatedAgenda']);
+      }
+
+      const officialReport = group.find((doc) => doc.type === 'officialReport');
+      if (officialReport) {
+        groupStateByItemIdEntries.push([officialReport.id, sessionDocumentGroupState(group)]);
+      }
+
+      if (groupStateByItemIdEntries.length === 0) {
+        const [firstDoc] = group;
+        groupStateByItemIdEntries.push([firstDoc.id, sessionDocumentGroupState(group)]);
+      }
+
+      return groupStateByItemIdEntries;
     }),
   );
 }

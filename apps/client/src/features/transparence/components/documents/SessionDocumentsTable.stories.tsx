@@ -22,18 +22,21 @@ const DOCS: SessionDocument[] = [
     type: 'agenda',
     name: 'Ordre du jour du 12 mars 2028 - Mme MARTIN Camille',
     officialReportId: 'official-report-1',
+    outdated: false,
   },
   {
     id: 'agenda-2',
     type: 'agenda',
     name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
     officialReportId: null,
+    outdated: false,
   },
   {
     id: 'agenda-3',
     type: 'agenda',
     name: 'Ordre du jour du 8 janvier 2028 - M. BERNARD Lucas',
     officialReportId: 'official-report-2',
+    outdated: false,
   },
   {
     id: 'official-report-1',
@@ -118,12 +121,14 @@ export const AgendasSharingAnOfficialReport: Story = {
         type: 'agenda',
         name: 'Ordre du jour du 12 mars 2028 - Siège',
         officialReportId: 'official-report-1',
+        outdated: false,
       },
       {
         id: 'agenda-parquet',
         type: 'agenda',
         name: 'Ordre du jour du 12 mars 2028 - Parquet',
         officialReportId: 'official-report-1',
+        outdated: false,
       },
       {
         id: 'official-report-1',
@@ -136,6 +141,7 @@ export const AgendasSharingAnOfficialReport: Story = {
         type: 'agenda',
         name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
         officialReportId: null,
+        outdated: false,
       },
     ]),
   },
@@ -155,6 +161,7 @@ export const ManyRows: Story = {
               type: 'agenda' as const,
               name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
               officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
+              outdated: false,
             }
           : {
               id: `official-report-${index}`,

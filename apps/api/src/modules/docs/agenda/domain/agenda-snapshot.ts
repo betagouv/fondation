@@ -1,6 +1,13 @@
-import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DateOnly } from 'src/utils/date-only';
 import { Id } from 'src/utils/id';
+
+type AgendaSnapshotFile = {
+  id: bigint;
+  nominationFileId: string;
+  reporters: readonly string[];
+  isManuallyEdited: boolean;
+};
 
 export class AgendaSnapshot {
   private constructor(
@@ -8,7 +15,7 @@ export class AgendaSnapshot {
     private readonly date: DateOnly,
     private readonly sessionMeetingDate: DateOnly,
     private readonly chairmanId: string | null,
-    private readonly nominationFileIds: ReadonlySet<string>,
+    private readonly nominationFiles: Map<string, AgendaSnapshotFile>,
   ) {}
 
   static from(plain: {
@@ -16,14 +23,14 @@ export class AgendaSnapshot {
     agendaId: Id<'AgendaId'>;
     chairmanId: string | null;
     sessionMeetingDate: DateOnly;
-    nominationFileIds: ReadonlySet<string>;
+    nominationFiles: readonly AgendaSnapshotFile[];
   }): AgendaSnapshot {
     return new AgendaSnapshot(
       plain.agendaId,
       plain.date,
       plain.sessionMeetingDate,
       plain.chairmanId,
-      plain.nominationFileIds,
+      new Map(plain.nominationFiles.map((f) => [f.nominationFileId, f])),
     );
   }
 
@@ -39,7 +46,7 @@ export class AgendaSnapshot {
     const hasAny = dateChanged || sessionMeetingDateChanged || chairmanChanged;
     if (!hasAny) return { hasAny: false };
 
-    const officialReportInvalidations: OfficialReportInvalidation[] = dateChanged
+    const officialReportInvalidations: DocInvalidation[] = dateChanged
       ? [
           {
             type: 'AgendaDateUpdated',
@@ -56,17 +63,38 @@ export class AgendaSnapshot {
   }
 
   diffFiles(next: { fileIds: ReadonlySet<string> }): AgendaFilesDiff {
-    const added = [...next.fileIds.difference(this.nominationFileIds)];
-    const removed = [...this.nominationFileIds.difference(next.fileIds)];
+    const nominationFileIds = new Set(this.nominationFiles.keys());
+
+    const added = [...next.fileIds.difference(nominationFileIds)];
+    const removed = [...nominationFileIds.difference(next.fileIds)];
     const hasAny = added.length > 0 || removed.length > 0;
 
     if (!hasAny) return { hasAny: false };
 
-    const officialReportInvalidations: OfficialReportInvalidation[] = [
+    const officialReportInvalidations: DocInvalidation[] = [
       { type: 'AgendaNominationFilesUpdated', payload: { agendaId: this.agendaId } },
     ];
 
     return { hasAny, added, removed, officialReportInvalidations };
+  }
+
+  diffReporters(next: {
+    nominationFiles: readonly { id: string; reporters: readonly string[] }[];
+  }): AgendaFilesReportersDiff {
+    const updatedReporters = next.nominationFiles.flatMap(({ id, reporters }) => {
+      const knownFile = this.nominationFiles.get(id);
+      if (!knownFile) return [];
+
+      const reportersChanged =
+        reporters.length !== knownFile.reporters.length ||
+        reporters.some((r) => !knownFile.reporters.includes(r));
+
+      if (!reportersChanged) return [];
+
+      return [{ id: knownFile.id, reporters, isOutdated: knownFile.isManuallyEdited }];
+    });
+
+    return updatedReporters.length > 0 ? { hasAny: true, updated: updatedReporters } : { hasAny: false };
   }
 }
 
@@ -75,7 +103,7 @@ export type AgendaMetadataDiff =
   | {
       hasAny: true;
       metadata: { chairmanId: string; date: DateOnly; sessionMeetingDate: DateOnly };
-      officialReportInvalidations: readonly OfficialReportInvalidation[];
+      officialReportInvalidations: readonly DocInvalidation[];
     };
 
 export type AgendaFilesDiff =
@@ -84,5 +112,12 @@ export type AgendaFilesDiff =
       hasAny: true;
       added: readonly string[];
       removed: readonly string[];
-      officialReportInvalidations: readonly OfficialReportInvalidation[];
+      officialReportInvalidations: readonly DocInvalidation[];
+    };
+
+export type AgendaFilesReportersDiff =
+  | { hasAny: false }
+  | {
+      hasAny: true;
+      updated: readonly { id: bigint; reporters: readonly string[]; isOutdated: boolean }[];
     };

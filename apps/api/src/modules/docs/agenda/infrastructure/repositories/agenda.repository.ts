@@ -13,6 +13,7 @@ import {
   AgendaDeleted,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
+  AgendaFilesReportersUpdated,
   AgendaFilesUpdated,
   AgendaMetadataUpdated,
 } from '../../domain/agenda';
@@ -50,6 +51,8 @@ export class AgendaRepository {
         await this.persistAgendaFileBlockEdited(message);
       } else if (message instanceof AgendaFileBlockReset) {
         await this.persistAgendaFileBlockReset(message);
+      } else if (message instanceof AgendaFilesReportersUpdated) {
+        await this.persistAgendaFilesReportersUpdated(message);
       } else {
         assertNever(message);
       }
@@ -68,7 +71,7 @@ export class AgendaRepository {
         chairmanId: true,
         nominationFiles: {
           where: { nominationFileId: { not: null } },
-          select: { nominationFileId: true },
+          select: { id: true, nominationFileId: true, reporters: true, htmlEdited: true },
         },
       },
       where: { id: query.agendaId },
@@ -81,8 +84,17 @@ export class AgendaRepository {
       chairmanId: foundAgenda.chairmanId,
       date: DateOnly.fromUtcDate(foundAgenda.date),
       sessionMeetingDate: DateOnly.fromUtcDate(foundAgenda.sessionMeetingDate),
-      nominationFileIds: new Set(
-        foundAgenda.nominationFiles.flatMap((f) => (f.nominationFileId ? [f.nominationFileId] : [])),
+      nominationFiles: foundAgenda.nominationFiles.flatMap((f) =>
+        f.nominationFileId
+          ? [
+              {
+                id: f.id,
+                nominationFileId: f.nominationFileId,
+                reporters: f.reporters,
+                isManuallyEdited: isDefined(f.htmlEdited),
+              },
+            ]
+          : [],
       ),
     });
 
@@ -248,6 +260,17 @@ export class AgendaRepository {
       where: { id: message.fileId, agendaId: message.agendaId },
       data: { htmlEdited: null, htmlOutdated: false },
     });
+
+    await this.recomputeAgendaState(message.agendaId);
+  }
+
+  private async persistAgendaFilesReportersUpdated(message: AgendaFilesReportersUpdated): Promise<void> {
+    for (const nf of message.files) {
+      await this.db.tx.agendaNominationFile.update({
+        where: { id: nf.id },
+        data: { reporters: [...nf.reporters], htmlOutdated: nf.isOutdated },
+      });
+    }
 
     await this.recomputeAgendaState(message.agendaId);
   }

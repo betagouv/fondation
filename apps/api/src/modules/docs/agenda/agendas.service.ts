@@ -5,11 +5,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import {
-  OfficialReportInvalidation,
-  OfficialReportsInvalidatedIntegrationEvent,
+  DocInvalidatedIntegrationEvent,
+  DocInvalidation,
 } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
-import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 
@@ -34,6 +33,7 @@ import {
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
+import { InvalidateAgendasUseCase } from './infrastructure/use-cases/invalidate-agenda.use-case';
 
 @Injectable()
 export class AgendasService {
@@ -41,13 +41,13 @@ export class AgendasService {
     private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
-    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
     private readonly detailsAgendaDocumentBlocksQuery: DetailsAgendaDocumentBlocksQuery,
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly invalidateAgendaUseCase: InvalidateAgendasUseCase,
     private readonly db: Db,
 
     private readonly events: EventEmitter2,
@@ -144,11 +144,11 @@ export class AgendasService {
     await this.emitInvalidations(invalidations);
   }
 
-  private async emitInvalidations(invalidations: readonly OfficialReportInvalidation[]): Promise<void> {
+  private async emitInvalidations(invalidations: readonly DocInvalidation[]): Promise<void> {
     for (const invalidation of invalidations) {
       await this.events.emitAsync(
-        OfficialReportsInvalidatedIntegrationEvent.name,
-        new OfficialReportsInvalidatedIntegrationEvent(invalidation),
+        DocInvalidatedIntegrationEvent.name,
+        new DocInvalidatedIntegrationEvent(invalidation),
       );
     }
   }
@@ -217,5 +217,9 @@ export class AgendasService {
 
   detailsAgendaDocumentBlocks(query: { agendaId: string }): Promise<DetailedAgendaDocumentBlocksDto> {
     return this.detailsAgendaDocumentBlocksQuery.handle(query);
+  }
+
+  internalInvalidateAgendas(invalidation: DocInvalidation): Promise<void> {
+    return this.invalidateAgendaUseCase.handle(invalidation);
   }
 }

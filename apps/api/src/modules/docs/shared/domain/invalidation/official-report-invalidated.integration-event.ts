@@ -1,7 +1,7 @@
 import { NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { DateOnlyJson } from 'src/utils/date-only';
 
-export type OfficialReportInvalidation =
+export type DocInvalidation =
   | {
       type: 'SessionDateUpdated';
       payload: { sessionId: string; currentDate: DateOnlyJson; previousDate: DateOnlyJson | null };
@@ -27,8 +27,8 @@ export type OfficialReportInvalidation =
       payload: { sessionId: string; versionId: string };
     };
 
-export class OfficialReportsInvalidatedIntegrationEvent {
-  static readonly name = Symbol.for('official_reports.invalidated');
+export class DocInvalidatedIntegrationEvent {
+  static readonly name = Symbol.for('docs.invalidated');
 
-  constructor(readonly cause: OfficialReportInvalidation) {}
+  constructor(readonly cause: DocInvalidation) {}
 }

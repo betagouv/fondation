@@ -52,7 +52,7 @@ function DocumentState(props: { state: SessionDocumentGroupState | undefined }) 
     );
   }
 
-  if (props.state === 'outdatedOfficialReport') {
+  if (props.state === 'outdatedOfficialReport' || props.state === 'outdatedAgenda') {
     return (
       <Badge as="span" className="rounded-full" severity="warning" small>
         <FormattedMessage defaultMessage="À vérifier" />

@@ -14,7 +14,7 @@ import {
   deleteReportsAfterAffectationPublicationRawQuery,
   insertLodamNominationFilesRawQuery,
 } from 'src/generated/prisma/sql';
-import { OfficialReportInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -143,8 +143,8 @@ export class SessionTransparenceRepository {
   }
 
   @Transactional(Propagation.Mandatory)
-  async persist(session: SessionTransparence): Promise<OfficialReportInvalidation[]> {
-    const invalidations: OfficialReportInvalidation[] = [];
+  async persist(session: SessionTransparence): Promise<DocInvalidation[]> {
+    const invalidations: DocInvalidation[] = [];
 
     for (const message of session.messages) {
       if (message instanceof SessionTransparenceFileReportersAffected) {
@@ -254,7 +254,7 @@ export class SessionTransparenceRepository {
 
   private async persistSessionTransparenceAffectationVersionPublished(
     message: SessionTransparenceAffectationVersionPublished,
-  ): Promise<OfficialReportInvalidation[]> {
+  ): Promise<DocInvalidation[]> {
     const session = await this.db.tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
       select: {
@@ -351,7 +351,7 @@ export class SessionTransparenceRepository {
       {
         type: 'SessionAffectationVersionPublished',
         payload: { sessionId: message.sessionId, versionId },
-      } satisfies OfficialReportInvalidation,
+      } satisfies DocInvalidation,
     ];
   }
 
@@ -529,7 +529,7 @@ export class SessionTransparenceRepository {
   }
 
   private async persistSessionTransparenceUpdated(message: SessionTransparenceUpdated) {
-    const invalidations: OfficialReportInvalidation[] = [];
+    const invalidations: DocInvalidation[] = [];
     const old = await this.db.tx.session.findUnique({
       where: { id: message.sessionId },
       select: { date: true },
@@ -567,7 +567,7 @@ export class SessionTransparenceRepository {
 
   private async persistSessionTransparenceOutcomeDefined(
     message: SessionTransparenceOutcomeDefined,
-  ): Promise<OfficialReportInvalidation[]> {
+  ): Promise<DocInvalidation[]> {
     await this.db.tx.dossierDeNomination.update({
       where: { id: message.nominationFileId },
       data: { outcome: message.outcome, outcomeComment: message.comment },

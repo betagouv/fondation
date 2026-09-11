@@ -6,6 +6,7 @@ import { SimpleAuthModule } from 'src/modules/simple-auth';
 
 import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';
+import { OnAgendaInvalidatedEventHandler } from './agenda/infrastructure/events/on-agenda-invalidated.event-handler';
 import { AgendaRenderContextFinder } from './agenda/infrastructure/finders/agenda-render-context.finder';
 import { DetailsAgendaDocumentBlocksQuery } from './agenda/infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailsAgendaFilesQuery } from './agenda/infrastructure/queries/details-agenda-files.query';
@@ -15,6 +16,7 @@ import { FindAgendaDocumentPdfQuery } from './agenda/infrastructure/queries/find
 import { FindAgendaDocumentQuery } from './agenda/infrastructure/queries/find-agenda-document.query';
 import { AgendaRepository } from './agenda/infrastructure/repositories/agenda.repository';
 import { AgendaRenderer } from './agenda/infrastructure/services/renderers/agenda.renderer';
+import { InvalidateAgendasUseCase } from './agenda/infrastructure/use-cases/invalidate-agenda.use-case';
 import { DocsService } from './docs.service';
 import { OnOfficialReportInvalidatedEventHandler } from './official-report/infrastructure/events/on-official-report-invalidated.event-handler';
 import { OfficialReportRenderContextFinder } from './official-report/infrastructure/finders/official-report-render-context.finder';
@@ -77,6 +79,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
     InternalInvalidateOfficialReportUseCase,
+    InvalidateAgendasUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,
@@ -87,6 +90,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     OfficialReportRenderer,
     OfficialReportRepository,
     OfficialReportsService,
+    OnAgendaInvalidatedEventHandler,
     OnOfficialReportInvalidatedEventHandler,
     PresentationPlanRenderer,
     PresentationPlansService,
