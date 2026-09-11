@@ -1,3 +1,5 @@
+import './styles/index.css';
+import './instrument.ts';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import * as Sentry from '@sentry/react';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -7,16 +9,14 @@ import { createRoot } from 'react-dom/client';
 import { IntlProvider } from 'react-intl';
 import { Link, RouterProvider } from 'react-router';
 
-import './instrument.ts';
-import './styles/index.css';
-
 import { queryClient } from '@queries/query-client.ts';
 
 import { frFormat } from './i18n/formats.ts';
 import { router } from './router.tsx';
-import { MatomoProvider } from './utils/matomo.tsx';
+import { matomo } from './utils/matomo.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
+matomo?.start();
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: Sentry.reactErrorHandler(),
@@ -27,9 +27,7 @@ createRoot(document.getElementById('root')!, {
     <QueryClientProvider client={queryClient}>
       <NuqsAdapter>
         <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
-          <MatomoProvider>
-            <RouterProvider router={router}></RouterProvider>
-          </MatomoProvider>
+          <RouterProvider router={router} />
         </IntlProvider>
       </NuqsAdapter>
     </QueryClientProvider>

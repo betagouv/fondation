@@ -12,8 +12,6 @@ on:
     secrets:
       VITE_SENTRY_DSN:
         required: false
-      VITE_MATOMO_SITE_ID:
-        required: false
       SENTRY_CLIENT_AUTH_TOKEN:
         required: false
 
@@ -68,7 +66,7 @@ jobs:
           VITE_TAGGED_VERSION: ${{ inputs.tag }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_CLIENT_AUTH_TOKEN }}
           VITE_MATOMO_BASE_URL: ${{ vars.VITE_MATOMO_BASE_URL }}
-          VITE_MATOMO_SITE_ID: ${{ secrets.VITE_MATOMO_SITE_ID }}
+          VITE_MATOMO_SITE_ID: ${{ vars.VITE_MATOMO_SITE_ID }}
 
       - name: Create Archive
         run: |

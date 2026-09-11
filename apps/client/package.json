@@ -31,7 +31,6 @@
   "dependencies": {
     "@base-ui/react": "1.7.0",
     "@codegouvfr/react-dsfr": "1.33.0",
-    "@datapunt/matomo-tracker-react": "0.5.1",
     "@hookform/resolvers": "5.9.1",
     "@sentry/react": "10.71.0",
     "@tanstack/react-query": "5.102.2",
