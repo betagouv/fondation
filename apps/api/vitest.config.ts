@@ -13,7 +13,13 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     coverage: {
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.{spec,e2e-spec}.ts'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/*.{spec,e2e-spec}.ts',
+        'src/generated/**',
+        'src/main.e2e.ts',
+        'src/main.ts',
+      ],
       reportsDirectory: './coverage',
     },
   },

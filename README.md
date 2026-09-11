@@ -101,7 +101,7 @@ pnpm --filter api exec dotenvx run -f .env.e2e -f .env -- prisma migrate deploy
 4. Générer le code
 
 ```bash
-pnpm --filter api prisma generate --sql   # client Prisma + requêtes TypedSQL
+pnpm --filter api prisma:generate   # client Prisma + requêtes TypedSQL
 ```
 
 > [!IMPORTANT]

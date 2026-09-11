@@ -6,6 +6,7 @@ import { faker } from '@faker-js/faker';
 import { Client } from '../generated/api/client/index.ts';
 import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.ts';
 import { makeStepsFixtures, TestSteps } from '../steps.ts';
+import { registrationToken } from '../utils/e2e-tokens.ts';
 
 export type RoleEnum = NonNullable<RegisterUserDto['role']>;
 
@@ -41,8 +42,7 @@ export async function registerUser<Role extends RoleEnum>(options: {
     throwOnError: true,
     headers: {
       'Content-Type': 'application/json',
-      // see apps/api/.env.e2e#E2E_API_TOKEN
-      Authorization: `Bearer FthDG8SXXzWD6eOzybymzXh1bHqHepZG`,
+      Authorization: `Bearer ${registrationToken}`,
     },
   });
   assert.ok(userResponse.status === 201, `Registering ${user.email} failed`);

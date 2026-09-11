@@ -7,7 +7,10 @@ import postgres from 'postgres';
 import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
+import { createClient, createConfig } from '../generated/api/client/index.ts';
+import { ingest } from '../generated/api/sdk.ts';
 import type { TestStepsAdmin } from '../steps.ts';
+import { machineToken } from '../utils/e2e-tokens.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
 
@@ -124,6 +127,17 @@ test.describe('lolfi', () => {
 
     const nextFiles = await agent.sessions.listNominationFiles({ path: { sessionId: next!.id } });
     expect(nextFiles.data!.totalCount).toBe(1);
+  });
+
+  test('should accept an archive sent with a machine token', async ({ admin, baseUrl, expect }) => {
+    const jobId = await ingestArchiveAsMachine(baseUrl, {
+      id: crypto.randomInt(1_000, 900_000),
+      name: crypto.randomUUID(),
+      createdAt: publishedToday(),
+      candidates: [trevoux()],
+    });
+
+    expect(await waitForEndedJob(admin, jobId)).toBe('SUCCEEDED');
   });
 
   test('should accept the next archive after a failed ingestion', async ({ admin, expect }) => {
@@ -391,6 +405,18 @@ test.describe('lolfi', () => {
     },
   );
 });
+
+async function ingestArchiveAsMachine(baseUrl: string, ...sessions: LolfiData['sessions']): Promise<number> {
+  const archive = await generateLolfiArchive({ sessions });
+  const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, {
+    type: 'application/zip',
+  });
+  const client = createClient(createConfig({ baseUrl, headers: { Authorization: `Bearer ${machineToken}` } }));
+
+  const { data } = await ingest.ingestLolfiArchive({ client, body: { file }, throwOnError: true });
+
+  return data!.id;
+}
 
 async function ingestUntilEnded(admin: TestStepsAdmin, session: LolfiData['sessions'][number]): Promise<number> {
   const jobId = await ingestArchive(admin, session);

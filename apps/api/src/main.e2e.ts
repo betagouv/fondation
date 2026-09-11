@@ -24,6 +24,9 @@ async function bootstrap() {
   const server = AppModule.configure(app.createNestApplication());
   await server.listen(port);
 
+  // A bare SIGTERM terminates without writing NODE_V8_COVERAGE: exit cleanly instead
+  process.on('SIGTERM', () => process.exit(0));
+
   const logger = new Logger(AppModule.name);
   logger.log(`FONDATION running on ${await server.getUrl()}`);
 }
