@@ -26,6 +26,13 @@ export const router = sentryCreateBrowserRouter([
         element: <LoginPage />,
       },
       {
+        path: ROUTE_PATHS.ACCESSIBILITY,
+        lazy: () =>
+          import('@/pages/accessibility/AccessibilityPage').then(({ AccessibilityPage }) => ({
+            Component: AccessibilityPage,
+          })),
+      },
+      {
         loader: roleGuard(AUTHORIZED_ROLES.ALL),
         children: [
           {

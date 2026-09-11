@@ -2,6 +2,7 @@ import { generatePath, redirect } from 'react-router';
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
+  ACCESSIBILITY: '/accessibilite',
   HELP: '/aide',
   USER_MANUAL: '/aide/manuel',
   TRANSPARENCES: {
