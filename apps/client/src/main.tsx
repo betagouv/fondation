@@ -14,8 +14,10 @@ import { authKeys } from '@queries/auth.queries.ts';
 import { frFormat } from './i18n/formats.ts';
 import { AppRouter } from './router/AppRouter.tsx';
 import { HttpException } from './utils/http-exception.ts';
+import { matomo } from './utils/matomo.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
+matomo?.start();
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: clearQueryClient }),

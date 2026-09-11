@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_TAGGED_VERSION: string | undefined;
   readonly VITE_JDMA_URL_AGENT: string | undefined;
   readonly VITE_JDMA_URL_MEMBER: string | undefined;
+  readonly VITE_MATOMO_BASE_URL: string | undefined;
+  readonly VITE_MATOMO_SITE_ID: string | undefined;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }
