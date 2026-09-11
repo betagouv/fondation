@@ -55,6 +55,7 @@ export function AppFooter() {
     <>
       <Footer
         accessibility="non compliant"
+        accessibilityLinkProps={{ to: ROUTE_PATHS.ACCESSIBILITY }}
         contentDescription={isLogin ? contentDescription : undefined}
         bottomItems={[
           <span key="anonymousFooter" className={cx('fr-footer__bottom-link')}>

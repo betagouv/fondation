@@ -24,6 +24,13 @@ const router = sentryCreateBrowserRouter([
         element: <LoginPage />,
       },
       {
+        path: ROUTE_PATHS.ACCESSIBILITY,
+        lazy: () =>
+          import('@/pages/accessibility/AccessibilityPage').then(({ AccessibilityPage }) => ({
+            Component: AccessibilityPage,
+          })),
+      },
+      {
         path: ROUTE_PATHS.HELP,
         lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
       },
