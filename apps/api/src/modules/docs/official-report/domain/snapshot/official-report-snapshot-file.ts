@@ -1,7 +1,4 @@
-import {
-  type DocNominationFileOutcomeEnum,
-  isFinalDocNominationFileOutcomeEnum,
-} from '../../../shared/domain/doc-nomination-file-outcome';
+import { type DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import type { OfficialReportSnapshotDiff } from '../official-report-types';
 
 export type PlainOfficialReportSnapshotFile = {
@@ -38,6 +35,7 @@ export class OfficialReportSnapshotFile {
     nominationFileId: string;
     reporters?: readonly string[];
     outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
+    previousOutcome?: { value: DocNominationFileOutcomeEnum; comment: string | null } | null;
   }): OfficialReportSnapshotDiff['files'][number] {
     const reportersChanged = this.reportersChanged(next);
     const outcomeChanged = this.outcomeChanged(next);
@@ -66,10 +64,6 @@ export class OfficialReportSnapshotFile {
     outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
   }): boolean {
     if (!next.outcome) return false;
-
-    if (this.outcome.value === 'SUSPENDED' && isFinalDocNominationFileOutcomeEnum(next.outcome.value)) {
-      return false;
-    }
 
     const outcomeChanged =
       this.outcome.value !== next.outcome.value ||

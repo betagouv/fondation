@@ -45,12 +45,6 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
   }
 }
 
-export function isFinalDocNominationFileOutcomeEnum(
-  value: string,
-): value is FinalDocNominationFileOutcomeEnum {
-  return value in FinalDocNominationFileOutcomeEnum;
-}
-
 export function docNominationFileOutcomeLabel(props: {
   outcome: DocNominationFileOutcomeEnum;
   formation: FormationEnum;
