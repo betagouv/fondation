@@ -6,7 +6,7 @@
   "scripts": {
     "openapi:generate": "openapi-ts",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "rm -rf ../api/coverage/e2e && COVERAGE=1 vitest run && pnpm --filter api exec c8 report",
     "types:check": "tsc -p ."
   },
   "devDependencies": {

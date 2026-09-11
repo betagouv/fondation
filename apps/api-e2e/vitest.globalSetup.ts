@@ -2,6 +2,7 @@
 import { spawn } from 'node:child_process';
 import * as http from 'node:http';
 import { type AddressInfo } from 'node:net';
+import { fileURLToPath } from 'node:url';
 
 import postgres from 'postgres';
 import { type TestProject } from 'vitest/node';
@@ -28,6 +29,7 @@ function makeOnData(source: 'stdout' | 'stderr', resolve: (url: string) => void)
 }
 
 const databaseUrl = process.env.DATABASE_URL ?? 'postgres://fondation:secret@localhost:5435/fondation_test';
+const coverageDir = fileURLToPath(new URL('../api/coverage/e2e/tmp/', import.meta.url));
 
 async function truncate() {
   const sql = postgres(databaseUrl, { onnotice: () => {} });
@@ -184,7 +186,7 @@ async function startAlertCollector(
 async function startServer(
   provide: TestProject['provide'],
   mattermostUrl: string,
-): Promise<[apiUrl: string, teardown: () => void]> {
+): Promise<[apiUrl: string, teardown: () => void | Promise<void>]> {
   if (process.env.API_URL) {
     provide('apiUrl', process.env.API_URL);
     return [
@@ -196,25 +198,56 @@ async function startServer(
   }
 
   const server = spawn('pnpm', ['--filter', 'api', 'start:e2e'], {
-    env: { ...process.env, PORT: '0', MATTERMOST_WEBHOOK: mattermostUrl },
+    env: {
+      ...process.env,
+      PORT: '0',
+      MATTERMOST_WEBHOOK: mattermostUrl,
+      ...(process.env.COVERAGE ? { NODE_V8_COVERAGE: coverageDir } : {}),
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: true,
   });
 
-  const kill = () => {
-    server.removeAllListeners();
+  const signalGroup = (signal: NodeJS.Signals) => {
     if (!server.pid) return;
     try {
-      process.kill(-server.pid, 'SIGKILL'); // whole group
+      process.kill(-server.pid, signal); // whole group
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code !== 'ESRCH') throw err;
       // group already gone — fall back to the direct child if it's still around
       try {
-        server.kill('SIGKILL');
+        server.kill(signal);
       } catch {
         /* already dead */
       }
     }
+  };
+
+  const kill = () => {
+    server.removeAllListeners();
+    signalGroup('SIGKILL');
+  };
+
+  const groupIsGone = () => {
+    try {
+      process.kill(-server.pid!, 0);
+      return false;
+    } catch (err) {
+      return (err as NodeJS.ErrnoException).code === 'ESRCH';
+    }
+  };
+
+  // SIGTERM lets the api write its coverage before leaving. The pnpm wrapper exits first,
+  // so waiting on the direct child would SIGKILL the api mid-flush: wait for the whole group
+  const stop = async () => {
+    if (!server.pid) return;
+
+    signalGroup('SIGTERM');
+    const deadline = Date.now() + 10_000;
+    while (!groupIsGone() && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    kill();
   };
 
   const apiUrl = await new Promise<string>((resolve, reject) => {
@@ -242,7 +275,7 @@ async function startServer(
   });
 
   provide('apiUrl', apiUrl);
-  return [apiUrl, kill];
+  return [apiUrl, stop];
 }
 
 export default async function setup({ provide }: TestProject) {
@@ -252,8 +285,8 @@ export default async function setup({ provide }: TestProject) {
   const [apiUrl, teardown] = await startServer(provide, mattermostUrl);
   await seed(apiUrl);
 
-  return () => {
-    teardown();
+  return async () => {
+    await teardown();
     stopCollector();
   };
 }

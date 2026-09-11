@@ -12,6 +12,7 @@ catalog:
   '@hey-api/openapi-ts': 0.99.0
   'vitest': 4.1.11
   'vitest-mock-extended': 5.1.1
+  '@vitest/coverage-v8': 4.1.11
 
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days

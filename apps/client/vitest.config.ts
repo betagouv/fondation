@@ -17,6 +17,19 @@ export default mergeConfig(
       setupFiles: ['./vitest.setup.ts'],
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
       css: false,
+      coverage: {
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          'src/**/*.d.ts',
+          'src/**/*.stories.tsx',
+          'src/**/*.{test,spec}.{ts,tsx}',
+          'src/generated/**',
+          'src/instrument.ts',
+          'src/main.tsx',
+          'src/test-utils/**',
+        ],
+        reportsDirectory: './coverage',
+      },
     },
   }),
 );

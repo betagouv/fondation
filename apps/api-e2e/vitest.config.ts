@@ -9,6 +9,5 @@ export default defineConfig({
     globalSetup: ['./vitest.globalSetup.ts'],
     setupFiles: [],
     include: ['src/specs/*.e2e-spec.ts'],
-    coverage: { reportsDirectory: './coverage' },
   },
 });
