@@ -1031,6 +1031,7 @@ export type FoundSessionDocsDto = {
         id: string;
         name: string;
         officialReportId: string | null;
+        outdated: boolean;
     } | {
         type: 'officialReport';
         id: string;
