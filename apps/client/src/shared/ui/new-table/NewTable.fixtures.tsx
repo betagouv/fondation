@@ -1,5 +1,6 @@
 import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
+import { IntlProvider } from 'react-intl';
 
 import { useSelectionColumn } from './hooks/useSelectionColumn';
 import { NewTable } from './NewTable';
@@ -45,7 +46,7 @@ const ROW_TINTS = {
   yellow: 'hover:bg-(--background-contrast-yellow-moutarde)',
 } as const;
 
-export function DemoTable(props: {
+type DemoTableProps = {
   enableSorting?: boolean;
   height?: number;
   lockedRowIds?: readonly string[];
@@ -53,7 +54,17 @@ export function DemoTable(props: {
   rowTint?: keyof typeof ROW_TINTS;
   unvirtualized?: boolean;
   withSelection?: boolean;
-}) {
+};
+
+export function DemoTable(props: DemoTableProps) {
+  return (
+    <IntlProvider defaultLocale="fr" locale="fr">
+      <DemoTableContent {...props} />
+    </IntlProvider>
+  );
+}
+
+function DemoTableContent(props: DemoTableProps) {
   const data = useMemo(() => makePeople(props.rowCount ?? 100), [props.rowCount]);
   const selectionColumn = useSelectionColumn<Person>({
     lockedLabel: (row) => (row.index % 2 === 0 ? 'déjà traitée' : 'hors périmètre'),

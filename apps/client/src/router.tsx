@@ -79,9 +79,25 @@ export const router = sentryCreateBrowserRouter([
               {
                 path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
                 lazy: () =>
-                  import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
-                    Component: ReportListPage,
+                  import('@/pages/reports/MemberSessionLayout').then(({ MemberSessionLayout }) => ({
+                    Component: MemberSessionLayout,
                   })),
+                children: [
+                  {
+                    index: true,
+                    lazy: () =>
+                      import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
+                        Component: ReportListPage,
+                      })),
+                  },
+                  {
+                    path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_ATTACHMENTS,
+                    lazy: () =>
+                      import('@/pages/reports/MemberAttachmentsTab').then(({ MemberAttachmentsTab }) => ({
+                        Component: MemberAttachmentsTab,
+                      })),
+                  },
+                ],
               },
             ],
           },

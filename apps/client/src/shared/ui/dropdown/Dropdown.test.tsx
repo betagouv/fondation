@@ -206,6 +206,54 @@ describe('Dropdown', () => {
     });
   });
 
+  describe('disabled', () => {
+    it('collapses an open list and refuses any further selection', async () => {
+      const onSelect = vi.fn();
+      const user = userEvent.setup();
+      const { rerender } = renderDropdown(
+        <Dropdown label="Couleur" multiple onSelect={onSelect} options={OPTIONS} selected={['red']} />,
+      );
+
+      await user.click(openTrigger());
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      rerender(
+        <IntlProvider defaultLocale="fr" locale="fr">
+          <Dropdown
+            disabled
+            label="Couleur"
+            multiple
+            onSelect={onSelect}
+            options={OPTIONS}
+            selected={['red']}
+          />
+        </IntlProvider>,
+      );
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(openTrigger()).toBeDisabled();
+    });
+
+    it('refuses to drop a value through its remove button', async () => {
+      const onSelect = vi.fn();
+      const user = userEvent.setup();
+      renderDropdown(
+        <Dropdown
+          disabled
+          label="Couleur"
+          multiple
+          onSelect={onSelect}
+          options={OPTIONS}
+          selected={['red', 'blue']}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Retirer Rouge' }));
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+  });
+
   describe('dismissal', () => {
     it('closes on Escape and returns focus to the trigger', async () => {
       const user = userEvent.setup();

@@ -11,6 +11,10 @@ export class MemberReports {
     );
   }
 
+  get assignedFilesCount(): number {
+    return this.reportsByNominationFileId.size;
+  }
+
   reportFor(nominationFileId: string): MemberReport | undefined {
     return this.reportsByNominationFileId.get(nominationFileId);
   }

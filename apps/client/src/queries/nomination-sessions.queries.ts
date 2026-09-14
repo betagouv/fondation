@@ -560,9 +560,41 @@ export function useDefineNominationFileOutcomeMutation(input: {
             sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
             agendaKeys.findSessionDocs(input.sessionId),
+            agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
           ),
         }),
       ]),
+  });
+}
+
+export function useDefineNominationFilesOutcomeMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      items: readonly { comment: string | null; nominationFileId: string }[];
+      outcome: NominationFileOutcomeEnum | null;
+    }): Promise<void> => {
+      await $api.sessions.defineNominationFilesOutcome({
+        path: { sessionId: input.sessionId },
+        body: { items: [...mutation.items], outcome: mutation.outcome },
+      });
+    },
+
+    onSuccess: (_, { items }) =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesAny(
+          sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+          sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
+          sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
+          agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
+          agendaKeys.findSessionDocs(input.sessionId),
+          agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
+          ...items.map(({ nominationFileId }) =>
+            sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId: input.sessionId }),
+          ),
+        ),
+      }),
   });
 }
 

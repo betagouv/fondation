@@ -79,7 +79,7 @@ export function Tooltip(props: { children: ReactNode; className?: string; label:
       </span>
 
       <div
-        className="fixed m-0 max-w-[min(24rem,calc((100vw-2rem)*2/3))] overflow-visible border border-(--border-default-grey) bg-(--background-overlap-grey) p-2 text-left text-xs leading-5 text-wrap text-(--text-default-grey) shadow-[var(--overlap-shadow)]"
+        className="fixed m-0 max-w-[min(24rem,calc((100vw-2rem)*2/3))] overflow-visible border border-(--border-default-grey) bg-(--background-overlap-grey) p-2 text-left text-xs leading-5 font-normal text-wrap text-(--text-default-grey) shadow-[var(--overlap-shadow)]"
         id={bubbleId}
         popover="manual"
         ref={bubbleRef}

@@ -2,8 +2,9 @@ import { test } from '../fixtures';
 
 test.describe('Générer un ordre du jour', () => {
   let sessionName: string;
+  let chairmanId: string;
 
-  test.beforeEach(async ({ app, registerUser }) => {
+  test.beforeEach(async ({ app, http, registerUser }) => {
     test.setTimeout(10_000);
 
     if (sessionName) {
@@ -110,12 +111,8 @@ test.describe('Générer un ordre du jour', () => {
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
       await page.defineOutcome({ name }, 'SURSIS');
     }
-  });
 
-  test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
-    test.setTimeout(30_000);
-
-    // Et un utilisateur Michel Foucault membre du parquet
+    // Et un utilisateur Michel Foucault, président du parquet
     const chairman = await http.auth.registerUser({
       defaultUser: {
         firstName: 'michel ' + crypto.randomUUID(),
@@ -125,11 +122,14 @@ test.describe('Générer un ordre du jour', () => {
       },
       role: 'MEMBRE_DU_PARQUET',
     });
-
-    // Avec le titre "Président du Parquet"
     await http.http.put(`/api/members/v1/${chairman.id}/title`, {
       data: { title: 'PRESIDENT_PARQUET' },
     });
+    chairmanId = chairman.id;
+  });
+
+  test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
+    test.setTimeout(30_000);
 
     const firstSecretary = await http.auth.registerUser({
       role: 'ADJOINT_SECRETAIRE_GENERAL',
@@ -141,7 +141,6 @@ test.describe('Générer un ordre du jour', () => {
       },
     });
 
-    // Avec le titre "Président du Parquet"
     await http.http.put(`/api/administration/v1/users/${firstSecretary.id}/role`, {
       data: { role: 'FIRST_SECRETARY' },
     });
@@ -149,11 +148,13 @@ test.describe('Générer un ordre du jour', () => {
     // Quand j'ouvre la génération d'un ordre du jour
     const agendaPage = await app.pages.session.startAgendaGeneration();
 
+    // Et que je renseigne les données de l'ordre du jour
+    await agendaPage.fillMetadata({ chairman: chairmanId, sessionMeetingDate: new Date() });
+
     // Et que je sélectionne les 3 dossiers, qu'un sursis exclut de la sélection par défaut
     await agendaPage.selectAllFilesCheckbox.click({ force: true });
-    await agendaPage.goToNextStep();
 
-    const { agendaId } = await agendaPage.fill({ sessionMeetingDate: new Date(), chairman: chairman.id });
+    const { agendaId } = await agendaPage.submit();
 
     await app.pages.manageSessions.goto();
     await app.pages.manageSessions.sessionRow(sessionName).click();
@@ -179,35 +180,25 @@ test.describe('Générer un ordre du jour', () => {
     await officialReportPage.submit();
   });
 
-  test('prépare un ordre du jour à partir des propositions cochées dans le tableau', async ({ app }) => {
-    const page = app.pages.session;
+  test('sélectionne les propositions depuis le tableau de génération', async ({ app }) => {
+    // Quand je démarre la génération d'un ordre du jour et renseigne ses données
+    const agendaPage = await app.pages.session.startAgendaGeneration();
+    await agendaPage.fillMetadata({ chairman: chairmanId, sessionMeetingDate: new Date() });
 
-    // Quand je coche 2 propositions dans le tableau
-    await page.selectFiles({ name: 'BOURDIEU PIERRE' }, { name: 'HARENDT ANNA' });
+    // Alors les 3 dossiers, tous en sursis, sont écartés de la sélection par défaut
+    await test.expect(agendaPage.selectedCount).toHaveText('Aucune proposition sélectionnée');
 
-    // Et que je les ajoute à l'ordre du jour
-    await page.addSelectionToAgendaButton.click();
+    // Et quand je coche toutes les propositions éligibles
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
 
-    // Alors l'ordre du jour en préparation contient ces 2 propositions
-    await test.expect(page.agendaBasket).toContainText('2');
+    // Alors les 3 sont retenues
+    await test.expect(agendaPage.selectedCount).toHaveText('3 propositions sélectionnées');
 
-    // Et quand je filtre le tableau sur l'ordre du jour en préparation
-    await page.agendaBasket.click();
+    // Et quand je les décoche pour n'en garder qu'une
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
+    await agendaPage.selectFile({ name: 'BOURDIEU PIERRE' });
 
-    // Alors seules ces 2 propositions restent affichées
-    await test.expect(page.sessionRow({ name: 'BOURDIEU PIERRE' })).toBeVisible();
-    await test.expect(page.sessionRow({ name: 'GRAMSCI ANTONIO' })).toBeHidden();
-
-    // Et quand j'en retire une depuis ce tableau filtré
-    await page.selectFiles({ name: 'HARENDT ANNA' });
-    await page.removeSelectionFromAgendaButton.click();
-
-    // Alors elle quitte l'ordre du jour en préparation
-    await test.expect(page.agendaBasket).toContainText('1');
-    await test.expect(page.sessionRow({ name: 'HARENDT ANNA' })).toBeHidden();
-
-    // Et la génération d'un ordre du jour démarre avec la proposition restante
-    const agendaPage = await page.startAgendaGeneration();
-    await test.expect(agendaPage.selectAllFilesCheckbox).toHaveAccessibleName(/1 proposition sélectionnée/);
+    // Alors le compteur ne retient que celle-ci
+    await test.expect(agendaPage.selectedCount).toHaveText('1 proposition sélectionnée');
   });
 });

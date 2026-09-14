@@ -4,6 +4,7 @@ import { GradeEnum } from '@/types/enums.types';
 import type {
   CountedUnaffectedFilesDto,
   DocGenerationSessionReadinessDto,
+  FoundAgendaNominationFiles,
   ListedCurrentlyAffectedReportersDto,
   ListedMemberSessionReportsDto,
   NominationFilesStatusCountDto,
@@ -15,10 +16,14 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 type ListedMember = PaginatedMemberListItemDto['items'][number];
 
+type AgendaIneligibleFile = FoundAgendaNominationFiles['ineligible'][number];
+
 export type SessionDataset = {
   affectationsVersion?: SomeAffectationVersion;
   agendaEligibleFileIds?: readonly string[];
+  agendaIneligibleFiles?: readonly AgendaIneligibleFile[];
   files: readonly SessionNominationFile[];
+  isAgendaEligibilityUnavailable?: boolean;
   memberReports?: ListedMemberSessionReportsDto['items'];
   members?: readonly ListedMember[];
 };
@@ -184,24 +189,30 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
     ),
 
     http.get('*/api/docs/v1/sessions/:sessionId/files', ({ params }) => {
-      const { agendaEligibleFileIds, files } = datasetOf(params.sessionId);
-      const eligible = agendaEligibleFileIds
-        ? files.filter(({ id }) => agendaEligibleFileIds.includes(id))
-        : files;
+      const { agendaEligibleFileIds, agendaIneligibleFiles, files, isAgendaEligibilityUnavailable } =
+        datasetOf(params.sessionId);
+      if (isAgendaEligibilityUnavailable) return HttpResponse.error();
 
-      return HttpResponse.json({
-        ineligible: files
-          .filter(({ id }) => !eligible.some((file) => file.id === id))
+      const ineligible: readonly AgendaIneligibleFile[] =
+        agendaIneligibleFiles ??
+        files
+          .filter(({ id }) => !!agendaEligibleFileIds && !agendaEligibleFileIds.includes(id))
           .map(({ content, id }) => ({
             id,
             reason: content.status.value === 'DSJ_REPORTED' ? 'REPORTED' : 'UNIDENTIFIED',
+          }));
+      const ineligibleIds = new Set(ineligible.map(({ id }) => id));
+
+      return HttpResponse.json({
+        ineligible,
+        items: files
+          .filter(({ id }) => !ineligibleIds.has(id))
+          .map((file) => ({
+            id: file.id,
+            number: file.content.numeroDeDossier,
+            outcome: file.content.outcome,
+            reporters: file.reporters,
           })),
-        items: eligible.map((file) => ({
-          id: file.id,
-          number: file.content.numeroDeDossier,
-          outcome: file.content.outcome,
-          reporters: file.reporters,
-        })),
       });
     }),
 

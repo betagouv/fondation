@@ -1,16 +1,16 @@
 import { createColumnHelper, type Row, type RowSelectionState } from '@tanstack/react-table';
-import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
+import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useExportFailure } from '../hooks/useExportFailure';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
-import { useAgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
+import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import type { FormationEnum } from '@/types/enums.types';
-import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import {
   useListNominationFilesAsExcelMutation,
   type SessionNominationFile,
@@ -23,8 +23,8 @@ import { NominationFileStatusCell } from './cells/NominationFileStatusCell';
 import { ObservantsCell } from './cells/observations/ObservantsCell';
 import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
-import { NominationFilesAgendaBasket } from './NominationFilesAgendaBasket';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
+import { NominationFilesBulkActions } from './NominationFilesBulkActions';
 import { NominationFilesExportButton } from './NominationFilesExportButton';
 import { NominationFilesPublishButton } from './NominationFilesPublishButton';
 import { NominationFilesSelectionBar } from './NominationFilesSelectionBar';
@@ -125,84 +125,48 @@ function useSgSessionFilesColumns() {
   );
 }
 
-function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Element | null }>) {
+function SgSessionFilesTableInner(
+  props: PropsWithChildren<{
+    filtersSlot?: Element | null;
+    headerSlot?: Element | null;
+    onSelectingChange?: (isSelecting: boolean) => void;
+  }>,
+) {
   const { formatMessage } = useIntl();
   const { canManage, sessionId } = useNominationFilesTable();
-  const basket = useAgendaBasket(sessionId);
   const fileColumns = useSgSessionFilesColumns();
   const exportAsExcel = useListNominationFilesAsExcelMutation();
   const onExportFailure = useExportFailure();
-  const { data: agendaFiles } = useFindAgendaNominationFilesQuery({ enabled: canManage, sessionId });
 
   const [isSelecting, setSelecting] = useState(false);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [isFilteringBasket, setFilteringBasket] = useState(false);
   const clearSelection = useCallback(() => setRowSelection({}), []);
-  const enterSelection = useCallback(() => setSelecting(true), []);
+
+  const latestOnSelectingChange = useRef(props.onSelectingChange);
+  useEffect(() => {
+    latestOnSelectingChange.current = props.onSelectingChange;
+  });
+
+  const enterSelection = useCallback(() => {
+    setSelecting(true);
+    latestOnSelectingChange.current?.(true);
+  }, []);
+
   const exitSelection = useCallback(() => {
     setSelecting(false);
     setRowSelection({});
+    latestOnSelectingChange.current?.(false);
   }, []);
 
-  const toggleBasketFilter = useCallback(() => {
-    setFilteringBasket((filtering) => !filtering);
-    setRowSelection({});
-  }, []);
-
-  useEffect(() => {
-    if (basket.isEmpty) setFilteringBasket(false);
-  }, [basket.isEmpty]);
+  useEffect(() => () => latestOnSelectingChange.current?.(false), []);
 
   const isSelectable = canManage && isSelecting;
-  const isFilteringBasketFiles = isFilteringBasket && !basket.isEmpty;
 
-  const agendaFileIds = useMemo(
-    () => (agendaFiles ? new Set(agendaFiles.items.map(({ id }) => id)) : null),
-    [agendaFiles],
-  );
-
-  useEffect(() => {
-    if (!agendaFileIds || isFilteringBasketFiles) return;
-
-    setRowSelection((selection) =>
-      Object.keys(selection).every((id) => agendaFileIds.has(id))
-        ? selection
-        : Object.fromEntries(Object.entries(selection).filter(([id]) => agendaFileIds.has(id))),
-    );
-  }, [agendaFileIds, isFilteringBasketFiles]);
-
-  const canSelectRow = useCallback(
-    (row: Row<SessionNominationFile>) => {
-      if (isFilteringBasketFiles) return true;
-      if (basket.has(row.original.id)) return false;
-
-      return !agendaFileIds || agendaFileIds.has(row.original.id);
-    },
-    [agendaFileIds, basket, isFilteringBasketFiles],
-  );
-
-  const ineligibilityReasons = useMemo(
-    () => new Map((agendaFiles?.ineligible ?? []).map(({ id, reason }) => [id, reason])),
-    [agendaFiles],
-  );
+  const canSelectRow = useCallback((row: Row<SessionNominationFile>) => row.original.content.isUpdatable, []);
 
   const lockedLabel = useCallback(
-    (row: Row<SessionNominationFile>) => {
-      const reason = ineligibilityReasons.get(row.original.id);
-      if (!reason) return formatMessage({ defaultMessage: "Déjà dans l'ODJ en préparation" });
-
-      switch (reason) {
-        case 'REPORTED':
-          return formatMessage({ defaultMessage: 'Déjà acté dans un procès-verbal' });
-        case 'DRAFT_REPORTED':
-          return formatMessage({ defaultMessage: 'Déjà inscrit dans un procès-verbal en préparation' });
-        case 'UNIDENTIFIED':
-          return formatMessage({ defaultMessage: 'Magistrat ou poste non identifié' });
-        default:
-          return formatMessage({ defaultMessage: 'Ne peut pas figurer dans un ordre du jour' });
-      }
-    },
-    [formatMessage, ineligibilityReasons],
+    () => formatMessage({ defaultMessage: 'Cette proposition ne peut plus être modifiée' }),
+    [formatMessage],
   );
 
   const selectionColumn = useSelectionColumn<SessionNominationFile>({ lockedLabel });
@@ -211,36 +175,42 @@ function SgSessionFilesTableInner(props: PropsWithChildren<{ filtersSlot?: Eleme
     () => (isSelectable ? [selectionColumn, ...fileColumns] : fileColumns),
     [fileColumns, isSelectable, selectionColumn],
   );
-  const selectedFileIds = useMemo(
-    () => Object.entries(rowSelection).flatMap(([id, isSelected]) => (isSelected ? [id] : [])),
-    [rowSelection],
+  const filesTable = useSessionFilesTable({
+    canSelectRow: isSelectable ? canSelectRow : undefined,
+    columns,
+    onRowSelectionChange: isSelectable ? setRowSelection : undefined,
+    rowSelection,
+    sessionId,
+  });
+
+  const selectedFiles = useMemo(
+    () => filesTable.nominationFiles.filter(({ id }) => rowSelection[id]),
+    [filesTable.nominationFiles, rowSelection],
   );
 
   return (
     <SessionFilesTable
-      canSelectRow={isSelectable ? canSelectRow : undefined}
-      columns={columns}
-      filtersEnd={
-        <NominationFilesAgendaBasket
-          basket={basket}
-          isFiltering={isFilteringBasketFiles}
-          onToggleFilter={toggleBasketFilter}
-        />
-      }
+      filesTable={filesTable}
       filtersSlot={props.filtersSlot}
-      onRowSelectionChange={isSelectable ? setRowSelection : undefined}
-      restrictTo={isFilteringBasketFiles ? { nominationFileIds: basket.fileIds } : undefined}
-      rowSelection={rowSelection}
+      summary={
+        isSelectable ? (
+          <NominationFilesSelectionBar
+            onClear={clearSelection}
+            onExit={exitSelection}
+            selectedCount={selectedFiles.length}
+            totalCount={filesTable.totalCount}
+          />
+        ) : null
+      }
     >
-      {isSelectable ? (
-        <NominationFilesSelectionBar
-          basket={basket}
-          isFilteringBasket={isFilteringBasketFiles}
-          onClear={clearSelection}
-          onExit={exitSelection}
-          selectedFileIds={selectedFileIds}
-        />
-      ) : (
+      {isSelectable &&
+        props.headerSlot &&
+        createPortal(
+          <NominationFilesBulkActions onClose={exitSelection} selectedFiles={selectedFiles} />,
+          props.headerSlot,
+        )}
+
+      {!isSelectable && (
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />
@@ -271,13 +241,21 @@ export function SgSessionFilesTable(
     canManage?: boolean;
     filtersSlot?: Element | null;
     formation: FormationEnum;
+    headerSlot?: Element | null;
+    onSelectingChange?: (isSelecting: boolean) => void;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
   }>,
 ) {
   return (
     <NominationFilesTableProvider {...props}>
-      <SgSessionFilesTableInner filtersSlot={props.filtersSlot}>{props.children}</SgSessionFilesTableInner>
+      <SgSessionFilesTableInner
+        filtersSlot={props.filtersSlot}
+        headerSlot={props.headerSlot}
+        onSelectingChange={props.onSelectingChange}
+      >
+        {props.children}
+      </SgSessionFilesTableInner>
     </NominationFilesTableProvider>
   );
 }

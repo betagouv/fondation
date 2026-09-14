@@ -12,6 +12,7 @@ import {
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { useExportFailure } from '@/features/nomination-files-table/hooks/useExportFailure';
 import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/useSessionFilesFilters';
+import { useSessionFilesTable } from '@/features/nomination-files-table/hooks/useSessionFilesTable';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import { rowCell } from '@/shared/ui/new-table';
@@ -130,14 +131,18 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
   const exportAsExcel = useListMissingEvaluationsAsExcelMutation();
   const onExportFailure = useExportFailure();
   const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId: props.sessionId });
+  const filesTable = useSessionFilesTable({
+    columns,
+    restrictTo: { missingEvaluation: true },
+    sessionId: props.sessionId,
+  });
 
   return (
     <SessionFilesTable
-      columns={columns}
       emptyLabel={formatMessage({ defaultMessage: 'Aucune évaluation manquante' })}
+      filesTable={filesTable}
       filtersSlot={props.filtersSlot}
-      restrictTo={{ missingEvaluation: true }}
-      summary={() => (
+      summary={
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={props.sessionId} />
@@ -159,7 +164,7 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
             }
           />
         </div>
-      )}
+      }
     />
   );
 }

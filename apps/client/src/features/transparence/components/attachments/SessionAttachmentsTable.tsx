@@ -7,7 +7,7 @@ import {
   type OnChangeFn,
   type SortingState,
 } from '@tanstack/react-table';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, Fragment, useContext, useMemo, type ReactNode } from 'react';
 import { useIntl } from 'react-intl';
 
 import { NewTable, rowCell } from '@/shared/ui/new-table';
@@ -19,10 +19,14 @@ export type SessionAttachment = ListedNominationSessionAttachmentDto['items'][nu
 
 const h = createColumnHelper<SessionAttachment>();
 
+type AttachmentAction = (attachment: SessionAttachment) => ReactNode;
+
+const NO_ACTION: readonly AttachmentAction[] = [];
+
 const SessionAttachmentsTableContext = createContext<{
-  actions?: (attachment: SessionAttachment) => ReactNode;
+  actions: readonly AttachmentAction[];
   renderName?: (attachment: SessionAttachment) => ReactNode;
-}>({});
+}>({ actions: [] });
 
 function NameCell(props: CellContext<SessionAttachment, string>) {
   const { renderName } = useContext(SessionAttachmentsTableContext);
@@ -37,18 +41,26 @@ const sizeCell = rowCell<SessionAttachment>((attachment) =>
 
 function ActionsCell(props: CellContext<SessionAttachment, unknown>) {
   const { actions } = useContext(SessionAttachmentsTableContext);
-  return actions?.(props.row.original) ?? null;
+  if (actions.length === 0) return null;
+
+  return (
+    <div className="-ml-2 flex items-center gap-1">
+      {actions.map((action, index) => (
+        <Fragment key={index}>{action(props.row.original)}</Fragment>
+      ))}
+    </div>
+  );
 }
 
 export function SessionAttachmentsTable(props: {
-  actions?: (attachment: SessionAttachment) => ReactNode;
+  actions?: readonly AttachmentAction[];
   attachments: readonly SessionAttachment[];
   onSortingChange?: OnChangeFn<SortingState>;
   renderName?: (attachment: SessionAttachment) => ReactNode;
   sorting?: SortingState;
 }) {
   const { formatMessage } = useIntl();
-  const { actions, renderName } = props;
+  const { actions = NO_ACTION, renderName } = props;
 
   const renderers = useMemo(() => ({ actions, renderName }), [actions, renderName]);
 
@@ -79,11 +91,14 @@ export function SessionAttachmentsTable(props: {
       h.display({
         id: 'actions',
         cell: ActionsCell,
-        header: formatMessage({ defaultMessage: 'Actions' }),
+        header: formatMessage(
+          { defaultMessage: '{count, plural, one {Action} other {Actions}}' },
+          { count: actions.length },
+        ),
         size: 160,
       }),
     ],
-    [formatMessage],
+    [actions.length, formatMessage],
   );
 
   const table = useReactTable({

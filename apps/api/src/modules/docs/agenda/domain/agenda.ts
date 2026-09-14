@@ -1,4 +1,5 @@
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
+import { ReportedNominationFileCollection } from 'src/modules/docs/shared/domain/reported-nomination-file-collection';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
@@ -135,18 +136,30 @@ export class Agenda {
     return diff;
   }
 
-  updateFiles(command: { authorId: string; nominationFileIds: Set<string> }): AgendaFilesDiff {
+  updateFiles(command: {
+    authorId: string;
+    nominationFileIds: Set<string>;
+    reportedNominationFiles: ReportedNominationFileCollection;
+  }): AgendaFilesDiff {
     if (command.nominationFileIds.size === 0) throw new EmptyAgenda();
 
     const diff = assertIsDefined(this.snapshot).diffFiles({
       fileIds: new Set(command.nominationFileIds),
     });
 
-    if (diff.hasAny) {
-      this.#messages.push(
-        new AgendaFilesUpdated(this.id, makeId('AuthorId', command.authorId), this.sessionId, diff),
-      );
-    }
+    if (!diff.hasAny) return diff;
+
+    const alreadyReported = diff.added.filter((nominationFileId) =>
+      command.reportedNominationFiles.isReported({
+        nominationFileId,
+        ignoreOfficialReportId: this.officialReportId ?? undefined,
+      }),
+    );
+    if (alreadyReported.length > 0) throw new AgendaFilesAlreadyReported(alreadyReported);
+
+    this.#messages.push(
+      new AgendaFilesUpdated(this.id, makeId('AuthorId', command.authorId), this.sessionId, diff),
+    );
 
     return diff;
   }
@@ -175,21 +188,27 @@ export class Agenda {
   }
 
   static create(props: {
-    sessionId: string;
     authorId: string;
     chairman: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      gender: GenderEnum;
-      title: UserTitleEnum | null;
       displayTitle: string | null;
+      firstName: string;
+      gender: GenderEnum;
+      id: string;
+      lastName: string;
+      title: UserTitleEnum | null;
     };
     date: DateOnly;
-    sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
+    reportedNominationFiles: ReportedNominationFileCollection;
+    sessionId: string;
+    sessionMeetingDate: DateOnly;
   }): Agenda {
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
+
+    const alreadyReported = props.nominationFiles.flatMap(({ id }) =>
+      props.reportedNominationFiles.isReported({ nominationFileId: id }) ? [id] : [],
+    );
+    if (alreadyReported.length > 0) throw new AgendaFilesAlreadyReported(alreadyReported);
 
     const agenda = Agenda.from({
       id: makeId('AgendaId'),

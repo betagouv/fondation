@@ -112,7 +112,6 @@ export const Empty: Story = {
   args: { groups: [] },
 };
 
-/** two agendas covered by the same official report: the three rows form a single frame */
 export const AgendasSharingAnOfficialReport: Story = {
   args: {
     groups: groupSessionDocuments([

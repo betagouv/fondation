@@ -12,6 +12,7 @@ const FORCED_FOCUS_RING = '[&[data-forced-focus]:focus]:[outline-style:solid]';
 
 type DropdownProps = {
   className?: string;
+  disabled?: boolean;
   label?: ReactNode;
   options: readonly DropdownOption[];
   placeholder?: ReactNode;
@@ -40,6 +41,10 @@ export function Dropdown(props: DropdownProps) {
       trigger.focus({ preventScroll: true });
     },
   }));
+
+  useEffect(() => {
+    if (props.disabled) setOpen(false);
+  }, [props.disabled]);
 
   useEffect(() => {
     if (!open) return;
@@ -98,12 +103,14 @@ export function Dropdown(props: DropdownProps) {
       aria-haspopup="listbox"
       aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
       className={clsx(
-        'cursor-pointer text-left font-[inherit]',
+        'text-left font-[inherit]',
+        props.disabled ? 'cursor-not-allowed' : 'cursor-pointer',
         FORCED_FOCUS_RING,
         props.multiple
           ? 'absolute inset-0 h-full w-full [--active:transparent] [--hover:transparent]'
           : cx('fr-select'),
       )}
+      disabled={props.disabled}
       id={triggerId}
       onClick={() => setOpen((value) => !value)}
       ref={triggerRef}
@@ -158,6 +165,7 @@ export function Dropdown(props: DropdownProps) {
                 {option.label}
                 <button
                   className="fr-icon-close-line fr-icon--sm pointer-events-auto cursor-pointer rounded-full text-(--text-action-high-blue-france)"
+                  disabled={props.disabled}
                   onClick={() => unselect(option.value)}
                   type="button"
                 >
@@ -186,6 +194,7 @@ export function Dropdown(props: DropdownProps) {
               <button
                 aria-selected={isSelected(option.value)}
                 className="fr-px-2v fr-py-2v flex w-full items-center justify-between gap-2 text-left hover:bg-(--background-default-grey-hover)"
+                disabled={props.disabled}
                 onClick={() => select(option.value)}
                 role="option"
                 type="button"

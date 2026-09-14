@@ -41,6 +41,7 @@ import {
   CountUnaffectedFilesQueryDto,
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
+  DefineNominationFilesOutcomeDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListGdsNominationSessionsQueryDto,
   UpdateNominationSessionDto,
@@ -372,6 +373,21 @@ export class SessionController {
       sessionId,
       nominationFileId,
       auditionDateTime,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/outcome')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async defineNominationFilesOutcome(
+    @Param('sessionId') sessionId: string,
+    @Body() body: DefineNominationFilesOutcomeDto,
+  ): Promise<void> {
+    await this.sessions.defineNominationFilesOutcome({
+      items: body.items,
+      outcome: body.outcome,
+      sessionId,
     });
   }
 
