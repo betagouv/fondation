@@ -8,6 +8,7 @@ export const ROUTE_PATHS = {
   TRANSPARENCES: {
     DASHBOARD: '/transparences',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
+    DETAIL_SESSION_GDS_ATTACHMENTS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`,
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',

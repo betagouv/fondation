@@ -2,10 +2,12 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, type PropsWithChildren, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import type { SessionOutcome } from '../context/files-table.context';
+import { useNominationFilesTable, type SessionOutcome } from '../context/files-table.context';
+import { useMemberReports } from '../context/member-reports.context';
 import { MemberReportsProvider } from '../context/MemberReportsProvider';
 import { NominationFilesTableProvider } from '../context/NominationFilesTableProvider';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
+import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import type { FormationEnum } from '@/types/enums.types';
@@ -95,18 +97,29 @@ function useMemberSessionFilesColumns() {
   );
 }
 
-function MemberSessionFilesTableInner(props: PropsWithChildren<{ filtersEnd?: ReactNode }>) {
+function MemberSessionFilesTableInner(
+  props: PropsWithChildren<{ filtersEnd?: ReactNode; filtersSlot?: Element | null }>,
+) {
+  const { sessionId } = useNominationFilesTable();
   const columns = useMemberSessionFilesColumns();
+  const filesTable = useSessionFilesTable({ columns, sessionId });
+  const memberReports = useMemberReports();
 
   return (
     <SessionFilesTable
-      columns={columns}
+      filesTable={filesTable}
       filtersEnd={props.filtersEnd}
-      summary={({ totalCount }) => (
-        <TotalBadge value={totalCount}>
-          <FormattedMessage defaultMessage="Total" />
-        </TotalBadge>
-      )}
+      filtersSlot={props.filtersSlot}
+      summary={
+        <div className="flex items-center gap-6">
+          <TotalBadge value={filesTable.totalCount}>
+            <FormattedMessage defaultMessage="Total" />
+          </TotalBadge>
+          <TotalBadge value={memberReports.assignedFilesCount}>
+            <FormattedMessage defaultMessage="Mes dossiers" />
+          </TotalBadge>
+        </div>
+      }
     >
       {props.children}
     </SessionFilesTable>
@@ -116,6 +129,7 @@ function MemberSessionFilesTableInner(props: PropsWithChildren<{ filtersEnd?: Re
 export function MemberSessionFilesTable(
   props: PropsWithChildren<{
     filtersEnd?: ReactNode;
+    filtersSlot?: Element | null;
     formation: FormationEnum;
     outcomes: readonly SessionOutcome[];
     sessionId: string;
@@ -124,7 +138,7 @@ export function MemberSessionFilesTable(
   return (
     <NominationFilesTableProvider {...props} canManage={false}>
       <MemberReportsProvider>
-        <MemberSessionFilesTableInner filtersEnd={props.filtersEnd}>
+        <MemberSessionFilesTableInner filtersEnd={props.filtersEnd} filtersSlot={props.filtersSlot}>
           {props.children}
         </MemberSessionFilesTableInner>
       </MemberReportsProvider>

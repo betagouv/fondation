@@ -45,7 +45,6 @@ export default definePreview({
     },
     options: {
       storySort: {
-        method: 'alphabetical',
         order: [
           'Guide',
           'Design Tokens',
@@ -55,8 +54,9 @@ export default definePreview({
             [
               'SgSessionFilesTable',
               'MemberSessionFilesTable',
-              'SessionAttachmentsTable',
               'SessionDocumentsTable',
+              'AgendaFilesSelectionTable',
+              'SessionAttachmentsTable',
             ],
           ],
           'Features',

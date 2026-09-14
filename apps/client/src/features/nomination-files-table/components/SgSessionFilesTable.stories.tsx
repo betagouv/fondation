@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
+import { useState } from 'react';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
@@ -34,23 +36,29 @@ const sessions: Record<string, SessionDataset> = {
   empty: { files: [] },
 };
 
-function prepareAgenda(fileIds: readonly string[], sessionId = 'draft') {
-  localStorage.setItem(`fondation.agenda-basket.${sessionId}`, JSON.stringify({ fileIds }));
-}
+const bulkActionHandlers = [
+  http.put('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
+  http.put('*/api/sessions/v2/:sessionId/files/outcome', () => new HttpResponse(null, { status: 204 })),
+];
 
 function SgSessionFilesTableStory(props: {
   canManage: boolean;
   formation: FormationEnum;
   sessionId: string;
 }) {
+  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
+
   return (
     <StoryQueryClient key={`${props.canManage}-${props.formation}-${props.sessionId}`}>
       <ToastProvider>
         <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
+            <div className="fr-mb-4v min-h-10" ref={setHeaderSlot} />
+
             <SgSessionFilesTable
               canManage={props.canManage}
               formation={props.formation}
+              headerSlot={headerSlot}
               outcomes={makeSessionOutcomes(props.formation)}
               sessionId={props.sessionId}
             />
@@ -65,8 +73,7 @@ const meta = {
   title: 'Session/Transparence/SgSessionFilesTable',
   component: SgSessionFilesTableStory,
   beforeEach: ({ msw }) => {
-    msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));
-    prepareAgenda([]);
+    msw.use(...bulkActionHandlers, ...sgAuthHandlers, ...makeSessionHandlers(sessions));
   },
   parameters: {
     layout: 'fullscreen',
@@ -89,13 +96,6 @@ export const Playground: Story = {};
 
 export const PublishedAffectations: Story = {
   args: { sessionId: 'published' },
-};
-
-export const WithOdj: Story = {
-  beforeEach: ({ msw }) => {
-    msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));
-    prepareAgenda(['dossier-1', 'dossier-2', 'dossier-3']);
-  },
 };
 
 export const Archived: Story = {

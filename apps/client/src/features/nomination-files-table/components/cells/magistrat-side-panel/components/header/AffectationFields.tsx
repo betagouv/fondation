@@ -14,6 +14,7 @@ const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)
 const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
 export function PrioritySelect(props: {
+  disabled?: boolean;
   onChange: (value: PrioriteEnum[]) => void;
   value: readonly PrioriteEnum[];
 }) {
@@ -24,6 +25,7 @@ export function PrioritySelect(props: {
 
   return (
     <Dropdown
+      disabled={props.disabled}
       label={<FormattedMessage defaultMessage="Définir une priorité" />}
       multiple
       onSelect={(values) => props.onChange(values as PrioriteEnum[])}
@@ -38,6 +40,7 @@ type Reporter = { firstName: string; lastName: string; userId: string };
 
 export function ReporterSelect(props: {
   available: readonly Reporter[];
+  disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
   onChange: (ids: string[]) => void;
   ref?: Ref<DropdownHandle>;
@@ -69,6 +72,7 @@ export function ReporterSelect(props: {
 
   return (
     <Dropdown
+      disabled={props.disabled}
       label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
       multiple
       onSelect={onChange}

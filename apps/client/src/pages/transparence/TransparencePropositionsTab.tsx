@@ -5,13 +5,16 @@ import { SgSessionFilesTable } from '@/features/nomination-files-table/component
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparencePropositionsTab() {
-  const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, headerSlot, onSelectingChange, transparence } =
+    useOutletContext<TransparenceOutletContext>();
 
   return (
     <SgSessionFilesTable
       canManage={!transparence.isArchived}
       filtersSlot={filtersSlot}
       formation={transparence.formation}
+      headerSlot={headerSlot}
+      onSelectingChange={onSelectingChange}
       outcomes={transparence.outcomes}
       sessionId={transparence.id}
     />
