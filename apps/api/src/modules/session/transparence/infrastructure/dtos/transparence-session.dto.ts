@@ -78,6 +78,20 @@ export class DefineNominationFileOutcomeDto extends createZodDto(
   }),
 ) {}
 
+export class DefineNominationFilesOutcomeDto extends createZodDto(
+  z.object({
+    items: z
+      .array(
+        z.object({
+          comment: z.string().trim().nonempty().nullable(),
+          nominationFileId: z.uuid(),
+        }),
+      )
+      .nonempty(),
+    outcome: z.enum(NominationFileOutcome.enum).nullable(),
+  }),
+) {}
+
 export class ListGdsNominationSessionsQueryDto extends createSortableDto(
   z.object({
     search: z

@@ -506,6 +506,14 @@ export type UpdateAuditionDateDto = {
     } | null;
 };
 
+export type DefineNominationFilesOutcomeDto = {
+    items: Array<{
+        comment: string | null;
+        nominationFileId: string;
+    }>;
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ' | null;
+};
+
 export type DefineNominationFileOutcomeDto = {
     outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ' | null;
     comment: string | null;
@@ -2466,6 +2474,21 @@ export type UpdateNominationFileAuditionDateResponses = {
 };
 
 export type UpdateNominationFileAuditionDateResponse = UpdateNominationFileAuditionDateResponses[keyof UpdateNominationFileAuditionDateResponses];
+
+export type DefineNominationFilesOutcomeData = {
+    body: DefineNominationFilesOutcomeDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/outcome';
+};
+
+export type DefineNominationFilesOutcomeResponses = {
+    204: void;
+};
+
+export type DefineNominationFilesOutcomeResponse = DefineNominationFilesOutcomeResponses[keyof DefineNominationFilesOutcomeResponses];
 
 export type DefineNominationFileOutcomeData = {
     body: DefineNominationFileOutcomeDto;

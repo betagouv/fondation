@@ -504,28 +504,37 @@ export class TransparenceService {
     return this.listNominationSessionsQuery.handle(query);
   }
 
-  async defineNominationFileOutcome(command: {
+  defineNominationFileOutcome(command: {
     sessionId: string;
     nominationFileId: string;
     outcome: NominationFileOutcomeEnum | null;
     comment: string | null;
   }): Promise<void> {
+    return this.defineNominationFilesOutcome({
+      items: [{ comment: command.comment, nominationFileId: command.nominationFileId }],
+      outcome: command.outcome,
+      sessionId: command.sessionId,
+    });
+  }
+
+  async defineNominationFilesOutcome(command: {
+    sessionId: string;
+    items: readonly { nominationFileId: string; comment: string | null }[];
+    outcome: NominationFileOutcomeEnum | null;
+  }): Promise<void> {
     const invalidations = await this.db.withTransaction(async () => {
       const session = await this.nominationSessionRepository.find(command.sessionId, {
-        nominationFileIds: new Set([command.nominationFileId]),
+        nominationFileIds: new Set(command.items.map(({ nominationFileId }) => nominationFileId)),
       });
 
-      const outcome = isDefined(command.outcome)
-        ? NominationFileOutcome.from({
-            outcome: command.outcome,
-            comment: command.comment,
-          })
-        : null;
-
-      session.defineNominationFileOutcome({
-        outcome,
-        nominationFileId: command.nominationFileId,
-      });
+      for (const { comment, nominationFileId } of command.items) {
+        session.defineNominationFileOutcome({
+          nominationFileId,
+          outcome: isDefined(command.outcome)
+            ? NominationFileOutcome.from({ comment, outcome: command.outcome })
+            : null,
+        });
+      }
 
       return this.nominationSessionRepository.persist(session);
     });

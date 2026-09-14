@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 
 import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { ReportedNominationFileCollection } from '../../shared/domain/reported-nomination-file-collection';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -9,10 +10,26 @@ import {
   Agenda,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
+  AgendaFilesAlreadyReported,
   AgendaFilesUpdated,
   EmptyAgenda,
 } from './agenda';
 import { AgendaSnapshot } from './agenda-snapshot';
+
+const NO_REPORTED_FILE = ReportedNominationFileCollection.from([]);
+
+function reportedFiles(
+  ...entries: { nominationFileId: string; officialReportId: string; isValidated?: boolean }[]
+): ReportedNominationFileCollection {
+  return ReportedNominationFileCollection.from(
+    entries.map((entry) => ({
+      nominationFileId: entry.nominationFileId,
+      officialReportId: entry.officialReportId,
+      isValidated: entry.isValidated ?? true,
+      outcome: 'VALIDATED',
+    })),
+  );
+}
 
 describe('Agenda', () => {
   const props = Object.freeze({
@@ -39,6 +56,7 @@ describe('Agenda', () => {
         targetedPosition: faker.lorem.sentence(10),
       },
     ],
+    reportedNominationFiles: NO_REPORTED_FILE,
     sessionId: 'session-1',
     sessionMeetingDate: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
   } as const satisfies Parameters<(typeof Agenda)['create']>[0]);
@@ -84,6 +102,19 @@ describe('Agenda', () => {
     expect(act).toThrow(EmptyAgenda);
   });
 
+  it('should prevent creating an agenda with a file already reported', () => {
+    const act = () =>
+      Agenda.create({
+        ...props,
+        reportedNominationFiles: reportedFiles({
+          nominationFileId: props.nominationFiles[0].id,
+          officialReportId: 'official-report-1',
+        }),
+      });
+
+    expect(act).toThrow(AgendaFilesAlreadyReported);
+  });
+
   it('should allow updating an agenda file with an already reported file in the linked official report', () => {
     const officialReportId = makeId('OfficialReportId');
     const agenda = makeAgenda({ officialReportId });
@@ -91,7 +122,40 @@ describe('Agenda', () => {
     const act = () =>
       agenda.updateFiles({
         authorId: props.authorId,
-        nominationFileIds: new Set(props.nominationFiles.map((nf) => nf.id)),
+        nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
+        reportedNominationFiles: reportedFiles({ nominationFileId: 'nf-2', officialReportId }),
+      });
+
+    expect(act).not.toThrow();
+  });
+
+  it('should prevent adding a file already reported in another official report', () => {
+    const agenda = makeAgenda({ officialReportId: makeId('OfficialReportId') });
+
+    const act = () =>
+      agenda.updateFiles({
+        authorId: props.authorId,
+        nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
+        reportedNominationFiles: reportedFiles({
+          nominationFileId: 'nf-2',
+          officialReportId: 'other-official-report',
+        }),
+      });
+
+    expect(act).toThrow(AgendaFilesAlreadyReported);
+  });
+
+  it('should allow removing a file that became reported elsewhere', () => {
+    const agenda = makeAgenda();
+
+    const act = () =>
+      agenda.updateFiles({
+        authorId: props.authorId,
+        nominationFileIds: new Set(['nf-2']),
+        reportedNominationFiles: reportedFiles({
+          nominationFileId: props.nominationFiles[0].id,
+          officialReportId: 'other-official-report',
+        }),
       });
 
     expect(act).not.toThrow();
@@ -171,6 +235,7 @@ describe('Agenda', () => {
     agenda.updateFiles({
       authorId: props.authorId,
       nominationFileIds: new Set(props.nominationFiles.map(({ id }) => id)),
+      reportedNominationFiles: NO_REPORTED_FILE,
     });
 
     expect(agenda.messages).toEqual([]);
@@ -182,6 +247,7 @@ describe('Agenda', () => {
     agenda.updateFiles({
       authorId: props.authorId,
       nominationFileIds: new Set(['nf-2']),
+      reportedNominationFiles: NO_REPORTED_FILE,
     });
 
     expect(agenda.messages).toEqual([

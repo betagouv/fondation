@@ -9,6 +9,7 @@ import {
   DocInvalidation,
 } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 
@@ -41,6 +42,7 @@ export class AgendasService {
     private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
     private readonly detailsAgendaDocumentBlocksQuery: DetailsAgendaDocumentBlocksQuery,
@@ -70,15 +72,20 @@ export class AgendasService {
     });
 
     const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
-      sessionId: command.sessionId,
       ids: command.nominationFileIds,
+      sessionId: command.sessionId,
+    });
+
+    const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+      fileIds: new Set(nominationFiles.map(({ id }) => id)),
     });
 
     const agenda = Agenda.create({
-      chairman,
       authorId: command.authorId,
-      sessionId: command.sessionId,
+      chairman,
       date: DateOnly.fromJson(command.date),
+      reportedNominationFiles,
+      sessionId: command.sessionId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       nominationFiles: nominationFiles.map((f) => ({
         id: f.id,
@@ -130,9 +137,13 @@ export class AgendasService {
     const invalidations = await this.db.withTransaction(async () => {
       const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
       const nominationFileIds = new Set(command.nominationFileIds);
+      const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+        fileIds: nominationFileIds,
+      });
 
       const diff = agenda.updateFiles({
         nominationFileIds,
+        reportedNominationFiles,
         authorId: command.authorId,
       });
 
