@@ -1,29 +1,14 @@
-import {
-  getCoreRowModel,
-  useReactTable,
-  type ColumnFiltersState,
-  type OnChangeFn,
-  type Row,
-  type RowSelectionState,
-  type SortingState,
-  type Table,
-  type TableOptions,
-} from '@tanstack/react-table';
-import { useCallback, useEffect, useMemo, useState, type PropsWithChildren, type ReactNode } from 'react';
+import type { Table } from '@tanstack/react-table';
+import { type PropsWithChildren, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
-import { useDebouncedCallback } from 'use-debounce';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import { ReactTableFilterColumn, useQueryDataTableState } from '@/shared/ui/data-table';
+import type { SessionFilesTableState } from '../hooks/useSessionFilesTable';
+import { ReactTableFilterColumn } from '@/shared/ui/data-table';
 import { NewTable } from '@/shared/ui/new-table';
 import { SearchInput } from '@/shared/ui/search-input';
-import type { NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
-import {
-  useInfiniteSessionNominationFilesQuery,
-  type SessionNominationFile,
-  type SessionNominationFilesFilters,
-} from '@queries/nomination-sessions.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { AddNominationFileAttachmentModalProvider } from './cells/magistrat-side-panel/components/attachments/context/AddNominationFileAttachmentModalProvider';
 import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
@@ -64,117 +49,37 @@ function SessionFilesNewTable(props: {
 
 export function SessionFilesTable(
   props: PropsWithChildren<{
-    canSelectRow?: (row: Row<SessionNominationFile>) => boolean;
-    columns: TableOptions<SessionNominationFile>['columns'];
     emptyLabel?: string;
+    filesTable: SessionFilesTableState;
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
-    onRowSelectionChange?: OnChangeFn<RowSelectionState>;
-    restrictTo?: SessionNominationFilesFilters;
-    rowSelection?: RowSelectionState;
-    summary?: (session: { totalCount: number }) => ReactNode;
+    summary?: ReactNode;
   }>,
 ) {
   const intl = useIntl();
   const { sessionId } = useNominationFilesTable();
-  const [tableState, setTableState] = useQueryDataTableState({
-    globalFilter: '',
-    sorting: [] as [] | [{ id: 'fileNumber' | 'name' | 'targetedGrade' | 'targetedPosition'; desc: boolean }],
-    columnFilters: [] as { id: 'priorities' | 'reporters' | 'outcomes'; value: string[] }[],
-  });
-
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isLoading } =
-    useInfiniteSessionNominationFilesQuery({
-      sessionId,
-      sorting: tableState.sorting,
-      filters: {
-        search: tableState.globalFilter,
-        priorities: tableState.columnFilters.find(({ id }) => id === 'priorities')?.value as PrioriteEnum[],
-        reporterIds: tableState.columnFilters.find(({ id }) => id === 'reporters')?.value as string[],
-        outcomes: tableState.columnFilters.find(({ id }) => id === 'outcomes')
-          ?.value as (NominationFileOutcomeEnum | null)[],
-        ...props.restrictTo,
-      },
-    });
-  const nominationFiles = useMemo(() => data?.items ?? [], [data]);
-
-  const fetchNextFilesPage = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const { filesTable } = props;
 
   const outOfList = useOutOfListFile({
-    fetchNextPage: fetchNextFilesPage,
-    isFiltered: !!tableState.globalFilter || tableState.columnFilters.some(({ value }) => value.length),
-    isListPending: isLoading,
-    nominationFiles,
+    fetchNextPage: filesTable.fetchNextPage,
+    isFiltered: filesTable.isFiltered,
+    isListPending: filesTable.isLoading,
+    nominationFiles: filesTable.nominationFiles,
     sessionId,
-  });
-
-  const onSortingChange = useCallback(
-    (updater: SortingState | ((old: SortingState) => SortingState)) =>
-      setTableState((state) => ({
-        ...state,
-        sorting: typeof updater === 'function' ? updater(state.sorting) : updater,
-      })),
-    [setTableState],
-  );
-
-  const [search, setSearch] = useState(tableState.globalFilter ?? '');
-  const updateGlobalFilter = useDebouncedCallback(
-    (globalFilter: string) => setTableState((state) => ({ ...state, globalFilter })),
-    600,
-  );
-  useEffect(() => {
-    if (!updateGlobalFilter.isPending()) setSearch(tableState.globalFilter ?? '');
-  }, [tableState.globalFilter, updateGlobalFilter]);
-  const clearSearch = () => {
-    updateGlobalFilter.cancel();
-    setSearch('');
-    setTableState((state) => ({ ...state, globalFilter: '' }));
-  };
-
-  const onColumnFiltersChange = useCallback(
-    (updater: ColumnFiltersState | ((old: ColumnFiltersState) => ColumnFiltersState)) =>
-      setTableState((state) => ({
-        ...state,
-        columnFilters: typeof updater === 'function' ? updater(state.columnFilters) : updater,
-      })),
-    [setTableState],
-  );
-
-  const table = useReactTable({
-    columns: props.columns,
-    data: nominationFiles,
-    enableRowSelection: props.canSelectRow ?? !!props.onRowSelectionChange,
-    getCoreRowModel: getCoreRowModel(),
-    getRowId: (row) => row.id,
-    manualFiltering: true,
-    manualSorting: true,
-    onColumnFiltersChange,
-    onRowSelectionChange: props.onRowSelectionChange,
-    onSortingChange,
-    state: {
-      columnFilters: tableState.columnFilters,
-      rowSelection: props.rowSelection ?? {},
-      sorting: tableState.sorting,
-    },
   });
 
   const filters = (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <ReactTableFilterColumn table={table} />
+        <ReactTableFilterColumn table={filesTable.table} />
         {props.filtersEnd}
       </div>
       <SearchInput
         className="w-72"
-        onChange={(value) => {
-          setSearch(value);
-          updateGlobalFilter(value);
-        }}
-        onClear={clearSearch}
+        onChange={filesTable.onSearchChange}
+        onClear={filesTable.clearSearch}
         placeholder={intl.formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
-        value={search}
+        value={filesTable.search}
       />
     </div>
   );
@@ -182,12 +87,12 @@ export function SessionFilesTable(
   return (
     <ObservationsModalProvider>
       <SidePanelProvider
-        isFetching={isFetching}
+        isFetching={filesTable.isFetching}
         isResolvingOutOfListFile={outOfList.isResolving}
-        nominationFiles={nominationFiles}
-        onEndReached={fetchNextFilesPage}
+        nominationFiles={filesTable.nominationFiles}
+        onEndReached={filesTable.fetchNextPage}
         outOfListFile={outOfList.file}
-        totalCount={data?.totalCount ?? 0}
+        totalCount={filesTable.totalCount}
       >
         <NominationFileOutcomeCommentModalProvider>
           <NominationFileTargetPositionProvider sessionId={sessionId}>
@@ -197,7 +102,7 @@ export function SessionFilesTable(
                 {props.filtersSlot ? createPortal(filters, props.filtersSlot) : filters}
 
                 <div className="flex min-h-10 flex-col justify-center">
-                  {props.summary?.({ totalCount: data?.totalCount ?? 0 })}
+                  {props.summary}
                   {props.children}
                 </div>
                 <SessionFilesNewTable
@@ -207,9 +112,9 @@ export function SessionFilesTable(
                       defaultMessage: 'Aucun résultat ne correspond aux valeurs filtrées',
                     })
                   }
-                  isLoading={isLoading}
-                  onEndReached={fetchNextFilesPage}
-                  table={table}
+                  isLoading={filesTable.isLoading}
+                  onEndReached={filesTable.fetchNextPage}
+                  table={filesTable.table}
                 />
               </div>
             </AddNominationFileAttachmentModalProvider>

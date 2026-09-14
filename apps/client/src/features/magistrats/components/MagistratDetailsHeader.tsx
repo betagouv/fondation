@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link, useNavigate } from 'react-router';
 
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { useSecondBreadcrumbLinkOffset } from '@/shared/hooks/useSecondBreadcrumbLinkOffset';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
@@ -91,31 +92,4 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
       </div>
     </div>
   );
-}
-
-const SECOND_BREADCRUMB_LINK = '.fr-breadcrumb__list > li:nth-child(2) .fr-breadcrumb__link';
-
-function useSecondBreadcrumbLinkOffset(headerRef: React.RefObject<HTMLDivElement | null>) {
-  const [offset, setOffset] = useState(0);
-
-  useLayoutEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-
-    const measure = () => {
-      const link = header.querySelector(SECOND_BREADCRUMB_LINK);
-      if (!link) return setOffset(0);
-      setOffset(Math.max(0, link.getBoundingClientRect().left - header.getBoundingClientRect().left));
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(header);
-    const link = header.querySelector(SECOND_BREADCRUMB_LINK);
-    if (link) observer.observe(link);
-
-    return () => observer.disconnect();
-  }, [headerRef]);
-
-  return offset;
 }

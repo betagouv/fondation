@@ -1,26 +1,31 @@
+import type { SessionOutcome } from '@/features/nomination-files-table/context/files-table.context';
 import type { FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 
 export type AgendaStep = {
   index: 1 | 2;
   title: string;
-  nextTitle?: string;
 };
 
 export type AgendaMetadata = {
-  sessionMeetingDate: PlainDateOnly;
-  date: PlainDateOnly;
   chairmanId: string;
+  date: PlainDateOnly;
+  sessionMeetingDate: PlainDateOnly;
 };
 
 export type AgendaContextType = {
-  step: AgendaStep;
   error: string | null;
-  session: { id: string; dueDate: PlainDateOnly | null; formation: FormationEnum };
-  selectedFileIds: readonly string[] | null;
   isSubmitting: boolean;
-  goToFiles(): void;
-  goToMetadata(selectedFileIds: readonly string[]): void;
-  submit(metadata: AgendaMetadata): unknown;
+  metadata: AgendaMetadata | null;
+  session: {
+    dueDate: PlainDateOnly | null;
+    formation: FormationEnum;
+    id: string;
+    outcomes: readonly SessionOutcome[];
+  };
+  step: AgendaStep;
   cancel(): void;
+  goToFiles(metadata: AgendaMetadata): void;
+  goToMetadata(): void;
+  submit(nominationFileIds: readonly string[]): unknown;
 };

@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, type PropsWithChildren } from 'react';
+import { useCallback, useMemo, useState, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { useAgendaBasket } from '@/features/documents/hooks/useAgendaBasket.hook';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -13,18 +12,12 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 import { AgendaContext } from './AgendaContext';
 import type { AgendaMetadata, AgendaStep } from './AgendaContext.types';
 
-const STEPS = {
-  1: { index: 1, title: 'Sélection des propositions', nextTitle: 'Métadonnées' },
-  2: { index: 2, title: 'Métadonnées' },
-} as const satisfies Record<1 | 2, AgendaStep>;
-
 export function AgendaProvider(props: PropsWithChildren) {
   const { formatMessage } = useIntl();
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { waitForConfirmation } = useConfirmModal();
   const queryClient = useQueryClient();
-  const basket = useAgendaBasket(sessionId);
 
   const createAgenda = useCreateAgendaMutation();
 
@@ -33,18 +26,29 @@ export function AgendaProvider(props: PropsWithChildren) {
   });
 
   const [state, setState] = useState<{
-    stepIndex: 1 | 2;
     error: string | null;
-    selectedFileIds: string[] | null;
+    metadata: AgendaMetadata | null;
+    stepIndex: 1 | 2;
   }>({
     error: null,
+    metadata: null,
     stepIndex: 1,
-    selectedFileIds: null,
   });
 
-  const goToFiles = useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), []);
-  const goToMetadata = useCallback((selectedFileIds: readonly string[]) => {
-    setState((s) => ({ ...s, selectedFileIds: [...selectedFileIds], stepIndex: 2 }));
+  const steps = useMemo<Record<1 | 2, AgendaStep>>(
+    () => ({
+      1: {
+        index: 1,
+        title: formatMessage({ defaultMessage: "Définir les informations de l'ordre du jour" }),
+      },
+      2: { index: 2, title: formatMessage({ defaultMessage: 'Sélectionnez les propositions' }) },
+    }),
+    [formatMessage],
+  );
+
+  const goToMetadata = useCallback(() => setState((s) => ({ ...s, stepIndex: 1 })), []);
+  const goToFiles = useCallback((metadata: AgendaMetadata) => {
+    setState((s) => ({ ...s, metadata, stepIndex: 2 }));
   }, []);
 
   const cancel = useCallback(() => {
@@ -52,29 +56,29 @@ export function AgendaProvider(props: PropsWithChildren) {
   }, [navigate, sessionId]);
 
   const submit = useCallback(
-    async (metadata: AgendaMetadata) => {
-      const nominationFileIds = state.selectedFileIds;
-      if (!nominationFileIds || nominationFileIds.length === 0) {
+    async (selectedFileIds: readonly string[]) => {
+      const metadata = state.metadata;
+      if (!metadata) {
         const { isConfirmed } = await waitForConfirmation({
           content: formatMessage({
-            defaultMessage: 'Merci de sélectionner au moins une proposition avant de continuer',
+            defaultMessage: "Merci de renseigner les données de l'ODJ avant de continuer",
           }),
           i18n: {
             cancel: formatMessage({ defaultMessage: 'Rester sur cette étape' }),
             confirm: formatMessage({ defaultMessage: "Retourner à l'étape 1" }),
           },
-          title: formatMessage({ defaultMessage: 'Sélection manquante' }),
+          title: formatMessage({ defaultMessage: 'Métadonnées manquantes' }),
         });
-        if (isConfirmed) goToFiles();
+        if (isConfirmed) goToMetadata();
         return;
       }
 
       createAgenda.mutate(
         {
-          sessionId,
-          nominationFileIds,
           chairmanId: metadata.chairmanId,
           date: metadata.date,
+          nominationFileIds: [...selectedFileIds],
+          sessionId,
           sessionMeetingDate: metadata.sessionMeetingDate,
         },
         {
@@ -82,7 +86,6 @@ export function AgendaProvider(props: PropsWithChildren) {
             await queryClient.invalidateQueries({
               queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
             });
-            basket.clear();
             if (result?.id) {
               await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(result.id) });
               return navigate(
@@ -103,15 +106,14 @@ export function AgendaProvider(props: PropsWithChildren) {
       );
     },
     [
-      state.selectedFileIds,
-      goToFiles,
+      state.metadata,
+      goToMetadata,
       queryClient,
       createAgenda,
       sessionId,
       formatMessage,
       navigate,
       waitForConfirmation,
-      basket,
     ],
   );
 
@@ -119,18 +121,19 @@ export function AgendaProvider(props: PropsWithChildren) {
     <AgendaContext
       value={{
         error: state.error,
-        step: STEPS[state.stepIndex],
+        isSubmitting: createAgenda.isPending,
+        metadata: state.metadata,
         session: {
-          id: sessionId,
           dueDate: session?.dueDate ?? null,
           formation: session?.formation ?? 'SIEGE',
+          id: sessionId,
+          outcomes: session?.outcomes ?? [],
         },
-        selectedFileIds: state.selectedFileIds,
-        isSubmitting: createAgenda.isPending,
+        step: steps[state.stepIndex],
+        cancel,
         goToFiles,
         goToMetadata,
         submit,
-        cancel,
       }}
     >
       {isLoadingSession ? <span className="ri-loader-4-line animate-spin" /> : props.children}

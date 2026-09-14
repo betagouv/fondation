@@ -26,6 +26,7 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
       className={clsx(
         'flex h-12 items-center overflow-hidden px-4 leading-6 font-bold text-ellipsis whitespace-nowrap text-(--text-default-grey)',
         sticky && 'sticky left-0 z-3 border-r border-(--border-default-grey) bg-(--background-contrast-grey)',
+        header.column.columnDef.meta?.headerClassName,
       )}
       role="columnheader"
       style={
@@ -202,14 +203,15 @@ export function NewTable<Data extends RowData>(props: {
                 >
                   {row.getVisibleCells().map((cell) => {
                     const sticky = cell.column.columnDef.meta?.sticky;
-                    const cellClassName = cell.column.columnDef.meta?.cellClassName?.(row);
+                    const background = cell.column.columnDef.meta?.cellBackground?.(row);
                     return (
                       <div
                         className={clsx(
                           'flex items-center overflow-hidden px-4 py-3 wrap-break-word',
                           sticky && 'sticky left-0 z-1 border-r border-(--border-default-grey)',
-                          sticky && !cellClassName && 'bg-inherit',
-                          cellClassName,
+                          sticky && !background && 'bg-inherit',
+                          background,
+                          cell.column.columnDef.meta?.cellClassName?.(row),
                         )}
                         key={cell.id}
                         role="cell"

@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
-import { AgendaFilesSelection } from '@/features/documents/components/agenda/AgendaFilesSelection';
+import { AgendaFilesSelectionTable } from '@/features/documents/components/agenda/AgendaFilesSelectionTable';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailsAgendaFilesQuery, useUpdateAgendaFilesMutation } from '@queries/agenda.queries';
@@ -16,6 +16,7 @@ export function AgendaUpdateFilesPage() {
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);
+  const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null);
 
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
   const { data: files, isFetching } = useDetailsAgendaFilesQuery({ agendaId });
@@ -53,19 +54,24 @@ export function AgendaUpdateFilesPage() {
     <div className="fr-container fr-py-4v">
       <AgendaBreadCrumb />
       {error && <Alert as="h2" className="fr-mb-6v" closable severity="error" title={error} />}
-      <h1>
-        <FormattedMessage defaultMessage="Propositions de l'ordre du jour" />
-      </h1>
+      <div className="fr-mb-4v flex flex-wrap items-center justify-between gap-4">
+        <h1 className="fr-m-0">
+          <FormattedMessage defaultMessage="Propositions de l'ordre du jour" />
+        </h1>
+        <div className="flex justify-end" ref={setActionsSlot} />
+      </div>
       {isFetching ? (
         <span className="ri-loader-4-line animate-spin" />
       ) : (
-        <AgendaFilesSelection
+        <AgendaFilesSelectionTable
+          actionsSlot={actionsSlot}
           cancelLabel={<FormattedMessage defaultMessage="Annuler" />}
           defaultSelectedFileIds={files?.items}
           formation={session?.formation ?? 'SIEGE'}
           isSubmitting={update.isPending}
           onCancel={onCancel}
           onSubmit={onSubmit}
+          outcomes={session?.outcomes ?? []}
           renderSubmitLabel={(count) => (
             <FormattedMessage
               defaultMessage={`{count, plural,

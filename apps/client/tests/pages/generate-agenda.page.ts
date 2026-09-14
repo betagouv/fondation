@@ -8,52 +8,49 @@ export class GenerateAgendaPage {
   async goto(): Promise<this> {
     await this.app.page.getByRole('button', { name: 'Générer la documentation' }).click();
     await this.app.page.getByRole('menuitem', { name: 'Ordre du jour' }).click();
-    await this.app.page.getByRole('heading', { name: 'Sélection des propositions' }).waitFor();
+    await this.app.page
+      .getByRole('heading', { name: "Définir les informations de l'ordre du jour" })
+      .waitFor();
 
     return this;
   }
 
   get selectAllFilesCheckbox(): Locator {
-    return this.app.page.getByRole('checkbox', { name: /propositions? sélectionnées?|Aucune proposition/ });
+    return this.app.page.getByRole('checkbox', { name: /toutes les propositions( éligibles)?$/ });
   }
 
-  get secretarySelect(): Locator {
-    return this.app.page.getByLabel('Secrétaire général');
+  get selectedCount(): Locator {
+    return this.app.page.getByText(/propositions? sélectionnées?|Aucune proposition sélectionnée/);
   }
 
   get chairmanSelect(): Locator {
     return this.app.page.getByLabel('Président de séance');
   }
 
-  goToNextStep(): Promise<void> {
-    return this.app.page.getByRole('button', { name: /Définir les données de l'ODJ/ }).click();
+  selectFile(selector: { name: string }): Promise<void> {
+    return this.app.page.getByRole('row', { name: selector.name }).getByRole('checkbox').click();
   }
 
-  async fill(options: {
-    date?: Date;
-    secretary?: string;
-    chairman?: string;
-    sessionMeetingDate: Date;
-  }): Promise<{ agendaId: string }> {
+  async fillMetadata(options: { chairman: string; date?: Date; sessionMeetingDate: Date }): Promise<void> {
     await this.app.page
-      .getByLabel('Date de la séance')
+      .getByLabel('Date de la séance de restitution')
       .fill(options.sessionMeetingDate.toISOString().split('T')[0]!);
 
     if (options.date) {
       await this.app.page
-        .getByLabel("Date de l'ordre du jour")
+        .getByLabel("Date de création de l'ordre du jour")
         .fill(options.date.toISOString().split('T')[0]!);
     }
 
-    if (options.secretary) {
-      await this.secretarySelect.selectOption(options.secretary);
-    }
+    await this.chairmanSelect.selectOption(options.chairman);
 
-    if (options.chairman) {
-      await this.chairmanSelect.selectOption(options.chairman);
-    }
+    await this.app.page.getByRole('button', { name: 'Continuer' }).click();
+    await this.app.page.getByRole('heading', { name: 'Sélectionnez les propositions' }).waitFor();
+  }
 
+  async submit(): Promise<{ agendaId: string }> {
     await this.app.page.getByRole('button', { name: "Générer l'ordre du jour" }).click();
+
     const validationPattern = new URLPattern({
       pathname: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
     });
