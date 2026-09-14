@@ -20,6 +20,11 @@
   },
   "packageRules": [
     {
+      "description": "zod 4.5+ emits `type: [X, 'null']` for nullable fields, which nestjs-zod does not convert to OpenAPI 3.0 `nullable`",
+      "matchPackageNames": ["zod"],
+      "allowedVersions": "<4.5.0"
+    },
+    {
       "matchFileNames": ["apps/api/package.json", "apps/api-e2e/package.json"],
       "groupName": "api",
       "additionalBranchPrefix": "api/"
