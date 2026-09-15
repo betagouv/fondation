@@ -17,13 +17,23 @@ export class ListMemberSessionReportsQuery {
         reporterId: query.userId,
         sessionId: query.sessionId,
       },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true, nominationFileId: true, state: true },
+      orderBy: [
+        { nominationFile: { number: { sort: 'asc', nulls: 'last' } } },
+        { nominationFile: { name: 'asc' } },
+      ],
+      select: {
+        id: true,
+        nominationFileId: true,
+        state: true,
+        nominationFile: { select: { name: true, number: true } },
+      },
     });
 
     return {
       items: reports.map((report) => ({
+        name: report.nominationFile.name,
         nominationFileId: report.nominationFileId,
+        number: report.nominationFile.number,
         report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) },
       })),
     };
@@ -34,7 +44,9 @@ export class ListedMemberSessionReportsDto extends createZodDto(
   z.object({
     items: z.array(
       z.object({
+        name: z.string(),
         nominationFileId: z.uuid(),
+        number: z.number().int().nullable(),
         report: z.object({ id: z.uuid(), state: z.enum(ReportStateEnum) }),
       }),
     ),

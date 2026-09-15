@@ -1,7 +1,7 @@
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 
-import { SIDE_PANEL_DOSSIER_PARAM } from '../../context/side-panel.context';
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import {
   useSessionNominationFileQuery,
   type SessionNominationFile,

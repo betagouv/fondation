@@ -2,7 +2,6 @@ import { createContext, useContext } from 'react';
 
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-export const SIDE_PANEL_DOSSIER_PARAM = 'dossier';
 export const SIDE_PANEL_ID = 'magistrat-panel';
 
 export type SidePanelLeaveGuard = () => boolean;

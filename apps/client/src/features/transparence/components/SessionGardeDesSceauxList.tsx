@@ -4,7 +4,8 @@ import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
+import { FormationEnum } from '@/types/enums.types';
 import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
 
@@ -41,7 +42,7 @@ export function SessionGardeDesSceauxList({ sessions }: { sessions: SessionOfTyp
   const tabs = [FormationEnum.SIEGE, FormationEnum.PARQUET]
     .filter((formation) => sessionsByFormation[formation].length > 0)
     .map((formation): TabsProps.Uncontrolled['tabs'][number] => ({
-      label: FormationEnumLabel[formation],
+      label: formatMessage(FormationEnumMessages[formation]),
       content: (
         <div className="flex flex-col gap-6">
           <section>

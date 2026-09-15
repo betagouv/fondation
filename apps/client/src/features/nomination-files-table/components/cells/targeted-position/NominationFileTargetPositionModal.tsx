@@ -3,9 +3,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { revealAttachments } from '../magistrat-side-panel/components/attachments/attachments-section';
 import { useSidePanel } from '../magistrat-side-panel/context/side-panel.context';
 import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
+import { revealAttachments } from '@/features/transparence/components/nomination-file-attachments/attachments-section';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';

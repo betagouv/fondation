@@ -11,13 +11,6 @@ import type {
 } from '@api/types';
 
 export type RoleEnum = DetailedUserResponseDto['role'];
-export const RoleEnumLabels: Record<RoleEnum, string> = {
-  MEMBRE_DU_SIEGE: 'Membre du siège',
-  MEMBRE_DU_PARQUET: 'Membre du parquet',
-  MEMBRE_COMMUN: 'Membre commun',
-  ADJOINT_SECRETAIRE_GENERAL: 'Secrétariat général',
-  ADMIN: 'Administrateur',
-};
 
 export type GenderEnum = DetailedUserResponseDto['gender'];
 export type NominationFileAttachmentTypeEnum = UploadNominationFileAttachmentsDto['form']['type'];
@@ -28,13 +21,6 @@ export const REPORT_STATUSES = [
   'READY_TO_SUPPORT',
   'SUPPORTED',
 ] as const satisfies ReportStatusEnum[];
-
-export const REPORT_STATUS_ENUM_LABEL = {
-  NEW: 'Nouveau',
-  IN_PROGRESS: 'En cours',
-  READY_TO_SUPPORT: 'Prêt à soutenir',
-  SUPPORTED: 'Soutenu',
-} as const satisfies Record<ReportStatusEnum, string>;
 
 // TODO: remove?
 export type ReportFileUsageEnum = NonNullable<
@@ -59,19 +45,10 @@ export const FormationEnum: Record<FormationEnum, FormationEnum> = {
   SIEGE: 'SIEGE',
 };
 
-export const FormationEnumLabel = {
-  PARQUET: 'parquet',
-  SIEGE: 'siège',
-} as const satisfies Record<FormationEnum, string>;
-
 export type TypeDeSaisineEnum = NonNullable<DetailedNominationSessionDto['typeDeSaisine']>;
 export const TypeDeSaisineEnum = {
   TRANSPARENCE_GDS: 'TRANSPARENCE_GDS',
 } satisfies Record<TypeDeSaisineEnum, TypeDeSaisineEnum>;
-
-export const TypeDeSaisineEnumLabels: Record<TypeDeSaisineEnum, string> = {
-  TRANSPARENCE_GDS: 'Transparence',
-};
 
 export type PrioriteEnum = NonNullable<AffectReportersDto['items'][number]['priorities']>[number];
 export const PrioriteEnum = {
@@ -79,12 +56,6 @@ export const PrioriteEnum = {
   OUTRE_MER: 'OUTRE_MER',
   PROFILE: 'PROFILE',
 } satisfies Record<PrioriteEnum, PrioriteEnum>;
-
-export const PrioriteEnumLabels: Record<PrioriteEnum, string> = {
-  ETOILE: 'Étoilé',
-  OUTRE_MER: 'Outre-mer',
-  PROFILE: 'Profilé',
-};
 
 export type NominationFileOutcomeEnum = NonNullable<
   PaginatedNominationFiles['items'][number]['content']['outcome']
@@ -107,12 +78,6 @@ export const ObservationFollowUpEnum = {
   REFERENCE: 'REFERENCE',
 } as const satisfies Record<ObservationFollowupEnum, ObservationFollowupEnum>;
 
-export const ObservationFollowUpEnumLabels = {
-  ALERT: 'Signalement',
-  INTERESTING: `Digne d'intérêt`,
-  REFERENCE: 'Recommandation',
-} as const satisfies Record<ObservationFollowupEnum, string>;
-
 export type JobStatusEnum = DetailedJobDto['status'];
 export const JobStatusEnum = {
   CANCELED: 'CANCELED',
@@ -121,14 +86,6 @@ export const JobStatusEnum = {
   RUNNING: 'RUNNING',
   SUCCEEDED: 'SUCCEEDED',
 } as const satisfies Record<JobStatusEnum, JobStatusEnum>;
-
-export const JobStatusEnumLabel: Record<JobStatusEnum, string> = {
-  CANCELED: 'annulé',
-  FAILED: 'échec',
-  IDLE: 'en attente',
-  RUNNING: 'en cours',
-  SUCCEEDED: 'succès',
-};
 
 export type NominationSessionFileStatus = PaginatedNominationFiles['items'][number]['content']['status'];
 

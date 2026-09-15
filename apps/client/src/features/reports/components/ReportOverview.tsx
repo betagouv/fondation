@@ -1,12 +1,15 @@
-import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import clsx from 'clsx';
-import { useNavigate } from 'react-router';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { Navigate } from 'react-router';
 
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import { ScrollToTop } from '@/shared/ui/ScrollToTop';
+import { DetailsPageLayout } from '@/shared/ui/details';
+import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { ReportStatusEnum } from '@/types/enums.types';
-import { getTransparencesBreadCrumb, TransparencesCurrentPage } from '@/utils/transparences-breadcrumb.utils';
+import { HttpException } from '@/utils/http-exception';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
 import {
   useAttachReportFilesMutation,
   useDetachReportFilesMutation,
@@ -14,37 +17,47 @@ import {
   useUpdateReportMutation,
 } from '@queries/reports.queries';
 
-import { AttachedFileUpload } from './AttachedFileUpload';
+import { AttachedFilesList } from './AttachedFilesList';
 import { AutoSaveNotice } from './AutoSaveNotice';
-import { Biography } from './Biography';
-import { Identity } from './Identity';
-import { Observers } from './Observers';
 import { ReportAlerts } from './ReportAlerts';
+import { ReportAttachmentsCard } from './ReportAttachmentsCard';
+import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
-import { ReportOverviewFileComment } from './ReportOverviewFileComment';
-import { ReportOverviewState } from './ReportOverviewState';
-import { ReportSummaryCard } from './ReportSummaryCard';
-import { Summary } from './Summary';
+import { ReportMagistratCard } from './ReportMagistratCard';
+import { ReportNavigation } from './ReportNavigation';
 
 export function ReportOverview({ id }: { id: string }) {
-  const navigate = useNavigate();
+  const { formatMessage } = useIntl();
+  const breadCrumbOf = useTransparencesBreadCrumb();
 
   const { data: retrievedReport, isPending, error } = useReportQuery(id);
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
   const { mutate: detachReportFiles } = useDetachReportFilesMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
 
-  if (isPending || error || !retrievedReport) {
-    return null;
+  if (isPending) return null;
+
+  const isForbiddenOrMissing = error instanceof HttpException && [403, 404].includes(error.statusCode);
+  if (isForbiddenOrMissing || (!error && !retrievedReport)) {
+    return <Navigate replace to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;
   }
 
-  const breadcrumb = getTransparencesBreadCrumb(
-    {
-      name: TransparencesCurrentPage.gdsReport,
-      report: retrievedReport,
-    },
-    navigate,
-  );
+  if (error || !retrievedReport) {
+    return (
+      <PageContentLayout>
+        <Alert
+          description={<FormattedMessage defaultMessage="Rechargez la page ou réessayez plus tard" />}
+          severity="error"
+          title={<FormattedMessage defaultMessage="Le rapport n'a pas pu être chargé" />}
+        />
+      </PageContentLayout>
+    );
+  }
+
+  const breadcrumb = breadCrumbOf({
+    name: TransparencesCurrentPage.gdsReport,
+    report: retrievedReport,
+  });
 
   const onUpdateContent = (comment: string) => updateReport({ data: { comment }, reportId: id });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
@@ -64,73 +77,48 @@ export function ReportOverview({ id }: { id: string }) {
     });
   };
 
-  if (!retrievedReport)
-    return (
-      <div>
-        <Breadcrumb id="report-breadcrumb" ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} />
-        Rapport non trouvé.
-      </div>
-    );
-
   return (
     <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
-      <div className={clsx('flex-col items-center', cx('fr-grid-row'))}>
-        <div className="w-full">
-          <Breadcrumb ariaLabel="Fil d'Ariane du rapport" breadcrumb={breadcrumb} id="report-breadcrumb" />
-        </div>
+      <DetailsPageLayout
+        background="cafeCreme"
+        header={
+          <ReportDetailsHeader
+            breadcrumb={
+              <Breadcrumb
+                ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du rapport" })}
+                breadcrumb={breadcrumb}
+                className="fr-my-0"
+                id="report-breadcrumb"
+              />
+            }
+            detectedMagistrat={retrievedReport.detectedMagistrat}
+            detectedMagistratId={retrievedReport.detectedMagistratId}
+            isReadOnly={retrievedReport.isArchived}
+            name={retrievedReport.name}
+            nominationFileId={retrievedReport.nominationFileId}
+            onUpdateState={onUpdateState}
+            priorities={retrievedReport.priorities}
+            sessionId={retrievedReport.sessionId}
+            state={retrievedReport.state}
+          />
+        }
+        identity={<ReportMagistratCard report={retrievedReport} />}
+        navigation={<ReportNavigation reportId={id} sessionId={retrievedReport.sessionId} />}
+        wideIdentity
+      >
         <AutoSaveNotice />
-        <div className={clsx('scroll-smooth', cx('fr-grid-row', 'fr-grid-row--center', 'fr-py-12v'))}>
-          <div className={clsx('hidden md:block', cx('fr-col-md-5', 'fr-col-lg-4', 'fr-col-xl-3'))}>
-            <Summary
-              fileComment={retrievedReport.fileComment}
-              observers={retrievedReport.observers.concat(retrievedReport.observations.map(({ id }) => id))}
-              summary={retrievedReport.summary}
-            />
-          </div>
-          <div
-            className={clsx('flex-col gap-2', cx('fr-grid-row', 'fr-col-md-7', 'fr-col-lg-8', 'fr-col-xl-9'))}
-          >
-            <ReportAlerts report={retrievedReport} />
-            <ReportOverviewState onUpdateState={onUpdateState} state={retrievedReport.state} />
-            <Identity
-              birthDate={retrievedReport.birthDate}
-              currentPosition={retrievedReport.currentPosition}
-              detectedMagistratId={retrievedReport.detectedMagistratId}
-              dureeDuPoste={retrievedReport.dureeDuPoste}
-              grade={retrievedReport.grade}
-              name={retrievedReport.name}
-              nominationFileId={retrievedReport.nominationFileId}
-              priorities={retrievedReport.priorities}
-              rank={retrievedReport.rank}
-              sessionId={retrievedReport.sessionId}
-              targetedGrade={retrievedReport.targetedGrade}
-              targettedPosition={retrievedReport.targettedPosition}
-            />
-            <Biography biography={retrievedReport.biography} />
-            <ReportOverviewFileComment report={retrievedReport} />
-            <ReportSummaryCard
-              nominationFileId={retrievedReport.nominationFileId}
-              sessionId={retrievedReport.sessionId}
-              summary={retrievedReport.summary}
-            />
-            <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-            <Observers
-              nominationFileId={retrievedReport.nominationFileId}
-              observations={retrievedReport.observations}
-              observers={retrievedReport.observers}
-              reportId={id}
-              sessionId={retrievedReport.sessionId}
-            />
-            <AttachedFileUpload
+        <ReportAlerts report={retrievedReport} />
+        <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
+        <ReportAttachmentsCard isReadOnly={retrievedReport.isArchived} onFilesAttached={onFilesAttached}>
+          {retrievedReport.attachments.length > 0 && (
+            <AttachedFilesList
               attachments={retrievedReport.attachments}
-              onAttachedFileDeleted={onAttachedFileDeleted}
-              onFilesAttached={onFilesAttached}
+              onDelete={onAttachedFileDeleted}
               reportId={id}
             />
-          </div>
-        </div>
-        <ScrollToTop />
-      </div>
+          )}
+        </ReportAttachmentsCard>
+      </DetailsPageLayout>
     </ArchiveBannerPortal>
   );
 }

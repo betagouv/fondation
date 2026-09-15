@@ -146,7 +146,7 @@ test.describe('Gérer les sessions', () => {
       await page.editAffectation('BOURDIEU PIERRE', { priorities: ['Outre-mer', 'Étoilé'] });
 
       // Alors la cellule "Priorité(s)" de la ligne affectée contient "Étoilé, Outre-mer"
-      const priorities = page.sessionRow({ name: 'BOURDIEU PIERRE' }).getByRole('cell').nth(4);
+      const priorities = await page.cellUnder(page.sessionRow({ name: 'BOURDIEU PIERRE' }), 'Priorité');
       await test.expect(priorities).toContainText('Outre-mer');
       await test.expect(priorities).toContainText('Étoilé');
     });

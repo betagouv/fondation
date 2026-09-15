@@ -3,34 +3,31 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import type { DetailedReportDto } from '@/generated/api/types';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
 
 type ObservationCardProps = {
-  observation: DetailedReportDto['observations'][number] | SessionNominationFile['observations'][number];
-  sessionId: string;
-  nominationFileId: string;
   context: 'sg' | 'membre';
+  nominationFileId: string;
+  observation: SessionNominationFile['observations'][number];
   reportId?: string;
+  sessionId: string;
 };
 
 export function ObservationCard({
-  observation,
-  sessionId,
-  nominationFileId,
   context,
+  nominationFileId,
+  observation,
   reportId,
+  sessionId,
 }: ObservationCardProps) {
   const { formatMessage } = useIntl();
   const shouldDisplayCommentIcon = observation.hasDescription || observation.hasUserComment;
   const magistratName = observation.magistrat
     ? fullNameUpperCase(observation.magistrat)
     : formatMessage({ defaultMessage: 'Magistrat inconnu' });
-
-  const dateObj = 'dateReception' in observation ? observation.dateReception : observation.date;
 
   const observationPath = getObservationDetailsPath({
     context,
@@ -54,7 +51,7 @@ export function ObservationCard({
         <span className={clsx(cx('fr-mb-0', 'fr-text--light'), 'text-sm')}>
           <FormattedMessage
             defaultMessage="Observation du {date}"
-            values={{ date: formatDateOnly(dateObj) }}
+            values={{ date: formatDateOnly(observation.date) }}
           />
         </span>
       }

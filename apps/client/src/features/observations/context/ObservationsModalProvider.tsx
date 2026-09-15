@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useMemo, useReducer, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { ObservationForm } from '../ObservationForm';
-import { ObservationsList } from '../ObservationsList';
+import { ObservationForm } from '../components/ObservationForm';
+import { ObservationsList } from '../components/ObservationsList';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { Modal } from '@/shared/ui/modal';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';

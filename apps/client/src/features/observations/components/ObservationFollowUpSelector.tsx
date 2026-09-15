@@ -2,13 +2,10 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState, type ChangeEvent } from 'react';
 import { useIntl } from 'react-intl';
 
+import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useObservationFollowUpCommentDialog } from '@/features/observations/context/ObservationFollowUpCommentContext';
-import {
-  ObservationFollowUpEnum,
-  ObservationFollowUpEnumLabels,
-  type ObservationFollowupEnum,
-} from '@/types/enums.types';
+import { ObservationFollowUpEnum, type ObservationFollowupEnum } from '@/types/enums.types';
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
 
 export function ObservationFollowUpSelector(props: {
@@ -86,7 +83,7 @@ export function ObservationFollowUpSelector(props: {
         </option>
         {Object.values(ObservationFollowUpEnum).map((value) => (
           <option key={`observation_followUp_${value}`} value={value}>
-            {ObservationFollowUpEnumLabels[value]}
+            {formatMessage(ObservationFollowUpEnumMessages[value])}
           </option>
         ))}
       </Select>

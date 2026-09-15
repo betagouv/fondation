@@ -3,7 +3,6 @@ import { QueryClient } from '@tanstack/react-query';
 
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
-import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import type { DetailedSummaryDto } from '@api/types';
 import { authKeys } from '@queries/auth.queries';
 import { summaryKeys } from '@queries/summary.queries';
@@ -102,10 +101,6 @@ function SummaryStory(props: {
   view: View;
 }) {
   const user = props.view === 'sg' ? SG_USER : MEMBER_USER;
-  const nominationFile = makeSessionNominationFile({
-    id: NOMINATION_FILE_ID,
-    summary: props.hasSummary ? { id: 'summary-1', canRead: true, canWrite: props.view === 'sg' } : null,
-  });
 
   const seed = (client: QueryClient) => {
     client.setQueryData(authKeys.introspectSession(), user);
@@ -134,7 +129,13 @@ function SummaryStory(props: {
       seed={seed}
     >
       <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
-        <Summary nominationFile={nominationFile} sessionId={SESSION_ID} />
+        <Summary
+          canRead={props.hasSummary}
+          hasSummary={props.hasSummary}
+          nominationFileId={NOMINATION_FILE_ID}
+          sessionId={SESSION_ID}
+          withOpenLink
+        />
       </ArchivedSessionContext>
     </StoryQueryClient>
   );

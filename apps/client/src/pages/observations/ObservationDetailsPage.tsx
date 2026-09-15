@@ -2,14 +2,13 @@ import { useCallback } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { SIDE_PANEL_DOSSIER_PARAM } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/context/side-panel.context';
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
-import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getDetailSessionGdsPath, openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAttachObservationMemberCommentScreenshotsMutation,
   useGetObservationFileUrlMutation,
@@ -95,7 +94,7 @@ export function ObservationDetailsPage() {
     });
   };
 
-  const openedSidePanel = `?${new URLSearchParams({ [SIDE_PANEL_DOSSIER_PARAM]: nominationFileId })}`;
+  const openedSidePanel = openedDossierSearch(nominationFileId);
 
   const backLink = isSgContext
     ? {

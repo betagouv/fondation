@@ -16,7 +16,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';
 import { MemberReportStateCell } from './cells/MemberReportStateCell';
 import { NominationFileOutcome } from './cells/nomination-file-outcome/NominationFileOutcome';
-import { ObservantsCell } from './cells/observations/ObservantsCell';
+import { ObservantsCell } from './cells/ObservantsCell';
 import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
 import { SessionFilesTable } from './SessionFilesTable';

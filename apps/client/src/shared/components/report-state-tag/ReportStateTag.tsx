@@ -1,8 +1,10 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import { useIntl } from 'react-intl';
 
-import { REPORT_STATUS_ENUM_LABEL, type ReportStatusEnum } from '@/types/enums.types';
+import { ReportStatusEnumMessages } from '@/constants/enum-labels.constants';
+import type { ReportStatusEnum } from '@/types/enums.types';
 
 const statesSpec: Record<ReportStatusEnum, { backgroundColor: string; color?: string }> = {
   NEW: {
@@ -25,6 +27,7 @@ const statesSpec: Record<ReportStatusEnum, { backgroundColor: string; color?: st
 
 export function ReportStateTag(props: { state: ReportStatusEnum }) {
   const activeSpec = statesSpec[props.state];
+  const { formatMessage } = useIntl();
 
   return (
     <Tag
@@ -32,7 +35,7 @@ export function ReportStateTag(props: { state: ReportStatusEnum }) {
       style={{ backgroundColor: activeSpec.backgroundColor, color: activeSpec.color }}
     >
       <span className={cx('fr-text--bold')} style={{ color: activeSpec.color }}>
-        {REPORT_STATUS_ENUM_LABEL[props.state]}
+        {formatMessage(ReportStatusEnumMessages[props.state])}
       </span>
     </Tag>
   );

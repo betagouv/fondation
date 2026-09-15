@@ -73,6 +73,11 @@ export type DetailedReportDto = {
     nominationFileId: string;
     name: string;
     detectedMagistratId: string | null;
+    detectedMagistrat: {
+        firstName: string;
+        lastName: string;
+        usedName: string | null;
+    } | null;
     comment: string | null;
     formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
@@ -113,7 +118,6 @@ export type DetailedReportDto = {
     targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
     targettedPosition: string | null;
     rank: string | null;
-    observers: Array<string>;
     dureeDuPoste: string | null;
     priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     /**
@@ -122,7 +126,6 @@ export type DetailedReportDto = {
      * @deprecated
      */
     priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
-    fileComment: string | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
@@ -133,36 +136,6 @@ export type DetailedReportDto = {
         usage: 'ATTACHMENT';
         name: string;
         fileId: string;
-    }>;
-    summary: {
-        content: string;
-        attachments: Array<{
-            fileId: string;
-            name: string;
-            type: string;
-        }>;
-        screenshots: Array<{
-            fileId: string;
-            name: string;
-            type: string;
-            url: string;
-        }>;
-    } | null;
-    observations: Array<{
-        id: string;
-        dateReception: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        hasDescription: boolean;
-        hasUserComment: boolean;
-        magistrat: {
-            id: string;
-            firstName: string;
-            lastName: string;
-            usedName: string | null;
-        };
     }>;
 };
 
@@ -934,7 +907,9 @@ export type ListedMemberSessionsDto = {
 
 export type ListedMemberSessionReportsDto = {
     items: Array<{
+        name: string;
         nominationFileId: string;
+        number: number | null;
         report: {
             id: string;
             state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';

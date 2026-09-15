@@ -11,17 +11,25 @@ import { useArchivedSession } from '@/shared/context/archived-session';
 import { ExpandableText } from '@/shared/ui/expandable-text';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useSummaryQuery } from '@queries/summary.queries';
 
 import { containsImage, toPlainText } from './summary-text';
 import { SummaryButton } from './SummaryButton';
 
-export function Summary(props: { nominationFile: SessionNominationFile; sessionId: string }) {
+export type SummaryTarget = {
+  canRead: boolean;
+  hasSummary: boolean;
+  headingLevel?: 2 | 3;
+  nominationFileId: string;
+  sessionId: string;
+  withOpenLink?: boolean;
+};
+
+export function Summary(props: SummaryTarget) {
   return (
     <Sentry.ErrorBoundary
       fallback={
-        <SummarySection>
+        <SummarySection headingLevel={props.headingLevel}>
           <p className="fr-mb-0 text-(--text-mention-grey)">
             <FormattedMessage defaultMessage="La synthèse n'a pas pu être affichée." />
           </p>
@@ -33,20 +41,17 @@ export function Summary(props: { nominationFile: SessionNominationFile; sessionI
   );
 }
 
-function SummaryContent(props: { nominationFile: SessionNominationFile; sessionId: string }) {
+function SummaryContent(props: SummaryTarget) {
   const isSg = useIsSg();
   const { isArchived } = useArchivedSession();
-  const { summary } = props.nominationFile;
 
-  if (summary?.canRead) {
-    return <ReadableSummary nominationFile={props.nominationFile} sessionId={props.sessionId} />;
-  }
+  if (props.canRead) return <ReadableSummary {...props} />;
 
-  const canCreate = !isArchived && !summary && isSg;
+  const canCreate = !isArchived && !props.hasSummary && isSg;
   if (!canCreate) return null;
 
   return (
-    <SummarySection action={<SummaryButton {...props} />}>
+    <SummarySection action={<SummaryButton {...props} />} headingLevel={props.headingLevel}>
       <p className="fr-mb-0 text-(--text-mention-grey)">
         <FormattedMessage defaultMessage="Aucune synthèse rédigée" />
       </p>
@@ -54,15 +59,15 @@ function SummaryContent(props: { nominationFile: SessionNominationFile; sessionI
   );
 }
 
-function ReadableSummary(props: { nominationFile: SessionNominationFile; sessionId: string }) {
+function ReadableSummary(props: SummaryTarget) {
   const { user } = useUser();
   const isSg = useIsSg();
-  const { nominationFile, sessionId } = props;
-  const { data, isLoading } = useSummaryQuery({ sessionId, nominationFileId: nominationFile.id });
+  const { nominationFileId, sessionId } = props;
+  const { data, isLoading } = useSummaryQuery({ sessionId, nominationFileId });
 
   if (isLoading) {
     return (
-      <SummarySection>
+      <SummarySection headingLevel={props.headingLevel}>
         <p className="fr-mb-0">
           <FormattedMessage defaultMessage="Chargement…" />
         </p>
@@ -72,7 +77,7 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
 
   if (!data) {
     return (
-      <SummarySection>
+      <SummarySection headingLevel={props.headingLevel}>
         <p className="fr-mb-0 text-(--text-mention-grey)">
           <FormattedMessage defaultMessage="La synthèse n'a pas pu être chargée." />
         </p>
@@ -82,7 +87,7 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
 
   const canWriteSummary = !!user?.id && (data.summary.author ? user.id === data.summary.author.id : isSg);
 
-  const link = ROUTE_PATHS.SUMMARY.replace(':sessionId', sessionId).replace(':fileId', nominationFile.id);
+  const link = ROUTE_PATHS.SUMMARY.replace(':sessionId', sessionId).replace(':fileId', nominationFileId);
 
   return (
     <SummaryContext
@@ -90,7 +95,7 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
         sections: [],
         showSection: () => {},
         sessionId,
-        nominationFileId: nominationFile.id,
+        nominationFileId,
         canWriteSummary,
         summary: data,
       }}
@@ -106,24 +111,27 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
               size="small"
               withCount={false}
             />
-            <Button
-              className="btn-compact"
-              iconId="fr-icon-arrow-right-line"
-              iconPosition="right"
-              linkProps={{ to: link }}
-              priority="secondary"
-              size="small"
-            >
-              <FormattedMessage defaultMessage="Ouvrir" />
-            </Button>
+            {props.withOpenLink && canWriteSummary && (
+              <Button
+                className="btn-compact"
+                iconId="fr-icon-arrow-right-line"
+                iconPosition="right"
+                linkProps={{ to: link }}
+                priority="secondary"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Ouvrir" />
+              </Button>
+            )}
           </div>
         }
-        mention={<SharedWithMention count={data.summary.readers.length} />}
+        headingLevel={props.headingLevel}
+        mention={canWriteSummary && <SharedWithMention count={data.summary.readers.length} />}
       >
         <SummaryText
           attachments={data.summary.attachments}
           content={data.summary.content}
-          nominationFileId={nominationFile.id}
+          nominationFileId={nominationFileId}
           sessionId={sessionId}
         />
       </SummarySection>
@@ -131,14 +139,22 @@ function ReadableSummary(props: { nominationFile: SessionNominationFile; session
   );
 }
 
-function SummarySection(props: { action?: ReactNode; children: ReactNode; mention?: ReactNode }) {
+function SummarySection(props: {
+  action?: ReactNode;
+  children: ReactNode;
+  headingLevel?: 2 | 3;
+  mention?: ReactNode;
+}) {
+  const Heading = props.headingLevel === 2 ? 'h2' : 'h3';
+  const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';
+
   return (
     <div>
       <div className="fr-mb-4v flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <h3 className="fr-mb-0 text-xl font-semibold">
+          <Heading className={headingClass}>
             <FormattedMessage defaultMessage="Synthèse" />
-          </h3>
+          </Heading>
           {props.mention}
         </div>
         {props.action}
@@ -152,8 +168,8 @@ function SharedWithMention(props: { count: number }) {
   if (props.count === 0) return null;
 
   return (
-    <p className="fr-mb-0 flex items-center gap-2 text-sm-plus text-(--text-mention-grey)">
-      <span aria-hidden className="fr-icon-user-star-line fr-icon--sm" />
+    <p className="fr-text--xs fr-mb-0 flex items-center gap-1 text-(--text-mention-grey)">
+      <span aria-hidden className="fr-icon-user-star-line fr-icon--sm [&::before]:[--icon-size:0.875rem]" />
       <FormattedMessage
         defaultMessage="Partagée à {count, plural, one {# membre} other {# membres}}"
         values={{ count: props.count }}

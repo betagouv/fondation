@@ -1,18 +1,18 @@
-import { useCallback, type FC } from 'react';
+import { useCallback } from 'react';
 
-import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 
-import { TextareaCard } from './TextareaCard';
+import { ReportCommentCard } from './ReportCommentCard';
 
-export type ReportEditorProps = {
+export function ReportEditor(props: {
   comment: string | null;
   onUpdate: (comment: string) => void;
   reportId: string;
-};
-
-export const ReportEditor: FC<ReportEditorProps> = ({ reportId, comment, onUpdate }) => {
+}) {
+  const { reportId } = props;
+  const { isArchived } = useArchivedSession();
   const { mutateAsync } = useAttachScreenshotMutation();
 
   const uploadFiles = useCallback<FilesUploader>(
@@ -24,13 +24,11 @@ export const ReportEditor: FC<ReportEditorProps> = ({ reportId, comment, onUpdat
   );
 
   return (
-    <TextareaCard
-      cardId={reportHtmlIds.overview.commentSection}
-      titleId={reportHtmlIds.overview.comment}
-      label="Rapport"
-      content={comment}
-      onContentChange={onUpdate}
+    <ReportCommentCard
+      comment={props.comment}
+      isReadOnly={isArchived}
+      onUpdate={props.onUpdate}
       uploadFiles={uploadFiles}
     />
   );
-};
+}

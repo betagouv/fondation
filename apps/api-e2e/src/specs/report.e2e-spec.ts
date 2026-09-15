@@ -77,12 +77,22 @@ test.describe('Report E2E', () => {
     expect(otherMemberRes.response?.status).toBe(403);
   });
 
-  test('should list my session reports with their state', async ({ logIn, member, expect }) => {
+  test('should list my session reports with their state', async ({ logIn, agent, member, expect }) => {
+    const filesRes = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    const file = filesRes.data!.items[0]!;
+
     const memberRes = await member.members.listMemberSessionReports({
       path: { sessionId, userId: member['@user']!.id },
     });
     expect(memberRes.response?.status).toBe(200);
-    expect(memberRes.data?.items).toEqual([{ nominationFileId, report: { id: reportId, state: 'NEW' } }]);
+    expect(memberRes.data?.items).toEqual([
+      {
+        name: file.content.nomMagistrat,
+        nominationFileId,
+        number: file.content.numeroDeDossier,
+        report: { id: reportId, state: 'NEW' },
+      },
+    ]);
 
     const memberWithoutReport = await logIn('MEMBRE_COMMUN');
     const withoutReportRes = await memberWithoutReport.members.listMemberSessionReports({
@@ -90,6 +100,59 @@ test.describe('Report E2E', () => {
     });
     expect(withoutReportRes.response?.status).toBe(200);
     expect(withoutReportRes.data?.items).toEqual([]);
+  });
+
+  test('should list my session reports ordered by file number', async ({ sessions, agent, member, expect }) => {
+    // file numbers restart at 1 in each formation, so both candidates must stay in the same one
+    const parquetCandidate = (firstName: string, lastName: string) => ({
+      firstName,
+      lastName,
+      position: {
+        grade: 'G3' as const,
+        jurisdiction: seed.jurisdictions['CA  LYON'],
+        function: seed.functions.PR,
+      },
+      targetPosition: {
+        grade: 'G3' as const,
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+        function: seed.functions.PR,
+      },
+    });
+
+    const session = await sessions.createOne({
+      name: 'Transparence ordre des rapports',
+      createdAt: '22/04/2026',
+      candidates: [parquetCandidate('EMILE', 'ZOLA'), parquetCandidate('MARIE', 'ABEL')],
+    });
+
+    const filesRes = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+    const filesByNumber = filesRes.data!.items;
+    expect(filesByNumber).toHaveLength(2);
+
+    const filesInReverseOrder = [...filesByNumber].reverse();
+    const affectRes = await agent.sessions.affectReporters({
+      path: { sessionId: session.id },
+      body: {
+        items: filesInReverseOrder.map((file) => ({
+          nominationFileId: file.id,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    expect(affectRes.response?.status).toBe(204);
+
+    const publishRes = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: session.id },
+    });
+    expect(publishRes.response?.status).toBe(204);
+
+    const reportsRes = await member.members.listMemberSessionReports({
+      path: { sessionId: session.id, userId: member['@user']!.id },
+    });
+    expect(reportsRes.data!.items.map(({ name, number }) => ({ name, number }))).toEqual(
+      filesByNumber.map(({ content }) => ({ name: content.nomMagistrat, number: content.numeroDeDossier })),
+    );
   });
 
   test('should not list session reports of an unknown session', async ({ member, expect }) => {

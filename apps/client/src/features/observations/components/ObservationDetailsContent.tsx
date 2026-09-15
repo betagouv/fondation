@@ -171,19 +171,13 @@ export function ObservationDetailsContent({
                 <h2 className="fr-h4" id="member-comment-label">
                   <FormattedMessage defaultMessage="Mon commentaire" />
                 </h2>
-                {isArchived ? (
-                  <div
-                    className="fr-p-2v rounded bg-(--background-contrast-grey)"
-                    dangerouslySetInnerHTML={{ __html: observation.memberComment?.comment ?? '' }}
-                  />
-                ) : (
-                  <TipTapEditor
-                    value={observation.memberComment?.comment ?? ''}
-                    onChange={onUpdateMemberComment!}
-                    ariaLabelledby="member-comment-label"
-                    uploadFiles={uploadFiles}
-                  />
-                )}
+                <TipTapEditor
+                  ariaLabelledby="member-comment-label"
+                  onChange={onUpdateMemberComment}
+                  readOnly={isArchived}
+                  uploadFiles={uploadFiles}
+                  value={observation.memberComment?.comment ?? ''}
+                />
               </section>
             )}
 

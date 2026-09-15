@@ -1,9 +1,10 @@
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { SIDE_PANEL_DOSSIER_PARAM, SidePanelContext, type SidePanelLeaveGuard } from './side-panel.context';
+import { SidePanelContext, type SidePanelLeaveGuard } from './side-panel.context';
 
 type PendingNext = { fromId: string; sawFetching: boolean };
 

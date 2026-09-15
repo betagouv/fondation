@@ -1,5 +1,7 @@
 import { generatePath, redirect } from 'react-router';
 
+export const SIDE_PANEL_DOSSIER_PARAM = 'dossier';
+
 export const ROUTE_PATHS = {
   LOGIN: '/login',
   ACCESSIBILITY: '/accessibilite',
@@ -79,6 +81,9 @@ export function getDetailSessionGdsPath(props: { sessionId: string }): string {
 export const getGdsReportPath = (id: string) => {
   return generatePath(ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS, { id });
 };
+
+export const openedDossierSearch = (nominationFileId: string): string =>
+  `?${new URLSearchParams({ [SIDE_PANEL_DOSSIER_PARAM]: nominationFileId })}`;
 
 export const getObservationDetailsPath = (props: {
   sessionId: string;

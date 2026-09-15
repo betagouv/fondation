@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
+import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import {
   useObservationsModal,
   type ActiveFile,
-} from '../../../observations/context/ObservationsModalContext';
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { formatObservers } from '@/features/reports/utils/formatters';
-import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
+} from '@/features/observations/context/ObservationsModalContext';
+import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
@@ -104,7 +104,7 @@ function ObservationCard({ observation, file }: { observation: Observation; file
                   className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
                   small
                 >
-                  {ObservationFollowUpEnumLabels[observation.followUp]}
+                  {intl.formatMessage(ObservationFollowUpEnumMessages[observation.followUp])}
                 </Tag>
               )}
             </div>
@@ -208,33 +208,31 @@ function ObservationCard({ observation, file }: { observation: Observation; file
 
 export const OBSERVATIONS_SECTION_ID = 'magistrat-observations-section';
 
-export function Observations({
-  nominationFile,
-  sessionId,
-}: {
-  nominationFile: SessionNominationFile;
+export function Observations(props: {
+  headingLevel?: 2 | 3;
+  magistratName: string;
+  nominationFileId: string;
+  observers: string[] | null;
   sessionId: string;
 }) {
+  const { magistratName, nominationFileId, observers, sessionId } = props;
   const intl = useIntl();
   const isSg = useIsSgNavigation();
   const { open } = useObservationsModal();
-  const { observants } = nominationFile.content;
+  const Heading = props.headingLevel === 2 ? 'h2' : 'h3';
+  const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';
 
   const [showAll, setShowAll] = useState(false);
   const { data } = useObservationsQuery({
     sessionId,
-    nominationFileId: nominationFile.id,
+    nominationFileId,
   });
   const observations = data?.observations ?? [];
   const visibleObservations = showAll ? observations : observations.slice(0, VISIBLE_OBSERVATIONS);
   const hiddenCount = observations.length - visibleObservations.length;
 
-  const file: ActiveFile = {
-    sessionId,
-    id: nominationFile.id,
-    name: nominationFile.content.nomMagistrat,
-  };
-  const formattedObservers = observants ? formatObservers(observants) : null;
+  const file: ActiveFile = { sessionId, id: nominationFileId, name: magistratName };
+  const formattedObservers = observers ? splitLodamObservers(observers) : null;
   const observationsCount = observations.length;
 
   if (!isSg && observationsCount === 0 && !formattedObservers) return null;
@@ -242,12 +240,12 @@ export function Observations({
   return (
     <div id={OBSERVATIONS_SECTION_ID}>
       <div className="fr-mb-4v flex items-center justify-between gap-2">
-        <h3 className="fr-mb-0 text-xl font-semibold">
+        <Heading className={headingClass}>
           <FormattedMessage
             defaultMessage="{count, plural, =0 {Observants} one {Observant} other {Observants ({count})}}"
             values={{ count: observationsCount }}
           />
-        </h3>
+        </Heading>
         {isSg && (
           <Button
             className="btn-compact"

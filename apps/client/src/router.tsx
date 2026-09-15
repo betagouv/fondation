@@ -102,19 +102,11 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
           {
+            path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
             lazy: () =>
-              import('@/pages/spaces/member/MemberReportOverviewLayout').then(
-                ({ MemberReportOverviewLayout }) => ({ Component: MemberReportOverviewLayout }),
-              ),
-            children: [
-              {
-                path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
-                lazy: () =>
-                  import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
-                    Component: ReportOverviewPage,
-                  })),
-              },
-            ],
+              import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
+                Component: ReportOverviewPage,
+              })),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,

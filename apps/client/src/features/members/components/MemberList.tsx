@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
-import { defineMessage } from 'react-intl';
+import { defineMessage, FormattedMessage } from 'react-intl';
 
+import { RoleEnumMessages } from '@/constants/enum-labels.constants';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
-import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { PaginatedMemberListItemDto } from '@api/types';
@@ -17,7 +17,7 @@ const columns = [
     id: 'formation',
     enableSorting: false,
     header: 'Formation',
-    cell: ({ cell }) => RoleEnumLabels[cell.getValue()],
+    cell: ({ cell }) => <FormattedMessage {...RoleEnumMessages[cell.getValue()]} />,
     meta: {
       filters: {
         type: 'enum',

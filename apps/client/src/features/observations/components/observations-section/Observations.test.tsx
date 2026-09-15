@@ -4,15 +4,13 @@ import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
-
 import { Observations } from './Observations';
 
 const isSg = vi.fn(() => true);
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => isSg() }));
 
 const open = vi.fn();
-vi.mock('../../../observations/context/ObservationsModalContext', () => ({
+vi.mock('@/features/observations/context/ObservationsModalContext', () => ({
   useObservationsModal: () => ({ open, edit: vi.fn(), requestDelete: vi.fn() }),
 }));
 
@@ -32,11 +30,15 @@ vi.mock('@queries/observations.queries', () => ({
 }));
 
 function renderObservations(content: { observants?: string[] | null } = {}) {
-  const nominationFile = makeSessionNominationFile({ content: { observants: content.observants ?? null } });
   return render(
     <MemoryRouter>
       <IntlProvider defaultLocale="fr" locale="fr">
-        <Observations nominationFile={nominationFile} sessionId="session-1" />
+        <Observations
+          magistratName="RAVEL Maurice"
+          nominationFileId="dossier-1"
+          observers={content.observants ?? null}
+          sessionId="session-1"
+        />
       </IntlProvider>
     </MemoryRouter>,
   );
@@ -83,7 +85,7 @@ describe('Observations', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter' }));
 
     expect(open).toHaveBeenCalledWith(
-      { sessionId: 'session-1', id: 'nomination-file', name: 'Camille DURAND' },
+      { sessionId: 'session-1', id: 'dossier-1', name: 'RAVEL Maurice' },
       'create',
     );
   });

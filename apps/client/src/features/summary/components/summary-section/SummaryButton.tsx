@@ -6,10 +6,14 @@ import { useNavigate } from 'react-router';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useCreateSummaryMutation } from '@queries/summary.queries';
 
-export function SummaryButton(props: { sessionId: string; nominationFile: SessionNominationFile }) {
+export function SummaryButton(props: {
+  canRead: boolean;
+  hasSummary: boolean;
+  nominationFileId: string;
+  sessionId: string;
+}) {
   const { isArchived } = useArchivedSession();
   const isSg = useIsSg();
   const navigate = useNavigate();
@@ -17,26 +21,23 @@ export function SummaryButton(props: { sessionId: string; nominationFile: Sessio
 
   const link = React.useMemo(
     () =>
-      ROUTE_PATHS.SUMMARY.replace(':sessionId', props.sessionId).replace(':fileId', props.nominationFile.id),
-    [props],
+      ROUTE_PATHS.SUMMARY.replace(':sessionId', props.sessionId).replace(':fileId', props.nominationFileId),
+    [props.nominationFileId, props.sessionId],
   );
 
-  const { summary } = props.nominationFile;
-
-  const canReadSummary = React.useMemo(() => !!summary?.canRead, [summary]);
-  const canCreateSummary = React.useMemo(() => !isArchived && !summary && isSg, [isArchived, summary, isSg]);
+  const canCreateSummary = !isArchived && !props.hasSummary && isSg;
 
   const createSummary = React.useCallback(() => {
     mutate(
-      { sessionId: props.sessionId, nominationFileId: props.nominationFile.id },
+      { sessionId: props.sessionId, nominationFileId: props.nominationFileId },
       {
         onSuccess: () => navigate(link),
         onSettled: () => reset(),
       },
     );
-  }, [link, props, mutate, reset, navigate]);
+  }, [link, props.nominationFileId, props.sessionId, mutate, reset, navigate]);
 
-  if (!canReadSummary && !canCreateSummary) return null;
+  if (!props.canRead && !canCreateSummary) return null;
 
   if (canCreateSummary) {
     return (
