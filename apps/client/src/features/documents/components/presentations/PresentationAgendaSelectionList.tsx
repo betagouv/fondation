@@ -3,9 +3,10 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { usePresentationPlan } from '@/features/documents/context/presentation-plan.context';
 import { useSelection } from '@/shared/hooks/useSelection';
-import { FormationEnumLabel, TypeDeSaisineEnum } from '@/types/enums.types';
+import { TypeDeSaisineEnum } from '@/types/enums.types';
 import { compareDateOnly, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { toInitials } from '@/utils/user.utils';
@@ -31,7 +32,10 @@ export function PresentationAgendaSelectionList(props: {
     [items, formation],
   );
 
-  const formationLabel = useMemo(() => FormationEnumLabel[formation], [formation]);
+  const formationLabel = useMemo(
+    () => formatMessage(FormationEnumMessages[formation]),
+    [formatMessage, formation],
+  );
   const viewItems = useMemo(
     () =>
       formationItems

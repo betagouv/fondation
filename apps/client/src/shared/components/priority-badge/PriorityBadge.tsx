@@ -1,8 +1,10 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import clsx from 'clsx';
 import React from 'react';
+import { useIntl } from 'react-intl';
 
-import { PrioriteEnumLabels, type PrioriteEnum } from '@/types/enums.types';
+import { PrioriteEnumMessages } from '@/constants/enum-labels.constants';
+import type { PrioriteEnum } from '@/types/enums.types';
 
 const colorClassName = {
   ETOILE: 'bg-(--background-contrast-warning) text-(--text-default-warning)',
@@ -17,8 +19,11 @@ const acronyms = {
 } as const satisfies Record<PrioriteEnum, string>;
 
 function InternalPriorityBadge(props: { acronym?: boolean; priority: PrioriteEnum; small?: boolean }) {
+  const { formatMessage } = useIntl();
   const small = props.small ?? true;
-  const label = props.acronym ? acronyms[props.priority] : PrioriteEnumLabels[props.priority];
+  const label = props.acronym
+    ? acronyms[props.priority]
+    : formatMessage(PrioriteEnumMessages[props.priority]);
   return (
     <Badge
       as="span"

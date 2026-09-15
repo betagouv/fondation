@@ -12,10 +12,11 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { FormationEnum, FormationEnumLabel } from '@/types/enums.types';
+import { FormationEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { getSgBreadCrumb } from '@/utils/sg-breadcrumb.utils';
 import { capitalize } from '@/utils/string.utils';
@@ -193,8 +194,12 @@ function NouvelleTransparence() {
               stateRelatedMessage={errors.formation?.message}
             >
               <option disabled></option>
-              <option value={FormationEnum.SIEGE}>{capitalize(FormationEnumLabel.SIEGE)}</option>
-              <option value={FormationEnum.PARQUET}>{capitalize(FormationEnumLabel.PARQUET)}</option>
+              <option value={FormationEnum.SIEGE}>
+                {capitalize(formatMessage(FormationEnumMessages.SIEGE))}
+              </option>
+              <option value={FormationEnum.PARQUET}>
+                {capitalize(formatMessage(FormationEnumMessages.PARQUET))}
+              </option>
             </Select>
           )}
         />

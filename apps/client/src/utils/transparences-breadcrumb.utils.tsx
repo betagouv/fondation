@@ -1,8 +1,11 @@
-import type { NavigateFunction } from 'react-router';
+import { useCallback } from 'react';
+import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router';
 
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import { FormationEnumLabel, type FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
@@ -23,64 +26,72 @@ type TransparencesCurrentPageType =
       report: DetailedReportDto;
     };
 
-export const getTransparencesBreadCrumb = (
-  currentPage: TransparencesCurrentPageType,
-  navigate: NavigateFunction,
-): BreadcrumbVM => {
-  const TRANSPARENCES_ANCHOR_ATTRIBUTES = {
-    to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault();
-      navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
-    },
-  };
+export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
+  const { formatMessage } = useIntl();
+  const navigate = useNavigate();
 
-  const transparenciesSegment = {
-    label: 'Transparences',
-    ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
-  };
-
-  const gdsTransparenciesSegment = {
-    label: 'Pouvoir de proposition du garde des Sceaux',
-    ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
-  };
-
-  switch (currentPage.name) {
-    case TransparencesCurrentPage.perGdsTransparencyReports: {
-      return {
-        currentPageLabel: `Formation ${FormationEnumLabel[currentPage.formation]}`,
-        segments: [transparenciesSegment, gdsTransparenciesSegment],
-      };
-    }
-
-    case TransparencesCurrentPage.gdsReport: {
-      const { report } = currentPage;
-      if (!report) {
-        return {
-          currentPageLabel: 'Rapport non trouvé',
-          segments: [transparenciesSegment, gdsTransparenciesSegment],
-        };
-      }
-
-      const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
-
-      const path = getDetailSessionGdsPath({ sessionId: report.sessionId });
-      const transparencySegment = {
-        label: transparencyLabel,
-        to: path,
+  return useCallback(
+    (currentPage: TransparencesCurrentPageType): BreadcrumbVM => {
+      const TRANSPARENCES_ANCHOR_ATTRIBUTES = {
+        to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
         onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
           event.preventDefault();
-          navigate(path);
+          navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
         },
       };
 
-      return {
-        currentPageLabel: report.name,
-        segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment],
+      const transparenciesSegment = {
+        label: formatMessage({ defaultMessage: 'Transparences' }),
+        ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
       };
-    }
 
-    default:
-      return assertNever(currentPage);
-  }
-};
+      const gdsTransparenciesSegment = {
+        label: formatMessage({ defaultMessage: 'Pouvoir de proposition du garde des Sceaux' }),
+        ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
+      };
+
+      switch (currentPage.name) {
+        case TransparencesCurrentPage.perGdsTransparencyReports: {
+          return {
+            currentPageLabel: formatMessage(
+              { defaultMessage: 'Formation {formation}' },
+              { formation: formatMessage(FormationEnumMessages[currentPage.formation]) },
+            ),
+            segments: [transparenciesSegment, gdsTransparenciesSegment],
+          };
+        }
+
+        case TransparencesCurrentPage.gdsReport: {
+          const { report } = currentPage;
+          if (!report) {
+            return {
+              currentPageLabel: formatMessage({ defaultMessage: 'Rapport non trouvé' }),
+              segments: [transparenciesSegment, gdsTransparenciesSegment],
+            };
+          }
+
+          const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
+
+          const path = getDetailSessionGdsPath({ sessionId: report.sessionId });
+          const transparencySegment = {
+            label: transparencyLabel,
+            to: path,
+            onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+              event.preventDefault();
+              navigate(path);
+            },
+          };
+
+          return {
+            currentPageLabel: report.name,
+            segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment],
+          };
+        }
+
+        default:
+          return assertNever(currentPage);
+      }
+    },
+    [formatMessage, navigate],
+  );
+}

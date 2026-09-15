@@ -4,12 +4,14 @@ import { SideMenu } from '@codegouvfr/react-dsfr/SideMenu';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import { parseAsArrayOf, parseAsStringEnum, useQueryState } from 'nuqs';
 import { useCallback, useMemo } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Navigate, Outlet, generatePath, useParams } from 'react-router';
 
+import { JobStatusEnumMessages } from '@/constants/enum-labels.constants';
 import { JobsListItem } from '@/features/jobs/components/JobsListItem';
 import { SelectedJobProvider } from '@/features/jobs/context';
 import { JOB_STATUS_ICONS } from '@/features/jobs/utils/job-status.utils';
-import { JobStatusEnum, JobStatusEnumLabel } from '@/types/enums.types';
+import { JobStatusEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useListJobsInfiniteQuery } from '@queries/jobs.queries';
 
@@ -91,7 +93,7 @@ export function AdminJobsPage() {
                   className="shrink-0 grow-0 font-normal text-nowrap"
                   nativeButtonProps={{ onClick: () => toggleStatus(s) }}
                 >
-                  {JobStatusEnumLabel[s]}
+                  <FormattedMessage {...JobStatusEnumMessages[s]} />
                 </Tag>
               ))}
             </div>

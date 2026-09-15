@@ -4,8 +4,8 @@ import type { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
+import { RoleEnumMessages } from '@/constants/enum-labels.constants';
 import { Tooltip } from '@/shared/ui/tooltip';
-import { RoleEnumLabels } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName, toInitials } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
@@ -29,7 +29,7 @@ export const Avatar: FC = () => {
   return (
     <>
       <Badge className="fr-mx-2v fr-mt-0 fr-ml-3v self-center" noIcon small>
-        {RoleEnumLabels[user.role]}
+        <FormattedMessage {...RoleEnumMessages[user.role]} />
       </Badge>
       <Button className="fr-mb-0" onClick={onClickLogout}>
         <div className="fr-py-2v flex items-center gap-8 rounded-sm">

@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
+import { PrioriteEnumMessages } from '@/constants/enum-labels.constants';
 import type { TableMetaFilterAsyncList, TableMetaFilterEnum } from '@/tanstack-react-table';
-import { PrioriteEnum, PrioriteEnumLabels } from '@/types/enums.types';
+import { PrioriteEnum } from '@/types/enums.types';
 import { memberFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import { getListCurrentlyAffectedReportersQueryOptions } from '@queries/nomination-sessions.queries';
@@ -36,7 +37,7 @@ export function useSessionFilesFilters(): {
         type: 'enum',
         values: Object.values(PrioriteEnum).map((priorite) => ({
           id: priorite,
-          label: PrioriteEnumLabels[priorite],
+          label: formatMessage(PrioriteEnumMessages[priorite]),
         })),
       },
       reporters: {

@@ -6,15 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, type ChangeEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import z from 'zod';
 
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { useOfficialReport } from '@/features/documents/context/OfficialReportContext';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyCodec, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { capitalize } from '@/utils/string.utils';
@@ -76,6 +76,7 @@ const OfficialReportMetadataSchema = z
 
 export function OfficialReportForm() {
   const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
+  const { formatMessage } = useIntl();
 
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
@@ -212,7 +213,7 @@ export function OfficialReportForm() {
                     date: formatDateOnly(agenda.sessionMeetingDate),
                     initials: toInitials(agenda.chairman),
                     name: normalizeSessionName(agenda.session),
-                    formation: capitalize(FormationEnumLabel[agenda.formation]),
+                    formation: capitalize(formatMessage(FormationEnumMessages[agenda.formation])),
                   }}
                 />
               </option>

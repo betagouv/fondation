@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { useArchivedSession } from '@/shared/context/archived-session';
-import { FormationEnumLabel } from '@/types/enums.types';
 import { dateOnlyToIso, formatLongDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
 
@@ -19,7 +19,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
     <div className="fr-px-2v flex w-full flex-col gap-y-3">
       <h1 className="fr-mb-0 flex flex-wrap items-center gap-x-3 text-[1.75rem] leading-9 font-bold">
         <span className="fr-p-1v rounded-sm bg-(--background-contrast-grey) text-xs font-semibold text-(--text-mention-grey) uppercase">
-          {FormationEnumLabel[transparence.formation]}
+          <FormattedMessage {...FormationEnumMessages[transparence.formation]} />
         </span>
         <span className="hyphens-auto text-(--text-title-blue-france)">{transparence.name}</span>
         {transparence.date && (
