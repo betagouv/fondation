@@ -20,7 +20,12 @@ import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
 
-export function Attachments(props: { isUpdatable: boolean; nominationFileId: string; sessionId: string }) {
+export function Attachments(props: {
+  headingLevel?: 2;
+  isUpdatable: boolean;
+  nominationFileId: string;
+  sessionId: string;
+}) {
   const isSg = useIsSgNavigation();
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
@@ -31,18 +36,20 @@ export function Attachments(props: { isUpdatable: boolean; nominationFileId: str
   const attachments = data?.items ?? [];
   const canManage = isSg && props.isUpdatable;
   const labelId = `attachments-${props.nominationFileId}`;
+  const Heading = props.headingLevel === 2 ? 'h2' : 'p';
+  const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';
 
   if (attachments.length === 0 && !canManage) return null;
 
   return (
     <div id={attachmentsSectionId(props.nominationFileId)}>
       <div className="fr-mb-4v flex items-center justify-between gap-4">
-        <p className="fr-mb-0 text-xl font-semibold" id={labelId}>
+        <Heading className={headingClass} id={labelId}>
           <FormattedMessage
-            defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
+            defaultMessage="{count, plural, one {Pièce du dossier} other {Pièces du dossier ({count})}}"
             values={{ count: attachments.length }}
           />
-        </p>
+        </Heading>
         {canManage && (
           <Button
             onClick={() =>

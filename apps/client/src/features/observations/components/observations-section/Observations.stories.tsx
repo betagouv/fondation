@@ -3,11 +3,11 @@ import { http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-import { ObservationsModalProvider } from '../../../observations/context/ObservationsModalProvider';
+import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
+import { ObservationsModalProvider } from '@/features/observations/context/ObservationsModalProvider';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
-import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
-import { ObservationFollowUpEnumLabels, type ObservationFollowupEnum } from '@/types/enums.types';
+import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type {
   CreateObservationResponseDto,
@@ -262,16 +262,16 @@ function ObservationsStory(props: ObservationsArgs) {
     navigate(props.view === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
   }, [props.view, navigate]);
 
-  const nominationFile = makeSessionNominationFile({
-    id: nominationFileIdFor(props),
-    content: { observants: props.observers > 0 ? OBSERVERS.slice(0, props.observers) : null },
-  });
-
   return (
     <StoryQueryClient>
       <ConfirmModalProvider>
         <ObservationsModalProvider>
-          <Observations nominationFile={nominationFile} sessionId={SESSION_ID} />
+          <Observations
+            magistratName="RAVEL Maurice"
+            nominationFileId={nominationFileIdFor(props)}
+            observers={props.observers > 0 ? OBSERVERS.slice(0, props.observers) : null}
+            sessionId={SESSION_ID}
+          />
         </ObservationsModalProvider>
       </ConfirmModalProvider>
     </StoryQueryClient>
@@ -300,7 +300,15 @@ const meta = {
     followUp: {
       control: 'inline-radio',
       options: [NO_TAG, 'ALERT', 'INTERESTING', 'REFERENCE'] satisfies FollowUpControl[],
-      labels: { [NO_TAG]: 'Aucun', ...ObservationFollowUpEnumLabels },
+      labels: {
+        [NO_TAG]: 'Aucun',
+        ...Object.fromEntries(
+          Object.entries(ObservationFollowUpEnumMessages).map(([key, { defaultMessage }]) => [
+            key,
+            defaultMessage,
+          ]),
+        ),
+      },
     },
     observers: { control: { type: 'range', min: 0, max: OBSERVERS.length, step: 1 } },
     data: { table: { disable: true } },

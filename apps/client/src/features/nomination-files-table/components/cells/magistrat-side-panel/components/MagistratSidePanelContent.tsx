@@ -1,8 +1,10 @@
 import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { Observations } from '@/features/observations/components/observations-section/Observations';
+import { Summary } from '@/features/summary/components/summary-section/Summary';
+import { Attachments } from '@/features/transparence/components/nomination-file-attachments/Attachments';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { Attachments } from './attachments/Attachments';
 import { AuditionBanner } from './audition-date/AuditionBanner';
 import { AuditionDate } from './audition-date/AuditionDate';
 import { Biography } from './biography/Biography';
@@ -11,10 +13,8 @@ import { FrozenFileBanner } from './frozen-file/FrozenFileBanner';
 import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
 import { MissingEvaluation } from './missing-evaluation/MissingEvaluation';
-import { Observations } from './observations/Observations';
 import { Outcome } from './outcome/Outcome';
 import { SgComment } from './sg-comment/SgComment';
-import { Summary } from './summary/Summary';
 
 export function MagistratSidePanelContent(props: {
   nominationFile: SessionNominationFile;
@@ -50,24 +50,29 @@ export function MagistratSidePanelContent(props: {
       <Outcome key={`${nominationFile.id}-outcome`} nominationFile={nominationFile} />
       <CareerInfo content={nominationFile.content} />
       <Biography historique={historique} />
-      <Observations nominationFile={nominationFile} sessionId={sessionId} />
+      <Observations
+        magistratName={nominationFile.content.nomMagistrat}
+        nominationFileId={nominationFile.id}
+        observers={nominationFile.content.observants ?? null}
+        sessionId={sessionId}
+      />
       <SgComment
         key={`${nominationFile.id}-comment`}
         initialComment={nominationFile.comment}
         nominationFileId={nominationFile.id}
-      />
-      <MemberMemo
-        key={`${nominationFile.id}-memo`}
-        memo={nominationFile.memo}
-        nominationFileId={nominationFile.id}
-        sessionId={sessionId}
       />
       <Attachments
         isUpdatable={nominationFile.content.isUpdatable}
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
       />
-      <Summary nominationFile={nominationFile} sessionId={sessionId} />
+      <Summary
+        canRead={!!nominationFile.summary?.canRead}
+        hasSummary={!!nominationFile.summary}
+        nominationFileId={nominationFile.id}
+        sessionId={sessionId}
+        withOpenLink
+      />
       {isSgContext && (
         <AuditionDate
           editable={auditionEditable}
@@ -75,6 +80,12 @@ export function MagistratSidePanelContent(props: {
           nominationFile={nominationFile}
         />
       )}
+      <MemberMemo
+        key={`${nominationFile.id}-memo`}
+        memo={nominationFile.memo}
+        nominationFileId={nominationFile.id}
+        sessionId={sessionId}
+      />
     </div>
   );
 }

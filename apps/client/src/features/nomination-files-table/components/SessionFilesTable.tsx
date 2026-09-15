@@ -5,18 +5,18 @@ import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
 import type { SessionFilesTableState } from '../hooks/useSessionFilesTable';
+import { ObservationsModalProvider } from '@/features/observations/context/ObservationsModalProvider';
+import { AddNominationFileAttachmentModalProvider } from '@/features/transparence/components/nomination-file-attachments/context/AddNominationFileAttachmentModalProvider';
 import { ReactTableFilterColumn } from '@/shared/ui/data-table';
 import { NewTable } from '@/shared/ui/new-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { AddNominationFileAttachmentModalProvider } from './cells/magistrat-side-panel/components/attachments/context/AddNominationFileAttachmentModalProvider';
 import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
 import { useSidePanel } from './cells/magistrat-side-panel/context/side-panel.context';
 import { SidePanelProvider } from './cells/magistrat-side-panel/context/SidePanelProvider';
 import { useOutOfListFile } from './cells/magistrat-side-panel/hooks/use-out-of-list-file/use-out-of-list-file.hook';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
-import { ObservationsModalProvider } from './cells/observations/context/ObservationsModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 
 function SessionFilesNewTable(props: {

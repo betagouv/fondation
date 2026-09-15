@@ -23,15 +23,15 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
   return (
     <div>
       <h3 className="fr-mb-2v text-xl font-semibold">
-        <FormattedMessage defaultMessage="Commentaire" />
+        <FormattedMessage defaultMessage="Mes notes" />
       </h3>
       <p className="fr-mb-4v text-sm text-(--text-mention-grey)">
-        <FormattedMessage defaultMessage="Ce commentaire n'est visible que par vous" />
+        <FormattedMessage defaultMessage="Ces notes ne sont visibles que par vous" />
       </p>
 
       <CommentEditor
-        ariaLabel={formatMessage({ defaultMessage: 'Commentaire' })}
-        emptyLabel={<FormattedMessage defaultMessage="Aucun commentaire" />}
+        ariaLabel={formatMessage({ defaultMessage: 'Mes notes' })}
+        emptyLabel={<FormattedMessage defaultMessage="Aucune note" />}
         initialValue={props.memo}
         onDirtyChange={setIsDirty}
         onSave={async (value) => {
