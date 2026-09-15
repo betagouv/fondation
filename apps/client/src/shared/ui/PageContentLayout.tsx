@@ -1,17 +1,17 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { type FC, type PropsWithChildren } from 'react';
+import { type PropsWithChildren } from 'react';
 
-export type PageContentLayoutProps = PropsWithChildren & {
+type PageContentLayoutProps = PropsWithChildren & {
   fullBackgroundOrange?: boolean;
   fullBackgroundGreen?: boolean;
 };
 
 // FIXME: remove this component and behavior
-export const PageContentLayout: FC<PageContentLayoutProps> = ({
+export function PageContentLayout({
   fullBackgroundOrange = false,
   fullBackgroundGreen = false,
   children,
-}) => {
+}: PageContentLayoutProps) {
   const backgroundClass = fullBackgroundOrange
     ? 'bg-(--background-alt-beige-gris-galet)'
     : fullBackgroundGreen
@@ -23,4 +23,4 @@ export const PageContentLayout: FC<PageContentLayoutProps> = ({
       <div className={cx('fr-container', 'fr-py-6v')}>{children}</div>
     </div>
   );
-};
+}

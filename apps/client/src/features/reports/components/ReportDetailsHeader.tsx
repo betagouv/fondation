@@ -2,13 +2,16 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { ReportStatusEnumMessages } from '@/constants/enum-labels.constants';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import {
+  REPORT_STATUSES,
+  type ReportStatusEnum,
+  ReportStatusEnumMessages,
+} from '@/shared/enums/report-status.enum';
 import { DetailsHeader } from '@/shared/ui/details';
-import { REPORT_STATUSES, type ReportStatusEnum } from '@/types/enums.types';
 import { getDetailSessionGdsPath, openedDossierSearch } from '@/utils/route-path.utils';
 import { fullNameCapitalized } from '@/utils/user.utils';
 import type { DetailedReportDto } from '@api/types';

@@ -5,10 +5,10 @@ import { useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
 import { useTab } from '@/shared/hooks/useTab';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { IconButton } from '@/shared/ui/icon-button';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 import { SearchInput } from '@/shared/ui/search-input';
 import { useToasts } from '@/shared/ui/toast';
 import { TotalBadge } from '@/shared/ui/total-badge';

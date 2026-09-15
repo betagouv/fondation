@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
-import type { FormationEnum } from '@/types/enums.types';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
@@ -136,7 +136,7 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
         .then(({ data }) => (data ?? null) as string | null),
   });
 
-export const htmlMutationKeys = {
+const htmlMutationKeys = {
   agendaHtml: ['docs', 'updateAgendaHtml'] as const,
   officialReportHtml: ['docs', 'updateOfficialReportHtml'] as const,
   presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
@@ -641,23 +641,6 @@ export function usePresentPlanMutation() {
         path: { planId: mutation.presentationPlanId },
         body: { endTime: mutation.endTime },
       }),
-    onSuccess: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({
-          queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
-        }),
-      ]),
-  });
-}
-
-export function useUnPresentPlanMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (mutation: { presentationPlanId: string }) =>
-      $api.docs.unPresentPlan({ path: { planId: mutation.presentationPlanId } }),
-
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),

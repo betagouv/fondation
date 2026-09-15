@@ -6,7 +6,7 @@ import type { DetailedAdminUserDto } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
 
-export const adminKeys = {
+const adminKeys = {
   users: (params: { search?: string; page?: number; pageSize?: number }) =>
     ['admin', 'users', params] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,

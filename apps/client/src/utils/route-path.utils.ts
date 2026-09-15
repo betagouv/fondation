@@ -65,7 +65,7 @@ export const ROUTE_PATHS = {
   REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat',
 } as const;
 
-export type RoutePath = typeof ROUTE_PATHS;
+type RoutePath = typeof ROUTE_PATHS;
 
 export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;
 

@@ -3,8 +3,7 @@ import clsx from 'clsx';
 import React from 'react';
 import { useIntl } from 'react-intl';
 
-import { PrioriteEnumMessages } from '@/constants/enum-labels.constants';
-import type { PrioriteEnum } from '@/types/enums.types';
+import { type PrioriteEnum, PrioriteEnumMessages } from '@/shared/enums/priorite.enum';
 
 const colorClassName = {
   ETOILE: 'bg-(--background-contrast-warning) text-(--text-default-warning)',

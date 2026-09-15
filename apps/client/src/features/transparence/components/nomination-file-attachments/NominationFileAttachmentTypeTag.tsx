@@ -1,10 +1,12 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
-import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { assertNever } from '@/utils/types.util';
 
-import { useNominationFileAttachmentTypeLabel } from './nomination-file-attachment-type';
+import {
+  type NominationFileAttachmentTypeEnum,
+  useNominationFileAttachmentTypeLabel,
+} from './nomination-file-attachment-type';
 
 function tagColors(type: NominationFileAttachmentTypeEnum) {
   switch (type) {

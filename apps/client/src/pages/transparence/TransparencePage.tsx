@@ -8,8 +8,7 @@ import { SessionTabsBar } from '@/features/transparence/components/session/Sessi
 import { SessionValidationBanner } from '@/features/transparence/components/session/SessionValidationBanner';
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
-import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 

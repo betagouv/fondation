@@ -1,9 +1,9 @@
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import { Input } from '@codegouvfr/react-dsfr/Input';
-import { useState, type FC, type RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { useDebounce } from 'use-debounce';
 
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useMemberListQuery } from '@queries/members.queries';
 
 type MemberExclusionSelectorProps = {
@@ -11,10 +11,7 @@ type MemberExclusionSelectorProps = {
   excludedMemberIdsRef: RefObject<string[]>;
 };
 
-export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
-  formation,
-  excludedMemberIdsRef,
-}) => {
+export function MemberExclusionSelector({ formation, excludedMemberIdsRef }: MemberExclusionSelectorProps) {
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebounce(search, 600);
   const [selected, setSelected] = useState<Map<string, { firstName: string; lastName: string }>>(new Map());
@@ -72,4 +69,4 @@ export const MemberExclusionSelector: FC<MemberExclusionSelectorProps> = ({
       )}
     </div>
   );
-};
+}

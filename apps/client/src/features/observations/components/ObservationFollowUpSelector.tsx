@@ -2,10 +2,12 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState, type ChangeEvent } from 'react';
 import { useIntl } from 'react-intl';
 
-import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useObservationFollowUpCommentDialog } from '@/features/observations/context/ObservationFollowUpCommentContext';
-import { ObservationFollowUpEnum, type ObservationFollowupEnum } from '@/types/enums.types';
+import {
+  ObservationFollowUpEnum,
+  ObservationFollowUpEnumMessages,
+} from '@/shared/enums/observation-follow-up.enum';
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
 
 export function ObservationFollowUpSelector(props: {
@@ -13,9 +15,9 @@ export function ObservationFollowUpSelector(props: {
   sessionId: string;
   nominationFileId: string;
   observationId: string;
-  followUp: ObservationFollowupEnum | null;
+  followUp: ObservationFollowUpEnum | null;
   comment: string | null;
-  onChange?: (data: { followUp: ObservationFollowupEnum | null; comment: string | null }) => unknown;
+  onChange?: (data: { followUp: ObservationFollowUpEnum | null; comment: string | null }) => unknown;
 }) {
   const { formatMessage } = useIntl();
   const isSg = useIsSg();
@@ -25,7 +27,7 @@ export function ObservationFollowUpSelector(props: {
 
   const onChange = useCallback(
     async (e: ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value.trim() as ObservationFollowupEnum | 'null';
+      const value = e.target.value.trim() as ObservationFollowUpEnum | 'null';
 
       select(value);
 

@@ -8,9 +8,10 @@ import { axe } from 'vitest-axe';
 
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { frFormat } from '@/i18n/formats';
+import { FormationEnum } from '@/shared/enums/formation.enum';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
-import { FormationEnum, PrioriteEnum } from '@/types/enums.types';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';

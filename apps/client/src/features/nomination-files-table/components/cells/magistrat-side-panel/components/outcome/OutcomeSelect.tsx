@@ -4,8 +4,8 @@ import { outcomeRequiresComment } from '../../../nomination-file-outcome/nominat
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
-import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import {
   useDefineNominationFileOutcomeMutation,
   type SessionNominationFile,

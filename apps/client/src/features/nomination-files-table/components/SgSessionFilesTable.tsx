@@ -9,8 +9,8 @@ import { useExportFailure } from '../hooks/useExportFailure';
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
-import type { FormationEnum } from '@/types/enums.types';
 import {
   useListNominationFilesAsExcelMutation,
   type SessionNominationFile,

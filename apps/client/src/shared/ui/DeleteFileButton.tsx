@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { IconButton } from '@/shared/ui/icon-button';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 
 export function DeleteFileButton(props: { fileName: string; onDelete: () => void }) {
   const { formatMessage } = useIntl();

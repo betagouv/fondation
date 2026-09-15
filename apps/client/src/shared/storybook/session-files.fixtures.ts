@@ -2,7 +2,7 @@ import { makeSessionNominationFile } from '@/test-utils/factories/session-nomina
 import type { ListedMemberSessionReportsDto, PaginatedMemberListItemDto } from '@api/types';
 
 /** `user-1` is the member logged in by `authHandlers` so the member view shows their own reports */
-export const sessionReporters = {
+const sessionReporters = {
   bernard: { id: 'user-2', firstName: 'Rachel', lastName: 'Bernard' },
   lemoine: { id: 'user-1', firstName: 'Nadia', lastName: 'Lemoine' },
   roche: { id: 'user-3', firstName: 'Antoine', lastName: 'Roche' },

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import type { PrioriteEnum } from '@/types/enums.types';
+import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
   useAffectNominationFilesReportersMutation,

@@ -115,7 +115,7 @@
       }
     },
     {
-      "files": ["src/types/enums.types.ts"],
+      "files": ["src/shared/enums/*.enum.ts"],
       "rules": {
         "typescript/no-redeclare": "off"
       }

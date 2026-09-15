@@ -1,4 +1,4 @@
-import type { RoleEnum } from '@/types/enums.types';
+import type { RoleEnum } from '@/shared/enums/role.enum';
 
 export const AUTHORIZED_ROLES = {
   NONE: [] satisfies RoleEnum[],

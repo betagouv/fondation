@@ -5,9 +5,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
-import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
+import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,

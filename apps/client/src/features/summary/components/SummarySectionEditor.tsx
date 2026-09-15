@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
-import { TipTapEditor } from '@/shared/ui/tip-tap-editor';
+import { type FilesUploader, TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import { useIncludeFileInSummaryContentMutation, useWriteSummaryMutation } from '@queries/summary.queries';
 
 export function SummaryEditor() {

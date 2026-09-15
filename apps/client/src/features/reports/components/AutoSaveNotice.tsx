@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import { useLocallyStoredState } from '@/shared/hooks/useLocallyStoredState';
 
-export const AutoSaveNotice: React.FC = () => {
+export function AutoSaveNotice() {
   const [isVisible, setIsVisible] = useLocallyStoredState<boolean>({
     state: false,
     key: 'report.auto_save_alert_visible',
@@ -19,4 +19,4 @@ export const AutoSaveNotice: React.FC = () => {
       className={clsx('w-full', cx('fr-px-8v', 'fr-py-6v'))}
     />
   );
-};
+}

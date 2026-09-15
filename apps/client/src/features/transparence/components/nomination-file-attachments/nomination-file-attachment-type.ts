@@ -1,7 +1,9 @@
 import { useIntl } from 'react-intl';
 
-import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { assertNever } from '@/utils/types.util';
+import type { UploadNominationFileAttachmentsDto } from '@api/types';
+
+export type NominationFileAttachmentTypeEnum = UploadNominationFileAttachmentsDto['form']['type'];
 
 export const NOMINATION_FILE_ATTACHMENT_TYPES = [
   'FICHE_DE_JURIDICTION',

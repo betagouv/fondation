@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { sessionOutcomeLabel } from './cells/nomination-file-outcome/nomination-file-outcome.utils';

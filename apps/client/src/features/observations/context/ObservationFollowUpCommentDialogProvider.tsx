@@ -1,8 +1,8 @@
 import { useMemo, type PropsWithChildren } from 'react';
 
 import { ObservationFollowUpCommentModal } from '@/features/observations/components/ObservationFollowUpCommentDialog';
+import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 import {
   ObservationFollowUpCommentContext,
@@ -11,7 +11,7 @@ import {
 
 export function ObservationFollowUpCommentProvider({ children }: PropsWithChildren) {
   const { answer, ask, forget, state } = useAwaitableModal<
-    ObservationFollowupEnum,
+    ObservationFollowUpEnum,
     ObservationFollowUpCommentEvent
   >({ type: 'drop' });
 

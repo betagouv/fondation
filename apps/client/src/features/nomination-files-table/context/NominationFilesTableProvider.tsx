@@ -1,6 +1,6 @@
 import { useMemo, type PropsWithChildren } from 'react';
 
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 
 import { ExcludedJurisdictionsProvider } from './ExcludedJurisdictionsProvider';
 import { NominationFilesTableContext, type SessionOutcome } from './files-table.context';

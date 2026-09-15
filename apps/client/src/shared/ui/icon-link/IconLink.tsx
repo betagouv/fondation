@@ -1,8 +1,8 @@
 import { Link, type LinkProps } from 'react-router';
 
 import { IconButton, iconButtonClassName } from '@/shared/ui/icon-button';
+import type { IconClassName } from '@/shared/ui/icons';
 import { Tooltip } from '@/shared/ui/tooltip';
-import type { IconClassName } from '@/types/icons.types';
 
 export function IconLink(props: {
   className?: string;

@@ -1,5 +1,5 @@
 import type { SessionOutcome } from '@/features/nomination-files-table/context/files-table.context';
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 
 export function makeSessionOutcomes(formation: FormationEnum): SessionOutcome[] {
   const decisionLabels =

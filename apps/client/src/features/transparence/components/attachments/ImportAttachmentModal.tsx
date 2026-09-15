@@ -3,10 +3,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';
+import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
 export function ImportAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {

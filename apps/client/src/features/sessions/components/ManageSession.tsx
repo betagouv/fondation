@@ -3,8 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
-import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';

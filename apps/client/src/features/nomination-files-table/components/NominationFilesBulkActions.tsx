@@ -8,9 +8,10 @@ import {
 } from '../context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
+import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
 import { useToasts } from '@/shared/ui/toast';
-import type { NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
   useAffectNominationFilesReportersMutation,

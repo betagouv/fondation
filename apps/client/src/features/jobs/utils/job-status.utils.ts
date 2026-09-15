@@ -1,4 +1,4 @@
-import type { JobStatusEnum } from '@/types/enums.types';
+import type { JobStatusEnum } from '@/shared/enums/job-status.enum';
 
 export const JOB_STATUS_ICONS = {
   IDLE: {

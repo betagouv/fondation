@@ -3,12 +3,12 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 
 export function ObservationFollowUpCommentModal(props: {
-  followUp: ObservationFollowupEnum;
+  followUp: ObservationFollowUpEnum;
   onClosed: () => void;
   onComment: (value: string | null) => void;
   onDrop: () => void;

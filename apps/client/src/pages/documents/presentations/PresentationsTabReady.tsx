@@ -5,11 +5,11 @@ import { useCallback, type MouseEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { PresentationAgendaSelectionList } from '@/features/documents/components/presentations/PresentationAgendaSelectionList';
 import { usePresentPlanModal } from '@/features/documents/context/present-plan-modal.context';
 import { PresentPlanModalProvider } from '@/features/documents/context/PresentPlanModalProvider';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { useToasts } from '@/shared/ui/toast';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';

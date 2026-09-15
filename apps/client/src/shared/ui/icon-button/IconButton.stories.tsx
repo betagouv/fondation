@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps, ReactNode } from 'react';
 import { fn } from 'storybook/test';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 
 import { IconButton } from './IconButton';
 

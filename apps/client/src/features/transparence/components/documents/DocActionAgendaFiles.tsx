@@ -1,8 +1,8 @@
 import { useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
 import { IconLink } from '@/shared/ui/icon-link';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function DocActionAgendaFiles(props: {

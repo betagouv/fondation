@@ -1,13 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { ReportStatusEnum } from '@/types/enums.types';
+import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
+import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
 import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
 
 import { memberKeys } from './members.queries';
-
-const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const reportKeys = {
   reportById: (props: { reportId: string }) => ['report', props.reportId],
@@ -122,21 +121,6 @@ export function useUpdateReportMutation() {
   });
 }
 
-export function useUpdateReportRuleValidationMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (props: { reportId: string; ruleId: string; isValidated: boolean }): Promise<void> => {
-      const { reportId, ruleId, isValidated } = props;
-      await $api.reports.updateReportRuleValidation({
-        path: { reportId, ruleId },
-        body: { isValidated },
-      });
-    },
-    onSuccess: (_, { reportId }) =>
-      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
-  });
-}
-
 export function useDetachReportFilesMutation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -160,7 +144,8 @@ export function useAttachReportFilesMutation() {
     }) => {
       const { files, reportId, usage } = mutation;
       for (const file of files) {
-        if (!ACCEPTED_MIME_TYPES.includes(file.type)) throw new InvalidMimeTypeError({ fileName: file.name });
+        if (!SANITIZED_MIME_TYPES.includes(file.type))
+          throw new InvalidMimeTypeError({ fileName: file.name });
       }
 
       await $api.reports.attachFiles({

@@ -3,8 +3,8 @@ import React from 'react';
 import { useController, type UseControllerProps } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import type { FormationEnum } from '@/types/enums.types';
 import { memberFullName } from '@/utils/user.utils';
 import type { FoundDocsMembersDto } from '@api/types';
 import { useDocsMembersQuery } from '@queries/agenda.queries';

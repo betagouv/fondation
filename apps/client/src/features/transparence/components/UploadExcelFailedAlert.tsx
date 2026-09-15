@@ -1,9 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { type FC } from 'react';
 
-export const UploadExcelFailedAlert: FC<{
-  validationErrors?: string[];
-}> = ({ validationErrors }) => {
+export function UploadExcelFailedAlert({ validationErrors }: { validationErrors?: string[] }) {
   const setRef = (el: HTMLDivElement | null) => {
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
@@ -31,4 +28,4 @@ export const UploadExcelFailedAlert: FC<{
       description={description}
     />
   );
-};
+}

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { ObservationFollowupEnum } from '@/types/enums.types';
+import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
 import * as $api from '@api/sdk';
@@ -17,7 +17,7 @@ import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.que
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
 
-export const observationKeys = {
+const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
@@ -310,15 +310,15 @@ export function useFollowUpOnObservationMutation() {
       sessionId: string;
       nominationFileId: string;
       observationId: string;
-      followUp: ObservationFollowupEnum | null;
+      followUp: ObservationFollowUpEnum | null;
       comment: string | null;
     }) => {
       const { sessionId, nominationFileId, observationId, followUp, comment } = mutation;
       const body =
         followUp === null
           ? // FIXME: issue with code generation
-            { followUp: null as unknown as ObservationFollowupEnum, comment: null }
-          : { followUp: followUp as ObservationFollowupEnum, comment };
+            { followUp: null as unknown as ObservationFollowUpEnum, comment: null }
+          : { followUp: followUp as ObservationFollowUpEnum, comment };
 
       await $api.observations.followUpOnObservation({
         body,

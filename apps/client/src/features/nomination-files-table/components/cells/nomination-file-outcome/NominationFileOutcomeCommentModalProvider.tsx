@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
 
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
-import type { NominationFileOutcomeEnum } from '@/types/enums.types';
 
 import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
 import { OutcomeCommentModalContext, type OutcomeCommentEvent } from './OutcomeCommentModalContext';

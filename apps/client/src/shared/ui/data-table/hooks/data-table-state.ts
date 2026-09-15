@@ -2,7 +2,7 @@
 
 import type { TableState } from '@tanstack/react-table';
 
-import type { ITEMS_PAR_PAGE } from '@/types/table.types';
+import type { ITEMS_PAR_PAGE } from '@/shared/ui/data-table/page-sizes';
 
 /** @see {@link import('@tanstack/react-table').ColumnFiltersState} */
 type DataTableFiltering<FilterId extends string, Value> = { id: FilterId; value: Value }[];

@@ -18,12 +18,12 @@ import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/
 import { useSessionFilesTable } from '@/features/nomination-files-table/hooks/useSessionFilesTable';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { ReactTableFilterColumn } from '@/shared/ui/data-table';
 import { Checkbox, NewTable, rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
-import type { FormationEnum } from '@/types/enums.types';
 import { useFindAgendaNominationFilesQuery } from '@queries/agenda.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

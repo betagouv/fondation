@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 
+import { FormationEnum } from '@/shared/enums/formation.enum';
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
 import { sessionFiles, sessionMembers } from '@/shared/storybook/session-files.fixtures';
 import { makeSessionHandlers, type SessionDataset } from '@/shared/storybook/session.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ToastProvider } from '@/shared/ui/toast';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
-import { FormationEnum } from '@/types/enums.types';
 
 import { AgendaFilesSelectionTable } from './AgendaFilesSelectionTable';
 

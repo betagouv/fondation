@@ -3,11 +3,13 @@ import { http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
 import { ObservationsModalProvider } from '@/features/observations/context/ObservationsModalProvider';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import {
+  ObservationFollowUpEnumMessages,
+  type ObservationFollowUpEnum,
+} from '@/shared/enums/observation-follow-up.enum';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
-import type { ObservationFollowupEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type {
   CreateObservationResponseDto,
@@ -129,7 +131,7 @@ const VIEWS = ['sg', 'member'] as const;
 type View = (typeof VIEWS)[number];
 
 const NO_TAG = 'NONE';
-type FollowUpControl = ObservationFollowupEnum | typeof NO_TAG;
+type FollowUpControl = ObservationFollowUpEnum | typeof NO_TAG;
 
 const observationsByNominationFile = new Map<string, Observation[]>();
 

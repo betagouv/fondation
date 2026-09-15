@@ -6,7 +6,7 @@ import { ImpersonationBanner } from '@/features/auth/components/ImpersonationBan
 import { ArchiveBanner } from './archived-banner/ArchivedSessionBanner';
 import { StagingBanner } from './StagingBanner';
 
-export function Banners(
+function Banners(
   props: React.PropsWithChildren<{ hidden: boolean; ref: React.RefObject<HTMLDivElement | null> }>,
 ) {
   return (

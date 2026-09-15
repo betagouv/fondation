@@ -6,7 +6,9 @@ import {
   type InfiniteData,
 } from '@tanstack/react-query';
 
-import type { FormationEnum, NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
+import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { fileNameFromResponse, saveBlob } from '@/utils/file.utils';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
@@ -107,6 +109,8 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
   });
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
+export type SessionNominationFileStatus = SessionNominationFile['content']['status'];
+
 const SESSION_NOMINATION_FILES_PAGE_SIZE = 100;
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */

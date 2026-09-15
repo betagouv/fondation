@@ -1,4 +1,4 @@
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 
 export type PresentationPlanContextType = {
   planId: string | null;

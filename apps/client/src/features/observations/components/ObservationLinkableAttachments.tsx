@@ -1,7 +1,7 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useIntl } from 'react-intl';
 
-export type LinkableAttachment = { observationId: string; fileId: string; name: string };
+type LinkableAttachment = { observationId: string; fileId: string; name: string };
 
 const isSameAttachment = (a: LinkableAttachment, b: LinkableAttachment) =>
   a.observationId === b.observationId && a.fileId === b.fileId;

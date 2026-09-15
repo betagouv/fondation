@@ -4,7 +4,6 @@ import clsx from 'clsx';
 import React from 'react';
 
 export const MenuRoot = BaseMenu.Root;
-export const MenuSeparator = BaseMenu.Separator;
 
 export const MenuTrigger = React.memo((props: ButtonProps) => (
   <BaseMenu.Trigger

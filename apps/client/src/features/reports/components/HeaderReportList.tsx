@@ -1,8 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
+import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
-import type { FormationEnum } from '@/types/enums.types';
 import {
   dateOnlyToIso,
   formatDateOnly,

@@ -11,20 +11,6 @@ export const ComboboxRoot = BaseCombobox.Root;
 export const ComboboxList = BaseCombobox.List;
 export type ComboboxChangeEventDetails = BaseCombobox.Root.ChangeEventDetails;
 
-export function ComboboxInputGroup(props: React.PropsWithChildren) {
-  return (
-    <BaseCombobox.InputGroup
-      className={clsx(
-        'fr-py-1v w-64 cursor-text rounded-md border border-(--border-default-grey) bg-[canvas] px-1.5',
-        'focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-(--border-active-blue-france)',
-        'min-[500px]:w-88',
-      )}
-    >
-      {props.children}
-    </BaseCombobox.InputGroup>
-  );
-}
-
 export function ComboboxInput({
   label,
   className,

@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useCallback, type FC, type ReactNode } from 'react';
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
-export type DropdownMenuProps = {
+type DropdownMenuProps = {
   trigger: ReactNode;
   children: ReactNode;
   isOpen?: boolean;
@@ -10,14 +10,14 @@ export type DropdownMenuProps = {
   disabled?: boolean;
 };
 
-export const DropdownMenu: FC<DropdownMenuProps> = ({
+export function DropdownMenu({
   trigger,
   children,
   isOpen: controlledIsOpen,
   onOpenChange,
   className,
   disabled = false,
-}) => {
+}: DropdownMenuProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -118,4 +118,4 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({
       {dropdownContent && createPortal(dropdownContent, document.body)}
     </>
   );
-};
+}

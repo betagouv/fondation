@@ -1,14 +1,14 @@
 import { FormattedMessage } from 'react-intl';
 
 import { AlertBanner } from '@/shared/ui/alert-banner';
-import type { NominationSessionFileStatus } from '@/types/enums.types';
 import { formatLongDateOnly } from '@/utils/date-only.util';
+import type { SessionNominationFileStatus } from '@queries/nomination-sessions.queries';
 
 const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 
-type FrozenFile = { isArchived: boolean; status: NominationSessionFileStatus };
+type FrozenFile = { isArchived: boolean; status: SessionNominationFileStatus };
 
-function officialReportDate(status: NominationSessionFileStatus) {
+function officialReportDate(status: SessionNominationFileStatus) {
   return status.value === 'DSJ_REPORTED' ? status.dates[0] : undefined;
 }
 

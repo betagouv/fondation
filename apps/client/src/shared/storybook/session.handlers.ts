@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
-import { GradeEnum } from '@/types/enums.types';
+import { GradeEnum } from '@/shared/enums/grade.enum';
 import type {
   CountedUnaffectedFilesDto,
   DocGenerationSessionReadinessDto,

@@ -15,9 +15,9 @@ import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/
 import { useSessionFilesTable } from '@/features/nomination-files-table/hooks/useSessionFilesTable';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { rowCell } from '@/shared/ui/new-table';
 import { TotalBadge } from '@/shared/ui/total-badge';
-import type { FormationEnum } from '@/types/enums.types';
 import {
   useListMissingEvaluationsAsExcelMutation,
   useNominationFilesStatusCountsQuery,

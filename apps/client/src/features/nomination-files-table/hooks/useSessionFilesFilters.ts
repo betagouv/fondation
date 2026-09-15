@@ -2,9 +2,8 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
-import { PrioriteEnumMessages } from '@/constants/enum-labels.constants';
+import { PrioriteEnum, PrioriteEnumMessages } from '@/shared/enums/priorite.enum';
 import type { TableMetaFilterAsyncList, TableMetaFilterEnum } from '@/tanstack-react-table';
-import { PrioriteEnum } from '@/types/enums.types';
 import { memberFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import { getListCurrentlyAffectedReportersQueryOptions } from '@queries/nomination-sessions.queries';

@@ -3,11 +3,11 @@ import { IntlProvider } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
-import type { NominationSessionFileStatus } from '@/types/enums.types';
+import type { SessionNominationFileStatus } from '@queries/nomination-sessions.queries';
 
 import { NominationFileStatusCell } from './NominationFileStatusCell';
 
-function renderCell(status: NominationSessionFileStatus) {
+function renderCell(status: SessionNominationFileStatus) {
   return render(
     <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
       <NominationFileStatusCell status={status} />

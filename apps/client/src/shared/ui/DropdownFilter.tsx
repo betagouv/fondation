@@ -1,14 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import clsx from 'clsx';
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export interface FilterOption {
+interface FilterOption {
   value: string;
   label: string;
 }
 
-export interface DropdownFilterProps {
+interface DropdownFilterProps {
   tagName: string;
   options: FilterOption[];
   selectedValues: string[];
@@ -16,13 +16,13 @@ export interface DropdownFilterProps {
   className?: string;
 }
 
-export const DropdownFilter: FC<DropdownFilterProps> = ({
+export function DropdownFilter({
   tagName,
   options,
   selectedValues,
   onSelectionChange,
   className,
-}) => {
+}: DropdownFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -102,4 +102,4 @@ export const DropdownFilter: FC<DropdownFilterProps> = ({
       )}
     </div>
   );
-};
+}

@@ -11,9 +11,9 @@ import z from 'zod';
 
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import type { AgendaMetadata } from '@/features/documents/context/AgendaContext.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
+import type { IconClassName } from '@/shared/ui/icons';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import type { FormationEnum } from '@/types/enums.types';
-import type { IconClassName } from '@/types/icons.types';
 import { dateOnlyCodec, dateOnlyToIso, type PlainDateOnly } from '@/utils/date-only.util';
 
 type AgendaMetadataFormValues = {

@@ -3,10 +3,10 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsPageLayout } from '@/shared/ui/details';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
-import type { ReportStatusEnum } from '@/types/enums.types';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';

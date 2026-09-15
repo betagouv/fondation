@@ -1,11 +1,11 @@
 import { createContext, useContext } from 'react';
 
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import type { DetailedNominationSessionDto } from '@api/types';
 
 export type SessionOutcome = DetailedNominationSessionDto['outcomes'][number];
 
-export type NominationFilesTableContextType = {
+type NominationFilesTableContextType = {
   canManage: boolean;
   formation: FormationEnum;
   outcomes: readonly SessionOutcome[];

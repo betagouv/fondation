@@ -7,11 +7,10 @@ import { useCallback, useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Navigate, Outlet, generatePath, useParams } from 'react-router';
 
-import { JobStatusEnumMessages } from '@/constants/enum-labels.constants';
 import { JobsListItem } from '@/features/jobs/components/JobsListItem';
 import { SelectedJobProvider } from '@/features/jobs/context';
 import { JOB_STATUS_ICONS } from '@/features/jobs/utils/job-status.utils';
-import { JobStatusEnum } from '@/types/enums.types';
+import { JobStatusEnum, JobStatusEnumMessages } from '@/shared/enums/job-status.enum';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useListJobsInfiniteQuery } from '@queries/jobs.queries';
 

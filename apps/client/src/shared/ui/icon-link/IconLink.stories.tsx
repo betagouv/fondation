@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps, ReactNode } from 'react';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
-import type { IconClassName } from '@/types/icons.types';
+import { ACTION_ICONS, type IconClassName } from '@/shared/ui/icons';
 
 import { IconLink } from './IconLink';
 

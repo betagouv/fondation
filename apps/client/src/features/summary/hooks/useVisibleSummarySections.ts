@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const SUMMARY_SECTION_ANCHORS = [
+const SUMMARY_SECTION_ANCHORS = [
   { id: 'magistrat', label: 'Magistrat' },
   { id: 'biographie', label: 'Biographie' },
   { id: 'observants', label: 'Observants' },

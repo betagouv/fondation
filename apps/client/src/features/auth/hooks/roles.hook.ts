@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router';
 
-import type { RoleEnum } from '@/types/enums.types';
+import type { RoleEnum } from '@/shared/enums/role.enum';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 

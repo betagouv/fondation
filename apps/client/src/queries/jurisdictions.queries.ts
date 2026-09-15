@@ -2,14 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
 
-export type JurisdictionItem = {
-  id: string;
-  type: string;
-  ville: string | null;
-  label: string | null;
-};
-
-export const jurisdictionKeys = {
+const jurisdictionKeys = {
   searchJurisdiction: (props: { search?: string; includIds?: readonly string[] }) => [
     'searchJurisdictions',
     props,

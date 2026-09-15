@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 
 import { IconLink } from './IconLink';
 
