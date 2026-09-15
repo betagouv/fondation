@@ -1,5 +1,3 @@
-export type SortDirection = 'asc' | 'desc' | null;
-
 export const ITEMS_PAR_PAGE = [
   {
     value: 50,

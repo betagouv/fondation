@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
 import type { SummarySectionAnchor } from '@/features/summary/hooks/useVisibleSummarySections';
-import type { Override } from '@/types/utils.types';
+import type { Override } from '@/utils/types.util';
 import type { DetailedSummaryDto } from '@api/types';
 
 type SummaryContextType = {

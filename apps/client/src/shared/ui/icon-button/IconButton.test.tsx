@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ACTION_ICONS } from '@/constants/icons.constants';
+import { ACTION_ICONS } from '@/shared/ui/icons';
 
 import { IconButton } from './IconButton';
 

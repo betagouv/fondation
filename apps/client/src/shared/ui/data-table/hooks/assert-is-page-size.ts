@@ -1,4 +1,4 @@
-import { ITEMS_PAR_PAGE } from '@/types/table.types';
+import { ITEMS_PAR_PAGE } from '@/shared/ui/data-table/page-sizes';
 
 const PAGE_SIZES = new Set(ITEMS_PAR_PAGE.map(({ value }) => value));
 export function assertIsPageSize(

@@ -1,4 +1,6 @@
-import type { IconClassName } from '@/types/icons.types';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr/fr/generatedFromCss/classNames';
+
+export type IconClassName = FrIconClassName | RiIconClassName;
 
 export const ACTION_ICONS = {
   agendaFiles: 'ri-file-copy-2-line',

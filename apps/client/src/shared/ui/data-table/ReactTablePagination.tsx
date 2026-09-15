@@ -4,7 +4,7 @@ import type { RowData, Table } from '@tanstack/react-table';
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { ITEMS_PAR_PAGE } from '@/types/table.types';
+import { ITEMS_PAR_PAGE } from '@/shared/ui/data-table/page-sizes';
 
 import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
 

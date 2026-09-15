@@ -1,10 +1,10 @@
 import type React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { DOCUMENT_FILE_TYPES } from '@/constants/files.constants';
 import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import { DetailsCard } from '@/shared/ui/details';
 import { Upload } from '@/shared/ui/upload';
+import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 
 export function ReportAttachmentsCard(props: {
   children?: React.ReactNode;
