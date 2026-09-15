@@ -113,7 +113,22 @@ export const sessionMembers: PaginatedMemberListItemDto['items'] = [
 ];
 
 export const sessionMemberReports: ListedMemberSessionReportsDto['items'] = [
-  { nominationFileId: 'dossier-1', report: { id: 'report-1', state: 'READY_TO_SUPPORT' } },
-  { nominationFileId: 'dossier-3', report: { id: 'report-2', state: 'IN_PROGRESS' } },
-  { nominationFileId: 'dossier-4', report: { id: 'report-3', state: 'SUPPORTED' } },
+  {
+    name: 'KOFFI Aminata',
+    nominationFileId: 'dossier-1',
+    number: 1,
+    report: { id: 'report-1', state: 'READY_TO_SUPPORT' },
+  },
+  {
+    name: 'AUBRY Gaspard',
+    nominationFileId: 'dossier-3',
+    number: 3,
+    report: { id: 'report-2', state: 'IN_PROGRESS' },
+  },
+  {
+    name: 'BENALI Sofia',
+    nominationFileId: 'dossier-4',
+    number: 4,
+    report: { id: 'report-3', state: 'SUPPORTED' },
+  },
 ];

@@ -97,16 +97,7 @@ export const useReportQuery = (reportId: string) =>
           ? updateCommentScreenshots(report.comment, report.screenshots)
           : report.comment || null;
 
-      const updatedSummaryContent =
-        report.summary && report.summary.screenshots.length
-          ? updateCommentScreenshots(report.summary.content, report.summary.screenshots)
-          : report.summary?.content || '';
-
-      return {
-        ...report,
-        comment: updatedComment,
-        summary: report.summary ? { ...report.summary, content: updatedSummaryContent } : null,
-      };
+      return { ...report, comment: updatedComment };
     },
   });
 

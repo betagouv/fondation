@@ -1,8 +1,9 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryState } from 'nuqs';
+import { FormattedMessage } from 'react-intl';
 
-import { SIDE_PANEL_DOSSIER_PARAM } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/context/side-panel.context';
 import { useMyFilesFilter } from '@/features/reports/hooks/useMyFilesFilter';
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
 export function ReportListViewToggle() {
@@ -12,18 +13,16 @@ export function ReportListViewToggle() {
 
   return (
     <ToggleSwitch
-      label="Afficher uniquement mes dossiers"
       checked={isMine}
+      className="nowrap"
+      classes={{ label: 'flex-nowrap grow whitespace-nowrap before:mr-3!' }}
+      label={<FormattedMessage defaultMessage="Afficher uniquement mes dossiers" />}
+      labelPosition="right"
       onChange={(checked) => {
         setIsMine(checked);
         setOpenedDossier(null);
       }}
       showCheckedHint={false}
-      labelPosition="right"
-      className="nowrap"
-      classes={{
-        label: 'flex-nowrap grow whitespace-nowrap before:mr-3!',
-      }}
     />
   );
 }

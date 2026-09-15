@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl';
 
 export function Upload(props: {
   accept?: string;
+  disabled?: boolean;
   hasError?: boolean;
   hint?: ReactNode;
   isPending?: boolean;
@@ -12,12 +13,13 @@ export function Upload(props: {
   onChange: (files: File[]) => void;
 }) {
   const inputId = useId();
+  const isLocked = props.disabled || props.isPending;
 
   return (
     <label
       className={clsx(
         'fr-p-4v block bg-(--background-alt-grey)',
-        props.isPending ? 'cursor-default' : 'cursor-pointer',
+        isLocked ? 'cursor-default' : 'cursor-pointer',
       )}
       htmlFor={inputId}
     >
@@ -29,7 +31,7 @@ export function Upload(props: {
       <input
         accept={props.accept}
         className="fr-upload mt-4"
-        disabled={props.isPending}
+        disabled={isLocked}
         id={inputId}
         multiple={props.multiple}
         onChange={(event) => props.onChange([...(event.target.files ?? [])])}
