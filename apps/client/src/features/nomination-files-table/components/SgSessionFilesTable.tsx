@@ -20,7 +20,7 @@ import { AffectationVersionStatusBadge } from './AffectationVersionStatusBadge';
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';
 import { NominationFileOutcome } from './cells/nomination-file-outcome/NominationFileOutcome';
 import { NominationFileStatusCell } from './cells/NominationFileStatusCell';
-import { ObservantsCell } from './cells/observations/ObservantsCell';
+import { ObservantsCell } from './cells/ObservantsCell';
 import { ReportersCell } from './cells/reporters/ReportersCell';
 import { NominationFileTargetPositionCell } from './cells/targeted-position/NominationFileTargetPositionCell';
 import { NominationFilesAutoAffectationButton } from './NominationFilesAutoAffectationButton';
@@ -28,7 +28,6 @@ import { NominationFilesBulkActions } from './NominationFilesBulkActions';
 import { NominationFilesExportButton } from './NominationFilesExportButton';
 import { NominationFilesPublishButton } from './NominationFilesPublishButton';
 import { NominationFilesSelectionBar } from './NominationFilesSelectionBar';
-import { NominationFilesSelectionModeButton } from './NominationFilesSelectionModeButton';
 import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 import { SessionFilesTable } from './SessionFilesTable';
 
@@ -138,7 +137,6 @@ function SgSessionFilesTableInner(
   const exportAsExcel = useListNominationFilesAsExcelMutation();
   const onExportFailure = useExportFailure();
 
-  const [isSelecting, setSelecting] = useState(false);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const clearSelection = useCallback(() => setRowSelection({}), []);
 
@@ -146,21 +144,6 @@ function SgSessionFilesTableInner(
   useEffect(() => {
     latestOnSelectingChange.current = props.onSelectingChange;
   });
-
-  const enterSelection = useCallback(() => {
-    setSelecting(true);
-    latestOnSelectingChange.current?.(true);
-  }, []);
-
-  const exitSelection = useCallback(() => {
-    setSelecting(false);
-    setRowSelection({});
-    latestOnSelectingChange.current?.(false);
-  }, []);
-
-  useEffect(() => () => latestOnSelectingChange.current?.(false), []);
-
-  const isSelectable = canManage && isSelecting;
 
   const canSelectRow = useCallback((row: Row<SessionNominationFile>) => row.original.content.isUpdatable, []);
 
@@ -172,13 +155,13 @@ function SgSessionFilesTableInner(
   const selectionColumn = useSelectionColumn<SessionNominationFile>({ lockedLabel });
 
   const columns = useMemo(
-    () => (isSelectable ? [selectionColumn, ...fileColumns] : fileColumns),
-    [fileColumns, isSelectable, selectionColumn],
+    () => (canManage ? [selectionColumn, ...fileColumns] : fileColumns),
+    [fileColumns, canManage, selectionColumn],
   );
   const filesTable = useSessionFilesTable({
-    canSelectRow: isSelectable ? canSelectRow : undefined,
+    canSelectRow: canManage ? canSelectRow : undefined,
     columns,
-    onRowSelectionChange: isSelectable ? setRowSelection : undefined,
+    onRowSelectionChange: canManage ? setRowSelection : undefined,
     rowSelection,
     sessionId,
   });
@@ -188,29 +171,34 @@ function SgSessionFilesTableInner(
     [filesTable.nominationFiles, rowSelection],
   );
 
+  const hasSelection = selectedFiles.length > 0;
+  useEffect(() => {
+    latestOnSelectingChange.current?.(hasSelection);
+  }, [hasSelection]);
+
+  useEffect(() => () => latestOnSelectingChange.current?.(false), []);
+
   return (
     <SessionFilesTable
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
       summary={
-        isSelectable ? (
+        hasSelection ? (
           <NominationFilesSelectionBar
-            onClear={clearSelection}
-            onExit={exitSelection}
             selectedCount={selectedFiles.length}
             totalCount={filesTable.totalCount}
           />
         ) : null
       }
     >
-      {isSelectable &&
+      {hasSelection &&
         props.headerSlot &&
         createPortal(
-          <NominationFilesBulkActions onClose={exitSelection} selectedFiles={selectedFiles} />,
+          <NominationFilesBulkActions onClose={clearSelection} selectedFiles={selectedFiles} />,
           props.headerSlot,
         )}
 
-      {!isSelectable && (
+      {!hasSelection && (
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />
@@ -224,9 +212,6 @@ function SgSessionFilesTableInner(
             />
             <NominationFilesAutoAffectationButton />
             <NominationFilesPublishButton />
-            {canManage && (
-              <NominationFilesSelectionModeButton isSelecting={false} onToggle={enterSelection} />
-            )}
           </div>
         </div>
       )}
