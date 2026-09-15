@@ -1,11 +1,10 @@
-import { useRef } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
-import { useSecondBreadcrumbLinkOffset } from '@/shared/hooks/useSecondBreadcrumbLinkOffset';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import { fullNameCapitalized } from '@/utils/user.utils';
@@ -19,8 +18,6 @@ type MagistratDetailsHeaderProps = {
 export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsHeaderProps) {
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
-  const headerRef = useRef<HTMLDivElement>(null);
-  const titleOffset = useSecondBreadcrumbLinkOffset(headerRef);
 
   const dashboardPath = context === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD;
 
@@ -53,43 +50,32 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
   };
 
   return (
-    <div ref={headerRef}>
-      <Breadcrumb
-        ariaLabel={formatMessage({
-          defaultMessage: "Fil d'Ariane de la fiche magistrat",
-        })}
-        breadcrumb={{
-          currentPageLabel: formatMessage({
-            defaultMessage: 'Fiche magistrat',
-          }),
-          segments,
-        }}
-        className="fr-my-0"
-        id="magistrat-details-breadcrumb"
-      />
-      <div className="fr-mt-6v flex flex-wrap items-start gap-y-2">
-        <div className="min-w-fit shrink-0" style={{ width: titleOffset }}>
-          <Link
-            className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
-            onClick={goBack}
-            to={dashboardPath}
-          >
-            <FormattedMessage defaultMessage="Retour" />
-          </Link>
-        </div>
-        <div>
-          <p className="fr-text--lg fr-mb-2v font-medium text-(--text-title-blue-france)">
-            <FormattedMessage defaultMessage="Fiche magistrat" />
-          </p>
-          <h1 className="fr-h2 fr-mb-0">
-            <TitleNameIcons
-              name={`${capitalize(magistrat.civilite.toLowerCase())} ${fullNameCapitalized(magistrat)}`}
-            >
-              <LolfiLink href={magistrat.externalUrl} small />
-            </TitleNameIcons>
-          </h1>
-        </div>
-      </div>
-    </div>
+    <DetailsHeader
+      backTo={dashboardPath}
+      breadcrumb={
+        <Breadcrumb
+          ariaLabel={formatMessage({
+            defaultMessage: "Fil d'Ariane de la fiche magistrat",
+          })}
+          breadcrumb={{
+            currentPageLabel: formatMessage({
+              defaultMessage: 'Fiche magistrat',
+            }),
+            segments,
+          }}
+          className="fr-my-0"
+          id="magistrat-details-breadcrumb"
+        />
+      }
+      onBackClick={goBack}
+      overline={<FormattedMessage defaultMessage="Fiche magistrat" />}
+      title={
+        <TitleNameIcons
+          name={`${capitalize(magistrat.civilite.toLowerCase())} ${fullNameCapitalized(magistrat)}`}
+        >
+          <LolfiLink href={magistrat.externalUrl} small />
+        </TitleNameIcons>
+      }
+    />
   );
 }
