@@ -1,11 +1,11 @@
 import { createContext, useContext } from 'react';
 
-import type { ObservationFollowupEnum } from '@/types/enums.types';
+import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 
 export type ObservationFollowUpCommentEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
 
 type ObservationFollowUpCommentContextType = {
-  waitForComment: (followUp: ObservationFollowupEnum) => Promise<ObservationFollowUpCommentEvent>;
+  waitForComment: (followUp: ObservationFollowUpEnum) => Promise<ObservationFollowUpCommentEvent>;
 };
 
 /** @internal */

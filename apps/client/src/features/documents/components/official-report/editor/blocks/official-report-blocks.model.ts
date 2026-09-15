@@ -3,9 +3,9 @@ import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
-import type { DocNominationFileOutcomeEnum } from '@/types/enums.types';
 import { assertNever } from '@/utils/types.util';
 import * as $api from '@api/sdk';
+import type { FoundAgendaNominationFiles } from '@api/types';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
 import { OfficialReportConclusionBlock } from './OfficialReportConclusionBlock';
@@ -129,6 +129,10 @@ export class OfficialReportBlocksModel {
   }
 }
 
+type DocNominationFileOutcomeEnum = NonNullable<
+  FoundAgendaNominationFiles['items'][number]['outcome']
+>['value'];
+
 type BlockKey =
   | `intro`
   | `conclusion`
@@ -136,7 +140,7 @@ type BlockKey =
   | `section-intro:${DocNominationFileOutcomeEnum}`
   | `file:${string}`;
 
-export type OfficialReportEditionBlockState =
+type OfficialReportEditionBlockState =
   | { kind: 'intro'; key: BlockKey; html: string; outdated: boolean }
   | { kind: 'conclusion'; key: BlockKey; html: string; outdated: boolean }
   | { kind: 'section-title'; key: BlockKey; outcome: DocNominationFileOutcomeEnum; text: string }

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import type { NominationFileOutcomeEnum } from '@/types/enums.types';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
 export type OutcomeCommentEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
 

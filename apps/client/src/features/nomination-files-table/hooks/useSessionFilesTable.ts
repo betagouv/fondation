@@ -11,8 +11,9 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
+import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { useQueryDataTableState } from '@/shared/ui/data-table';
-import type { NominationFileOutcomeEnum, PrioriteEnum } from '@/types/enums.types';
 import {
   useInfiniteSessionNominationFilesQuery,
   type SessionNominationFile,

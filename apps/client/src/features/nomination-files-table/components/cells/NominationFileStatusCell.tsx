@@ -1,9 +1,9 @@
 import { useIntl } from 'react-intl';
 
-import type { NominationSessionFileStatus } from '@/types/enums.types';
 import { formatDateOnly } from '@/utils/date-only.util';
+import type { SessionNominationFileStatus } from '@queries/nomination-sessions.queries';
 
-export function NominationFileStatusCell(props: { status: NominationSessionFileStatus }) {
+export function NominationFileStatusCell(props: { status: SessionNominationFileStatus }) {
   const { formatMessage } = useIntl();
 
   if (props.status.value === 'TO_REPORT') {

@@ -4,7 +4,7 @@ import { type ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PrioriteEnum } from '@/types/enums.types';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
 

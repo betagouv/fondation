@@ -3,8 +3,7 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useIntl } from 'react-intl';
 
-import { ReportStatusEnumMessages } from '@/constants/enum-labels.constants';
-import type { ReportStatusEnum } from '@/types/enums.types';
+import { type ReportStatusEnum, ReportStatusEnumMessages } from '@/shared/enums/report-status.enum';
 
 const statesSpec: Record<ReportStatusEnum, { backgroundColor: string; color?: string }> = {
   NEW: {

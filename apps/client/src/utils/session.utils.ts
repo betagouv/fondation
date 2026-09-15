@@ -1,4 +1,4 @@
-import type { TypeDeSaisineEnum } from '@/types/enums.types';
+import type { TypeDeSaisineEnum } from '@/shared/enums/type-de-saisine.enum';
 
 /** the word LODAM puts in front of a session name, matched and rebuilt as data, never displayed on its own */
 const TRANSPARENCE_NAME_PREFIX = 'Transparence';

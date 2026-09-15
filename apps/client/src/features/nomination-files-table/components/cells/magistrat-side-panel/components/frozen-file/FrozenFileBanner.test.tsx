@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
-import type { NominationSessionFileStatus } from '@/types/enums.types';
+import type { SessionNominationFileStatus } from '@queries/nomination-sessions.queries';
 
 import { FrozenFileBanner } from './FrozenFileBanner';
 
 const REPORTED_ON = { year: 2026, month: 6, day: 8 };
 
-function renderNotice(props: { isArchived: boolean; status: NominationSessionFileStatus }) {
+function renderNotice(props: { isArchived: boolean; status: SessionNominationFileStatus }) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <FrozenFileBanner {...props} />

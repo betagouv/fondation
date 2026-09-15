@@ -2,12 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NominationFileOutcomeCommentModalProvider } from '../../../nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { FormationEnum } from '@/shared/enums/formation.enum';
+import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { authHandlers } from '@/shared/storybook/msw.handlers';
 import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
-import { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { Outcome } from './Outcome';

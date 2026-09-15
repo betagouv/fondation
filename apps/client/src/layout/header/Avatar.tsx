@@ -4,7 +4,7 @@ import type { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
-import { RoleEnumMessages } from '@/constants/enum-labels.constants';
+import { RoleEnumMessages } from '@/shared/enums/role.enum';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName, toInitials } from '@/utils/user.utils';

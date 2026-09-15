@@ -9,8 +9,8 @@ import { NominationFilesTableProvider } from '../context/NominationFilesTablePro
 import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { TotalBadge } from '@/shared/ui/total-badge';
-import type { FormationEnum } from '@/types/enums.types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';

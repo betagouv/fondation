@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { REPORT_STATUSES } from '@/types/enums.types';
+import { REPORT_STATUSES } from '@/shared/enums/report-status.enum';
 
 import { ReportStateTag } from './ReportStateTag';
 

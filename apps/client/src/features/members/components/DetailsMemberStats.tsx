@@ -1,8 +1,8 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
 
+import { GradeEnum } from '@/shared/enums/grade.enum';
 import { DataTable, useDataTable } from '@/shared/ui/data-table';
-import { GradeEnum } from '@/types/enums.types';
 import type { DetailedMemberDto } from '@api/types';
 
 const h = createColumnHelper<{ count: number; grade: GradeEnum }>();

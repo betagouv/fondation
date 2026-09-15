@@ -1,7 +1,8 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
 import React from 'react';
 
-import { FormationEnum, type NominationFileOutcomeEnum } from '@/types/enums.types';
+import { FormationEnum } from '@/shared/enums/formation.enum';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
 import { useOutcomeBadge } from './outcome-badge.utils';
 

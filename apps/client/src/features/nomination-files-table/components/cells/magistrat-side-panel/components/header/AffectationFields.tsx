@@ -3,8 +3,8 @@ import type { Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { PriorityBadge } from '@/shared/components/priority-badge';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
-import { PrioriteEnum } from '@/types/enums.types';
 import { memberFullName } from '@/utils/user.utils';
 
 const PRIORITY_ITEMS = Object.values(PrioriteEnum);

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { PrioriteEnum } from '@/types/enums.types';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 
 import { PriorityBadge, PriorityBadgeList } from './PriorityBadge';
 

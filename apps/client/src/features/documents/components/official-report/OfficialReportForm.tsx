@@ -9,11 +9,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import z from 'zod';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
 import { ChairmanSelector } from '@/features/documents/components/ChairmanSelector';
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { useOfficialReport } from '@/features/documents/context/OfficialReportContext';
+import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { dateOnlyCodec, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';

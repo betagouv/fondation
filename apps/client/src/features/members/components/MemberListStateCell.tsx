@@ -1,6 +1,6 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
-import { GradeEnum } from '@/types/enums.types';
+import { GradeEnum } from '@/shared/enums/grade.enum';
 import type { PaginatedMemberListItemDto } from '@api/types';
 
 const GRADES = Object.values(GradeEnum);

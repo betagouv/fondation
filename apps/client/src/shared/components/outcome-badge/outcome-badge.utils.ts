@@ -1,7 +1,8 @@
 import type { AlertProps } from '@codegouvfr/react-dsfr/Alert';
 import { useMemo } from 'react';
 
-import { type FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
+import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
 const OUTCOME_BADGE_LABELS = {
   PARQUET: {

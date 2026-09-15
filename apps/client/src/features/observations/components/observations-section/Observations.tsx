@@ -4,14 +4,16 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
-import { ObservationFollowUpEnumMessages } from '@/constants/enum-labels.constants';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import {
   useObservationsModal,
   type ActiveFile,
 } from '@/features/observations/context/ObservationsModalContext';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
-import type { ObservationFollowupEnum } from '@/types/enums.types';
+import {
+  ObservationFollowUpEnumMessages,
+  type ObservationFollowUpEnum,
+} from '@/shared/enums/observation-follow-up.enum';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
@@ -21,7 +23,7 @@ import {
   type Observation,
 } from '@queries/observations.queries';
 
-const FOLLOW_UP_TAG_CLASS: Record<ObservationFollowupEnum, string> = {
+const FOLLOW_UP_TAG_CLASS: Record<ObservationFollowUpEnum, string> = {
   ALERT: 'bg-(--background-contrast-error)! text-(--text-default-error)!',
   INTERESTING: 'bg-(--background-contrast-info)! text-(--text-default-info)!',
   REFERENCE: 'bg-(--background-contrast-success)! text-(--text-default-success)!',
@@ -206,7 +208,7 @@ function ObservationCard({ observation, file }: { observation: Observation; file
   );
 }
 
-export const OBSERVATIONS_SECTION_ID = 'magistrat-observations-section';
+const OBSERVATIONS_SECTION_ID = 'magistrat-observations-section';
 
 export function Observations(props: {
   headingLevel?: 2 | 3;

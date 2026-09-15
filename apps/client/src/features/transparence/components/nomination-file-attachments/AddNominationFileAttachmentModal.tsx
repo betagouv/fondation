@@ -4,16 +4,16 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { SANITIZED_FILE_TYPES } from '@/constants/files.constants';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
-import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
+import { SANITIZED_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { useAddNominationFileAttachmentsMutation } from '@queries/nomination-sessions.queries';
 
 import type { AttachmentTarget } from './context/AddNominationFileAttachmentModalContext';
 import {
   NOMINATION_FILE_ATTACHMENT_TYPES,
+  type NominationFileAttachmentTypeEnum,
   useNominationFileAttachmentTypeLabel,
 } from './nomination-file-attachment-type';
 

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { FormationEnum, NominationFileOutcomeEnum } from '@/types/enums.types';
+import { FormationEnum } from '@/shared/enums/formation.enum';
+import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
 import { OutcomeBadge } from './OutcomeBadge';
 

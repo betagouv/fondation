@@ -3,10 +3,10 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { useCallback, useMemo, useState, type ChangeEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { usePresentationPlan } from '@/features/documents/context/presentation-plan.context';
+import { FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { TypeDeSaisineEnum } from '@/shared/enums/type-de-saisine.enum';
 import { useSelection } from '@/shared/hooks/useSelection';
-import { TypeDeSaisineEnum } from '@/types/enums.types';
 import { compareDateOnly, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { toInitials } from '@/utils/user.utils';

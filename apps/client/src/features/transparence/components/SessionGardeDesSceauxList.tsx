@@ -4,8 +4,7 @@ import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
-import { FormationEnum } from '@/types/enums.types';
+import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import type { SessionOfTypeGardeDesSceaux } from '@queries/members.queries';
 

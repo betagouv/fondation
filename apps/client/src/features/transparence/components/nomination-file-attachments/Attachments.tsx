@@ -4,9 +4,9 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
-import type { NominationFileAttachmentTypeEnum } from '@/types/enums.types';
 import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';

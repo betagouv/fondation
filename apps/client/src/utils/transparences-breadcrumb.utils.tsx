@@ -2,10 +2,9 @@ import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
+import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import type { FormationEnum } from '@/types/enums.types';
 import type { DetailedReportDto } from '@api/types';
 
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';

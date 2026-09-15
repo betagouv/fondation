@@ -1,4 +1,4 @@
-import type { FormationEnum } from '@/types/enums.types';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import type { PlainTimeOnly } from '@/utils/time-only.util';
 

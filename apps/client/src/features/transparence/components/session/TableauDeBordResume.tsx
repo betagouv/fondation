@@ -2,8 +2,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
 import { useArchivedSession } from '@/shared/context/archived-session';
+import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { dateOnlyToIso, formatLongDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
 

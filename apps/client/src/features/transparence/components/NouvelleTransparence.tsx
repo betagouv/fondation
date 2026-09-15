@@ -12,11 +12,10 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { FormationEnumMessages } from '@/constants/enum-labels.constants';
+import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { FormationEnum } from '@/types/enums.types';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { getSgBreadCrumb } from '@/utils/sg-breadcrumb.utils';
 import { capitalize } from '@/utils/string.utils';

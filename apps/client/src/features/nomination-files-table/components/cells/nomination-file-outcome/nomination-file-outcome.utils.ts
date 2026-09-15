@@ -1,5 +1,5 @@
 import type { SessionOutcome } from '@/features/nomination-files-table/context/files-table.context';
-import type { NominationFileOutcomeEnum } from '@/types/enums.types';
+import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
 export function outcomeRequiresComment(
   outcomes: readonly SessionOutcome[],
