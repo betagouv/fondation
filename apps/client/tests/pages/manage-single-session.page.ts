@@ -212,7 +212,7 @@ export class ManageSingleSessionPage {
     const trigger =
       typeof target === 'string'
         ? this.app.page.getByRole('button', { name: target })
-        : this.sessionRow(target).getByRole('cell').nth(1).getByRole('button');
+        : this.sessionRow(target).locator('button[aria-controls="magistrat-panel"]');
 
     await trigger.first().click();
     await panel.openedDialog.waitFor();
@@ -230,6 +230,11 @@ export class ManageSingleSessionPage {
         name: 'number' in selector ? selector.number.toString(10) : selector.name,
       })
       .first();
+  }
+
+  async cellUnder(row: Locator, header: string): Promise<Locator> {
+    const headers = await this.app.page.getByRole('columnheader').allTextContents();
+    return row.getByRole('cell').nth(headers.findIndex((text) => text.includes(header)));
   }
 
   async editAffectation(
