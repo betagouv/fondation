@@ -7,7 +7,6 @@ import z from 'zod';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
 import { canScheduleAudition } from 'src/modules/session/shared/policies/nomination-file.policies';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -56,6 +55,9 @@ export class DetailReportQuery {
             id: true,
             name: true,
             detectedMagistratId: true,
+            detectedMagistrat: {
+              select: { firstName: true, lastName: true, usedName: true },
+            },
             biography: true,
             number: true,
             birthDate: true,
@@ -64,34 +66,15 @@ export class DetailReportQuery {
             targetedGrade: true,
             targetedPosition: true,
             rank: true,
-            observers: true,
             lastPositionDate: true,
             lastRankingDate: true,
             priorities: true,
-            comment: true,
             outcome: true,
             auditionDate: true,
             auditionTime: true,
             missingEvaluation: true,
             detectedJurisdictionId: true,
             detectedTargetedFunctionId: true,
-
-            summary: {
-              select: {
-                content: true,
-                readers: { select: { userId: true } },
-                screenshots: {
-                  select: {
-                    file: { select: { id: true, name: true, path: true } },
-                  },
-                },
-                attachments: {
-                  select: {
-                    file: { select: { id: true, name: true, path: true } },
-                  },
-                },
-              },
-            },
 
             session: {
               select: {
@@ -102,27 +85,6 @@ export class DetailReportQuery {
 
                 transparenceGds: { select: { dueDate: true } },
               },
-            },
-
-            observations: {
-              select: {
-                id: true,
-                dateReception: true,
-                description: true,
-                memberComments: {
-                  where: { userId: query.user.id },
-                  select: { comment: true },
-                },
-                magistrat: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    usedName: true,
-                  },
-                },
-              },
-              orderBy: { dateReception: 'desc' },
             },
           },
         },
@@ -148,35 +110,12 @@ export class DetailReportQuery {
       ),
     );
 
-    let summary: DetailedReportDto['summary'] = null;
-    if (report.nominationFile.summary?.readers.some((r) => r.userId === query.user.id)) {
-      const summaryScreenshots = await this.withUrls(
-        report.nominationFile.summary.screenshots.map(({ file }) => file),
-      );
-
-      summary = {
-        content: report.nominationFile.summary.content,
-        screenshots: summaryScreenshots.map((f) => ({
-          fileId: f.id,
-          name: f.name,
-          type: filenameToMimeType(f.name) ?? FILE_MIME_TYPES.bin,
-          url: f.url,
-        })),
-        attachments: report.nominationFile.summary.attachments.map(({ file }) => ({
-          fileId: file.id,
-          name: file.name,
-          type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
-        })),
-      };
-    }
-
     return {
       id: report.id,
       sessionId: report.sessionId,
       nominationFileId: report.nominationFile.id,
       comment: report.comment,
       state: prismaReportStateEnumToReportState(report.state),
-      summary,
       isArchived: !!report.nominationFile.session.archivedAt,
 
       attachments: attachments.map((f) => ({
@@ -206,9 +145,7 @@ export class DetailReportQuery {
       dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
       folderNumber: report.nominationFile.number,
       grade: z.enum(GradeEnum).parse(report.nominationFile.grade),
-      observers: report.nominationFile.observers,
       rank: report.nominationFile.rank,
-      fileComment: report.nominationFile.comment,
       targetedGrade: z.enum(GradeEnum).nullable().parse(report.nominationFile.targetedGrade),
       targettedPosition: report.nominationFile.targetedPosition,
       priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
@@ -224,14 +161,7 @@ export class DetailReportQuery {
       transparency: report.nominationFile.session.name,
       name: report.nominationFile.name,
       detectedMagistratId: report.nominationFile.detectedMagistratId,
-
-      observations: report.nominationFile.observations.map((obs) => ({
-        id: obs.id,
-        dateReception: DateOnly.fromUtcDate(obs.dateReception).toJson(),
-        magistrat: obs.magistrat,
-        hasDescription: !!obs.description.trim(),
-        hasUserComment: obs.memberComments.some(({ comment }) => !!comment.trim()),
-      })),
+      detectedMagistrat: report.nominationFile.detectedMagistrat,
     };
   }
 
@@ -271,6 +201,13 @@ export class DetailedReportDto extends createZodDto(
     nominationFileId: z.string(),
     name: z.string(),
     detectedMagistratId: z.string().nullable(),
+    detectedMagistrat: z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        usedName: z.string().nullable(),
+      })
+      .nullable(),
     comment: z.string().nullable(),
     formation: z.enum(FormationEnum),
     state: z.enum(ReportStateEnum),
@@ -291,11 +228,9 @@ export class DetailedReportDto extends createZodDto(
     targetedGrade: z.enum(GradeEnum).nullable(),
     targettedPosition: z.string().nullable(),
     rank: z.string().nullable(),
-    observers: z.array(z.string()),
     dureeDuPoste: z.string().nullable(),
     priorities: z.array(z.enum(PriorityEnum)),
     priority: z.enum(PriorityEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
-    fileComment: z.string().nullable(),
 
     screenshots: z.array(
       z.object({
@@ -311,36 +246,6 @@ export class DetailedReportDto extends createZodDto(
         usage: z.enum(['ATTACHMENT']),
         name: z.string(),
         fileId: z.string(),
-      }),
-    ),
-
-    summary: z
-      .object({
-        content: z.string(),
-        attachments: z.array(z.object({ fileId: z.string(), name: z.string(), type: z.string() })),
-        screenshots: z.array(
-          z.object({
-            fileId: z.string(),
-            name: z.string(),
-            type: z.string(),
-            url: z.url(),
-          }),
-        ),
-      })
-      .nullable(),
-
-    observations: z.array(
-      z.object({
-        id: z.string(),
-        dateReception: dateOnlyJsonSchema,
-        hasDescription: z.boolean(),
-        hasUserComment: z.boolean(),
-        magistrat: z.object({
-          id: z.string(),
-          firstName: z.string(),
-          lastName: z.string(),
-          usedName: z.string().nullable(),
-        }),
       }),
     ),
   }),
