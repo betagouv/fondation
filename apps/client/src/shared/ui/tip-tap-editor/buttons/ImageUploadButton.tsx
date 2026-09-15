@@ -3,7 +3,7 @@ import React from 'react';
 
 import { EditorButton } from './EditorButton';
 
-export const ImageUploadButton: React.FC = () => {
+export function ImageUploadButton() {
   const { editor } = useCurrentEditor();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -44,4 +44,4 @@ export const ImageUploadButton: React.FC = () => {
       />
     </>
   );
-};
+}

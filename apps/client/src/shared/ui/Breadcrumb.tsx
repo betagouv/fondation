@@ -1,5 +1,4 @@
 import DsfrBreadcrumb from '@codegouvfr/react-dsfr/Breadcrumb';
-import type { FC } from 'react';
 import type { To } from 'react-router';
 
 export type BreadcrumbVM = {
@@ -10,26 +9,28 @@ export type BreadcrumbVM = {
   }[];
 };
 
-export type BreadcrumbProps = {
+type BreadcrumbProps = {
   breadcrumb: BreadcrumbVM;
   id: string;
   ariaLabel: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export const Breadcrumb: FC<BreadcrumbProps> = ({
+export function Breadcrumb({
   breadcrumb: { currentPageLabel, segments },
   id,
   ariaLabel,
   ...props
-}) => (
-  <DsfrBreadcrumb
-    {...props}
-    id={id}
-    aria-label={ariaLabel}
-    currentPageLabel={currentPageLabel}
-    segments={segments.map(({ label, to }) => ({
-      label,
-      linkProps: { to },
-    }))}
-  />
-);
+}: BreadcrumbProps) {
+  return (
+    <DsfrBreadcrumb
+      {...props}
+      id={id}
+      aria-label={ariaLabel}
+      currentPageLabel={currentPageLabel}
+      segments={segments.map(({ label, to }) => ({
+        label,
+        linkProps: { to },
+      }))}
+    />
+  );
+}
