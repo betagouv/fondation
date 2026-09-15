@@ -7,7 +7,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Modal } from '@/shared/ui/modal';
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
 
-export const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
+const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
 
 const REVEALED_WHERE_HOVER_EXISTS =
   '[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:opacity-100';

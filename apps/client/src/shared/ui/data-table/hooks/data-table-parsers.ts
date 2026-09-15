@@ -2,7 +2,7 @@
 
 import { createParser } from 'nuqs';
 
-export const parseAsKeyValue = createParser({
+const parseAsKeyValue = createParser({
   parse: (value) => {
     const [key, jsonEncodedValue] = value.split(':');
     if (!key || !jsonEncodedValue) return null;

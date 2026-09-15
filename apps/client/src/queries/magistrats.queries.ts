@@ -2,7 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
 
-export const magistratKeys = {
+const magistratKeys = {
   magistratDetails: (props: { magistratId: string }) => ['magistratDetails', props] as const,
   magistratNominationFiles: (props: { magistratId: string }) => ['magistratNominationFiles', props] as const,
   magistratObservations: (props: { magistratId: string }) => ['magistratObservations', props] as const,

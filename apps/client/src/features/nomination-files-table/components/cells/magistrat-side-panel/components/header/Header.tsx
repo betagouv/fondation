@@ -30,7 +30,7 @@ import { useMyReportQuery } from '@queries/reports.queries';
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
 import { MissingSecondReporterBanner } from './MissingSecondReporterBanner';
 
-export const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
+const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
 
 export function Header(props: { nominationFile: SessionNominationFile; sessionId: string }) {
   const { nominationFile, sessionId } = props;

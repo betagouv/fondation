@@ -4,7 +4,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { areReportersMissing, isAuditionMissing } from '@/utils/audition-expectation.util';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-export type AuditionExpectation = {
+type AuditionExpectation = {
   auditionMissing: boolean;
   labels: string[];
   reportersMissing: boolean;

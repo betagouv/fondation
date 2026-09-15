@@ -17,7 +17,7 @@ export type ModalState =
   | { status: 'create'; file: ActiveFile; standalone: boolean }
   | { status: 'edit'; file: ActiveFile; observation: Observation; standalone: boolean };
 
-export type ModalAction =
+type ModalAction =
   | { type: 'open'; file: ActiveFile; mode: 'view' | 'create' }
   | { type: 'goCreate' }
   | { type: 'edit'; observation: Observation; file?: ActiveFile }

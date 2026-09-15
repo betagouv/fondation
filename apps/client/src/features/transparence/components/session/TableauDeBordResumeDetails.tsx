@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { formatDateOnly } from '@/utils/date-only.util';
-import type { PlainDateOnly } from '@/utils/date-only.util';
+import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
 
 function Detail(props: { date: PlainDateOnly | null | undefined; label: ReactNode }) {

@@ -16,7 +16,7 @@ import { useSummaryQuery } from '@queries/summary.queries';
 import { containsImage, toPlainText } from './summary-text';
 import { SummaryButton } from './SummaryButton';
 
-export type SummaryTarget = {
+type SummaryTarget = {
   canRead: boolean;
   hasSummary: boolean;
   headingLevel?: 2 | 3;

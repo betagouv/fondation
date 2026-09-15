@@ -124,7 +124,7 @@ export class AgendaBlocksModel {
 
 type BlockKey = `file:${string}`;
 
-export type AgendaEditionBlockState = {
+type AgendaEditionBlockState = {
   kind: 'file';
   key: BlockKey;
   fileId: string;

@@ -6,8 +6,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { DocumentHtmlEditor } from '@/features/documents/components/DocumentHtmlEditor';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
-import type { DocumentViewerHandle } from '@/features/documents/components/DocumentViewer';
-import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
+import { DocumentViewer, type DocumentViewerHandle } from '@/features/documents/components/DocumentViewer';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useJusticePresentationPlanHtmlQuery,
