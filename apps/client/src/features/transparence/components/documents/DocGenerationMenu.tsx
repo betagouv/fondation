@@ -25,9 +25,13 @@ function AgendaBlockerHint(props: { blocker: DocGenerationSessionReadinessDto['a
     );
   }
 
-  return (
-    <FormattedMessage defaultMessage="Toutes les propositions ont déjà été actées dans un procès-verbal" />
-  );
+  if (props.blocker === 'ALL_FILES_REPORTED') {
+    return (
+      <FormattedMessage defaultMessage="Toutes les propositions ont déjà été actées dans un procès-verbal" />
+    );
+  }
+
+  return null;
 }
 
 function OfficialReportBlockerHint(props: {
@@ -37,21 +41,23 @@ function OfficialReportBlockerHint(props: {
 
   const { formatList, formatMessage } = useIntl();
 
-  if (blocker?.reason === 'NO_AGENDA') {
+  if (!blocker) return null;
+
+  if (blocker.reason === 'NO_AGENDA') {
     return <FormattedMessage defaultMessage="Vous devez d'abord générer un ordre du jour" />;
   }
 
-  if (blocker?.reason === 'ALL_AGENDAS_REPORTED') {
+  if (blocker.reason === 'ALL_AGENDAS_REPORTED') {
     return <FormattedMessage defaultMessage="Tous les ordres du jour ont déjà un procès-verbal" />;
   }
 
-  if (blocker?.reason === 'NEVER_PUBLISHED') {
+  if (blocker.reason === 'NEVER_PUBLISHED') {
     return (
       <FormattedMessage defaultMessage="Vous devez publier la transparence aux membres dans l'onglet Propositions" />
     );
   }
 
-  const agendas = blocker?.agendas ?? [];
+  const agendas = blocker.agendas;
   const toPublish = agendas.filter(
     ({ filesWithoutOutcome, filesWithoutReporter }) =>
       filesWithoutOutcome === 0 && filesWithoutReporter === 0,
@@ -158,7 +164,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
       </MenuTrigger>
 
       <MenuContent>
-        {canCreateAgenda ? (
+        {!readiness ? null : canCreateAgenda ? (
           <MenuItem iconId="ri-calendar-line" linkProps={{ to: getNewAgendaPath(props.sessionId) }}>
             <FormattedMessage defaultMessage="Ordre du jour" />
           </MenuItem>
@@ -173,7 +179,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
           </MenuItem>
         )}
 
-        {canCreateOfficialReport ? (
+        {!readiness ? null : canCreateOfficialReport ? (
           <MenuItem iconId="ri-file-text-line" linkProps={{ to: officialReportPath }}>
             <FormattedMessage defaultMessage="Procès-verbal" />
           </MenuItem>
