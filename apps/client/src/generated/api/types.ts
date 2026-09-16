@@ -116,9 +116,9 @@ export type DetailedReportDto = {
         month: number;
         day: number;
     };
-    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+    grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
     currentPosition: string | null;
-    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+    targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
     targettedPosition: string | null;
     rank: string | null;
     dureeDuPoste: string | null;
@@ -303,10 +303,10 @@ export type PaginatedNominationFiles = {
                 month: number;
                 day: number;
             } | null;
-            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+            grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
             posteActuel: string | null;
             posteCible: string | null;
-            gradeCible: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+            gradeCible: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
             rang: string | null;
             dateDeNaissance: {
                 year: number;
@@ -342,7 +342,7 @@ export type PaginatedNominationFiles = {
                 comment: string | null;
             } | null;
             isAlertHidden: boolean;
-            isUpdatable: boolean;
+            lockedReason: 'ARCHIVED_SESSION' | 'REPORTED' | null;
             status: {
                 value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
                 dates: Array<{
@@ -558,10 +558,10 @@ export type DetailedNominationFileDto = {
             month: number;
             day: number;
         } | null;
-        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+        grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
         posteActuel: string | null;
         posteCible: string | null;
-        gradeCible: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        gradeCible: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
         rang: string | null;
         dateDeNaissance: {
             year: number;
@@ -597,7 +597,7 @@ export type DetailedNominationFileDto = {
             comment: string | null;
         } | null;
         isAlertHidden: boolean;
-        isUpdatable: boolean;
+        lockedReason: 'ARCHIVED_SESSION' | 'REPORTED' | null;
         status: {
             value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
             dates: Array<{
@@ -765,9 +765,9 @@ export type DetailedSummaryDto = {
         seconds: number;
     } | null;
     missingEvaluation: boolean;
-    grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+    grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
     position: string | null;
-    targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+    targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
     targetedPosition: string | null;
     priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     /**
@@ -851,7 +851,7 @@ export type PaginatedMemberListItemDto = {
         stats: Array<{
             year: number;
             count: number;
-            targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+            targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
         }>;
     }>;
     totalCount: number;
@@ -880,7 +880,7 @@ export type DetailedMemberDto = {
     stats: Array<{
         count: number;
         year: number;
-        targetedGrade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+        targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
     }>;
 };
 
@@ -1030,6 +1030,20 @@ export type DocGenerationSessionReadinessDto = {
     isReady: boolean;
     canCreateAgenda: boolean;
     canCreateOfficialReport: boolean;
+    agendaBlocker: 'ARCHIVED' | 'NO_AFFECTATION' | 'UNPUBLISHED_AFFECTATION' | 'ALL_FILES_REPORTED' | null;
+    officialReportBlocker: {
+        reason: 'NO_AGENDA' | 'ALL_AGENDAS_REPORTED' | 'NEVER_PUBLISHED' | 'INCOMPLETE_AGENDA';
+        agendas: Array<{
+            meetingDate: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            filesWithoutOutcome: number;
+            filesWithoutReporter: number;
+            filesWithUnpublishedReporter: number;
+        }>;
+    } | null;
 };
 
 export type FoundAgendaNominationFiles = {
@@ -1053,14 +1067,14 @@ export type FoundAgendaNominationFiles = {
             externalId: number;
             name: string;
             position: {
-                grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+                grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
                 label: string;
                 functionId: string | null;
                 jurisdictionId: string | null;
             };
         };
         targetPosition: {
-            grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup';
+            grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
             label: string;
             functionId: string | null;
             jurisdictionId: string | null;
@@ -1068,7 +1082,7 @@ export type FoundAgendaNominationFiles = {
     }>;
     ineligible: Array<{
         id: string;
-        reason: 'REPORTED' | 'DRAFT_REPORTED' | 'UNIDENTIFIED';
+        reason: 'REPORTED' | 'UNIDENTIFIED';
     }>;
 };
 
@@ -1535,7 +1549,7 @@ export type DetailedMagistratDto = {
     professionalEmail: string | null;
     currentPosition: {
         id: number;
-        grade: 'I' | 'II' | 'III' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | null;
+        grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
         function: {
             id: string;
             label: string;
