@@ -257,7 +257,7 @@ export class ManageSingleSessionPage {
   }
 
   get exportAsExcelButton(): Locator {
-    return this.app.page.getByRole('button', { name: 'Export .xlsx' });
+    return this.app.page.getByRole('button', { name: 'Exporter le fichier Excel' });
   }
 
   get publishedAffectationsToast(): Locator {

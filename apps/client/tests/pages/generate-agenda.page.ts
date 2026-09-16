@@ -7,7 +7,7 @@ export class GenerateAgendaPage {
 
   async goto(): Promise<this> {
     await this.app.page.getByRole('button', { name: 'Générer la documentation' }).click();
-    await this.app.page.getByRole('menuitem', { name: 'Ordre du jour' }).click();
+    await this.app.page.getByRole('menuitem', { name: 'Ordre du jour', exact: true }).click();
     await this.app.page
       .getByRole('heading', { name: "Définir les informations de l'ordre du jour" })
       .waitFor();

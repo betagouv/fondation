@@ -68,7 +68,7 @@ export class GenerateOfficialReportPage {
 
   async goto(): Promise<this> {
     await this.app.page.getByRole('button', { name: 'Générer la documentation' }).click();
-    await this.app.page.getByRole('menuitem', { name: 'Procès verbal' }).click();
+    await this.app.page.getByRole('menuitem', { name: 'Procès-verbal', exact: true }).click();
     await this.app.page.waitForURL(/secretariat-general\/session\/.+\/docs\/pv/);
 
     return this;
