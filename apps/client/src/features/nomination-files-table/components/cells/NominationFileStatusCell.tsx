@@ -10,6 +10,8 @@ export function NominationFileStatusCell(props: { status: SessionNominationFileS
     return <span className="block text-center">{formatMessage({ defaultMessage: 'En attente' })}</span>;
   }
 
+  const [latestDate] = props.status.dates;
+
   const doc =
     props.status.value === 'DSJ_PLANNED'
       ? { acronym: 'ODJ', label: formatMessage({ defaultMessage: 'Ordre du jour' }) }
@@ -28,11 +30,7 @@ export function NominationFileStatusCell(props: { status: SessionNominationFileS
         <span className="fr-sr-only">{doc.label}</span>
       </span>
 
-      {props.status.dates.map((date) => (
-        <span className="text-xs text-(--text-mention-grey)" key={formatDateOnly(date)}>
-          {formatDateOnly(date)}
-        </span>
-      ))}
+      {latestDate && <span className="text-xs text-(--text-mention-grey)">{formatDateOnly(latestDate)}</span>}
     </span>
   );
 }

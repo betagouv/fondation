@@ -6,11 +6,21 @@ import {
   type RowSelectionState,
 } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
 import { NominationFileOutcome } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcome';
+import { NominationFileStatusCell } from '@/features/nomination-files-table/components/cells/NominationFileStatusCell';
 import { ReportersCell } from '@/features/nomination-files-table/components/cells/reporters/ReportersCell';
 import type { SessionOutcome } from '@/features/nomination-files-table/context/files-table.context';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
@@ -50,6 +60,9 @@ const prioritiesCell = rowCell<SessionNominationFile>((file) => (
 ));
 const reportersCell = rowCell<SessionNominationFile>((file) => <ReportersCell dossier={file} />);
 const outcomeCell = rowCell<SessionNominationFile>((file) => <NominationFileOutcome nominationFile={file} />);
+const statusCell = rowCell<SessionNominationFile>((file) => (
+  <NominationFileStatusCell status={file.content.status} />
+));
 
 function useAgendaFilesColumns() {
   const { formatMessage } = useIntl();
@@ -106,6 +119,15 @@ function useAgendaFilesColumns() {
         meta: { filters: filters.outcomes },
         size: 80,
       }),
+
+      h.accessor('content.status', {
+        cell: statusCell,
+        enableSorting: false,
+        header: () => (
+          <span className="block text-center">{formatMessage({ defaultMessage: 'Statut' })}</span>
+        ),
+        size: 120,
+      }),
     ],
     [filters, formatMessage],
   );
@@ -120,11 +142,32 @@ interface AgendaFilesSelectionTableProps {
   onCancel(): void;
   onSubmit(fileIds: readonly string[]): void;
   renderSubmitLabel: (count: number) => ReactNode;
+  scrollsWithPage?: boolean;
   sessionId: string;
+}
+
+/** the filters stay under the pinned bar, so the table header starts below them */
+function useFiltersHeight(filters: HTMLElement | null) {
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!filters) return;
+
+    const measure = () => setHeight(filters.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(filters);
+
+    return () => observer.disconnect();
+  }, [filters]);
+
+  return height;
 }
 
 function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
   const { formatMessage } = useIntl();
+  const [pinnedFilters, setPinnedFilters] = useState<HTMLDivElement | null>(null);
+  const filtersHeight = useFiltersHeight(props.scrollsWithPage ? pinnedFilters : null);
   const { data: agendaFiles, isError } = useFindAgendaNominationFilesQuery({
     sessionId: props.sessionId,
   });
@@ -165,17 +208,13 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
 
   const defaultSelectedFileIds = props.defaultSelectedFileIds;
   useEffect(() => {
-    if (!agendaFiles || !eligibleFileIds) return;
+    if (!eligibleFileIds) return;
 
     const eligible = new Set(eligibleFileIds);
-    const selected = defaultSelectedFileIds
-      ? defaultSelectedFileIds.filter((id) => eligible.has(id))
-      : agendaFiles.items.flatMap(({ id, outcome, reporters }) =>
-          eligible.has(id) && outcome?.value !== 'SUSPENDED' && reporters.length > 0 ? [id] : [],
-        );
+    const selected = defaultSelectedFileIds?.filter((id) => eligible.has(id)) ?? [];
 
     setRowSelection((current) => current ?? Object.fromEntries(selected.map((id) => [id, true])));
-  }, [agendaFiles, defaultSelectedFileIds, eligibleFileIds]);
+  }, [defaultSelectedFileIds, eligibleFileIds]);
 
   useEffect(() => {
     if (!eligibleFileIds) return;
@@ -208,13 +247,18 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
 
       switch (ineligibilityReasons.get(row.original.id)) {
         case 'REPORTED':
-          return formatMessage({ defaultMessage: 'Déjà acté dans un procès-verbal' });
-        case 'DRAFT_REPORTED':
-          return formatMessage({ defaultMessage: 'Déjà inscrit dans un procès-verbal en préparation' });
+          return formatMessage({
+            defaultMessage:
+              'Cette proposition est déjà actée dans un procès-verbal restitué et avec une issue définitive',
+          });
         case 'UNIDENTIFIED':
-          return formatMessage({ defaultMessage: 'Magistrat ou poste non identifié' });
+          return formatMessage({
+            defaultMessage: "Le magistrat ou le poste de cette proposition n'est pas identifié",
+          });
         default:
-          return formatMessage({ defaultMessage: 'Ne peut pas figurer dans un ordre du jour' });
+          return formatMessage({
+            defaultMessage: 'Cette proposition ne peut pas figurer dans un ordre du jour',
+          });
       }
     },
     [agendaFiles, formatMessage, ineligibilityReasons],
@@ -307,38 +351,53 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
   return (
     <div
       className={clsx(
-        'fr-py-6v mx-[calc(50%-50vw)] flex flex-col gap-y-4 bg-(--background-alt-grey) px-[calc(50vw-50%)]',
+        'fr-py-6v mx-[calc(50%-50vw)] flex grow flex-col bg-(--background-alt-grey) px-[calc(50vw-50%)]',
         props.className,
       )}
+      style={
+        props.scrollsWithPage
+          ? ({
+              '--fondation-table-header-top': `calc(var(--fondation-banner-height) + var(--fondation-pinned-bar-height) + var(--fondation-pinned-gap) + ${filtersHeight}px)`,
+            } as CSSProperties)
+          : undefined
+      }
     >
       {props.actionsSlot && createPortal(actions, props.actionsSlot)}
 
-      <div className="flex items-center justify-between gap-4">
-        <ReactTableFilterColumn table={filesTable.table} />
-        <SearchInput
-          className="w-72"
-          onChange={filesTable.onSearchChange}
-          onClear={filesTable.clearSearch}
-          placeholder={formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
-          value={filesTable.search}
-        />
-      </div>
+      <div
+        className={clsx('fr-pb-4v flex flex-col gap-y-4', {
+          'sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height)+var(--fondation-pinned-gap))] z-3 bg-(--background-alt-grey)':
+            props.scrollsWithPage,
+        })}
+        ref={setPinnedFilters}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <ReactTableFilterColumn table={filesTable.table} />
+          <SearchInput
+            className="w-72"
+            onChange={filesTable.onSearchChange}
+            onClear={filesTable.clearSearch}
+            placeholder={formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+            value={filesTable.search}
+          />
+        </div>
 
-      <p aria-live="polite" className="fr-m-0 fr-mt-3v text-sm">
-        {formatMessage(
-          {
-            defaultMessage: `{count, plural,
-              =0 {Aucune proposition sélectionnée}
-              one {1 proposition sélectionnée}
-              other {{count, number} propositions sélectionnées}}`,
-          },
-          { count: selectedFileIds.length },
-        )}
-      </p>
+        <p aria-live="polite" className="fr-m-0 fr-mt-3v text-sm">
+          {formatMessage(
+            {
+              defaultMessage: `{count, plural,
+                =0 {Aucune proposition sélectionnée}
+                one {1 proposition sélectionnée sur {total, number}}
+                other {{count, number} propositions sélectionnées sur {total, number}}}`,
+            },
+            { count: selectedFileIds.length, total: filesTable.totalCount },
+          )}
+        </p>
+      </div>
 
       <NewTable
         ariaLabel={formatMessage({ defaultMessage: "Propositions à inscrire à l'ordre du jour" })}
-        className={isEmpty ? undefined : 'max-h-screen'}
+        className={clsx(!props.scrollsWithPage && !isEmpty && 'max-h-screen')}
         emptyLabel={
           filesTable.isLoading
             ? formatMessage({ defaultMessage: 'Chargement...' })
@@ -347,8 +406,9 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
         fluid
         isLoading={filesTable.isLoading}
         onEndReached={filesTable.fetchNextPage}
+        scrollsWithPage={props.scrollsWithPage}
         table={filesTable.table}
-        visibleRows={10}
+        visibleRows={props.scrollsWithPage ? undefined : 10}
       />
     </div>
   );

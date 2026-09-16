@@ -24,7 +24,7 @@ import type { DropdownHandle } from '@/shared/ui/dropdown';
 import { getGdsReportPath } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
@@ -37,7 +37,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const { user } = useUser();
   const { canManage } = useNominationFilesTable();
   const isSgContext = useIsSgNavigation();
-  const { isUpdatable, nomMagistrat } = nominationFile.content;
+  const { nomMagistrat } = nominationFile.content;
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -73,7 +73,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const reportersDirty = isEditing && affectation.reportersDirty;
   const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
 
-  const canEdit = canManage && !!isUpdatable;
+  const canEdit = canManage && isUpdatable(nominationFile);
 
   const excludedJurisdictions = useExcludedJurisdictions();
   const conflicts = excludedJurisdictions.conflictsFor(

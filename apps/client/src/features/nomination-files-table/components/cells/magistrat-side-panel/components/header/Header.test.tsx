@@ -181,7 +181,7 @@ describe('Header edition', () => {
   it('offers the edit button when the table is editable and the file is updatable', () => {
     renderHeader({
       canManage: true,
-      nominationFile: makeSessionNominationFile({ content: { isUpdatable: true } }),
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null } }),
     });
 
     expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
@@ -190,7 +190,7 @@ describe('Header edition', () => {
   it('hides the edit button for a member (table not editable)', () => {
     renderHeader({
       canManage: false,
-      nominationFile: makeSessionNominationFile({ content: { isUpdatable: true } }),
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null } }),
     });
 
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
@@ -199,7 +199,7 @@ describe('Header edition', () => {
   it('hides the edit button when the file is not updatable', () => {
     renderHeader({
       canManage: true,
-      nominationFile: makeSessionNominationFile({ content: { isUpdatable: false } }),
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: 'REPORTED' } }),
     });
 
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
@@ -209,7 +209,7 @@ describe('Header edition', () => {
     const user = userEvent.setup();
     renderHeader({
       canManage: true,
-      nominationFile: makeSessionNominationFile({ content: { isUpdatable: true }, reporters: [] }),
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null }, reporters: [] }),
     });
 
     expect(screen.getByText('Affectation non effectuée')).toBeInTheDocument();
@@ -236,7 +236,7 @@ describe('Header edition', () => {
     renderHeader({
       canManage: true,
       nominationFile: makeSessionNominationFile({
-        content: { isUpdatable: true },
+        content: { lockedReason: null },
         priorities: [PrioriteEnum.ETOILE],
         reporters: [OTHER_REPORTER],
       }),
@@ -284,7 +284,7 @@ describe('Header missing second reporter', () => {
     const user = userEvent.setup();
     renderHeader({
       nominationFile: makeSessionNominationFile({
-        content: { isUpdatable: true },
+        content: { lockedReason: null },
         expectedReportersCount: 2,
         reporters: [OTHER_REPORTER],
       }),
@@ -301,7 +301,7 @@ describe('Header missing second reporter', () => {
     const user = userEvent.setup();
     renderHeader({
       nominationFile: makeSessionNominationFile({
-        content: { isUpdatable: true },
+        content: { lockedReason: null },
         expectedReportersCount: 2,
         reporters: [OTHER_REPORTER],
       }),

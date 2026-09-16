@@ -87,7 +87,7 @@ export function ReportOverview({ id }: { id: string }) {
               <Breadcrumb
                 ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du rapport" })}
                 breadcrumb={breadcrumb}
-                className="fr-my-0"
+                className="fr-mt-0"
                 id="report-breadcrumb"
               />
             }

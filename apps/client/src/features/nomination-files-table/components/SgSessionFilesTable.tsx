@@ -10,8 +10,10 @@ import { useSessionFilesFilters } from '../hooks/useSessionFilesFilters';
 import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
+import { NominationFileLockEnumMessages } from '@/shared/enums/nomination-file-lock.enum';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
 import {
+  isUpdatable,
   useListNominationFilesAsExcelMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
@@ -128,7 +130,10 @@ function SgSessionFilesTableInner(
   props: PropsWithChildren<{
     filtersSlot?: Element | null;
     headerSlot?: Element | null;
+    isPinned?: boolean;
     onSelectingChange?: (isSelecting: boolean) => void;
+    scrollsWithPage?: boolean;
+    toolbarSlot?: Element | null;
   }>,
 ) {
   const { formatMessage } = useIntl();
@@ -140,15 +145,13 @@ function SgSessionFilesTableInner(
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const clearSelection = useCallback(() => setRowSelection({}), []);
 
-  const latestOnSelectingChange = useRef(props.onSelectingChange);
-  useEffect(() => {
-    latestOnSelectingChange.current = props.onSelectingChange;
-  });
-
-  const canSelectRow = useCallback((row: Row<SessionNominationFile>) => row.original.content.isUpdatable, []);
+  const canSelectRow = useCallback((row: Row<SessionNominationFile>) => isUpdatable(row.original), []);
 
   const lockedLabel = useCallback(
-    () => formatMessage({ defaultMessage: 'Cette proposition ne peut plus être modifiée' }),
+    (row: Row<SessionNominationFile>) => {
+      const { lockedReason } = row.original.content;
+      return lockedReason ? formatMessage(NominationFileLockEnumMessages[lockedReason]) : '';
+    },
     [formatMessage],
   );
 
@@ -172,6 +175,12 @@ function SgSessionFilesTableInner(
   );
 
   const hasSelection = selectedFiles.length > 0;
+
+  const latestOnSelectingChange = useRef(props.onSelectingChange);
+  useEffect(() => {
+    latestOnSelectingChange.current = props.onSelectingChange;
+  });
+
   useEffect(() => {
     latestOnSelectingChange.current?.(hasSelection);
   }, [hasSelection]);
@@ -182,6 +191,9 @@ function SgSessionFilesTableInner(
     <SessionFilesTable
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
+      isPinned={props.isPinned}
+      scrollsWithPage={props.scrollsWithPage}
+      toolbarSlot={props.toolbarSlot}
       summary={
         hasSelection ? (
           <NominationFilesSelectionBar
@@ -199,13 +211,13 @@ function SgSessionFilesTableInner(
         )}
 
       {!hasSelection && (
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />
             <NominationFilesStatusBadges />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <NominationFilesExportButton
               disabled={exportAsExcel.isPending}
               onExport={() => exportAsExcel.mutate({ sessionId }, { onError: onExportFailure })}
@@ -227,9 +239,12 @@ export function SgSessionFilesTable(
     filtersSlot?: Element | null;
     formation: FormationEnum;
     headerSlot?: Element | null;
+    isPinned?: boolean;
     onSelectingChange?: (isSelecting: boolean) => void;
     outcomes: readonly SessionOutcome[];
+    scrollsWithPage?: boolean;
     sessionId: string;
+    toolbarSlot?: Element | null;
   }>,
 ) {
   return (
@@ -237,7 +252,10 @@ export function SgSessionFilesTable(
       <SgSessionFilesTableInner
         filtersSlot={props.filtersSlot}
         headerSlot={props.headerSlot}
+        isPinned={props.isPinned}
         onSelectingChange={props.onSelectingChange}
+        scrollsWithPage={props.scrollsWithPage}
+        toolbarSlot={props.toolbarSlot}
       >
         {props.children}
       </SgSessionFilesTableInner>

@@ -43,6 +43,28 @@ function diff(previous: readonly string[], next: readonly string[]) {
   };
 }
 
+function sharedList<T extends string>(
+  files: readonly SessionNominationFile[],
+  valuesOf: (file: SessionNominationFile) => readonly T[],
+): T[] {
+  const [first, ...others] = files.map((file) => [...valuesOf(file)].sort());
+  if (!first) return [];
+
+  const isShared = others.every(
+    (values) => values.length === first.length && values.every((value, index) => value === first[index]),
+  );
+
+  return isShared ? first : [];
+}
+
+function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {
+  const outcomes = files.map((file) => file.content.outcome?.value ?? null);
+  const [first] = outcomes;
+  if (!first) return null;
+
+  return outcomes.every((outcome) => outcome === first) ? first : null;
+}
+
 export function NominationFilesBulkActions(props: {
   onClose: () => void;
   selectedFiles: readonly SessionNominationFile[];
@@ -89,20 +111,28 @@ export function NominationFilesBulkActions(props: {
     [formatMessage, toasts],
   );
 
-  const [reporterIds, setReporterIds] = useState<string[]>([]);
-  const [priorities, setPriorities] = useState<PrioriteEnum[]>([]);
-  const [outcome, setOutcome] = useState<NominationFileOutcomeEnum | null>(null);
+  const shared = useMemo(
+    () => ({
+      outcome: sharedOutcome(props.selectedFiles),
+      priorities: sharedList(props.selectedFiles, (file) => file.priorities),
+      reporterIds: sharedList(props.selectedFiles, (file) => file.reporters.map(({ id }) => id)),
+    }),
+    [props.selectedFiles],
+  );
+
+  const [reporterIds, setReporterIds] = useState(shared.reporterIds);
+  const [priorities, setPriorities] = useState(shared.priorities);
+  const [outcome, setOutcome] = useState(shared.outcome);
   const [commentedOutcome, setCommentedOutcome] = useState<NominationFileOutcomeEnum | null>(null);
 
   const hasSelection = props.selectedFiles.length > 0;
   const isApplying = affectReporters.isPending || defineOutcome.isPending;
-  useEffect(() => {
-    if (hasSelection) return;
 
-    setReporterIds([]);
-    setPriorities([]);
-    setOutcome(null);
-  }, [hasSelection]);
+  useEffect(() => {
+    setReporterIds(shared.reporterIds);
+    setPriorities(shared.priorities);
+    setOutcome(shared.outcome);
+  }, [shared]);
 
   const changeReporters = useCallback(
     (next: string[]) => {

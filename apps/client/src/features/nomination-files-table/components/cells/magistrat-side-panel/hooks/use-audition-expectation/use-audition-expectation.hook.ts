@@ -2,7 +2,7 @@ import { useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { areReportersMissing, isAuditionMissing } from '@/utils/audition-expectation.util';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type AuditionExpectation = {
   auditionMissing: boolean;
@@ -20,7 +20,7 @@ export function useAuditionExpectation(
   const auditionMissing = isAuditionMissing(nominationFile);
   const reportersMissing = areReportersMissing(
     {
-      canAffectReporters: nominationFile.content.isUpdatable,
+      canAffectReporters: isUpdatable(nominationFile),
       expectedReportersCount: nominationFile.expectedReportersCount,
     },
     options.selectedReportersCount ?? nominationFile.reporters.length,

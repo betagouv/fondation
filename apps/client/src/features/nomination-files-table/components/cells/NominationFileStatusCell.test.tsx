@@ -30,7 +30,7 @@ describe('NominationFileStatusCell', () => {
     expect(screen.getByText('01/06/2026')).toBeInTheDocument();
   });
 
-  it('dates every agenda the file is listed in, most recent first', () => {
+  it('only dates the latest agenda when the file was listed in several', () => {
     renderCell({
       value: 'DSJ_PLANNED',
       dates: [
@@ -41,7 +41,6 @@ describe('NominationFileStatusCell', () => {
 
     expect(screen.getAllByText(/^\d{2}\/\d{2}\/\d{4}$/).map((date) => date.textContent)).toEqual([
       '01/07/2026',
-      '01/06/2026',
     ]);
   });
 

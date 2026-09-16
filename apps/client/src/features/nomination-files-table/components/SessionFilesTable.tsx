@@ -1,4 +1,5 @@
 import type { Table } from '@tanstack/react-table';
+import clsx from 'clsx';
 import { type PropsWithChildren, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
@@ -23,6 +24,7 @@ function SessionFilesNewTable(props: {
   emptyLabel: string;
   isLoading: boolean;
   onEndReached: () => void;
+  scrollsWithPage?: boolean;
   table: Table<SessionNominationFile>;
 }) {
   const { activeId } = useSidePanel();
@@ -32,7 +34,7 @@ function SessionFilesNewTable(props: {
   return (
     <NewTable
       ariaLabel={intl.formatMessage({ defaultMessage: 'Dossiers de la session' })}
-      className={isEmpty ? undefined : 'max-h-screen'}
+      className={clsx(!props.scrollsWithPage && !isEmpty && 'max-h-screen')}
       emptyLabel={
         props.isLoading ? intl.formatMessage({ defaultMessage: 'Chargement...' }) : props.emptyLabel
       }
@@ -41,8 +43,9 @@ function SessionFilesNewTable(props: {
       onEndReached={props.onEndReached}
       revealedRowId={activeId}
       rowTint={(row) => (row.id === activeId ? 'bg-(--background-alt-blue-france)' : undefined)}
+      scrollsWithPage={props.scrollsWithPage}
       table={props.table}
-      visibleRows={10}
+      visibleRows={props.scrollsWithPage ? undefined : 10}
     />
   );
 }
@@ -53,7 +56,10 @@ export function SessionFilesTable(
     filesTable: SessionFilesTableState;
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
+    isPinned?: boolean;
+    scrollsWithPage?: boolean;
     summary?: ReactNode;
+    toolbarSlot?: Element | null;
   }>,
 ) {
   const intl = useIntl();
@@ -67,6 +73,13 @@ export function SessionFilesTable(
     nominationFiles: filesTable.nominationFiles,
     sessionId,
   });
+
+  const toolbar = (
+    <div className={clsx('flex flex-col justify-center', props.isPinned ? 'min-h-8' : 'min-h-10')}>
+      {props.summary}
+      {props.children}
+    </div>
+  );
 
   const filters = (
     <div className="flex items-center justify-between gap-4">
@@ -101,10 +114,8 @@ export function SessionFilesTable(
               <div className="flex flex-col gap-y-4">
                 {props.filtersSlot ? createPortal(filters, props.filtersSlot) : filters}
 
-                <div className="flex min-h-10 flex-col justify-center">
-                  {props.summary}
-                  {props.children}
-                </div>
+                {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
+
                 <SessionFilesNewTable
                   emptyLabel={
                     props.emptyLabel ??
@@ -114,6 +125,7 @@ export function SessionFilesTable(
                   }
                   isLoading={filesTable.isLoading}
                   onEndReached={filesTable.fetchNextPage}
+                  scrollsWithPage={props.scrollsWithPage}
                   table={filesTable.table}
                 />
               </div>

@@ -3,7 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 
@@ -17,7 +17,7 @@ export function MissingEvaluation(props: {
   const { formatMessage } = useIntl();
   const { mutate, isError: saveFailed } = useUpdateNominationFileMissingEvaluationMutation();
 
-  const updatable = editable && nominationFile.content.isUpdatable;
+  const updatable = editable && isUpdatable(nominationFile);
   if (!missingEvaluation && !updatable) return null;
 
   const label = formatMessage({
@@ -50,7 +50,7 @@ export function MissingEvaluation(props: {
             label:
               'w-auto! text-sm! leading-6! whitespace-nowrap text-(--text-action-high-blue-france) before:ml-2!',
           }}
-          disabled={!nominationFile.content.isUpdatable}
+          disabled={!isUpdatable(nominationFile)}
           label={
             <>
               <span className="fr-sr-only">{label}</span>

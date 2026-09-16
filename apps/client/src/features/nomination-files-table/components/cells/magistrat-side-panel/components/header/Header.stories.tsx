@@ -161,8 +161,8 @@ function HeaderBanners(props: { editable: boolean; nominationFile: SessionNomina
     <div className="flex flex-col gap-10">
       <Header nominationFile={nominationFile} sessionId={SESSION_ID} />
       <div className="-mt-10 [&>*+*]:border-t [&>*+*]:border-(--border-open-blue-france)">
-        {!nominationFile.content.isUpdatable && (
-          <FrozenFileBanner isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
+        {nominationFile.content.lockedReason && (
+          <FrozenFileBanner lockedReason={nominationFile.content.lockedReason} />
         )}
         <AuditionBanner
           auditionDate={nominationFile.auditionDate}
@@ -182,14 +182,14 @@ function HeaderStory(props: {
   magistratName: string;
   missingEvaluation?: boolean;
   priorities: PrioriteEnum[];
-  reportedInOfficialReport?: boolean;
+  isReported?: boolean;
   reporters: ReporterScenario;
   view: View;
 }) {
   const isSg = props.view !== 'member';
   const canManage = props.view === 'sg';
   const isArchived = props.view === 'sgArchived';
-  const isUpdatable = !isArchived && !props.reportedInOfficialReport;
+  const lockedReason = isArchived ? 'ARCHIVED_SESSION' : props.isReported ? 'REPORTED' : null;
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -198,12 +198,12 @@ function HeaderStory(props: {
 
   const nominationFile = makeSessionNominationFile({
     ...auditionFor(props.audition),
-    canScheduleAudition: isUpdatable,
+    canScheduleAudition: !lockedReason,
     content: {
-      isUpdatable,
+      lockedReason,
       jurisdictions: jurisdictionsFor(props.excludedJurisdiction ?? 'none'),
       nomMagistrat: props.magistratName,
-      status: props.reportedInOfficialReport
+      status: props.isReported
         ? { value: 'DSJ_REPORTED', dates: [REPORTED_ON] }
         : { value: 'TO_REPORT', dates: [] },
     },
@@ -254,9 +254,9 @@ const meta = {
     magistratName: { control: 'text' },
     missingEvaluation: { control: 'boolean' },
     priorities: { control: 'check', options: priorities },
-    reportedInOfficialReport: {
+    isReported: {
       control: 'boolean',
-      description: 'the file outcome is acted in an official report, so it can no longer be updated',
+      description: 'the file was restituted with a final outcome, so it can no longer be updated',
     },
     reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
     view: { table: { disable: true } },
@@ -267,7 +267,7 @@ const meta = {
     magistratName: 'Camille DURAND',
     missingEvaluation: false,
     priorities: [PrioriteEnum.ETOILE],
-    reportedInOfficialReport: false,
+    isReported: false,
     reporters: 'others',
     view: 'sg',
   },

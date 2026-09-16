@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import * as $api from '@api/sdk';
+import type { SessionNominationFileLockedReason } from '@queries/nomination-sessions.queries';
 
 import { MissingEvaluation } from './MissingEvaluation';
 
@@ -13,14 +14,18 @@ const SESSION_ID = 'session-1';
 const LABEL = 'Évaluation manquante dans le dossier administratif LOLFI';
 
 function renderMissingEvaluation(
-  options: { editable?: boolean; isUpdatable?: boolean; missingEvaluation?: boolean } = {},
+  options: {
+    editable?: boolean;
+    lockedReason?: SessionNominationFileLockedReason;
+    missingEvaluation?: boolean;
+  } = {},
 ) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
 
   const nominationFile = makeSessionNominationFile({
-    content: { isUpdatable: options.isUpdatable ?? true },
+    content: { lockedReason: options.lockedReason ?? null },
     missingEvaluation: options.missingEvaluation ?? false,
   });
 
@@ -46,7 +51,7 @@ describe('MissingEvaluation visibility', () => {
   });
 
   it('disables the toggle when the nomination file cannot be updated', () => {
-    renderMissingEvaluation({ isUpdatable: false, missingEvaluation: true });
+    renderMissingEvaluation({ lockedReason: 'REPORTED', missingEvaluation: true });
 
     expect(screen.getByRole('checkbox', { name: LABEL })).toBeDisabled();
     expect(screen.getByText('Oui')).toBeVisible();
@@ -60,7 +65,7 @@ describe('MissingEvaluation visibility', () => {
   });
 
   it('renders nothing when the nomination file cannot be updated and is not flagged', () => {
-    renderMissingEvaluation({ isUpdatable: false, missingEvaluation: false });
+    renderMissingEvaluation({ lockedReason: 'REPORTED', missingEvaluation: false });
 
     expect(screen.queryByText(LABEL)).not.toBeInTheDocument();
   });

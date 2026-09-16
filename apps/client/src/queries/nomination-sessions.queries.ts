@@ -110,6 +110,11 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];
 export type SessionNominationFileStatus = SessionNominationFile['content']['status'];
+export type SessionNominationFileLockedReason = SessionNominationFile['content']['lockedReason'];
+
+export function isUpdatable(file: SessionNominationFile): boolean {
+  return file.content.lockedReason === null;
+}
 
 const SESSION_NOMINATION_FILES_PAGE_SIZE = 100;
 
