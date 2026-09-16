@@ -590,7 +590,7 @@ export class SessionController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteNominationSession(
-    @Param('sessionId') id: string,
+    @Param('sessionId', ParseUUIDPipe) id: string,
     @AuthedUser() { id: userId }: { id: string },
   ): Promise<void> {
     return this.sessions.deleteSession({ id, userId });

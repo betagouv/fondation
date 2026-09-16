@@ -47,17 +47,25 @@ export class OfficialReportSnapshot {
           !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
-      case 'NominationFilesReportersUpdated':
       case 'NominationFilesOutcomeUpdated':
-      case 'AgendaNominationFilesUpdated': {
-        const files = this.filesSnapshot.diff(command.payload);
-        const hasAny = files.some((file) => file.action !== 'noop');
-        return { intro: 'NOOP', conclusion: 'NOOP', hasAny, files };
-      }
+        return this.invalidateFiles(command.payload.files.map((file) => this.filesSnapshot.diffFile(file)));
+
+      case 'NominationFilesReportersUpdated':
+      case 'AgendaNominationFilesUpdated':
+        return this.invalidateFiles(this.filesSnapshot.diff(command.payload));
 
       default:
         return assertNever(command);
     }
+  }
+
+  private invalidateFiles(files: OfficialReportSnapshotDiff['files']): OfficialReportSnapshotDiff {
+    return {
+      hasAny: files.some((file) => file.action !== 'noop'),
+      intro: 'NOOP',
+      conclusion: 'NOOP',
+      files,
+    };
   }
 
   private invalidateIntroIf(outdated: boolean): OfficialReportSnapshotDiff {

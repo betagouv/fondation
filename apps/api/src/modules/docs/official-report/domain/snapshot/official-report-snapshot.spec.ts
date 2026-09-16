@@ -335,6 +335,34 @@ describe('OfficialReportSnapshot', () => {
       expect(diff).toMatchObject({ intro: 'NOOP', conclusion: 'NOOP', hasAny: true });
     });
 
+    it('keeps the other files of the official report when a single outcome changes', () => {
+      const { snapshot } = makeSnapshot({
+        files: new Map(
+          [
+            { id: 0n, nominationFileId: 'file-1' },
+            { id: 1n, nominationFileId: 'file-2' },
+          ].map(({ id, nominationFileId }) => [
+            nominationFileId,
+            OfficialReportSnapshotFile.from({
+              id,
+              nominationFileId,
+              hasManuallyEditedHtml: false,
+              outcome: { value: 'VALIDATED', comment: null },
+              reporters: ['M. John DOE'],
+            }),
+          ]),
+        ),
+      });
+
+      const diff = snapshot.invalidate({
+        id: 'or-1',
+        type: 'NominationFilesOutcomeUpdated',
+        payload: { files: [{ nominationFileId: 'file-1', outcome: { value: 'WITHDRAWN', comment: null } }] },
+      });
+
+      expect(diff.files.map((file) => file.action)).toEqual(['update']);
+    });
+
     it('flags an outcome change on a manually edited file as OUTDATED', () => {
       const { snapshot } = makeSnapshot({
         files: new Map([

@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
-import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 
@@ -39,7 +42,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -65,7 +68,7 @@ describe('SessionTransparence', () => {
     ]);
   });
 
-  it('should throw when trying to affect on files linked to docs', () => {
+  it('should throw when trying to affect on files already presented', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
       formation: 'SIEGE',
@@ -74,12 +77,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -106,7 +104,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -145,7 +143,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -172,7 +170,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -188,7 +186,7 @@ describe('SessionTransparence', () => {
     ]);
   });
 
-  it('should throw when defining a priority on a file linked to docs', () => {
+  it('should throw when defining a priority on a file already presented', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
       formation: 'SIEGE',
@@ -197,12 +195,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -224,7 +217,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -462,7 +455,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nf-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -496,7 +489,7 @@ describe('SessionTransparence', () => {
     ).toThrow(new UnknownNominationFiles([1]));
   });
 
-  it('should throw when updating observers on files linked to docs', () => {
+  it('should throw when updating observers on files already presented', () => {
     const session = SessionTransparence.from({
       id: makeId('NominationSessionId'),
       formation: 'SIEGE',
@@ -505,12 +498,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -532,7 +520,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -560,7 +548,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -588,7 +576,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -611,7 +599,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -641,7 +629,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -666,7 +654,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -689,7 +677,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -713,7 +701,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -738,7 +726,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -766,12 +754,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -793,12 +776,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -820,7 +798,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -854,7 +832,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: null,
-          docs: [],
+          isReported: false,
         },
       ],
     });
@@ -869,7 +847,7 @@ describe('SessionTransparence', () => {
     ]);
   });
 
-  it('should throw when adding an attachment on a file linked to docs', () => {
+  it('should throw when adding an attachment on a file already presented', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
       formation: 'SIEGE',
@@ -878,12 +856,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });
@@ -897,7 +870,7 @@ describe('SessionTransparence', () => {
     ).toThrow(CantUpdateNominationFiles);
   });
 
-  it('should throw when removing an attachment on a file linked to docs', () => {
+  it('should throw when removing an attachment on a file already presented', () => {
     const session = SessionTransparence.from({
       id: 'session-id',
       formation: 'SIEGE',
@@ -906,12 +879,7 @@ describe('SessionTransparence', () => {
         {
           id: 'nomination-file-id-1',
           outcome: 'VALIDATED',
-          docs: [
-            {
-              agenda: { id: 'a1', outcome: 'SUSPENDED' },
-              officialReport: { id: 'or-1', outcome: 'VALIDATED' },
-            },
-          ],
+          isReported: true,
         },
       ],
     });

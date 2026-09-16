@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { format } from 'date-fns';
 
 import { SessionTransparence } from '../../domain/session-transparence';
@@ -10,6 +10,8 @@ import { LolfiTransparenceFilesFinder } from './lolfi-nomination-files.finder';
 
 @Injectable()
 export class LolfiNominationSessionFinder {
+  private readonly logger = new Logger(LolfiNominationSessionFinder.name);
+
   constructor(
     private readonly sessions: SessionTransparenceRepository,
     private readonly lolfiTransparenceFiles: LolfiTransparenceFilesFinder,
@@ -26,7 +28,12 @@ export class LolfiNominationSessionFinder {
     const output: SessionTransparence[] = [];
     for (const formation of Object.values(FormationEnum)) {
       const existingSession = sessions[formation];
-      if (existingSession?.isArchived) continue;
+      if (existingSession && !existingSession.isIngestable) {
+        this.logger.warn(
+          `lolfi session ${props.id} skipped on formation ${formation}: ${existingSession.reason}`,
+        );
+        continue;
+      }
 
       const session =
         existingSession?.session ??

@@ -129,6 +129,85 @@ test.describe('lolfi', () => {
     expect(nextFiles.data!.totalCount).toBe(1);
   });
 
+  test('should keep ingesting a formation once the other one was deleted', async ({ sessions, agent, expect }) => {
+    const lolfiSessionId = crypto.randomInt(1_000, 900_000);
+    const name = crypto.randomUUID();
+
+    const siegeCandidate = {
+      id: crypto.randomInt(1_000, 9_999),
+      firstName: 'ETIENNE',
+      lastName: 'TREVOUX',
+      position: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  LYON'],
+        function: seed.functions.P,
+      },
+      targetPosition: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+        function: seed.functions.P,
+      },
+    } as const satisfies LolfiData['sessions'][number]['candidates'][number];
+
+    const parquetCandidate = {
+      id: crypto.randomInt(1_000, 9_999),
+      firstName: 'MICHEL',
+      lastName: 'BERGER',
+      position: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  LYON'],
+        function: seed.functions.PR,
+      },
+      targetPosition: {
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  MONTPELLIER'],
+        function: seed.functions.PR,
+      },
+    } as const satisfies LolfiData['sessions'][number]['candidates'][number];
+
+    const lateParquetCandidate = {
+      ...parquetCandidate,
+      id: crypto.randomInt(1_000, 9_999),
+      firstName: 'FRANCE',
+      lastName: 'GALL',
+    };
+
+    const findSession = async (formation: 'SIEGE' | 'PARQUET'): Promise<{ id: string } | undefined> => {
+      const { data } = await agent.sessions.listSessionsOfTypeGardeDesSceaux({
+        query: { search: `${name} (${lolfiSessionId})`, formations: [formation] },
+      });
+
+      return data!.items[0];
+    };
+
+    await sessions.createMany([
+      { id: lolfiSessionId, name, createdAt: '22/04/2026', candidates: [siegeCandidate, parquetCandidate] },
+    ]);
+
+    const siege = await findSession('SIEGE');
+    const parquet = await findSession('PARQUET');
+    assert.ok(siege, 'siege session is undefined');
+    assert.ok(parquet, 'parquet session is undefined');
+
+    await agent.sessions.deleteNominationSession({ path: { sessionId: siege.id }, throwOnError: true });
+
+    await sessions.createMany([
+      {
+        id: lolfiSessionId,
+        name,
+        createdAt: '22/04/2026',
+        candidates: [siegeCandidate, parquetCandidate, lateParquetCandidate],
+      },
+    ]);
+
+    await waitFor(async () => {
+      const parquetFiles = await agent.sessions.listNominationFiles({ path: { sessionId: parquet.id } });
+      assert.equal(parquetFiles.data!.totalCount, 2, 'the parquet session was not ingested again');
+    });
+
+    expect(await findSession('SIEGE')).toBeUndefined();
+  });
+
   test('should accept an archive sent with a machine token', async ({ admin, baseUrl, expect }) => {
     const jobId = await ingestArchiveAsMachine(baseUrl, {
       id: crypto.randomInt(1_000, 900_000),

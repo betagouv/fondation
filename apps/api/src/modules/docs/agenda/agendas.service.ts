@@ -76,7 +76,7 @@ export class AgendasService {
       sessionId: command.sessionId,
     });
 
-    const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+    const reportedNominationFileIds = await this.reportedNominationFilesFinder.find({
       fileIds: new Set(nominationFiles.map(({ id }) => id)),
     });
 
@@ -84,7 +84,7 @@ export class AgendasService {
       authorId: command.authorId,
       chairman,
       date: DateOnly.fromJson(command.date),
-      reportedNominationFiles,
+      reportedNominationFileIds,
       sessionId: command.sessionId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       nominationFiles: nominationFiles.map((f) => ({
@@ -137,13 +137,13 @@ export class AgendasService {
     const invalidations = await this.db.withTransaction(async () => {
       const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
       const nominationFileIds = new Set(command.nominationFileIds);
-      const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+      const reportedNominationFileIds = await this.reportedNominationFilesFinder.find({
         fileIds: nominationFileIds,
       });
 
       const diff = agenda.updateFiles({
         nominationFileIds,
-        reportedNominationFiles,
+        reportedNominationFileIds,
         authorId: command.authorId,
       });
 

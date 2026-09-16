@@ -3,13 +3,13 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()

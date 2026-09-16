@@ -1,8 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { timeOnlySchema } from 'src/utils/time-only';

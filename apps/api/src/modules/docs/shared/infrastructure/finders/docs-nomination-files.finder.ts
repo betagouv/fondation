@@ -50,19 +50,13 @@ export class DocsNominationFilesFinder {
     const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
       fileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
     });
-    const reportedState = (id: string) => reportedNominationFiles.reportedState({ nominationFileId: id });
 
     return {
       items: sessionNominationFiles,
       ineligible: [
-        ...sessionNominationFiles.flatMap(({ id }) => {
-          const state = reportedState(id);
-          if (state === 'NONE') return [];
-
-          return [
-            { id, reason: state === 'VALIDATED' ? ('REPORTED' as const) : ('DRAFT_REPORTED' as const) },
-          ];
-        }),
+        ...sessionNominationFiles.flatMap(({ id }) =>
+          reportedNominationFiles.has(id) ? [{ id, reason: 'REPORTED' as const }] : [],
+        ),
         ...found.unidentifiedIds.map((id) => ({ id, reason: 'UNIDENTIFIED' as const })),
       ],
     };
@@ -169,7 +163,7 @@ export class FoundDocsNominationFiles extends createZodDto(
   }),
 ) {}
 
-export const AGENDA_INELIGIBILITY_REASONS = ['REPORTED', 'DRAFT_REPORTED', 'UNIDENTIFIED'] as const;
+export const AGENDA_INELIGIBILITY_REASONS = ['REPORTED', 'UNIDENTIFIED'] as const;
 
 export class FoundAgendaNominationFiles extends createZodDto(
   FoundDocsNominationFiles.schema.extend({

@@ -8,6 +8,7 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
@@ -70,7 +71,7 @@ export class AgendaFinder {
       nominationFiles: {
         every: {
           nominationFile: {
-            outcome: { not: null },
+            outcome: { in: NominationFileOutcome.decidedOutcomes() },
             reporterIds: { some: { versionId } },
           },
         },

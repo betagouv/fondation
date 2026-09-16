@@ -3,7 +3,6 @@ import { load } from 'cheerio';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import * as nominationFilesPolicies from '../../../shared/policies/nomination-file.policies';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
@@ -19,19 +18,21 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from 'src/modules/session/shared/types/nomination-file-outcome';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
   prismaPrioriteEnumToPriorityEnum,
 } from 'src/modules/shared/mappers/priorite.mapper';
+import { NominationFileLockEnum } from 'src/modules/shared/nomination-file-lock.enum';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import {
   expectedReportersCount,
   isAuditionExpected,
 } from 'src/modules/shared/policies/auditioned-position.policy';
+import * as nominationFilesPolicies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -186,6 +187,7 @@ export class ListNominationFilesQuery {
 
     const nominationFileIds = new Set(txFiles.map(({ id }) => id));
     const linkedDocs = await this.docs.internalFindNominationFilesLinkedDocs({ nominationFileIds });
+    const reportedFileIds = await this.docs.internalFindReportedNominationFiles({ nominationFileIds });
 
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
@@ -200,8 +202,8 @@ export class ListNominationFilesQuery {
         ...file,
         jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
         status: transparenceFileStatus({ docs, outcome: file.outcome }),
-        isUpdatable: nominationFilesPolicies.canUpdateNominationFile(
-          { docs, id: file.id, outcome: file.outcome },
+        lockedReason: nominationFilesPolicies.nominationFileLock(
+          { isReported: reportedFileIds.has(file.id) },
           { archivedAt: sessionArchivedAt },
         ),
       };
@@ -242,7 +244,7 @@ export class ListNominationFilesQuery {
               }
             : null,
           isAlertHidden: x.alertHidden,
-          isUpdatable: x.isUpdatable,
+          lockedReason: x.lockedReason,
           status: {
             value: x.status.value,
             dates: x.status.dates.map((date) => DateOnly.fromUtcDate(date).toJson()),
@@ -375,7 +377,7 @@ const NominationFileContentSchema = z.object({
     .nullable(),
   isAlertHidden: z.boolean(),
 
-  isUpdatable: z.boolean(),
+  lockedReason: z.enum(NominationFileLockEnum).nullable(),
   status: z.object({
     value: z.enum(NOMINATION_SESSION_FILE_STATUSES),
     dates: z.array(dateOnlyJsonSchema),

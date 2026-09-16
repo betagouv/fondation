@@ -1,11 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { NominationFileOutcome } from '../../../shared/types/nomination-file-outcome';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 

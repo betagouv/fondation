@@ -382,7 +382,7 @@ export class OfficialReportRepository {
 
     if (filesToDelete.length > 0) {
       await this.db.tx.officialReportNominationFile.deleteMany({
-        where: { nominationFileId: { in: filesToDelete } },
+        where: { officialReportId: message.officialReportId, nominationFileId: { in: filesToDelete } },
       });
     }
 

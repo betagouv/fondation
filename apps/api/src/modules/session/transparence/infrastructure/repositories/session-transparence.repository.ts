@@ -57,6 +57,10 @@ import { timeOnlyToDate } from 'src/utils/time-only';
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
+export type LolfiSessionIngestion =
+  | { isIngestable: false; reason: 'ARCHIVED' | 'DELETED' }
+  | { isIngestable: true; session: SessionTransparence };
+
 @Injectable()
 export class SessionTransparenceRepository {
   private readonly logger = new Logger(SessionTransparenceRepository.name);
@@ -92,7 +96,7 @@ export class SessionTransparenceRepository {
     // FIXME: remove once we know how to rehydrate a mtt session
     if (session.typeDeSaisine !== 'TRANSPARENCE_GDS') throw new NotFoundException();
 
-    const nominationFiles = await this.transparenceFilesFinder.findDocsSnapshots({
+    const nominationFiles = await this.transparenceFilesFinder.findSnapshots({
       sessionId: session.id,
       nominationFileIds: options.nominationFileIds,
     });
@@ -115,10 +119,10 @@ export class SessionTransparenceRepository {
 
   @Transactional()
   async findByLolfiSessionId(lolfiSessionId: number): Promise<{
-    [K in FormationEnum]?: { isArchived: false; session: SessionTransparence } | { isArchived: true };
+    [K in FormationEnum]?: LolfiSessionIngestion;
   }> {
     const sessions = await this.db.tx.sessionTransparenceGds.findMany({
-      select: { session: { select: { id: true, archivedAt: true, formation: true } } },
+      select: { session: { select: { id: true, archivedAt: true, deletedAt: true, formation: true } } },
       where: { lolfiSessionId },
     });
 
@@ -132,10 +136,11 @@ export class SessionTransparenceRepository {
 
     const entries = await Promise.all(
       sessions.map(async ({ session: s }) => {
-        if (s.archivedAt) return [s.formation, { isArchived: true }] as const;
+        if (s.deletedAt) return [s.formation, { isIngestable: false, reason: 'DELETED' }] as const;
+        if (s.archivedAt) return [s.formation, { isIngestable: false, reason: 'ARCHIVED' }] as const;
 
         const session = await this.find(s.id);
-        return [s.formation, { session, isArchived: false }] as const;
+        return [s.formation, { isIngestable: true, session }] as const;
       }),
     );
 
