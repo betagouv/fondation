@@ -9,7 +9,6 @@ import type { DetailedNominationSessionDto } from '@api/types';
 
 import { TableauDeBordEditTransparenceModal } from './TableauDeBordEditTransparenceModal';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
-import { TransparenceActionsMenu } from './TransparenceActionsMenu';
 
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
   const { isArchived } = useArchivedSession();
@@ -37,20 +36,16 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <TableauDeBordResumeDetails {...transparence} />
 
-        <div className="flex items-center gap-x-2">
-          {!isArchived && (
-            <Button
-              iconId="fr-icon-settings-5-line"
-              onClick={() => setEditStatus('editing')}
-              priority="tertiary"
-              size="small"
-            >
-              <FormattedMessage defaultMessage="Modifier" />
-            </Button>
-          )}
-
-          <TransparenceActionsMenu transparence={transparence} />
-        </div>
+        {!isArchived && (
+          <Button
+            iconId="fr-icon-settings-5-line"
+            onClick={() => setEditStatus('editing')}
+            priority="tertiary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Modifier" />
+          </Button>
+        )}
       </div>
 
       {editStatus !== 'idle' && (

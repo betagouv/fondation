@@ -1,12 +1,9 @@
-import { colors } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
-import { useArchivedSession } from '@/shared/context/archived-session';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { useToasts } from '@/shared/ui/toast';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -15,10 +12,9 @@ import {
   useDeleteNominationSessionMutation,
 } from '@queries/nomination-sessions.queries';
 
-export function TransparenceActionsMenu(props: { transparence: DetailedNominationSessionDto }) {
+export function TransparenceActions(props: { transparence: DetailedNominationSessionDto }) {
   const { transparence } = props;
   const { formatMessage } = useIntl();
-  const { isArchived } = useArchivedSession();
   const navigate = useNavigate();
   const confirmation = useConfirmModal();
   const toasts = useToasts();
@@ -26,7 +22,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
   const deleteSessionMutation = useDeleteNominationSessionMutation({ sessionId: transparence.id });
   const archiveSessionMutation = useArchiveNominationSessionMutation({ sessionId: transparence.id });
 
-  const onArchive = useCallback(async () => {
+  const onArchive = async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: formatMessage({ defaultMessage: `Confirmer l'archivage` }),
       content: (
@@ -38,7 +34,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
             />
           </p>
           <p>
-            <FormattedMessage defaultMessage={'Souhaitez-vous continuer\u00A0?'} />
+            <FormattedMessage defaultMessage={'Souhaitez-vous continuer ?'} />
           </p>
         </>
       ),
@@ -67,9 +63,9 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
         });
       },
     });
-  }, [archiveSessionMutation, confirmation, formatMessage, navigate, toasts, transparence.name]);
+  };
 
-  const onDelete = useCallback(async () => {
+  const onDelete = async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
       title: formatMessage({ defaultMessage: 'Confirmer la suppression' }),
       content: (
@@ -87,7 +83,7 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
             />
           </p>
           <p>
-            <FormattedMessage defaultMessage={'Êtes-vous sûr de vouloir continuer\u00A0?'} />
+            <FormattedMessage defaultMessage={'Êtes-vous sûr de vouloir continuer ?'} />
           </p>
         </>
       ),
@@ -116,58 +112,52 @@ export function TransparenceActionsMenu(props: { transparence: DetailedNominatio
         });
       },
     });
-  }, [confirmation, deleteSessionMutation, formatMessage, navigate, toasts, transparence.name]);
+  };
 
   const isMutationPending = deleteSessionMutation.isPending || archiveSessionMutation.isPending;
 
   const canArchive = transparence.isArchivable;
-  const canDelete = !isArchived && transparence.isDeletable;
+  const canDelete = !transparence.isArchived && transparence.isDeletable;
   if (!canArchive && !canDelete) return null;
 
   return (
-    <MenuRoot disabled={isMutationPending}>
-      <MenuTrigger
-        className={clsx('shrink-0 grow-0 rounded-full', {
-          "before:animate-spin before:content-['']": isMutationPending,
-        })}
-        disabled={isMutationPending}
-        iconId={isMutationPending ? 'ri-loader-4-line' : 'ri-more-2-fill'}
-        priority="tertiary no outline"
-        size="small"
-        title={formatMessage(
-          { defaultMessage: 'Actions sur la transparence "{name}"' },
-          { name: transparence.name },
-        )}
-      />
+    <section className="fr-mt-6v border-t border-(--border-default-grey) pt-6">
+      <h2 className="fr-mb-2v text-base leading-6 font-bold text-(--text-title-grey)">
+        <FormattedMessage defaultMessage="Actions sur la transparence" />
+      </h2>
 
-      <MenuContent>
+      <div className="flex flex-wrap items-center gap-4">
         {canArchive && (
-          <MenuItem
+          <Button
+            aria-busy={archiveSessionMutation.isPending}
             className={clsx({
               "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
             })}
             disabled={isMutationPending}
             iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-fill'}
             onClick={onArchive}
-            style={{ color: colors.decisions.text.actionHigh.yellowTournesol.default }}
+            priority="secondary"
           >
             <FormattedMessage defaultMessage="Archiver" />
-          </MenuItem>
+          </Button>
         )}
 
         {canDelete && (
-          <MenuItem
-            className={clsx('before text-(--text-default-error)', {
-              "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
-            })}
+          <Button
+            aria-busy={deleteSessionMutation.isPending}
+            className={clsx(
+              'text-(--text-default-error) shadow-[inset_0_0_0_1px_var(--border-plain-error)]',
+              { "before:animate-spin before:content-['']": deleteSessionMutation.isPending },
+            )}
             disabled={isMutationPending}
-            iconId={deleteSessionMutation.isPending ? `ri-loader-4-fill` : 'ri-delete-bin-fill'}
+            iconId={deleteSessionMutation.isPending ? 'ri-loader-4-fill' : 'ri-delete-bin-fill'}
             onClick={onDelete}
+            priority="secondary"
           >
             <FormattedMessage defaultMessage="Supprimer" />
-          </MenuItem>
+          </Button>
         )}
-      </MenuContent>
-    </MenuRoot>
+      </div>
+    </section>
   );
 }

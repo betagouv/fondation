@@ -17,6 +17,8 @@ import {
   useValidateSessionMutation,
 } from '@queries/nomination-sessions.queries';
 
+import { TransparenceActions } from './TransparenceActions';
+
 const FORM_ID = 'edit-transparence-form';
 
 export function TableauDeBordEditTransparenceModal(props: {
@@ -233,6 +235,8 @@ export function TableauDeBordEditTransparenceModal(props: {
           )}
         />
       </form>
+
+      <TransparenceActions transparence={session} />
     </Modal>
   );
 }

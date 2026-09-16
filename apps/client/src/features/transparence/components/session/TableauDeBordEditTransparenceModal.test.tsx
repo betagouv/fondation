@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import type { DetailedNominationSessionDto } from '@api/types';
 
 import { TableauDeBordEditTransparenceModal } from './TableauDeBordEditTransparenceModal';
@@ -15,6 +17,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
 
 vi.mock('@queries/nomination-sessions.queries', () => ({
+  useArchiveNominationSessionMutation: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteNominationSessionMutation: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateNominationSessionMutation: () => ({
     mutate: mocks.updateNominationSession,
     isPending: false,
@@ -22,7 +26,7 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
   useValidateSessionMutation: () => ({ mutate: mocks.validateSession, isPending: false }),
 }));
 
-vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ success: vi.fn() }) }));
+vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn(), success: vi.fn() }) }));
 
 const SESSION: DetailedNominationSessionDto = {
   id: 'session-1',
@@ -44,9 +48,13 @@ const onClose = vi.fn();
 
 function renderModal(session: DetailedNominationSessionDto = SESSION) {
   return render(
-    <IntlProvider defaultLocale="fr" locale="fr">
-      <TableauDeBordEditTransparenceModal onClose={onClose} onClosed={vi.fn()} open session={session} />
-    </IntlProvider>,
+    <MemoryRouter>
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <ConfirmModalProvider>
+          <TableauDeBordEditTransparenceModal onClose={onClose} onClosed={vi.fn()} open session={session} />
+        </ConfirmModalProvider>
+      </IntlProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -97,6 +105,20 @@ describe('TableauDeBordEditTransparenceModal', () => {
     validateHandlers.onSettled();
 
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('should offer the transparence actions under the form', () => {
+    renderModal();
+
+    expect(screen.getByRole('button', { name: 'Archiver' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Supprimer' })).toBeInTheDocument();
+  });
+
+  it('should drop the actions section when neither action is possible', () => {
+    renderModal({ ...SESSION, isArchivable: false, isDeletable: false });
+
+    expect(screen.queryByText('Actions sur la transparence')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Supprimer' })).not.toBeInTheDocument();
   });
 
   it('should close right away on an already validated session', async () => {
