@@ -8,10 +8,6 @@ const measureElement =
     ? (element: Element) => element?.getBoundingClientRect().height
     : undefined;
 
-/**
- * Mounted on an already scrolled page, the virtualizer would otherwise push the page down by the
- * measured excess of every row it believes to be above the viewport, one row after another.
- */
 const keepsThePageWhereItIs = () => false;
 
 export function useTableVirtualizer(props: {

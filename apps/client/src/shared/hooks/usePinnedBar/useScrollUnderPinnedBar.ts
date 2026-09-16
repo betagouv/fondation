@@ -2,10 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 
 export const PINNED_GAP = 16;
 
-/**
- * On a route change under a pinned bar, brings the top of the content right under the bar, once the
- * mounted content has done its own scrolling (a virtualized table restores its offset when it mounts).
- */
+/** the frame waits for the mounted content to scroll first: a virtualized table restores its offset */
 export function useScrollUnderPinnedBar(props: {
   bar: HTMLElement | null;
   content: HTMLElement | null;

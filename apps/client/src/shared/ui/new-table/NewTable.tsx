@@ -4,7 +4,6 @@ import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 're
 
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
-/** the rows scroll with the page, so the virtualizer counts from where the table starts in the document */
 function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boolean) {
   const [scrollMargin, setScrollMargin] = useState(0);
 

@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 
-/** the permanent banners are fixed over the page, so the bar has to pin at their bottom edge, not at the viewport's */
 function useBannerHeight(element: HTMLElement | null) {
   const [bannerHeight, setBannerHeight] = useState(0);
 
@@ -22,12 +21,7 @@ function useBannerHeight(element: HTMLElement | null) {
   return bannerHeight;
 }
 
-/**
- * A bar that leaves the flow once pinned, so its own height changes move nothing under the pointer.
- *
- * `height` places what follows right under the bar, `restHeight` fills the room it leaves behind: the page
- * keeps its length, the scroll is never caught up, and the pinned state cannot flip back on its own.
- */
+/** `restHeight` is frozen on pinning, so the room the bar leaves behind cannot shrink and unpin it again */
 export function usePinnedBar(sentinel: HTMLElement | null, bar: HTMLElement | null) {
   const [isPinned, setPinned] = useState(false);
   const [heights, setHeights] = useState({ height: 0, restHeight: 0 });

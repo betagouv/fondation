@@ -7,10 +7,6 @@ import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcom
 import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
 
-/**
- * A reported nomination file was acted with a final outcome in a restituted official report,
- * and still carries a final outcome: reopening its outcome hands it back to the secretariat.
- */
 @Injectable()
 export class ReportedNominationFilesFinder {
   constructor(private readonly db: Db) {}

@@ -146,7 +146,6 @@ interface AgendaFilesSelectionTableProps {
   sessionId: string;
 }
 
-/** the filters stay under the pinned bar, so the table header starts below them */
 function useFiltersHeight(filters: HTMLElement | null) {
   const [height, setHeight] = useState(0);
 

@@ -16,9 +16,7 @@
 :root {
   --fondation-container-max-width: 86rem;
   --fondation-editor-min-width: 5rem;
-  /* the permanent banners are fixed at the top: anything sticky starts below them */
   --fondation-banner-height: 0px;
-  /* a screen pinning a bar of its own tells the table header where to stop, and how far below the bar */
   --fondation-pinned-bar-height: 0px;
   --fondation-pinned-gap: 0px;
   /* Default for a screen pinning nothing: the three `var()` above are substituted here, on `:root`,
@@ -88,7 +86,6 @@ li {
   max-width: var(--fondation-container-max-width);
 }
 
-/* the gap under a breadcrumb is the same on every screen, unless the screen sets its own margin */
 .fr-breadcrumb:not([class*='fr-mb-'], [class*='fr-my-']) {
   margin-bottom: 2.25rem;
 }
