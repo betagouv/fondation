@@ -11,9 +11,9 @@ import {
   useNominationFilesStatusCountsQuery,
 } from '@queries/nomination-sessions.queries';
 
-function SessionTabsWrapper(props: { ariaLabel: string; children: ReactNode }) {
+function SessionTabsWrapper(props: { ariaLabel: string; children: ReactNode; dense?: boolean }) {
   return (
-    <div className="fr-my-4v">
+    <div className={props.dense ? 'fr-my-2v' : 'fr-mt-4v'}>
       <div className="mx-[calc(50%-50vw)] bg-(--background-contrast-grey) px-[calc(50vw-50%)]">
         <nav aria-label={props.ariaLabel}>
           <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-8">{props.children}</ul>
@@ -53,7 +53,7 @@ function SessionTab(props: { count?: number; end?: boolean; icon: string; label:
   );
 }
 
-export function MemberSessionTabsBar(props: { sessionId: string }) {
+export function MemberSessionTabsBar(props: { dense?: boolean; sessionId: string }) {
   const { formatMessage } = useIntl();
 
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId: props.sessionId });
@@ -62,7 +62,10 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
   const attachmentsCount = attachments?.items.length ?? 0;
 
   return (
-    <SessionTabsWrapper ariaLabel={formatMessage({ defaultMessage: 'Sections de la transparence' })}>
+    <SessionTabsWrapper
+      ariaLabel={formatMessage({ defaultMessage: 'Sections de la transparence' })}
+      dense={props.dense}
+    >
       <SessionTab
         end
         icon="fr-icon-list-unordered"
@@ -82,7 +85,7 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
   );
 }
 
-export function SessionTabsBar(props: { transparence: DetailedNominationSessionDto }) {
+export function SessionTabsBar(props: { dense?: boolean; transparence: DetailedNominationSessionDto }) {
   const { transparence } = props;
   const { formatMessage } = useIntl();
 
@@ -108,6 +111,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
       ariaLabel={formatMessage({
         defaultMessage: 'Sections de la transparence',
       })}
+      dense={props.dense}
     >
       <SessionTab
         count={propositionsCount}

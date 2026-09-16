@@ -6,15 +6,18 @@ import { ReportListViewToggle } from '@/features/reports/components/ReportListVi
 import type { MemberSessionOutletContext } from './member-session-outlet-context.type';
 
 export function ReportListPage() {
-  const { filtersSlot, session } = useOutletContext<MemberSessionOutletContext>();
+  const { filtersSlot, isPinned, session, toolbarSlot } = useOutletContext<MemberSessionOutletContext>();
 
   return (
     <MemberSessionFilesTable
       filtersEnd={<ReportListViewToggle />}
       filtersSlot={filtersSlot}
       formation={session.formation}
+      isPinned={isPinned}
       outcomes={session.outcomes}
+      scrollsWithPage
       sessionId={session.id}
+      toolbarSlot={toolbarSlot}
     />
   );
 }

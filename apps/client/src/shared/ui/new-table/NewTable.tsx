@@ -1,8 +1,31 @@
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
+
+/** the rows scroll with the page, so the virtualizer counts from where the table starts in the document */
+function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boolean) {
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!element || !scrollsWithPage) return;
+
+    const measure = () => setScrollMargin(element.getBoundingClientRect().top + window.scrollY);
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.body);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [element, scrollsWithPage]);
+
+  return scrollMargin;
+}
 
 function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
   const glyph = props.direction === 'asc' ? '▲' : props.direction === 'desc' ? '▼' : '↕';
@@ -60,17 +83,19 @@ export function NewTable<Data extends RowData>(props: {
   onEndReached?: () => void;
   revealedRowId?: string | null;
   rowTint?: (row: Row<Data>) => string | undefined;
+  scrollsWithPage?: boolean;
   table: Table<Data>;
   unvirtualized?: boolean;
   visibleRows?: number;
 }) {
   const [scrollBox, setScrollBox] = useState<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const { onEndReached, table, visibleRows } = props;
+  const { onEndReached, scrollsWithPage, table, visibleRows } = props;
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
-  const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox });
+  const scrollMargin = useScrollMargin(scrollBox, scrollsWithPage);
+  const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox, scrollMargin, scrollsWithPage });
   const virtualRows = virtualizer.getVirtualItems();
 
   const lastRenderedIndex = virtualRows.at(-1)?.index;
@@ -97,14 +122,16 @@ export function NewTable<Data extends RowData>(props: {
     const rowElement = scrollBox.querySelector(`[data-index="${revealedIndex}"]`);
     if (rowElement) {
       const row = rowElement.getBoundingClientRect();
-      const box = scrollBox.getBoundingClientRect();
+      const box = scrollsWithPage
+        ? { bottom: window.innerHeight, top: headerRef.current?.getBoundingClientRect().top ?? 0 }
+        : scrollBox.getBoundingClientRect();
       const headerHeight = headerRef.current?.offsetHeight ?? 0;
       const isFullyVisible = row.top >= box.top + headerHeight && row.bottom <= box.bottom;
       if (isFullyVisible) return;
     }
 
     virtualizer.scrollToIndex(revealedIndex, { align: 'center' });
-  }, [revealedIndex, revealedRowId, scrollBox, virtualizer]);
+  }, [revealedIndex, revealedRowId, scrollBox, scrollsWithPage, virtualizer]);
 
   const [visibleRowsHeight, setVisibleRowsHeight] = useState<number>();
 
@@ -131,24 +158,32 @@ export function NewTable<Data extends RowData>(props: {
     <div
       aria-label={props.ariaLabel}
       className={clsx(
-        'relative overflow-auto border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)',
-        props.unvirtualized ? 'w-full' : 'size-full',
+        'relative border border-(--border-contrast-grey) bg-(--background-default-grey) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-action-high-blue-france)',
+        scrollsWithPage ? 'w-full border-t-0' : 'overflow-auto',
+        !scrollsWithPage && (props.unvirtualized ? 'w-full' : 'size-full'),
         props.className,
       )}
       ref={setScrollBox}
       role={props.ariaLabel ? 'region' : undefined}
       style={
-        unvirtualizedMaxHeight === undefined
-          ? visibleRowsHeight === undefined
-            ? undefined
-            : { height: visibleRowsHeight }
-          : { maxHeight: unvirtualizedMaxHeight }
+        scrollsWithPage
+          ? undefined
+          : unvirtualizedMaxHeight === undefined
+            ? visibleRowsHeight === undefined
+              ? undefined
+              : { height: visibleRowsHeight }
+            : { maxHeight: unvirtualizedMaxHeight }
       }
-      tabIndex={0}
+      tabIndex={scrollsWithPage ? undefined : 0}
     >
       <div aria-rowcount={totalRows} className="grid w-full text-sm text-(--text-default-grey)" role="table">
         <div
-          className="sticky top-0 z-2 grid bg-(--background-contrast-grey)"
+          className={clsx(
+            'sticky z-2 grid bg-(--background-contrast-grey)',
+            scrollsWithPage
+              ? 'top-(--fondation-table-header-top) border-t border-(--border-contrast-grey)'
+              : 'top-0',
+          )}
           ref={headerRef}
           role="rowgroup"
         >
@@ -168,8 +203,9 @@ export function NewTable<Data extends RowData>(props: {
             props.unvirtualized
               ? undefined
               : {
-                  paddingTop: virtualRows[0]?.start ?? 0,
-                  paddingBottom: virtualizer.getTotalSize() - (virtualRows.at(-1)?.end ?? 0),
+                  paddingTop: (virtualRows[0]?.start ?? scrollMargin) - scrollMargin,
+                  paddingBottom:
+                    virtualizer.getTotalSize() - ((virtualRows.at(-1)?.end ?? scrollMargin) - scrollMargin),
                 }
           }
         >

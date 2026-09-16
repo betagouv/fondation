@@ -5,7 +5,14 @@ import { SessionAttachmentsTab } from '@/features/transparence/components/attach
 import type { MemberSessionOutletContext } from './member-session-outlet-context.type';
 
 export function MemberAttachmentsTab() {
-  const { filtersSlot, session } = useOutletContext<MemberSessionOutletContext>();
+  const { filtersSlot, session, toolbarSlot } = useOutletContext<MemberSessionOutletContext>();
 
-  return <SessionAttachmentsTab filtersSlot={filtersSlot} sessionId={session.id} />;
+  return (
+    <SessionAttachmentsTab
+      filtersSlot={filtersSlot}
+      scrollsWithPage
+      sessionId={session.id}
+      toolbarSlot={toolbarSlot}
+    />
+  );
 }
