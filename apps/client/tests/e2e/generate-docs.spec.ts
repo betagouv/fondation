@@ -185,20 +185,20 @@ test.describe('Générer un ordre du jour', () => {
     const agendaPage = await app.pages.session.startAgendaGeneration();
     await agendaPage.fillMetadata({ chairman: chairmanId, sessionMeetingDate: new Date() });
 
-    // Alors les 3 dossiers, tous en sursis, sont écartés de la sélection par défaut
+    // Alors aucune proposition n'est présélectionnée
     await test.expect(agendaPage.selectedCount).toHaveText('Aucune proposition sélectionnée');
 
     // Et quand je coche toutes les propositions éligibles
     await agendaPage.selectAllFilesCheckbox.click({ force: true });
 
     // Alors les 3 sont retenues
-    await test.expect(agendaPage.selectedCount).toHaveText('3 propositions sélectionnées');
+    await test.expect(agendaPage.selectedCount).toHaveText('3 propositions sélectionnées sur 3');
 
     // Et quand je les décoche pour n'en garder qu'une
     await agendaPage.selectAllFilesCheckbox.click({ force: true });
     await agendaPage.selectFile({ name: 'BOURDIEU PIERRE' });
 
     // Alors le compteur ne retient que celle-ci
-    await test.expect(agendaPage.selectedCount).toHaveText('1 proposition sélectionnée');
+    await test.expect(agendaPage.selectedCount).toHaveText('1 proposition sélectionnée sur 3');
   });
 });
