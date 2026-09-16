@@ -16,6 +16,17 @@
 :root {
   --fondation-container-max-width: 86rem;
   --fondation-editor-min-width: 5rem;
+  --fondation-banner-height: 0px;
+  --fondation-pinned-bar-height: 0px;
+  --fondation-pinned-gap: 0px;
+  /* Default for a screen pinning nothing: the three `var()` above are substituted here, on `:root`,
+     so overriding them lower in the tree does not recompute this one. A screen pinning a bar must
+     redeclare this variable on the element where it sets its own heights. */
+  --fondation-table-header-top: calc(
+    var(--fondation-banner-height) + var(--fondation-pinned-bar-height) + var(--fondation-pinned-gap)
+  );
+  /* a fixed element is sized on the viewport, which widens when a scroll lock hides the scrollbar */
+  --fondation-scroll-lock-gutter: 0px;
 
   /* DSFR's top layer is 1000 (`.fr-header__navbar`, `.fr-tooltip`) and its modal sits at
      1750: our overlays must stay in between, above the header but under a modal opened
@@ -53,6 +64,13 @@ html {
   scrollbar-gutter: stable;
 }
 
+body {
+  padding-right: var(--fondation-scroll-lock-gutter);
+  /* full-bleed blocks span 100vw, gutter included: clip the spill rather than scroll the page sideways.
+     `clip` creates no scroll container, unlike `hidden`, so `sticky` keeps working. */
+  overflow-x: clip;
+}
+
 ul {
   list-style: none;
   padding: 0;
@@ -66,6 +84,10 @@ li {
 /* doubled class: this file loads before the DSFR stylesheet, so it needs to win on specificity */
 .fr-container.fr-container {
   max-width: var(--fondation-container-max-width);
+}
+
+.fr-breadcrumb:not([class*='fr-mb-'], [class*='fr-my-']) {
+  margin-bottom: 2.25rem;
 }
 
 .fr-table__content table tbody td {

@@ -27,7 +27,9 @@ export function SessionAttachmentsTab(props: {
   filtersSlot: Element | null;
   headerEnd?: ReactNode;
   headerStart?: ReactNode;
+  scrollsWithPage?: boolean;
   sessionId: string;
+  toolbarSlot?: Element | null;
 }) {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
@@ -151,28 +153,33 @@ export function SessionAttachmentsTab(props: {
     </div>
   );
 
+  const toolbar = (
+    <div className="flex min-h-10 items-center justify-between gap-4">
+      <div className="flex items-center gap-6">
+        {props.headerStart}
+        <TotalBadge value={allAttachments.length}>
+          <FormattedMessage defaultMessage="Total" />
+        </TotalBadge>
+        <TotalBadge value={totalSizeInBytes > 0 ? formatFileSize(totalSizeInBytes) : 0}>
+          <FormattedMessage defaultMessage="Taille" />
+        </TotalBadge>
+      </div>
+
+      {props.headerEnd}
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-y-4">
       {props.filtersSlot ? createPortal(filters, props.filtersSlot) : filters}
 
-      <div className="flex min-h-10 items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          {props.headerStart}
-          <TotalBadge value={allAttachments.length}>
-            <FormattedMessage defaultMessage="Total" />
-          </TotalBadge>
-          <TotalBadge value={totalSizeInBytes > 0 ? formatFileSize(totalSizeInBytes) : 0}>
-            <FormattedMessage defaultMessage="Taille" />
-          </TotalBadge>
-        </div>
-
-        {props.headerEnd}
-      </div>
+      {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
 
       <SessionAttachmentsTable
         actions={props.extraActions ? [downloadAction, props.extraActions] : [downloadAction]}
         attachments={items}
         onSortingChange={onSortingChange}
+        scrollsWithPage={props.scrollsWithPage}
         renderName={(attachment) => (
           <Button
             className="fr-btn--align-on-content grow truncate text-left"

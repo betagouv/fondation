@@ -3,7 +3,6 @@ import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFi
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
-import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
 import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
@@ -14,6 +13,10 @@ import { MembersService } from 'src/modules/members';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';

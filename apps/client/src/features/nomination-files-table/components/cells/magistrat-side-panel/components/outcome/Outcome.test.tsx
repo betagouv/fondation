@@ -3,6 +3,7 @@ import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import type { SessionNominationFileLockedReason } from '@queries/nomination-sessions.queries';
 
 import { Outcome } from './Outcome';
 
@@ -33,10 +34,10 @@ vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
 
 const OUTCOME = { value: 'VALIDATED', comment: 'Avis favorable' } as const;
 
-function renderOutcome(isUpdatable: boolean) {
+function renderOutcome(lockedReason: SessionNominationFileLockedReason) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <Outcome nominationFile={makeSessionNominationFile({ content: { isUpdatable, outcome: OUTCOME } })} />
+      <Outcome nominationFile={makeSessionNominationFile({ content: { lockedReason, outcome: OUTCOME } })} />
     </IntlProvider>,
   );
 }
@@ -45,14 +46,14 @@ describe('Outcome', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('lets the secretariat general change the outcome and its comment', () => {
-    renderOutcome(true);
+    renderOutcome(null);
 
     expect(screen.getByRole('button', { name: 'CONFORME' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
   });
 
   it('offers no action on a file that can no longer be updated', () => {
-    renderOutcome(false);
+    renderOutcome('REPORTED');
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByText('Avis favorable')).toBeVisible();

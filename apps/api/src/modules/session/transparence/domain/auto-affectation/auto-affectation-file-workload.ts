@@ -69,11 +69,13 @@ export class AutoAffectationWorkload {
         return 1;
       }
 
-      case 'III':
       case 'HH': {
         logger.warn(`Received grade ${file.grade} for nomination session newer than 2025-12-01`);
         return 3;
       }
+
+      case 'MH':
+        return 1;
 
       default:
         return assertNever(file.grade);
@@ -109,11 +111,14 @@ export class AutoAffectationWorkload {
         return 2;
       }
       case 'G3':
-      case 'G3sup':
-      case 'III': {
+      case 'G3sup': {
         logger.warn(`Received grade ${file.grade} for nomination session older than 2025-12-01`);
         return 3;
       }
+
+      case 'MH':
+        return 1;
+
       default:
         return assertNever(file.grade);
     }

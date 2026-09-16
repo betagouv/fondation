@@ -1,8 +1,10 @@
-import { NominationFileDocsSnapshot } from '../../shared/types/nomination-file';
-import { NominationFileOutcome, NominationFileOutcomeEnum } from '../../shared/types/nomination-file-outcome';
-import * as policies from 'src/modules/session/shared/policies/nomination-file.policies';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
+import * as policies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -12,6 +14,7 @@ import { partition } from 'src/utils/iterables';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { AutoAffectations } from './auto-affectation';
+import { NominationFileSnapshot } from './nomination-file-snapshot';
 import {
   LodamTransparenceFile,
   LodamTransparenceFileEntity,
@@ -310,7 +313,7 @@ export class SessionTransparence {
     id: string;
     formation: FormationEnum;
     version: SessionTransparenceAffectationVersion | null;
-    nominationFiles: readonly NominationFileDocsSnapshot[];
+    nominationFiles: readonly NominationFileSnapshot[];
   }) {
     const files = new Map(
       props.nominationFiles.map(
@@ -318,7 +321,7 @@ export class SessionTransparence {
           [
             file.id,
             {
-              canUpdate: policies.canUpdateNominationFile(file, { archivedAt: null }),
+              canUpdate: !policies.nominationFileLock(file, { archivedAt: null }),
               canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
             },
           ] as const,
@@ -414,19 +417,7 @@ export class SessionTransparence {
     }
 
     session.files = new Map(
-      nominationFileEntities.map(
-        (x) =>
-          [
-            x.id,
-            {
-              canScheduleAudition: policies.canScheduleAudition({ outcome: null }, { archivedAt: null }),
-              canUpdate: policies.canUpdateNominationFile(
-                { id: x.id, outcome: null, docs: [] },
-                { archivedAt: null },
-              ),
-            },
-          ] as const,
-      ),
+      nominationFileEntities.map((x) => [x.id, { canScheduleAudition: true, canUpdate: true }] as const),
     );
 
     session.#messages.push(new LodamSessionTransparenceFilesCreated(session.id, nominationFileEntities));

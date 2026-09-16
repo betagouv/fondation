@@ -3,11 +3,11 @@ import { Injectable } from '@nestjs/common';
 
 import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
-import { canScheduleAudition } from 'src/modules/session/shared/policies/nomination-file.policies';
-import { type NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { type NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
 import { isAuditionExpected } from 'src/modules/shared/policies/auditioned-position.policy';
+import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import { DateOnly, type DateOnlyJson } from 'src/utils/date-only';
 import { dateToTimeOnly, type TimeOnly } from 'src/utils/time-only';
 

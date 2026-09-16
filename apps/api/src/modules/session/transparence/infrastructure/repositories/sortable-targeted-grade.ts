@@ -15,12 +15,13 @@ export function gradeEnumToSortableTargetedGrade(grade: GradeEnum): number {
       return 32;
 
     case 'HH':
-    case 'III':
       return 10;
     case 'I':
       return 20;
     case 'II':
       return 30;
+    case 'MH':
+      return 37;
     default:
       return 0;
   }

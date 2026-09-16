@@ -38,6 +38,22 @@ const FINAL_OUTCOMES = Object.freeze(
   ),
 );
 
+export type AwaitedNominationFileOutcomeEnum = Extract<
+  NominationFileOutcomeEnum,
+  'ASSESSING' | 'WAITING_DSJ'
+>;
+
+const AWAITED_OUTCOMES = Object.freeze(
+  Object.values({
+    ASSESSING: 'ASSESSING',
+    WAITING_DSJ: 'WAITING_DSJ',
+  } satisfies { [K in AwaitedNominationFileOutcomeEnum]: K }),
+);
+
+const DECIDED_OUTCOMES = Object.freeze(
+  NOMINATION_FILE_OUTCOMES.filter((x) => !(AWAITED_OUTCOMES as unknown[]).includes(x)),
+);
+
 const OUTCOMES_IN_SELECTION_ORDER = Object.freeze(
   Object.values({
     VALIDATED: 'VALIDATED',
@@ -62,6 +78,14 @@ export class NominationFileOutcome {
 
   static finalOutcomes(): FinalNominationFileOutcomeEnum[] {
     return [...FINAL_OUTCOMES];
+  }
+
+  static decidedOutcomes(): NominationFileOutcomeEnum[] {
+    return [...DECIDED_OUTCOMES];
+  }
+
+  static isAwaited(outcome: NominationFileOutcomeEnum | null): boolean {
+    return !isDefined(outcome) || (AWAITED_OUTCOMES as readonly string[]).includes(outcome);
   }
 
   static nonFinalOutcomes(): NonFinalNominationFileOutcomeEnum[] {

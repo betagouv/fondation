@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
-import { nominationFileOutcomeLabel } from '../../../shared/types/nomination-file-outcome';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
+import { nominationFileOutcomeLabel } from 'src/modules/shared/nomination-file-outcome.enum';
 import { capitalize } from 'src/utils/capitalize';
 
 @Injectable()

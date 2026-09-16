@@ -85,7 +85,7 @@ export function Modal(props: {
       ref={dialogRef}
     >
       {isMounted && (
-        <div className="flex max-h-[80dvh] flex-col bg-(--background-lifted-grey) text-(--text-default-grey) shadow-(--lifted-shadow)">
+        <div className="flex max-h-[94dvh] flex-col bg-(--background-lifted-grey) text-(--text-default-grey) shadow-(--lifted-shadow)">
           <div className="flex shrink-0 justify-end px-8 py-4">
             <Button
               iconId="fr-icon-close-line"

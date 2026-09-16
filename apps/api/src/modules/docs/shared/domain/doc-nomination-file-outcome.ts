@@ -1,8 +1,8 @@
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import {
   NominationFileOutcomeEnum,
   nominationFileOutcomeLabel,
-} from 'src/modules/session/shared/types/nomination-file-outcome';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export const FinalDocNominationFileOutcomeEnum = {

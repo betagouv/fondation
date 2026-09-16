@@ -36,7 +36,7 @@ function matchesSearch(name: string, search: string) {
 export function TransparenceDocumentsTab() {
   const { formatMessage } = useIntl();
   const { isArchived } = useArchivedSession();
-  const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
 
   const [isActing, setIsActing] = useState(false);
 
@@ -99,28 +99,33 @@ export function TransparenceDocumentsTab() {
     </div>
   );
 
+  const toolbar = (
+    <div className="flex min-h-10 items-center justify-between gap-4">
+      <div className="flex items-center gap-6">
+        <AffectationVersionStatusBadge sessionId={transparence.id} />
+        <TotalBadge value={allDocs.length}>
+          <FormattedMessage defaultMessage="Total" />
+        </TotalBadge>
+        <TotalBadge value={allDocs.filter(({ type }) => type === 'agenda').length}>
+          <FormattedMessage defaultMessage="ODJ" />
+        </TotalBadge>
+        <TotalBadge value={allDocs.filter(({ type }) => type === 'officialReport').length}>
+          <FormattedMessage defaultMessage="PV" />
+        </TotalBadge>
+      </div>
+
+      {!isArchived && <DocGenerationMenu sessionId={transparence.id} />}
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-y-4">
       {filtersSlot ? createPortal(filters, filtersSlot) : filters}
 
-      <div className="flex min-h-10 items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <AffectationVersionStatusBadge sessionId={transparence.id} />
-          <TotalBadge value={allDocs.length}>
-            <FormattedMessage defaultMessage="Total" />
-          </TotalBadge>
-          <TotalBadge value={allDocs.filter(({ type }) => type === 'agenda').length}>
-            <FormattedMessage defaultMessage="ODJ" />
-          </TotalBadge>
-          <TotalBadge value={allDocs.filter(({ type }) => type === 'officialReport').length}>
-            <FormattedMessage defaultMessage="PV" />
-          </TotalBadge>
-        </div>
-
-        {!isArchived && <DocGenerationMenu sessionId={transparence.id} />}
-      </div>
+      {toolbarSlot ? createPortal(toolbar, toolbarSlot) : toolbar}
 
       <SessionDocumentsTable
+        scrollsWithPage
         actions={(doc) =>
           isArchived ? null : (
             <div className="-ml-2 grid grid-cols-4 items-center gap-1">

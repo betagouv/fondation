@@ -38,14 +38,29 @@ describe(`auto affectation workload`, () => {
   });
 
   it.each`
-    grade    | sessionDate     | expected
-    ${'II'}  | ${'2026-01-01'} | ${1}
-    ${'I'}   | ${'2026-01-01'} | ${2}
-    ${'III'} | ${'2026-01-01'} | ${3}
-    ${'HH'}  | ${'2026-01-01'} | ${3}
-    ${'G1'}  | ${'2025-01-01'} | ${1}
-    ${'G2'}  | ${'2025-01-01'} | ${2}
-    ${'G3'}  | ${'2025-01-01'} | ${3}
+    grade   | sessionDate     | expected
+    ${'MH'} | ${'2026-01-01'} | ${1}
+    ${'MH'} | ${'2025-01-01'} | ${1}
+  `(
+    'workload for honorary magistrate on $sessionDate should be $expected',
+    ({ grade, sessionDate, expected }) => {
+      const workload = AutoAffectationWorkload.from({
+        grade,
+        sessionDate: DateOnly.fromUtcDate(new Date(sessionDate)),
+      });
+
+      expect(workload.toNumber()).toBe(expected);
+    },
+  );
+
+  it.each`
+    grade   | sessionDate     | expected
+    ${'II'} | ${'2026-01-01'} | ${1}
+    ${'I'}  | ${'2026-01-01'} | ${2}
+    ${'HH'} | ${'2026-01-01'} | ${3}
+    ${'G1'} | ${'2025-01-01'} | ${1}
+    ${'G2'} | ${'2025-01-01'} | ${2}
+    ${'G3'} | ${'2025-01-01'} | ${3}
   `('workload for incoherent $grade for $date should be $expected', ({ grade, sessionDate, expected }) => {
     const workload = AutoAffectationWorkload.from({
       grade,

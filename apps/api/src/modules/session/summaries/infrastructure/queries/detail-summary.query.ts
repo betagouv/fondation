@@ -5,15 +5,15 @@ import z from 'zod';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import {
-  NominationFileOutcome,
-  nominationFileOutcomeLabel,
-} from 'src/modules/session/shared/types/nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
 import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import {
+  NominationFileOutcome,
+  nominationFileOutcomeLabel,
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';

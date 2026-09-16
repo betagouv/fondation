@@ -13,7 +13,7 @@ function Banners(
     <div
       ref={props.ref}
       className={clsx(
-        'fixed top-0 right-0 left-0 z-(--z-index-banner) flex flex-col',
+        'fixed top-0 right-(--fondation-scroll-lock-gutter) left-0 z-(--z-index-banner) flex flex-col',
         props.hidden && 'opacity-0',
       )}
     >
@@ -46,7 +46,16 @@ export function BanneredLayout(props: React.PropsWithChildren) {
         <ArchiveBanner key={'ArchivedSessionBanner'} />
       </Banners>
 
-      <div style={{ marginTop: state.height }}>{props.children}</div>
+      <div
+        style={
+          {
+            marginTop: state.height,
+            '--fondation-banner-height': `${Math.max(state.height, 0)}px`,
+          } as React.CSSProperties
+        }
+      >
+        {props.children}
+      </div>
     </>
   );
 }

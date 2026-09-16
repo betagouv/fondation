@@ -11,7 +11,7 @@ export function AgendaMetadataStep(props: { actionsSlot?: Element | null; classN
   return (
     <div
       className={clsx(
-        'fr-py-8v mx-[calc(50%-50vw)] bg-(--background-alt-grey) px-[calc(50vw-50%)]',
+        'fr-py-8v mx-[calc(50%-50vw)] grow bg-(--background-alt-grey) px-[calc(50vw-50%)]',
         props.className,
       )}
     >

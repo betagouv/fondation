@@ -3,10 +3,10 @@ import z from 'zod';
 
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
-import { NominationFileOutcome } from 'src/modules/session/shared/types/nomination-file-outcome';
 import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { timeOnlySchema } from 'src/utils/time-only';
 

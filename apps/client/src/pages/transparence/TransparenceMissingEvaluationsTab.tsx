@@ -5,7 +5,7 @@ import { MissingEvaluationsTable } from '@/features/transparence/components/miss
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparenceMissingEvaluationsTab() {
-  const { filtersSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
 
   return (
     <MissingEvaluationsTable
@@ -13,7 +13,9 @@ export function TransparenceMissingEvaluationsTab() {
       filtersSlot={filtersSlot}
       formation={transparence.formation}
       outcomes={transparence.outcomes}
+      scrollsWithPage
       sessionId={transparence.id}
+      toolbarSlot={toolbarSlot}
     />
   );
 }

@@ -46,21 +46,21 @@ function SgSessionFilesTableStory(props: {
   formation: FormationEnum;
   sessionId: string;
 }) {
-  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
+  const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
   return (
     <StoryQueryClient key={`${props.canManage}-${props.formation}-${props.sessionId}`}>
       <ToastProvider>
         <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
-            <div className="fr-mb-4v min-h-10" ref={setHeaderSlot} />
+            <div className="fr-mb-4v min-h-10" ref={setToolbarSlot} />
 
             <SgSessionFilesTable
               canManage={props.canManage}
               formation={props.formation}
-              headerSlot={headerSlot}
               outcomes={makeSessionOutcomes(props.formation)}
               sessionId={props.sessionId}
+              toolbarSlot={toolbarSlot}
             />
           </div>
         </ConfirmModalProvider>

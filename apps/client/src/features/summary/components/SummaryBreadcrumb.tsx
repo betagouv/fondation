@@ -26,7 +26,7 @@ function SgSummaryBreadcrumb() {
   const { data } = useDetailedNominationSessionQuery({ sessionId });
 
   return (
-    <div className="fr-mb-8v flex items-center justify-between">
+    <div className="mb-9 flex items-center justify-between">
       {data && (
         <Breadcrumb
           id="summary-breadcrumb"
@@ -69,7 +69,7 @@ function MemberSummaryBreadcrumb() {
   const { data } = useDetailedNominationSessionQuery({ sessionId });
 
   return (
-    <div className="fr-mb-8v flex items-center justify-between">
+    <div className="mb-9 flex items-center justify-between">
       {data && (
         <Breadcrumb
           id="summary-breadcrumb"

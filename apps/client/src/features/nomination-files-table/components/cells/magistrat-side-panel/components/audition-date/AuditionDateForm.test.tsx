@@ -72,11 +72,11 @@ describe('AuditionDateForm read-only', () => {
   it('renders the scheduled date and time', () => {
     renderAuditionDate({
       editable: false,
-      initialAuditionDate: { year: 2026, month: 9, day: 15 },
+      initialAuditionDate: { year: 2099, month: 9, day: 15 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
-    expect(screen.getByText(/15\/09\/2026 à 14:30/)).toBeInTheDocument();
+    expect(screen.getByText(/15\/09\/2099 à 14:30/)).toBeInTheDocument();
   });
 
   it('shows an empty state when no audition is scheduled', () => {
@@ -91,7 +91,7 @@ describe('AuditionDateForm edition', () => {
     const update = spyOnSave();
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
-    fillAuditionDate('2026-09-15', '14:30');
+    fillAuditionDate('2099-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     await waitFor(() =>
@@ -99,7 +99,7 @@ describe('AuditionDateForm edition', () => {
         expect.objectContaining({
           path: { sessionId: 'session-1', nominationFileId: 'nomination-file' },
           body: {
-            auditionDate: { year: 2026, month: 9, day: 15 },
+            auditionDate: { year: 2099, month: 9, day: 15 },
             auditionTime: { hours: 14, minutes: 30, seconds: 0 },
           },
         }),
@@ -108,7 +108,7 @@ describe('AuditionDateForm edition', () => {
   });
 
   it.each([
-    { field: 'Date', value: '2026-09-15', message: "L'heure est à renseigner" },
+    { field: 'Date', value: '2099-09-15', message: "L'heure est à renseigner" },
     { field: 'Heure', value: '14:30', message: 'La date est à renseigner' },
   ])('asks for the missing pair when only $field is filled', async ({ field, value, message }) => {
     const update = spyOnSave();
@@ -125,7 +125,7 @@ describe('AuditionDateForm edition', () => {
     const update = spyOnSave();
     renderAuditionDate({
       editable: true,
-      initialAuditionDate: { year: 2026, month: 9, day: 15 },
+      initialAuditionDate: { year: 2099, month: 9, day: 15 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
@@ -200,7 +200,7 @@ describe('AuditionDateForm edition', () => {
     spyOnSave();
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
-    fillAuditionDate('2026-09-15', '14:30');
+    fillAuditionDate('2099-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     expect(await screen.findByRole('status')).toHaveTextContent("Date d'audition enregistrée");
@@ -218,7 +218,7 @@ describe('AuditionDateForm edition', () => {
       initialAuditionTime: null,
     });
 
-    fillAuditionDate('2026-09-15', '14:30');
+    fillAuditionDate('2099-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
@@ -237,7 +237,7 @@ describe('AuditionDateForm edition', () => {
       .mockResolvedValue({} as AuditionResponse);
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
 
-    fillAuditionDate('2026-09-15', '14:30');
+    fillAuditionDate('2099-09-15', '14:30');
     fireEvent.blur(screen.getByLabelText('Heure'));
 
     expect(await screen.findByText("L'enregistrement de la date d'audition a échoué")).toBeInTheDocument();
@@ -292,7 +292,7 @@ describe('AuditionDateForm close guard', () => {
     const t = renderInPanel();
     act(() => t.panel().open('a'));
 
-    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-15' } });
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2099-09-15' } });
     act(() => t.panel().close());
 
     expect(t.panel().activeId).toBe('a');
@@ -301,7 +301,7 @@ describe('AuditionDateForm close guard', () => {
   });
 
   it.each([
-    { state: 'both date and time are filled', fill: () => fillAuditionDate('2026-09-15', '14:30') },
+    { state: 'both date and time are filled', fill: () => fillAuditionDate('2099-09-15', '14:30') },
     { state: 'both fields are left empty', fill: () => {} },
   ])('allows closing when $state', ({ fill }) => {
     spyOnSave();

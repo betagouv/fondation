@@ -40,6 +40,7 @@ const OUTCOMES = [
 function file(props: {
   id: string;
   nomMagistrat: string;
+  outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
   reporters?: readonly { id: string }[];
 }): SessionNominationFile {
@@ -49,7 +50,7 @@ function file(props: {
       jurisdictions: { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
       numeroDeDossier: 1,
-      outcome: null,
+      outcome: props.outcome ? { comment: null, value: props.outcome } : null,
     },
     priorities: props.priorities ?? [],
     reporters: props.reporters ?? [],
@@ -79,6 +80,71 @@ describe('NominationFilesBulkActions', () => {
   beforeEach(() => {
     affectReporters.mockReset();
     defineOutcome.mockReset();
+  });
+
+  it('should show the reporters, the priorities and the outcome shared by every selected file', () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        outcome: 'VALIDATED',
+        priorities: ['ETOILE'],
+        reporters: [{ id: 'member-1' }],
+      }),
+      file({
+        id: 'file-2',
+        nomMagistrat: 'HARENDT Anna',
+        outcome: 'VALIDATED',
+        priorities: ['ETOILE'],
+        reporters: [{ id: 'member-1' }],
+      }),
+    ]);
+
+    expect(screen.getByRole('button', { name: 'Retirer Camille COMMUN' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Retirer Étoilé' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Choisir une issue' })).toHaveTextContent('FAVORABLE');
+  });
+
+  it('should show nothing when the selected files carry different values', () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        outcome: 'VALIDATED',
+        priorities: ['ETOILE'],
+        reporters: [{ id: 'member-1' }],
+      }),
+      file({
+        id: 'file-2',
+        nomMagistrat: 'HARENDT Anna',
+        priorities: ['ETOILE', 'OUTRE_MER'],
+        reporters: [{ id: 'member-1' }, { id: 'member-2' }],
+      }),
+    ]);
+
+    expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Retirer Étoilé' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Choisir une issue' })).toHaveTextContent('Sélectionner');
+  });
+
+  it('should withdraw a shared priority from every selected file', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', priorities: ['ETOILE'] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', priorities: ['ETOILE'] }),
+    ]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retirer Étoilé' }));
+
+    expect(affectReporters).toHaveBeenCalledWith(
+      {
+        affectations: [
+          { nominationFileId: 'file-1', priorities: [], reporterIds: [] },
+          { nominationFileId: 'file-2', priorities: [], reporterIds: [] },
+        ],
+        sessionId: 'session-1',
+      },
+      expect.anything(),
+    );
   });
 
   it('should complete the reporters already affected instead of replacing them', async () => {

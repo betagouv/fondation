@@ -29,6 +29,7 @@ export const sessionFiles = [
     content: {
       grade: 'I',
       gradeCible: 'HH',
+      lockedReason: 'REPORTED',
       nomMagistrat: 'VALROSE Honorine',
       numeroDeDossier: 2,
       outcome: { comment: null, value: 'VALIDATED' },

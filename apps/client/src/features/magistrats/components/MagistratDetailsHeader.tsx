@@ -63,7 +63,7 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
             }),
             segments,
           }}
-          className="fr-my-0"
+          className="fr-mt-0"
           id="magistrat-details-breadcrumb"
         />
       }

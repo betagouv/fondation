@@ -13,12 +13,11 @@ export function NominationFilesExportButton(props: { disabled: boolean; onExport
       className="py-2!"
       disabled={props.disabled}
       iconId="fr-icon-download-line"
-      iconPosition="right"
       onClick={props.onExport}
       priority="tertiary"
       size="small"
     >
-      <FormattedMessage defaultMessage="Export .xlsx" />
+      <FormattedMessage defaultMessage="Exporter le fichier Excel" />
     </Button>
   );
 }

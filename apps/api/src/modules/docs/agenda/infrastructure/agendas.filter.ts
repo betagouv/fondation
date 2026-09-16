@@ -25,8 +25,8 @@ export class AgendasFilter implements NestInterceptor {
             return new BadRequestException({
               validationError:
                 err.fileIds.length > 1
-                  ? `${err.fileIds.length} dossiers apparaissent déjà dans un PV`
-                  : `1 dossier apparaît déjà dans un PV`,
+                  ? `${err.fileIds.length} dossiers ont déjà été actés dans un procès-verbal restitué et avec une issue définitive`
+                  : `1 dossier a déjà été acté dans un procès-verbal restitué et avec une issue définitive`,
             });
           }
 

@@ -6,8 +6,8 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Db } from 'src/modules/framework/database';
-import { StatutAffectationEnum } from 'src/modules/session/shared/types/statut-affectation.enum';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
+import { StatutAffectationEnum } from 'src/modules/shared/statut-affectation.enum';
 
 @Injectable()
 export class AffectationVersionFinder {

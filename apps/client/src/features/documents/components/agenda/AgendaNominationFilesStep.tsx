@@ -4,7 +4,11 @@ import { useAgenda } from '@/features/documents/context/AgendaContext';
 
 import { AgendaFilesSelectionTable } from './AgendaFilesSelectionTable';
 
-export function AgendaNominationFilesStep(props: { actionsSlot?: Element | null; className?: string }) {
+export function AgendaNominationFilesStep(props: {
+  actionsSlot?: Element | null;
+  className?: string;
+  scrollsWithPage?: boolean;
+}) {
   const { goToMetadata, isSubmitting, session, submit } = useAgenda();
 
   return (
@@ -25,6 +29,7 @@ export function AgendaNominationFilesStep(props: { actionsSlot?: Element | null;
           values={{ count }}
         />
       )}
+      scrollsWithPage={props.scrollsWithPage}
       sessionId={session.id}
     />
   );

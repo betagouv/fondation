@@ -29,7 +29,6 @@ const sessions: Record<string, SessionDataset> = {
   'every-ineligibility': {
     agendaIneligibleFiles: [
       { id: 'dossier-2', reason: 'REPORTED' },
-      { id: 'dossier-3', reason: 'DRAFT_REPORTED' },
       { id: 'dossier-4', reason: 'UNIDENTIFIED' },
     ],
     files: sessionFiles,

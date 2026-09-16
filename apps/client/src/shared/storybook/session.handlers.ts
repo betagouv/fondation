@@ -41,7 +41,7 @@ const SORTABLE_TARGETED_GRADE: Record<GradeEnum, number> = {
   HH: 10,
   I: 20,
   II: 30,
-  III: 10,
+  MH: 37,
 };
 
 const sortValues = {
@@ -221,6 +221,8 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
         canCreateAgenda: datasetOf(params.sessionId).files.length > 0,
         canCreateOfficialReport: false,
         isReady: datasetOf(params.sessionId).files.length > 0,
+        agendaBlocker: null,
+        officialReportBlocker: { reason: 'NO_AGENDA', agendas: [] },
       }),
     ),
 

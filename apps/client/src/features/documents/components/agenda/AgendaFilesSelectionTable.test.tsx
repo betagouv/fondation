@@ -57,7 +57,11 @@ function mockQueries(agenda: { items: AgendaFile[]; ineligible: FoundAgendaNomin
   } as Awaited<ReturnType<typeof $api.sessions.listNominationFiles>>);
 }
 
-function TableUnderTest(props: { onCancel: () => void; onSubmit: (fileIds: readonly string[]) => void }) {
+function TableUnderTest(props: {
+  defaultSelectedFileIds?: readonly string[];
+  onCancel: () => void;
+  onSubmit: (fileIds: readonly string[]) => void;
+}) {
   const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -65,6 +69,7 @@ function TableUnderTest(props: { onCancel: () => void; onSubmit: (fileIds: reado
       <div ref={setActionsSlot} />
       <AgendaFilesSelectionTable
         actionsSlot={actionsSlot}
+        defaultSelectedFileIds={props.defaultSelectedFileIds}
         formation="SIEGE"
         onCancel={props.onCancel}
         onSubmit={props.onSubmit}
@@ -76,7 +81,7 @@ function TableUnderTest(props: { onCancel: () => void; onSubmit: (fileIds: reado
   );
 }
 
-function renderTable() {
+function renderTable(props: { defaultSelectedFileIds?: readonly string[] } = {}) {
   const onSubmit = vi.fn();
   const onCancel = vi.fn();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -86,7 +91,11 @@ function renderTable() {
       <NuqsTestingAdapter>
         <QueryClientProvider client={client}>
           <ToastProvider>
-            <TableUnderTest onCancel={onCancel} onSubmit={onSubmit} />
+            <TableUnderTest
+              defaultSelectedFileIds={props.defaultSelectedFileIds}
+              onCancel={onCancel}
+              onSubmit={onSubmit}
+            />
           </ToastProvider>
         </QueryClientProvider>
       </NuqsTestingAdapter>
@@ -96,31 +105,40 @@ function renderTable() {
   return { onCancel, onSubmit };
 }
 
+const selectAllCheckbox = () =>
+  screen.getByRole('checkbox', { name: 'Sélectionner toutes les propositions éligibles' });
+
+async function selectAllEligible() {
+  await waitFor(() => expect(selectAllCheckbox()).toBeEnabled());
+
+  await userEvent.click(selectAllCheckbox());
+}
+
 describe('AgendaFilesSelectionTable', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('should preselect the eligible files having a reporter', async () => {
+  it('should select nothing when no file is already part of an agenda', async () => {
     mockQueries({
-      items: [makeAgendaFile('dossier-1'), makeAgendaFile('dossier-2', { reporters: [] })],
+      items: [makeAgendaFile('dossier-1'), makeAgendaFile('dossier-2')],
       ineligible: [],
     });
 
     renderTable();
 
-    expect(await screen.findByText('1 proposition sélectionnée')).toBeVisible();
+    expect(await screen.findByText('Aucune proposition sélectionnée')).toBeVisible();
   });
 
-  it('should never preselect a file that cannot join an agenda', async () => {
+  it('should preselect the files of the agenda but never one that cannot join it', async () => {
     mockQueries({
       items: [makeAgendaFile('dossier-1'), makeAgendaFile('dossier-2')],
       ineligible: [{ id: 'dossier-2', reason: 'REPORTED' }],
     });
 
-    renderTable();
+    renderTable({ defaultSelectedFileIds: ['dossier-1', 'dossier-2'] });
 
-    expect(await screen.findByText('1 proposition sélectionnée')).toBeVisible();
+    expect(await screen.findByText('1 proposition sélectionnée sur 2')).toBeVisible();
   });
 
   it('should leave the files that cannot join an agenda out of a global selection', async () => {
@@ -130,26 +148,21 @@ describe('AgendaFilesSelectionTable', () => {
     });
 
     renderTable();
+    await selectAllEligible();
 
-    expect(
-      await screen.findByRole('checkbox', { name: 'Désélectionner toutes les propositions' }),
-    ).toBeChecked();
+    expect(await screen.findByText('1 proposition sélectionnée sur 2')).toBeVisible();
   });
 
   it('should select every eligible file at once', async () => {
     mockQueries({
-      items: [makeAgendaFile('dossier-1'), makeAgendaFile('dossier-2', { reporters: [] })],
+      items: [makeAgendaFile('dossier-1'), makeAgendaFile('dossier-2')],
       ineligible: [],
     });
 
     renderTable();
-    await screen.findByText('1 proposition sélectionnée');
+    await selectAllEligible();
 
-    await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Sélectionner toutes les propositions éligibles' }),
-    );
-
-    expect(await screen.findByText('2 propositions sélectionnées')).toBeVisible();
+    expect(await screen.findByText('2 propositions sélectionnées sur 2')).toBeVisible();
   });
 
   it('should refuse any selection when the eligible files cannot be loaded', async () => {
@@ -170,6 +183,7 @@ describe('AgendaFilesSelectionTable', () => {
 
     const { onSubmit } = renderTable();
 
+    await selectAllEligible();
     await userEvent.click(await screen.findByRole('button', { name: 'Continuer' }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(['dossier-1']));

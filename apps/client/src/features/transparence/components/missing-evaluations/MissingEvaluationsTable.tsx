@@ -19,6 +19,7 @@ import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { rowCell } from '@/shared/ui/new-table';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import {
+  isUpdatable,
   useListMissingEvaluationsAsExcelMutation,
   useNominationFilesStatusCountsQuery,
   type SessionNominationFile,
@@ -49,7 +50,7 @@ const reportersCell = rowCell<SessionNominationFile>((file) => (
 const commentCell = rowCell<SessionNominationFile>((file) => (
   <MissingEvaluationCommentCell
     comment={file.missingEvaluationComment}
-    disabled={!file.content.isUpdatable}
+    disabled={!isUpdatable(file)}
     magistrat={file.content.nomMagistrat}
     nominationFileId={file.id}
   />
@@ -61,7 +62,7 @@ function EvaluationStatusCell(props: CellContext<SessionNominationFile, unknown>
 
   return (
     <MissingEvaluationDoneButton
-      disabled={!file.content.isUpdatable}
+      disabled={!isUpdatable(file)}
       magistrat={file.content.nomMagistrat}
       nominationFileId={file.id}
       sessionId={sessionId}
@@ -125,7 +126,12 @@ function useMissingEvaluationsColumns() {
   );
 }
 
-function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sessionId: string }) {
+function MissingEvaluationsTableInner(props: {
+  filtersSlot: Element | null;
+  scrollsWithPage?: boolean;
+  sessionId: string;
+  toolbarSlot: Element | null;
+}) {
   const { formatMessage } = useIntl();
   const columns = useMissingEvaluationsColumns();
   const exportAsExcel = useListMissingEvaluationsAsExcelMutation();
@@ -142,8 +148,10 @@ function MissingEvaluationsTableInner(props: { filtersSlot: Element | null; sess
       emptyLabel={formatMessage({ defaultMessage: 'Aucune évaluation manquante' })}
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
+      scrollsWithPage={props.scrollsWithPage}
+      toolbarSlot={props.toolbarSlot}
       summary={
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={props.sessionId} />
             <TotalBadge value={counts?.missingEvaluation ?? 0}>
@@ -174,7 +182,9 @@ export function MissingEvaluationsTable(props: {
   filtersSlot: Element | null;
   formation: FormationEnum;
   outcomes: readonly SessionOutcome[];
+  scrollsWithPage?: boolean;
   sessionId: string;
+  toolbarSlot: Element | null;
 }) {
   return (
     <NominationFilesTableProvider
@@ -184,7 +194,12 @@ export function MissingEvaluationsTable(props: {
       sessionId={props.sessionId}
     >
       <MissingEvaluationCommentProvider sessionId={props.sessionId}>
-        <MissingEvaluationsTableInner filtersSlot={props.filtersSlot} sessionId={props.sessionId} />
+        <MissingEvaluationsTableInner
+          filtersSlot={props.filtersSlot}
+          scrollsWithPage={props.scrollsWithPage}
+          sessionId={props.sessionId}
+          toolbarSlot={props.toolbarSlot}
+        />
       </MissingEvaluationCommentProvider>
     </NominationFilesTableProvider>
   );

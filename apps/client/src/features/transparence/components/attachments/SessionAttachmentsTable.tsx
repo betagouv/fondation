@@ -57,6 +57,7 @@ export function SessionAttachmentsTable(props: {
   attachments: readonly SessionAttachment[];
   onSortingChange?: OnChangeFn<SortingState>;
   renderName?: (attachment: SessionAttachment) => ReactNode;
+  scrollsWithPage?: boolean;
   sorting?: SortingState;
 }) {
   const { formatMessage } = useIntl();
@@ -119,9 +120,10 @@ export function SessionAttachmentsTable(props: {
         })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucune pièce jointe' })}
         fluid
+        scrollsWithPage={props.scrollsWithPage}
         table={table}
         unvirtualized
-        visibleRows={10}
+        visibleRows={props.scrollsWithPage ? undefined : 10}
       />
     </SessionAttachmentsTableContext.Provider>
   );

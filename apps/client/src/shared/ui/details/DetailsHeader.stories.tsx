@@ -43,7 +43,7 @@ export const WithBreadcrumb: Story = {
           currentPageLabel: 'Fiche magistrat',
           segments: [{ label: 'Secrétariat général', to: '/secretariat-general' }],
         }}
-        className="fr-my-0"
+        className="fr-mt-0"
         id="details-header-breadcrumb"
       />
     ),

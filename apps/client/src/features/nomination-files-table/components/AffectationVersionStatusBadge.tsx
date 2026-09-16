@@ -10,7 +10,7 @@ export function AffectationVersionStatusBadge(props: { sessionId: string }) {
     !affectationsVersion || !('status' in affectationsVersion) || affectationsVersion.status !== 'PUBLIEE';
 
   return (
-    <Badge className="rounded-full" noIcon severity={isBrouillon ? 'info' : 'success'}>
+    <Badge noIcon severity={isBrouillon ? 'info' : 'success'}>
       {isBrouillon ? (
         <FormattedMessage defaultMessage="Brouillon" />
       ) : (

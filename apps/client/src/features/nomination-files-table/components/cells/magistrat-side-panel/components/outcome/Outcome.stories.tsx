@@ -3,13 +3,17 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { NominationFileOutcomeCommentModalProvider } from '../../../nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
 import { FormationEnum } from '@/shared/enums/formation.enum';
+import { NominationFileLockEnum } from '@/shared/enums/nomination-file-lock.enum';
 import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { authHandlers } from '@/shared/storybook/msw.handlers';
 import { useSeededNominationFiles } from '@/shared/storybook/seeded-nomination-files';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import type {
+  SessionNominationFile,
+  SessionNominationFileLockedReason,
+} from '@queries/nomination-sessions.queries';
 
 import { Outcome } from './Outcome';
 
@@ -29,19 +33,19 @@ function SeededOutcome(props: { nominationFile: SessionNominationFile }) {
 function OutcomeStory(props: {
   comment: string | null;
   formation: FormationEnum;
-  isUpdatable?: boolean;
+  lockedReason?: SessionNominationFileLockedReason;
   outcome: NominationFileOutcomeEnum | null;
 }) {
   const sessionOutcomes = makeSessionOutcomes(props.formation);
   const nominationFile = makeSessionNominationFile({
     content: {
-      isUpdatable: props.isUpdatable ?? true,
+      lockedReason: props.lockedReason ?? null,
       outcome: props.outcome ? { comment: props.comment, value: props.outcome } : null,
     },
   });
 
   return (
-    <StoryQueryClient key={`${props.comment}-${props.formation}-${props.isUpdatable}-${props.outcome}`}>
+    <StoryQueryClient key={`${props.comment}-${props.formation}-${props.lockedReason}-${props.outcome}`}>
       <NominationFilesTableProvider
         formation={props.formation}
         outcomes={sessionOutcomes}
@@ -69,8 +73,9 @@ const meta = {
   argTypes: {
     comment: { control: 'text' },
     formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
-    isUpdatable: {
-      control: 'boolean',
+    lockedReason: {
+      control: 'inline-radio',
+      options: [null, ...Object.values(NominationFileLockEnum)],
       description: 'a file acted in an official report, or held by an archived session, is read only',
     },
     outcome: { control: 'select', options: [null, ...outcomes] },
@@ -78,7 +83,7 @@ const meta = {
   args: {
     comment: 'Profil conforme aux attentes de la formation.',
     formation: FormationEnum.SIEGE,
-    isUpdatable: true,
+    lockedReason: null,
     outcome: NominationFileOutcomeEnum.VALIDATED,
   },
 } satisfies Meta<typeof OutcomeStory>;

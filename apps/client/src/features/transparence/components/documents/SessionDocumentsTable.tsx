@@ -121,6 +121,7 @@ export function SessionDocumentsTable(props: {
   actions?: (doc: SessionDocument) => ReactNode;
   groups: readonly (readonly SessionDocument[])[];
   renderName?: (doc: SessionDocument) => ReactNode;
+  scrollsWithPage?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const { actions, groups, renderName } = props;
@@ -234,9 +235,10 @@ export function SessionDocumentsTable(props: {
         rowTint={(row) =>
           highlighted.ids.includes(row.id) ? 'bg-(--background-alt-blue-france)' : undefined
         }
+        scrollsWithPage={props.scrollsWithPage}
         table={table}
         unvirtualized
-        visibleRows={10}
+        visibleRows={props.scrollsWithPage ? undefined : 10}
       />
       <span aria-live="polite" className="fr-sr-only">
         {highlighted.announcement}

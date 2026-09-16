@@ -1,5 +1,5 @@
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import type { NominationFileOutcomeEnum } from 'src/modules/session/shared/types/nomination-file-outcome';
+import type { NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
 
 import { transparenceFileStatus } from './session-transparence-file-status';
 
@@ -84,6 +84,40 @@ describe('transparenceFileStatus', () => {
     expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
       value: 'DSJ_PLANNED',
       dates: [lastAgendaDate, AGENDA_DATE],
+    });
+  });
+
+  it('is reported as soon as an official report is validated, whatever the other agendas', () => {
+    const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
+    const lastOfficialReportDate = new Date('2026-07-08T09:00:00.000Z');
+    const docs = [
+      makeDoc({}),
+      makeDoc({
+        agendaDate: lastAgendaDate,
+        officialReport: {
+          isValidated: true,
+          outcome: 'VALIDATED',
+          sessionMeetingDate: lastOfficialReportDate,
+        },
+      }),
+    ];
+
+    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
+      value: 'DSJ_REPORTED',
+      dates: [lastOfficialReportDate],
+    });
+  });
+
+  it('stays reported when a new agenda follows the last official report', () => {
+    const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
+    const docs = [
+      makeDoc({ officialReport: { isValidated: true, outcome: 'VALIDATED' } }),
+      makeDoc({ agendaDate: lastAgendaDate }),
+    ];
+
+    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
+      value: 'DSJ_REPORTED',
+      dates: [OFFICIAL_REPORT_DATE],
     });
   });
 

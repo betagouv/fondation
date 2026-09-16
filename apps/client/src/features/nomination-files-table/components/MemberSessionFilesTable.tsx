@@ -98,7 +98,13 @@ function useMemberSessionFilesColumns() {
 }
 
 function MemberSessionFilesTableInner(
-  props: PropsWithChildren<{ filtersEnd?: ReactNode; filtersSlot?: Element | null }>,
+  props: PropsWithChildren<{
+    filtersEnd?: ReactNode;
+    filtersSlot?: Element | null;
+    isPinned?: boolean;
+    scrollsWithPage?: boolean;
+    toolbarSlot?: Element | null;
+  }>,
 ) {
   const { sessionId } = useNominationFilesTable();
   const columns = useMemberSessionFilesColumns();
@@ -110,6 +116,9 @@ function MemberSessionFilesTableInner(
       filesTable={filesTable}
       filtersEnd={props.filtersEnd}
       filtersSlot={props.filtersSlot}
+      isPinned={props.isPinned}
+      scrollsWithPage={props.scrollsWithPage}
+      toolbarSlot={props.toolbarSlot}
       summary={
         <div className="flex items-center gap-6">
           <TotalBadge value={filesTable.totalCount}>
@@ -131,14 +140,23 @@ export function MemberSessionFilesTable(
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
     formation: FormationEnum;
+    isPinned?: boolean;
     outcomes: readonly SessionOutcome[];
+    scrollsWithPage?: boolean;
     sessionId: string;
+    toolbarSlot?: Element | null;
   }>,
 ) {
   return (
     <NominationFilesTableProvider {...props} canManage={false}>
       <MemberReportsProvider>
-        <MemberSessionFilesTableInner filtersEnd={props.filtersEnd} filtersSlot={props.filtersSlot}>
+        <MemberSessionFilesTableInner
+          filtersEnd={props.filtersEnd}
+          filtersSlot={props.filtersSlot}
+          isPinned={props.isPinned}
+          scrollsWithPage={props.scrollsWithPage}
+          toolbarSlot={props.toolbarSlot}
+        >
           {props.children}
         </MemberSessionFilesTableInner>
       </MemberReportsProvider>

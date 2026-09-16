@@ -1,7 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { NominationFileDocsSnapshot } from '../../../shared/types/nomination-file';
+import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
@@ -35,10 +35,10 @@ export class TransparenceFilesFinder {
   }
 
   @Transactional()
-  async findDocsSnapshots(query: {
+  async findSnapshots(query: {
     sessionId: string;
     nominationFileIds: Set<string> | undefined;
-  }): Promise<NominationFileDocsSnapshot[]> {
+  }): Promise<NominationFileSnapshot[]> {
     assertPgParams(query.nominationFileIds || []);
 
     const inIds =
@@ -51,13 +51,10 @@ export class TransparenceFilesFinder {
       },
     });
 
-    const withDocs = await this.docs.internalFindNominationFilesLinkedDocs({
+    const reportedFileIds = await this.docs.internalFindReportedNominationFiles({
       nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 
-    return snapshots.map((file) => {
-      const docs = withDocs.get(file.id) ?? [];
-      return { ...file, docs };
-    });
+    return snapshots.map((file) => ({ ...file, isReported: reportedFileIds.has(file.id) }));
   }
 }

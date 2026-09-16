@@ -3,7 +3,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Observations } from '@/features/observations/components/observations-section/Observations';
 import { Summary } from '@/features/summary/components/summary-section/Summary';
 import { Attachments } from '@/features/transparence/components/nomination-file-attachments/Attachments';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { AuditionBanner } from './audition-date/AuditionBanner';
 import { AuditionDate } from './audition-date/AuditionDate';
@@ -25,15 +25,13 @@ export function MagistratSidePanelContent(props: {
   const { auditionMissing } = useAuditionExpectation(nominationFile);
   const isSgContext = useIsSgNavigation();
   const auditionEditable = isSgContext && nominationFile.canScheduleAudition;
-  const isFrozen = !nominationFile.content.isUpdatable;
+  const { lockedReason } = nominationFile.content;
 
   return (
     <div className="flex flex-col gap-10 pb-10">
       <Header key={nominationFile.id} nominationFile={nominationFile} sessionId={sessionId} />
       <div className="-mt-10 *:border-t *:border-(--border-open-blue-france)">
-        {isFrozen && (
-          <FrozenFileBanner isArchived={nominationFile.isArchived} status={nominationFile.content.status} />
-        )}
+        {lockedReason && <FrozenFileBanner lockedReason={lockedReason} />}
         <AuditionBanner
           auditionDate={nominationFile.auditionDate}
           auditionMissing={auditionMissing}
@@ -62,7 +60,7 @@ export function MagistratSidePanelContent(props: {
         nominationFileId={nominationFile.id}
       />
       <Attachments
-        isUpdatable={nominationFile.content.isUpdatable}
+        isUpdatable={isUpdatable(nominationFile)}
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
       />

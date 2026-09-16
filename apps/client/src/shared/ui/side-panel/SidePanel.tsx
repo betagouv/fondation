@@ -71,14 +71,13 @@ export function SidePanel(props: {
 
     const root = document.documentElement;
     const scrollbarWidth = window.innerWidth - root.clientWidth;
-    const previousPaddingRight = document.body.style.paddingRight;
 
     root.style.setProperty('scrollbar-width', 'none');
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    root.style.setProperty('--fondation-scroll-lock-gutter', `${scrollbarWidth}px`);
 
     return () => {
       root.style.removeProperty('scrollbar-width');
-      document.body.style.paddingRight = previousPaddingRight;
+      root.style.removeProperty('--fondation-scroll-lock-gutter');
     };
   }, [open]);
 
