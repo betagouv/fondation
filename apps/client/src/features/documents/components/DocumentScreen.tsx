@@ -23,8 +23,10 @@ export function DocumentScreen(props: {
       className={clsx('flex min-h-svh flex-col', { 'bg-(--background-alt-grey)': props.tone === 'alt' })}
       style={{ '--document-bar-offset': `${barHeight}px` } as CSSProperties}
     >
-      {props.breadcrumb && <div className="fr-container [&_.fr-breadcrumb]:mb-7">{props.breadcrumb}</div>}
-      <div ref={measureBar} className="fr-py-2v sticky top-0 z-20 bg-(--background-default-grey)">
+      {props.breadcrumb && (
+        <div className="fr-container fr-pt-8v [&_.fr-breadcrumb]:mb-7">{props.breadcrumb}</div>
+      )}
+      <div className="fr-py-2v sticky top-0 z-20 bg-(--background-default-grey)" ref={measureBar}>
         <div className="fr-container flex flex-wrap items-center justify-between gap-2">
           <h1 className="fr-h2 fr-mb-0">{props.title}</h1>
           {props.actions && <div className="flex flex-wrap items-center gap-2">{props.actions}</div>}

@@ -86,6 +86,10 @@ li {
   max-width: var(--fondation-container-max-width);
 }
 
+.fr-breadcrumb:not([class*='fr-mt-'], [class*='fr-my-']) {
+  margin-top: 0;
+}
+
 .fr-breadcrumb:not([class*='fr-mb-'], [class*='fr-my-']) {
   margin-bottom: 2.25rem;
 }

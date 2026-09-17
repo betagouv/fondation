@@ -84,8 +84,13 @@ export function SessionFilesTable(
     sessionId,
   });
 
-  const toolbar = (
-    <div className={clsx('flex flex-col justify-center', props.isPinned ? 'min-h-8' : 'min-h-10')}>
+  const keepsOnlyThePortalsMounted = props.isPinned && !props.summary;
+  const toolbar = keepsOnlyThePortalsMounted ? (
+    props.children
+  ) : (
+    <div
+      className={clsx('flex flex-col', props.isPinned ? 'min-h-8 justify-end' : 'min-h-10 justify-center')}
+    >
       {props.summary}
       {props.children}
     </div>

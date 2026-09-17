@@ -83,8 +83,8 @@ export function NominationFilesAutoAffectationButton() {
 
     autoAffectation(
       {
-        sessionId,
         excludedMemberIds: excludedMemberIdsRef.current.length ? excludedMemberIdsRef.current : undefined,
+        sessionId,
       },
       {
         onError: () => {
@@ -129,7 +129,7 @@ export function NominationFilesAutoAffectationButton() {
 
   const button = (
     <Button
-      className="py-2! aria-disabled:cursor-not-allowed aria-disabled:text-(--text-disabled-grey) aria-disabled:shadow-[inset_0_0_0_1px_var(--border-disabled-grey)]"
+      className="min-h-9! py-1.5! aria-disabled:cursor-not-allowed aria-disabled:text-(--text-disabled-grey) aria-disabled:shadow-[inset_0_0_0_1px_var(--border-disabled-grey)]"
       disabled={isBusy}
       iconId={isAutoAffecting ? undefined : 'fr-icon-sparkling-2-line'}
       nativeButtonProps={nothingToAffect ? { 'aria-disabled': true } : undefined}

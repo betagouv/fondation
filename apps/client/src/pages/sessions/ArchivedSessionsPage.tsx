@@ -2,7 +2,7 @@ import { ManageArchivedSessions } from '@/features/sessions/components/ManageArc
 
 export const ArchivedSessionsPage = () => {
   return (
-    <div className="fr-container">
+    <div className="fr-container fr-pt-8v">
       <ManageArchivedSessions />
     </div>
   );

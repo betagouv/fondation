@@ -212,7 +212,6 @@ function SgSessionFilesTableInner(
       isPinned={props.isPinned}
       narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
-      toolbarSlot={props.toolbarSlot}
       summary={
         hasSelection ? (
           <NominationFilesSelectionBar
@@ -221,6 +220,7 @@ function SgSessionFilesTableInner(
           />
         ) : null
       }
+      toolbarSlot={props.toolbarSlot}
     >
       {hasSelection &&
         props.headerSlot &&
@@ -229,7 +229,7 @@ function SgSessionFilesTableInner(
           props.headerSlot,
         )}
 
-      {!hasSelection && (
+      {!hasSelection && !props.isPinned && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />

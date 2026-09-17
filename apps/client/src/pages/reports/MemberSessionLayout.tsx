@@ -23,8 +23,8 @@ export function MemberSessionLayout() {
   const [pinnedBar, setPinnedBar] = useState<HTMLDivElement | null>(null);
   const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
-  const { height, isPinned, restHeight } = usePinnedBar(sentinel, pinnedBar);
-  useScrollUnderPinnedBar({ bar: pinnedBar, content, isPinned, pathname });
+  const { height, isPinned } = usePinnedBar(sentinel, pinnedBar);
+  useScrollUnderPinnedBar({ bar: pinnedBar, content, isPinned, pathname, sentinel });
 
   const { data: session, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
@@ -54,7 +54,7 @@ export function MemberSessionLayout() {
         <div className="h-px" ref={setSentinel} />
         <div
           className={clsx({
-            'fr-py-2v fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey) shadow-[0_4px_8px_rgba(0,0,0,0.1)]':
+            'fr-pt-2v fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey)':
               isPinned,
           })}
           ref={setPinnedBar}
@@ -62,6 +62,7 @@ export function MemberSessionLayout() {
           <div className={clsx('flex flex-col', isPinned ? 'fr-container gap-y-2' : 'gap-y-4')}>
             <HeaderReportList
               dateTransparence={session.date}
+              dense={isPinned}
               dueDate={session.dueDate}
               formation={session.formation}
               transparency={session.name}
@@ -71,7 +72,7 @@ export function MemberSessionLayout() {
             <div className={clsx('empty:hidden', { 'fr-pt-2v': !isPinned })} ref={setToolbarSlot} />
           </div>
         </div>
-        {isPinned && <div style={{ height: restHeight }} />}
+        {isPinned && <div style={{ height }} />}
         <div className="sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap) bg-(--background-default-grey)" />
 
         <div

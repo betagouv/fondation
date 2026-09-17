@@ -136,17 +136,19 @@ function MemberSessionFilesTableInner(
       isPinned={props.isPinned}
       narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
-      toolbarSlot={props.toolbarSlot}
       summary={
-        <div className="flex items-center gap-6">
-          <TotalBadge value={filesTable.totalCount}>
-            <FormattedMessage defaultMessage="Total" />
-          </TotalBadge>
-          <TotalBadge value={memberReports.assignedFilesCount}>
-            <FormattedMessage defaultMessage="Mes dossiers" />
-          </TotalBadge>
-        </div>
+        props.isPinned ? null : (
+          <div className="flex items-center gap-6">
+            <TotalBadge value={filesTable.totalCount}>
+              <FormattedMessage defaultMessage="Total" />
+            </TotalBadge>
+            <TotalBadge value={memberReports.assignedFilesCount}>
+              <FormattedMessage defaultMessage="Mes dossiers" />
+            </TotalBadge>
+          </div>
+        )
       }
+      toolbarSlot={props.toolbarSlot}
     >
       {props.children}
     </SessionFilesTable>

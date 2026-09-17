@@ -70,7 +70,7 @@ export function useSelectionColumn<Data extends RowData>(options?: {
         (({ table }) => (
           <Checkbox
             checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
+            indeterminate={table.getSelectedRowModel().rows.length > 0 && !table.getIsAllRowsSelected()}
             label={
               table.getIsAllRowsSelected()
                 ? formatMessage({ defaultMessage: 'Désélectionner toutes les lignes' })
