@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
@@ -28,28 +29,30 @@ const TRANSPARENCE = {
   isArchived: false,
 } as DetailedNominationSessionDto;
 
-function renderTabs(children: ReactNode, initialPath: string) {
+function renderTabs(children: ReactNode, initialPath: string, openedDossier?: string) {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <QueryClientProvider client={new QueryClient()}>
         <IntlProvider defaultLocale="fr" locale="fr">
-          <ArchivedSessionContext value={{ isArchived: false, setIsArchived: vi.fn() }}>
-            {children}
-          </ArchivedSessionContext>
+          <NuqsTestingAdapter hasMemory searchParams={openedDossier ? `?dossier=${openedDossier}` : ''}>
+            <ArchivedSessionContext value={{ isArchived: false, setIsArchived: vi.fn() }}>
+              {children}
+            </ArchivedSessionContext>
+          </NuqsTestingAdapter>
         </IntlProvider>
       </QueryClientProvider>
     </MemoryRouter>,
   );
 }
 
-function renderBar(initialPath = '/secretariat-general/session/session-1') {
-  return renderTabs(<SessionTabsBar transparence={TRANSPARENCE} />, initialPath);
+function renderBar(initialPath = '/secretariat-general/session/session-1', openedDossier?: string) {
+  return renderTabs(<SessionTabsBar transparence={TRANSPARENCE} />, initialPath, openedDossier);
 }
 
 const MEMBER_SESSION_PATH = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
-function renderMemberBar(initialPath = MEMBER_SESSION_PATH) {
-  return renderTabs(<MemberSessionTabsBar sessionId="session-1" />, initialPath);
+function renderMemberBar(initialPath = MEMBER_SESSION_PATH, openedDossier?: string) {
+  return renderTabs(<MemberSessionTabsBar sessionId="session-1" />, initialPath, openedDossier);
 }
 
 describe('SessionTabsBar', () => {
@@ -87,6 +90,16 @@ describe('SessionTabsBar', () => {
     expect(screen.getByRole('link', { name: 'Pièce jointe 1' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Propositions 12' })).not.toHaveAttribute('aria-current');
   });
+
+  it('should disable every section but the propositions while a dossier panel is open', () => {
+    renderBar('/secretariat-general/session/session-1', 'dossier-1');
+
+    expect(screen.getByRole('link', { name: 'Propositions 12' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Évaluations manquantes 3' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Documents 2' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Pièce jointe 1' })).toBeNull();
+    expect(screen.getByText('Documents').closest('[aria-disabled]')).toBeInTheDocument();
+  });
 });
 
 describe('MemberSessionTabsBar', () => {
@@ -107,5 +120,13 @@ describe('MemberSessionTabsBar', () => {
 
     expect(screen.getByRole('link', { name: 'Pièce jointe 1' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Propositions' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('should disable the attachments while a dossier panel is open', () => {
+    renderMemberBar(MEMBER_SESSION_PATH, 'dossier-1');
+
+    expect(screen.getByRole('link', { name: 'Propositions' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Pièce jointe 1' })).toBeNull();
+    expect(screen.getByText('Pièce jointe').closest('[aria-disabled]')).toBeInTheDocument();
   });
 });
