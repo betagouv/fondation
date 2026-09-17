@@ -54,7 +54,7 @@ export function MemberSessionLayout() {
         <div className="h-px" ref={setSentinel} />
         <div
           className={clsx({
-            'fr-py-2v fixed inset-x-0 top-(--fondation-banner-height) z-5 bg-(--background-default-grey) shadow-[0_4px_8px_rgba(0,0,0,0.1)]':
+            'fr-py-2v fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey) shadow-[0_4px_8px_rgba(0,0,0,0.1)]':
               isPinned,
           })}
           ref={setPinnedBar}
