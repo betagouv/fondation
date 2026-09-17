@@ -15,7 +15,7 @@ import {
 function SessionTabsWrapper(props: { ariaLabel: string; children: ReactNode; dense?: boolean }) {
   return (
     <div className={props.dense ? 'fr-mt-2v' : 'fr-mt-4v'}>
-      <div className="mx-[calc(50%-50vw)] bg-(--background-contrast-grey) px-[calc(50vw-50%)]">
+      <div className="mx-[calc(50%-50vw)] border-y border-(--border-default-grey) bg-(--background-default-grey) px-[calc(50vw-50%)]">
         <nav aria-label={props.ariaLabel}>
           <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-8">{props.children}</ul>
         </nav>
@@ -46,7 +46,7 @@ function SessionTab(props: {
               'inline-flex h-5 min-w-5 items-center justify-center rounded px-1.5 text-xs',
               props.disabled
                 ? 'bg-(--background-disabled-grey) text-(--text-disabled-grey)'
-                : 'bg-(--background-default-grey) text-(--text-mention-grey)',
+                : 'bg-(--background-contrast-grey) text-(--text-mention-grey)',
             )}
           >
             {props.count}

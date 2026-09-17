@@ -256,6 +256,18 @@ export class ManageSingleSessionPage {
     return this.app.page.getByRole('button', { name: 'Publier aux membres' });
   }
 
+  async unfoldPinnedHeader(): Promise<void> {
+    await expect(async () => {
+      await this.app.page.evaluate('window.scrollTo({ top: 0 })');
+      await expect(this.app.page.getByText("Délai d'observation")).toBeVisible({ timeout: 250 });
+    }).toPass();
+  }
+
+  async publishAffectations(): Promise<void> {
+    await this.unfoldPinnedHeader();
+    await this.publishAffectationsButton.click();
+  }
+
   get exportAsExcelButton(): Locator {
     return this.app.page.getByRole('button', { name: 'Exporter le fichier Excel' });
   }
@@ -291,6 +303,7 @@ export class ManageSingleSessionPage {
   async goToDocumentsTab(): Promise<void> {
     await this.documentsTab.click();
     await this.app.page.waitForURL(/secretariat-general\/session\/[^/]+\/documents/);
+    await this.unfoldPinnedHeader();
   }
 
   async startAgendaGeneration(): Promise<GenerateAgendaPage> {
