@@ -23,6 +23,7 @@ import { NominationFileTargetPositionProvider } from './cells/targeted-position/
 function SessionFilesNewTable(props: {
   emptyLabel: string;
   isLoading: boolean;
+  narrowsBesideSidePanel?: boolean;
   onEndReached: () => void;
   scrollsWithPage?: boolean;
   table: Table<SessionNominationFile>;
@@ -31,7 +32,7 @@ function SessionFilesNewTable(props: {
   const intl = useIntl();
   const isEmpty = !props.isLoading && props.table.getRowModel().rows.length === 0;
 
-  return (
+  const table = (
     <NewTable
       ariaLabel={intl.formatMessage({ defaultMessage: 'Dossiers de la session' })}
       className={clsx(!props.scrollsWithPage && !isEmpty && 'max-h-screen')}
@@ -48,6 +49,14 @@ function SessionFilesNewTable(props: {
       visibleRows={props.scrollsWithPage ? undefined : 10}
     />
   );
+
+  if (!props.narrowsBesideSidePanel) return table;
+
+  return (
+    <div className={clsx('w-full transition-[width] duration-300 ease-out', activeId && 'md:w-[52%]')}>
+      {table}
+    </div>
+  );
 }
 
 export function SessionFilesTable(
@@ -57,6 +66,7 @@ export function SessionFilesTable(
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
     isPinned?: boolean;
+    narrowsBesideSidePanel?: boolean;
     scrollsWithPage?: boolean;
     summary?: ReactNode;
     toolbarSlot?: Element | null;
@@ -124,6 +134,7 @@ export function SessionFilesTable(
                     })
                   }
                   isLoading={filesTable.isLoading}
+                  narrowsBesideSidePanel={props.narrowsBesideSidePanel}
                   onEndReached={filesTable.fetchNextPage}
                   scrollsWithPage={props.scrollsWithPage}
                   table={filesTable.table}

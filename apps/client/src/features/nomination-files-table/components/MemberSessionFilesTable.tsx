@@ -1,4 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
+import { useQueryState } from 'nuqs';
 import { useMemo, type PropsWithChildren, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -11,6 +12,7 @@ import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { TotalBadge } from '@/shared/ui/total-badge';
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { SidePanelTrigger } from './cells/magistrat-side-panel/components/SidePanelTrigger';
@@ -22,6 +24,13 @@ import { NominationFileTargetPositionCell } from './cells/targeted-position/Nomi
 import { SessionFilesTable } from './SessionFilesTable';
 
 const h = createColumnHelper<SessionNominationFile>();
+
+const COLUMNS_HIDDEN_BESIDE_SIDE_PANEL = {
+  observants: false,
+  outcome: false,
+  priorities: false,
+  state: false,
+};
 
 function useMemberSessionFilesColumns() {
   const { formatMessage } = useIntl();
@@ -64,6 +73,7 @@ function useMemberSessionFilesColumns() {
       }),
 
       h.accessor('content.observants', {
+        id: 'observants',
         cell: ({ row }) => <ObservantsCell nominationFile={row.original} />,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Observant(s)' }),
@@ -71,6 +81,7 @@ function useMemberSessionFilesColumns() {
       }),
 
       h.accessor('priorities', {
+        id: 'priorities',
         cell: ({ row }) => <PriorityBadgeList priorities={row.original.priorities} />,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Priorité(s)' }),
@@ -86,6 +97,7 @@ function useMemberSessionFilesColumns() {
       }),
 
       h.accessor('content.outcome', {
+        id: 'outcome',
         cell: ({ row }) => <NominationFileOutcome nominationFile={row.original} />,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Issue' }),
@@ -107,8 +119,13 @@ function MemberSessionFilesTableInner(
   }>,
 ) {
   const { sessionId } = useNominationFilesTable();
+  const [openedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
   const columns = useMemberSessionFilesColumns();
-  const filesTable = useSessionFilesTable({ columns, sessionId });
+  const filesTable = useSessionFilesTable({
+    columns,
+    columnVisibility: openedDossier ? COLUMNS_HIDDEN_BESIDE_SIDE_PANEL : undefined,
+    sessionId,
+  });
   const memberReports = useMemberReports();
 
   return (
@@ -117,6 +134,7 @@ function MemberSessionFilesTableInner(
       filtersEnd={props.filtersEnd}
       filtersSlot={props.filtersSlot}
       isPinned={props.isPinned}
+      narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
       toolbarSlot={props.toolbarSlot}
       summary={
