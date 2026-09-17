@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper } from '@tanstack/react-table';
 import React from 'react';
-import { defineMessage, useIntl } from 'react-intl';
+import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
@@ -22,38 +22,38 @@ function useAdminUserColumns() {
   return React.useMemo(
     () => [
       h.accessor('lastName', {
-        id: 'lastName',
-        enableSorting: true,
-        enableHiding: false,
-        header: 'Nom',
-        sortDescFirst: true,
         cell: ({ cell }) => <div className="uppercase">{cell.getValue()}</div>,
+        enableHiding: false,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Nom' }),
+        id: 'lastName',
+        sortDescFirst: true,
       }),
 
       h.accessor('firstName', {
-        id: 'firstName',
-        enableSorting: false,
-        enableHiding: false,
-        header: 'Prénom',
         cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>,
+        enableHiding: false,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Prénom' }),
+        id: 'firstName',
       }),
 
       h.accessor('email', {
-        id: 'email',
         enableSorting: false,
-        header: 'Email',
+        header: formatMessage({ defaultMessage: 'Email' }),
+        id: 'email',
       }),
 
       h.accessor('role', {
-        id: 'role',
+        cell: ({ cell, row }) => <AdminUserRole gender={row.original.gender} value={cell.getValue()} />,
         enableSorting: false,
-        header: 'Rôle',
-        cell: ({ cell, row }) => <AdminUserRole value={cell.getValue()} gender={row.original.gender} />,
+        header: formatMessage({ defaultMessage: 'Rôle' }),
+        id: 'role',
         meta: {
           filters: {
-            type: 'enum',
             filterId: 'role',
-            label: 'Rôle',
+            label: formatMessage({ defaultMessage: 'Rôle' }),
+            type: 'enum',
             values: ROLE_OPTIONS.flatMap((group) =>
               group.options.map(({ id, label }) => ({
                 id,
@@ -65,10 +65,10 @@ function useAdminUserColumns() {
       }),
 
       h.display({
-        id: 'edit',
-        enableSorting: false,
-        enableHiding: false,
         cell: ({ row }) => <EditButton row={row.original} />,
+        enableHiding: false,
+        enableSorting: false,
+        id: 'edit',
       }),
     ],
     [formatMessage],
@@ -76,30 +76,36 @@ function useAdminUserColumns() {
 }
 
 function EditButton(props: { row: AdminUserItem }) {
+  const { formatMessage } = useIntl();
+
   return (
     <Button
-      priority="tertiary no outline"
       className="rounded-full"
       iconId="fr-icon-edit-fill"
-      title={`Éditer ${capitalize(props.row.firstName)} ${props.row.lastName.toUpperCase()}`}
       linkProps={{ to: generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: props.row.id }) }}
+      priority="tertiary no outline"
+      title={formatMessage(
+        { defaultMessage: 'Éditer {firstName} {lastName}' },
+        { firstName: capitalize(props.row.firstName), lastName: props.row.lastName.toUpperCase() },
+      )}
     />
   );
 }
 
 export function AdminUserListPage() {
+  const { formatMessage } = useIntl();
   const [tableState, setTableState] = useQueryDataTableState({
-    pagination: { pageIndex: 0, pageSize: 50 },
     columnFilters: [] as { id: 'role'; value: AdminUserRoleEnum[] }[],
-    sorting: [] as [],
     globalFilter: '',
+    pagination: { pageIndex: 0, pageSize: 50 },
+    sorting: [] as [],
   });
 
   const { data, isLoading } = useAdminUsersQuery({
-    search: tableState.globalFilter ?? '',
     pagination: tableState.pagination,
-    sorting: tableState.sorting,
     roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value,
+    search: tableState.globalFilter ?? '',
+    sorting: tableState.sorting,
   });
 
   const columns = useAdminUserColumns();
@@ -107,37 +113,43 @@ export function AdminUserListPage() {
   const table = useDataTable({
     columns,
     data: data?.items,
+    enableGlobalFilter: true,
     getRowId: (row) => row.id,
-    rowCount: data?.totalCount,
     meta: {
       paginationItemLabel: defineMessage({
         defaultMessage: `{count, plural, one {utilisateur} other {utilisateurs}}`,
       }),
     },
-    state: tableState,
     onStateChange: setTableState,
-    enableGlobalFilter: true,
+    rowCount: data?.totalCount,
+    state: tableState,
   });
 
   return (
-    <div className="fr-container fr-pt-10v flex flex-col justify-center">
+    <div className="fr-container fr-pt-8v flex flex-col justify-center">
       <Breadcrumb
-        id="administration-breadcrumb"
-        ariaLabel="Fil d'Ariane pour l'Administration"
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: 'Utilisateurs',
-          segments: [{ label: 'Administration', to: {} }],
+          currentPageLabel: formatMessage({ defaultMessage: 'Utilisateurs' }),
+          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
+        id="administration-breadcrumb"
       />
 
       <div className="flex flex-col gap-4 lg:mx-auto lg:w-[80%]">
-        <h1 className="fr-container">Utilisateurs</h1>
+        <h1 className="fr-container">
+          <FormattedMessage defaultMessage="Utilisateurs" />
+        </h1>
 
         <DataTable
-          table={table}
+          caption={formatMessage({ defaultMessage: 'Liste des utilisateurs' })}
           classNames={{ content: 'fr-container' }}
-          placeholder={isLoading ? 'Chargement...' : 'Aucun utilisateur ne correspond aux filtres fournis'}
-          caption="Liste des utilisateurs"
+          placeholder={
+            isLoading
+              ? formatMessage({ defaultMessage: 'Chargement...' })
+              : formatMessage({ defaultMessage: 'Aucun utilisateur ne correspond aux filtres fournis' })
+          }
+          table={table}
         />
       </div>
     </div>
