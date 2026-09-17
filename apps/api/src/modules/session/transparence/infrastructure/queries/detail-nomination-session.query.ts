@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { UnreportedSessionFilesCountFinder } from '../finders/unreported-transparence-files-count.finder';
+import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -19,7 +19,7 @@ export class DetailNominationSessionQuery {
   constructor(
     private readonly db: Db,
     private readonly affectationVersionFinder: AffectationVersionFinder,
-    private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
+    private readonly reportedSessionsFinder: ReportedSessionsFinder,
   ) {}
 
   @Transactional()
@@ -66,7 +66,7 @@ export class DetailNominationSessionQuery {
     const affectationsCount = session.affectationVersions[0]?._count.affectations ?? 0;
     const isDeletable = session._count.attachments === 0 && affectationsCount === 0;
 
-    const unreportedCount = await this.unreportedSessionFilesCountFinder.find({
+    const unreportedCount = await this.reportedSessionsFinder.unreportedFilesCount({
       sessionId: query.sessionId,
     });
     const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;

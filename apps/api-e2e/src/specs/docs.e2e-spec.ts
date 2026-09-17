@@ -6,6 +6,8 @@ function statusOf(items: PaginatedNominationFiles['items'], nominationFileId: st
   return items.find(({ id }) => id === nominationFileId)?.content.status;
 }
 
+const MEETING_DATE = { day: 10, month: 2, year: 2026 } as const;
+
 test.describe('Docs Service', () => {
   let chairmanId: string;
   let firstSecretaryId: string;
@@ -168,5 +170,109 @@ test.describe('Docs Service', () => {
       value: 'DSJ_PLANNED',
       dates: [{ day: 10, month: 2, year: 2026 }],
     });
+  });
+
+  test('should report the session only once every file is acted in a validated official report', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    /** four implementations answer the same rule: observing them together is what keeps them aligned */
+    const observe = async () => {
+      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { limit: 50 } });
+      const detailed = await agent.sessions.detailsNominationSession({ path: { sessionId } });
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
+
+      return {
+        agendaBlocker: readiness.data!.agendaBlocker,
+        isArchivable: detailed.data!.isArchivable,
+        lockedReasons: files.data!.items.map(({ content }) => content.lockedReason),
+        status: sessions.data!.items.find(({ id }) => id === sessionId)?.status,
+      };
+    };
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const fileIds = foundFiles.data!.items.map(({ id }) => id);
+    expect(fileIds).toHaveLength(2);
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: fileIds.map((nominationFileId) => ({
+          nominationFileId,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    for (const nominationFileId of fileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    expect(await observe()).toEqual({
+      agendaBlocker: null,
+      isArchivable: false,
+      lockedReasons: [null, null],
+      status: 'READY',
+    });
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+        nominationFileIds: fileIds,
+      },
+    });
+    expect(agenda.response?.status).toBe(201);
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+
+    const officialReport = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agenda.data!.id],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(officialReport.response?.status).toBe(201);
+
+    expect(await observe()).toEqual({
+      agendaBlocker: null,
+      isArchivable: false,
+      lockedReasons: [null, null],
+      status: 'READY',
+    });
+
+    const validated = await agent.docs.validateOfficialReport({
+      path: { officialReportId: officialReport.data!.id },
+    });
+    expect(validated.response?.status).toBe(204);
+
+    expect(await observe()).toEqual({
+      agendaBlocker: 'ALL_FILES_REPORTED',
+      isArchivable: true,
+      lockedReasons: ['REPORTED', 'REPORTED'],
+      status: 'REPORTED',
+    });
+
+    const archived = await agent.sessions.archiveSession({ path: { sessionId } });
+    expect(archived.response?.status).toBe(204);
   });
 });

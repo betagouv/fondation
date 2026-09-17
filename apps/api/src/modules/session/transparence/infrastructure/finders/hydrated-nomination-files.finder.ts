@@ -1,7 +1,6 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -12,6 +11,7 @@ import { DateOnly, type DateOnlyJson } from 'src/utils/date-only';
 import { dateToTimeOnly, type TimeOnly } from 'src/utils/time-only';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
+import { ReportedSessionsFinder } from './reported-sessions.finder';
 
 export const SESSION_STATUSES = ['ONGOING', 'REPORTED', 'ARCHIVED'] as const;
 export type SessionStatus = (typeof SESSION_STATUSES)[number];
@@ -41,6 +41,7 @@ export type HydratedNominationFile = {
 export class HydratedNominationFilesFinder {
   constructor(
     private readonly db: Db,
+    private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly versions: AffectationVersionFinder,
   ) {}
 
@@ -53,10 +54,7 @@ export class HydratedNominationFilesFinder {
     }
 
     const sessionIds = Array.from(new Set(files.map(({ session }) => session.id)));
-    const reportedSessions = sessionIds.length
-      ? await this.db.tx.$queryRawTyped(findReportedSessionIds(sessionIds))
-      : [];
-    const reportedSessionIds = new Set(reportedSessions.map(({ id }) => id));
+    const reportedSessionIds = await this.reportedSessionsFinder.reportedSessionIds({ sessionIds });
 
     return files.map((file) => ({
       id: file.id,
@@ -102,6 +100,7 @@ export class HydratedNominationFilesFinder {
             formation: true,
             date: true,
             archivedAt: true,
+            validatedAt: true,
           },
         },
       },
@@ -117,13 +116,12 @@ export class HydratedNominationFilesFinder {
     return { ...file, reporters };
   }
 
-  // TODO: see computeStatus in list-nomination-sessions.query.ts to homogenize the session status computations
   private sessionStatus(
-    session: { id: string; archivedAt: Date | null },
-    reportedSessionIds: Set<string>,
+    session: { id: string; archivedAt: Date | null; validatedAt: Date | null },
+    reportedSessionIds: ReadonlySet<string>,
   ): SessionStatus {
     if (session.archivedAt) return 'ARCHIVED';
-    if (reportedSessionIds.has(session.id)) return 'REPORTED';
+    if (session.validatedAt && reportedSessionIds.has(session.id)) return 'REPORTED';
     return 'ONGOING';
   }
 }

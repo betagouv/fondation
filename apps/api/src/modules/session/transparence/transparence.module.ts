@@ -11,11 +11,11 @@ import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
+import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
 import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
-import { UnreportedSessionFilesCountFinder } from './infrastructure/finders/unreported-transparence-files-count.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
@@ -73,12 +73,12 @@ import { SessionController } from './transparence.controller';
     LolfiTransparenceFilesFinder,
     NominationFileJurisdictionsFinder,
     NominationSessionFinder,
+    ReportedSessionsFinder,
     SessionTransparenceRepository,
     SynchronisedLolfiSessionsFinder,
     TransparenceFilesFinder,
     TransparenceService,
     UnaffectedFilesFinder,
-    UnreportedSessionFilesCountFinder,
   ],
 })
 export class TransparenceModule {}
