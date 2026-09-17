@@ -32,7 +32,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
           <OutcomeBadge formation={formation} outcome={outcome?.value ?? null} small={false} />
         )}
       </div>
-      {isSg && outcome && (
+      {outcome && (
         <OutcomeComment
           comment={outcome.comment}
           editable={editable}
@@ -65,11 +65,8 @@ function OutcomeComment(props: {
   if (!props.editable && !props.comment) return null;
 
   return (
-    <div className="fr-mt-3v flex items-center gap-2">
-      <i
-        aria-hidden
-        className="ri-message-3-line shrink-0 text-(--text-mention-grey) before:block before:size-5! before:content-['']"
-      />
+    <div className="fr-mt-2v flex items-center gap-2">
+      <i aria-hidden className="ri-message-3-line fr-icon--sm shrink-0 text-(--text-mention-grey)" />
       <p className="fr-mb-0 min-w-0 grow text-sm wrap-break-word text-(--text-mention-grey)">
         {props.comment || <FormattedMessage defaultMessage="Aucun commentaire" />}
       </p>
