@@ -17,31 +17,29 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
 
 vi.mock('@queries/nomination-sessions.queries', () => ({
-  useArchiveNominationSessionMutation: () => ({ mutate: vi.fn(), isPending: false }),
-  useDeleteNominationSessionMutation: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateNominationSessionMutation: () => ({
-    mutate: mocks.updateNominationSession,
     isPending: false,
+    mutate: mocks.updateNominationSession,
   }),
-  useValidateSessionMutation: () => ({ mutate: mocks.validateSession, isPending: false }),
+  useValidateSessionMutation: () => ({ isPending: false, mutate: mocks.validateSession }),
 }));
 
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn(), success: vi.fn() }) }));
 
 const SESSION: DetailedNominationSessionDto = {
-  id: 'session-1',
-  name: 'Transparence du 12 mars 2028',
-  formation: 'SIEGE',
-  outcomes: [],
   date: { year: 2028, month: 3, day: 12 },
-  observationsClosingDate: { year: 2028, month: 2, day: 1 },
   dueDate: { year: 2028, month: 4, day: 1 },
+  formation: 'SIEGE',
+  id: 'session-1',
+  isArchivable: true,
+  isArchived: false,
+  isDeletable: true,
+  isValidated: false,
+  name: 'Transparence du 12 mars 2028',
+  observationsClosingDate: { year: 2028, month: 2, day: 1 },
+  outcomes: [],
   positionStartDate: null,
   typeDeSaisine: 'TRANSPARENCE_GDS',
-  isValidated: false,
-  isDeletable: true,
-  isArchived: false,
-  isArchivable: true,
 };
 
 const onClose = vi.fn();
@@ -105,20 +103,6 @@ describe('TableauDeBordEditTransparenceModal', () => {
     validateHandlers.onSettled();
 
     expect(onClose).toHaveBeenCalled();
-  });
-
-  it('should offer the transparence actions under the form', () => {
-    renderModal();
-
-    expect(screen.getByRole('button', { name: 'Archiver' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Supprimer' })).toBeInTheDocument();
-  });
-
-  it('should drop the actions section when neither action is possible', () => {
-    renderModal({ ...SESSION, isArchivable: false, isDeletable: false });
-
-    expect(screen.queryByText('Actions sur la transparence')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Supprimer' })).not.toBeInTheDocument();
   });
 
   it('should close right away on an already validated session', async () => {

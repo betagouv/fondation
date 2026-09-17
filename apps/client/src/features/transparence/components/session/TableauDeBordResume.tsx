@@ -9,14 +9,18 @@ import type { DetailedNominationSessionDto } from '@api/types';
 
 import { TableauDeBordEditTransparenceModal } from './TableauDeBordEditTransparenceModal';
 import { TableauDeBordResumeDetails } from './TableauDeBordResumeDetails';
+import { TransparenceActions } from './TransparenceActions';
 
-export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
+export const TableauDeBordResume = ({
+  dense,
+  ...transparence
+}: DetailedNominationSessionDto & { dense?: boolean }) => {
   const { isArchived } = useArchivedSession();
   const [editStatus, setEditStatus] = useState<'closing' | 'editing' | 'idle'>('idle');
 
   return (
-    <div className="fr-px-2v flex w-full flex-col gap-y-3">
-      <h1 className="fr-mb-0 flex flex-wrap items-center gap-x-3 text-[1.75rem] leading-9 font-bold">
+    <div className="flex w-full flex-col gap-y-3">
+      <h1 className="fr-mb-0 flex flex-wrap items-center gap-x-3 text-2xl font-bold">
         <span className="fr-p-1v rounded-sm bg-(--background-contrast-grey) text-xs font-semibold text-(--text-mention-grey) uppercase">
           <FormattedMessage {...FormationEnumMessages[transparence.formation]} />
         </span>
@@ -33,20 +37,25 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
         )}
       </h1>
 
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <TableauDeBordResumeDetails {...transparence} />
+      {!dense && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <TableauDeBordResumeDetails {...transparence} />
 
-        {!isArchived && (
-          <Button
-            iconId="fr-icon-settings-5-line"
-            onClick={() => setEditStatus('editing')}
-            priority="tertiary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Modifier" />
-          </Button>
-        )}
-      </div>
+          {!isArchived && (
+            <Button
+              className="min-h-9! py-1.5!"
+              iconId="fr-icon-settings-5-line"
+              onClick={() => setEditStatus('editing')}
+              priority="tertiary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Modifier" />
+            </Button>
+          )}
+
+          <TransparenceActions transparence={transparence} />
+        </div>
+      )}
 
       {editStatus !== 'idle' && (
         <TableauDeBordEditTransparenceModal

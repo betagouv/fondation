@@ -117,47 +117,41 @@ export function TransparenceActions(props: { transparence: DetailedNominationSes
   const isMutationPending = deleteSessionMutation.isPending || archiveSessionMutation.isPending;
 
   const canArchive = transparence.isArchivable;
-  const canDelete = !transparence.isArchived && transparence.isDeletable;
-  if (!canArchive && !canDelete) return null;
+  const canDelete = !transparence.isValidated && transparence.isDeletable;
 
   return (
-    <section className="fr-mt-6v border-t border-(--border-default-grey) pt-6">
-      <h2 className="fr-mb-2v text-base leading-6 font-bold text-(--text-title-grey)">
-        <FormattedMessage defaultMessage="Actions sur la transparence" />
-      </h2>
+    <>
+      {canArchive && (
+        <Button
+          aria-busy={archiveSessionMutation.isPending}
+          className={clsx('min-h-9! py-1.5!', {
+            "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
+          })}
+          disabled={isMutationPending}
+          iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-line'}
+          onClick={onArchive}
+          priority="tertiary"
+          size="small"
+        >
+          <FormattedMessage defaultMessage="Archiver" />
+        </Button>
+      )}
 
-      <div className="flex flex-wrap items-center gap-4">
-        {canArchive && (
-          <Button
-            aria-busy={archiveSessionMutation.isPending}
-            className={clsx({
-              "before:animate-spin before:content-['']": archiveSessionMutation.isPending,
-            })}
-            disabled={isMutationPending}
-            iconId={archiveSessionMutation.isPending ? 'ri-loader-4-fill' : 'fr-icon-archive-fill'}
-            onClick={onArchive}
-            priority="secondary"
-          >
-            <FormattedMessage defaultMessage="Archiver" />
-          </Button>
-        )}
-
-        {canDelete && (
-          <Button
-            aria-busy={deleteSessionMutation.isPending}
-            className={clsx(
-              'text-(--text-default-error) shadow-[inset_0_0_0_1px_var(--border-plain-error)]',
-              { "before:animate-spin before:content-['']": deleteSessionMutation.isPending },
-            )}
-            disabled={isMutationPending}
-            iconId={deleteSessionMutation.isPending ? 'ri-loader-4-fill' : 'ri-delete-bin-fill'}
-            onClick={onDelete}
-            priority="secondary"
-          >
-            <FormattedMessage defaultMessage="Supprimer" />
-          </Button>
-        )}
-      </div>
-    </section>
+      {canDelete && (
+        <Button
+          aria-busy={deleteSessionMutation.isPending}
+          className={clsx('min-h-9! py-1.5! text-(--text-default-error)!', {
+            "before:animate-spin before:content-['']": deleteSessionMutation.isPending,
+          })}
+          disabled={isMutationPending}
+          iconId={deleteSessionMutation.isPending ? 'ri-loader-4-fill' : 'ri-delete-bin-line'}
+          onClick={onDelete}
+          priority="tertiary"
+          size="small"
+        >
+          <FormattedMessage defaultMessage="Supprimer" />
+        </Button>
+      )}
+    </>
   );
 }
