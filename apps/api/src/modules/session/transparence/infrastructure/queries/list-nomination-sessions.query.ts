@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
 import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
+import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
 import { Prisma } from 'src/generated/prisma/client';
-import { findReportedSessionIds } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -18,7 +18,10 @@ type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
 export class ListNominationSessionsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly reportedSessionsFinder: ReportedSessionsFinder,
+  ) {}
 
   async handle(query: {
     search: string | null;
@@ -62,10 +65,9 @@ export class ListNominationSessionsQuery {
         },
       });
 
-      const reportedRows = await this.db.tx.$queryRawTyped(
-        findReportedSessionIds(txSessions.map((s) => s.id)),
-      );
-      const txReportedIds = new Set(reportedRows.map(({ id }) => id));
+      const txReportedIds = await this.reportedSessionsFinder.reportedSessionIds({
+        sessionIds: txSessions.map((s) => s.id),
+      });
 
       return [txCount, txSessions, txReportedIds];
     });

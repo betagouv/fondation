@@ -152,7 +152,7 @@ function useFiltersHeight(filters: HTMLElement | null) {
   useLayoutEffect(() => {
     if (!filters) return;
 
-    const measure = () => setHeight(filters.offsetHeight);
+    const measure = () => setHeight(filters.getBoundingClientRect().height);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(filters);
@@ -350,7 +350,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
   return (
     <div
       className={clsx(
-        'fr-py-6v mx-[calc(50%-50vw)] flex grow flex-col bg-(--background-alt-grey) px-[calc(50vw-50%)]',
+        'fr-pb-6v mx-[calc(50%-50vw)] flex grow flex-col bg-(--background-alt-grey) px-[calc(50vw-50%)]',
         props.className,
       )}
       style={
@@ -364,7 +364,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
       {props.actionsSlot && createPortal(actions, props.actionsSlot)}
 
       <div
-        className={clsx('fr-pb-4v flex flex-col gap-y-4', {
+        className={clsx('fr-pt-6v fr-pb-4v flex flex-col gap-y-4', {
           'sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height)+var(--fondation-pinned-gap))] z-3 bg-(--background-alt-grey)':
             props.scrollsWithPage,
         })}

@@ -43,7 +43,7 @@ export function NominationFilesPublishButton() {
 
   return (
     <Button
-      className="py-2!"
+      className="min-h-9! py-1.5!"
       disabled={isPublishing}
       iconId="ri-megaphone-fill"
       onClick={onPublishAffectations}

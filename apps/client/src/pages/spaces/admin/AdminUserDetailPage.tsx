@@ -594,7 +594,7 @@ export function AdminUserDetailPage() {
   const fullName = user ? memberFullName(user) : undefined;
 
   return (
-    <div className="fr-container fr-pt-10v">
+    <div className="fr-container fr-pt-8v">
       <div className="flex items-start justify-between">
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}

@@ -39,7 +39,7 @@ function AgendaContent() {
 
   return (
     <div
-      className="fr-pt-4v flex grow flex-col [overflow-anchor:none]"
+      className="fr-pt-8v flex grow flex-col [overflow-anchor:none]"
       style={
         {
           '--fondation-pinned-bar-height': `${height}px`,
@@ -47,7 +47,7 @@ function AgendaContent() {
         } as CSSProperties
       }
     >
-      <div className="fr-container" ref={headerRef}>
+      <div className="fr-container [&_.fr-breadcrumb]:mb-0" ref={headerRef}>
         <AgendaBreadCrumb />
         {error && <Alert as="h2" className="fr-mb-6v" closable severity="error" title={error} />}
       </div>
@@ -55,9 +55,8 @@ function AgendaContent() {
       <div className="h-px" ref={setSentinel} />
 
       <div
-        className={clsx({
-          'fr-pb-4v': !isPinned,
-          'fr-py-3v fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey) shadow-[0_4px_8px_rgba(0,0,0,0.1)]':
+        className={clsx('fr-pt-9v fr-pb-4v', {
+          'fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey)':
             isPinned,
         })}
         ref={setPinnedBar}
@@ -84,12 +83,7 @@ function AgendaContent() {
       </div>
 
       {isPinned && <div style={{ height: restHeight }} />}
-      <div
-        className={clsx(
-          'sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap)',
-          isPinned && isSelectingFiles && 'bg-(--background-alt-grey)',
-        )}
-      />
+      <div className="sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap) border-b border-(--border-default-grey) bg-(--background-default-grey)" />
 
       <div className="fr-container flex grow flex-col">
         <AgendaMetadataStep

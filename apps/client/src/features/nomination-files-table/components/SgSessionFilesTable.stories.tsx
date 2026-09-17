@@ -24,7 +24,7 @@ const sessions: Record<string, SessionDataset> = {
   published: {
     affectationsVersion: {
       '@type': 'fr.csm.fondation.affectations.version.some',
-      author: { id: 'user-sg', firstName: 'Claire', lastName: 'Mercier' },
+      author: { firstName: 'Claire', id: 'user-sg', lastName: 'Mercier' },
       id: 'affectations-version-2',
       publicationDate: '2026-06-02T09:00:00.000Z',
       status: 'PUBLIEE',
@@ -46,6 +46,7 @@ function SgSessionFilesTableStory(props: {
   formation: FormationEnum;
   sessionId: string;
 }) {
+  const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -53,10 +54,12 @@ function SgSessionFilesTableStory(props: {
       <ToastProvider>
         <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
+            <div className="fr-mb-4v min-h-10" ref={setFiltersSlot} />
             <div className="fr-mb-4v min-h-10" ref={setToolbarSlot} />
 
             <SgSessionFilesTable
               canManage={props.canManage}
+              filtersSlot={filtersSlot}
               formation={props.formation}
               outcomes={makeSessionOutcomes(props.formation)}
               sessionId={props.sessionId}

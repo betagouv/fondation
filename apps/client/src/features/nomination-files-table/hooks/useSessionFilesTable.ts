@@ -7,6 +7,7 @@ import {
   type RowSelectionState,
   type SortingState,
   type TableOptions,
+  type VisibilityState,
 } from '@tanstack/react-table';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
@@ -27,6 +28,7 @@ export type SessionFilesTableState = ReturnType<typeof useSessionFilesTable>;
 export function useSessionFilesTable(options: {
   canSelectRow?: (row: Row<SessionNominationFile>) => boolean;
   columns: TableOptions<SessionNominationFile>['columns'];
+  columnVisibility?: VisibilityState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   restrictTo?: SessionNominationFilesFilters;
   rowSelection?: RowSelectionState;
@@ -113,6 +115,7 @@ export function useSessionFilesTable(options: {
     onSortingChange,
     state: {
       columnFilters: tableState.columnFilters,
+      columnVisibility: options.columnVisibility,
       globalFilter: tableState.globalFilter,
       rowSelection: options.rowSelection ?? {},
       sorting: tableState.sorting,

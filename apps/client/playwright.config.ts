@@ -22,7 +22,11 @@ export default defineConfig({
       name: 'chromium',
       testDir: './tests/e2e',
       dependencies: ['setup'],
-      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/sg.json',
+        viewport: { height: 1000, width: 1280 },
+      },
     },
   ],
 

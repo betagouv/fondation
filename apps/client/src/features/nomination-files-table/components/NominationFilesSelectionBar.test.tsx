@@ -22,6 +22,6 @@ describe('NominationFilesSelectionBar', () => {
   it('should announce an empty selection', () => {
     renderBar(0);
 
-    expect(screen.getByText('Aucune proposition sélectionnée sur 18')).toBeVisible();
+    expect(screen.getByText('Aucune proposition sélectionnée')).toBeVisible();
   });
 });

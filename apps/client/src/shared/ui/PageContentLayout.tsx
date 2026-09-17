@@ -20,7 +20,7 @@ export function PageContentLayout({
 
   return (
     <div className={backgroundClass}>
-      <div className={cx('fr-container', 'fr-py-6v')}>{children}</div>
+      <div className={cx('fr-container', 'fr-pt-8v', 'fr-pb-6v')}>{children}</div>
     </div>
   );
 }

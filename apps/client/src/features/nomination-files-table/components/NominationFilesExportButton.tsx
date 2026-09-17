@@ -10,7 +10,7 @@ export function NominationFilesExportButton(props: { disabled: boolean; onExport
 
   return (
     <Button
-      className="py-2!"
+      className="min-h-9! py-1.5!"
       disabled={props.disabled}
       iconId="fr-icon-download-line"
       onClick={props.onExport}

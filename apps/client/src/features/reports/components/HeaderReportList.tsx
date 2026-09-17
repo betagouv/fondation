@@ -10,20 +10,22 @@ import {
 
 export function HeaderReportList({
   dateTransparence,
-  transparency,
-  formation,
+  dense,
   dueDate,
+  formation,
+  transparency,
 }: {
   dateTransparence: PlainDateOnly;
-  transparency: string;
-  formation: FormationEnum;
+  dense?: boolean;
   dueDate: PlainDateOnly | null;
+  formation: FormationEnum;
+  transparency: string;
 }) {
   const intl = useIntl();
 
   return (
     <div>
-      <h1 className="fr-mb-3v flex flex-wrap items-center gap-x-3 text-[1.75rem] leading-9 font-bold">
+      <h1 className="fr-mb-3v flex flex-wrap items-center gap-x-3 text-2xl font-bold">
         <span className="fr-p-1v shrink-0 rounded-sm bg-(--background-contrast-grey) text-xs font-semibold text-(--text-mention-grey) uppercase">
           {intl.formatMessage(FormationEnumMessages[formation])}
         </span>
@@ -36,7 +38,7 @@ export function HeaderReportList({
         </time>
       </h1>
       <dl className="m-0 p-0 text-sm leading-6">
-        {dueDate && (
+        {!dense && dueDate && (
           <div className="flex gap-x-2">
             <dt className="p-0 text-(--text-mention-grey)">
               <FormattedMessage

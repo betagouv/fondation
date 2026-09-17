@@ -8,8 +8,8 @@ import { Tooltip } from '@/shared/ui/tooltip';
 import { memberFullName, toInitials } from '@/utils/user.utils';
 
 const currentUserStyle = {
-  backgroundColor: colors.options.brownCafeCreme.sun383moon885.active,
-  color: colors.decisions.text.inverted.grey.default,
+  backgroundColor: colors.options.brownCafeCreme._925_125.default,
+  color: colors.options.brownCafeCreme.sun383moon885.default,
 };
 
 export function ReporterTag(props: {
@@ -28,9 +28,6 @@ export function ReporterTag(props: {
       )}
       style={props.isCurrentUser ? currentUserStyle : undefined}
     >
-      {props.isCurrentUser ? (
-        <i aria-hidden className={clsx(cx('fr-icon-star-fill'), 'before:block before:size-3.5!')} />
-      ) : null}
       {props.excludedTitle ? (
         <i aria-hidden className={clsx(cx('fr-icon-error-line'), 'shrink-0 before:block before:size-4!')} />
       ) : null}

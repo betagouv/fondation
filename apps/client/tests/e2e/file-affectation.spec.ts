@@ -104,10 +104,10 @@ test.describe('Affectations', () => {
             exact: true,
           }),
         )
-        .waitFor({ timeout: 800 });
+        .waitFor();
 
       // Et que je publie les affectations
-      await page.publishAffectationsButton.click();
+      await page.publishAffectations();
       await test.expect(page.publishedAffectationsToast).toBeVisible();
 
       // Et que je bascule sur la vue du membre

@@ -12,7 +12,6 @@ const PresentationsBreadcrumb = React.memo(function PresentationsBreadcrumb() {
   const { $t } = useIntl();
   return (
     <Breadcrumb
-      id="presentations-breadcrumb"
       ariaLabel={$t({ defaultMessage: "Fil d'Ariane des restitutions DSJ" })}
       breadcrumb={{
         currentPageLabel: $t({ defaultMessage: `Restitutions` }),
@@ -23,6 +22,7 @@ const PresentationsBreadcrumb = React.memo(function PresentationsBreadcrumb() {
           },
         ],
       }}
+      id="presentations-breadcrumb"
     />
   );
 });
@@ -52,7 +52,7 @@ export function PresentationsTabsPage() {
     {
       count: (agendas?.items ?? []).length,
       counter: (label) => (
-        <Badge className="fr-ml-1v" as="span" small>
+        <Badge as="span" className="fr-ml-1v" small>
           {label}
         </Badge>
       ),
@@ -60,20 +60,20 @@ export function PresentationsTabsPage() {
   );
 
   return (
-    <div className="fr-container fr-pt-4v">
+    <div className="fr-container fr-pt-8v">
       <PresentationsBreadcrumb />
       <h1>
         <FormattedMessage defaultMessage="Restitutions" />
       </h1>
 
       <Tabs
-        className="shadow-none! before:shadow-none!"
         classes={{ panel: 'ring-(--border-default-grey) ring-1' }}
-        selectedTabId={tabId}
+        className="shadow-none! before:shadow-none!"
         onTabChange={onTabChange}
+        selectedTabId={tabId}
         tabs={[
-          { tabId: 'past', label: tabLabelPast },
-          { tabId: 'ready', label: tabLabelReady },
+          { label: tabLabelPast, tabId: 'past' },
+          { label: tabLabelReady, tabId: 'ready' },
         ]}
       >
         <Outlet />

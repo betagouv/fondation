@@ -33,10 +33,10 @@ import {
   HydratedNominationFilesFinder,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
+import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import { NominationSessionFinder } from './finders/transparence-session.finder';
-import { UnreportedSessionFilesCountFinder } from './finders/unreported-transparence-files-count.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -127,7 +127,7 @@ export class TransparenceService {
     readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
-    private readonly unreportedSessionFilesCountFinder: UnreportedSessionFilesCountFinder,
+    private readonly reportedSessionsFinder: ReportedSessionsFinder,
 
     private readonly events: EventEmitter2,
   ) {}
@@ -673,7 +673,7 @@ export class TransparenceService {
   @Transactional()
   async archiveSession(command: { sessionId: string; userId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
-    const unreportedFileCount = await this.unreportedSessionFilesCountFinder.find({
+    const unreportedFileCount = await this.reportedSessionsFinder.unreportedFilesCount({
       sessionId: command.sessionId,
     });
 

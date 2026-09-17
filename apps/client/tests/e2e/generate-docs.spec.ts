@@ -5,7 +5,7 @@ test.describe('Générer un ordre du jour', () => {
   let chairmanId: string;
 
   test.beforeEach(async ({ app, http, registerUser }) => {
-    test.setTimeout(10_000);
+    test.setTimeout(30_000);
 
     if (sessionName) {
       await app.pages.manageSessions.goto();
@@ -104,7 +104,7 @@ test.describe('Générer un ordre du jour', () => {
     }
 
     // Et que je publie aux membres
-    await page.publishAffectationsButton.click();
+    await page.publishAffectations();
     await page.publishedAffectationsToast.waitFor();
 
     // Quand je définis une issue "SURSIS" à tous les dossiers

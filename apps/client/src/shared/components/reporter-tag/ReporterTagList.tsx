@@ -24,7 +24,7 @@ export function ReporterTagList(props: {
   const hidden = reporters.slice(max);
 
   return (
-    <ul className="fr-m-0 fr-p-0 flex list-none flex-row items-center gap-x-2">
+    <ul className="fr-m-0 fr-p-0 flex list-none flex-row flex-wrap items-center gap-x-2 gap-y-1">
       {reporters.slice(0, max).map((reporter) => (
         <li className="fr-p-0" key={reporter.id}>
           <ReporterTag

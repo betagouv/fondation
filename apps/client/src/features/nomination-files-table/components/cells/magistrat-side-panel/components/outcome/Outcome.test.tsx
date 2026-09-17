@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import type { SessionNominationFileLockedReason } from '@queries/nomination-sessions.queries';
@@ -43,6 +43,7 @@ function renderOutcome(lockedReason: SessionNominationFileLockedReason) {
 }
 
 describe('Outcome', () => {
+  beforeEach(() => mocks.isSg.mockReturnValue(true));
   afterEach(() => vi.clearAllMocks());
 
   it('lets the secretariat general change the outcome and its comment', () => {
@@ -57,5 +58,13 @@ describe('Outcome', () => {
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByText('Avis favorable')).toBeVisible();
+  });
+
+  it('shows the comment to a member without letting them change it', () => {
+    mocks.isSg.mockReturnValue(false);
+    renderOutcome(null);
+
+    expect(screen.getByText('Avis favorable')).toBeVisible();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import clsx from 'clsx';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
 import { PresentationAgendaCommentsStep } from '@/features/documents/components/presentations/PresentationAgendaCommentsStep';
@@ -15,35 +15,41 @@ function PresentationBreadcrumb() {
   const { formatMessage } = useIntl();
   return (
     <Breadcrumb
-      ariaLabel="Fil d'Ariane"
-      id="restitutions_breadcrumb"
+      ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane" })}
       breadcrumb={{
         currentPageLabel: planId
           ? formatMessage({ defaultMessage: `Notice de restitution` })
           : formatMessage({ defaultMessage: 'Nouvelle notice de restitution' }),
         segments: [
-          { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-          { label: 'Restitutions', to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY) },
+          {
+            label: formatMessage({ defaultMessage: 'Secrétariat Général' }),
+            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
+          },
+          {
+            label: formatMessage({ defaultMessage: 'Restitutions' }),
+            to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY),
+          },
         ],
       }}
+      id="restitutions_breadcrumb"
     />
   );
 }
 
-const STEPS = {
-  METADATA: { title: 'Métadonnées de la notice' },
-  AGENDA_COMMENTS: { title: 'Commentaires sur les ordres du jour' },
-} as const;
+const STEP_TITLES = {
+  AGENDA_COMMENTS: defineMessage({ defaultMessage: 'Commentaires sur les ordres du jour' }),
+  METADATA: defineMessage({ defaultMessage: 'Métadonnées de la notice' }),
+};
 
 export function PresentationUpsertPage() {
+  const { formatMessage } = useIntl();
   const { state, isFetching } = usePresentationPlan();
 
-  const step = STEPS[state.step];
   const stepIndex = state.step === 'METADATA' ? 1 : 2;
-  const nextTitle = state.step === 'METADATA' ? STEPS.AGENDA_COMMENTS.title : undefined;
+  const nextTitle = state.step === 'METADATA' ? formatMessage(STEP_TITLES.AGENDA_COMMENTS) : undefined;
 
   return (
-    <div className="fr-container fr-py-4v">
+    <div className="fr-container fr-pt-8v fr-pb-4v">
       <PresentationBreadcrumb />
 
       {isFetching ? (
@@ -57,7 +63,12 @@ export function PresentationUpsertPage() {
         </p>
       ) : (
         <>
-          <Stepper stepCount={2} currentStep={stepIndex} title={step.title} nextTitle={nextTitle} />
+          <Stepper
+            currentStep={stepIndex}
+            nextTitle={nextTitle}
+            stepCount={2}
+            title={formatMessage(STEP_TITLES[state.step])}
+          />
           <PresentationMetadataStep className={clsx({ hidden: state.step !== 'METADATA' })} />
           <PresentationAgendaCommentsStep className={clsx({ hidden: state.step !== 'AGENDA_COMMENTS' })} />
         </>

@@ -1,4 +1,5 @@
 import { createColumnHelper, type Row, type RowSelectionState } from '@tanstack/react-table';
+import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
@@ -12,6 +13,7 @@ import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { NominationFileLockEnumMessages } from '@/shared/enums/nomination-file-lock.enum';
 import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
+import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import {
   isUpdatable,
   useListNominationFilesAsExcelMutation,
@@ -34,6 +36,15 @@ import { NominationFilesStatusBadges } from './NominationFilesStatusBadges';
 import { SessionFilesTable } from './SessionFilesTable';
 
 const h = createColumnHelper<SessionNominationFile>();
+
+const COLUMNS_HIDDEN_BESIDE_SIDE_PANEL = {
+  observants: false,
+  outcome: false,
+  priorities: false,
+  reporters: false,
+  select: false,
+  status: false,
+};
 
 const fileNumberCell = rowCell<SessionNominationFile>((file) => file.content.numeroDeDossier);
 const magistratCell = rowCell<SessionNominationFile>((file) => <SidePanelTrigger nominationFile={file} />);
@@ -83,6 +94,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.observants', {
+        id: 'observants',
         cell: observantsCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Observant(s)' }),
@@ -90,6 +102,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('priorities', {
+        id: 'priorities',
         cell: prioritiesCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Priorité(s)' }),
@@ -98,6 +111,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('reporters', {
+        id: 'reporters',
         cell: reportersCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
@@ -106,6 +120,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.outcome', {
+        id: 'outcome',
         cell: outcomeCell,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Issue' }),
@@ -114,6 +129,7 @@ function useSgSessionFilesColumns() {
       }),
 
       h.accessor('content.status', {
+        id: 'status',
         cell: statusCell,
         enableSorting: false,
         header: () => (
@@ -138,6 +154,7 @@ function SgSessionFilesTableInner(
 ) {
   const { formatMessage } = useIntl();
   const { canManage, sessionId } = useNominationFilesTable();
+  const [openedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
   const fileColumns = useSgSessionFilesColumns();
   const exportAsExcel = useListNominationFilesAsExcelMutation();
   const onExportFailure = useExportFailure();
@@ -164,6 +181,7 @@ function SgSessionFilesTableInner(
   const filesTable = useSessionFilesTable({
     canSelectRow: canManage ? canSelectRow : undefined,
     columns,
+    columnVisibility: openedDossier ? COLUMNS_HIDDEN_BESIDE_SIDE_PANEL : undefined,
     onRowSelectionChange: canManage ? setRowSelection : undefined,
     rowSelection,
     sessionId,
@@ -192,8 +210,8 @@ function SgSessionFilesTableInner(
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
       isPinned={props.isPinned}
+      narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
-      toolbarSlot={props.toolbarSlot}
       summary={
         hasSelection ? (
           <NominationFilesSelectionBar
@@ -202,6 +220,7 @@ function SgSessionFilesTableInner(
           />
         ) : null
       }
+      toolbarSlot={props.toolbarSlot}
     >
       {hasSelection &&
         props.headerSlot &&
@@ -210,7 +229,7 @@ function SgSessionFilesTableInner(
           props.headerSlot,
         )}
 
-      {!hasSelection && (
+      {!hasSelection && !props.isPinned && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />
