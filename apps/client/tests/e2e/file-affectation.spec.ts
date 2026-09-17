@@ -104,7 +104,7 @@ test.describe('Affectations', () => {
             exact: true,
           }),
         )
-        .waitFor({ timeout: 800 });
+        .waitFor();
 
       // Et que je publie les affectations
       await page.publishAffectations();

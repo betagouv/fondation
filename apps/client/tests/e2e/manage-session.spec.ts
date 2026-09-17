@@ -136,7 +136,7 @@ test.describe('Gérer les sessions', () => {
 
       // Alors "ANTONIO GRAMSCI" est désigné rapporteur de "Pierre BOURDIEU"
       const row = page.sessionRow({ name: 'BOURDIEU PIERRE' });
-      await row.locator(app.page.getByRole('cell', { name: 'AG' })).waitFor({ timeout: 800 });
+      await row.locator(app.page.getByRole('cell', { name: 'AG' })).waitFor();
     });
 
     test(`je définis des priorités à un dossier`, async ({ app }) => {

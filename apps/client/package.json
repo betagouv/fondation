@@ -98,6 +98,7 @@
     "lolfi": "workspace:*",
     "msw": "2.15.0",
     "msw-storybook-addon": "3.0.0",
+    "postgres": "3.4.9",
     "prettier-plugin-tailwindcss": "0.8.1",
     "storybook": "10.5.10",
     "tailwindcss": "4.3.3",

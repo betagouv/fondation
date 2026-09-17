@@ -105,26 +105,6 @@ jobs:
       - name: Test API E2E
         run: pnpm --filter api-e2e test
 
-      - name: truncate db
-        shell: bash
-        run: |
-          echo -n '' > ./truncate.sql
-          for table in \
-            '"identity_and_access_context"."users"' \
-            '"data_administration_context"."jurisdictions"' \
-            '"data_administration_context"."function"' \
-            '"nominations_context"."magistrat"' \
-            '"nominations_context"."session"' \
-            '"reports_context"."reports"' \
-            '"files_context"."files"' \
-            '"jobs"."ingestion_job"' \
-            '"docs"."agenda"'
-          do
-            echo "TRUNCATE $table CASCADE;" >> ./truncate.sql
-          done
-
-          pnpm --filter api exec prisma db execute --file ../../truncate.sql
-
       - name: Install Playwright
         uses: ./.github/playwright
 

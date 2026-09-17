@@ -473,6 +473,9 @@ importers:
       msw-storybook-addon:
         specifier: 3.0.0
         version: 3.0.0(msw@2.15.0(@types/node@26.4.0)(typescript@6.0.3))(storybook@10.5.10(@types/react@19.2.18)(prettier@3.8.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.11))
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
       prettier-plugin-tailwindcss:
         specifier: 0.8.1
         version: 0.8.1(prettier@3.8.3)

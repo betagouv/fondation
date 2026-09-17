@@ -1,6 +1,9 @@
+import { emptyDatabase } from '../empty-database';
 import { test as setup } from '../fixtures';
 
 setup('auth as SG', async ({ registerUser, page, http }) => {
+  await emptyDatabase();
+
   const { email, password } = await registerUser({ role: 'ADMIN' });
 
   const response = await http.auth.login({ email, password });
