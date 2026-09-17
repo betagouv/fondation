@@ -177,8 +177,7 @@ test.describe('Docs Service', () => {
     expect,
     member,
   }) => {
-    /** four implementations answer the same rule: observing them together is what keeps them aligned */
-    const observe = async () => {
+    const ruleAcrossEndpoints = async () => {
       const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { limit: 50 } });
       const detailed = await agent.sessions.detailsNominationSession({ path: { sessionId } });
       const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
@@ -215,7 +214,7 @@ test.describe('Docs Service', () => {
       });
     }
 
-    expect(await observe()).toEqual({
+    expect(await ruleAcrossEndpoints()).toEqual({
       agendaBlocker: null,
       isArchivable: false,
       lockedReasons: [null, null],
@@ -253,7 +252,7 @@ test.describe('Docs Service', () => {
     });
     expect(officialReport.response?.status).toBe(201);
 
-    expect(await observe()).toEqual({
+    expect(await ruleAcrossEndpoints()).toEqual({
       agendaBlocker: null,
       isArchivable: false,
       lockedReasons: [null, null],
@@ -265,7 +264,7 @@ test.describe('Docs Service', () => {
     });
     expect(validated.response?.status).toBe(204);
 
-    expect(await observe()).toEqual({
+    expect(await ruleAcrossEndpoints()).toEqual({
       agendaBlocker: 'ALL_FILES_REPORTED',
       isArchivable: true,
       lockedReasons: ['REPORTED', 'REPORTED'],
