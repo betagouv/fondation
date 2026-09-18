@@ -8,8 +8,9 @@ import { SessionTabsBar } from '@/features/transparence/components/session/Sessi
 import { SessionValidationBanner } from '@/features/transparence/components/session/SessionValidationBanner';
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
-import { PINNED_GAP, usePinnedBar, useScrollUnderPinnedBar } from '@/shared/hooks/usePinnedBar';
+import { PINNED_GAP, useFoldWithScroll, usePinnedBar } from '@/shared/hooks/usePinnedBar';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
+import { Collapse } from '@/shared/ui/collapse';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -19,15 +20,15 @@ export function TransparencePage() {
   const { formatMessage } = useIntl();
   const { sessionId } = useParams();
   const { pathname } = useLocation();
-  const [content, setContent] = useState<HTMLDivElement | null>(null);
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
   const [isSelecting, setSelecting] = useState(false);
   const [pinnedBar, setPinnedBar] = useState<HTMLDivElement | null>(null);
+  const [region, setRegion] = useState<HTMLDivElement | null>(null);
   const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
-  const { height, isPinned } = usePinnedBar(sentinel, pinnedBar);
-  useScrollUnderPinnedBar({ bar: pinnedBar, content, isPinned, pathname, sentinel });
+  const { isPinned, restHeight } = usePinnedBar(sentinel, pinnedBar);
+  useFoldWithScroll({ bar: pinnedBar, isPinned, pathname, region, restHeight });
 
   const { data: transparence, isPending, isError } = useDetailedNominationSessionQuery({ sessionId });
 
@@ -64,52 +65,52 @@ export function TransparencePage() {
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane d'une transparence détaillée" })}
           breadcrumb={breadcrumb}
-          className="fr-mt-8v"
+          className="fr-mt-8v fr-mb-0"
           id="transparence-details-breadcrumb"
         />
       </div>
       <div
-        className="flex flex-col"
+        className="flex flex-col [overflow-anchor:none]"
+        ref={setRegion}
         style={
           {
-            '--fondation-pinned-bar-height': `${height}px`,
             '--fondation-pinned-gap': `${PINNED_GAP}px`,
-            '--fondation-table-header-top': `calc(var(--fondation-banner-height) + ${height + PINNED_GAP}px)`,
+            '--fondation-table-header-top':
+              'calc(var(--fondation-banner-height) + var(--fondation-pinned-bar-height) + var(--fondation-pinned-gap))',
           } as CSSProperties
         }
       >
         <div className="h-px" ref={setSentinel} />
         <div
-          className={clsx({
-            'fr-pt-2v fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey)':
+          className={clsx('fr-pt-6v', {
+            'fixed top-(--fondation-banner-height) right-(--fondation-scroll-lock-gutter) left-0 z-5 bg-(--background-default-grey)':
               isPinned,
           })}
           ref={setPinnedBar}
         >
-          <div className={clsx('fr-container flex flex-col', isPinned ? 'gap-y-2' : 'gap-y-4')}>
-            <div className="flex justify-between gap-x-6">
-              <TableauDeBordResume {...transparence} dense={isPinned} />
+          <div className="fr-container flex flex-col gap-y-4">
+            <div className={clsx('flex justify-between gap-x-6', { hidden: isPinned && isSelecting })}>
+              <TableauDeBordResume {...transparence} />
             </div>
 
             <div className={clsx('fr-pb-2v', { hidden: !isSelecting })} ref={setHeaderSlot} />
             <div className="min-h-10" ref={setFiltersSlot} />
-            <SessionTabsBar dense={isPinned} transparence={transparence} />
-            <div className={clsx('empty:hidden', { 'fr-pt-2v': !isPinned })} ref={setToolbarSlot} />
+            <SessionTabsBar transparence={transparence} />
           </div>
+
+          <Collapse collapsible={!isSelecting}>
+            <div className="fr-container fr-pt-6v empty:hidden" ref={setToolbarSlot} />
+          </Collapse>
         </div>
-        {isPinned && <div style={{ height }} />}
+        {isPinned && <div style={{ height: restHeight }} />}
         <div className="sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap) bg-(--background-default-grey)" />
 
-        <div
-          className="fr-container fr-mb-8v min-h-[calc(100dvh-var(--fondation-banner-height)-var(--fondation-pinned-bar-height))]"
-          ref={setContent}
-        >
+        <div className="fr-container fr-mb-8v min-h-[calc(100dvh-var(--fondation-banner-height)-var(--fondation-pinned-bar-height))]">
           <Outlet
             context={
               {
                 filtersSlot,
                 headerSlot,
-                isPinned,
                 onSelectingChange: setSelecting,
                 toolbarSlot,
                 transparence,

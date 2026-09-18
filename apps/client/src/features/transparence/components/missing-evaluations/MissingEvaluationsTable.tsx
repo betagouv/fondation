@@ -128,7 +128,6 @@ function useMissingEvaluationsColumns() {
 
 function MissingEvaluationsTableInner(props: {
   filtersSlot: Element | null;
-  isPinned?: boolean;
   scrollsWithPage?: boolean;
   sessionId: string;
   toolbarSlot: Element | null;
@@ -149,32 +148,29 @@ function MissingEvaluationsTableInner(props: {
       emptyLabel={formatMessage({ defaultMessage: 'Aucune évaluation manquante' })}
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
-      isPinned={props.isPinned}
       scrollsWithPage={props.scrollsWithPage}
       summary={
-        props.isPinned ? null : (
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <AffectationVersionStatusBadge sessionId={props.sessionId} />
-              <TotalBadge value={counts?.missingEvaluation ?? 0}>
-                <FormattedMessage defaultMessage="Total" />
-              </TotalBadge>
-              <TotalBadge value={counts?.missingEvaluationWithComment ?? 0}>
-                <FormattedMessage
-                  defaultMessage="{count, plural, one {Commentaire} other {Commentaires}}"
-                  values={{ count: counts?.missingEvaluationWithComment ?? 0 }}
-                />
-              </TotalBadge>
-            </div>
-
-            <NominationFilesExportButton
-              disabled={exportAsExcel.isPending}
-              onExport={() =>
-                exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
-              }
-            />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <AffectationVersionStatusBadge sessionId={props.sessionId} />
+            <TotalBadge value={counts?.missingEvaluation ?? 0}>
+              <FormattedMessage defaultMessage="Total" />
+            </TotalBadge>
+            <TotalBadge value={counts?.missingEvaluationWithComment ?? 0}>
+              <FormattedMessage
+                defaultMessage="{count, plural, one {Commentaire} other {Commentaires}}"
+                values={{ count: counts?.missingEvaluationWithComment ?? 0 }}
+              />
+            </TotalBadge>
           </div>
-        )
+
+          <NominationFilesExportButton
+            disabled={exportAsExcel.isPending}
+            onExport={() =>
+              exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
+            }
+          />
+        </div>
       }
       toolbarSlot={props.toolbarSlot}
     />
@@ -185,7 +181,6 @@ export function MissingEvaluationsTable(props: {
   canManage: boolean;
   filtersSlot: Element | null;
   formation: FormationEnum;
-  isPinned?: boolean;
   outcomes: readonly SessionOutcome[];
   scrollsWithPage?: boolean;
   sessionId: string;
@@ -201,7 +196,6 @@ export function MissingEvaluationsTable(props: {
       <MissingEvaluationCommentProvider sessionId={props.sessionId}>
         <MissingEvaluationsTableInner
           filtersSlot={props.filtersSlot}
-          isPinned={props.isPinned}
           scrollsWithPage={props.scrollsWithPage}
           sessionId={props.sessionId}
           toolbarSlot={props.toolbarSlot}

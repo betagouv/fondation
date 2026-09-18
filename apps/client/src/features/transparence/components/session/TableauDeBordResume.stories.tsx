@@ -37,7 +37,7 @@ const NEW_SESSION: DetailedNominationSessionDto = {
   typeDeSaisine: 'TRANSPARENCE_GDS',
 };
 
-function TableauDeBordResumeStory(props: DetailedNominationSessionDto & { dense?: boolean }) {
+function TableauDeBordResumeStory(props: DetailedNominationSessionDto) {
   return (
     <StoryQueryClient>
       <ToastProvider>
@@ -61,7 +61,7 @@ const meta = {
   },
   parameters: {
     controls: {
-      include: ['dense', 'formation', 'isArchivable', 'isArchived', 'isDeletable', 'isValidated', 'name'],
+      include: ['formation', 'isArchivable', 'isArchived', 'isDeletable', 'isValidated', 'name'],
     },
     layout: 'fullscreen',
   },

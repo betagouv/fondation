@@ -27,7 +27,6 @@ export function SessionAttachmentsTab(props: {
   filtersSlot: Element | null;
   headerEnd?: ReactNode;
   headerStart?: ReactNode;
-  isPinned?: boolean;
   scrollsWithPage?: boolean;
   sessionId: string;
   toolbarSlot?: Element | null;
@@ -174,7 +173,7 @@ export function SessionAttachmentsTab(props: {
     <div className="flex flex-col gap-y-4">
       {props.filtersSlot ? createPortal(filters, props.filtersSlot) : filters}
 
-      {props.isPinned ? null : props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
+      {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
 
       <SessionAttachmentsTable
         actions={props.extraActions ? [downloadAction, props.extraActions] : [downloadAction]}

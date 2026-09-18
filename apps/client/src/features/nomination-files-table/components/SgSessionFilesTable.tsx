@@ -146,7 +146,6 @@ function SgSessionFilesTableInner(
   props: PropsWithChildren<{
     filtersSlot?: Element | null;
     headerSlot?: Element | null;
-    isPinned?: boolean;
     onSelectingChange?: (isSelecting: boolean) => void;
     scrollsWithPage?: boolean;
     toolbarSlot?: Element | null;
@@ -209,7 +208,7 @@ function SgSessionFilesTableInner(
     <SessionFilesTable
       filesTable={filesTable}
       filtersSlot={props.filtersSlot}
-      isPinned={props.isPinned}
+      isSelecting={hasSelection}
       narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
       summary={
@@ -229,7 +228,7 @@ function SgSessionFilesTableInner(
           props.headerSlot,
         )}
 
-      {!hasSelection && !props.isPinned && (
+      {!hasSelection && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <AffectationVersionStatusBadge sessionId={sessionId} />
@@ -258,7 +257,6 @@ export function SgSessionFilesTable(
     filtersSlot?: Element | null;
     formation: FormationEnum;
     headerSlot?: Element | null;
-    isPinned?: boolean;
     onSelectingChange?: (isSelecting: boolean) => void;
     outcomes: readonly SessionOutcome[];
     scrollsWithPage?: boolean;
@@ -271,7 +269,6 @@ export function SgSessionFilesTable(
       <SgSessionFilesTableInner
         filtersSlot={props.filtersSlot}
         headerSlot={props.headerSlot}
-        isPinned={props.isPinned}
         onSelectingChange={props.onSelectingChange}
         scrollsWithPage={props.scrollsWithPage}
         toolbarSlot={props.toolbarSlot}

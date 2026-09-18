@@ -65,7 +65,7 @@ export function SessionFilesTable(
     filesTable: SessionFilesTableState;
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
-    isPinned?: boolean;
+    isSelecting?: boolean;
     narrowsBesideSidePanel?: boolean;
     scrollsWithPage?: boolean;
     summary?: ReactNode;
@@ -84,13 +84,9 @@ export function SessionFilesTable(
     sessionId,
   });
 
-  const keepsOnlyThePortalsMounted = props.isPinned && !props.summary;
-  const toolbar = keepsOnlyThePortalsMounted ? (
-    props.children
-  ) : (
-    <div
-      className={clsx('flex flex-col', props.isPinned ? 'min-h-8 justify-end' : 'min-h-10 justify-center')}
-    >
+  /** a running selection reshapes the bar anyway, so the toolbar no longer holds the room of a badge row */
+  const toolbar = (
+    <div className={clsx('flex flex-col justify-center', { 'min-h-10': !props.isSelecting })}>
       {props.summary}
       {props.children}
     </div>

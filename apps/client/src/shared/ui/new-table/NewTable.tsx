@@ -1,6 +1,6 @@
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
@@ -24,6 +24,13 @@ function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boole
   }, [element, scrollsWithPage]);
 
   return scrollMargin;
+}
+
+/** centring one of the first rows would rewind the page above the table and unpin the session bar */
+function lowestScrollKeepingTheHeaderStuck(scrollBox: HTMLElement, header: RefObject<HTMLDivElement | null>) {
+  const stuckTop = header.current ? parseFloat(getComputedStyle(header.current).top) || 0 : 0;
+
+  return Math.ceil(scrollBox.getBoundingClientRect().top + window.scrollY - stuckTop) + 1;
 }
 
 function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
@@ -110,6 +117,8 @@ export function NewTable<Data extends RowData>(props: {
 
   useEffect(() => {
     if (!revealedRowId || revealedIndex === -1 || !scrollBox) return;
+    /** every offset the virtualizer gives is short of the page above the table until this is measured */
+    if (scrollsWithPage && scrollMargin === 0) return;
     if (
       alreadyRevealedRef.current?.rowId === revealedRowId &&
       alreadyRevealedRef.current.scrollBox === scrollBox
@@ -129,8 +138,19 @@ export function NewTable<Data extends RowData>(props: {
       if (isFullyVisible) return;
     }
 
-    virtualizer.scrollToIndex(revealedIndex, { align: 'center' });
-  }, [revealedIndex, revealedRowId, scrollBox, scrollsWithPage, virtualizer]);
+    const centered = scrollsWithPage
+      ? virtualizer.getOffsetForIndex(revealedIndex, 'center')?.[0]
+      : undefined;
+
+    if (centered === undefined) {
+      virtualizer.scrollToIndex(revealedIndex, { align: 'center' });
+      return;
+    }
+
+    virtualizer.scrollToOffset(Math.max(centered, lowestScrollKeepingTheHeaderStuck(scrollBox, headerRef)), {
+      align: 'start',
+    });
+  }, [revealedIndex, revealedRowId, scrollBox, scrollMargin, scrollsWithPage, virtualizer]);
 
   const [visibleRowsHeight, setVisibleRowsHeight] = useState<number>();
 

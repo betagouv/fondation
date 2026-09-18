@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useEffect, useId, useRef } from 'react';
+import { useId } from 'react';
 import { useIntl } from 'react-intl';
 
 import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
@@ -18,10 +18,6 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
   const isActive = activeId === props.nominationFile.id;
 
   const warningId = useId();
-  const ref = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (isActive) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [isActive]);
 
   const annotations: string[] = [];
   if (props.nominationFile.memo) annotations.push(intl.formatMessage({ defaultMessage: 'mémo' }));
@@ -82,7 +78,6 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       )}
       onClick={() => open(props.nominationFile.id)}
       priority="tertiary no outline"
-      ref={ref}
       size="small"
     >
       <span>

@@ -17,7 +17,7 @@ export function TransparenceAttachmentsTab() {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
   const { isArchived } = useArchivedSession();
-  const { filtersSlot, isPinned, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
   const [isImporting, setIsImporting] = useState(false);
 
   const { mutate: deleteAttachment } = useRemoveNominationSessionAttachmentMutation();
@@ -70,7 +70,6 @@ export function TransparenceAttachmentsTab() {
           )
         }
         headerStart={<AffectationVersionStatusBadge sessionId={transparence.id} />}
-        isPinned={isPinned}
         scrollsWithPage
         sessionId={transparence.id}
         toolbarSlot={toolbarSlot}
