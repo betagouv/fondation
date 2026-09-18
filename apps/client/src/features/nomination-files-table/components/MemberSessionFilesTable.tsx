@@ -113,7 +113,6 @@ function MemberSessionFilesTableInner(
   props: PropsWithChildren<{
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
-    isPinned?: boolean;
     scrollsWithPage?: boolean;
     toolbarSlot?: Element | null;
   }>,
@@ -133,20 +132,17 @@ function MemberSessionFilesTableInner(
       filesTable={filesTable}
       filtersEnd={props.filtersEnd}
       filtersSlot={props.filtersSlot}
-      isPinned={props.isPinned}
       narrowsBesideSidePanel
       scrollsWithPage={props.scrollsWithPage}
       summary={
-        props.isPinned ? null : (
-          <div className="flex items-center gap-6">
-            <TotalBadge value={filesTable.totalCount}>
-              <FormattedMessage defaultMessage="Total" />
-            </TotalBadge>
-            <TotalBadge value={memberReports.assignedFilesCount}>
-              <FormattedMessage defaultMessage="Mes dossiers" />
-            </TotalBadge>
-          </div>
-        )
+        <div className="flex items-center gap-6">
+          <TotalBadge value={filesTable.totalCount}>
+            <FormattedMessage defaultMessage="Total" />
+          </TotalBadge>
+          <TotalBadge value={memberReports.assignedFilesCount}>
+            <FormattedMessage defaultMessage="Mes dossiers" />
+          </TotalBadge>
+        </div>
       }
       toolbarSlot={props.toolbarSlot}
     >
@@ -160,7 +156,6 @@ export function MemberSessionFilesTable(
     filtersEnd?: ReactNode;
     filtersSlot?: Element | null;
     formation: FormationEnum;
-    isPinned?: boolean;
     outcomes: readonly SessionOutcome[];
     scrollsWithPage?: boolean;
     sessionId: string;
@@ -173,7 +168,6 @@ export function MemberSessionFilesTable(
         <MemberSessionFilesTableInner
           filtersEnd={props.filtersEnd}
           filtersSlot={props.filtersSlot}
-          isPinned={props.isPinned}
           scrollsWithPage={props.scrollsWithPage}
           toolbarSlot={props.toolbarSlot}
         >

@@ -5,14 +5,13 @@ import { MissingEvaluationsTable } from '@/features/transparence/components/miss
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparenceMissingEvaluationsTab() {
-  const { filtersSlot, isPinned, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
 
   return (
     <MissingEvaluationsTable
       canManage={!transparence.isArchived}
       filtersSlot={filtersSlot}
       formation={transparence.formation}
-      isPinned={isPinned}
       outcomes={transparence.outcomes}
       scrollsWithPage
       sessionId={transparence.id}

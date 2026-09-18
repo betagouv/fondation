@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 
+export const PINNED_GAP = 20;
+
 function useBannerHeight(element: HTMLElement | null) {
   const [bannerHeight, setBannerHeight] = useState(0);
 

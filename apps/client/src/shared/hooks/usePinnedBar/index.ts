@@ -1,2 +1,2 @@
-export { usePinnedBar } from './usePinnedBar';
-export { PINNED_GAP, useScrollUnderPinnedBar } from './useScrollUnderPinnedBar';
+export { useFoldWithScroll } from './useFoldWithScroll';
+export { PINNED_GAP, usePinnedBar } from './usePinnedBar';

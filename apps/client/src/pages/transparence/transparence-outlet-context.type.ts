@@ -5,7 +5,6 @@ export type TransparenceOutletContext = {
   filtersSlot: Element | null;
   /** replaces the session summary while a bulk selection is running */
   headerSlot: Element | null;
-  isPinned: boolean;
   onSelectingChange: (isSelecting: boolean) => void;
   toolbarSlot: Element | null;
   transparence: DetailedNominationSessionDto;

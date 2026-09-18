@@ -5,7 +5,7 @@ import { SgSessionFilesTable } from '@/features/nomination-files-table/component
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparencePropositionsTab() {
-  const { filtersSlot, headerSlot, isPinned, onSelectingChange, toolbarSlot, transparence } =
+  const { filtersSlot, headerSlot, onSelectingChange, toolbarSlot, transparence } =
     useOutletContext<TransparenceOutletContext>();
 
   return (
@@ -14,7 +14,6 @@ export function TransparencePropositionsTab() {
       filtersSlot={filtersSlot}
       formation={transparence.formation}
       headerSlot={headerSlot}
-      isPinned={isPinned}
       onSelectingChange={onSelectingChange}
       outcomes={transparence.outcomes}
       scrollsWithPage

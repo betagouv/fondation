@@ -12,9 +12,9 @@ import {
   useNominationFilesStatusCountsQuery,
 } from '@queries/nomination-sessions.queries';
 
-function SessionTabsWrapper(props: { ariaLabel: string; children: ReactNode; dense?: boolean }) {
+function SessionTabsWrapper(props: { ariaLabel: string; children: ReactNode }) {
   return (
-    <div className={props.dense ? 'fr-mt-2v' : 'fr-mt-4v'}>
+    <div className="fr-mt-4v">
       <div className="mx-[calc(50%-50vw)] border-y border-(--border-default-grey) bg-(--background-default-grey) px-[calc(50vw-50%)]">
         <nav aria-label={props.ariaLabel}>
           <ul className="fr-m-0 fr-p-0 flex list-none items-center gap-8">{props.children}</ul>
@@ -88,7 +88,7 @@ function SessionTab(props: {
   );
 }
 
-export function MemberSessionTabsBar(props: { dense?: boolean; sessionId: string }) {
+export function MemberSessionTabsBar(props: { sessionId: string }) {
   const { formatMessage } = useIntl();
   const [openedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
 
@@ -99,10 +99,7 @@ export function MemberSessionTabsBar(props: { dense?: boolean; sessionId: string
   const isSidePanelOpen = openedDossier !== null;
 
   return (
-    <SessionTabsWrapper
-      ariaLabel={formatMessage({ defaultMessage: 'Sections de la transparence' })}
-      dense={props.dense}
-    >
+    <SessionTabsWrapper ariaLabel={formatMessage({ defaultMessage: 'Sections de la transparence' })}>
       <SessionTab
         end
         icon="fr-icon-list-unordered"
@@ -123,7 +120,7 @@ export function MemberSessionTabsBar(props: { dense?: boolean; sessionId: string
   );
 }
 
-export function SessionTabsBar(props: { dense?: boolean; transparence: DetailedNominationSessionDto }) {
+export function SessionTabsBar(props: { transparence: DetailedNominationSessionDto }) {
   const { transparence } = props;
   const { formatMessage } = useIntl();
   const [openedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
@@ -151,7 +148,6 @@ export function SessionTabsBar(props: { dense?: boolean; transparence: DetailedN
       ariaLabel={formatMessage({
         defaultMessage: 'Sections de la transparence',
       })}
-      dense={props.dense}
     >
       <SessionTab
         count={propositionsCount}

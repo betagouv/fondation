@@ -36,7 +36,7 @@ function matchesSearch(name: string, search: string) {
 export function TransparenceDocumentsTab() {
   const { formatMessage } = useIntl();
   const { isArchived } = useArchivedSession();
-  const { filtersSlot, isPinned, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
+  const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
 
   const [isActing, setIsActing] = useState(false);
 
@@ -122,7 +122,7 @@ export function TransparenceDocumentsTab() {
     <div className="flex flex-col gap-y-4">
       {filtersSlot ? createPortal(filters, filtersSlot) : filters}
 
-      {isPinned ? null : toolbarSlot ? createPortal(toolbar, toolbarSlot) : toolbar}
+      {toolbarSlot ? createPortal(toolbar, toolbarSlot) : toolbar}
 
       <SessionDocumentsTable
         actions={(doc) =>
