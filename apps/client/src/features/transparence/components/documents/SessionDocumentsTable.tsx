@@ -138,7 +138,7 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
           <FormattedMessage defaultMessage="brouillon" />
         </Badge>
       )}
-      {doc.type === 'agenda' && doc.status === 'VALIDATED' && doc.hasDraft && (
+      {doc.status === 'VALIDATED' && doc.hasDraft && (
         <Badge as="span" className="rounded-full" noIcon severity="info" small>
           <FormattedMessage defaultMessage="modifications en cours" />
         </Badge>

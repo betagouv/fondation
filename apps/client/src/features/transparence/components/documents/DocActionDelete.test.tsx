@@ -38,9 +38,11 @@ const AGENDA: SessionDocument = {
 
 const OFFICIAL_REPORT: SessionDocument = {
   createdAt: '2028-03-13T09:00:00.000Z',
+  hasDraft: false,
   id: 'official-report-1',
   name: 'Procès-verbal du 12 mars 2028',
   outdated: false,
+  status: 'VALIDATED',
   type: 'officialReport',
   validatedAt: '2028-03-13T11:00:00.000Z',
 };

@@ -51,9 +51,11 @@ const AGENDA_BROUILLON: SessionDocument = {
 };
 const PV: SessionDocument = {
   createdAt: CREATED_AT,
+  hasDraft: false,
   id: 'pv-1',
   name: 'PV du 12 mars',
   outdated: false,
+  status: 'VALIDATED',
   type: 'officialReport',
   validatedAt: VALIDATED_AT,
 };

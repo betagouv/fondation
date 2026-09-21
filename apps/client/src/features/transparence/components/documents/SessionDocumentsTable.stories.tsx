@@ -25,6 +25,8 @@ const AGENDA_DATES = {
 
 const REPORT_DATES = {
   createdAt: '2028-03-13T09:00:00.000Z',
+  hasDraft: false,
+  status: 'VALIDATED',
   validatedAt: '2028-03-13T11:00:00.000Z',
 } as const;
 
