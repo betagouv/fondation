@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import {
   AgendaDocumentEditor,
   type AgendaDocumentEditorHandle,
@@ -13,7 +14,6 @@ import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { AlertBanner } from '@/shared/ui/alert-banner';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { useToasts } from '@/shared/ui/toast';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -22,7 +22,6 @@ import {
   useAgendaDocumentBlocksQuery,
   useDetailsAgendaMetadataQuery,
 } from '@queries/agenda.queries';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { AgendaDraftBanner } from './AgendaDraftBanner';
 
@@ -34,7 +33,6 @@ export function AgendaEditPage() {
   const describeFailure = useDocumentFailure();
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
 
-  const { data: session } = useDetailedNominationSessionQuery({ sessionId });
   const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
@@ -106,7 +104,7 @@ export function AgendaEditPage() {
       actions={
         <>
           <Button disabled={isSaving || !isDirty} onClick={cancel} priority="secondary">
-            <FormattedMessage defaultMessage="Annuler" />
+            <FormattedMessage defaultMessage="Annuler les changements" />
           </Button>
           <Button disabled={isSaving || !isDirty} onClick={save}>
             {isSaving ? (
@@ -117,23 +115,7 @@ export function AgendaEditPage() {
           </Button>
         </>
       }
-      breadcrumb={
-        <Breadcrumb
-          ariaLabel="fil d'Ariane"
-          breadcrumb={{
-            currentPageLabel: "Édition de l'ordre du jour",
-            segments: [
-              { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-              { label: 'Sessions', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
-              {
-                label: session?.name || 'Session',
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
-              },
-            ],
-          }}
-          id="breadcrumb"
-        />
-      }
+      breadcrumb={<AgendaBreadCrumb />}
       notices={
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
@@ -143,7 +125,7 @@ export function AgendaEditPage() {
             )}
             {hasPendingRevalidation && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
                 message={
                   <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
@@ -155,7 +137,7 @@ export function AgendaEditPage() {
           <div role="alert">
             {!!saveError && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
                 message={saveError}
                 tone="error"
@@ -164,8 +146,7 @@ export function AgendaEditPage() {
           </div>
         </>
       }
-      subtitle={session?.name}
-      title={<FormattedMessage defaultMessage="Ordre du jour" />}
+      title={<FormattedMessage defaultMessage="Texte de l'ordre du jour" />}
     >
       {!isFetchedAfterMount || !agendaId || !document ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />

@@ -3,11 +3,11 @@ import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
+import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useAgendaHtmlQuery,
@@ -15,7 +15,6 @@ import {
   useDiscardAgendaDraftMutation,
   useValidateAgendaMutation,
 } from '@queries/agenda.queries';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { AgendaDraftBanner } from './AgendaDraftBanner';
 
@@ -28,7 +27,6 @@ export function AgendaPreviewPage() {
 
   const { data: html, isPending } = useAgendaHtmlQuery({ force: false, id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
-  const { data: session } = useDetailedNominationSessionQuery({ sessionId });
 
   const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
@@ -69,7 +67,7 @@ export function AgendaPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Propositions" />
+            <FormattedMessage defaultMessage="Modifier les propositions" />
           </Button>
           <Button
             linkProps={{
@@ -117,23 +115,7 @@ export function AgendaPreviewPage() {
           <FormattedMessage defaultMessage="Fermer" />
         </Link>
       }
-      breadcrumb={
-        <Breadcrumb
-          ariaLabel="fil d'Ariane"
-          breadcrumb={{
-            currentPageLabel: "Création de l'ordre du jour",
-            segments: [
-              { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-              { label: 'Sessions', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
-              {
-                label: session?.name || 'Session',
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
-              },
-            ],
-          }}
-          id="breadcrumb"
-        />
-      }
+      breadcrumb={<AgendaBreadCrumb />}
       notices={
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
@@ -143,7 +125,7 @@ export function AgendaPreviewPage() {
           <div role="alert">
             {(validate.isError || discardDraft.isError) && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
                 message={describeFailure(validate.error ?? discardDraft.error)}
                 tone="error"
@@ -152,7 +134,6 @@ export function AgendaPreviewPage() {
           </div>
         </>
       }
-      subtitle={session?.name}
       title={title}
       tone="alt"
     >

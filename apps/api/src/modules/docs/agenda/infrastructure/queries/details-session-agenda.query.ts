@@ -14,12 +14,12 @@ export class DetailsSessionAgendaQuery {
     private readonly agendaVersionFinder: AgendaVersionFinder,
   ) {}
 
-  /** serves the agenda as it was validated, or its draft while it has never been validated */
   async handle(query: { sessionId: string; agendaId: string }): Promise<DetailedSessionAgenda> {
-    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
+    const publishedVersionId = await this.agendaVersionFinder.published({ agendaId: query.agendaId });
+    if (!publishedVersionId) throw new NotFoundException();
 
     const version = await this.db.tx.agendaVersion.findUnique({
-      where: { id: versionId, agenda: { sessionId: query.sessionId } },
+      where: { id: publishedVersionId, agenda: { sessionId: query.sessionId } },
       select: { pdf: { select: { id: true } }, agenda: { select: { id: true } } },
     });
 

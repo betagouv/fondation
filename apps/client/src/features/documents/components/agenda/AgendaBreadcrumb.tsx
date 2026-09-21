@@ -14,11 +14,16 @@ export function AgendaBreadCrumb() {
 
   const label = useMemo(() => {
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA }, pathname)) {
-      return formatMessage({ defaultMessage: `Métadonnées d'un ordre du jour` });
+      return formatMessage({ defaultMessage: `Données d'un ordre du jour` });
     }
 
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES }, pathname)) {
       return formatMessage({ defaultMessage: `Propositions d'un ordre du jour` });
+    }
+
+    // the edition route sits under the preview one, so it has to be matched first
+    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_EDIT }, pathname)) {
+      return formatMessage({ defaultMessage: `Texte d'un ordre du jour` });
     }
 
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_PREVIEW }, pathname)) {
