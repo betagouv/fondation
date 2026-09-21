@@ -238,6 +238,7 @@ export class AgendasService {
 
   async editAgendaFileBlock(command: {
     agendaId: string;
+    authorId: string;
     fileId: bigint;
     html: string;
     outdated: boolean;
@@ -246,6 +247,7 @@ export class AgendasService {
       this.db.withTransaction(async () => {
         const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
         agenda.editFileBlock({
+          authorId: command.authorId,
           fileId: command.fileId,
           html: command.html,
           outdated: command.outdated,

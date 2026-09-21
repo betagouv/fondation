@@ -15,6 +15,7 @@ function agendaBlock(props: { edited?: boolean; id: number; text: string }): Age
   return {
     edited: props.edited ?? false,
     editedAt: null,
+    editedBy: null,
     generatedHtml: PROPOSED,
     html: props.text,
     id: String(props.id),

@@ -38,8 +38,12 @@ export const OfficialReportFileBlock = {
           isPending: false,
           officialReportId,
           nominationFileId: block.nominationFileId,
+          agendaEditedAt: block.agendaEditedAt,
+          agendaEditedBy: block.agendaEditedBy,
+          agendaHtml: block.agendaHtml,
           edited: block.edited,
           editedAt: block.editedAt,
+          editedBy: block.editedBy,
           fromAgenda: block.fromAgenda,
           outdated: block.outdated,
           generatedHtml: block.generatedHtml,
@@ -51,7 +55,16 @@ export const OfficialReportFileBlock = {
 };
 
 function FileBlockView(props: ReactNodeViewProps) {
-  const { edited, editedAt, fromAgenda, outdated, nominationFileId } = props.node.attrs;
+  const {
+    agendaEditedAt,
+    agendaEditedBy,
+    edited,
+    editedAt,
+    editedBy,
+    fromAgenda,
+    outdated,
+    nominationFileId,
+  } = props.node.attrs;
   const active = useBlockActive(props);
 
   return (
@@ -64,7 +77,15 @@ function FileBlockView(props: ReactNodeViewProps) {
         'doc-block--warning': outdated && nominationFileId,
       })}
     >
-      {edited && <DocBlockEditedBadge editedAt={editedAt} fromAgenda={fromAgenda} />}
+      {edited && (
+        <DocBlockEditedBadge
+          agendaEditedAt={agendaEditedAt}
+          agendaEditedBy={agendaEditedBy}
+          editedAt={editedAt}
+          editedBy={editedBy}
+          fromAgenda={fromAgenda}
+        />
+      )}
 
       <NodeViewContent />
 
@@ -82,8 +103,12 @@ export const OfficialReportFileBlockNode = Node.create({
   draggable: false,
   addAttributes: () => ({
     isPending: { default: false, rendered: false },
+    agendaEditedAt: { default: null, rendered: false },
+    agendaEditedBy: { default: null, rendered: false },
+    agendaHtml: { default: null, rendered: false },
     edited: { default: false, rendered: false },
     editedAt: { default: null, rendered: false },
+    editedBy: { default: null, rendered: false },
     fromAgenda: { default: false, rendered: false },
     outdated: { default: false },
     nominationFileId: { default: null },

@@ -1039,6 +1039,9 @@ export type DocGenerationSessionReadinessDto = {
     officialReportBlocker: {
         reason: 'NO_AGENDA' | 'ALL_AGENDAS_REPORTED' | 'NEVER_PUBLISHED' | 'INCOMPLETE_AGENDA';
         agendas: Array<{
+            agendaId: string;
+            chairmanInitials: string;
+            filesCount: number;
             meetingDate: {
                 year: number;
                 month: number;
@@ -1162,6 +1165,10 @@ export type DetailedAgendaDocumentBlocksDto = {
         nominationFileId: string | null;
         edited: boolean;
         editedAt: string | null;
+        editedBy: {
+            id: string;
+            name: string;
+        } | null;
         outdated: boolean;
         generatedHtml?: string;
         html: string;
@@ -1340,7 +1347,17 @@ export type DetailedOfficialReportDocumentDto = {
         html: string;
         kind: 'file';
         nominationFileId: string | null;
+        agendaHtml: string | null;
+        agendaEditedAt: string | null;
+        agendaEditedBy: {
+            id: string;
+            name: string;
+        } | null;
         editedAt: string | null;
+        editedBy: {
+            id: string;
+            name: string;
+        } | null;
         fromAgenda: boolean;
     } | {
         weight: number;

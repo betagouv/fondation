@@ -4,6 +4,7 @@ import z from 'zod';
 
 import type { AgendaRenderContext } from '../services/renderers/agenda.renderer';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
+import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
@@ -47,6 +48,7 @@ export class AgendaRenderContextFinder {
             htmlEdited: true,
             htmlOutdated: true,
             htmlEditedAt: true,
+            editor: { select: { id: true, firstName: true, lastName: true } },
           },
         },
       },
@@ -59,7 +61,15 @@ export class AgendaRenderContextFinder {
         .filter((f): f is typeof f & { htmlEdited: string } => Boolean(f.htmlEdited?.trim()))
         .map(
           (f) =>
-            [f.id, { html: f.htmlEdited, isOutdated: f.htmlOutdated, editedAt: f.htmlEditedAt }] as const,
+            [
+              f.id,
+              {
+                html: f.htmlEdited,
+                isOutdated: f.htmlOutdated,
+                editedAt: f.htmlEditedAt,
+                editedBy: f.editor ? { id: f.editor.id, name: fullname(f.editor) } : null,
+              },
+            ] as const,
         ),
     );
 

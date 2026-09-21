@@ -145,7 +145,10 @@ describe('officialReportTemplate', () => {
       },
     ],
 
-    agendaProposals: new Map<string, string>(),
+    agendaProposals: new Map<
+      string,
+      { at: Date | null; by: { id: string; name: string } | null; html: string }
+    >(),
 
     userDefinedBlocks: {
       files: {},
@@ -198,6 +201,7 @@ describe('officialReportTemplate', () => {
               html: /* html */ `<p><strong>MME Marthe GAUTIER</strong>, a vu son paragraphe subir une modification</p>`,
               isOutdated: false,
               editedAt: null,
+              editedBy: null,
               fromAgenda: false,
             },
           },
@@ -232,6 +236,7 @@ describe('officialReportTemplate', () => {
               html: `<p>${proposed.html}</p>`,
               isOutdated: false,
               editedAt: new Date('2026-09-21T08:18:00Z'),
+              editedBy: null,
               fromAgenda: true,
             },
           },

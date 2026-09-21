@@ -112,12 +112,14 @@ model AgendaNominationFile {
   htmlOutdated Boolean   @default(false) @map("html_outdated")
   // when the block was last rewritten by hand, untouched by the upstream data changes
   htmlEditedAt DateTime? @map("html_edited_at")
+  htmlEditedBy String?   @map("html_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   version        AgendaVersion        @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  editor         User?                @relation(fields: [htmlEditedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_block_editor")
 
   @@map("agenda_nomination_file")
   @@schema("docs")
@@ -242,12 +244,14 @@ model OfficialReportNominationFile {
   htmlEditedAt DateTime? @map("html_edited_at")
   // the text was written in the agenda and taken as is, so the report is not the one to credit
   htmlFromAgenda Boolean @default(false) @map("html_from_agenda")
+  htmlEditedBy   String? @map("html_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   version        OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   nominationFile DossierDeNomination?  @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  editor         User?                 @relation(fields: [htmlEditedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_block_editor")
 
   @@map("official_report_nomination_file")
   @@schema("docs")

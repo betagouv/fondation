@@ -387,7 +387,12 @@ export class OfficialReportRepository {
                 select: {
                   status: true,
                   nominationFiles: {
-                    select: { nominationFileId: true, htmlEdited: true, htmlEditedAt: true },
+                    select: {
+                      nominationFileId: true,
+                      htmlEdited: true,
+                      htmlEditedAt: true,
+                      htmlEditedBy: true,
+                    },
                     where: { nominationFileId: { in: filesToCreate }, htmlEdited: { not: null } },
                   },
                 },
@@ -406,7 +411,12 @@ export class OfficialReportRepository {
         agendaEditions: new Map(
           agendaContentOf(rawAgenda.versions)?.nominationFiles.flatMap((file) =>
             file.nominationFileId && file.htmlEdited
-              ? [[file.nominationFileId, { html: file.htmlEdited, at: file.htmlEditedAt }] as const]
+              ? [
+                  [
+                    file.nominationFileId,
+                    { html: file.htmlEdited, at: file.htmlEditedAt, by: file.htmlEditedBy },
+                  ] as const,
+                ]
               : [],
           ) ?? [],
         ),
@@ -494,7 +504,7 @@ export class OfficialReportRepository {
           select: {
             status: true,
             nominationFiles: {
-              select: { nominationFileId: true, htmlEdited: true, htmlEditedAt: true },
+              select: { nominationFileId: true, htmlEdited: true, htmlEditedAt: true, htmlEditedBy: true },
               where: { nominationFileId: { not: null } },
             },
           },
@@ -512,7 +522,12 @@ export class OfficialReportRepository {
     const agendaEditions = new Map(
       published.nominationFiles.flatMap((file) =>
         file.nominationFileId && file.htmlEdited
-          ? [[file.nominationFileId, { html: file.htmlEdited, at: file.htmlEditedAt }] as const]
+          ? [
+              [
+                file.nominationFileId,
+                { html: file.htmlEdited, at: file.htmlEditedAt, by: file.htmlEditedBy },
+              ] as const,
+            ]
           : [],
       ),
     );
@@ -527,7 +542,7 @@ export class OfficialReportRepository {
   }
 
   private async resolveNominationFiles(query: {
-    agendaEditions?: ReadonlyMap<string, { html: string; at: Date | null }>;
+    agendaEditions?: ReadonlyMap<string, { html: string; at: Date | null; by: string | null }>;
     sessionId: string;
     ids: readonly string[];
   }) {
@@ -544,6 +559,7 @@ export class OfficialReportRepository {
         return {
           htmlEdited: fromAgenda?.html ?? null,
           htmlEditedAt: fromAgenda?.at ?? null,
+          htmlEditedBy: fromAgenda?.by ?? null,
           htmlFromAgenda: isDefined(fromAgenda),
           nominationFileId: f.id,
           number: f.number,
@@ -662,6 +678,7 @@ export class OfficialReportRepository {
         htmlEdited: message.html,
         htmlOutdated: message.outdated,
         htmlEditedAt: this.clock.now(),
+        htmlEditedBy: message.authorId,
         htmlFromAgenda: false,
       },
     });
@@ -680,6 +697,7 @@ export class OfficialReportRepository {
         htmlEdited: proposal?.html ?? null,
         htmlOutdated: false,
         htmlEditedAt: proposal?.at ?? null,
+        htmlEditedBy: proposal?.by ?? null,
         htmlFromAgenda: isDefined(proposal),
       },
     });
@@ -689,7 +707,7 @@ export class OfficialReportRepository {
 
   private async agendaProposalOf(
     message: OfficialReportFileReset,
-  ): Promise<{ at: Date | null; html: string } | undefined> {
+  ): Promise<{ at: Date | null; by: string | null; html: string } | undefined> {
     const agenda = await this.db.tx.agenda.findFirst({
       where: { officialReportId: message.officialReportId.toString() },
       select: {
@@ -698,7 +716,7 @@ export class OfficialReportRepository {
           select: {
             status: true,
             nominationFiles: {
-              select: { htmlEdited: true, htmlEditedAt: true },
+              select: { htmlEdited: true, htmlEditedAt: true, htmlEditedBy: true },
               where: { nominationFileId: message.nominationFileId, htmlEdited: { not: null } },
             },
           },
@@ -707,7 +725,9 @@ export class OfficialReportRepository {
     });
 
     const file = agendaContentOf(agenda?.versions ?? [])?.nominationFiles[0];
-    return file?.htmlEdited ? { at: file.htmlEditedAt, html: file.htmlEdited } : undefined;
+    return file?.htmlEdited
+      ? { at: file.htmlEditedAt, by: file.htmlEditedBy, html: file.htmlEdited }
+      : undefined;
   }
 
   private async persistOfficialReportSectionTitleEdited(message: OfficialReportSectionTitleEdited) {

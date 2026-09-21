@@ -531,7 +531,7 @@ test.describe('Docs Service', () => {
       .data!.blocks.filter((block) => block.kind === 'file')
       .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
 
-    expect(untouched).toMatchObject({ outdated: false, generatedHtml: html });
+    expect(untouched).toMatchObject({ agendaHtml: html, outdated: false });
 
     await agent.docs.validateAgenda({ path: { agendaId } });
 
@@ -542,7 +542,7 @@ test.describe('Docs Service', () => {
       .data!.blocks.filter((block) => block.kind === 'file')
       .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
 
-    expect(warned).toMatchObject({ html: rewritten, outdated: true, generatedHtml: later });
+    expect(warned).toMatchObject({ agendaHtml: later, html: rewritten, outdated: true });
 
     await agent.docs.resetOfficialReportFile({
       path: { officialReportId: created.data!.id, nominationFileId: firstBlock!.nominationFileId! },

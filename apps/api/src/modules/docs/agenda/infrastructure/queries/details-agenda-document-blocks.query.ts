@@ -12,6 +12,7 @@ const AgendaBlockFileDtoSchema = z.object({
   edited: z.boolean(),
   /** when the block was last rewritten by hand */
   editedAt: z.iso.datetime().nullable(),
+  editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   outdated: z.boolean(),
   generatedHtml: z.string().optional(),
   html: z.string(),
@@ -30,6 +31,7 @@ export class DetailsAgendaDocumentBlocksQuery {
         ...block,
         id: block.id.toString(),
         editedAt: block.editedAt?.toISOString() ?? null,
+        editedBy: block.editedBy,
       })),
     };
   }

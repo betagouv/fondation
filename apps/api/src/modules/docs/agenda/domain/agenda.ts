@@ -89,6 +89,7 @@ export class AgendaFileBlockEdited {
     readonly nominationFileId: string,
     readonly html: string,
     readonly outdated: boolean,
+    readonly authorId: string,
   ) {}
 }
 
@@ -241,11 +242,13 @@ export class Agenda {
     this.#messages.push(new AgendaDeleted(this.id));
   }
 
-  editFileBlock(command: { fileId: bigint; html: string; outdated: boolean }): void {
+  editFileBlock(command: { authorId: string; fileId: bigint; html: string; outdated: boolean }): void {
     const nominationFileId = this.blockProposition(command);
 
     this.openDraft();
-    this.#messages.push(new AgendaFileBlockEdited(this.id, nominationFileId, command.html, command.outdated));
+    this.#messages.push(
+      new AgendaFileBlockEdited(this.id, nominationFileId, command.html, command.outdated, command.authorId),
+    );
   }
 
   resetFileBlock(command: { fileId: bigint }): void {

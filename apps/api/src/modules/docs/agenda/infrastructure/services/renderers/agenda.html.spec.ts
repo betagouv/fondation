@@ -55,6 +55,7 @@ describe('agendaTemplate', () => {
         {
           "edited": false,
           "editedAt": null,
+          "editedBy": null,
           "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "html": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "id": 1n,
@@ -80,6 +81,7 @@ describe('agendaTemplate', () => {
                 html: `<span>custom html</span>`,
                 isOutdated: true,
                 editedAt: new Date('2026-03-12T10:00:00.000Z'),
+                editedBy: null,
               },
             ],
           ]),
@@ -92,6 +94,7 @@ describe('agendaTemplate', () => {
         {
           "edited": true,
           "editedAt": 2026-03-12T10:00:00.000Z,
+          "editedBy": null,
           "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "html": "<span>custom html</span>",
           "id": 1n,
@@ -119,6 +122,7 @@ describe('agendaTemplate', () => {
                 html: `<p>${proposed!.html}</p>`,
                 isOutdated: false,
                 editedAt: new Date('2026-03-12T10:00:00.000Z'),
+                editedBy: null,
               },
             ],
           ]),

@@ -33,6 +33,7 @@ export const AgendaFileBlock = {
           agendaId,
           edited: block.edited,
           editedAt: block.editedAt,
+          editedBy: block.editedBy,
           fileId: block.id,
           generatedHtml: block.generatedHtml ?? null,
           isPending: false,
@@ -52,7 +53,7 @@ function toInlineContent(html: string, extensions: AnyExtension[]): JSONContent[
 }
 
 function FileBlockView(props: ReactNodeViewProps) {
-  const { edited, editedAt, outdated } = props.node.attrs;
+  const { edited, editedAt, editedBy, outdated } = props.node.attrs;
   const active = useBlockActive(props);
 
   return (
@@ -66,7 +67,7 @@ function FileBlockView(props: ReactNodeViewProps) {
       })}
       data-block-type="file"
     >
-      {edited && <DocBlockEditedBadge editedAt={editedAt} />}
+      {edited && <DocBlockEditedBadge editedAt={editedAt} editedBy={editedBy} />}
 
       <NodeViewContent<'p'> as="p" />
 
@@ -88,6 +89,7 @@ export const AgendaFileBlockNode = Node.create({
     agendaId: { default: null, rendered: false },
     edited: { default: false, rendered: false },
     editedAt: { default: null, rendered: false },
+    editedBy: { default: null, rendered: false },
     fileId: { default: null },
     generatedHtml: { default: null, rendered: false },
     isPending: { default: false, rendered: false },

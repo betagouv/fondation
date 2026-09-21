@@ -388,7 +388,12 @@ export class AgendaRepository {
 
     await this.db.tx.agendaNominationFile.updateMany({
       where: { nominationFileId: message.nominationFileId, versionId },
-      data: { htmlEdited: message.html, htmlOutdated: message.outdated, htmlEditedAt: this.clock.now() },
+      data: {
+        htmlEdited: message.html,
+        htmlOutdated: message.outdated,
+        htmlEditedAt: this.clock.now(),
+        htmlEditedBy: message.authorId,
+      },
     });
 
     await this.recomputeAgendaState(versionId);
@@ -399,7 +404,7 @@ export class AgendaRepository {
 
     await this.db.tx.agendaNominationFile.updateMany({
       where: { nominationFileId: message.nominationFileId, versionId },
-      data: { htmlEdited: null, htmlOutdated: false, htmlEditedAt: null },
+      data: { htmlEdited: null, htmlOutdated: false, htmlEditedAt: null, htmlEditedBy: null },
     });
 
     await this.recomputeAgendaState(versionId);

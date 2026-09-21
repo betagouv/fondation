@@ -65,6 +65,7 @@ export class OfficialReportFileEdited {
     readonly nominationFileId: string,
     readonly html: string,
     readonly outdated: boolean,
+    readonly authorId: string,
   ) {}
 }
 
@@ -268,10 +269,16 @@ export class OfficialReport {
     this.#messages.push(new OfficialReportConclusionReset(this.id));
   }
 
-  editFile(command: { nominationFileId: string; html: string; outdated: boolean }): void {
+  editFile(command: { authorId: string; nominationFileId: string; html: string; outdated: boolean }): void {
     this.openDraft();
     this.#messages.push(
-      new OfficialReportFileEdited(this.id, command.nominationFileId, command.html, command.outdated),
+      new OfficialReportFileEdited(
+        this.id,
+        command.nominationFileId,
+        command.html,
+        command.outdated,
+        command.authorId,
+      ),
     );
   }
 

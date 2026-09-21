@@ -55,14 +55,23 @@ export type OfficialReportRenderContext = {
   files: readonly OfficialReportRenderContextNominationFile[];
 
   /** the sentence the agenda carries for a file: what the report's block is offered when they part ways */
-  agendaProposals: ReadonlyMap<string, string>;
+  agendaProposals: ReadonlyMap<
+    string,
+    { at: Date | null; by: { id: string; name: string } | null; html: string }
+  >;
 
   userDefinedBlocks: {
     intro: { html: string; isOutdated: boolean } | undefined;
     conclusion: { html: string; isOutdated: boolean } | undefined;
     files: Record<
       NominationFileId,
-      { html: string; isOutdated: boolean; editedAt: Date | null; fromAgenda: boolean }
+      {
+        html: string;
+        isOutdated: boolean;
+        editedAt: Date | null;
+        editedBy: { id: string; name: string } | null;
+        fromAgenda: boolean;
+      }
     >;
     outcomes: {
       [K in DocNominationFileOutcomeEnum]?: {
@@ -522,8 +531,12 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         html: fileContent,
         edited: editedFile,
         editedAt: editedFile ? (userDefinedFile?.editedAt?.toISOString() ?? null) : null,
+        editedBy: editedFile ? (userDefinedFile?.editedBy ?? null) : null,
         fromAgenda: editedFile && Boolean(userDefinedFile?.fromAgenda),
-        generatedHtml: agendaProposal ?? templateFile,
+        agendaHtml: agendaProposal?.html ?? null,
+        agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
+        agendaEditedBy: agendaProposal?.by ?? null,
+        generatedHtml: templateFile,
       };
     }
   }

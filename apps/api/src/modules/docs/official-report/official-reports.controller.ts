@@ -301,12 +301,14 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   editOfficialReportFile(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: EditOfficialReportBlockDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportFile({
       id: officialReportId,
+      authorId: authUser.id,
       nominationFileId,
       html: body.html,
       outdated: body.outdated,

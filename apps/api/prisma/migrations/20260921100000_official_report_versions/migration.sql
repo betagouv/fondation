@@ -158,13 +158,15 @@ ALTER TABLE "docs"."official_report_member"
     DROP COLUMN "official_report_id",
     ADD CONSTRAINT "official_report_member_version_id_fkey" FOREIGN KEY ("version_id") REFERENCES "docs"."official_report_version" ("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
--- a block also says when it was written by hand, and whether the agenda wrote it
+-- a block also says when it was written by hand, by whom, and whether the agenda wrote it
 ALTER TABLE "docs"."official_report_nomination_file"
     ALTER COLUMN "version_id" SET NOT NULL,
     DROP COLUMN "official_report_id",
     ADD COLUMN "html_edited_at" TIMESTAMP(3),
+    ADD COLUMN "html_edited_by" UUID,
     ADD COLUMN "html_from_agenda" BOOLEAN NOT NULL DEFAULT false,
-    ADD CONSTRAINT "official_report_nomination_file_version_id_fkey" FOREIGN KEY ("version_id") REFERENCES "docs"."official_report_version" ("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+    ADD CONSTRAINT "official_report_nomination_file_version_id_fkey" FOREIGN KEY ("version_id") REFERENCES "docs"."official_report_version" ("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+    ADD CONSTRAINT "official_report_nomination_file_html_edited_by_fkey" FOREIGN KEY ("html_edited_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION;
 
 -- the blocks edited before this column existed keep the row timestamp, the closest truth available,
 -- and count as written in the report since nothing was ever carried over from an agenda

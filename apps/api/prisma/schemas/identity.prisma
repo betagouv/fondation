@@ -63,6 +63,8 @@ model User {
   secretaryOfOfficialReports          OfficialReportVersion[]    @relation("official_report_version_secretary")
   authorOfOfficialReportVersions      OfficialReportVersion[]    @relation("official_report_version_author")
   validatorOfOfficialReportVersions   OfficialReportVersion[]    @relation("official_report_version_validator")
+  editorOfAgendaBlocks                AgendaNominationFile[]     @relation("agenda_block_editor")
+  editorOfOfficialReportBlocks        OfficialReportNominationFile[] @relation("official_report_block_editor")
   authorOfOfficialReports             OfficialReport[]           @relation("official_reports_author")
   chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
   secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")

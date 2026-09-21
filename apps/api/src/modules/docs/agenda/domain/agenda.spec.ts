@@ -21,6 +21,7 @@ import {
 } from './agenda';
 import { AgendaSnapshot } from './agenda-snapshot';
 
+const AUTHOR = 'author-1';
 const NO_PRESENTED_FILE: ReadonlySet<string> = new Set();
 
 function presentedFiles(...nominationFileIds: string[]): ReadonlySet<string> {
@@ -150,9 +151,11 @@ describe('Agenda', () => {
   it('should emit an edited event when editing a file block', () => {
     const agenda = makeAgenda();
 
-    agenda.editFileBlock({ fileId: 1n, html: '<p>custom</p>', outdated: true });
+    agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>custom</p>', outdated: true });
 
-    expect(agenda.messages).toEqual([new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>custom</p>', true)]);
+    expect(agenda.messages).toEqual([
+      new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>custom</p>', true, AUTHOR),
+    ]);
   });
 
   it('should emit a reset event when resetting a file block', () => {
@@ -166,9 +169,9 @@ describe('Agenda', () => {
   it('should refuse a block the agenda does not carry', () => {
     const agenda = makeAgenda();
 
-    expect(() => agenda.editFileBlock({ fileId: 42n, html: '<p>custom</p>', outdated: true })).toThrow(
-      UnknownAgendaFileBlock,
-    );
+    expect(() =>
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 42n, html: '<p>custom</p>', outdated: true }),
+    ).toThrow(UnknownAgendaFileBlock);
     expect(agenda.messages).toEqual([]);
   });
 
@@ -264,18 +267,18 @@ describe('Agenda', () => {
     it('should open a draft before the first change', () => {
       const agenda = validated();
 
-      agenda.editFileBlock({ fileId: 1n, html: '<p>edited</p>', outdated: false });
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
       expect(agenda.messages).toEqual([
         new AgendaDraftOpened(agenda.id),
-        new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false),
+        new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
       ]);
     });
 
     it('should open a single draft whatever the number of changes', () => {
       const agenda = validated();
 
-      agenda.editFileBlock({ fileId: 1n, html: '<p>edited</p>', outdated: false });
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
       agenda.resetFileBlock({ fileId: 1n });
 
       expect(agenda.messages.filter((message) => message instanceof AgendaDraftOpened)).toHaveLength(1);
@@ -306,7 +309,7 @@ describe('Agenda', () => {
       const agenda = makeAgenda();
 
       agenda.validate({ at: new Date(), authorId: props.authorId });
-      agenda.editFileBlock({ fileId: 1n, html: '<p>edited</p>', outdated: false });
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
       expect(agenda.messages.filter((message) => message instanceof AgendaDraftOpened)).toHaveLength(1);
     });
@@ -316,9 +319,11 @@ describe('Agenda', () => {
     it('should not open another draft', () => {
       const agenda = makeAgenda();
 
-      agenda.editFileBlock({ fileId: 1n, html: '<p>edited</p>', outdated: false });
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
-      expect(agenda.messages).toEqual([new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false)]);
+      expect(agenda.messages).toEqual([
+        new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
+      ]);
     });
 
     it('should be validated', () => {

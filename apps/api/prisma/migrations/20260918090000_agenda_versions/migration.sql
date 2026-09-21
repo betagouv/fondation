@@ -103,8 +103,11 @@ ALTER TABLE "docs"."agenda_nomination_file"
 ALTER TABLE "docs"."agenda_nomination_file"
     ADD CONSTRAINT "agenda_nomination_file_version_id_fkey" FOREIGN KEY ("version_id") REFERENCES "docs"."agenda_version" ("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
--- AlterTable: the edition date belongs to the block that was rewritten, not to the whole document
-ALTER TABLE "docs"."agenda_nomination_file" ADD COLUMN "html_edited_at" TIMESTAMP(3);
+-- AlterTable: the edition date and its author belong to the block that was rewritten, not to the whole document
+ALTER TABLE "docs"."agenda_nomination_file"
+    ADD COLUMN "html_edited_at" TIMESTAMP(3),
+    ADD COLUMN "html_edited_by" UUID,
+    ADD CONSTRAINT "agenda_nomination_file_html_edited_by_fkey" FOREIGN KEY ("html_edited_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION;
 
 -- the blocks edited before this column existed keep the row timestamp, the closest truth available
 UPDATE "docs"."agenda_nomination_file"

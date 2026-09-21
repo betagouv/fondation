@@ -301,12 +301,14 @@ export class OfficialReportsService {
 
   editOfficialReportFile(command: {
     id: string;
+    authorId: string;
     nominationFileId: string;
     html: string;
     outdated: boolean;
   }): Promise<void> {
     return this.withOfficialReport(command.id, (report) =>
       report.editFile({
+        authorId: command.authorId,
         nominationFileId: command.nominationFileId,
         html: command.html,
         outdated: command.outdated,

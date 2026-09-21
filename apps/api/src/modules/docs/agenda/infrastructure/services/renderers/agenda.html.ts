@@ -44,7 +44,15 @@ export type AgendaRenderContext = {
   };
   nominationFiles: readonly AgendaRenderContextNominationFile[];
   userDefinedBlocks: {
-    files: Map<bigint, { html: string; isOutdated: boolean; editedAt: Date | null }>;
+    files: Map<
+      bigint,
+      {
+        html: string;
+        isOutdated: boolean;
+        editedAt: Date | null;
+        editedBy: { id: string; name: string } | null;
+      }
+    >;
   };
 };
 
@@ -197,6 +205,7 @@ export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFil
       html,
       edited,
       editedAt: edited ? (userDefined?.editedAt ?? null) : null,
+      editedBy: edited ? (userDefined?.editedBy ?? null) : null,
       outdated: Boolean(userDefined?.isOutdated),
       generatedHtml,
     };

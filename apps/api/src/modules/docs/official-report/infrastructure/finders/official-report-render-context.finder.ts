@@ -9,6 +9,7 @@ import { OfficialReportSessionMeeting } from '../../domain/official-report-sessi
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
+import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -20,6 +21,12 @@ import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
+
+function writer(
+  user: { id: string; firstName: string; lastName: string } | null,
+): { id: string; name: string } | null {
+  return user ? { id: user.id, name: fullname(user) } : null;
+}
 
 @Injectable()
 export class OfficialReportRenderContextFinder {
@@ -56,7 +63,12 @@ export class OfficialReportRenderContextFinder {
                     date: true,
                     status: true,
                     nominationFiles: {
-                      select: { nominationFileId: true, htmlEdited: true },
+                      select: {
+                        nominationFileId: true,
+                        htmlEdited: true,
+                        htmlEditedAt: true,
+                        editor: { select: { id: true, firstName: true, lastName: true } },
+                      },
                       where: { htmlEdited: { not: null } },
                     },
                   },
@@ -114,6 +126,7 @@ export class OfficialReportRenderContextFinder {
             htmlOutdated: true,
             htmlEditedAt: true,
             htmlFromAgenda: true,
+            editor: { select: { id: true, firstName: true, lastName: true } },
           },
         },
 
@@ -137,7 +150,14 @@ export class OfficialReportRenderContextFinder {
 
     const agendaProposals = new Map(
       (agendaContent?.nominationFiles ?? []).flatMap((file) =>
-        file.nominationFileId && file.htmlEdited ? [[file.nominationFileId, file.htmlEdited] as const] : [],
+        file.nominationFileId && file.htmlEdited
+          ? [
+              [
+                file.nominationFileId,
+                { at: file.htmlEditedAt, by: writer(file.editor), html: file.htmlEdited },
+              ] as const,
+            ]
+          : [],
       ),
     );
 
@@ -231,13 +251,20 @@ export class OfficialReportRenderContextFinder {
                 html: f.htmlEdited,
                 isOutdated: f.htmlOutdated,
                 editedAt: f.htmlEditedAt,
+                editedBy: writer(f.editor),
                 fromAgenda: f.htmlFromAgenda,
               },
             ] as const,
         ),
     ) as Record<
       Id<'NominationFileId'>,
-      { html: string; isOutdated: boolean; editedAt: Date | null; fromAgenda: boolean }
+      {
+        html: string;
+        isOutdated: boolean;
+        editedAt: Date | null;
+        editedBy: { id: string; name: string } | null;
+        fromAgenda: boolean;
+      }
     >;
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
