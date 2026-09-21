@@ -256,10 +256,10 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
           {
-            path: ROUTE_PATHS.SG.AGENDA_RENDER,
+            path: ROUTE_PATHS.SG.AGENDA_EDIT,
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaRenderPage').then(({ AgendaRenderPage }) => ({
-                Component: AgendaRenderPage,
+              import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
+                Component: AgendaEditPage,
               })),
           },
           {

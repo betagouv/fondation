@@ -169,6 +169,50 @@ export function useGenerateAgendaPdfMutation(mutation: {
   });
 }
 
+export function useValidateAgendaMutation(mutation: {
+  agendaId: string;
+  onSuccess?: () => unknown;
+  sessionId: string;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+
+      mutation.onSuccess?.();
+    },
+  });
+}
+
+export function useDiscardAgendaDraftMutation(mutation: {
+  agendaId: string;
+  onSuccess?: () => unknown;
+  sessionId: string;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+      await queryClient.invalidateQueries({
+        queryKey: agendaKeys.detailsAgendaMetadata({ agendaId: mutation.agendaId }),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: agendaKeys.detailsAgendaFiles({ agendaId: mutation.agendaId }),
+      });
+
+      mutation.onSuccess?.();
+    },
+  });
+}
+
 export const useAgendaDocumentBlocksQuery = (query: { id: string | undefined | null }) =>
   useQuery({
     enabled: !!query.id,

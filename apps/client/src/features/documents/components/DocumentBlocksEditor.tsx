@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { BoldButton, ItalicButton, RedoButton, UndoButton } from '@/shared/ui/tip-tap-editor';
+import { Tooltip } from '@/shared/ui/tooltip';
 
 import { DOCUMENT_CONTENT_CLASSES } from './document-content';
 import './blocks/doc-block.css';
@@ -14,8 +15,10 @@ export function DocumentBlocksEditor(props: {
   editor: Editor;
   onPendingRevalidationChange?: (pending: boolean) => void;
   onPreview: () => Promise<unknown>;
+  /** shown in a tooltip on the greyed button */
+  previewDisabledReason?: string;
 }) {
-  const { blockName, editor } = props;
+  const { blockName, editor, previewDisabledReason } = props;
 
   const hasPendingRevalidation = useEditorState({
     editor,
@@ -54,17 +57,20 @@ export function DocumentBlocksEditor(props: {
           <div className="fr-mx-1v w-px self-stretch bg-(--border-default-grey)" />
           <UndoButton />
           <RedoButton />
-          <Button
-            className="ml-auto"
-            disabled={isPersisting}
-            iconId="fr-icon-eye-line"
-            iconPosition="right"
-            onClick={preview}
-            priority="tertiary no outline"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Aperçu" />
-          </Button>
+          <Tooltip className="ml-auto" focusable={!!previewDisabledReason} label={previewDisabledReason}>
+            <Button
+              // a disabled button swallows the pointer, and the tooltip would never open
+              className={clsx({ 'pointer-events-none': !!previewDisabledReason })}
+              disabled={isPersisting || !!previewDisabledReason}
+              iconId="fr-icon-eye-line"
+              iconPosition="right"
+              onClick={preview}
+              priority="tertiary no outline"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Aperçu" />
+            </Button>
+          </Tooltip>
         </div>
       </EditorContext>
       <EditorContent

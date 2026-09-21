@@ -6,7 +6,13 @@ const SAFE_MARGIN = 16;
 
 let openedTooltip: (() => void) | null = null;
 
-export function Tooltip(props: { children: ReactNode; className?: string; label: ReactNode }) {
+export function Tooltip(props: {
+  children: ReactNode;
+  className?: string;
+  /** takes the focus itself, for when it wraps something a keyboard cannot reach, such as a disabled button */
+  focusable?: boolean;
+  label: ReactNode;
+}) {
   const bubbleId = useId();
   const anchorRef = useRef<HTMLSpanElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -74,6 +80,7 @@ export function Tooltip(props: { children: ReactNode; className?: string; label:
         onPointerEnter={show}
         onPointerLeave={hide}
         ref={anchorRef}
+        tabIndex={props.focusable ? 0 : undefined}
       >
         {props.children}
       </span>

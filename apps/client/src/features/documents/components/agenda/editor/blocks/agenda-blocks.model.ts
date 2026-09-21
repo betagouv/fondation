@@ -8,18 +8,87 @@ import * as $api from '@api/sdk';
 import { type AgendaBlock } from './agenda-blocks.type';
 import { AgendaFileBlock } from './AgendaFileBlock';
 
-export class AgendaBlocksModel {
-  readonly blocks: readonly AgendaBlock[];
-  readonly agendaId: string;
+type PendingChange =
+  | { block: AgendaEditionBlock; kind: 'edit' }
+  | { block: AgendaEditionBlock; kind: 'reset' };
 
+export class AgendaEmptied extends Error {}
+
+export class AgendaBlocksModel {
+  readonly agendaId: string;
+  readonly blocks: readonly AgendaBlock[];
+
+  private readonly onDirtyChange: (isDirty: boolean) => void;
+  private readonly pending = new Map<BlockKey, PendingChange>();
   private readonly persistor: AgendaEditionBlockPersistor;
+  private remaining: Set<string>;
   private state: Map<BlockKey, AgendaEditionBlock> | undefined;
 
-  constructor(props: { agendaId: string; blocks: readonly AgendaBlock[] }) {
+  constructor(props: {
+    agendaId: string;
+    blocks: readonly AgendaBlock[];
+    onDirtyChange?: (isDirty: boolean) => void;
+  }) {
     this.blocks = props.blocks;
     this.agendaId = props.agendaId;
+    this.onDirtyChange = props.onDirtyChange ?? (() => {});
 
+    this.remaining = new Set(props.blocks.map((block) => String(block.id)));
     this.persistor = new AgendaEditionBlockPersistor(this.agendaId);
+  }
+
+  get isDirty(): boolean {
+    return this.pending.size > 0 || this.removedNominationFileIds.length > 0;
+  }
+
+  get isEmptied(): boolean {
+    return this.removedNominationFileIds.length > 0 && this.keptNominationFileIds.length === 0;
+  }
+
+  private stage(key: BlockKey, change: PendingChange | null): void {
+    if (change) {
+      this.pending.set(key, change);
+    } else {
+      this.pending.delete(key);
+    }
+
+    this.onDirtyChange(this.isDirty);
+  }
+
+  /**
+   * sends every staged edition to the server, in the order the reader made them.
+   * @warning the caller flushes the pending staging first: recomputing it here would duplicate
+   * the comparison and could unstage the very edition being saved.
+   */
+  async save(): Promise<void> {
+    // emptying the last block would leave a document with nothing to say, which deleting the
+    // agenda does far better, and deleting it carries the official report away too
+    if (this.isEmptied) throw new AgendaEmptied();
+
+    // the propositions leave first: the texts that follow must not be written on dropped blocks
+    if (this.removedNominationFileIds.length > 0) {
+      await this.persistor.keepOnly(this.keptNominationFileIds);
+    }
+
+    for (const [key, change] of this.pending) {
+      if (change.kind === 'reset') {
+        await this.persistor.reset(change.block);
+      } else {
+        await this.persistor.persist(change.block);
+      }
+
+      this.state?.set(key, change.block);
+    }
+
+    this.pending.clear();
+    this.remaining = new Set(this.blocks.map((block) => String(block.id)));
+    this.onDirtyChange(false);
+  }
+
+  discard(): void {
+    this.pending.clear();
+    this.remaining = new Set(this.blocks.map((block) => String(block.id)));
+    this.onDirtyChange(false);
   }
 
   /**
@@ -43,14 +112,47 @@ export class AgendaBlocksModel {
     this.state = state;
   }
 
-  /** synchronizes text edition with the backend  */
-  async onEditorUpdate(editor: Editor): Promise<void> {
+  get removedNominationFileIds(): string[] {
+    const kept = new Set(this.remaining);
+
+    return this.blocks.flatMap((block) =>
+      block.nominationFileId && !kept.has(String(block.id)) ? [block.nominationFileId] : [],
+    );
+  }
+
+  get keptNominationFileIds(): string[] {
+    const kept = new Set(this.remaining);
+
+    return this.blocks.flatMap((block) =>
+      block.nominationFileId && kept.has(String(block.id)) ? [block.nominationFileId] : [],
+    );
+  }
+
+  /** stages the text edition, which reaches the server only when the reader saves */
+  onEditorUpdate(editor: Editor): void {
     if (!this.state) return;
 
-    const diff = AgendaEditorDiff.from(this.state, editor);
-    for (const block of diff) {
-      await this.persistor.persist(block);
-      this.state.set(block.key, block);
+    const changed = new Set(Array.from(AgendaEditorDiff.from(this.state, editor), ({ key }) => key));
+    const present = AgendaEditorDiff.blocksOf(editor);
+
+    // a block torn out of the document, or left blank, means its proposition leaves the agenda:
+    // whoever meant to keep it would have written something in it
+    const kept = present.filter(({ block }) => hasText(block.html));
+    this.remaining = new Set(kept.map(({ block }) => block.fileId));
+    this.onDirtyChange(this.isDirty);
+
+    for (const block of kept) {
+      const { edited, generatedHtml, html } = block.block;
+
+      // a stored edition typed back to the text the document proposes is no longer an edition of
+      // it. An untouched block always matches that text, and has nothing to undo.
+      if (edited && generatedHtml && sameText(html, generatedHtml)) {
+        this.stage(block.key, { block, kind: 'reset' });
+      } else if (changed.has(block.key)) {
+        this.stage(block.key, { block, kind: 'edit' });
+      } else if (this.pending.get(block.key)?.kind === 'edit') {
+        this.stage(block.key, null);
+      }
     }
   }
 
@@ -66,8 +168,6 @@ export class AgendaBlocksModel {
 
     props.updateAttributes({ isPending: true });
     try {
-      await this.persistor.reset(block);
-
       const pos = props.getPos();
       if (pos == null) return;
 
@@ -86,7 +186,7 @@ export class AgendaBlocksModel {
       const nextBlock = AgendaEditionBlock.from(editor, nextNode);
       if (!nextBlock) return;
 
-      this.state?.set(nextBlock.key, nextBlock);
+      this.stage(nextBlock.key, { block: nextBlock, kind: 'reset' });
     } finally {
       props.updateAttributes({ isPending: false });
     }
@@ -112,8 +212,7 @@ export class AgendaBlocksModel {
       const block = AgendaEditionBlock.from(editor, node);
       if (!block) return;
 
-      await this.persistor.persist(block);
-      this.state?.set(block.key, block);
+      this.stage(block.key, { block, kind: 'edit' });
     } catch {
       props.updateAttributes({ generatedHtml, outdated: true });
     } finally {
@@ -125,12 +224,37 @@ export class AgendaBlocksModel {
 type BlockKey = `file:${string}`;
 
 type AgendaEditionBlockState = {
-  kind: 'file';
-  key: BlockKey;
+  edited: boolean;
   fileId: string;
+  generatedHtml: string | null;
   html: string;
+  key: BlockKey;
+  kind: 'file';
   outdated: boolean;
 };
+
+function hasText(html: string): boolean {
+  return (
+    html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim().length > 0
+  );
+}
+
+/**
+ * the two texts come from different writers, the server template and the editor, so they differ
+ * on spacing and non breaking spaces even when they read the same.
+ */
+function sameText(left: string, right: string): boolean {
+  const normalise = (html: string) =>
+    html
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  return normalise(left) === normalise(right);
+}
 
 export class AgendaEditionBlock {
   get key(): BlockKey {
@@ -157,10 +281,12 @@ export class AgendaEditionBlock {
 
     const fileId = node.attrs.fileId as string;
     return {
-      kind: 'file',
-      key: `file:${fileId}`,
+      edited: node.attrs.edited as boolean,
       fileId,
+      generatedHtml: (node.attrs.generatedHtml as string | null) ?? null,
       html: tipTapNodeToHtml(node, editor.schema),
+      key: `file:${fileId}`,
+      kind: 'file',
       outdated: node.attrs.outdated as boolean,
     };
   }
@@ -171,6 +297,21 @@ class AgendaEditorDiff implements Iterable<AgendaEditionBlock> {
 
   *[Symbol.iterator]() {
     return yield* this.blocks;
+  }
+
+  static blocksOf(editor: Editor): AgendaEditionBlock[] {
+    const blocks: AgendaEditionBlock[] = [];
+
+    editor.state.doc.descendants((node) => {
+      if (node.type.name !== AgendaFileBlock.name) return true;
+
+      const block = AgendaEditionBlock.from(editor, node);
+      if (block) blocks.push(block);
+
+      return false;
+    });
+
+    return blocks;
   }
 
   static from(state: Map<BlockKey, AgendaEditionBlock>, editor: Editor): AgendaEditorDiff {
@@ -198,6 +339,14 @@ class AgendaEditorDiff implements Iterable<AgendaEditionBlock> {
 
 export class AgendaEditionBlockPersistor {
   constructor(private readonly agendaId: string) {}
+
+  /** reuses the propositions screen operation, which carries the guards and warns the official report */
+  keepOnly(nominationFileIds: readonly string[]): Promise<unknown> {
+    return $api.docs.updateAgendaFiles({
+      body: { nominationFileIds: [...nominationFileIds] },
+      path: { agendaId: this.agendaId },
+    });
+  }
 
   reset({ block }: AgendaEditionBlock): Promise<unknown> {
     return $api.docs.resetAgendaFileBlock({

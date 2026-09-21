@@ -29,16 +29,17 @@ export const AgendaFileBlock = {
   map(agendaId: string, block: JsonAgendaFileBlock, extensions: AnyExtension[]): JSONContent[] {
     return [
       {
-        type: this.name,
         attrs: {
-          isPending: false,
           agendaId,
-          fileId: block.id,
           edited: block.edited,
-          outdated: block.outdated,
+          editedAt: block.editedAt,
+          fileId: block.id,
           generatedHtml: block.generatedHtml ?? null,
+          isPending: false,
+          outdated: block.outdated,
         },
         content: toInlineContent(block.html, extensions),
+        type: this.name,
       },
     ];
   },
@@ -51,19 +52,21 @@ function toInlineContent(html: string, extensions: AnyExtension[]): JSONContent[
 }
 
 function FileBlockView(props: ReactNodeViewProps) {
-  const { edited, outdated } = props.node.attrs;
+  const { edited, editedAt, outdated } = props.node.attrs;
   const active = useBlockActive(props);
 
   return (
     <NodeViewWrapper
       as="div"
-      data-block-type="file"
       className={clsx('doc-block', {
-        'doc-block--active': active,
-        'doc-block--warning': edited || outdated,
+        // the blue tint marks a block still untouched: an edited one shows its own words instead
+        'doc-block--active': active && !edited,
+        'doc-block--edited': edited,
+        'doc-block--warning': outdated,
       })}
+      data-block-type="file"
     >
-      {edited && <DocBlockEditedBadge />}
+      {edited && <DocBlockEditedBadge editedAt={editedAt} />}
 
       <NodeViewContent<'p'> as="p" />
 
@@ -82,12 +85,13 @@ export const AgendaFileBlockNode = Node.create({
   priority: 200,
 
   addAttributes: () => ({
-    isPending: { default: false, rendered: false },
+    agendaId: { default: null, rendered: false },
     edited: { default: false, rendered: false },
-    outdated: { default: false },
+    editedAt: { default: null, rendered: false },
     fileId: { default: null },
     generatedHtml: { default: null, rendered: false },
-    agendaId: { default: null, rendered: false },
+    isPending: { default: false, rendered: false },
+    outdated: { default: false },
   }),
 
   parseHTML: () => [{ tag: 'p[data-block-type="file"]' }],
