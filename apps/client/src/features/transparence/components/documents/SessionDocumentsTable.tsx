@@ -132,7 +132,6 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
 
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {association && <AssociationLink association={association} doc={doc} />}
       {!doc.validatedAt && (
         <Badge as="span" className="rounded-full" noIcon severity="new" small>
           <FormattedMessage defaultMessage="brouillon" />
@@ -144,6 +143,7 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
         </Badge>
       )}
       <DocumentState state={states?.get(doc.id)} />
+      {association && <AssociationLink association={association} doc={doc} />}
     </div>
   );
 }
@@ -233,7 +233,7 @@ export function SessionDocumentsTable(props: {
         cell: NameCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Nom du document' }),
-        size: 320,
+        size: 260,
       }),
 
       h.accessor('createdAt', {
@@ -254,7 +254,7 @@ export function SessionDocumentsTable(props: {
         cell: StateCell,
         header: formatMessage({ defaultMessage: 'État' }),
         id: 'state',
-        size: 230,
+        size: 290,
       }),
 
       h.display({

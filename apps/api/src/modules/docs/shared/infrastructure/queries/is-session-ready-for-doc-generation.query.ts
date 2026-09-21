@@ -11,6 +11,7 @@ import { TransparenceService } from 'src/modules/session/transparence/infrastruc
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { initials } from 'src/utils/user.util';
 
 const AGENDA_BLOCKERS = [
   'ARCHIVED',
@@ -29,6 +30,9 @@ const OFFICIAL_REPORT_BLOCKERS = [
 type OfficialReportBlocker = {
   reason: (typeof OFFICIAL_REPORT_BLOCKERS)[number];
   agendas: {
+    agendaId: string;
+    chairmanInitials: string;
+    filesCount: number;
     meetingDate: DateOnlyJson;
     filesWithoutOutcome: number;
     filesWithoutReporter: number;
@@ -134,12 +138,15 @@ export class IsSessionReadyForDocGenerationQuery {
     const found = await this.db.tx.agenda.findMany({
       where: { sessionId: query.sessionId },
       select: {
+        id: true,
         officialReportId: true,
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
             status: true,
             sessionMeetingDate: true,
+            chairmanFirstName: true,
+            chairmanLastName: true,
             nominationFiles: {
               select: {
                 nominationFile: {
@@ -174,6 +181,12 @@ export class IsSessionReadyForDocGenerationQuery {
       );
 
       const incomplete = {
+        agendaId: agenda.id,
+        chairmanInitials: initials({
+          firstName: agenda.published.chairmanFirstName,
+          lastName: agenda.published.chairmanLastName,
+        }),
+        filesCount: files.length,
         meetingDate: DateOnly.fromUtcDate(agenda.published.sessionMeetingDate).toJson(),
         filesWithoutOutcome: files.filter(({ outcome }) => NominationFileOutcome.isAwaited(outcome)).length,
         filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
@@ -218,6 +231,9 @@ export class DocGenerationSessionReadinessDto extends createZodDto(
         reason: z.enum(OFFICIAL_REPORT_BLOCKERS),
         agendas: z.array(
           z.object({
+            agendaId: z.string(),
+            chairmanInitials: z.string(),
+            filesCount: z.number().int(),
             meetingDate: dateOnlyJsonSchema,
             filesWithoutOutcome: z.number().int(),
             filesWithoutReporter: z.number().int(),
