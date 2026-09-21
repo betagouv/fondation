@@ -9,6 +9,10 @@ export const frFormat = {
       month: '2-digit',
       year: 'numeric',
     } satisfies Intl.DateTimeFormatOptions,
+    zonedDayMonth: {
+      day: '2-digit',
+      month: '2-digit',
+    } satisfies Intl.DateTimeFormatOptions,
   },
   time: {
     zonedTimeShort: {

@@ -36,6 +36,25 @@
   border-left-color: var(--border-default-yellow-tournesol);
 }
 
+/* an edited block keeps a white body: only its left rule and its changed words turn yellow */
+.doc-block--edited {
+  border-left-color: var(--border-default-yellow-tournesol);
+}
+
+/* the words an edited block no longer shares with the text the document proposes */
+.doc-block__changed {
+  background: var(--background-contrast-yellow-tournesol);
+}
+
+/* a dropped word is drawn beside the text it left, and never reaches the document */
+.doc-block__removed {
+  background: var(--background-contrast-yellow-tournesol);
+  color: var(--text-mention-grey);
+  margin-right: 0.25rem;
+  text-decoration: line-through;
+  user-select: none;
+}
+
 .doc-block__banner {
   color: var(--text-default-grey);
   border-radius: 0.25rem;
