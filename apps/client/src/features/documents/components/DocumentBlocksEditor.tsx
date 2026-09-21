@@ -51,7 +51,7 @@ export function DocumentBlocksEditor(props: {
   return (
     <div className="mx-auto w-full max-w-3xl rounded border border-solid border-(--border-default-grey) bg-(--background-default-grey)">
       <EditorContext value={{ editor }}>
-        <div className="fr-p-2v sticky top-(--document-bar-offset) z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey) bg-(--background-default-grey)">
+        <div className="fr-p-2v sticky top-[calc(var(--fondation-banner-height)+var(--document-bar-offset))] z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey) bg-(--background-default-grey)">
           <BoldButton />
           <ItalicButton />
           <div className="fr-mx-1v w-px self-stretch bg-(--border-default-grey)" />

@@ -92,7 +92,7 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
           <div role="status">
             {hasPendingRevalidation && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
                 message="Certains dossiers ont changé d'issue ou de rapporteurs et doivent être validés"
                 tone="warning"

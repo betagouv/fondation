@@ -110,7 +110,7 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
           <div role="status">
             {hasPendingRevalidation && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
                 message="Certains dossiers ont changé et doivent être validés"
                 tone="warning"

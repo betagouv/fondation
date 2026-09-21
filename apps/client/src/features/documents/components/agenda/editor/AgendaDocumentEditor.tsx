@@ -62,7 +62,7 @@ export function AgendaDocumentEditor(props: {
           },
           description: formatMessage({
             defaultMessage:
-              'Pour le supprimer, ouvrez la liste des documents de la session. Sinon, cliquez sur Annuler pour revenir au dernier enregistrement.',
+              'Pour le supprimer, ouvrez la liste des documents de la session. Sinon, cliquez sur Annuler les changements pour revenir au dernier enregistrement.',
           }),
           title: formatMessage({ defaultMessage: 'Un ordre du jour ne peut pas être vide' }),
         });

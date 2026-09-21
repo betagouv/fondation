@@ -27,6 +27,8 @@ export function Tooltip(props: {
   }, []);
 
   const show = useCallback(() => {
+    if (!props.label) return;
+
     const anchor = anchorRef.current;
     const bubble = bubbleRef.current;
     if (!anchor || !bubble?.showPopover) return;
@@ -50,7 +52,7 @@ export function Tooltip(props: {
     setArrowX(from.left + from.width / 2 - left);
     setIsUnder(under);
     setIsShown(true);
-  }, [hide]);
+  }, [hide, props.label]);
 
   useEffect(() => {
     if (!isShown) return;

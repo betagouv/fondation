@@ -5,7 +5,7 @@ import { AlertBanner } from '@/shared/ui/alert-banner';
 export function AgendaDraftBanner(props: { hasValidatedVersion: boolean }) {
   return (
     <AlertBanner
-      className="fr-mt-4v px-4 py-3"
+      className="justify-center px-4 py-3"
       icon="fr-icon-draft-line"
       message={
         props.hasValidatedVersion ? (

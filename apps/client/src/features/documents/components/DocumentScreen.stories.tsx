@@ -88,13 +88,13 @@ export const WithNotices: Story = {
     notices: (
       <>
         <AlertBanner
-          className="fr-mt-4v px-4 py-3"
+          className="justify-center px-4 py-3"
           icon="fr-icon-warning-fill"
           message="Certains dossiers ont changé et doivent être validés"
           tone="warning"
         />
         <AlertBanner
-          className="fr-mt-4v px-4 py-3"
+          className="justify-center px-4 py-3"
           icon="fr-icon-error-fill"
           message="Le service de génération PDF est indisponible. Réessayez et prévenez le support si cela persiste (code 503)."
           tone="error"
