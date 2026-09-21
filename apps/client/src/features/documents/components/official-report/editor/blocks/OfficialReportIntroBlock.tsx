@@ -55,8 +55,10 @@ function IntroBlockView(props: ReactNodeViewProps) {
     <NodeViewWrapper
       as="div"
       className={clsx('doc-block', {
-        'doc-block--active': active,
-        'doc-block--warning': edited || outdated,
+        // the blue tint marks a block still untouched: an edited one shows its own words instead
+        'doc-block--active': active && !edited,
+        'doc-block--edited': edited,
+        'doc-block--warning': outdated,
       })}
     >
       {edited && <DocBlockEditedBadge />}

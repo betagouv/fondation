@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
+import { readsTheSame } from '@/features/documents/components/blocks/proposed-text';
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 import * as $api from '@api/sdk';
 
@@ -146,11 +147,11 @@ export class AgendaBlocksModel {
 
       // a stored edition typed back to the text the document proposes is no longer an edition of
       // it. An untouched block always matches that text, and has nothing to undo.
-      if (edited && generatedHtml && sameText(html, generatedHtml)) {
+      if (edited && generatedHtml && readsTheSame(html, generatedHtml)) {
         this.stage(block.key, { block, kind: 'reset' });
       } else if (changed.has(block.key)) {
         this.stage(block.key, { block, kind: 'edit' });
-      } else if (this.pending.get(block.key)?.kind === 'edit') {
+      } else if (this.pending.has(block.key)) {
         this.stage(block.key, null);
       }
     }
@@ -174,7 +175,7 @@ export class AgendaBlocksModel {
       editor
         .chain()
         .command(({ tr }) => {
-          tr.setNodeAttribute(pos, 'outdated', false).setNodeAttribute(pos, 'generatedHtml', null);
+          tr.setNodeAttribute(pos, 'outdated', false);
           return true;
         })
         .insertContentAt({ from: pos + 1, to: pos + node.nodeSize - 1 }, node.attrs.generatedHtml)
@@ -240,20 +241,6 @@ function hasText(html: string): boolean {
       .replace(/&nbsp;/g, ' ')
       .trim().length > 0
   );
-}
-
-/**
- * the two texts come from different writers, the server template and the editor, so they differ
- * on spacing and non breaking spaces even when they read the same.
- */
-function sameText(left: string, right: string): boolean {
-  const normalise = (html: string) =>
-    html
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-  return normalise(left) === normalise(right);
 }
 
 export class AgendaEditionBlock {

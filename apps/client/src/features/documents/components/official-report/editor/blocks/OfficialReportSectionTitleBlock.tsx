@@ -39,8 +39,8 @@ function SectionTitleBlockView(props: ReactNodeViewProps) {
     <NodeViewWrapper
       as="h2"
       className={clsx('doc-block doc-block--title', {
-        'doc-block--active': active,
-        'doc-block--warning': props.node.attrs.edited,
+        'doc-block--active': active && !props.node.attrs.edited,
+        'doc-block--edited': props.node.attrs.edited,
       })}
     >
       <NodeViewContent<'span'> as="span" />

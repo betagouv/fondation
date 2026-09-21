@@ -1,3 +1,30 @@
+/** a paragraph, a list or a break separates words: without it, the two it sits between run into one */
+const BLOCK_TAGS = /<\/?(p|div|li|ul|ol|h[1-6]|br)\s*\/?>/gi;
+
+export function plainText(html: string): string {
+  const broken = html.replace(BLOCK_TAGS, ' ');
+
+  return new DOMParser().parseFromString(broken, 'text/html').body.textContent ?? '';
+}
+
+/**
+ * the template and the editor write the same sentence differently, so the editor's own paragraph
+ * wrappers and its spacing are set aside. The emphasis is not: putting a name in bold is an
+ * edition of its own.
+ * @warning the server decides the very same way whether a block was ever edited: the two rules
+ * have to read alike, or a block would be credited on one side and not on the other.
+ */
+export function readsTheSame(left: string, right: string): boolean {
+  const reading = (html: string) =>
+    html
+      .replace(BLOCK_TAGS, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  return reading(left) === reading(right);
+}
+
 export type TextRange = { from: number; to: number };
 
 /** words the edited text no longer carries, and the offset where they used to be read */

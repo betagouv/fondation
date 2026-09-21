@@ -126,6 +126,19 @@ describe('the agenda editor holds its changes back', () => {
     expect(keepFiles).not.toHaveBeenCalled();
   });
 
+  it('should forget the undoing when the reader takes their own text back', async () => {
+    const own = 'Mme GAMBIN Audrey au poste de juge';
+    const model = modelOn([agendaBlock({ edited: true, id: 1, text: own })]);
+
+    model.onEditorUpdate(editorHolding([agendaBlock({ edited: true, id: 1, text: PROPOSED })]));
+    model.onEditorUpdate(editorHolding([agendaBlock({ edited: true, id: 1, text: own })]));
+    await model.save();
+
+    expect(model.isDirty).toBe(false);
+    expect(resetBlock).not.toHaveBeenCalled();
+    expect(editBlock).not.toHaveBeenCalled();
+  });
+
   it('should undo a stored edition typed back to the proposed text', async () => {
     const blocks = [agendaBlock({ edited: true, id: 1, text: 'Mme GAMBIN Audrey au poste de juge' })];
     const model = modelOn(blocks);

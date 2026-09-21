@@ -21,7 +21,6 @@ export function AgendaBreadCrumb() {
       return formatMessage({ defaultMessage: `Propositions d'un ordre du jour` });
     }
 
-    // the edition route sits under the preview one, so it has to be matched first
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_EDIT }, pathname)) {
       return formatMessage({ defaultMessage: `Texte d'un ordre du jour` });
     }

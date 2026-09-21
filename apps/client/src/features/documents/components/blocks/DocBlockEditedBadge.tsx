@@ -3,9 +3,16 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-export function DocBlockEditedBadge(props: { editedAt?: string | null }) {
+/** a text written in the agenda and carried over reads the same, but the report did not write it */
+export function DocBlockEditedBadge(props: { editedAt?: string | null; fromAgenda?: boolean }) {
   const { formatDate, formatTime } = useIntl();
-  const { editedAt } = props;
+  const { editedAt, fromAgenda } = props;
+
+  const when = (at: string) => ({
+    date: formatDate(at, { format: 'zonedDayMonth' }),
+    // French writes the time as 12h30, where Intl separates with a colon
+    time: formatTime(at, { format: 'zonedTimeShort' }).replace(':', 'h'),
+  });
 
   return (
     <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -17,18 +24,25 @@ export function DocBlockEditedBadge(props: { editedAt?: string | null }) {
         noIcon
         small
       >
-        <FormattedMessage defaultMessage="modifié par vous" />
+        {fromAgenda ? (
+          <FormattedMessage defaultMessage="modifié dans l'ordre du jour" />
+        ) : (
+          <FormattedMessage defaultMessage="modifié par vous" />
+        )}
       </Badge>
       {editedAt && (
         <span className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
-          <FormattedMessage
-            defaultMessage="Vous avez édité cette section le {date} à {time}."
-            values={{
-              date: formatDate(editedAt, { format: 'zonedDayMonth' }),
-              // French writes the time as 12h30, where Intl separates with a colon
-              time: formatTime(editedAt, { format: 'zonedTimeShort' }).replace(':', 'h'),
-            }}
-          />
+          {fromAgenda ? (
+            <FormattedMessage
+              defaultMessage="Cette section a été modifiée dans l'ordre du jour le {date} à {time}."
+              values={when(editedAt)}
+            />
+          ) : (
+            <FormattedMessage
+              defaultMessage="Vous avez édité cette section le {date} à {time}."
+              values={when(editedAt)}
+            />
+          )}
         </span>
       )}
     </span>

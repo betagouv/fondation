@@ -55,8 +55,9 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
     <NodeViewWrapper
       as="div"
       className={clsx('doc-block doc-block--conclusion', {
-        'doc-block--active': active,
-        'doc-block--warning': edited,
+        // the blue tint marks a block still untouched: an edited one shows its own words instead
+        'doc-block--active': active && !edited,
+        'doc-block--edited': edited,
       })}
     >
       {edited && <DocBlockEditedBadge />}

@@ -39,6 +39,8 @@ export const OfficialReportFileBlock = {
           officialReportId,
           nominationFileId: block.nominationFileId,
           edited: block.edited,
+          editedAt: block.editedAt,
+          fromAgenda: block.fromAgenda,
           outdated: block.outdated,
           generatedHtml: block.generatedHtml,
         },
@@ -49,18 +51,20 @@ export const OfficialReportFileBlock = {
 };
 
 function FileBlockView(props: ReactNodeViewProps) {
-  const { edited, outdated, nominationFileId } = props.node.attrs;
+  const { edited, editedAt, fromAgenda, outdated, nominationFileId } = props.node.attrs;
   const active = useBlockActive(props);
 
   return (
     <NodeViewWrapper
       data-block-type="file"
       className={clsx('doc-block doc-block--file', {
-        'doc-block--active': active,
-        'doc-block--warning': (edited || outdated) && nominationFileId,
+        // the blue tint marks a block still untouched: an edited one shows its own words instead
+        'doc-block--active': active && !edited,
+        'doc-block--edited': edited,
+        'doc-block--warning': outdated && nominationFileId,
       })}
     >
-      {edited && <DocBlockEditedBadge />}
+      {edited && <DocBlockEditedBadge editedAt={editedAt} fromAgenda={fromAgenda} />}
 
       <NodeViewContent />
 
@@ -79,6 +83,8 @@ export const OfficialReportFileBlockNode = Node.create({
   addAttributes: () => ({
     isPending: { default: false, rendered: false },
     edited: { default: false, rendered: false },
+    editedAt: { default: null, rendered: false },
+    fromAgenda: { default: false, rendered: false },
     outdated: { default: false },
     nominationFileId: { default: null },
     generatedHtml: { default: null, rendered: false },

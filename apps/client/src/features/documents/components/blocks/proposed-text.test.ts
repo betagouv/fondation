@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { changedRanges, removedRuns } from './word-diff';
+import { changedRanges, plainText, readsTheSame, removedRuns } from './proposed-text';
 
 const highlighted = (original: string, edited: string) =>
   changedRanges(original, edited).map(({ from, to }) => edited.slice(from, to));
@@ -85,5 +85,37 @@ describe('removedRuns', () => {
 
   it('should tolerate the spacing of the two writers', () => {
     expect(removedRuns('au  poste\nde substitute', 'au poste de substitute')).toEqual([]);
+  });
+});
+
+const PROPOSED = `<strong>M.&nbsp;VIRBEL&nbsp;Eric</strong>, actuellement en détachement (G3).`;
+
+describe('readsTheSame', () => {
+  it('sets aside the paragraph the editor wraps the text in', () => {
+    expect(readsTheSame(`<p>${PROPOSED}</p>`, PROPOSED)).toBe(true);
+  });
+
+  it('sets aside the spacing the two writers disagree on', () => {
+    expect(
+      readsTheSame(`<strong>M. VIRBEL  Eric</strong>,\n  actuellement en détachement (G3).`, PROPOSED),
+    ).toBe(true);
+  });
+
+  it('holds a rewritten word as an edition', () => {
+    expect(readsTheSame(`<p>${PROPOSED.replace('détachement', 'disponibilité')}</p>`, PROPOSED)).toBe(false);
+  });
+
+  it('holds a word put in bold as an edition of its own', () => {
+    expect(
+      readsTheSame(PROPOSED.replace('en détachement', '<strong>en détachement</strong>'), PROPOSED),
+    ).toBe(false);
+  });
+});
+
+describe('plainText', () => {
+  it('keeps the last word of an item apart from the first of the next', () => {
+    const words = plainText('<ul><li>Mme Camille COMMUN</li><li>M. Serge GÉNÉRAL</li></ul>').split(/\s+/);
+
+    expect(words.filter(Boolean)).toEqual(['Mme', 'Camille', 'COMMUN', 'M.', 'Serge', 'GÉNÉRAL']);
   });
 });
