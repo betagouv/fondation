@@ -53,7 +53,6 @@ export function OfficialReportEditPage() {
       await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(officialReportId!) });
       rebuildEditorOnStoredBlocks();
 
-      // saving leaves the reader on the page, so nothing else would tell them it worked
       toasts.success({
         action: {
           label: formatMessage({ defaultMessage: "Voir l'aperçu" }),

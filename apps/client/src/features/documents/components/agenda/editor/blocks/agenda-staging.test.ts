@@ -92,6 +92,28 @@ describe('the agenda editor holds its changes back', () => {
     expect(keepFiles).not.toHaveBeenCalled();
   });
 
+  it('should say a proposition left, so the session tables are read again', async () => {
+    const blocks = [agendaBlock({ id: 1, text: PROPOSED }), agendaBlock({ id: 2, text: PROPOSED })];
+    const model = modelOn(blocks);
+
+    model.onEditorUpdate(editorHolding([agendaBlock({ id: 1, text: PROPOSED })]));
+
+    expect(await model.save()).toEqual({ hasRemovedPropositions: true });
+    expect(keepFiles).toHaveBeenCalledWith({
+      body: { nominationFileIds: ['nf-1'] },
+      path: { agendaId: 'agenda-1' },
+    });
+  });
+
+  it('should say no proposition left when only the text changed', async () => {
+    const model = modelOn([agendaBlock({ id: 1, text: PROPOSED })]);
+
+    model.onEditorUpdate(editorHolding([agendaBlock({ id: 1, text: 'Mme GAMBIN Audrey au poste de juge' })]));
+
+    expect(await model.save()).toEqual({ hasRemovedPropositions: false });
+    expect(keepFiles).not.toHaveBeenCalled();
+  });
+
   it('should send the edition only once the reader saves', async () => {
     const blocks = [agendaBlock({ id: 1, text: PROPOSED })];
     const model = modelOn(blocks);

@@ -74,7 +74,6 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     sessionMeetingStartingTime: timeOnlySchema,
     sessionMeetingEndingTime: timeOnlySchema,
     isManuallyEdited: z.boolean(),
-    /** DRAFT while the edited version has not been validated */
     status: z.enum(['DRAFT', 'VALIDATED']),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),

@@ -20,9 +20,11 @@ import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   agendaKeys,
+  officialReportKeys,
   useAgendaDocumentBlocksQuery,
   useDetailsAgendaMetadataQuery,
 } from '@queries/agenda.queries';
+import { sessionKeys } from '@queries/nomination-sessions.queries';
 
 export function AgendaEditPage() {
   const navigate = useNavigate();
@@ -47,15 +49,27 @@ export function AgendaEditPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      await editorRef.current?.save();
+      const saved = await editorRef.current?.save();
 
       // the blocks are read again so the edition mention carries the stored date, and
       // the rendered document with them: the server dropped the one it had stored
       await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId!) });
+
+      if (saved?.hasRemovedPropositions) {
+        await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId!) });
+        await queryClient.invalidateQueries({
+          queryKey: agendaKeys.findAgendaNominationFiles({ sessionId: sessionId! }),
+        });
+        await queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaFiles({ agendaId }) });
+        await queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId: sessionId! }),
+        });
+        await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
+      }
+
       rebuildEditorOnStoredBlocks();
 
-      // saving leaves the reader on the page, so nothing else would tell them it worked
       toasts.success({
         action: {
           label: formatMessage({ defaultMessage: "Voir l'aperçu" }),

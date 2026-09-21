@@ -61,13 +61,15 @@ export class AgendaBlocksModel {
    * @warning the caller flushes the pending staging first: recomputing it here would duplicate
    * the comparison and could unstage the very edition being saved.
    */
-  async save(): Promise<void> {
+  async save(): Promise<{ hasRemovedPropositions: boolean }> {
     // emptying the last block would leave a document with nothing to say, which deleting the
     // agenda does far better, and deleting it carries the official report away too
     if (this.isEmptied) throw new AgendaEmptied();
 
+    const hasRemovedPropositions = this.removedNominationFileIds.length > 0;
+
     // the propositions leave first: the texts that follow must not be written on dropped blocks
-    if (this.removedNominationFileIds.length > 0) {
+    if (hasRemovedPropositions) {
       await this.persistor.keepOnly(this.keptNominationFileIds);
     }
 
@@ -84,6 +86,8 @@ export class AgendaBlocksModel {
     this.pending.clear();
     this.remaining = new Set(this.blocks.map((block) => String(block.id)));
     this.onDirtyChange(false);
+
+    return { hasRemovedPropositions };
   }
 
   discard(): void {
@@ -129,7 +133,6 @@ export class AgendaBlocksModel {
     );
   }
 
-  /** stages the text edition, which reaches the server only when the reader saves */
   onEditorUpdate(editor: Editor): void {
     if (!this.state) return;
 

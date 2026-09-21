@@ -60,7 +60,6 @@ function FileBlockView(props: ReactNodeViewProps) {
     <NodeViewWrapper
       as="div"
       className={clsx('doc-block', {
-        // the blue tint marks a block still untouched: an edited one shows its own words instead
         'doc-block--active': active && !edited,
         'doc-block--edited': edited,
         'doc-block--warning': outdated,

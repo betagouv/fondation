@@ -15,7 +15,6 @@ export function DocumentBlocksEditor(props: {
   editor: Editor;
   onPendingRevalidationChange?: (pending: boolean) => void;
   onPreview: () => Promise<unknown>;
-  /** shown in a tooltip on the greyed button */
   previewDisabledReason?: string;
 }) {
   const { blockName, editor, previewDisabledReason } = props;

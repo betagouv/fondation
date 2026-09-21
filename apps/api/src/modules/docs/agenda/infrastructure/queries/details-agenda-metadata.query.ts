@@ -48,7 +48,6 @@ export class DetailsAgendaMetadataQuery {
 export class DetailedAgendaMetadata extends createZodDto(
   z.object({
     id: z.string(),
-    /** DRAFT while the edited version has not been validated */
     status: z.enum(['DRAFT', 'VALIDATED']),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),

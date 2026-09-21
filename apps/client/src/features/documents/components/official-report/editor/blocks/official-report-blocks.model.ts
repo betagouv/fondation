@@ -101,7 +101,6 @@ export class OfficialReportBlocksModel {
     this.state = state;
   }
 
-  /** stages the text edition, which reaches the server only when the reader saves */
   onEditorUpdate(editor: Editor): void {
     if (!this.state) return;
 
@@ -203,7 +202,6 @@ type BlockKey =
   | `section-intro:${DocNominationFileOutcomeEnum}`
   | `file:${string}`;
 
-/** what a block carries whatever its kind: what it reads, and the text the document proposes */
 type EditionState = {
   agendaHtml: string | null;
   edited: boolean;

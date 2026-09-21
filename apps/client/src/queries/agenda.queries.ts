@@ -118,6 +118,7 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
       queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
       queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 }

@@ -37,7 +37,6 @@ const BlockFileSchema = z.object({
   agendaHtml: z.string().nullable(),
   agendaEditedAt: z.iso.datetime().nullable(),
   agendaEditedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
-  /** when the block was last rewritten by hand */
   editedAt: z.iso.datetime().nullable(),
   editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   /** the text comes from the agenda, so the report is not the one to credit for it */

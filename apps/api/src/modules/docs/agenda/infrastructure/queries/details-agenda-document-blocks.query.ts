@@ -10,7 +10,6 @@ const AgendaBlockFileDtoSchema = z.object({
   /** the nomination file the block stands for: removing the block drops that proposition */
   nominationFileId: z.string().nullable(),
   edited: z.boolean(),
-  /** when the block was last rewritten by hand */
   editedAt: z.iso.datetime().nullable(),
   editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   outdated: z.boolean(),

@@ -13,7 +13,7 @@ import { useAgendaEditor } from './hooks/useAgendaEditor';
 
 export type AgendaDocumentEditorHandle = {
   discard: () => void;
-  save: () => Promise<void>;
+  save: () => Promise<{ hasRemovedPropositions: boolean }>;
 };
 
 export function AgendaDocumentEditor(props: {
@@ -52,7 +52,7 @@ export function AgendaDocumentEditor(props: {
   const save = useCallback(async () => {
     flushUpdates();
     try {
-      await model.save();
+      return await model.save();
     } catch (error) {
       if (error instanceof AgendaEmptied) {
         toasts.error({
