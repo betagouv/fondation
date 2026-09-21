@@ -1,10 +1,9 @@
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import { AgendaFilesSelectionTable } from '@/features/documents/components/agenda/AgendaFilesSelectionTable';
+import { AgendaWorkScreen } from '@/features/documents/components/agenda/AgendaWorkScreen';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailsAgendaFilesQuery, useUpdateAgendaFilesMutation } from '@queries/agenda.queries';
@@ -51,15 +50,15 @@ export function AgendaUpdateFilesPage() {
   );
 
   return (
-    <div className="fr-container fr-py-4v">
-      <AgendaBreadCrumb />
-      {error && <Alert as="h2" className="fr-mb-6v" closable severity="error" title={error} />}
-      <div className="fr-mb-4v flex flex-wrap items-center justify-between gap-4">
-        <h1 className="fr-m-0">
+    <AgendaWorkScreen
+      actionsRef={setActionsSlot}
+      error={error}
+      title={
+        <h1 className="fr-h3 fr-m-0">
           <FormattedMessage defaultMessage="Propositions de l'ordre du jour" />
         </h1>
-        <div className="flex justify-end" ref={setActionsSlot} />
-      </div>
+      }
+    >
       {isFetching ? (
         <span className="ri-loader-4-line animate-spin" />
       ) : (
@@ -80,9 +79,10 @@ export function AgendaUpdateFilesPage() {
               values={{ count }}
             />
           )}
+          scrollsWithPage
           sessionId={sessionId}
         />
       )}
-    </div>
+    </AgendaWorkScreen>
   );
 }

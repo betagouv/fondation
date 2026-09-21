@@ -84,7 +84,11 @@ export function AgendaMetadataForm(props: {
         createPortal(
           <ButtonsGroup
             alignment="right"
-            buttons={[{ ...submitButton, nativeButtonProps: { form: formId } }]}
+            buttons={
+              props.onCancel
+                ? [cancelButton(props.onCancel), { ...submitButton, nativeButtonProps: { form: formId } }]
+                : [{ ...submitButton, nativeButtonProps: { form: formId } }]
+            }
             inlineLayoutWhen="always"
           />,
           props.actionsSlot,
