@@ -24,7 +24,9 @@ export function groupSessionDocuments(docs: readonly SessionDocument[]): Session
 
 export function sessionDocumentGroupState(group: readonly SessionDocument[]): SessionDocumentGroupState {
   const officialReport = group.find((doc) => doc.type === 'officialReport');
+
   if (!officialReport) return 'awaitingOfficialReport';
+
   return officialReport.outdated ? 'outdatedOfficialReport' : 'upToDate';
 }
 
@@ -44,14 +46,16 @@ export function sessionDocumentStates(
         groupStateByItemIdEntries.push([agenda.id, 'outdatedAgenda']);
       }
 
+      const groupState = sessionDocumentGroupState(group);
+
       const officialReport = group.find((doc) => doc.type === 'officialReport');
       if (officialReport) {
-        groupStateByItemIdEntries.push([officialReport.id, sessionDocumentGroupState(group)]);
+        groupStateByItemIdEntries.push([officialReport.id, groupState]);
       }
 
       if (groupStateByItemIdEntries.length === 0) {
         const [firstDoc] = group;
-        groupStateByItemIdEntries.push([firstDoc.id, sessionDocumentGroupState(group)]);
+        groupStateByItemIdEntries.push([firstDoc.id, groupState]);
       }
 
       return groupStateByItemIdEntries;

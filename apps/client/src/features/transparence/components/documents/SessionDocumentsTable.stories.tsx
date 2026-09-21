@@ -16,39 +16,56 @@ import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsT
 
 const SESSION_ID = 'session-1';
 
+const AGENDA_DATES = {
+  createdAt: '2028-03-10T09:00:00.000Z',
+  hasDraft: false,
+  status: 'VALIDATED',
+  validatedAt: '2028-03-10T11:00:00.000Z',
+} as const;
+
+const REPORT_DATES = {
+  createdAt: '2028-03-13T09:00:00.000Z',
+  validatedAt: '2028-03-13T11:00:00.000Z',
+} as const;
+
 const DOCS: SessionDocument[] = [
   {
+    ...AGENDA_DATES,
     id: 'agenda-1',
-    type: 'agenda',
     name: 'Ordre du jour du 12 mars 2028 - Mme MARTIN Camille',
     officialReportId: 'official-report-1',
     outdated: false,
+    type: 'agenda',
   },
   {
+    ...AGENDA_DATES,
     id: 'agenda-2',
-    type: 'agenda',
     name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
     officialReportId: null,
     outdated: false,
+    type: 'agenda',
   },
   {
+    ...AGENDA_DATES,
     id: 'agenda-3',
-    type: 'agenda',
     name: 'Ordre du jour du 8 janvier 2028 - M. BERNARD Lucas',
     officialReportId: 'official-report-2',
     outdated: false,
+    type: 'agenda',
   },
   {
+    ...REPORT_DATES,
     id: 'official-report-1',
-    type: 'officialReport',
     name: 'Procès-verbal du 12 mars 2028 - Mme MARTIN Camille',
     outdated: false,
+    type: 'officialReport',
   },
   {
+    ...REPORT_DATES,
     id: 'official-report-2',
-    type: 'officialReport',
     name: 'Procès-verbal du 8 janvier 2028 - M. BERNARD Lucas',
     outdated: true,
+    type: 'officialReport',
   },
 ];
 
@@ -116,31 +133,35 @@ export const AgendasSharingAnOfficialReport: Story = {
   args: {
     groups: groupSessionDocuments([
       {
+        ...AGENDA_DATES,
         id: 'agenda-siege',
-        type: 'agenda',
         name: 'Ordre du jour du 12 mars 2028 - Siège',
         officialReportId: 'official-report-1',
         outdated: false,
+        type: 'agenda',
       },
       {
+        ...AGENDA_DATES,
         id: 'agenda-parquet',
-        type: 'agenda',
         name: 'Ordre du jour du 12 mars 2028 - Parquet',
         officialReportId: 'official-report-1',
         outdated: false,
+        type: 'agenda',
       },
       {
+        ...REPORT_DATES,
         id: 'official-report-1',
-        type: 'officialReport',
         name: 'Procès-verbal du 12 mars 2028 - Mme MARTIN Camille',
         outdated: false,
+        type: 'officialReport',
       },
       {
+        ...AGENDA_DATES,
         id: 'agenda-orphan',
-        type: 'agenda',
         name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
         officialReportId: null,
         outdated: false,
+        type: 'agenda',
       },
     ]),
   },
@@ -156,17 +177,19 @@ export const ManyRows: Story = {
       Array.from({ length: 50 }, (_, index) =>
         index % 2 === 0
           ? {
+              ...AGENDA_DATES,
               id: `agenda-${index}`,
-              type: 'agenda' as const,
               name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
               officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
               outdated: false,
+              type: 'agenda' as const,
             }
           : {
+              ...REPORT_DATES,
               id: `official-report-${index}`,
-              type: 'officialReport' as const,
               name: `Procès-verbal du ${(index % 28) + 1} mars 2028`,
               outdated: index % 5 === 0,
+              type: 'officialReport' as const,
             },
       ),
     ),

@@ -76,6 +76,32 @@ function NameCell(props: CellContext<SessionDocument, string>) {
   return renderName?.(props.row.original) ?? props.cell.getValue();
 }
 
+function Moment(props: { at: string }) {
+  const { formatDate, formatTime } = useIntl();
+
+  return (
+    <span className="whitespace-nowrap">
+      <FormattedMessage
+        defaultMessage="{date} à {time}"
+        values={{
+          date: formatDate(props.at, { format: 'zonedDateShort' }),
+          time: formatTime(props.at, { format: 'zonedTimeShort' }),
+        }}
+      />
+    </span>
+  );
+}
+
+/** the file name carries no time, so two documents of the same day are told apart here */
+function CreatedAtCell(props: CellContext<SessionDocument, unknown>) {
+  return <Moment at={props.row.original.createdAt} />;
+}
+
+function ValidatedAtCell(props: CellContext<SessionDocument, unknown>) {
+  const { validatedAt } = props.row.original;
+  return validatedAt ? <Moment at={validatedAt} /> : null;
+}
+
 function AssociationLink(props: { association: Association; doc: SessionDocument }) {
   const { highlightAssociated } = useContext(SessionDocumentsTableContext);
   const { association, doc } = props;
@@ -107,6 +133,16 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
   return (
     <div className="flex flex-wrap items-center gap-1">
       {association && <AssociationLink association={association} doc={doc} />}
+      {doc.type === 'agenda' && doc.status === 'DRAFT' && (
+        <Badge as="span" className="rounded-full" noIcon severity="new" small>
+          <FormattedMessage defaultMessage="brouillon" />
+        </Badge>
+      )}
+      {doc.type === 'agenda' && doc.status === 'VALIDATED' && doc.hasDraft && (
+        <Badge as="span" className="rounded-full" noIcon severity="info" small>
+          <FormattedMessage defaultMessage="modifications en cours" />
+        </Badge>
+      )}
       <DocumentState state={states?.get(doc.id)} />
     </div>
   );
@@ -190,28 +226,42 @@ export function SessionDocumentsTable(props: {
         cell: typeCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Type' }),
-        size: 160,
+        size: 150,
       }),
 
       h.accessor('name', {
         cell: NameCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Nom du document' }),
-        size: 420,
+        size: 320,
+      }),
+
+      h.accessor('createdAt', {
+        cell: CreatedAtCell,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Créé le' }),
+        size: 190,
+      }),
+
+      h.accessor('validatedAt', {
+        cell: ValidatedAtCell,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Validé le' }),
+        size: 190,
       }),
 
       h.display({
-        id: 'state',
         cell: StateCell,
         header: formatMessage({ defaultMessage: 'État' }),
-        size: 240,
+        id: 'state',
+        size: 230,
       }),
 
       h.display({
-        id: 'actions',
         cell: ActionsCell,
         header: formatMessage({ defaultMessage: 'Actions' }),
-        size: 200,
+        id: 'actions',
+        size: 190,
       }),
     ],
     [formatMessage],

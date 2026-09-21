@@ -25,18 +25,24 @@ vi.mock('@queries/agenda.queries', () => ({
 }));
 
 const AGENDA: SessionDocument = {
+  createdAt: '2028-03-10T09:00:00.000Z',
+  hasDraft: false,
   id: 'agenda-1',
-  type: 'agenda',
   name: 'Ordre du jour du 12 mars 2028',
   officialReportId: null,
   outdated: false,
+  status: 'VALIDATED',
+  type: 'agenda',
+  validatedAt: '2028-03-10T11:00:00.000Z',
 };
 
 const OFFICIAL_REPORT: SessionDocument = {
+  createdAt: '2028-03-13T09:00:00.000Z',
   id: 'official-report-1',
-  type: 'officialReport',
   name: 'Procès-verbal du 12 mars 2028',
   outdated: false,
+  type: 'officialReport',
+  validatedAt: '2028-03-13T11:00:00.000Z',
 };
 
 async function clickDelete(doc: SessionDocument) {
