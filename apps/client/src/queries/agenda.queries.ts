@@ -180,6 +180,7 @@ export function useValidateAgendaMutation(mutation: {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
 
       mutation.onSuccess?.();
     },
@@ -199,6 +200,7 @@ export function useDiscardAgendaDraftMutation(mutation: {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
       await queryClient.invalidateQueries({
         queryKey: agendaKeys.detailsAgendaMetadata({ agendaId: mutation.agendaId }),
       });

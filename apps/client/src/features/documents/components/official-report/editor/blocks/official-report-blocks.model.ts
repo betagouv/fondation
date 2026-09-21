@@ -108,11 +108,12 @@ export class OfficialReportBlocksModel {
     const changed = new Set(Array.from(OfficialReportEditorDiff.from(this.state, editor), ({ key }) => key));
 
     for (const block of OfficialReportEditorDiff.blocksOf(editor)) {
-      const { edited, generatedHtml } = block.block;
+      const { agendaHtml, edited, generatedHtml } = block.block;
 
-      // a stored edition typed back to the text the document proposes is no longer an edition of
-      // it. An untouched block always matches that text, and has nothing to undo.
-      if (edited && generatedHtml && readsTheSame(block.content, generatedHtml)) {
+      // a stored edition typed back to the text giving it back would restore is no longer an
+      // edition of it, and that text is the agenda's sentence whenever the agenda wrote one
+      const restored = agendaHtml ?? generatedHtml;
+      if (edited && restored && readsTheSame(block.content, restored)) {
         this.stage(block.key, { block, kind: 'reset' });
       } else if (changed.has(block.key)) {
         this.stage(block.key, { block, kind: 'edit' });
@@ -143,7 +144,10 @@ export class OfficialReportBlocksModel {
           tr.setNodeAttribute(pos, 'outdated', false);
           return true;
         })
-        .insertContentAt({ from: pos + 1, to: pos + node.nodeSize - 1 }, node.attrs.generatedHtml)
+        .insertContentAt(
+          { from: pos + 1, to: pos + node.nodeSize - 1 },
+          node.attrs.agendaHtml ?? node.attrs.generatedHtml,
+        )
         .run();
 
       const nextNode = editor.state.doc.nodeAt(pos);
@@ -200,7 +204,12 @@ type BlockKey =
   | `file:${string}`;
 
 /** what a block carries whatever its kind: what it reads, and the text the document proposes */
-type EditionState = { edited: boolean; generatedHtml: string | null; key: BlockKey };
+type EditionState = {
+  agendaHtml: string | null;
+  edited: boolean;
+  generatedHtml: string | null;
+  key: BlockKey;
+};
 
 type OfficialReportEditionBlockState =
   | { kind: 'intro'; html: string; outdated: boolean }
@@ -228,6 +237,7 @@ export class OfficialReportEditionBlock {
     return new OfficialReportEditionBlock({
       ...state,
       key,
+      agendaHtml: (node.attrs.agendaHtml as string | null) ?? null,
       edited: Boolean(node.attrs.edited),
       generatedHtml: (node.attrs.generatedHtml as string | null) ?? null,
     });

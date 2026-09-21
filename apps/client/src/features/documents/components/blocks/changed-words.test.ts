@@ -36,7 +36,7 @@ function agendaDoc(text: string): PMNode {
 }
 
 /** the report wraps its text in paragraphs, each of which costs two positions of its own */
-function officialReportDoc(paragraphs: readonly string[]): PMNode {
+function officialReportDoc(paragraphs: readonly string[], agendaHtml?: string): PMNode {
   const schema = getSchema(buildOfficialReportExtensions({} as OfficialReportBlocksModel));
 
   return PMNode.fromJSON(schema, {
@@ -44,7 +44,7 @@ function officialReportDoc(paragraphs: readonly string[]): PMNode {
       {
         content: [
           {
-            attrs: { generatedHtml: `<p>${PROPOSED}</p>` },
+            attrs: { agendaHtml: agendaHtml ?? null, generatedHtml: `<p>${PROPOSED}</p>` },
             content: paragraphs.map((text) => ({
               content: [{ text, type: 'text' }],
               type: 'paragraph',
@@ -115,6 +115,18 @@ describe('changedWordsOf', () => {
     );
 
     expect(marked).toEqual([]);
+  });
+
+  it('should tell the words the agenda wrote from the ones written here', () => {
+    const carried = `${PROPOSED} ajouté dans l'ordre du jour`;
+    const doc = officialReportDoc([`${carried} et ici`], carried);
+
+    const own = changedWordsOf(doc, new Set([OfficialReportFileBlock.name]))
+      .filter((decoration) => !decoration.spec?.blockRule)
+      .filter((decoration) => decoration.spec?.writtenHere)
+      .map((decoration) => doc.textBetween(decoration.from, decoration.to));
+
+    expect(own).toEqual(['et ici']);
   });
 
   /** an out of range decoration would throw here, and take the whole editor down with it */

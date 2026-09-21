@@ -48,7 +48,7 @@ export function OfficialReportEditPage() {
     try {
       await editorRef.current?.save();
 
-      // the blocks are read again so the "modifié par vous" mention carries the stored date, and
+      // the blocks are read again so the edition mention carries the stored date, and
       // the rendered document with them: the server dropped the one it had stored
       await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(officialReportId!) });
       rebuildEditorOnStoredBlocks();
@@ -125,7 +125,7 @@ export function OfficialReportEditPage() {
                 className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
                 message={
-                  <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
+                  <FormattedMessage defaultMessage="Un autre texte est proposé pour certaines propositions" />
                 }
                 tone="warning"
               />

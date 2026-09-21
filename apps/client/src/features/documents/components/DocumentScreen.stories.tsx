@@ -90,7 +90,7 @@ export const WithNotices: Story = {
         <AlertBanner
           className="justify-center px-4 py-3"
           icon="fr-icon-warning-fill"
-          message="Certains dossiers ont changé et doivent être validés"
+          message="Un autre texte est proposé pour certaines propositions"
           tone="warning"
         />
         <AlertBanner

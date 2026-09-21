@@ -7,7 +7,7 @@ import {
   OfficialReportEditionBlockPersistor,
 } from './official-report-blocks.model';
 
-const UNTOUCHED = { edited: false, generatedHtml: null };
+const UNTOUCHED = { agendaHtml: null, edited: false, generatedHtml: null };
 
 describe('OfficialReportEditionBlock', () => {
   describe('#equals', () => {

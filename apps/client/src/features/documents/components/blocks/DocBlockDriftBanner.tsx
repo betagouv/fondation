@@ -9,9 +9,9 @@ import { Tooltip } from '@/shared/ui/tooltip';
 function DocBlockDriftBannerTooltip() {
   const { formatMessage } = useIntl();
 
-  const tooltipTitle = formatMessage({ defaultMessage: `Contenu invalide` });
+  const tooltipTitle = formatMessage({ defaultMessage: `Texte à arbitrer` });
   const tooltipDescription = formatMessage({
-    defaultMessage: `Des modifications ont eu lieu qui peuvent rendre ce contenu invalide.`,
+    defaultMessage: `Le texte de cette proposition ne dit plus la même chose que celui proposé ici. Acceptez-le pour remplacer le vôtre, ignorez-le pour le conserver.`,
   });
 
   return (
@@ -24,7 +24,8 @@ function DocBlockDriftBannerTooltip() {
 
 export function DocBlockDriftBanner(props: ReactNodeViewProps) {
   const { editor, node } = props;
-  const { outdated, generatedHtml, isPending } = node.attrs;
+  const { outdated, agendaHtml, generatedHtml, isPending } = node.attrs;
+  const proposed = agendaHtml ?? generatedHtml;
 
   const disabled = Boolean(isPending);
 
@@ -36,37 +37,58 @@ export function DocBlockDriftBanner(props: ReactNodeViewProps) {
   return (
     <div
       contentEditable={false}
-      className={clsx('doc-block__banner doc-block__banner--info', {
-        'bg-(--background-disabled-grey)': Boolean(isPending),
-      })}
+      className={clsx(
+        'doc-block__banner',
+        agendaHtml ? 'doc-block__banner--agenda' : 'doc-block__banner--info',
+        {
+          'bg-(--background-disabled-grey)': Boolean(isPending),
+        },
+      )}
     >
-      <Badge as="p" severity="new" small className="fr-mr-1v">
-        <FormattedMessage defaultMessage="MODIFICATION" />
-      </Badge>
-      <Tooltip label={<DocBlockDriftBannerTooltip />}>
-        <i aria-hidden className="fr-icon-question-line fr-icon--sm text-(--text-action-high-blue-france)" />
-      </Tooltip>
-      <div className="fr-mt-1v">
-        <div dangerouslySetInnerHTML={{ __html: generatedHtml }} />
+      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Badge
+          as="span"
+          className={clsx(
+            'fr-mb-0 text-(--text-default-grey)',
+            agendaHtml ? 'bg-(--background-contrast-yellow-tournesol)' : 'bg-(--background-alt-grey)',
+          )}
+          noIcon
+          small
+        >
+          {agendaHtml ? (
+            <FormattedMessage defaultMessage="l'ordre du jour propose" />
+          ) : (
+            <FormattedMessage defaultMessage="le document propose" />
+          )}
+        </Badge>
+        <Tooltip label={<DocBlockDriftBannerTooltip />}>
+          <i
+            aria-hidden
+            className="fr-icon-question-line fr-icon--sm text-(--text-action-high-blue-france)"
+          />
+        </Tooltip>
+      </span>
+      <div className="fr-mt-3v fr-mb-4v">
+        <div dangerouslySetInnerHTML={{ __html: proposed }} />
       </div>
-      <div className="fr-mt-3v">
+      <div>
         <ButtonsGroup
-          className="m-0 list-none p-0"
+          className="m-0 list-none p-0 [&_.fr-btn]:mb-0!"
           buttonsSize="small"
           inlineLayoutWhen="md and up"
-          alignment="left"
+          alignment="right"
           buttons={[
-            {
-              disabled,
-              priority: 'primary',
-              onClick: onReset,
-              children: <FormattedMessage defaultMessage="Accepter" />,
-            },
             {
               disabled,
               priority: 'secondary',
               onClick: onAcknowledge,
               children: <FormattedMessage defaultMessage="Ignorer" />,
+            },
+            {
+              disabled,
+              priority: 'primary',
+              onClick: onReset,
+              children: <FormattedMessage defaultMessage="Accepter" />,
             },
           ]}
         />

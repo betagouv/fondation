@@ -10,11 +10,21 @@ import type { OfficialReportBlock } from './official-report-blocks.type';
 import { OfficialReportFileBlock } from './OfficialReportFileBlock';
 
 const PROPOSED = 'Mme GAMBIN Audrey au poste de substitute';
+const FROM_AGENDA = 'Mme GAMBIN Audrey au poste de substitute, sur proposition du garde des Sceaux';
 
-function fileBlock(props: { edited?: boolean; id: number; text: string }): OfficialReportBlock {
+function fileBlock(props: {
+  agendaHtml?: string;
+  edited?: boolean;
+  id: number;
+  text: string;
+}): OfficialReportBlock {
   return {
+    agendaEditedAt: props.agendaHtml ? '2026-09-21T10:00:00.000Z' : null,
+    agendaEditedBy: null,
+    agendaHtml: props.agendaHtml ?? null,
     edited: props.edited ?? false,
     editedAt: null,
+    editedBy: null,
     fromAgenda: false,
     // the report writes its sentence bare, where the editor gives it back wrapped in a paragraph
     generatedHtml: PROPOSED,
@@ -37,6 +47,7 @@ function editorHolding(blocks: readonly OfficialReportBlock[]): Editor {
       {
         content: blocks.map((block) => ({
           attrs: {
+            agendaHtml: block.kind === 'file' ? block.agendaHtml : null,
             edited: block.edited,
             generatedHtml: block.generatedHtml,
             isPending: false,
@@ -128,6 +139,30 @@ describe('the official report editor holds its changes back', () => {
 
     expect(model.isDirty).toBe(false);
     expect(resetFile).not.toHaveBeenCalled();
+    expect(editFile).not.toHaveBeenCalled();
+  });
+
+  it('should keep the edition when the reader types the template while the agenda says otherwise', async () => {
+    const model = modelOn([fileBlock({ agendaHtml: FROM_AGENDA, edited: true, id: 1, text: FROM_AGENDA })]);
+
+    model.onEditorUpdate(
+      editorHolding([fileBlock({ agendaHtml: FROM_AGENDA, edited: true, id: 1, text: PROPOSED })]),
+    );
+    await model.save();
+
+    expect(editFile).toHaveBeenCalledTimes(1);
+    expect(resetFile).not.toHaveBeenCalled();
+  });
+
+  it('should undo the edition when the reader types the sentence the agenda carries', async () => {
+    const model = modelOn([fileBlock({ agendaHtml: FROM_AGENDA, edited: true, id: 1, text: PROPOSED })]);
+
+    model.onEditorUpdate(
+      editorHolding([fileBlock({ agendaHtml: FROM_AGENDA, edited: true, id: 1, text: FROM_AGENDA })]),
+    );
+    await model.save();
+
+    expect(resetFile).toHaveBeenCalledTimes(1);
     expect(editFile).not.toHaveBeenCalled();
   });
 

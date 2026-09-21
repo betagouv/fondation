@@ -6,9 +6,9 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { changedRanges, plainText, removedRuns } from './proposed-text';
 
 /** a dropped word has left the text, so it is drawn beside it rather than within it */
-function removedWord(text: string): HTMLElement {
+function removedWord(text: string, writtenHere: boolean): HTMLElement {
   const word = document.createElement('del');
-  word.className = 'doc-block__removed';
+  word.className = writtenHere ? 'doc-block__removed doc-block__removed--own' : 'doc-block__removed';
   word.contentEditable = 'false';
   word.textContent = text;
 
@@ -52,9 +52,9 @@ function readable(block: PMNode, blockPos: number): { positionAt: (offset: numbe
 }
 
 /**
- * marks what an edited block no longer shares with the text the document proposes: its own words
- * on yellow, the dropped ones struck through beside them.
- * The block holds that proposed text in `generatedHtml`, so nothing is asked of the server.
+ * marks what an edited block no longer shares with the text the document proposes: the words the
+ * agenda wrote on yellow, the ones written here on orange, the dropped ones struck through beside
+ * them. The block holds both texts, so nothing is asked of the server.
  */
 export function changedWordsOf(doc: PMNode, blocks: ReadonlySet<string>): Decoration[] {
   const decorations: Decoration[] = [];
@@ -67,6 +67,7 @@ export function changedWordsOf(doc: PMNode, blocks: ReadonlySet<string>): Decora
 
     const { positionAt, text } = readable(node, pos);
     const proposed = plainText(generatedHtml);
+    const agendaHtml = node.attrs.agendaHtml as string | null;
 
     const changed = changedRanges(proposed, text);
     const removed = removedRuns(proposed, text);
@@ -86,9 +87,29 @@ export function changedWordsOf(doc: PMNode, blocks: ReadonlySet<string>): Decora
       );
     }
 
+    if (agendaHtml) {
+      const carried = plainText(agendaHtml);
+
+      for (const range of changedRanges(carried, text)) {
+        decorations.push(
+          Decoration.inline(
+            positionAt(range.from),
+            positionAt(range.to),
+            { class: 'doc-block__changed doc-block__changed--own' },
+            { writtenHere: true },
+          ),
+        );
+      }
+    }
+
+    const droppedHere = new Set(
+      agendaHtml ? removedRuns(plainText(agendaHtml), text).map(({ at, text: word }) => `${at}:${word}`) : [],
+    );
+
     for (const run of removed) {
+      const here = droppedHere.has(`${run.at}:${run.text}`);
       decorations.push(
-        Decoration.widget(positionAt(run.at), () => removedWord(run.text), {
+        Decoration.widget(positionAt(run.at), () => removedWord(run.text, here), {
           ignoreSelection: true,
           side: -1,
         }),
