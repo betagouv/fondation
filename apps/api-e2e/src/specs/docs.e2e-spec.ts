@@ -557,4 +557,63 @@ test.describe('Docs Service', () => {
 
     expect(accepted).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
   });
+
+  test('should drop the notice pdf that no longer says what the notice says', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+        nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+      },
+    });
+    expect(agenda.response?.status).toBe(201);
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agenda.data!.id }],
+        chairmanId,
+        date: MEETING_DATE,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    expect(plan.response?.status).toBe(201);
+
+    const planId = plan.data!.id;
+
+    // the notice holds no text until it is read, and the pdf has none without it
+    const rendered = await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    expect(rendered.response?.status).toBe(200);
+
+    const before = await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
+    expect(before.response?.status).toBe(200);
+
+    const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
+    const edited = await agent.docs.updatePresentationPlanHtml({
+      path: { planId },
+      body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
+    });
+    expect(edited.response?.status).toBe(204);
+
+    const after = await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
+    expect(after.data!.url).not.toBe(before.data!.url);
+  });
 });
