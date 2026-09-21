@@ -133,13 +133,13 @@ export function TransparenceDocumentsTab() {
             <div className="-ml-2 grid grid-cols-4 items-center gap-1">
               {doc.type === 'agenda' && (
                 <>
-                  <DocActionAgendaFiles
+                  <DocActionAgendaMetadata
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
                     sessionId={transparence.id}
                   />
-                  <DocActionAgendaMetadata
+                  <DocActionAgendaFiles
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
@@ -149,7 +149,6 @@ export function TransparenceDocumentsTab() {
               )}
               {doc.type === 'officialReport' && (
                 <DocActionOfficialReportMetadata
-                  className="col-start-2"
                   disabled={isActing}
                   officialReport={doc}
                   sessionId={transparence.id}

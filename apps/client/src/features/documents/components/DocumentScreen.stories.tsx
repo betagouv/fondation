@@ -39,7 +39,7 @@ export const Agenda: Story = {
           Propositions
         </Button>
         <Button iconId="ri-calendar-event-line" priority="secondary">
-          Métadonnées
+          Informations
         </Button>
         {validate()}
       </>
@@ -55,7 +55,7 @@ export const OfficialReport: Story = {
     actions: (
       <>
         <Button iconId="ri-edit-fill" priority="secondary">
-          Métadonnées
+          Informations
         </Button>
         {validate()}
       </>

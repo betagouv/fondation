@@ -36,10 +36,11 @@ export function AlertBanner(props: {
   );
 }
 
-export function AlertBannerAction(props: { children: ReactNode; onClick: () => void }) {
+export function AlertBannerAction(props: { children: ReactNode; disabled?: boolean; onClick: () => void }) {
   return (
     <Button
       className="ml-auto min-h-0! px-3.5! py-0! whitespace-nowrap text-inherit! underline underline-offset-4 hover:bg-transparent! hover:decoration-2"
+      disabled={props.disabled}
       onClick={props.onClick}
       priority="tertiary no outline"
       size="small"

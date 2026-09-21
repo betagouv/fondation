@@ -68,7 +68,7 @@ export function DocumentBlocksEditor(props: {
               priority="tertiary no outline"
               size="small"
             >
-              <FormattedMessage defaultMessage="Aperçu" />
+              <FormattedMessage defaultMessage="Retour à l'aperçu" />
             </Button>
           </Tooltip>
         </div>

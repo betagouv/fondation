@@ -80,7 +80,7 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
       actions={
         <>
           <Button iconId="ri-edit-fill" priority="secondary">
-            Métadonnées
+            Informations
           </Button>
           <Button disabled={hasPendingRevalidation} iconId="fr-icon-success-fill" iconPosition="right">
             Valider le document

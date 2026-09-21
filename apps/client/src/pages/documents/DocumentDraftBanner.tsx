@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { AlertBanner } from '@/shared/ui/alert-banner';
 
-export function DocumentDraftBanner(props: { hasValidatedVersion: boolean }) {
+export function DocumentDraftBanner(props: { children?: ReactNode; hasValidatedVersion: boolean }) {
   return (
     <AlertBanner
       className="justify-center px-4 py-3"
@@ -15,6 +16,8 @@ export function DocumentDraftBanner(props: { hasValidatedVersion: boolean }) {
         )
       }
       tone="info"
-    />
+    >
+      {props.children}
+    </AlertBanner>
   );
 }

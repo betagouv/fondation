@@ -27,7 +27,7 @@ export function AgendaUpdateMetadataPage() {
       update.mutate(values, {
         onError: async (err) => {
           const defaultError = formatMessage({
-            defaultMessage: `Impossible de mettre à jour les métadonnées`,
+            defaultMessage: `Impossible de mettre à jour les informations de l'ordre du jour`,
           });
           if (err instanceof HttpException) {
             const body = await err.response.json().catch(() => null);
@@ -53,7 +53,7 @@ export function AgendaUpdateMetadataPage() {
       error={error}
       title={
         <h1 className="fr-h3 fr-m-0">
-          <FormattedMessage defaultMessage="Données de l'ordre du jour" />
+          <FormattedMessage defaultMessage="Informations de l'ordre du jour" />
         </h1>
       }
     >
@@ -70,7 +70,7 @@ export function AgendaUpdateMetadataPage() {
             isSubmitting={update.isPending}
             onCancel={onCancel}
             onSubmit={onSubmit}
-            submitLabel={<FormattedMessage defaultMessage="Enregistrer les données" />}
+            submitLabel={<FormattedMessage defaultMessage="Enregistrer" />}
           />
         )}
       </div>

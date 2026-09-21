@@ -8,7 +8,7 @@ import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
-import { AlertBanner } from '@/shared/ui/alert-banner';
+import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useDetailsOfficialReportQuery,
@@ -55,7 +55,7 @@ export function OfficialReportPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Modifier les données" />
+            <FormattedMessage defaultMessage="Modifier les informations" />
           </Button>
           <Button
             linkProps={{
@@ -68,16 +68,6 @@ export function OfficialReportPreviewPage() {
           >
             <FormattedMessage defaultMessage="Éditer le texte" />
           </Button>
-          {isDraft && metadata.hasValidatedVersion && (
-            <Button
-              disabled={isBusy}
-              iconId="fr-icon-arrow-go-back-line"
-              onClick={() => discardDraft.mutate()}
-              priority="secondary"
-            >
-              <FormattedMessage defaultMessage="Revenir au document validé" />
-            </Button>
-          )}
           {isDraft && (
             <Button
               className={clsx({ 'after:animate-spin': validate.isPending })}
@@ -108,7 +98,15 @@ export function OfficialReportPreviewPage() {
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
-            {isDraft && <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />}
+            {isDraft && (
+              <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion}>
+                {metadata.hasValidatedVersion && (
+                  <AlertBannerAction disabled={isBusy} onClick={() => discardDraft.mutate()}>
+                    <FormattedMessage defaultMessage="Revenir au document validé" />
+                  </AlertBannerAction>
+                )}
+              </DocumentDraftBanner>
+            )}
           </div>
           <div role="alert">
             {(validate.isError || discardDraft.isError) && (

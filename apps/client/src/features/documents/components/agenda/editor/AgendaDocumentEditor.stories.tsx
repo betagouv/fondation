@@ -98,7 +98,7 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
             Propositions
           </Button>
           <Button iconId="ri-calendar-event-line" priority="secondary">
-            Métadonnées
+            Informations
           </Button>
           <Button disabled={hasPendingRevalidation} iconId="fr-icon-success-fill" iconPosition="right">
             Valider le document
