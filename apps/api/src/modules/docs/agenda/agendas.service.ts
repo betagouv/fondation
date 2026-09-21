@@ -8,6 +8,7 @@ import {
   DocInvalidatedIntegrationEvent,
   DocInvalidation,
 } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Clock } from 'src/modules/framework/clock';
@@ -196,20 +197,25 @@ export class AgendasService {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
     await this.findAgendaDocumentPdfQuery.ensure({ id: command.agendaId });
 
-    await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
-      agenda.validate({ at: this.clock.now(), authorId: command.authorId });
-      await this.agendaRepository.persist(agenda);
-    });
+    await this.announcingSentenceChanges(command.agendaId, () =>
+      this.db.withTransaction(async () => {
+        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        agenda.validate({ at: this.clock.now(), authorId: command.authorId });
+        await this.agendaRepository.persist(agenda);
+      }),
+    );
   }
 
-  @Transactional()
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
-    const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+    await this.announcingSentenceChanges(command.agendaId, () =>
+      this.db.withTransaction(async () => {
+        const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
 
-    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
-    agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
-    await this.agendaRepository.persist(agenda);
+        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
+        await this.agendaRepository.persist(agenda);
+      }),
+    );
   }
 
   @Transactional()
@@ -230,23 +236,80 @@ export class AgendasService {
     if (version.pdf) this.files.delete([version.pdf]);
   }
 
-  @Transactional()
   async editAgendaFileBlock(command: {
     agendaId: string;
     fileId: bigint;
     html: string;
     outdated: boolean;
   }): Promise<void> {
-    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
-    agenda.editFileBlock({ fileId: command.fileId, html: command.html, outdated: command.outdated });
-    await this.agendaRepository.persist(agenda);
+    await this.announcingSentenceChanges(command.agendaId, () =>
+      this.db.withTransaction(async () => {
+        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        agenda.editFileBlock({
+          fileId: command.fileId,
+          html: command.html,
+          outdated: command.outdated,
+        });
+        await this.agendaRepository.persist(agenda);
+      }),
+    );
   }
 
-  @Transactional()
   async resetAgendaFileBlock(command: { agendaId: string; fileId: bigint }): Promise<void> {
-    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
-    agenda.resetFileBlock({ fileId: command.fileId });
-    await this.agendaRepository.persist(agenda);
+    await this.announcingSentenceChanges(command.agendaId, () =>
+      this.db.withTransaction(async () => {
+        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        agenda.resetFileBlock({ fileId: command.fileId });
+        await this.agendaRepository.persist(agenda);
+      }),
+    );
+  }
+
+  /**
+   * the official report answers to the agenda its readers see, which is the validated version
+   * whenever there is one: writing in a draft says nothing to the report until it is validated.
+   */
+  private async announcingSentenceChanges(agendaId: string, operation: () => Promise<void>): Promise<void> {
+    const before = await this.readableSentences(agendaId);
+    await operation();
+    const after = await this.readableSentences(agendaId);
+
+    const changed = new Set([...before.keys(), ...after.keys()]).difference(
+      new Set(
+        [...after].flatMap(([nominationFileId, sentence]) =>
+          before.get(nominationFileId) === sentence ? [nominationFileId] : [],
+        ),
+      ),
+    );
+
+    await this.emitInvalidations(
+      [...changed].map((nominationFileId) => ({
+        type: 'AgendaFileBlockEdited',
+        payload: { agendaId, nominationFileId },
+      })),
+    );
+  }
+
+  /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
+  private async readableSentences(agendaId: string): Promise<Map<string, string>> {
+    const agenda = await this.db.tx.agenda.findUnique({
+      where: { id: agendaId, officialReportId: { not: null } },
+      select: {
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: { select: { nominationFileId: true, htmlEdited: true } },
+          },
+        },
+      },
+    });
+
+    return new Map(
+      (agendaContentOf(agenda?.versions ?? [])?.nominationFiles ?? []).flatMap((file) =>
+        file.nominationFileId ? [[file.nominationFileId, file.htmlEdited ?? ''] as const] : [],
+      ),
+    );
   }
 
   detailsAgendaFiles(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {

@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
+import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
+import { readsTheSame } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
@@ -17,6 +19,7 @@ export class InternalInvalidateOfficialReportUseCase {
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly officialReportRepository: OfficialReportRepository,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
   @Transactional()
@@ -33,6 +36,9 @@ export class InternalInvalidateOfficialReportUseCase {
 
       case 'AgendaNominationFilesUpdated':
         return this.invalidate(await this.mapAgendaNominationFilesUpdated({ invalidation }));
+
+      case 'AgendaFileBlockEdited':
+        return this.invalidate(await this.mapAgendaFileBlockEdited({ invalidation }));
 
       case 'NominationFileOutcomeUpdated':
         return this.invalidate(await this.mapNominationFileOutcomeUpdated({ invalidation }));
@@ -61,14 +67,16 @@ export class InternalInvalidateOfficialReportUseCase {
     // We don't handle files without outcome in official reports
     if (!isDefined(outcome)) return [];
 
+    // a report holding a draft carries the file twice, and it is invalidated once
     const files = await this.db.tx.officialReportNominationFile.findMany({
       where: { nominationFileId: query.invalidation.payload.nominationFileId },
-      select: { officialReportId: true },
+      select: { version: { select: { officialReportId: true } } },
+      distinct: ['versionId'],
     });
 
-    return files.map((file) => ({
+    return [...new Set(files.map((file) => file.version.officialReportId))].map((officialReportId) => ({
       type: 'NominationFilesOutcomeUpdated',
-      id: file.officialReportId,
+      id: officialReportId,
       payload: {
         files: [
           {
@@ -78,6 +86,54 @@ export class InternalInvalidateOfficialReportUseCase {
         ],
       },
     }));
+  }
+
+  /**
+   * the two documents write the very same sentence for a file: which one the report carries once
+   * they part ways is the reader's call, and the block waits for it.
+   */
+  private async mapAgendaFileBlockEdited(query: {
+    invalidation: Extract<DocInvalidation, { type: 'AgendaFileBlockEdited' }>;
+  }): Promise<InvalidateOfficialReportCommand[]> {
+    const { agendaId, nominationFileId } = query.invalidation.payload;
+
+    const agenda = await this.db.tx.agenda.findUnique({
+      where: { id: agendaId, officialReportId: { not: null } },
+      select: {
+        officialReportId: true,
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: { select: { htmlEdited: true }, where: { nominationFileId } },
+          },
+        },
+      },
+    });
+
+    if (!agenda?.officialReportId) return [];
+
+    const agendaHtml = agendaContentOf(agenda.versions)?.nominationFiles[0]?.htmlEdited ?? null;
+    const reportVersionId = await this.officialReportVersionFinder.latest({
+      officialReportId: agenda.officialReportId,
+    });
+    const reportFile = await this.db.tx.officialReportNominationFile.findFirst({
+      where: { versionId: reportVersionId, nominationFileId },
+      select: { htmlEdited: true },
+    });
+
+    const reportHtml = reportFile?.htmlEdited ?? null;
+    if (agendaHtml === reportHtml || (agendaHtml && reportHtml && readsTheSame(agendaHtml, reportHtml))) {
+      return [];
+    }
+
+    return [
+      {
+        type: 'AgendaFileBlockEdited',
+        id: agenda.officialReportId,
+        payload: { nominationFileId },
+      },
+    ];
   }
 
   private async mapAgendaNominationFilesUpdated(query: {

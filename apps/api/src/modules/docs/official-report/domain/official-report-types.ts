@@ -50,6 +50,10 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       type: 'NominationFilesReportersUpdated';
       payload: { files: readonly { nominationFileId: string; reporters: readonly string[] }[] };
     }
+  | {
+      type: 'AgendaFileBlockEdited';
+      payload: { nominationFileId: string };
+    }
 );
 
 type OfficialReportSnapshotDiffStatus = 'OUTDATED' | 'NOOP';

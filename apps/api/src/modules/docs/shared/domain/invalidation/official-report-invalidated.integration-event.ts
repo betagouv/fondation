@@ -15,6 +15,11 @@ export type DocInvalidation =
       payload: { agendaId: string };
     }
   | {
+      /** the agenda's own sentence for a file was rewritten, or given back to the template */
+      type: 'AgendaFileBlockEdited';
+      payload: { agendaId: string; nominationFileId: string };
+    }
+  | {
       type: 'NominationFileOutcomeUpdated';
       payload: {
         nominationFileId: string;

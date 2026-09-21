@@ -21,6 +21,7 @@ export class InvalidateAgendasUseCase {
         return this.updateAgendasReporters(invalidation);
 
       case 'AgendaDateUpdated':
+      case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
       case 'NominationFileOutcomeUpdated':
       case 'SessionDateUpdated':

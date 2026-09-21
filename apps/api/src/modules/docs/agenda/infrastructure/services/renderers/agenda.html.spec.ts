@@ -103,4 +103,29 @@ describe('agendaTemplate', () => {
       ]
     `);
   });
+
+  it('should not credit the reader for a block reading as the agenda proposes', () => {
+    const [proposed] = Array.from(agendaBlocks(baseContext));
+
+    const blocks = Array.from(
+      agendaBlocks({
+        ...baseContext,
+        userDefinedBlocks: {
+          files: new Map([
+            [
+              1n,
+              {
+                // the editor gives the text back wrapped and spaced its own way
+                html: `<p>${proposed!.html}</p>`,
+                isOutdated: false,
+                editedAt: new Date('2026-03-12T10:00:00.000Z'),
+              },
+            ],
+          ]),
+        },
+      }),
+    );
+
+    expect(blocks[0]).toMatchObject({ edited: false, editedAt: null });
+  });
 });

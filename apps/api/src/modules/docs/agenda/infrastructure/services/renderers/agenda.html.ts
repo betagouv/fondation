@@ -7,6 +7,7 @@ import {
 import {
   conjunctionList,
   date,
+  readsTheSame,
   requiresElision,
   titled,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
@@ -181,22 +182,22 @@ export const agendaTemplate: Template<AgendaRenderContext> = documentLayout({
 export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFile> {
   for (const file of ctx.nominationFiles) {
     const userDefined = ctx.userDefinedBlocks.files.get(file.id);
-    const outdated = Boolean(userDefined?.isOutdated);
-    const edited = Boolean(userDefined?.html);
 
     // every block carries the text the document proposes, so the editor can mark what the reader
     // changes as they type, before anything is saved. An untouched block reads the same both ways.
     const generatedHtml = displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true });
+    const html = userDefined?.html ? displayFileContent({ root: ctx, file }) : generatedHtml;
+    const edited = Boolean(userDefined?.html) && !readsTheSame(html, generatedHtml);
 
     yield {
       kind: 'file',
       weight: file.number,
       id: file.id,
       nominationFileId: file.nominationFileId,
-      html: edited ? displayFileContent({ root: ctx, file }) : generatedHtml,
+      html,
       edited,
-      editedAt: userDefined?.editedAt ?? null,
-      outdated,
+      editedAt: edited ? (userDefined?.editedAt ?? null) : null,
+      outdated: Boolean(userDefined?.isOutdated),
       generatedHtml,
     };
   }
