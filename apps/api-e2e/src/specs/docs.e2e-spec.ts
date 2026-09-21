@@ -274,4 +274,68 @@ test.describe('Docs Service', () => {
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
   });
+
+  test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({
+    agent,
+    expect,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    const created = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        nominationFileIds,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    expect(created.response?.status).toBe(201);
+    const agendaId = created.data!.id;
+
+    const validated = await agent.docs.validateAgenda({ path: { agendaId } });
+    expect(validated.response?.status).toBe(204);
+
+    const beforeEdition = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const block = beforeEdition.data!.blocks[0]!;
+    expect(block.edited).toBe(false);
+
+    // the block id names a row of the validated version: the edition forks a draft whose rows are
+    // brand new, and it has to land there all the same
+    const edited = await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: block.id },
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+    });
+    expect(edited.response?.status).toBe(204);
+
+    const afterEdition = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    expect(afterEdition.data!.blocks[0]).toMatchObject({
+      edited: true,
+      html: '<p>Une phrase écrite à la main</p>',
+    });
+
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(204);
+
+    const afterDiscard = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    expect(afterDiscard.data!.blocks[0]).toMatchObject({ edited: false, html: block.html });
+
+    // a second validation renders a PDF while dropping the version it replaces: a path shared by
+    // both versions would have the drop delete the object just written, and the file would 404
+    const reEdited = await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: afterDiscard.data!.blocks[0]!.id },
+      body: { html: '<p>Une seconde écriture</p>', outdated: false },
+    });
+    expect(reEdited.response?.status).toBe(204);
+
+    const revalidated = await agent.docs.validateAgenda({ path: { agendaId } });
+    expect(revalidated.response?.status).toBe(204);
+
+    const pdf = await agent.docs.generateAgendaPdf({ path: { agendaId } });
+    expect(pdf.response?.status).toBe(200);
+  });
 });

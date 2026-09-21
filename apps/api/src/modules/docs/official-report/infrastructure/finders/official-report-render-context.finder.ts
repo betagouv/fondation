@@ -8,6 +8,7 @@ import { OfficialReportSecretary } from '../../domain/official-report-secretary'
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -37,7 +38,18 @@ export class OfficialReportRenderContextFinder {
         sessionMeetingStartingTime: true,
         sessionMeetingEndingTime: true,
 
-        agendas: { select: { id: true, sessionId: true, formation: true, date: true } },
+        agendas: {
+          select: {
+            id: true,
+            sessionId: true,
+            formation: true,
+            versions: {
+              take: 2,
+              orderBy: { version: 'desc' },
+              select: { date: true, status: true },
+            },
+          },
+        },
 
         chairman: {
           select: {
@@ -100,7 +112,10 @@ export class OfficialReportRenderContextFinder {
     if (!report) throw new NotFoundException();
 
     const agenda = report.agendas[0];
-    if (!agenda) throw new NotFoundException();
+    // the report speaks of the agenda as it was validated, and of its draft only while the agenda
+    // has never been validated, which is the one case where nothing else exists to speak of
+    const agendaDate = agendaContentOf(agenda?.versions ?? [])?.date;
+    if (!agenda || !agendaDate) throw new NotFoundException();
 
     const session = await this.db.tx.session.findUnique({
       where: { id: agenda.sessionId, deletedAt: null },
@@ -201,7 +216,7 @@ export class OfficialReportRenderContextFinder {
       hasRenouncement: report.hasRenunciation,
       justiceDepartmentContact: report.justiceDepartmentContactName,
       session: { id: agenda.sessionId, date: DateOnly.fromUtcDate(session.date) },
-      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agenda.date) },
+      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
       userDefinedBlocks: {
         intro: userDefinedInto,
         conclusion: userDefinedConclusion,

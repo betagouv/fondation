@@ -2,6 +2,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   JusticePresentationPlan,
@@ -89,16 +90,27 @@ export class JusticePresentationPlanRepository {
         sessionId: true,
         sessionName: true,
         formation: true,
-        nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: {
+              select: { nominationFileId: true },
+              where: { nominationFileId: { not: null } },
+            },
+          },
+        },
       },
     });
 
     const nominationFiles = await Promise.all(
-      agendas.map(async ({ id: agendaId, sessionId, sessionName, formation, nominationFiles }) => {
+      agendas.map(async ({ id: agendaId, sessionId, sessionName, formation, versions }) => {
         const { items } = await this.docsNominationFilesFinder.find({
           sessionId,
           formation: prismaFormationEnumToFormationEnum(formation),
-          ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
+          ids: (agendaContentOf(versions)?.nominationFiles ?? []).map(
+            ({ nominationFileId }) => nominationFileId as string,
+          ),
         });
 
         return items

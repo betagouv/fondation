@@ -2,48 +2,33 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-
-import { FindAgendaDocumentPdfQuery } from './find-agenda-document-pdf.query';
 
 @Injectable()
 export class DetailsSessionAgendaQuery {
   constructor(
     private readonly files: Files,
     private readonly db: Db,
-    private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
+    private readonly agendaVersionFinder: AgendaVersionFinder,
   ) {}
 
+  /** serves the agenda as it was validated, or its draft while it has never been validated */
   async handle(query: { sessionId: string; agendaId: string }): Promise<DetailedSessionAgenda> {
-    return this.innerHandle({ ...query, afterGeneration: false });
-  }
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
 
-  private async innerHandle(query: {
-    sessionId: string;
-    agendaId: string;
-    afterGeneration: boolean;
-  }): Promise<DetailedSessionAgenda> {
-    const agenda = await this.db.tx.agenda.findUnique({
-      where: {
-        id: query.agendaId,
-        sessionId: query.sessionId,
-      },
-      select: { id: true, pdf: { select: { id: true } } },
+    const version = await this.db.tx.agendaVersion.findUnique({
+      where: { id: versionId, agenda: { sessionId: query.sessionId } },
+      select: { pdf: { select: { id: true } }, agenda: { select: { id: true } } },
     });
 
-    if (!agenda) throw new NotFoundException();
-    if (!agenda.pdf && query.afterGeneration) throw new NotFoundException();
+    if (!version?.pdf) throw new NotFoundException();
 
-    if (!agenda.pdf) {
-      await this.findAgendaDocumentPdfQuery.handle({ id: query.agendaId, forceNew: false });
-      return this.innerHandle({ ...query, afterGeneration: true });
-    }
-
-    const { [agenda.pdf.id]: url } = await this.files.getPublicUrls([agenda.pdf.id]);
+    const { [version.pdf.id]: url } = await this.files.getPublicUrls([version.pdf.id]);
     if (!url) throw new NotFoundException();
 
-    return { id: agenda.id, url: url.toString() };
+    return { id: version.agenda.id, url: url.toString() };
   }
 }
 

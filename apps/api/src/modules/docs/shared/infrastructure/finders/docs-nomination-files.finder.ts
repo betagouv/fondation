@@ -8,6 +8,7 @@ import {
   docNominationFileOutcomeLabel,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { Db } from 'src/modules/framework/database';
 import type { InternalFoundAgendaNominationFiles } from 'src/modules/session/transparence/infrastructure/queries/internal-find-docs-nomination-files.query';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -91,9 +92,15 @@ export class DocsNominationFilesFinder {
       select: {
         id: true,
         sessionId: true,
-        nominationFiles: {
-          where: { nominationFileId: { not: null } },
-          select: { nominationFileId: true },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: {
+              where: { nominationFileId: { not: null } },
+              select: { nominationFileId: true },
+            },
+          },
         },
       },
     });
@@ -104,8 +111,10 @@ export class DocsNominationFilesFinder {
     for (const [sessionId, list] of bySessionId) {
       const { items } = await this.find({
         sessionId,
-        ids: list.flatMap((x): string[] =>
-          x.nominationFiles.map(({ nominationFileId }) => nominationFileId!),
+        ids: list.flatMap(
+          (x): string[] =>
+            agendaContentOf(x.versions)?.nominationFiles.map(({ nominationFileId }) => nominationFileId!) ??
+            [],
         ),
       });
 

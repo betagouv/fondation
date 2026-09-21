@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { FinalDocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { AgendaFinder } from '../finders/agenda.finder';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -130,21 +131,33 @@ export class IsSessionReadyForDocGenerationQuery {
     affectationVersionId: string;
     sessionId: string;
   }): Promise<OfficialReportBlocker> {
-    const agendas = await this.db.tx.agenda.findMany({
+    const found = await this.db.tx.agenda.findMany({
       where: { sessionId: query.sessionId },
-      orderBy: { sessionMeetingDate: 'asc' },
       select: {
         officialReportId: true,
-        sessionMeetingDate: true,
-        nominationFiles: {
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
           select: {
-            nominationFile: {
-              select: { id: true, outcome: true, reporterIds: { select: { versionId: true } } },
+            status: true,
+            sessionMeetingDate: true,
+            nominationFiles: {
+              select: {
+                nominationFile: {
+                  select: { id: true, outcome: true, reporterIds: { select: { versionId: true } } },
+                },
+              },
             },
           },
         },
       },
     });
+
+    const agendas = found
+      .flatMap(({ versions, ...agenda }) => {
+        const published = agendaContentOf(versions);
+        return published ? [{ ...agenda, published }] : [];
+      })
+      .sort((a, b) => a.published.sessionMeetingDate.getTime() - b.published.sessionMeetingDate.getTime());
 
     if (agendas.length === 0) return blocker('NO_AGENDA');
 
@@ -152,7 +165,7 @@ export class IsSessionReadyForDocGenerationQuery {
     if (unreportedAgendas.length === 0) return blocker('ALL_AGENDAS_REPORTED');
 
     const incompleteAgendas = unreportedAgendas.flatMap((agenda) => {
-      const files = agenda.nominationFiles.flatMap(({ nominationFile }) =>
+      const files = agenda.published.nominationFiles.flatMap(({ nominationFile }) =>
         isDefined(nominationFile) ? [nominationFile] : [],
       );
 
@@ -161,7 +174,7 @@ export class IsSessionReadyForDocGenerationQuery {
       );
 
       const incomplete = {
-        meetingDate: DateOnly.fromUtcDate(agenda.sessionMeetingDate).toJson(),
+        meetingDate: DateOnly.fromUtcDate(agenda.published.sessionMeetingDate).toJson(),
         filesWithoutOutcome: files.filter(({ outcome }) => NominationFileOutcome.isAwaited(outcome)).length,
         filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
         filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0).length,

@@ -53,8 +53,10 @@ model User {
   readerOfSummaries                   SummaryReader[]
   followedUpObservations              Observation[]              @relation("user_to_observation_follow_up")
   validatedSessions                   Session[]
-  agendas                             Agenda[]
   agendasAuthor                       Agenda[]                   @relation("agenda_author")
+  chairmanOfAgendaVersions            AgendaVersion[]
+  authorOfAgendaVersions              AgendaVersion[]            @relation("agenda_version_author")
+  validatorOfAgendaVersions           AgendaVersion[]            @relation("agenda_version_validator")
   authImpersonations                  AuthImpersonation[]
   authorOfJusticeDepartmentContacts   JusticeDepartmentContact[]
   chairmanOfOfficialReports           OfficialReport[]           @relation("official_reports_chairman")

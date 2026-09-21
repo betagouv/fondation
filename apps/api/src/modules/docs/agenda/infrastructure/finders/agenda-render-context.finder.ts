@@ -9,17 +9,24 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
 
+import { AgendaVersionFinder } from './agenda-version.finder';
+
 @Injectable()
 export class AgendaRenderContextFinder {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly agendaVersionFinder: AgendaVersionFinder,
+  ) {}
 
   @Transactional()
   async find(query: { agendaId: string }): Promise<AgendaRenderContext> {
-    const agenda = await this.db.tx.agenda.findUnique({
-      where: { id: query.agendaId },
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
+
+    const agenda = await this.db.tx.agendaVersion.findUnique({
+      where: { id: versionId },
       select: {
         date: true,
-        formation: true,
+        agenda: { select: { formation: true } },
         sessionMeetingDate: true,
         chairmanFirstName: true,
         chairmanLastName: true,
@@ -29,6 +36,7 @@ export class AgendaRenderContextFinder {
           orderBy: { number: 'asc' },
           select: {
             id: true,
+            nominationFileId: true,
             grade: true,
             name: true,
             number: true,
@@ -38,6 +46,7 @@ export class AgendaRenderContextFinder {
             targetedPosition: true,
             htmlEdited: true,
             htmlOutdated: true,
+            htmlEditedAt: true,
           },
         },
       },
@@ -48,12 +57,15 @@ export class AgendaRenderContextFinder {
     const userDefinedFiles = new Map(
       agenda.nominationFiles
         .filter((f): f is typeof f & { htmlEdited: string } => Boolean(f.htmlEdited?.trim()))
-        .map((f) => [f.id, { html: f.htmlEdited, isOutdated: f.htmlOutdated }] as const),
+        .map(
+          (f) =>
+            [f.id, { html: f.htmlEdited, isOutdated: f.htmlOutdated, editedAt: f.htmlEditedAt }] as const,
+        ),
     );
 
     return {
       date: DateOnly.fromUtcDate(agenda.date),
-      formation: prismaFormationEnumToFormationEnum(agenda.formation),
+      formation: prismaFormationEnumToFormationEnum(agenda.agenda.formation),
       sessionMeetingDate: DateOnly.fromUtcDate(agenda.sessionMeetingDate),
       chairman: {
         firstName: agenda.chairmanFirstName,
@@ -63,6 +75,7 @@ export class AgendaRenderContextFinder {
       },
       nominationFiles: agenda.nominationFiles.map((f) => ({
         id: f.id,
+        nominationFileId: f.nominationFileId,
         number: f.number,
         name: f.name,
         currentGrade: f.grade,

@@ -10,11 +10,14 @@ import {
 } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
+import { Clock } from 'src/modules/framework/clock';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
 import { Agenda } from './domain/agenda';
 import { CreatedAgendaDto } from './infrastructure/agendas.dto';
+import { AgendaVersionFinder } from './infrastructure/finders/agenda-version.finder';
 import {
   DetailedAgendaDocumentBlocksDto,
   DetailsAgendaDocumentBlocksQuery,
@@ -41,6 +44,7 @@ export class AgendasService {
   constructor(
     private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
+    private readonly agendaVersionFinder: AgendaVersionFinder,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
@@ -50,6 +54,7 @@ export class AgendasService {
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
     private readonly invalidateAgendaUseCase: InvalidateAgendasUseCase,
+    private readonly clock: Clock,
     private readonly db: Db,
 
     private readonly events: EventEmitter2,
@@ -187,20 +192,42 @@ export class AgendasService {
     return this.detailsAgendaMetadataQuery.handle(query);
   }
 
+  async validateAgenda(command: { agendaId: string; authorId: string }): Promise<void> {
+    // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
+    await this.findAgendaDocumentPdfQuery.ensure({ id: command.agendaId });
+
+    await this.db.withTransaction(async () => {
+      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+      agenda.validate({ at: this.clock.now(), authorId: command.authorId });
+      await this.agendaRepository.persist(agenda);
+    });
+  }
+
+  @Transactional()
+  async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
+    const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+
+    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
+    await this.agendaRepository.persist(agenda);
+  }
+
   @Transactional()
   async resetAgendaDocument(command: { id: string }): Promise<void> {
-    const agenda = await this.db.tx.agenda.findUnique({
-      where: { id: command.id },
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: command.id });
+
+    const version = await this.db.tx.agendaVersion.findUnique({
+      where: { id: versionId },
       select: { pdf: { select: { id: true, path: true } } },
     });
-    if (!agenda) throw new NotFoundException();
+    if (!version) throw new NotFoundException();
 
-    await this.db.tx.agenda.update({
-      where: { id: command.id },
+    await this.db.tx.agendaVersion.update({
+      where: { id: versionId },
       data: { html: null, isManuallyEdited: false, pdfFileId: null },
     });
 
-    if (agenda.pdf) this.files.delete([agenda.pdf]);
+    if (version.pdf) this.files.delete([version.pdf]);
   }
 
   @Transactional()

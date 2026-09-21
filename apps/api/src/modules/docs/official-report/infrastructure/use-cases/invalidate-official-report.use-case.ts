@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
@@ -88,7 +89,10 @@ export class InternalInvalidateOfficialReportUseCase {
         id: true,
         sessionId: true,
         officialReportId: true,
-        nominationFiles: { select: { nominationFileId: true } },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: { status: true, nominationFiles: { select: { nominationFileId: true } } },
+        },
       },
     });
 
@@ -101,8 +105,8 @@ export class InternalInvalidateOfficialReportUseCase {
     const output: InvalidateOfficialReportCommand[] = [];
 
     for (const agenda of agendasWithOfficialReport) {
-      const nominationFileIds = agenda.nominationFiles.flatMap(({ nominationFileId }) =>
-        isDefined(nominationFileId) ? [nominationFileId] : [],
+      const nominationFileIds = (agendaContentOf(agenda.versions)?.nominationFiles ?? []).flatMap(
+        ({ nominationFileId }) => (isDefined(nominationFileId) ? [nominationFileId] : []),
       );
 
       const { items } = await this.docsNominationFilesFinder.find({
@@ -187,8 +191,9 @@ export class InternalInvalidateOfficialReportUseCase {
         id: true,
         officialReportId: true,
         sessionId: true,
-        nominationFiles: {
-          select: { nominationFileId: true },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: { status: true, nominationFiles: { select: { nominationFileId: true } } },
         },
       },
     });
@@ -202,8 +207,8 @@ export class InternalInvalidateOfficialReportUseCase {
     const output: InvalidateOfficialReportCommand[] = [];
 
     for (const agenda of agendasWithOfficialReport) {
-      const nominationFileIds = agenda.nominationFiles.flatMap(({ nominationFileId }) =>
-        isDefined(nominationFileId) ? [nominationFileId] : [],
+      const nominationFileIds = (agendaContentOf(agenda.versions)?.nominationFiles ?? []).flatMap(
+        ({ nominationFileId }) => (isDefined(nominationFileId) ? [nominationFileId] : []),
       );
 
       const { items } = await this.docsNominationFilesFinder.find({

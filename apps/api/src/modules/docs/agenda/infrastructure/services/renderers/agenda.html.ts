@@ -21,6 +21,7 @@ const html = oneLine;
 
 type AgendaRenderContextNominationFile = {
   id: bigint;
+  nominationFileId: string | null;
   number: number;
   name: string;
   currentPosition: string | null;
@@ -42,7 +43,7 @@ export type AgendaRenderContext = {
   };
   nominationFiles: readonly AgendaRenderContextNominationFile[];
   userDefinedBlocks: {
-    files: Map<bigint, { html: string; isOutdated: boolean }>;
+    files: Map<bigint, { html: string; isOutdated: boolean; editedAt: Date | null }>;
   };
 };
 
@@ -181,17 +182,22 @@ export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFil
   for (const file of ctx.nominationFiles) {
     const userDefined = ctx.userDefinedBlocks.files.get(file.id);
     const outdated = Boolean(userDefined?.isOutdated);
+    const edited = Boolean(userDefined?.html);
+
+    // every block carries the text the document proposes, so the editor can mark what the reader
+    // changes as they type, before anything is saved. An untouched block reads the same both ways.
+    const generatedHtml = displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true });
 
     yield {
       kind: 'file',
       weight: file.number,
       id: file.id,
-      html: displayFileContent({ root: ctx, file }),
-      edited: Boolean(userDefined?.html),
+      nominationFileId: file.nominationFileId,
+      html: edited ? displayFileContent({ root: ctx, file }) : generatedHtml,
+      edited,
+      editedAt: userDefined?.editedAt ?? null,
       outdated,
-      generatedHtml: outdated
-        ? displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true })
-        : undefined,
+      generatedHtml,
     };
   }
 }

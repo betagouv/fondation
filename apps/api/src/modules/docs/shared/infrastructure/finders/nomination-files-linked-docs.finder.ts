@@ -33,7 +33,12 @@ export class NominationFilesLinkedDocsFinder {
         agendaInclusions: {
           select: {
             outcome: true,
-            agenda: { select: { id: true, officialReportId: true, sessionMeetingDate: true } },
+            version: {
+              select: {
+                sessionMeetingDate: true,
+                agenda: { select: { id: true, officialReportId: true } },
+              },
+            },
           },
         },
         officialReportInclusions: {
@@ -49,11 +54,12 @@ export class NominationFilesLinkedDocsFinder {
     return new Map(
       nominationFiles.map((file) => {
         const byIds = new Map(file.officialReportInclusions.map((x) => [x.officialReportId, x] as const));
-        const docs = file.agendaInclusions.map(({ agenda, outcome }) => {
+        const docs = file.agendaInclusions.map(({ version, outcome }) => {
+          const { agenda } = version;
           const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
 
           return {
-            agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: agenda.sessionMeetingDate },
+            agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
             officialReport: inclusion
               ? {
                   id: inclusion.officialReportId,

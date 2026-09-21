@@ -7,7 +7,11 @@ import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 const AgendaBlockFileDtoSchema = z.object({
   kind: z.literal('file'),
   weight: z.number().int().gte(0),
+  /** the nomination file the block stands for: removing the block drops that proposition */
+  nominationFileId: z.string().nullable(),
   edited: z.boolean(),
+  /** when the block was last rewritten by hand */
+  editedAt: z.iso.datetime().nullable(),
   outdated: z.boolean(),
   generatedHtml: z.string().optional(),
   html: z.string(),
@@ -21,7 +25,13 @@ export class DetailsAgendaDocumentBlocksQuery {
   async handle(query: { agendaId: string }): Promise<DetailedAgendaDocumentBlocksDto> {
     const blocks = await this.agendaRenderer.blocks(query);
 
-    return { blocks: blocks.map((block) => ({ ...block, id: block.id.toString() })) };
+    return {
+      blocks: blocks.map((block) => ({
+        ...block,
+        id: block.id.toString(),
+        editedAt: block.editedAt?.toISOString() ?? null,
+      })),
+    };
   }
 }
 

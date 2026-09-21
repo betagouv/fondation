@@ -23,37 +23,28 @@ enum PrismaDocsFileOutcomeEnum {
   @@schema("docs")
 }
 
+enum PrismaDocVersionStatusEnum {
+  DRAFT
+  VALIDATED
+
+  @@map("doc_version_status_enum")
+  @@schema("docs")
+}
+
 // #region Agenda
 model Agenda {
   id                        String              @id @db.Uuid
   sessionId                 String              @map("session_id") @db.Uuid
   sessionName               String              @map("session_name")
   formation                 PrismaFormationEnum
-  sessionMeetingDate        DateTime            @map("session_meeting_date") @db.Date
-  date                      DateTime            @db.Date
   officialReportId          String?             @map("official_report_id") @db.Uuid
   justicePresentationPlanId String?             @map("justice_presentation_plan_id") @db.Uuid
-
-  chairmanId           String?              @map("chairman_id") @db.Uuid
-  chairmanFirstName    String               @map("chairman_first_name")
-  chairmanLastName     String               @map("chairman_last_name")
-  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
-  chairmanDisplayTitle String?              @map("chairman_display_title")
-  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
 
-  html             String?
-  outdated         Boolean @default(false) @map("html_outdated")
-  // computed value from all AgendaNominationFile.htmlEdited columns
-  isManuallyEdited Boolean @default(false) @map("is_manually_edited")
-  pdfFileId        String? @map("pdf_file_id") @db.Uuid
-
-  nominationFiles                        AgendaNominationFile[]
-  chairman                               User?                                   @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  versions                               AgendaVersion[]
   author                                 User?                                   @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_author")
-  pdf                                    File?                                   @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   officialReport                         OfficialReport?                         @relation(fields: [officialReportId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   justicePresentationPlan                JusticePresentationPlanToAgenda?
   justicePresentationPlanNominationFiles JusticePresentationPlanNominationFile[]
@@ -63,9 +54,48 @@ model Agenda {
   @@schema("docs")
 }
 
+model AgendaVersion {
+  id       String                     @id @db.Uuid
+  agendaId String                     @map("agenda_id") @db.Uuid
+  version  Int
+  status   PrismaDocVersionStatusEnum @default(DRAFT)
+
+  date               DateTime @db.Date
+  sessionMeetingDate DateTime @map("session_meeting_date") @db.Date
+
+  chairmanId           String?              @map("chairman_id") @db.Uuid
+  chairmanFirstName    String               @map("chairman_first_name")
+  chairmanLastName     String               @map("chairman_last_name")
+  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
+  chairmanDisplayTitle String?              @map("chairman_display_title")
+  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
+
+  html             String?
+  outdated         Boolean @default(false) @map("html_outdated")
+  // computed value from all AgendaNominationFile.htmlEdited columns
+  isManuallyEdited Boolean @default(false) @map("is_manually_edited")
+  pdfFileId        String? @map("pdf_file_id") @db.Uuid
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
+  validatedBy String?   @map("validated_by") @db.Uuid
+
+  nominationFiles AgendaNominationFile[]
+  agenda          Agenda                 @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman        User?                  @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  author          User?                  @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_author")
+  validator       User?                  @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_validator")
+  pdf             File?                  @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@unique([agendaId, version])
+  @@map("agenda_version")
+  @@schema("docs")
+}
+
 model AgendaNominationFile {
   id               BigInt  @id @default(autoincrement())
-  agendaId         String  @map("agenda_id") @db.Uuid
+  versionId        String  @map("version_id") @db.Uuid
   nominationFileId String? @map("nomination_file_id") @db.Uuid
 
   number           Int
@@ -78,13 +108,15 @@ model AgendaNominationFile {
   outcomeComment   String?                    @map("outcome_comment")
   reporters        String[]
 
-  htmlEdited   String? @map("html_edited")
-  htmlOutdated Boolean @default(false) @map("html_outdated")
+  htmlEdited   String?   @map("html_edited")
+  htmlOutdated Boolean   @default(false) @map("html_outdated")
+  // when the block was last rewritten by hand, untouched by the upstream data changes
+  htmlEditedAt DateTime? @map("html_edited_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  agenda         Agenda               @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  version        AgendaVersion        @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@map("agenda_nomination_file")

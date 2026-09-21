@@ -1018,11 +1018,17 @@ export type FoundSessionDocsDto = {
         name: string;
         officialReportId: string | null;
         outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        hasDraft: boolean;
+        createdAt: string;
+        validatedAt: string | null;
     } | {
         type: 'officialReport';
         id: string;
         name: string;
         outdated: boolean;
+        createdAt: string;
+        validatedAt: string | null;
     }>;
 };
 
@@ -1130,6 +1136,8 @@ export type DetailedSessionAgenda = {
 
 export type DetailedAgendaMetadata = {
     id: string;
+    status: 'DRAFT' | 'VALIDATED';
+    hasValidatedVersion: boolean;
     chairmanId: string | null;
     isManuallyEdited: boolean;
     date: {
@@ -1152,7 +1160,9 @@ export type DetailedAgendaDocumentBlocksDto = {
     blocks: Array<{
         kind: 'file';
         weight: number;
+        nominationFileId: string | null;
         edited: boolean;
+        editedAt: string | null;
         outdated: boolean;
         generatedHtml?: string;
         html: string;
@@ -3332,6 +3342,36 @@ export type EditAgendaFileBlockResponses = {
 };
 
 export type EditAgendaFileBlockResponse = EditAgendaFileBlockResponses[keyof EditAgendaFileBlockResponses];
+
+export type ValidateAgendaData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/validation';
+};
+
+export type ValidateAgendaResponses = {
+    204: void;
+};
+
+export type ValidateAgendaResponse = ValidateAgendaResponses[keyof ValidateAgendaResponses];
+
+export type DiscardAgendaDraftData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/draft';
+};
+
+export type DiscardAgendaDraftResponses = {
+    204: void;
+};
+
+export type DiscardAgendaDraftResponse = DiscardAgendaDraftResponses[keyof DiscardAgendaDraftResponses];
 
 export type ResetAgendaDocumentData = {
     body?: never;

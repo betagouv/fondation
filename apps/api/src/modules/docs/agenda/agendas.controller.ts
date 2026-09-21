@@ -179,6 +179,20 @@ export class AgendasController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Post('/agendas/:agendaId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  validateAgenda(@AuthedUser() authUser: { id: string }, @Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.validateAgenda({ agendaId, authorId: authUser.id });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/draft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  discardAgendaDraft(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.discardAgendaDraft({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/agendas/:agendaId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetAgendaDocument(@Param('agendaId') agendaId: string): Promise<void> {

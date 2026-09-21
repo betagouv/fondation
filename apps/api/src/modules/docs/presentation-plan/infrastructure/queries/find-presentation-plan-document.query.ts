@@ -6,6 +6,7 @@ import {
   PresentationPlanRenderContext,
   PresentationPlanRenderer,
 } from '../services/renderers/presentation-plan.renderer';
+import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
@@ -62,14 +63,19 @@ export class FindPresentationPlanDocumentQuery {
             comment: true,
             agenda: {
               select: {
-                date: true,
                 formation: true,
                 sessionId: true,
                 sessionName: true,
-                sessionMeetingDate: true,
-                chairmanId: true,
-                chairmanFirstName: true,
-                chairmanLastName: true,
+                versions: {
+                  take: 2,
+                  orderBy: { version: 'desc' },
+                  select: {
+                    chairmanFirstName: true,
+                    chairmanId: true,
+                    chairmanLastName: true,
+                    status: true,
+                  },
+                },
               },
             },
           },
@@ -94,10 +100,10 @@ export class FindPresentationPlanDocumentQuery {
         );
         const { sessionId, sessionName, formation } = agenda;
 
-        const agendas = Map.groupBy(
-          sessionAgendas,
-          ({ agenda }) => agenda.chairmanId || `${agenda.chairmanFirstName}|${agenda.chairmanLastName}`,
-        )
+        const agendas = Map.groupBy(sessionAgendas, ({ agenda }) => {
+          const { chairmanFirstName, chairmanId, chairmanLastName } = chairmanOf(agenda);
+          return chairmanId || `${chairmanFirstName}|${chairmanLastName}`;
+        })
           .values()
           .map((group) => {
             const agendaIds = new Set(group.map((a) => a.agendaId));
@@ -110,7 +116,7 @@ export class FindPresentationPlanDocumentQuery {
               group.find(({ agenda }) => isDefined(agenda)),
               `unknown agenda`,
             );
-            const { chairmanFirstName, chairmanLastName } = assertIsDefined(firstAgenda, 'unknown agenda');
+            const { chairmanFirstName, chairmanLastName } = chairmanOf(firstAgenda);
 
             return {
               nominationFiles,
@@ -149,4 +155,15 @@ export class FindPresentationPlanDocumentQuery {
 
     return html;
   }
+}
+
+function chairmanOf(agenda: {
+  versions: {
+    chairmanFirstName: string;
+    chairmanId: string | null;
+    chairmanLastName: string;
+    status: 'DRAFT' | 'VALIDATED';
+  }[];
+}) {
+  return assertIsDefined(agendaContentOf(agenda.versions), 'unknown agenda version');
 }

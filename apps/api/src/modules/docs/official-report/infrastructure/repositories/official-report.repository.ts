@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   OfficialReport,
@@ -81,7 +82,17 @@ export class OfficialReportRepository {
         validatedAt: true,
 
         agendas: {
-          select: { id: true, formation: true, officialReportId: true, sessionId: true, date: true },
+          select: {
+            id: true,
+            formation: true,
+            officialReportId: true,
+            sessionId: true,
+            versions: {
+              take: 2,
+              orderBy: { version: 'desc' },
+              select: { date: true, status: true },
+            },
+          },
           take: 1,
         },
 
@@ -121,6 +132,12 @@ export class OfficialReportRepository {
       officialReport.agendas[0],
       `Official Report "${query.id}" has no agenda`,
     );
+    // the report speaks of the agenda as it was validated, and of its draft only while the agenda
+    // has never been validated, which is the one case where nothing else exists to speak of
+    const agendaDate = assertIsDefined(
+      agendaContentOf(rawAgenda.versions)?.date,
+      `Official Report "${query.id}" has no agenda version`,
+    );
 
     const { date } = await this.sessions.details({
       formation: undefined,
@@ -132,7 +149,7 @@ export class OfficialReportRepository {
       agenda: {
         id: rawAgenda.id,
         officialReportId: rawAgenda.officialReportId,
-        date: DateOnly.fromUtcDate(rawAgenda.date),
+        date: DateOnly.fromUtcDate(agendaDate),
         formation: prismaFormationEnumToFormationEnum(rawAgenda.formation),
         session: { id: rawAgenda.sessionId, date: DateOnly.fromJson(date) },
       },
@@ -430,18 +447,29 @@ export class OfficialReportRepository {
       },
       select: {
         sessionId: true,
-        nominationFiles: {
-          select: { nominationFileId: true },
-          where: { nominationFileId: { not: null } },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: {
+              select: { nominationFileId: true },
+              where: { nominationFileId: { not: null } },
+            },
+          },
         },
       },
     });
 
     if (!agenda) return [];
 
+    const published = agendaContentOf(agenda.versions);
+    if (!published) return [];
+
     return this.resolveNominationFiles({
       sessionId: agenda.sessionId,
-      ids: agenda.nominationFiles.flatMap((file) => (file.nominationFileId ? [file.nominationFileId] : [])),
+      ids: published.nominationFiles.flatMap((file) =>
+        file.nominationFileId ? [file.nominationFileId] : [],
+      ),
     });
   }
 

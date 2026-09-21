@@ -8,6 +8,7 @@ import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';
 import { OnAgendaInvalidatedEventHandler } from './agenda/infrastructure/events/on-agenda-invalidated.event-handler';
 import { AgendaRenderContextFinder } from './agenda/infrastructure/finders/agenda-render-context.finder';
+import { AgendaVersionFinder } from './agenda/infrastructure/finders/agenda-version.finder';
 import { DetailsAgendaDocumentBlocksQuery } from './agenda/infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailsAgendaFilesQuery } from './agenda/infrastructure/queries/details-agenda-files.query';
 import { DetailsAgendaMetadataQuery } from './agenda/infrastructure/queries/details-agenda-metadata.query';
@@ -56,6 +57,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
   providers: [
     AgendaFinder,
     AgendaRenderContextFinder,
+    AgendaVersionFinder,
     AgendaRenderer,
     AgendaRepository,
     AgendasService,

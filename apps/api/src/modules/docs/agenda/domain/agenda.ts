@@ -39,6 +39,22 @@ export class AgendaDeleted {
   constructor(readonly agendaId: Id<'AgendaId'>) {}
 }
 
+export class AgendaDraftOpened {
+  constructor(readonly agendaId: Id<'AgendaId'>) {}
+}
+
+export class AgendaValidated {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly validatedAt: Date,
+    readonly validatedBy: Id<'AuthorId'>,
+  ) {}
+}
+
+export class AgendaDraftDiscarded {
+  constructor(readonly agendaId: Id<'AgendaId'>) {}
+}
+
 export class AgendaMetadataUpdated {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
@@ -59,14 +75,18 @@ export class AgendaFilesUpdated {
 export class AgendaFilesReportersUpdated {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
-    readonly files: readonly { id: bigint; reporters: readonly string[]; isOutdated: boolean }[],
+    readonly files: readonly {
+      isOutdated: boolean;
+      nominationFileId: string;
+      reporters: readonly string[];
+    }[],
   ) {}
 }
 
 export class AgendaFileBlockEdited {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
-    readonly fileId: bigint,
+    readonly nominationFileId: string,
     readonly html: string,
     readonly outdated: boolean,
   ) {}
@@ -75,7 +95,7 @@ export class AgendaFileBlockEdited {
 export class AgendaFileBlockReset {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
-    readonly fileId: bigint,
+    readonly nominationFileId: string,
   ) {}
 }
 
@@ -84,11 +104,20 @@ export type AgendaEvent =
   | AgendaMetadataUpdated
   | AgendaFilesUpdated
   | AgendaDeleted
+  | AgendaDraftOpened
+  | AgendaValidated
+  | AgendaDraftDiscarded
   | AgendaFileBlockEdited
   | AgendaFileBlockReset
   | AgendaFilesReportersUpdated;
 
 export class EmptyAgenda extends Error {}
+
+export class AgendaAlreadyValidated extends Error {}
+
+export class AgendaWithoutValidatedVersion extends Error {}
+
+export class UnknownAgendaFileBlock extends Error {}
 
 export class AgendaFilesAlreadyReported extends Error {
   constructor(readonly fileIds: readonly string[]) {
@@ -98,13 +127,17 @@ export class AgendaFilesAlreadyReported extends Error {
 
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
+  #isValidated: boolean;
 
   private constructor(
     readonly id: Id<'AgendaId'>,
     readonly sessionId: Id<'SessionId'>,
     readonly officialReportId: Id<'OfficialReportId'> | null,
+    isValidated: boolean,
     private readonly snapshot?: AgendaSnapshot,
-  ) {}
+  ) {
+    this.#isValidated = isValidated;
+  }
 
   get messages(): readonly AgendaEvent[] {
     return this.#messages;
@@ -114,9 +147,39 @@ export class Agenda {
     id: Id<'AgendaId'>;
     sessionId: Id<'SessionId'>;
     officialReportId: Id<'OfficialReportId'> | null;
+    isValidated?: boolean;
     snapshot?: AgendaSnapshot;
   }): Agenda {
-    return new Agenda(props.id, props.sessionId, props.officialReportId, props.snapshot);
+    return new Agenda(
+      props.id,
+      props.sessionId,
+      props.officialReportId,
+      props.isValidated ?? false,
+      props.snapshot,
+    );
+  }
+
+  /** a validated version never changes: editing it forks the draft everything is then written into */
+  private openDraft(): void {
+    if (!this.#isValidated) return;
+
+    this.#messages.push(new AgendaDraftOpened(this.id));
+    this.#isValidated = false;
+  }
+
+  validate(command: { at: Date; authorId: string }): void {
+    if (this.#isValidated) throw new AgendaAlreadyValidated();
+
+    this.#messages.push(new AgendaValidated(this.id, command.at, makeId('AuthorId', command.authorId)));
+    this.#isValidated = true;
+  }
+
+  discardDraft(command: { hasValidatedVersion: boolean }): void {
+    if (this.#isValidated) return;
+    if (!command.hasValidatedVersion) throw new AgendaWithoutValidatedVersion();
+
+    this.#messages.push(new AgendaDraftDiscarded(this.id));
+    this.#isValidated = true;
   }
 
   updateMetadata(command: {
@@ -127,6 +190,7 @@ export class Agenda {
   }): AgendaMetadataDiff {
     const diff = assertIsDefined(this.snapshot).diffMetadata(command);
     if (diff.hasAny) {
+      this.openDraft();
       this.#messages.push(
         new AgendaMetadataUpdated(this.id, makeId('AuthorId', command.authorId), diff.metadata),
       );
@@ -153,6 +217,7 @@ export class Agenda {
     );
     if (alreadyPresented.length > 0) throw new AgendaFilesAlreadyReported(alreadyPresented);
 
+    this.openDraft();
     this.#messages.push(
       new AgendaFilesUpdated(this.id, makeId('AuthorId', command.authorId), this.sessionId, diff),
     );
@@ -167,6 +232,7 @@ export class Agenda {
 
     const diff = assertIsDefined(this.snapshot).diffReporters(command);
     if (diff.hasAny) {
+      this.openDraft();
       this.#messages.push(new AgendaFilesReportersUpdated(this.id, diff.updated));
     }
   }
@@ -176,11 +242,24 @@ export class Agenda {
   }
 
   editFileBlock(command: { fileId: bigint; html: string; outdated: boolean }): void {
-    this.#messages.push(new AgendaFileBlockEdited(this.id, command.fileId, command.html, command.outdated));
+    const nominationFileId = this.blockProposition(command);
+
+    this.openDraft();
+    this.#messages.push(new AgendaFileBlockEdited(this.id, nominationFileId, command.html, command.outdated));
   }
 
   resetFileBlock(command: { fileId: bigint }): void {
-    this.#messages.push(new AgendaFileBlockReset(this.id, command.fileId));
+    const nominationFileId = this.blockProposition(command);
+
+    this.openDraft();
+    this.#messages.push(new AgendaFileBlockReset(this.id, nominationFileId));
+  }
+
+  private blockProposition(command: { fileId: bigint }): string {
+    const nominationFileId = assertIsDefined(this.snapshot).nominationFileIdOf(command.fileId);
+    if (!nominationFileId) throw new UnknownAgendaFileBlock();
+
+    return nominationFileId;
   }
 
   static create(props: {
