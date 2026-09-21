@@ -22,10 +22,16 @@ export function groupSessionDocuments(docs: readonly SessionDocument[]): Session
   );
 }
 
-export function sessionDocumentGroupState(group: readonly SessionDocument[]): SessionDocumentGroupState {
+export function sessionDocumentGroupState(
+  group: readonly SessionDocument[],
+): SessionDocumentGroupState | null {
   const officialReport = group.find((doc) => doc.type === 'officialReport');
 
-  if (!officialReport) return 'awaitingOfficialReport';
+  if (!officialReport) {
+    // the server does let a draft be reported on, we just do not ask for it before it is finished
+    const agenda = group.find((doc) => doc.type === 'agenda');
+    return agenda?.status === 'DRAFT' ? null : 'awaitingOfficialReport';
+  }
 
   return officialReport.outdated ? 'outdatedOfficialReport' : 'upToDate';
 }
@@ -49,11 +55,11 @@ export function sessionDocumentStates(
       const groupState = sessionDocumentGroupState(group);
 
       const officialReport = group.find((doc) => doc.type === 'officialReport');
-      if (officialReport) {
+      if (officialReport && groupState) {
         groupStateByItemIdEntries.push([officialReport.id, groupState]);
       }
 
-      if (groupStateByItemIdEntries.length === 0) {
+      if (groupStateByItemIdEntries.length === 0 && groupState) {
         const [firstDoc] = group;
         groupStateByItemIdEntries.push([firstDoc.id, groupState]);
       }

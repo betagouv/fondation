@@ -60,10 +60,12 @@ export function DocActionDetails(props: {
       .finally(onSettled);
   }, [sessionId, doc, formatMessage, setIsActing, onFailure, onSettled, openAgenda, openOfficialReport, tab]);
 
+  const hasNoValidatedDocument = !doc.validatedAt;
+
   return (
     <Button
       className="fr-btn--align-on-content grow truncate text-left"
-      disabled={isOpeningAgenda || isOpeningOfficialReport || disabled}
+      disabled={hasNoValidatedDocument || isOpeningAgenda || isOpeningOfficialReport || disabled}
       onClick={onClick}
       priority="tertiary no outline"
       size="small"

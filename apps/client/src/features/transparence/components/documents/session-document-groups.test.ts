@@ -77,8 +77,8 @@ describe('sessionDocumentGroupState', () => {
     expect(sessionDocumentGroupState([AGENDA_SANS_PV])).toBe('awaitingOfficialReport');
   });
 
-  it('should await an official report from an agenda that has never been validated', () => {
-    expect(sessionDocumentGroupState([AGENDA_BROUILLON])).toBe('awaitingOfficialReport');
+  it('should await nothing from an agenda that has never been validated', () => {
+    expect(sessionDocumentGroupState([AGENDA_BROUILLON])).toBeNull();
   });
 
   it('should ask to check an outdated official report', () => {

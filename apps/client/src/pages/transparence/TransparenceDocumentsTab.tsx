@@ -51,7 +51,7 @@ export function TransparenceDocumentsTab() {
     const groupState = sessionDocumentGroupState(group);
 
     return (
-      (states.length === 0 || states.includes(groupState)) &&
+      (states.length === 0 || (!!groupState && states.includes(groupState))) &&
       (!search || group.some((doc) => matchesSearch(doc.name, search)))
     );
   });

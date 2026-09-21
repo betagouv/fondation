@@ -133,7 +133,7 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
   return (
     <div className="flex flex-wrap items-center gap-1">
       {association && <AssociationLink association={association} doc={doc} />}
-      {doc.type === 'agenda' && doc.status === 'DRAFT' && (
+      {!doc.validatedAt && (
         <Badge as="span" className="rounded-full" noIcon severity="new" small>
           <FormattedMessage defaultMessage="brouillon" />
         </Badge>

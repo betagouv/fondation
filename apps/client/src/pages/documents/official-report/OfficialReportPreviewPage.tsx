@@ -2,16 +2,15 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { generatePath, useNavigate, useParams } from 'react-router';
+import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { OfficialReportDocumentEditor } from '@/features/documents/components/official-report/editor/OfficialReportDocumentEditor';
+import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useOfficialReportDocumentQuery, useValidateOfficialReportMutation } from '@queries/agenda.queries';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function OfficialReportPreviewPage() {
   const navigate = useNavigate();
@@ -22,7 +21,6 @@ export function OfficialReportPreviewPage() {
     sessionId: string;
   }>();
 
-  const { data: session } = useDetailedNominationSessionQuery({ sessionId });
   const { data: document, isFetchedAfterMount } = useOfficialReportDocumentQuery({
     id: officialReportId,
   });
@@ -40,7 +38,6 @@ export function OfficialReportPreviewPage() {
       actions={
         <>
           <Button
-            iconId="ri-edit-fill"
             linkProps={{
               to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
                 officialReportId: officialReportId!,
@@ -49,7 +46,7 @@ export function OfficialReportPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Métadonnées" />
+            <FormattedMessage defaultMessage="Modifier les données" />
           </Button>
           <Button
             className={clsx({ 'after:animate-spin': validate.isPending })}
@@ -66,30 +63,22 @@ export function OfficialReportPreviewPage() {
           </Button>
         </>
       }
-      breadcrumb={
-        <Breadcrumb
-          id="breadcrumb"
-          ariaLabel="fil d'Ariane"
-          breadcrumb={{
-            currentPageLabel: 'Validation du PV',
-            segments: [
-              { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-              { label: 'Gérer une session', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
-              {
-                label: session?.name || 'Session',
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
-              },
-            ],
-          }}
-        />
+      backLink={
+        <Link
+          className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
+          to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
+        >
+          <FormattedMessage defaultMessage="Fermer" />
+        </Link>
       }
+      breadcrumb={<OfficialReportBreadCrumb />}
       notices={
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
             {hasPendingRevalidation && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
                 message={
                   <FormattedMessage defaultMessage="Certains dossiers ont changé d'issue ou de rapporteurs et doivent être validés" />
@@ -101,7 +90,7 @@ export function OfficialReportPreviewPage() {
           <div role="alert">
             {validate.isError && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
                 message={describeFailure(validate.error)}
                 tone="error"
@@ -111,6 +100,7 @@ export function OfficialReportPreviewPage() {
         </>
       }
       title={<FormattedMessage defaultMessage="PV de restitution" />}
+      tone="alt"
     >
       {!isFetchedAfterMount || !officialReportId || !document ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
