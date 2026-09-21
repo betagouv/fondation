@@ -284,10 +284,10 @@ export const router = sentryCreateBrowserRouter([
               ),
           },
           {
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_RENDER,
+            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
             lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportRenderPage').then(
-                ({ OfficialReportRenderPage }) => ({ Component: OfficialReportRenderPage }),
+              import('@/pages/documents/official-report/OfficialReportEditPage').then(
+                ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
               ),
           },
           {

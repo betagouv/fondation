@@ -137,8 +137,6 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
   });
 
 const htmlMutationKeys = {
-  agendaHtml: ['docs', 'updateAgendaHtml'] as const,
-  officialReportHtml: ['docs', 'updateOfficialReportHtml'] as const,
   presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
 };
 
@@ -275,17 +273,6 @@ export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: strin
         .then(({ data = null }) => data),
   });
 
-export function useResetAgendaDocumentMutation(agendaId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => $api.docs.resetAgendaDocument({ path: { agendaId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
-      queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
-    },
-  });
-}
-
 export function useDeleteAgenda(sessionId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -416,18 +403,28 @@ export function useValidateOfficialReportMutation(mutation: {
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listSessionNominationFiles({ sessionId: mutation.sessionId }),
       });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+
       mutation.onSuccess?.();
     },
   });
 }
 
-export function useResetOfficialReportDocumentMutation(sessionId: string, officialReportId: string) {
+export function useDiscardOfficialReportDraftMutation(mutation: {
+  officialReportId: string;
+  onSuccess?: () => unknown;
+  sessionId: string;
+}) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.resetOfficialReportDocument({ path: { officialReportId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+    mutationFn: () =>
+      $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+
+      mutation.onSuccess?.();
     },
   });
 }

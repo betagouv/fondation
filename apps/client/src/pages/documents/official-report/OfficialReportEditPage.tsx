@@ -5,13 +5,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
-import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
-import {
-  AgendaDocumentEditor,
-  type AgendaDocumentEditorHandle,
-} from '@/features/documents/components/agenda/editor';
-import { AgendaEmptied } from '@/features/documents/components/agenda/editor/blocks/agenda-blocks.model';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
+import {
+  OfficialReportDocumentEditor,
+  type OfficialReportDocumentEditorHandle,
+} from '@/features/documents/components/official-report/editor';
+import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { AlertBanner } from '@/shared/ui/alert-banner';
@@ -19,28 +18,28 @@ import { useToasts } from '@/shared/ui/toast';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
-  agendaKeys,
-  useAgendaDocumentBlocksQuery,
-  useDetailsAgendaMetadataQuery,
+  officialReportKeys,
+  useDetailsOfficialReportQuery,
+  useOfficialReportDocumentQuery,
 } from '@queries/agenda.queries';
 
-export function AgendaEditPage() {
+export function OfficialReportEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toasts = useToasts();
   const { formatMessage } = useIntl();
   const describeFailure = useDocumentFailure();
-  const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
+  const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
-  const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
+  const { data: document, isFetchedAfterMount } = useOfficialReportDocumentQuery({ id: officialReportId });
+  const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
 
   const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
 
-  const editorRef = useRef<AgendaDocumentEditorHandle>(null);
+  const editorRef = useRef<OfficialReportDocumentEditorHandle>(null);
   const rebuildEditorOnStoredBlocks = useCallback(() => setEditorKey(crypto.randomUUID()), []);
 
   const save = useCallback(async () => {
@@ -51,8 +50,7 @@ export function AgendaEditPage() {
 
       // the blocks are read again so the "modifié par vous" mention carries the stored date, and
       // the rendered document with them: the server dropped the one it had stored
-      await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
-      await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId!) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(officialReportId!) });
       rebuildEditorOnStoredBlocks();
 
       // saving leaves the reader on the page, so nothing else would tell them it worked
@@ -61,8 +59,8 @@ export function AgendaEditPage() {
           label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
           onClick: () =>
             navigate(
-              generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
-                agendaId: agendaId!,
+              generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+                officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),
             ),
@@ -70,9 +68,7 @@ export function AgendaEditPage() {
         title: formatMessage({ defaultMessage: 'Vos modifications ont bien été enregistrées.' }),
       });
     } catch (error) {
-      if (error instanceof AgendaEmptied) throw error;
-
-      // the server explains a refused agenda far better than any message written here
+      // the server explains a refused report far better than any message written here
       const refusal = error instanceof HttpException ? await error.response.json().catch(() => null) : null;
       setSaveError(refusal?.validationError ?? describeFailure(error));
 
@@ -81,10 +77,10 @@ export function AgendaEditPage() {
       setIsSaving(false);
     }
   }, [
-    agendaId,
     describeFailure,
     formatMessage,
     navigate,
+    officialReportId,
     queryClient,
     rebuildEditorOnStoredBlocks,
     sessionId,
@@ -116,7 +112,7 @@ export function AgendaEditPage() {
           </Button>
         </>
       }
-      breadcrumb={<AgendaBreadCrumb />}
+      breadcrumb={<OfficialReportBreadCrumb />}
       notices={
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
@@ -147,16 +143,16 @@ export function AgendaEditPage() {
           </div>
         </>
       }
-      title={<FormattedMessage defaultMessage="Texte de l'ordre du jour" />}
+      title={<FormattedMessage defaultMessage="Texte du PV de restitution" />}
     >
-      {!isFetchedAfterMount || !agendaId || !document ? (
+      {!isFetchedAfterMount || !officialReportId || !document ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
       ) : (
-        <AgendaDocumentEditor
-          agendaId={agendaId}
+        <OfficialReportDocumentEditor
           blocks={document.blocks}
           handleRef={editorRef}
           key={editorKey}
+          officialReportId={officialReportId}
           onDirtyChange={setDirty}
           onPendingRevalidationChange={setHasPendingRevalidation}
           sessionId={sessionId!}

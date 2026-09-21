@@ -17,6 +17,10 @@ export function OfficialReportBreadCrumb() {
       return formatMessage({ defaultMessage: `Mise à jour d'un PV` });
     }
 
+    if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT }, pathname)) {
+      return formatMessage({ defaultMessage: `Texte d'un PV` });
+    }
+
     if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW }, pathname)) {
       return formatMessage({ defaultMessage: `Validation d'un PV` });
     }

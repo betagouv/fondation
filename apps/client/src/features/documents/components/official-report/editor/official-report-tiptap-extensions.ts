@@ -10,10 +10,19 @@ import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
+import { changedWords } from '@/features/documents/components/blocks/changed-words';
+
 import type { OfficialReportBlocksModel } from './blocks/official-report-blocks.model';
-import { OfficialReportConclusionBlockNode } from './blocks/OfficialReportConclusionBlock';
-import { OfficialReportFileBlockNode, OfficialReportFileListNode } from './blocks/OfficialReportFileBlock';
-import { OfficialReportIntroBlockNode } from './blocks/OfficialReportIntroBlock';
+import {
+  OfficialReportConclusionBlock,
+  OfficialReportConclusionBlockNode,
+} from './blocks/OfficialReportConclusionBlock';
+import {
+  OfficialReportFileBlock,
+  OfficialReportFileBlockNode,
+  OfficialReportFileListNode,
+} from './blocks/OfficialReportFileBlock';
+import { OfficialReportIntroBlock, OfficialReportIntroBlockNode } from './blocks/OfficialReportIntroBlock';
 import { OfficialReportSectionIntroBlockNode } from './blocks/OfficialReportSectionIntroBlock';
 import { OfficialReportSectionTitleBlockNode } from './blocks/OfficialReportSectionTitleBlock';
 
@@ -44,10 +53,10 @@ const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlo
 
 /**
  * Undo/redo restore the block content *and* its `outdated` attribute (tracked by
- * prosemirror-history). `onHistory` lets the model re-persist the restored state so the
+ * prosemirror-history). `onHistory` lets the model restage the restored state so the
  * backend `outdated` flag follows the editor.
  */
-const OfficialReportUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => Promise<void>) | null }>({
+const OfficialReportUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) | null }>({
   addOptions() {
     return { ...this.parent?.(), onHistory: null };
   },
@@ -81,6 +90,14 @@ export function buildOfficialReportExtensions(model: OfficialReportBlocksModel):
     BulletList,
     ListItem,
     OrderedList,
+    changedWords({
+      blocks: [
+        OfficialReportIntroBlock.name,
+        OfficialReportFileBlock.name,
+        OfficialReportConclusionBlock.name,
+      ],
+      name: 'officialReportChangedWords',
+    }),
     OfficialReportModelExtension.configure({ model }),
     OfficialReportUndoRedo.configure({ onHistory: (editor) => model.onEditorUpdate(editor) }),
     OfficialReportIntroBlockNode,

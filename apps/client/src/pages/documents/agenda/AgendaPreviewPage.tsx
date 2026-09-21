@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
+import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
@@ -15,8 +16,6 @@ import {
   useDiscardAgendaDraftMutation,
   useValidateAgendaMutation,
 } from '@queries/agenda.queries';
-
-import { AgendaDraftBanner } from './AgendaDraftBanner';
 
 export function AgendaPreviewPage() {
   const navigate = useNavigate();
@@ -120,7 +119,7 @@ export function AgendaPreviewPage() {
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
-            {isDraft && <AgendaDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />}
+            {isDraft && <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />}
           </div>
           <div role="alert">
             {(validate.isError || discardDraft.isError) && (

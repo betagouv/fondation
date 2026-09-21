@@ -12,13 +12,15 @@ import { OfficialReportSectionTitleBlock } from '../blocks/OfficialReportSection
 import { buildOfficialReportExtensions } from '../official-report-tiptap-extensions';
 import { assertNever } from '@/utils/types.util';
 
-export function useOfficialReportEditor(model: OfficialReportBlocksModel): Editor {
+export function useOfficialReportEditor(model: OfficialReportBlocksModel) {
   const extensions = useMemo(() => buildOfficialReportExtensions(model), [model]);
 
   const content = modelToDoc(model, extensions);
+  // short enough for the save button to light up as the reader stops typing, long enough
+  // to spare a diff of every block on each keystroke. Nothing reaches the server here.
   const onUpdate = useDebouncedCallback(
     ({ editor }: { editor: Editor }) => model.onEditorUpdate(editor),
-    600,
+    200,
   );
 
   useEffect(
@@ -28,12 +30,14 @@ export function useOfficialReportEditor(model: OfficialReportBlocksModel): Edito
     [onUpdate],
   );
 
-  return useEditor({
+  const editor = useEditor({
     extensions,
     content,
     onUpdate,
     onCreate: ({ editor }) => model.withEditor(editor),
   });
+
+  return { editor, flushUpdates: () => onUpdate.flush() };
 }
 
 function modelToDoc(

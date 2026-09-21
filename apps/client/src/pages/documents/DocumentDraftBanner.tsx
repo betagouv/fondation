@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { AlertBanner } from '@/shared/ui/alert-banner';
 
-export function AgendaDraftBanner(props: { hasValidatedVersion: boolean }) {
+export function DocumentDraftBanner(props: { hasValidatedVersion: boolean }) {
   return (
     <AlertBanner
       className="justify-center px-4 py-3"
