@@ -169,8 +169,18 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/official-reports/:officialReportId/validation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  validateOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
-    return this.officialReports.validateOfficialReport({ id: officialReportId });
+  validateOfficialReport(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<void> {
+    return this.officialReports.validateOfficialReport({ id: officialReportId, authorId: authUser.id });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/official-reports/:officialReportId/draft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  discardOfficialReportDraft(@Param('officialReportId') officialReportId: string): Promise<void> {
+    return this.officialReports.discardOfficialReportDraft({ id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

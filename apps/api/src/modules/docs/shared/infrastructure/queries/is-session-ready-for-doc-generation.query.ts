@@ -86,7 +86,7 @@ export class IsSessionReadyForDocGenerationQuery {
           outcome: { in: NominationFileOutcome.finalOutcomes() },
           officialReportInclusions: {
             some: {
-              officialReport: { validatedAt: { not: null } },
+              version: { validatedAt: { not: null } },
               outcome: { in: Object.values(FinalDocNominationFileOutcomeEnum) },
             },
           },

@@ -338,4 +338,223 @@ test.describe('Docs Service', () => {
     const pdf = await agent.docs.generateAgendaPdf({ path: { agendaId } });
     expect(pdf.response?.status).toBe(200);
   });
+
+  test('should keep an official report edition made after a validation, and undo it when discarded', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    // a report is only ever made from an agenda whose files are all decided and reported on
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        nominationFileIds,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    expect(agenda.response?.status).toBe(201);
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+
+    const created = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agenda.data!.id],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(created.response?.status).toBe(201);
+    const officialReportId = created.data!.id;
+
+    const validated = await agent.docs.validateOfficialReport({ path: { officialReportId } });
+    expect(validated.response?.status).toBe(204);
+
+    const beforeEdition = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(beforeEdition.data).toMatchObject({ hasValidatedVersion: true, status: 'VALIDATED' });
+
+    // the edition forks a draft whose rows are brand new, and it has to land there all the same
+    const edited = await agent.docs.editOfficialReportIntro({
+      path: { officialReportId },
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+    });
+    expect(edited.response?.status).toBe(204);
+
+    const afterEdition = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(afterEdition.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+
+    const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
+    expect(discarded.response?.status).toBe(204);
+
+    const afterDiscard = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(afterDiscard.data).toMatchObject({ hasValidatedVersion: true, status: 'VALIDATED' });
+  });
+
+  test('should take a block written by hand in the agenda, and say the agenda wrote it', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        nominationFileIds,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    const agendaId = agenda.data!.id;
+
+    const agendaBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [firstBlock] = agendaBlocks.data!.blocks;
+
+    const html = `<strong>MME HANNAH ARENDT</strong>, réécrite à la main dans l'ordre du jour.`;
+    const editedBlock = await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: firstBlock!.id },
+      body: { html, outdated: false },
+    });
+    expect(editedBlock.response?.status).toBe(204);
+
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const created = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agendaId],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(created.response?.status).toBe(201);
+
+    const reportBlocks = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId: created.data!.id },
+    });
+    const carried = reportBlocks
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+
+    expect(carried).toMatchObject({ edited: true, fromAgenda: true, html });
+    expect(carried!.editedAt).not.toBeNull();
+
+    const rewritten = `<p>${html} Complété dans le PV.</p>`;
+    await agent.docs.editOfficialReportFile({
+      path: { officialReportId: created.data!.id, nominationFileId: firstBlock!.nominationFileId! },
+      body: { html: rewritten, outdated: false },
+    });
+
+    const afterEdition = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId: created.data!.id },
+    });
+    const own = afterEdition
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+
+    expect(own).toMatchObject({ edited: true, fromAgenda: false, html: rewritten });
+    expect(own!.editedAt).not.toBeNull();
+
+    // the agenda is corrected afterwards. Its draft says nothing to the report, its validation does
+    const later = `<strong>MME HANNAH ARENDT</strong>, corrigée dans l'ordre du jour après coup.`;
+    await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: firstBlock!.id },
+      body: { html: later, outdated: false },
+    });
+
+    const whileAgendaDrafts = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId: created.data!.id },
+    });
+    const untouched = whileAgendaDrafts
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+
+    expect(untouched).toMatchObject({ outdated: false, generatedHtml: html });
+
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const afterAgendaMovedOn = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId: created.data!.id },
+    });
+    const warned = afterAgendaMovedOn
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+
+    expect(warned).toMatchObject({ html: rewritten, outdated: true, generatedHtml: later });
+
+    await agent.docs.resetOfficialReportFile({
+      path: { officialReportId: created.data!.id, nominationFileId: firstBlock!.nominationFileId! },
+    });
+
+    const afterAccepting = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId: created.data!.id },
+    });
+    const accepted = afterAccepting
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+
+    expect(accepted).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
+  });
 });

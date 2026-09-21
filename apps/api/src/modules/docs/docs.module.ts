@@ -21,6 +21,7 @@ import { InvalidateAgendasUseCase } from './agenda/infrastructure/use-cases/inva
 import { DocsService } from './docs.service';
 import { OnOfficialReportInvalidatedEventHandler } from './official-report/infrastructure/events/on-official-report-invalidated.event-handler';
 import { OfficialReportRenderContextFinder } from './official-report/infrastructure/finders/official-report-render-context.finder';
+import { OfficialReportVersionFinder } from './official-report/infrastructure/finders/official-report-version.finder';
 import { DetailsOfficialReportDocumentQuery } from './official-report/infrastructure/queries/details-official-report-document.query';
 import { DetailsOfficialReportQuery } from './official-report/infrastructure/queries/details-official-report.query';
 import { DetailsSessionOfficialReportQuery } from './official-report/infrastructure/queries/details-session-official-report.query';
@@ -81,6 +82,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
     InternalInvalidateOfficialReportUseCase,
+    OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,

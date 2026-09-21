@@ -1,6 +1,6 @@
 import { FRENCH_TIME_ZONES } from 'src/utils/french-time-zones';
 
-import { date as renderDate, requiresElision } from './helpers';
+import { date as renderDate, readsTheSame, requiresElision } from './helpers';
 
 const systemTimeZone = process.env.TZ;
 afterEach(() => {
@@ -41,6 +41,32 @@ describe('renderer helpers', () => {
       ${''}           | ${false}
     `(`returns $expected for "$word"`, ({ word, expected }) => {
       expect(requiresElision(word)).toBe(expected);
+    });
+  });
+
+  describe('readsTheSame', () => {
+    const PROPOSED = `<strong>M.&nbsp;VIRBEL&nbsp;Eric</strong>, actuellement en détachement (G3).`;
+
+    it('sets aside the paragraph the editor wraps the text in', () => {
+      expect(readsTheSame(`<p>${PROPOSED}</p>`, PROPOSED)).toBe(true);
+    });
+
+    it('sets aside the spacing the two writers disagree on', () => {
+      expect(
+        readsTheSame(`<strong>M. VIRBEL  Eric</strong>,\n  actuellement en détachement (G3).`, PROPOSED),
+      ).toBe(true);
+    });
+
+    it('holds a rewritten word as an edition', () => {
+      expect(readsTheSame(`<p>${PROPOSED.replace('détachement', 'disponibilité')}</p>`, PROPOSED)).toBe(
+        false,
+      );
+    });
+
+    it('holds a word put in bold as an edition of its own', () => {
+      expect(
+        readsTheSame(PROPOSED.replace('en détachement', '<strong>en détachement</strong>'), PROPOSED),
+      ).toBe(false);
     });
   });
 });

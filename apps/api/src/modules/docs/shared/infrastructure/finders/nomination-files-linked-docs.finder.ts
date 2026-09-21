@@ -35,6 +35,7 @@ export class NominationFilesLinkedDocsFinder {
             outcome: true,
             version: {
               select: {
+                status: true,
                 sessionMeetingDate: true,
                 agenda: { select: { id: true, officialReportId: true } },
               },
@@ -44,8 +45,14 @@ export class NominationFilesLinkedDocsFinder {
         officialReportInclusions: {
           select: {
             outcome: true,
-            officialReportId: true,
-            officialReport: { select: { validatedAt: true, sessionMeetingDate: true } },
+            version: {
+              select: {
+                status: true,
+                officialReportId: true,
+                validatedAt: true,
+                sessionMeetingDate: true,
+              },
+            },
           },
         },
       },
@@ -53,26 +60,53 @@ export class NominationFilesLinkedDocsFinder {
 
     return new Map(
       nominationFiles.map((file) => {
-        const byIds = new Map(file.officialReportInclusions.map((x) => [x.officialReportId, x] as const));
-        const docs = file.agendaInclusions.map(({ version, outcome }) => {
-          const { agenda } = version;
-          const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
+        const byIds = new Map(
+          speakingVersions(
+            file.officialReportInclusions,
+            (inclusion) => inclusion.version.officialReportId,
+          ).map((x) => [x.version.officialReportId, x] as const),
+        );
+        const docs = speakingVersions(file.agendaInclusions, (inclusion) => inclusion.version.agenda.id).map(
+          ({ version, outcome }) => {
+            const { agenda } = version;
+            const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
 
-          return {
-            agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
-            officialReport: inclusion
-              ? {
-                  id: inclusion.officialReportId,
-                  isValidated: isDefined(inclusion.officialReport.validatedAt),
-                  outcome: inclusion.outcome,
-                  sessionMeetingDate: inclusion.officialReport.sessionMeetingDate,
-                }
-              : null,
-          };
-        });
+            return {
+              agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
+              officialReport: inclusion
+                ? {
+                    id: inclusion.version.officialReportId,
+                    isValidated: isDefined(inclusion.version.validatedAt),
+                    outcome: inclusion.outcome,
+                    sessionMeetingDate: inclusion.version.sessionMeetingDate,
+                  }
+                : null,
+            };
+          },
+        );
 
         return [file.id, docs];
       }),
     );
   }
+}
+
+/**
+ * a document holding a draft on top of its validated version carries the file twice, once per
+ * version. Only one of them speaks for the document, and it is the validated one.
+ */
+function speakingVersions<T extends { version: { status: 'DRAFT' | 'VALIDATED' } }>(
+  inclusions: readonly T[],
+  documentIdOf: (inclusion: T) => string,
+): T[] {
+  const byDocument = new Map<string, T>();
+
+  for (const inclusion of inclusions) {
+    const kept = byDocument.get(documentIdOf(inclusion));
+    if (!kept || inclusion.version.status === 'VALIDATED') {
+      byDocument.set(documentIdOf(inclusion), inclusion);
+    }
+  }
+
+  return [...byDocument.values()];
 }

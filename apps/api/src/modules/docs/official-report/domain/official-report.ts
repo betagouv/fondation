@@ -109,6 +109,7 @@ export class OfficialReportValidated {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
     readonly validatedAt: Date,
+    readonly validatedBy: Id<'AuthorId'>,
   ) {}
 }
 
@@ -117,6 +118,14 @@ export class OfficialReportInvalidated {
     readonly officialReportId: Id<'OfficialReportId'>,
     readonly diff: OfficialReportSnapshotDiff,
   ) {}
+}
+
+export class OfficialReportDraftOpened {
+  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
+}
+
+export class OfficialReportDraftDiscarded {
+  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
 }
 
 export type OfficialReportEvent =
@@ -135,9 +144,15 @@ export type OfficialReportEvent =
   | OfficialReportSectionIntroEdited
   | OfficialReportSectionIntroReset
   | OfficialReportValidated
-  | OfficialReportInvalidated;
+  | OfficialReportInvalidated
+  | OfficialReportDraftOpened
+  | OfficialReportDraftDiscarded;
 
 export class OfficialReportDocumentNotStored extends Error {}
+
+export class OfficialReportAlreadyValidated extends Error {}
+
+export class OfficialReportWithoutValidatedVersion extends Error {}
 
 type OfficialReportState = { isDocumentStored: boolean; validatedAt: Date | null };
 
@@ -183,21 +198,43 @@ export class OfficialReport {
     return report;
   }
 
-  validate(command: { at: Date }): void {
-    if (this.state.validatedAt) return;
+  /** a validated version never changes: editing it forks the draft everything is then written into */
+  private openDraft(): void {
+    if (!this.state.validatedAt) return;
+
+    this.#messages.push(new OfficialReportDraftOpened(this.id));
+    this.state.validatedAt = null;
+  }
+
+  validate(command: { at: Date; authorId: string }): void {
+    if (this.state.validatedAt) throw new OfficialReportAlreadyValidated();
     if (!this.state.isDocumentStored) throw new OfficialReportDocumentNotStored();
 
-    this.#messages.push(new OfficialReportValidated(this.id, command.at));
+    this.#messages.push(
+      new OfficialReportValidated(this.id, command.at, makeId('AuthorId', command.authorId)),
+    );
+    this.state.validatedAt = command.at;
+  }
+
+  discardDraft(command: { hasValidatedVersion: boolean }): void {
+    if (this.state.validatedAt) return;
+    if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
+
+    this.#messages.push(new OfficialReportDraftDiscarded(this.id));
   }
 
   invalidate(command: InvalidateOfficialReportCommand): void {
     const diff = this.snapshot.invalidate(command);
     if (!diff.hasAny) return;
+
+    this.openDraft();
     this.#messages.push(new OfficialReportInvalidated(this.id, diff));
   }
 
   update(command: UpdateOfficialReportCommand): void {
     const { next, diff } = this.snapshot.update(command.officialReport);
+
+    this.openDraft();
     if (diff.hasAny) this.#messages.push(new OfficialReportInvalidated(this.id, diff));
     this.#messages.push(new OfficialReportUpdated(this.id, command.authorId, next, diff));
   }
@@ -207,48 +244,59 @@ export class OfficialReport {
   }
 
   resetDocument(): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportDocumentReset(this.id));
   }
 
   editIntro(command: { html: string; outdated: boolean }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportIntroEdited(this.id, command.html, command.outdated));
   }
 
   resetIntro(): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportIntroReset(this.id));
   }
 
   editConclusion(command: { html: string; outdated: boolean }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportConclusionEdited(this.id, command.html, command.outdated));
   }
 
   resetConclusion(): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportConclusionReset(this.id));
   }
 
   editFile(command: { nominationFileId: string; html: string; outdated: boolean }): void {
+    this.openDraft();
     this.#messages.push(
       new OfficialReportFileEdited(this.id, command.nominationFileId, command.html, command.outdated),
     );
   }
 
   resetFile(command: { nominationFileId: string }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportFileReset(this.id, command.nominationFileId));
   }
 
   editSectionTitle(command: { outcome: DocNominationFileOutcomeEnum; text: string }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportSectionTitleEdited(this.id, command.outcome, command.text));
   }
 
   resetSectionTitle(command: { outcome: DocNominationFileOutcomeEnum }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportSectionTitleReset(this.id, command.outcome));
   }
 
   editSectionIntro(command: { outcome: DocNominationFileOutcomeEnum; html: string }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportSectionIntroEdited(this.id, command.outcome, command.html));
   }
 
   resetSectionIntro(command: { outcome: DocNominationFileOutcomeEnum }): void {
+    this.openDraft();
     this.#messages.push(new OfficialReportSectionIntroReset(this.id, command.outcome));
   }
 }

@@ -10,6 +10,7 @@ import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs
 import { Clock } from 'src/modules/framework/clock';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
 import { OfficialReport } from './domain/official-report';
 import { OfficialReportChairman } from './domain/official-report-chairman';
@@ -17,6 +18,7 @@ import { OfficialReportMember } from './domain/official-report-member';
 import { OfficialReportMembersList } from './domain/official-report-member-list';
 import { OfficialReportSecretary } from './domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from './domain/official-report-session-meeting';
+import { OfficialReportVersionFinder } from './infrastructure/finders/official-report-version.finder';
 import {
   CreatedOfficialReportDto,
   DetailedOfficialReportDocumentDto,
@@ -50,6 +52,7 @@ export class OfficialReportsService {
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
 
     private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
 
     private readonly clock: Clock,
     private readonly auth: SimpleAuthService,
@@ -260,10 +263,20 @@ export class OfficialReportsService {
     return this.withOfficialReport(command.id, (report) => report.resetDocument());
   }
 
-  async validateOfficialReport(command: { id: string }): Promise<void> {
+  async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
-    await this.findOfficialReportDocumentPdfQuery.handle({ id: command.id, forceNew: true });
-    await this.withOfficialReport(command.id, (report) => report.validate({ at: this.clock.now() }));
+    await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
+    await this.withOfficialReport(command.id, (report) =>
+      report.validate({ at: this.clock.now(), authorId: command.authorId }),
+    );
+  }
+
+  async discardOfficialReportDraft(command: { id: string }): Promise<void> {
+    const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
+
+    await this.withOfficialReport(command.id, (report) =>
+      report.discardDraft({ hasValidatedVersion: isDefined(publishedId) }),
+    );
   }
 
   editOfficialReportIntro(command: { id: string; html: string; outdated: boolean }): Promise<void> {

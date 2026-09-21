@@ -2,46 +2,35 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { Db } from 'src/modules/framework/database';
 import { Objects } from 'src/modules/framework/files';
-
-import { FindOfficialReportDocumentPdfQuery } from './find-official-report-document-pdf.query';
 
 @Injectable()
 export class DetailsSessionOfficialReportQuery {
   constructor(
     private readonly db: Db,
     private readonly objects: Objects,
-    private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
   async handle(query: { officialReportId: string }): Promise<DetailedSessionOfficialReportDto> {
-    return this.innerHandle({ ...query, afterGeneration: false });
-  }
+    const publishedVersionId = await this.officialReportVersionFinder.published(query);
+    if (!publishedVersionId) throw new NotFoundException();
 
-  private async innerHandle(query: {
-    officialReportId: string;
-    afterGeneration: boolean;
-  }): Promise<DetailedSessionOfficialReportDto> {
-    const officialReport = await this.db.withTransaction(() =>
-      this.db.tx.officialReport.findUnique({
-        where: { id: query.officialReportId },
-        select: { id: true, pdf: { select: { id: true } } },
+    const version = await this.db.withTransaction(() =>
+      this.db.tx.officialReportVersion.findUnique({
+        where: { id: publishedVersionId },
+        select: { officialReportId: true, pdf: { select: { id: true } } },
       }),
     );
 
-    if (!officialReport) throw new NotFoundException();
-    if (!officialReport.pdf && query.afterGeneration) throw new NotFoundException();
+    if (!version?.pdf) throw new NotFoundException();
 
-    if (!officialReport.pdf) {
-      await this.findOfficialReportDocumentPdfQuery.handle({ id: query.officialReportId, forceNew: false });
-      return this.innerHandle({ ...query, afterGeneration: true });
-    }
-
-    const [{ url } = {}] = await this.objects.publish([{ id: officialReport.pdf.id }]);
+    const [{ url } = {}] = await this.objects.publish([{ id: version.pdf.id }]);
     if (!url) throw new NotFoundException();
 
-    return { id: officialReport.id, url: url.toString() };
+    return { id: version.officialReportId, url: url.toString() };
   }
 }
 

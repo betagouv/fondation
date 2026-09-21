@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
+import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
@@ -23,16 +24,32 @@ export class FindOfficialReportDocumentPdfQuery {
     private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
+  /** makes sure the version carries its PDF, without opening a stream nobody reads */
+  async ensure(query: { id: string }): Promise<void> {
+    const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
+    const version = await this.db.tx.officialReportVersion.findUnique({
+      where: { id: versionId },
+      select: { pdfId: true },
+    });
+
+    if (version?.pdfId) return;
+    await this.handle({ id: query.id, forceNew: true });
+  }
+
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const officialReport = await this.db.tx.officialReport.findUnique({
-      where: { id: query.id },
+    const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
+    const officialReport = await this.db.tx.officialReportVersion.findUnique({
+      where: { id: versionId },
       select: {
         sessionMeetingDate: true,
         chairmanFirstName: true,
         chairmanLastName: true,
-        agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 },
+        officialReport: {
+          select: { agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 } },
+        },
         pdf: { select: { id: true, name: true } },
       },
     });
@@ -56,7 +73,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const html = await this.findOfficialReportDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
-    const [agenda] = officialReport.agendas;
+    const [agenda] = officialReport.officialReport.agendas;
     if (!agenda) throw new NotFoundException();
 
     const name = docFileName({
@@ -67,13 +84,15 @@ export class FindOfficialReportDocumentPdfQuery {
       typeDeSaisine: 'TRANSPARENCE_GDS',
       chairman: { firstName: officialReport.chairmanFirstName, lastName: officialReport.chairmanLastName },
     });
-    const path = `sessions/${agenda.sessionId}/official-reports/${query.id}.pdf`;
+    // the version belongs in the path: a shared one would have the validation delete the object it
+    // has just written, since it renders the draft before dropping the version it replaces
+    const path = `sessions/${agenda.sessionId}/official-reports/${query.id}/${versionId}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.tx.officialReport.update({
-        where: { id: query.id },
+      await this.db.tx.officialReportVersion.update({
+        where: { id: versionId },
         data: { pdfId: pdfFileId },
       });
     } else {

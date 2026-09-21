@@ -71,6 +71,22 @@ export function requiresElision(word: string): boolean {
   return !!first && elidingInitials.has(first);
 }
 
+/**
+ * the template and the editor write the same sentence differently, so the editor's own paragraph
+ * wrappers and its spacing are set aside. The emphasis is not: putting a name in bold is an
+ * edition of its own.
+ */
+export function readsTheSame(left: string, right: string): boolean {
+  const words = (html: string) =>
+    html
+      .replace(/<\/?(p|div|li|ul|ol|h[1-6]|br)\s*\/?>/gi, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  return words(left) === words(right);
+}
+
 const conjunctionListFormatter = new Intl.ListFormat('fr', {
   type: 'conjunction',
 });

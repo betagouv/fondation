@@ -18,7 +18,7 @@ model File {
   includedInSummariesContent          SummaryScreenshot[]
   ingestionJobFile                    IngestionJobFile[]
   agendaPdf                           AgendaVersion[]                      @relation("agenda_pdf_file")
-  officialReportPdf                   OfficialReport[]                     @relation("official_report_pdf_file")
+  officialReportPdf                   OfficialReportVersion[]              @relation("official_report_pdf_file")
   justicePresentationPdf              JusticePresentationPlan[]            @relation("justice_presentation_pdf")
 
   @@map("files")

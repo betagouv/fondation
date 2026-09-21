@@ -9,6 +9,7 @@ import {
   date,
   displayTitled,
   fullname,
+  readsTheSame,
   requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
@@ -53,10 +54,16 @@ export type OfficialReportRenderContext = {
 
   files: readonly OfficialReportRenderContextNominationFile[];
 
+  /** the sentence the agenda carries for a file: what the report's block is offered when they part ways */
+  agendaProposals: ReadonlyMap<string, string>;
+
   userDefinedBlocks: {
     intro: { html: string; isOutdated: boolean } | undefined;
     conclusion: { html: string; isOutdated: boolean } | undefined;
-    files: Record<NominationFileId, { html: string; isOutdated: boolean }>;
+    files: Record<
+      NominationFileId,
+      { html: string; isOutdated: boolean; editedAt: Date | null; fromAgenda: boolean }
+    >;
     outcomes: {
       [K in DocNominationFileOutcomeEnum]?: {
         [KK in 'title' | 'intro']?: { html: string; isOutdated: boolean };
@@ -456,71 +463,79 @@ function displayOutcome(ctx: {
 }
 
 export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterable<DocBlock> {
-  const introOutdated = Boolean(ctx.userDefinedBlocks.intro?.isOutdated);
+  // every block carries the text the document proposes, so the editor can mark what the reader
+  // changes as they type, before anything is saved. An untouched block reads the same both ways.
+  const generatedIntro = displayIntroduction(ctx, { ignoreUserDefinedContent: true });
+  const intro = displayIntroduction(ctx);
   yield {
     kind: 'intro',
     weight: 0,
-    html: displayIntroduction(ctx),
-    edited: isDefined(ctx.userDefinedBlocks.intro),
-    outdated: introOutdated,
-    generatedHtml: introOutdated ? displayIntroduction(ctx, { ignoreUserDefinedContent: true }) : undefined,
+    html: intro,
+    edited: isDefined(ctx.userDefinedBlocks.intro) && !readsTheSame(intro, generatedIntro),
+    outdated: Boolean(ctx.userDefinedBlocks.intro?.isOutdated),
+    generatedHtml: generatedIntro,
   };
 
   for (const { outcome, files } of groupFilesByOutcome(ctx)) {
     let outcomeWeight = OUTCOME_ORDER.get(outcome);
     if (!isDefined(outcomeWeight)) continue;
 
+    const title = displaySectionTitle({ root: ctx, count: files.length, outcome });
+    const storedTitle = ctx.userDefinedBlocks.outcomes[outcome]?.title?.html;
     yield {
       kind: 'section-title',
       outcome,
       outdated: false,
       weight: outcomeWeight++,
-      text: displaySectionTitle({ root: ctx, count: files.length, outcome }),
-      edited: isDefined(ctx.userDefinedBlocks.outcomes[outcome]?.title),
+      text: title,
+      edited: isDefined(storedTitle) && !readsTheSame(title, storedTitle),
     };
 
+    const sectionIntro = displaySectionIntro({ count: files.length, outcome, root: ctx });
+    const storedSectionIntro = ctx.userDefinedBlocks.outcomes[outcome]?.intro?.html;
     yield {
       outcome,
       kind: 'section-intro',
       outdated: Boolean(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.isOutdated),
-      edited: isDefined(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.html),
+      edited: isDefined(storedSectionIntro) && !readsTheSame(sectionIntro, storedSectionIntro),
       weight: outcomeWeight++,
-      html: displaySectionIntro({ count: files.length, outcome, root: ctx }),
+      html: sectionIntro,
     };
 
     for (const file of files) {
       const userDefinedFile = file.nominationFileId
         ? ctx.userDefinedBlocks.files[file.nominationFileId]
         : undefined;
-      const outdated = Boolean(userDefinedFile?.isOutdated);
+      const templateFile = displayFileContent({ file, root: ctx, ignoreUserDefinedContent: true });
+      const fileContent = displayFileContent({ file, root: ctx });
+      const editedFile = Boolean(userDefinedFile?.html) && !readsTheSame(fileContent, templateFile);
+
+      const agendaProposal = file.nominationFileId
+        ? ctx.agendaProposals.get(file.nominationFileId)
+        : undefined;
+
       yield {
         kind: 'file',
-        outdated,
+        outdated: Boolean(userDefinedFile?.isOutdated),
         weight: outcomeWeight++,
         nominationFileId: file.nominationFileId,
-        html: displayFileContent({ file, root: ctx }),
-        edited: Boolean(userDefinedFile?.html),
-        generatedHtml:
-          outdated && file.nominationFileId
-            ? displayFileContent({
-                file,
-                root: ctx,
-                ignoreUserDefinedContent: true,
-              })
-            : undefined,
+        html: fileContent,
+        edited: editedFile,
+        editedAt: editedFile ? (userDefinedFile?.editedAt?.toISOString() ?? null) : null,
+        fromAgenda: editedFile && Boolean(userDefinedFile?.fromAgenda),
+        generatedHtml: agendaProposal ?? templateFile,
       };
     }
   }
 
-  const conclusionOutdated = Boolean(ctx.userDefinedBlocks.conclusion?.isOutdated);
+  const generatedConclusion = displayConclusion(ctx, { ignoreUserDefinedContent: true });
+  const conclusion = displayConclusion(ctx);
   yield {
     kind: 'conclusion',
     weight: 1e6,
-    html: displayConclusion(ctx),
-    edited: isDefined(ctx.userDefinedBlocks.conclusion),
-    outdated: conclusionOutdated,
-    generatedHtml: conclusionOutdated
-      ? displayConclusion(ctx, { ignoreUserDefinedContent: true })
-      : undefined,
+    html: conclusion,
+    edited: isDefined(ctx.userDefinedBlocks.conclusion) && !readsTheSame(conclusion, generatedConclusion),
+    outdated: Boolean(ctx.userDefinedBlocks.conclusion?.isOutdated),
+    generatedHtml: generatedConclusion,
   };
 }

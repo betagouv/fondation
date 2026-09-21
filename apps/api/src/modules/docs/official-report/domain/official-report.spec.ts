@@ -1,9 +1,19 @@
 import { makeId } from 'src/utils/id';
 
-import { OfficialReport, OfficialReportDocumentNotStored, OfficialReportValidated } from './official-report';
+import {
+  OfficialReport,
+  OfficialReportAlreadyValidated,
+  OfficialReportDocumentNotStored,
+  OfficialReportDraftDiscarded,
+  OfficialReportDraftOpened,
+  OfficialReportIntroEdited,
+  OfficialReportValidated,
+  OfficialReportWithoutValidatedVersion,
+} from './official-report';
 import * as helpers from './official-report-test-utils';
 import { OfficialReportSnapshot } from './snapshot/official-report-snapshot';
 
+const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
 const FIRST_VALIDATION = new Date('2026-06-08T08:00:00.000Z');
 
@@ -24,23 +34,88 @@ describe('OfficialReport', () => {
   it('is validated at the given moment', () => {
     const report = makeReport();
 
-    report.validate({ at: VALIDATED_AT });
+    report.validate({ at: VALIDATED_AT, authorId: AUTHOR });
 
-    expect(report.messages).toEqual([new OfficialReportValidated(report.id, VALIDATED_AT)]);
+    expect(report.messages).toEqual([
+      new OfficialReportValidated(report.id, VALIDATED_AT, makeId('AuthorId', AUTHOR)),
+    ]);
   });
 
   it('refuses to be validated while its document is not stored', () => {
     const report = makeReport({ isDocumentStored: false });
 
-    expect(() => report.validate({ at: VALIDATED_AT })).toThrow(OfficialReportDocumentNotStored);
+    expect(() => report.validate({ at: VALIDATED_AT, authorId: AUTHOR })).toThrow(
+      OfficialReportDocumentNotStored,
+    );
     expect(report.messages).toEqual([]);
   });
 
-  it('keeps the moment of its first validation', () => {
+  it('refuses to be validated twice', () => {
     const report = makeReport({ validatedAt: FIRST_VALIDATION });
 
-    report.validate({ at: VALIDATED_AT });
-
+    expect(() => report.validate({ at: VALIDATED_AT, authorId: AUTHOR })).toThrow(
+      OfficialReportAlreadyValidated,
+    );
     expect(report.messages).toEqual([]);
+  });
+
+  describe('a validated report', () => {
+    const validated = () => makeReport({ validatedAt: FIRST_VALIDATION });
+
+    it('should fork a draft before writing anything', () => {
+      const report = validated();
+
+      report.editIntro({ html: '<p>edited</p>', outdated: false });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftOpened(report.id),
+        new OfficialReportIntroEdited(report.id, '<p>edited</p>', false),
+      ]);
+    });
+
+    it('should fork a single draft whatever the number of changes', () => {
+      const report = validated();
+
+      report.editIntro({ html: '<p>first</p>', outdated: false });
+      report.editConclusion({ html: '<p>second</p>', outdated: false });
+      report.resetFile({ nominationFileId: 'nf-1' });
+
+      expect(report.messages.filter((m) => m instanceof OfficialReportDraftOpened)).toHaveLength(1);
+    });
+
+    it('should have nothing to discard', () => {
+      const report = validated();
+
+      report.discardDraft({ hasValidatedVersion: true });
+
+      expect(report.messages).toEqual([]);
+    });
+  });
+
+  describe('a draft report', () => {
+    it('should not fork another draft', () => {
+      const report = makeReport();
+
+      report.editIntro({ html: '<p>edited</p>', outdated: false });
+
+      expect(report.messages).toEqual([new OfficialReportIntroEdited(report.id, '<p>edited</p>', false)]);
+    });
+
+    it('should be discarded when a validated version remains underneath', () => {
+      const report = makeReport();
+
+      report.discardDraft({ hasValidatedVersion: true });
+
+      expect(report.messages).toEqual([new OfficialReportDraftDiscarded(report.id)]);
+    });
+
+    it('should refuse to be discarded when nothing was ever validated', () => {
+      const report = makeReport();
+
+      expect(() => report.discardDraft({ hasValidatedVersion: false })).toThrow(
+        OfficialReportWithoutValidatedVersion,
+      );
+      expect(report.messages).toEqual([]);
+    });
   });
 });

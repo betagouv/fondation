@@ -59,8 +59,10 @@ model User {
   validatorOfAgendaVersions           AgendaVersion[]            @relation("agenda_version_validator")
   authImpersonations                  AuthImpersonation[]
   authorOfJusticeDepartmentContacts   JusticeDepartmentContact[]
-  chairmanOfOfficialReports           OfficialReport[]           @relation("official_reports_chairman")
-  secretaryOfOfficialReports          OfficialReport[]           @relation("official_reports_secretary")
+  chairmanOfOfficialReports           OfficialReportVersion[]    @relation("official_report_version_chairman")
+  secretaryOfOfficialReports          OfficialReportVersion[]    @relation("official_report_version_secretary")
+  authorOfOfficialReportVersions      OfficialReportVersion[]    @relation("official_report_version_author")
+  validatorOfOfficialReportVersions   OfficialReportVersion[]    @relation("official_report_version_validator")
   authorOfOfficialReports             OfficialReport[]           @relation("official_reports_author")
   chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
   secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")

@@ -19,17 +19,21 @@ import { Id, makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
 
+import { OfficialReportVersionFinder } from './official-report-version.finder';
+
 @Injectable()
 export class OfficialReportRenderContextFinder {
   constructor(
     private readonly db: Db,
     private readonly members: MembersService,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
   @Transactional()
   async find(query: { officialReportId: string }): Promise<OfficialReportRenderContext> {
-    const report = await this.db.tx.officialReport.findUnique({
-      where: { id: query.officialReportId },
+    const versionId = await this.officialReportVersionFinder.latest(query);
+    const report = await this.db.tx.officialReportVersion.findUnique({
+      where: { id: versionId },
       select: {
         hasRenunciation: true,
         justiceDepartmentContactName: true,
@@ -38,15 +42,26 @@ export class OfficialReportRenderContextFinder {
         sessionMeetingStartingTime: true,
         sessionMeetingEndingTime: true,
 
-        agendas: {
+        officialReport: {
           select: {
-            id: true,
-            sessionId: true,
-            formation: true,
-            versions: {
-              take: 2,
-              orderBy: { version: 'desc' },
-              select: { date: true, status: true },
+            agendas: {
+              select: {
+                id: true,
+                sessionId: true,
+                formation: true,
+                versions: {
+                  take: 2,
+                  orderBy: { version: 'desc' },
+                  select: {
+                    date: true,
+                    status: true,
+                    nominationFiles: {
+                      select: { nominationFileId: true, htmlEdited: true },
+                      where: { htmlEdited: { not: null } },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -97,6 +112,8 @@ export class OfficialReportRenderContextFinder {
 
             htmlEdited: true,
             htmlOutdated: true,
+            htmlEditedAt: true,
+            htmlFromAgenda: true,
           },
         },
 
@@ -111,11 +128,18 @@ export class OfficialReportRenderContextFinder {
 
     if (!report) throw new NotFoundException();
 
-    const agenda = report.agendas[0];
+    const agenda = report.officialReport.agendas[0];
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
     // has never been validated, which is the one case where nothing else exists to speak of
-    const agendaDate = agendaContentOf(agenda?.versions ?? [])?.date;
+    const agendaContent = agendaContentOf(agenda?.versions ?? []);
+    const agendaDate = agendaContent?.date;
     if (!agenda || !agendaDate) throw new NotFoundException();
+
+    const agendaProposals = new Map(
+      (agendaContent?.nominationFiles ?? []).flatMap((file) =>
+        file.nominationFileId && file.htmlEdited ? [[file.nominationFileId, file.htmlEdited] as const] : [],
+      ),
+    );
 
     const session = await this.db.tx.session.findUnique({
       where: { id: agenda.sessionId, deletedAt: null },
@@ -199,8 +223,22 @@ export class OfficialReportRenderContextFinder {
     const userDefinedFiles = Object.fromEntries(
       report.nominationFiles
         .filter((f) => f.nominationFileId && f.htmlEdited?.trim())
-        .map((f) => [f.nominationFileId, { html: f.htmlEdited, isOutdated: f.htmlOutdated }] as const),
-    ) as Record<Id<'NominationFileId'>, { html: string; isOutdated: boolean }>;
+        .map(
+          (f) =>
+            [
+              f.nominationFileId,
+              {
+                html: f.htmlEdited,
+                isOutdated: f.htmlOutdated,
+                editedAt: f.htmlEditedAt,
+                fromAgenda: f.htmlFromAgenda,
+              },
+            ] as const,
+        ),
+    ) as Record<
+      Id<'NominationFileId'>,
+      { html: string; isOutdated: boolean; editedAt: Date | null; fromAgenda: boolean }
+    >;
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromUtcDate(report.sessionMeetingDate),
@@ -215,6 +253,7 @@ export class OfficialReportRenderContextFinder {
       members: membersList,
       hasRenouncement: report.hasRenunciation,
       justiceDepartmentContact: report.justiceDepartmentContactName,
+      agendaProposals,
       session: { id: agenda.sessionId, date: DateOnly.fromUtcDate(session.date) },
       agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
       userDefinedBlocks: {

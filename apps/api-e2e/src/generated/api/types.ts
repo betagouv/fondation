@@ -1024,6 +1024,8 @@ export type FoundSessionDocsDto = {
         id: string;
         name: string;
         outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        hasDraft: boolean;
         createdAt: string;
         validatedAt: string | null;
     }>;
@@ -1276,6 +1278,8 @@ export type DetailedOfficialReportMetadataDto = {
         seconds: number;
     };
     isManuallyEdited: boolean;
+    status: 'DRAFT' | 'VALIDATED';
+    hasValidatedVersion: boolean;
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
@@ -1336,6 +1340,8 @@ export type DetailedOfficialReportDocumentDto = {
         html: string;
         kind: 'file';
         nominationFileId: string | null;
+        editedAt: string | null;
+        fromAgenda: boolean;
     } | {
         weight: number;
         edited: boolean;
@@ -3524,6 +3530,21 @@ export type ValidateOfficialReportResponses = {
 };
 
 export type ValidateOfficialReportResponse = ValidateOfficialReportResponses[keyof ValidateOfficialReportResponses];
+
+export type DiscardOfficialReportDraftData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/draft';
+};
+
+export type DiscardOfficialReportDraftResponses = {
+    204: void;
+};
+
+export type DiscardOfficialReportDraftResponse = DiscardOfficialReportDraftResponses[keyof DiscardOfficialReportDraftResponses];
 
 export type DetailsOfficialReportDocumentData = {
     body?: never;

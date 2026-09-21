@@ -18,10 +18,10 @@ WHERE
     OR NOT EXISTS (
       SELECT 1
       FROM docs.official_report_nomination_file AS ornf
-        INNER JOIN docs.official_report AS orr ON orr.id = ornf.official_report_id
+        INNER JOIN docs.official_report_version AS orv ON orv.id = ornf.version_id
       WHERE
         ornf.nomination_file_id = ddn.id
-        AND orr.validated_at IS NOT NULL
+        AND orv.validated_at IS NOT NULL
         AND ornf.outcome = ANY(/* finalDocOutcomes */$3::docs.agenda_file_outcome_enum[])
     )
     OR (

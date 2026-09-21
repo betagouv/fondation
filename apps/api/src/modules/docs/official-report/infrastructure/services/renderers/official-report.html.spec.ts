@@ -145,6 +145,8 @@ describe('officialReportTemplate', () => {
       },
     ],
 
+    agendaProposals: new Map<string, string>(),
+
     userDefinedBlocks: {
       files: {},
       outcomes: {},
@@ -195,6 +197,8 @@ describe('officialReportTemplate', () => {
             [makeId('NominationFileId', 'nf-4')]: {
               html: /* html */ `<p><strong>MME Marthe GAUTIER</strong>, a vu son paragraphe subir une modification</p>`,
               isOutdated: false,
+              editedAt: null,
+              fromAgenda: false,
             },
           },
         },
@@ -208,6 +212,38 @@ describe('officialReportTemplate', () => {
     expect(html).toContain(
       /* html */ `<strong>MME Marthe GAUTIER</strong>, a vu son paragraphe subir une modification`,
     );
+  });
+
+  it('should not credit the reader for a block reading as the report proposes', () => {
+    const [file] = baseContext.files;
+    const proposed = Array.from(officialReportBlocks(baseContext)).find(
+      (block) => block.kind === 'file' && block.nominationFileId === file.nominationFileId,
+    );
+    if (proposed?.kind !== 'file') throw new Error(`${file.nominationFileId} has no block`);
+
+    const blocks = Array.from(
+      officialReportBlocks({
+        ...baseContext,
+        userDefinedBlocks: {
+          ...baseContext.userDefinedBlocks,
+          files: {
+            [file.nominationFileId!]: {
+              // the editor gives the text back wrapped and spaced its own way
+              html: `<p>${proposed.html}</p>`,
+              isOutdated: false,
+              editedAt: new Date('2026-09-21T08:18:00Z'),
+              fromAgenda: true,
+            },
+          },
+        },
+      }),
+    );
+
+    const stored = blocks.find(
+      (block) => block.kind === 'file' && block.nominationFileId === file.nominationFileId,
+    );
+
+    expect(stored).toMatchObject({ edited: false, editedAt: null, fromAgenda: false });
   });
 
   it('should order files', () => {

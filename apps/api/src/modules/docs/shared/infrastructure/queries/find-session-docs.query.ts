@@ -57,17 +57,41 @@ export class FindSessionDocsQuery {
         },
       ];
     });
-    const officialReportFiles = await this.db.tx.officialReport.findMany({
+    const officialReports = await this.db.tx.officialReport.findMany({
       where: { agendas: { some: { sessionId: query.sessionId } } },
       select: {
         id: true,
-        chairmanLastName: true,
-        chairmanFirstName: true,
-        sessionMeetingDate: true,
-        outdated: true,
         createdAt: true,
-        validatedAt: true,
+        // a report holds at most its validated version and the draft opened on top of it
+        versions: {
+          take: 2,
+          orderBy: { version: 'desc' },
+          select: {
+            status: true,
+            outdated: true,
+            validatedAt: true,
+            sessionMeetingDate: true,
+            chairmanFirstName: true,
+            chairmanLastName: true,
+          },
+        },
       },
+    });
+
+    const officialReportFiles = officialReports.flatMap(({ versions, ...report }) => {
+      const published = versions.find(({ status }) => status === 'VALIDATED');
+      const shown = published ?? versions[0];
+      if (!shown) return [];
+
+      return [
+        {
+          ...report,
+          ...shown,
+          outdated: versions.some((version) => version.outdated),
+          hasDraft: versions.some(({ status }) => status === 'DRAFT'),
+          status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
+        },
+      ];
     });
 
     if (!session) return { items: [] };
@@ -98,6 +122,8 @@ export class FindSessionDocsQuery {
         outdated: file.outdated,
         date: file.sessionMeetingDate,
         type: 'officialReport' as const,
+        status: file.status,
+        hasDraft: file.hasDraft,
         createdAt: file.createdAt.toISOString(),
         validatedAt: file.validatedAt?.toISOString() ?? null,
         name: docFileName({
@@ -151,6 +177,9 @@ export class FoundSessionDocsDto extends createZodDto(
           id: z.string(),
           name: z.string(),
           outdated: z.boolean(),
+          /** DRAFT while the report has never been validated */
+          status: z.enum(['DRAFT', 'VALIDATED']),
+          hasDraft: z.boolean(),
           createdAt: z.iso.datetime(),
           validatedAt: z.iso.datetime().nullable(),
         }),

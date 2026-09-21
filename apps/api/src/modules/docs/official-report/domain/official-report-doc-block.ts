@@ -33,6 +33,10 @@ const BlockFileSchema = z.object({
   ...AbstractHtmlBlock.shape,
   kind: z.literal('file'),
   nominationFileId: z.string().nullable(),
+  /** when the block was last rewritten by hand */
+  editedAt: z.iso.datetime().nullable(),
+  /** the text comes from the agenda, so the report is not the one to credit for it */
+  fromAgenda: z.boolean(),
 });
 
 const BlockConclusionSchema = z.object({
