@@ -3,6 +3,7 @@ import { Node as PMNode } from '@tiptap/pm/model';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { buildOfficialReportExtensions } from '../official-report-tiptap-extensions';
+import { plainText } from '@/features/documents/components/blocks/proposed-text';
 import * as $api from '@api/sdk';
 
 import { OfficialReportBlockEmptied, OfficialReportBlocksModel } from './official-report-blocks.model';
@@ -73,7 +74,7 @@ function editorHolding(blocks: readonly OfficialReportBlock[]): Editor {
 }
 
 function textOf(block: OfficialReportBlock): string {
-  return 'html' in block ? block.html.replace(/<[^>]*>/g, '') : '';
+  return 'html' in block ? plainText(block.html).trim() : '';
 }
 
 function modelOn(blocks: readonly OfficialReportBlock[]) {
