@@ -31,11 +31,11 @@ export type { SessionDocument } from './session-document-groups';
 
 const HIGHLIGHT_DURATION = 3000;
 
-type Association = { agendasCount: number; associated: SessionDocument[] };
+export type Association = { agendasCount: number; associated: SessionDocument[] };
 
 const h = createColumnHelper<SessionDocument>();
 
-const SessionDocumentsTableContext = createContext<{
+export const SessionDocumentsTableContext = createContext<{
   actions?: (doc: SessionDocument) => ReactNode;
   associations?: ReadonlyMap<string, Association>;
   highlightAssociated?: (doc: SessionDocument) => void;

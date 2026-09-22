@@ -18,6 +18,7 @@ const AGENDA_SIEGE: SessionDocument = {
   outdated: false,
   status: 'VALIDATED',
   type: 'agenda',
+  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_PARQUET: SessionDocument = {
@@ -29,6 +30,7 @@ const AGENDA_PARQUET: SessionDocument = {
   outdated: false,
   status: 'VALIDATED',
   type: 'agenda',
+  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_SANS_PV: SessionDocument = {
@@ -40,6 +42,7 @@ const AGENDA_SANS_PV: SessionDocument = {
   outdated: false,
   status: 'VALIDATED',
   type: 'agenda',
+  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_BROUILLON: SessionDocument = {

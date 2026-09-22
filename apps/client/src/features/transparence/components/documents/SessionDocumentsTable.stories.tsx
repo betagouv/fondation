@@ -38,6 +38,7 @@ const DOCS: SessionDocument[] = [
     officialReportId: 'official-report-1',
     outdated: false,
     type: 'agenda',
+    hasPresentationPlan: false,
   },
   {
     ...AGENDA_DATES,
@@ -46,6 +47,7 @@ const DOCS: SessionDocument[] = [
     officialReportId: null,
     outdated: false,
     type: 'agenda',
+    hasPresentationPlan: false,
   },
   {
     ...AGENDA_DATES,
@@ -54,6 +56,7 @@ const DOCS: SessionDocument[] = [
     officialReportId: 'official-report-2',
     outdated: false,
     type: 'agenda',
+    hasPresentationPlan: false,
   },
   {
     ...REPORT_DATES,
@@ -141,6 +144,7 @@ export const AgendasSharingAnOfficialReport: Story = {
         officialReportId: 'official-report-1',
         outdated: false,
         type: 'agenda',
+        hasPresentationPlan: false,
       },
       {
         ...AGENDA_DATES,
@@ -149,6 +153,7 @@ export const AgendasSharingAnOfficialReport: Story = {
         officialReportId: 'official-report-1',
         outdated: false,
         type: 'agenda',
+        hasPresentationPlan: false,
       },
       {
         ...REPORT_DATES,
@@ -164,6 +169,7 @@ export const AgendasSharingAnOfficialReport: Story = {
         officialReportId: null,
         outdated: false,
         type: 'agenda',
+        hasPresentationPlan: false,
       },
     ]),
   },
@@ -180,6 +186,7 @@ export const ManyRows: Story = {
         index % 2 === 0
           ? {
               ...AGENDA_DATES,
+              hasPresentationPlan: false,
               id: `agenda-${index}`,
               name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
               officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,

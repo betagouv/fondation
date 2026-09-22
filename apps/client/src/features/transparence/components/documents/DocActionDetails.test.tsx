@@ -39,6 +39,7 @@ function renderDocActionDetails(setIsActing = vi.fn()) {
         doc={{
           createdAt: '2028-03-10T09:00:00.000Z',
           hasDraft: false,
+          hasPresentationPlan: false,
           id: 'agenda-1',
           name: 'Ordre du jour du 12 mars',
           officialReportId: null,

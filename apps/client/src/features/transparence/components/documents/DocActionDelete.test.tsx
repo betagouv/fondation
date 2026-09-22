@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/shared/ui/toast';
 
 import { DocActionDelete } from './DocActionDelete';
-import type { SessionDocument } from './SessionDocumentsTable';
+import {
+  SessionDocumentsTableContext,
+  type Association,
+  type SessionDocument,
+} from './SessionDocumentsTable';
 
 const deleteAgenda = vi.fn();
 const deleteOfficialReport = vi.fn();
@@ -33,6 +37,7 @@ const AGENDA: SessionDocument = {
   outdated: false,
   status: 'VALIDATED',
   type: 'agenda',
+  hasPresentationPlan: false,
   validatedAt: '2028-03-10T11:00:00.000Z',
 };
 
@@ -47,12 +52,16 @@ const OFFICIAL_REPORT: SessionDocument = {
   validatedAt: '2028-03-13T11:00:00.000Z',
 };
 
-async function clickDelete(doc: SessionDocument) {
+async function clickDelete(doc: SessionDocument, association?: Association) {
   const user = userEvent.setup();
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <ToastProvider>
-        <DocActionDelete disabled={false} doc={doc} sessionId="session-1" />
+        <SessionDocumentsTableContext.Provider
+          value={{ associations: association && new Map([[doc.id, association]]) }}
+        >
+          <DocActionDelete disabled={false} doc={doc} sessionId="session-1" />
+        </SessionDocumentsTableContext.Provider>
       </ToastProvider>
     </IntlProvider>,
   );
@@ -103,6 +112,44 @@ describe('DocActionDelete', () => {
     expect(deleteAgenda).not.toHaveBeenCalled();
   });
 
+  async function confirmationContent() {
+    const { content } = waitForConfirmation.mock.calls[0][0];
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        {content}
+      </IntlProvider>,
+    );
+  }
+
+  it('should say the linked official report is validated', async () => {
+    const officialReport = { ...OFFICIAL_REPORT, status: 'VALIDATED' as const };
+    await clickDelete(
+      { ...AGENDA, officialReportId: officialReport.id },
+      { agendasCount: 1, associated: [officialReport] },
+    );
+    await confirmationContent();
+
+    expect(screen.getByText('Le PV lié est validé et sera supprimé.')).toBeInTheDocument();
+  });
+
+  it('should say how many other agendas lose their official report', async () => {
+    await clickDelete(
+      { ...AGENDA, officialReportId: OFFICIAL_REPORT.id },
+      { agendasCount: 3, associated: [OFFICIAL_REPORT] },
+    );
+    await confirmationContent();
+
+    expect(
+      screen.getByText('Ce PV couvre 2 autres ordres du jour qui perdront le sien.'),
+    ).toBeInTheDocument();
+  });
+
+  it('should say the notice goes away with the agenda', async () => {
+    await clickDelete({ ...AGENDA, hasPresentationPlan: true });
+    await confirmationContent();
+
+    expect(screen.getByText('La notice de restitution liée sera supprimée elle aussi.')).toBeInTheDocument();
+  });
   it('should warn that the linked official report goes with the agenda', async () => {
     await clickDelete({ ...AGENDA, officialReportId: 'official-report-1' });
 

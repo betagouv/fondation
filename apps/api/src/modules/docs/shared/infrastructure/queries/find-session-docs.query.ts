@@ -7,6 +7,7 @@ import { docFileName } from '../../domain/doc-file-name';
 import { Db } from 'src/modules/framework/database';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class FindSessionDocsQuery {
@@ -24,6 +25,7 @@ export class FindSessionDocsQuery {
         id: true,
         createdAt: true,
         officialReportId: true,
+        justicePresentationPlanId: true,
         // an agenda holds at most its validated version and the draft opened on top of it
         versions: {
           take: 2,
@@ -103,6 +105,7 @@ export class FindSessionDocsQuery {
         type: 'agenda' as const,
         date: file.sessionMeetingDate,
         officialReportId: file.officialReportId,
+        hasPresentationPlan: isDefined(file.justicePresentationPlanId),
         outdated: file.outdated,
         status: file.status,
         hasDraft: file.hasDraft,
@@ -164,6 +167,7 @@ export class FoundSessionDocsDto extends createZodDto(
           id: z.string(),
           name: z.string(),
           officialReportId: z.string().nullable(),
+          hasPresentationPlan: z.boolean(),
           outdated: z.boolean(),
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),

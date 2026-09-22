@@ -26,6 +26,7 @@ const DOCS: SessionDocument[] = [
     outdated: false,
     status: 'VALIDATED',
     type: 'agenda',
+    hasPresentationPlan: false,
     validatedAt: VALIDATED_AT,
   },
   {
@@ -95,6 +96,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -106,6 +108,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -117,6 +120,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -152,6 +156,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -173,6 +178,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
       ]),
@@ -205,6 +211,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -216,6 +223,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -247,6 +255,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -258,6 +267,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -292,6 +302,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -303,6 +314,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -342,6 +354,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -353,6 +366,7 @@ describe('SessionDocumentsTable', () => {
           outdated: false,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
         {
@@ -384,6 +398,7 @@ describe('SessionDocumentsTable', () => {
           outdated: true,
           status: 'VALIDATED',
           type: 'agenda',
+          hasPresentationPlan: false,
           validatedAt: VALIDATED_AT,
         },
       ]),
