@@ -109,7 +109,6 @@ export function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}): 
       [
         'file-1',
         OfficialReportSnapshotFile.from({
-          id: 0n,
           nominationFileId: 'file-1',
           hasManuallyEditedHtml: false,
           reporters: ['M. John DOE'],

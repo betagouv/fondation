@@ -7,6 +7,7 @@ import {
 import {
   conjunctionList,
   date,
+  readsTheSame,
   requiresElision,
   titled,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
@@ -21,6 +22,7 @@ const html = oneLine;
 
 type AgendaRenderContextNominationFile = {
   id: bigint;
+  nominationFileId: string | null;
   number: number;
   name: string;
   currentPosition: string | null;
@@ -42,7 +44,15 @@ export type AgendaRenderContext = {
   };
   nominationFiles: readonly AgendaRenderContextNominationFile[];
   userDefinedBlocks: {
-    files: Map<bigint, { html: string; isOutdated: boolean }>;
+    files: Map<
+      bigint,
+      {
+        html: string;
+        isOutdated: boolean;
+        editedAt: Date | null;
+        editedBy: { id: string; name: string } | null;
+      }
+    >;
   };
 };
 
@@ -180,18 +190,24 @@ export const agendaTemplate: Template<AgendaRenderContext> = documentLayout({
 export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFile> {
   for (const file of ctx.nominationFiles) {
     const userDefined = ctx.userDefinedBlocks.files.get(file.id);
-    const outdated = Boolean(userDefined?.isOutdated);
+
+    // every block carries the text the document proposes, so the editor can mark what the reader
+    // changes as they type, before anything is saved. An untouched block reads the same both ways.
+    const generatedHtml = displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true });
+    const html = userDefined?.html ? displayFileContent({ root: ctx, file }) : generatedHtml;
+    const edited = Boolean(userDefined?.html) && !readsTheSame(html, generatedHtml);
 
     yield {
       kind: 'file',
       weight: file.number,
       id: file.id,
-      html: displayFileContent({ root: ctx, file }),
-      edited: Boolean(userDefined?.html),
-      outdated,
-      generatedHtml: outdated
-        ? displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true })
-        : undefined,
+      nominationFileId: file.nominationFileId,
+      html,
+      edited,
+      editedAt: edited ? (userDefined?.editedAt ?? null) : null,
+      editedBy: edited ? (userDefined?.editedBy ?? null) : null,
+      outdated: Boolean(userDefined?.isOutdated),
+      generatedHtml,
     };
   }
 }

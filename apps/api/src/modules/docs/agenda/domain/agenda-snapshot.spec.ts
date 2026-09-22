@@ -30,7 +30,9 @@ describe('AgendaSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     assert.ok(diff.hasAny);
 
-    expect(diff.updated).toEqual([{ id: 1n, reporters: ['M. Jean-Michel JARRE'], isOutdated: false }]);
+    expect(diff.updated).toEqual([
+      { nominationFileId: 'nf-1', reporters: ['M. Jean-Michel JARRE'], isOutdated: false },
+    ]);
   });
 
   it('should not report any change, when none is made', () => {
@@ -81,6 +83,8 @@ describe('AgendaSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     assert.ok(diff.hasAny);
 
-    expect(diff.updated).toEqual([{ id: 2n, reporters: ['MME Jeanne MAS'], isOutdated: true }]);
+    expect(diff.updated).toEqual([
+      { nominationFileId: 'nf-2', reporters: ['MME Jeanne MAS'], isOutdated: true },
+    ]);
   });
 });

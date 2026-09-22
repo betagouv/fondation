@@ -9,7 +9,6 @@ export function DocActionOfficialReportMetadata(props: {
   disabled: boolean;
   sessionId: string;
   officialReport: { id: string; name: string; type: 'officialReport' };
-  className?: string;
 }) {
   const { formatMessage } = useIntl();
   const to = generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
@@ -17,13 +16,11 @@ export function DocActionOfficialReportMetadata(props: {
     officialReportId: props.officialReport.id,
   });
   const label = formatMessage(
-    { defaultMessage: `Modifier les métadonnées de {name}` },
+    { defaultMessage: `Modifier les informations de {name}` },
     { name: props.officialReport.name },
   );
 
   return (
-    <div className={props.className}>
-      <IconLink small to={to} label={label} disabled={props.disabled} iconId={ACTION_ICONS.agendaMetadata} />
-    </div>
+    <IconLink small to={to} label={label} disabled={props.disabled} iconId={ACTION_ICONS.agendaMetadata} />
   );
 }

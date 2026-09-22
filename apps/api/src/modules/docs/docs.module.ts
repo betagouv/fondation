@@ -8,6 +8,7 @@ import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';
 import { OnAgendaInvalidatedEventHandler } from './agenda/infrastructure/events/on-agenda-invalidated.event-handler';
 import { AgendaRenderContextFinder } from './agenda/infrastructure/finders/agenda-render-context.finder';
+import { AgendaVersionFinder } from './agenda/infrastructure/finders/agenda-version.finder';
 import { DetailsAgendaDocumentBlocksQuery } from './agenda/infrastructure/queries/details-agenda-document-blocks.query';
 import { DetailsAgendaFilesQuery } from './agenda/infrastructure/queries/details-agenda-files.query';
 import { DetailsAgendaMetadataQuery } from './agenda/infrastructure/queries/details-agenda-metadata.query';
@@ -20,6 +21,7 @@ import { InvalidateAgendasUseCase } from './agenda/infrastructure/use-cases/inva
 import { DocsService } from './docs.service';
 import { OnOfficialReportInvalidatedEventHandler } from './official-report/infrastructure/events/on-official-report-invalidated.event-handler';
 import { OfficialReportRenderContextFinder } from './official-report/infrastructure/finders/official-report-render-context.finder';
+import { OfficialReportVersionFinder } from './official-report/infrastructure/finders/official-report-version.finder';
 import { DetailsOfficialReportDocumentQuery } from './official-report/infrastructure/queries/details-official-report-document.query';
 import { DetailsOfficialReportQuery } from './official-report/infrastructure/queries/details-official-report.query';
 import { DetailsSessionOfficialReportQuery } from './official-report/infrastructure/queries/details-session-official-report.query';
@@ -56,6 +58,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
   providers: [
     AgendaFinder,
     AgendaRenderContextFinder,
+    AgendaVersionFinder,
     AgendaRenderer,
     AgendaRepository,
     AgendasService,
@@ -79,6 +82,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
     InternalInvalidateOfficialReportUseCase,
+    OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,

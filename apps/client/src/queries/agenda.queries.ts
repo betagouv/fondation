@@ -118,6 +118,7 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
       queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
       queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 }
@@ -137,31 +138,48 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
   });
 
 const htmlMutationKeys = {
-  agendaHtml: ['docs', 'updateAgendaHtml'] as const,
-  officialReportHtml: ['docs', 'updateOfficialReportHtml'] as const,
   presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
 };
 
-export function useGenerateAgendaPdfMutation(mutation: {
-  sessionId: string;
+export function useValidateAgendaMutation(mutation: {
   agendaId: string;
-  force: boolean;
   onSuccess?: () => unknown;
+  sessionId: string;
 }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () =>
-      $api.docs
-        .generateAgendaPdf({
-          path: { agendaId: mutation.agendaId },
-          query: { force: mutation.force },
-          parseAs: 'stream',
-        })
-        .then(({ response }) => response?.body?.cancel()),
+    mutationFn: () => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }),
 
     onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
+
+      mutation.onSuccess?.();
+    },
+  });
+}
+
+export function useDiscardAgendaDraftMutation(mutation: {
+  agendaId: string;
+  onSuccess?: () => unknown;
+  sessionId: string;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
       await queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(mutation.sessionId),
+        queryKey: agendaKeys.detailsAgendaMetadata({ agendaId: mutation.agendaId }),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: agendaKeys.detailsAgendaFiles({ agendaId: mutation.agendaId }),
       });
 
       mutation.onSuccess?.();
@@ -230,17 +248,6 @@ export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: strin
         .isSessionReadyForDocGeneration({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data),
   });
-
-export function useResetAgendaDocumentMutation(agendaId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => $api.docs.resetAgendaDocument({ path: { agendaId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
-      queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
-    },
-  });
-}
 
 export function useDeleteAgenda(sessionId: string) {
   const queryClient = useQueryClient();
@@ -372,18 +379,28 @@ export function useValidateOfficialReportMutation(mutation: {
       await queryClient.invalidateQueries({
         queryKey: sessionKeys.listSessionNominationFiles({ sessionId: mutation.sessionId }),
       });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+
       mutation.onSuccess?.();
     },
   });
 }
 
-export function useResetOfficialReportDocumentMutation(sessionId: string, officialReportId: string) {
+export function useDiscardOfficialReportDraftMutation(mutation: {
+  officialReportId: string;
+  onSuccess?: () => unknown;
+  sessionId: string;
+}) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.resetOfficialReportDocument({ path: { officialReportId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.details(officialReportId) });
-      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+    mutationFn: () =>
+      $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+
+      mutation.onSuccess?.();
     },
   });
 }

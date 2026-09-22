@@ -7,14 +7,22 @@ import { makeId } from 'src/utils/id';
 
 import {
   Agenda,
+  AgendaAlreadyValidated,
+  AgendaDocumentNotStored,
+  AgendaDraftDiscarded,
+  AgendaDraftOpened,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
+  UnknownAgendaFileBlock,
   AgendaFilesAlreadyReported,
   AgendaFilesUpdated,
+  AgendaValidated,
+  AgendaWithoutValidatedVersion,
   EmptyAgenda,
 } from './agenda';
 import { AgendaSnapshot } from './agenda-snapshot';
 
+const AUTHOR = 'author-1';
 const NO_PRESENTED_FILE: ReadonlySet<string> = new Set();
 
 function presentedFiles(...nominationFileIds: string[]): ReadonlySet<string> {
@@ -144,17 +152,28 @@ describe('Agenda', () => {
   it('should emit an edited event when editing a file block', () => {
     const agenda = makeAgenda();
 
-    agenda.editFileBlock({ fileId: 42n, html: '<p>custom</p>', outdated: true });
+    agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>custom</p>', outdated: true });
 
-    expect(agenda.messages).toEqual([new AgendaFileBlockEdited(agenda.id, 42n, '<p>custom</p>', true)]);
+    expect(agenda.messages).toEqual([
+      new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>custom</p>', true, AUTHOR),
+    ]);
   });
 
   it('should emit a reset event when resetting a file block', () => {
     const agenda = makeAgenda();
 
-    agenda.resetFileBlock({ fileId: 42n });
+    agenda.resetFileBlock({ fileId: 1n });
 
-    expect(agenda.messages).toEqual([new AgendaFileBlockReset(agenda.id, 42n)]);
+    expect(agenda.messages).toEqual([new AgendaFileBlockReset(agenda.id, 'nf-1')]);
+  });
+
+  it('should refuse a block the agenda does not carry', () => {
+    const agenda = makeAgenda();
+
+    expect(() =>
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 42n, html: '<p>custom</p>', outdated: true }),
+    ).toThrow(UnknownAgendaFileBlock);
+    expect(agenda.messages).toEqual([]);
   });
 
   it('should not emit an event when metadata are unchanged', () => {
@@ -241,5 +260,107 @@ describe('Agenda', () => {
         }),
       ),
     ]);
+  });
+
+  describe('a validated agenda', () => {
+    const validated = () => makeAgenda({ isValidated: true });
+
+    it('should open a draft before the first change', () => {
+      const agenda = validated();
+
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
+
+      expect(agenda.messages).toEqual([
+        new AgendaDraftOpened(agenda.id, null),
+        new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
+      ]);
+    });
+
+    it('should open a single draft whatever the number of changes', () => {
+      const agenda = validated();
+
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
+      agenda.resetFileBlock({ fileId: 1n });
+
+      expect(agenda.messages.filter((message) => message instanceof AgendaDraftOpened)).toHaveLength(1);
+    });
+
+    it('should not open a draft when nothing changes', () => {
+      const agenda = validated();
+
+      agenda.updateMetadata({
+        authorId: props.authorId,
+        chairmanId: props.chairman.id,
+        date: props.date,
+        sessionMeetingDate: props.sessionMeetingDate,
+      });
+
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should refuse to be validated again', () => {
+      const agenda = validated();
+
+      const act = () => agenda.validate({ at: new Date(), authorId: props.authorId });
+
+      expect(act).toThrow(AgendaAlreadyValidated);
+    });
+
+    it('should open a new draft after being validated again', () => {
+      const agenda = makeAgenda({ isDocumentStored: true });
+
+      agenda.validate({ at: new Date(), authorId: props.authorId });
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
+
+      expect(agenda.messages.filter((message) => message instanceof AgendaDraftOpened)).toHaveLength(1);
+    });
+  });
+
+  describe('a draft agenda', () => {
+    it('should not open another draft', () => {
+      const agenda = makeAgenda();
+
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
+
+      expect(agenda.messages).toEqual([
+        new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
+      ]);
+    });
+
+    it('should be validated', () => {
+      const agenda = makeAgenda({ isDocumentStored: true });
+      const at = new Date();
+
+      agenda.validate({ at, authorId: props.authorId });
+
+      expect(agenda.messages).toEqual([
+        new AgendaValidated(agenda.id, at, makeId('AuthorId', props.authorId)),
+      ]);
+    });
+
+    it('should refuse to be validated while its document is not stored', () => {
+      const agenda = makeAgenda();
+
+      const act = () => agenda.validate({ at: new Date(), authorId: props.authorId });
+
+      expect(act).toThrow(AgendaDocumentNotStored);
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should be discarded when a validated version remains underneath', () => {
+      const agenda = makeAgenda();
+
+      agenda.discardDraft({ hasValidatedVersion: true });
+
+      expect(agenda.messages).toEqual([new AgendaDraftDiscarded(agenda.id)]);
+    });
+
+    it('should refuse to be discarded without a validated version to fall back on', () => {
+      const agenda = makeAgenda();
+
+      const act = () => agenda.discardDraft({ hasValidatedVersion: false });
+
+      expect(act).toThrow(AgendaWithoutValidatedVersion);
+    });
   });
 });

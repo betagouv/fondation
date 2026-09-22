@@ -14,11 +14,15 @@ export function AgendaBreadCrumb() {
 
   const label = useMemo(() => {
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA }, pathname)) {
-      return formatMessage({ defaultMessage: `Métadonnées d'un ordre du jour` });
+      return formatMessage({ defaultMessage: `Données d'un ordre du jour` });
     }
 
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES }, pathname)) {
       return formatMessage({ defaultMessage: `Propositions d'un ordre du jour` });
+    }
+
+    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_EDIT }, pathname)) {
+      return formatMessage({ defaultMessage: `Texte d'un ordre du jour` });
     }
 
     if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_PREVIEW }, pathname)) {
@@ -35,9 +39,18 @@ export function AgendaBreadCrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          { to: generatePath(ROUTE_PATHS.SG.DASHBOARD), label: 'Secrétariat général' },
-          { to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION), label: 'Gérer une session' },
-          { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }), label: session?.name ?? 'Session' },
+          {
+            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
+            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION),
+            label: formatMessage({ defaultMessage: 'Gérer une session' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+            label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),
+          },
         ],
       }}
     />

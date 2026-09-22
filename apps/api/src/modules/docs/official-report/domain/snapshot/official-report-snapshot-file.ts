@@ -2,7 +2,6 @@ import { type DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-no
 import type { OfficialReportSnapshotDiff } from '../official-report-types';
 
 export type PlainOfficialReportSnapshotFile = {
-  id: bigint;
   nominationFileId: string | null;
   hasManuallyEditedHtml: boolean;
   reporters: readonly string[];
@@ -14,7 +13,6 @@ export type PlainOfficialReportSnapshotFile = {
 
 export class OfficialReportSnapshotFile {
   private constructor(
-    readonly id: bigint,
     readonly nominationFileId: string | null,
     readonly reporters: readonly string[],
     readonly outcome: { value: DocNominationFileOutcomeEnum; comment: string | null },
@@ -23,7 +21,6 @@ export class OfficialReportSnapshotFile {
 
   static from(plain: PlainOfficialReportSnapshotFile): OfficialReportSnapshotFile {
     return new OfficialReportSnapshotFile(
-      plain.id,
       plain.nominationFileId,
       plain.reporters,
       plain.outcome,
@@ -44,7 +41,7 @@ export class OfficialReportSnapshotFile {
 
     return {
       action: this.hasManuallyEditedHtml ? 'outdate' : 'update',
-      id: this.id,
+      nominationFileId: next.nominationFileId,
       reporters: reportersChanged ? next.reporters : undefined,
       outcome: outcomeChanged ? next.outcome?.value : undefined,
       outcomeComment: outcomeChanged ? next.outcome?.comment : undefined,

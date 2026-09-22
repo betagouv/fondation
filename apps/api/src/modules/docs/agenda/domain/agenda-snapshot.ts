@@ -62,6 +62,18 @@ export class AgendaSnapshot {
     return { hasAny: true, metadata: next, officialReportInvalidations };
   }
 
+  /**
+   * the row id only names a block inside one version, since opening a draft copies every row under
+   * fresh ids. The proposition it stands for is what survives, so every write is addressed by it.
+   */
+  nominationFileIdOf(fileId: bigint): string | null {
+    for (const file of this.nominationFiles.values()) {
+      if (file.id === fileId) return file.nominationFileId;
+    }
+
+    return null;
+  }
+
   diffFiles(next: { fileIds: ReadonlySet<string> }): AgendaFilesDiff {
     const nominationFileIds = new Set(this.nominationFiles.keys());
 
@@ -91,7 +103,7 @@ export class AgendaSnapshot {
 
       if (!reportersChanged) return [];
 
-      return [{ id: knownFile.id, reporters, isOutdated: knownFile.isManuallyEdited }];
+      return [{ nominationFileId: id, reporters, isOutdated: knownFile.isManuallyEdited }];
     });
 
     return updatedReporters.length > 0 ? { hasAny: true, updated: updatedReporters } : { hasAny: false };
@@ -119,5 +131,5 @@ export type AgendaFilesReportersDiff =
   | { hasAny: false }
   | {
       hasAny: true;
-      updated: readonly { id: bigint; reporters: readonly string[]; isOutdated: boolean }[];
+      updated: readonly { isOutdated: boolean; nominationFileId: string; reporters: readonly string[] }[];
     };

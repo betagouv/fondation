@@ -2,6 +2,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   JusticePresentationPlan,
@@ -13,6 +14,7 @@ import {
 } from '../../domain/justice-presentation-plan';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { Files } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
@@ -25,6 +27,7 @@ export class JusticePresentationPlanRepository {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+    private readonly files: Files,
   ) {}
 
   @Transactional()
@@ -89,16 +92,27 @@ export class JusticePresentationPlanRepository {
         sessionId: true,
         sessionName: true,
         formation: true,
-        nominationFiles: { select: { nominationFileId: true }, where: { nominationFileId: { not: null } } },
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: {
+              select: { nominationFileId: true },
+              where: { nominationFileId: { not: null } },
+            },
+          },
+        },
       },
     });
 
     const nominationFiles = await Promise.all(
-      agendas.map(async ({ id: agendaId, sessionId, sessionName, formation, nominationFiles }) => {
+      agendas.map(async ({ id: agendaId, sessionId, sessionName, formation, versions }) => {
         const { items } = await this.docsNominationFilesFinder.find({
           sessionId,
           formation: prismaFormationEnumToFormationEnum(formation),
-          ids: nominationFiles.map(({ nominationFileId }) => nominationFileId as string),
+          ids: (agendaContentOf(versions)?.nominationFiles ?? []).map(
+            ({ nominationFileId }) => nominationFileId as string,
+          ),
         });
 
         return items
@@ -162,6 +176,11 @@ export class JusticePresentationPlanRepository {
       where: { id: { in: message.state.agendas.map(({ id }) => id) } },
     });
 
+    const stale = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id: message.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+
     await this.db.tx.justicePresentationPlanMember.deleteMany({ where: { planId: message.id } });
     await this.db.tx.justicePresentationPlanNominationFile.deleteMany({ where: { planId: message.id } });
 
@@ -205,6 +224,8 @@ export class JusticePresentationPlanRepository {
         },
       },
     });
+
+    if (stale?.pdf) this.files.delete([stale.pdf]);
   }
 
   private async persistJusticePresentationPlanDeleted(message: JusticePresentationPlanDeleted) {
@@ -219,16 +240,14 @@ export class JusticePresentationPlanRepository {
 
     const file = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
-      select: { pdf: { select: { id: true } } },
+      select: { pdf: { select: { id: true, path: true } } },
     });
-
-    if (file?.pdf?.id) {
-      await this.db.tx.file.delete({ where: { id: file.pdf.id } });
-    }
 
     await this.db.tx.justicePresentationPlan.delete({
       where: { id: message.id },
     });
+
+    if (file?.pdf) this.files.delete([file.pdf]);
   }
 
   private async persistJusticePresentationPlanPresented(message: JusticePresentationPlanPresented) {

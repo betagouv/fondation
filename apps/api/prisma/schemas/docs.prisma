@@ -5,7 +5,7 @@ model JusticeDepartmentContact {
   createdAt DateTime @default(now()) @map("created_at")
   authorId  String?  @map("author_id") @db.Uuid
 
-  officialReports          OfficialReport[]
+  officialReportVersions   OfficialReportVersion[]
   author                   User?                     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   justicePresentationPlans JusticePresentationPlan[]
 
@@ -23,37 +23,28 @@ enum PrismaDocsFileOutcomeEnum {
   @@schema("docs")
 }
 
+enum PrismaDocVersionStatusEnum {
+  DRAFT
+  VALIDATED
+
+  @@map("doc_version_status_enum")
+  @@schema("docs")
+}
+
 // #region Agenda
 model Agenda {
   id                        String              @id @db.Uuid
   sessionId                 String              @map("session_id") @db.Uuid
   sessionName               String              @map("session_name")
   formation                 PrismaFormationEnum
-  sessionMeetingDate        DateTime            @map("session_meeting_date") @db.Date
-  date                      DateTime            @db.Date
   officialReportId          String?             @map("official_report_id") @db.Uuid
   justicePresentationPlanId String?             @map("justice_presentation_plan_id") @db.Uuid
-
-  chairmanId           String?              @map("chairman_id") @db.Uuid
-  chairmanFirstName    String               @map("chairman_first_name")
-  chairmanLastName     String               @map("chairman_last_name")
-  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
-  chairmanDisplayTitle String?              @map("chairman_display_title")
-  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
 
-  html             String?
-  outdated         Boolean @default(false) @map("html_outdated")
-  // computed value from all AgendaNominationFile.htmlEdited columns
-  isManuallyEdited Boolean @default(false) @map("is_manually_edited")
-  pdfFileId        String? @map("pdf_file_id") @db.Uuid
-
-  nominationFiles                        AgendaNominationFile[]
-  chairman                               User?                                   @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  versions                               AgendaVersion[]
   author                                 User?                                   @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_author")
-  pdf                                    File?                                   @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   officialReport                         OfficialReport?                         @relation(fields: [officialReportId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   justicePresentationPlan                JusticePresentationPlanToAgenda?
   justicePresentationPlanNominationFiles JusticePresentationPlanNominationFile[]
@@ -63,9 +54,48 @@ model Agenda {
   @@schema("docs")
 }
 
+model AgendaVersion {
+  id       String                     @id @db.Uuid
+  agendaId String                     @map("agenda_id") @db.Uuid
+  version  Int
+  status   PrismaDocVersionStatusEnum @default(DRAFT)
+
+  date               DateTime @db.Date
+  sessionMeetingDate DateTime @map("session_meeting_date") @db.Date
+
+  chairmanId           String?              @map("chairman_id") @db.Uuid
+  chairmanFirstName    String               @map("chairman_first_name")
+  chairmanLastName     String               @map("chairman_last_name")
+  chairmanTitle        PrismaUserTitleEnum? @map("chairman_title")
+  chairmanDisplayTitle String?              @map("chairman_display_title")
+  chairmanGender       PrismaGenderEnum     @map("chairman_gender")
+
+  html             String?
+  outdated         Boolean @default(false) @map("html_outdated")
+  // computed value from all AgendaNominationFile.htmlEdited columns
+  isManuallyEdited Boolean @default(false) @map("is_manually_edited")
+  pdfFileId        String? @map("pdf_file_id") @db.Uuid
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
+  validatedBy String?   @map("validated_by") @db.Uuid
+
+  nominationFiles AgendaNominationFile[]
+  agenda          Agenda                 @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman        User?                  @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  author          User?                  @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_author")
+  validator       User?                  @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_validator")
+  pdf             File?                  @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([agendaId, version])
+  @@map("agenda_version")
+  @@schema("docs")
+}
+
 model AgendaNominationFile {
   id               BigInt  @id @default(autoincrement())
-  agendaId         String  @map("agenda_id") @db.Uuid
+  versionId        String  @map("version_id") @db.Uuid
   nominationFileId String? @map("nomination_file_id") @db.Uuid
 
   number           Int
@@ -78,14 +108,18 @@ model AgendaNominationFile {
   outcomeComment   String?                    @map("outcome_comment")
   reporters        String[]
 
-  htmlEdited   String? @map("html_edited")
-  htmlOutdated Boolean @default(false) @map("html_outdated")
+  htmlEdited   String?   @map("html_edited")
+  htmlOutdated Boolean   @default(false) @map("html_outdated")
+  // when the block was last rewritten by hand, untouched by the upstream data changes
+  htmlEditedAt DateTime? @map("html_edited_at")
+  htmlEditedBy String?   @map("html_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  agenda         Agenda               @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  version        AgendaVersion        @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  editor         User?                @relation(fields: [htmlEditedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_block_editor")
 
   @@map("agenda_nomination_file")
   @@schema("docs")
@@ -95,25 +129,29 @@ model AgendaNominationFile {
 
 // #region OfficialReport
 model OfficialReport {
-  id                         String   @id @db.Uuid
+  id String @id @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  authorId  String?  @map("author_id") @db.Uuid
+
+  versions OfficialReportVersion[]
+  agendas  Agenda[]
+  author   User?                   @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_author")
+
+  @@map("official_report")
+  @@schema("docs")
+}
+
+model OfficialReportVersion {
+  id               String                     @id @db.Uuid
+  officialReportId String                     @map("official_report_id") @db.Uuid
+  version          Int
+  status           PrismaDocVersionStatusEnum @default(DRAFT)
+
   sessionMeetingDate         DateTime @map("session_meeting_date") @db.Date
   sessionMeetingStartingTime DateTime @map("session_meeting_starting_time") @db.Time
   sessionMeetingEndingTime   DateTime @map("session_meeting_ending_time") @db.Time
   hasRenunciation            Boolean  @map("has_renunciation")
-  html                       String?
-  isManuallyEdited           Boolean  @default(false) @map("is_manually_edited")
-  pdfId                      String?  @map("pdf_id") @db.Uuid
-
-  outdated           Boolean @default(false)
-  introHtml          String? @map("intro_html")
-  introOutdated      Boolean @default(false) @map("intro_outdated")
-  conclusionHtml     String? @map("conclusion_html")
-  conclusionOutdated Boolean @default(false) @map("conclusion_outdated")
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  authorId    String?   @map("author_id") @db.Uuid
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  validatedAt DateTime? @map("validated_at")
 
   justiceDepartmentContactId   BigInt? @map("justice_department_contact_id")
   justiceDepartmentContactName String  @map("justice_department_contact_name")
@@ -132,24 +170,42 @@ model OfficialReport {
   secretaryDisplayTitle String?              @map("secretary_display_title")
   secretaryGender       PrismaGenderEnum     @map("secretary_gender")
 
-  agendas                  Agenda[]
+  introHtml          String? @map("intro_html")
+  introOutdated      Boolean @default(false) @map("intro_outdated")
+  conclusionHtml     String? @map("conclusion_html")
+  conclusionOutdated Boolean @default(false) @map("conclusion_outdated")
+
+  html             String?
+  outdated         Boolean @default(false)
+  // computed value from every manually written part of the version
+  isManuallyEdited Boolean @default(false) @map("is_manually_edited")
+  pdfId            String? @map("pdf_id") @db.Uuid
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
+  validatedBy String?   @map("validated_by") @db.Uuid
+
   members                  OfficialReportMember[]
   nominationFiles          OfficialReportNominationFile[]
   sectionTitles            OfficialReportSectionTitle[]
   sectionIntros            OfficialReportSectionIntro[]
-  chairman                 User?                          @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_chairman")
-  secretary                User?                          @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_secretary")
-  author                   User?                          @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_reports_author")
+  officialReport           OfficialReport                 @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman                 User?                          @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_chairman")
+  secretary                User?                          @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
+  author                   User?                          @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
+  validator                User?                          @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
   justiceDepartmentContact JusticeDepartmentContact?      @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pdf                      File?                          @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
 
-  @@map("official_report")
+  @@unique([officialReportId, version])
+  @@map("official_report_version")
   @@schema("docs")
 }
 
 model OfficialReportMember {
-  id               BigInt @id @default(autoincrement())
-  officialReportId String @map("official_report_id") @db.Uuid
+  id        BigInt @id @default(autoincrement())
+  versionId String @map("version_id") @db.Uuid
 
   isAbsent  Boolean          @map("is_absent")
   /// see User.id
@@ -160,15 +216,15 @@ model OfficialReportMember {
   title     String?
   sort      Int              @db.SmallInt
 
-  officialReport OfficialReport @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  version OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@map("official_report_member")
   @@schema("docs")
 }
 
 model OfficialReportNominationFile {
-  id               BigInt @id @default(autoincrement())
-  officialReportId String @map("official_report_id") @db.Uuid
+  id        BigInt @id @default(autoincrement())
+  versionId String @map("version_id") @db.Uuid
 
   nominationFileId String? @map("nomination_file_id") @db.Uuid
 
@@ -182,41 +238,47 @@ model OfficialReportNominationFile {
   outcomeComment   String?                   @map("outcome_comment")
   reporters        String[]
 
-  htmlEdited   String? @map("html_edited")
-  htmlOutdated Boolean @default(false) @map("html_outdated")
+  htmlEdited   String?   @map("html_edited")
+  htmlOutdated Boolean   @default(false) @map("html_outdated")
+  // when the block was last rewritten by hand, untouched by the upstream data changes
+  htmlEditedAt DateTime? @map("html_edited_at")
+  // the text was written in the agenda and taken as is, so the report is not the one to credit
+  htmlFromAgenda Boolean @default(false) @map("html_from_agenda")
+  htmlEditedBy   String? @map("html_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  officialReport OfficialReport       @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  nominationFile DossierDeNomination? @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  version        OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  nominationFile DossierDeNomination?  @relation(fields: [nominationFileId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  editor         User?                 @relation(fields: [htmlEditedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_block_editor")
 
   @@map("official_report_nomination_file")
   @@schema("docs")
 }
 
 model OfficialReportSectionTitle {
-  officialReportId String                    @map("official_report_id") @db.Uuid
-  outcome          PrismaDocsFileOutcomeEnum
-  title            String?
+  versionId String                    @map("version_id") @db.Uuid
+  outcome   PrismaDocsFileOutcomeEnum
+  title     String?
 
-  officialReport OfficialReport @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  version OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@id([officialReportId, outcome], name: "primaryKey")
+  @@id([versionId, outcome], name: "primaryKey")
   @@map("official_report_section_title")
   @@schema("docs")
 }
 
 model OfficialReportSectionIntro {
-  officialReportId String                    @map("official_report_id") @db.Uuid
-  outcome          PrismaDocsFileOutcomeEnum
-  html             String
-  createdAt        DateTime                  @default(now()) @map("created_at")
-  updatedAt        DateTime                  @updatedAt @map("updated_at")
+  versionId String                    @map("version_id") @db.Uuid
+  outcome   PrismaDocsFileOutcomeEnum
+  html      String
+  createdAt DateTime                  @default(now()) @map("created_at")
+  updatedAt DateTime                  @updatedAt @map("updated_at")
 
-  officialReport OfficialReport @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  version OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@id([officialReportId, outcome], name: "primaryKey")
+  @@id([versionId, outcome], name: "primaryKey")
   @@map("official_report_section_intro")
   @@schema("docs")
 }
@@ -262,7 +324,7 @@ model JusticePresentationPlan {
   secretary       User?                                   @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_secretary")
   author          User?                                   @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_author")
   justiceContact  JusticeDepartmentContact?               @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  pdf             File?                                   @relation(fields: [pdfId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_pdf")
+  pdf             File?                                   @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "justice_presentation_pdf")
   members         JusticePresentationPlanMember[]
 
   @@index([isPresented])

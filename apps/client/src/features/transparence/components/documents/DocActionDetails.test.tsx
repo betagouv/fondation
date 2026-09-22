@@ -37,11 +37,16 @@ function renderDocActionDetails(setIsActing = vi.fn()) {
       <DocActionDetails
         disabled={false}
         doc={{
+          createdAt: '2028-03-10T09:00:00.000Z',
+          hasDraft: false,
+          hasPresentationPlan: false,
           id: 'agenda-1',
-          type: 'agenda',
           name: 'Ordre du jour du 12 mars',
           officialReportId: null,
           outdated: false,
+          status: 'VALIDATED',
+          type: 'agenda',
+          validatedAt: '2028-03-10T11:00:00.000Z',
         }}
         sessionId="session-1"
         setIsActing={setIsActing}

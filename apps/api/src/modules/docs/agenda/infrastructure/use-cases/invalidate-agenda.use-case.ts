@@ -21,6 +21,7 @@ export class InvalidateAgendasUseCase {
         return this.updateAgendasReporters(invalidation);
 
       case 'AgendaDateUpdated':
+      case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
       case 'NominationFileOutcomeUpdated':
       case 'SessionDateUpdated':
@@ -37,10 +38,12 @@ export class InvalidateAgendasUseCase {
   ): Promise<void> {
     const { sessionId } = invalidation.payload;
 
-    const agendas = await this.db.tx.agenda.findMany({
-      where: { sessionId: invalidation.payload.sessionId },
+    const agendas = await this.db.tx.agendaVersion.findMany({
+      where: { agenda: { sessionId: invalidation.payload.sessionId } },
+      distinct: ['agendaId'],
+      orderBy: { version: 'desc' },
       select: {
-        id: true,
+        agendaId: true,
         nominationFiles: { select: { nominationFileId: true } },
       },
     });
@@ -57,8 +60,8 @@ export class InvalidateAgendasUseCase {
 
     const nominationFilesPerId = new Map(updatedNominationFiles.map((file) => [file.id, file]));
 
-    for (const { id, nominationFiles } of agendas) {
-      const agenda = await this.agendaRepository.find({ agendaId: id });
+    for (const { agendaId, nominationFiles } of agendas) {
+      const agenda = await this.agendaRepository.find({ agendaId });
       agenda.updateFilesReporters({
         nominationFiles: nominationFiles.flatMap(({ nominationFileId }) => {
           if (!nominationFileId) return [];

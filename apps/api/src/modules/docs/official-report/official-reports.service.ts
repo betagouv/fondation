@@ -10,6 +10,7 @@ import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs
 import { Clock } from 'src/modules/framework/clock';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 
 import { OfficialReport } from './domain/official-report';
 import { OfficialReportChairman } from './domain/official-report-chairman';
@@ -17,6 +18,7 @@ import { OfficialReportMember } from './domain/official-report-member';
 import { OfficialReportMembersList } from './domain/official-report-member-list';
 import { OfficialReportSecretary } from './domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from './domain/official-report-session-meeting';
+import { OfficialReportVersionFinder } from './infrastructure/finders/official-report-version.finder';
 import {
   CreatedOfficialReportDto,
   DetailedOfficialReportDocumentDto,
@@ -50,6 +52,7 @@ export class OfficialReportsService {
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
 
     private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
 
     private readonly clock: Clock,
     private readonly auth: SimpleAuthService,
@@ -253,47 +256,69 @@ export class OfficialReportsService {
   }
 
   deleteOfficialReport(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.delete());
+    return this.withOfficialReport({ id: command.id }, (report) => report.delete());
   }
 
-  resetOfficialReportDocument(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetDocument());
-  }
-
-  async validateOfficialReport(command: { id: string }): Promise<void> {
+  async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
-    await this.findOfficialReportDocumentPdfQuery.handle({ id: command.id, forceNew: true });
-    await this.withOfficialReport(command.id, (report) => report.validate({ at: this.clock.now() }));
+    await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
+    await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.validate({ at: this.clock.now(), authorId: command.authorId }),
+    );
   }
 
-  editOfficialReportIntro(command: { id: string; html: string; outdated: boolean }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  async discardOfficialReportDraft(command: { id: string }): Promise<void> {
+    const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
+
+    await this.withOfficialReport({ id: command.id }, (report) =>
+      report.discardDraft({ hasValidatedVersion: isDefined(publishedId) }),
+    );
+  }
+
+  editOfficialReportIntro(command: {
+    authorId: string;
+    id: string;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editIntro({ html: command.html, outdated: command.outdated }),
     );
   }
 
-  resetOfficialReportIntro(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetIntro());
+  resetOfficialReportIntro(command: { authorId: string; id: string }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetIntro(),
+    );
   }
 
-  editOfficialReportConclusion(command: { id: string; html: string; outdated: boolean }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  editOfficialReportConclusion(command: {
+    authorId: string;
+    id: string;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editConclusion({ html: command.html, outdated: command.outdated }),
     );
   }
 
-  resetOfficialReportConclusion(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetConclusion());
+  resetOfficialReportConclusion(command: { authorId: string; id: string }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetConclusion(),
+    );
   }
 
   editOfficialReportFile(command: {
     id: string;
+    authorId: string;
     nominationFileId: string;
     html: string;
     outdated: boolean;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editFile({
+        authorId: command.authorId,
         nominationFileId: command.nominationFileId,
         html: command.html,
         outdated: command.outdated,
@@ -301,46 +326,54 @@ export class OfficialReportsService {
     );
   }
 
-  resetOfficialReportFile(command: { id: string; nominationFileId: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  resetOfficialReportFile(command: {
+    authorId: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetFile({ nominationFileId: command.nominationFileId }),
     );
   }
 
   editOfficialReportSectionTitle(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
     text: string;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editSectionTitle({ outcome: command.outcome, text: command.text }),
     );
   }
 
   resetOfficialReportSectionTitle(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetSectionTitle({ outcome: command.outcome }),
     );
   }
 
   editOfficialReportSectionIntro(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
     html: string;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editSectionIntro({ outcome: command.outcome, html: command.html }),
     );
   }
 
   resetOfficialReportSectionIntro(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetSectionIntro({ outcome: command.outcome }),
     );
   }
@@ -350,8 +383,11 @@ export class OfficialReportsService {
   }
 
   @Transactional()
-  private async withOfficialReport(id: string, mutation: (report: OfficialReport) => void): Promise<void> {
-    const report = await this.officialReportRepository.find({ id });
+  private async withOfficialReport(
+    query: { actorId?: string | null; id: string },
+    mutation: (report: OfficialReport) => void,
+  ): Promise<void> {
+    const report = await this.officialReportRepository.find(query);
 
     mutation(report);
 

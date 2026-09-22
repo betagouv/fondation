@@ -280,9 +280,17 @@ export class PresentationPlansService {
   }
 
   async updatePresentationPlanHtml(command: { id: string; html: Buffer }): Promise<void> {
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id: command.id },
+      select: { pdf: { select: { id: true, path: true } } },
+    });
+    if (!plan) throw new NotFoundException();
+
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
-      data: { html: command.html.toString('utf-8'), isManuallyEdited: true },
+      data: { html: command.html.toString('utf-8'), isManuallyEdited: true, pdfId: null },
     });
+
+    if (plan.pdf) this.files.delete([plan.pdf]);
   }
 }

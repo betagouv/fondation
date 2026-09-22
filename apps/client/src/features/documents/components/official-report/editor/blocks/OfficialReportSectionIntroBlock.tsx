@@ -38,8 +38,8 @@ function SectionIntroBlockView(props: ReactNodeViewProps) {
     <NodeViewWrapper
       as="div"
       className={clsx('doc-block', {
-        'doc-block--active': active,
-        'doc-block--warning': props.node.attrs.edited,
+        'doc-block--active': active && !props.node.attrs.edited,
+        'doc-block--edited': props.node.attrs.edited,
       })}
     >
       <NodeViewContent />

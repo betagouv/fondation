@@ -105,6 +105,7 @@ export class OfficialReportsController {
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.html')
   generateOfficialReportHtml(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
@@ -121,6 +122,7 @@ export class OfficialReportsController {
   @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.pdf')
   generateOfficialReportPdf(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
     forceNew: boolean,
@@ -138,6 +140,7 @@ export class OfficialReportsController {
     status: HttpStatus.OK,
   })
   detailsOfficialReport(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
   ): Promise<DetailedOfficialReportMetadataDto> {
     return this.officialReports.detailsOfficialReportMetadata({ officialReportId });
@@ -148,8 +151,8 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateOfficialReport(
-    @Param('officialReportId') officialReportId: string,
     @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
     @Body() body: UpdateOfficialReportDto,
   ): Promise<void> {
     await this.officialReports.updateOfficialReport({
@@ -169,14 +172,25 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/official-reports/:officialReportId/validation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  validateOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
-    return this.officialReports.validateOfficialReport({ id: officialReportId });
+  validateOfficialReport(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<void> {
+    return this.officialReports.validateOfficialReport({ id: officialReportId, authorId: authUser.id });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/official-reports/:officialReportId/draft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  discardOfficialReportDraft(@Param('officialReportId') officialReportId: string): Promise<void> {
+    return this.officialReports.discardOfficialReportDraft({ id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/official-reports/:officialReportId/blocks')
   @ZodResponse({ type: DetailedOfficialReportDocumentDto, status: HttpStatus.OK })
   detailsOfficialReportDocument(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
   ): Promise<DetailedOfficialReportDocumentDto> {
     return this.officialReports.detailsOfficialReportDocument({ id: officialReportId });
@@ -187,10 +201,12 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   editOfficialReportIntro(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Body() body: EditOfficialReportBlockDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportIntro({
+      authorId: authUser.id,
       id: officialReportId,
       html: body.html,
       outdated: body.outdated,
@@ -200,8 +216,11 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/blocks/intro')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetOfficialReportIntro(@Param('officialReportId') officialReportId: string): Promise<void> {
-    return this.officialReports.resetOfficialReportIntro({ id: officialReportId });
+  resetOfficialReportIntro(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<void> {
+    return this.officialReports.resetOfficialReportIntro({ authorId: authUser.id, id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -209,10 +228,12 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   editOfficialReportConclusion(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Body() body: EditOfficialReportBlockDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportConclusion({
+      authorId: authUser.id,
       id: officialReportId,
       html: body.html,
       outdated: body.outdated,
@@ -222,8 +243,14 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/blocks/conclusion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetOfficialReportConclusion(@Param('officialReportId') officialReportId: string): Promise<void> {
-    return this.officialReports.resetOfficialReportConclusion({ id: officialReportId });
+  resetOfficialReportConclusion(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+  ): Promise<void> {
+    return this.officialReports.resetOfficialReportConclusion({
+      authorId: authUser.id,
+      id: officialReportId,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -232,12 +259,14 @@ export class OfficialReportsController {
   @UsePipes(ZodValidationPipe)
   @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
   editOfficialReportSectionTitle(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
     outcome: DocNominationFileOutcomeEnum,
     @Body() body: EditOfficialReportSectionTitleDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportSectionTitle({
+      authorId: authUser.id,
       id: officialReportId,
       outcome,
       text: body.text,
@@ -249,11 +278,16 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
   resetOfficialReportSectionTitle(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
     outcome: DocNominationFileOutcomeEnum,
   ): Promise<void> {
-    return this.officialReports.resetOfficialReportSectionTitle({ id: officialReportId, outcome });
+    return this.officialReports.resetOfficialReportSectionTitle({
+      authorId: authUser.id,
+      id: officialReportId,
+      outcome,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -262,12 +296,14 @@ export class OfficialReportsController {
   @UsePipes(ZodValidationPipe)
   @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
   editOfficialReportSectionIntro(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
     outcome: DocNominationFileOutcomeEnum,
     @Body() body: EditOfficialReportSectionIntroBlockDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportSectionIntro({
+      authorId: authUser.id,
       outcome,
       html: body.html,
       id: officialReportId,
@@ -279,11 +315,16 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
   resetOfficialReportSectionIntro(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
     outcome: DocNominationFileOutcomeEnum,
   ): Promise<void> {
-    return this.officialReports.resetOfficialReportSectionIntro({ id: officialReportId, outcome });
+    return this.officialReports.resetOfficialReportSectionIntro({
+      authorId: authUser.id,
+      id: officialReportId,
+      outcome,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -291,11 +332,13 @@ export class OfficialReportsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   editOfficialReportFile(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: EditOfficialReportBlockDto,
   ): Promise<void> {
     return this.officialReports.editOfficialReportFile({
+      authorId: authUser.id,
       id: officialReportId,
       nominationFileId,
       html: body.html,
@@ -307,17 +350,15 @@ export class OfficialReportsController {
   @Delete('/official-reports/:officialReportId/blocks/files/:nominationFileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetOfficialReportFile(
+    @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<void> {
-    return this.officialReports.resetOfficialReportFile({ id: officialReportId, nominationFileId });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Delete('/official-reports/:officialReportId/document')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  resetOfficialReportDocument(@Param('officialReportId') officialReportId: string): Promise<void> {
-    return this.officialReports.resetOfficialReportDocument({ id: officialReportId });
+    return this.officialReports.resetOfficialReportFile({
+      authorId: authUser.id,
+      id: officialReportId,
+      nominationFileId,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

@@ -36,11 +36,36 @@
   border-left-color: var(--border-default-yellow-tournesol);
 }
 
+/* an edited block keeps a white body: only its left rule and its changed words turn yellow */
+.doc-block--edited {
+  border-left-color: var(--border-default-yellow-tournesol);
+}
+
+/* the words an edited block no longer shares with the text the document proposes */
+.doc-block__changed {
+  background: var(--background-contrast-yellow-tournesol);
+}
+
+/* a dropped word is drawn beside the text it left, and never reaches the document */
+.doc-block__removed {
+  background: var(--background-contrast-yellow-tournesol);
+  color: var(--text-mention-grey);
+  margin-right: 0.25rem;
+  text-decoration: line-through;
+  user-select: none;
+}
+
+/* yellow says the agenda wrote it, orange says this document did: the later rule wins the overlap */
+.doc-block__changed--own,
+.doc-block__removed--own {
+  background: var(--background-contrast-orange-terre-battue);
+}
+
 .doc-block__banner {
   color: var(--text-default-grey);
   border-radius: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
   font-size: 0.875rem;
 }
 
@@ -52,6 +77,12 @@
 .doc-block__banner--info {
   background: white;
   border: 1px solid var(--border-default-info);
+}
+
+/* the banner wears the colour of the hand whose sentence it offers */
+.doc-block__banner--agenda {
+  background: white;
+  border: 1px solid var(--border-default-yellow-tournesol);
 }
 
 .doc-block__banner p,

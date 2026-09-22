@@ -17,6 +17,10 @@ export function OfficialReportBreadCrumb() {
       return formatMessage({ defaultMessage: `Mise à jour d'un PV` });
     }
 
+    if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT }, pathname)) {
+      return formatMessage({ defaultMessage: `Texte d'un PV` });
+    }
+
     if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW }, pathname)) {
       return formatMessage({ defaultMessage: `Validation d'un PV` });
     }
@@ -31,9 +35,18 @@ export function OfficialReportBreadCrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          { to: generatePath(ROUTE_PATHS.SG.DASHBOARD), label: 'Secrétariat général' },
-          { to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION), label: 'Gérer une session' },
-          { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }), label: session?.name ?? 'Session' },
+          {
+            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
+            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION),
+            label: formatMessage({ defaultMessage: 'Gérer une session' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+            label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),
+          },
         ],
       }}
     />

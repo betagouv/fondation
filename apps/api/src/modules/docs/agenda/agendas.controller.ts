@@ -160,11 +160,12 @@ export class AgendasController {
   @UsePipes(ZodValidationPipe)
   @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
   editAgendaFileBlock(
+    @AuthedUser() authUser: { id: string },
     @Param('agendaId') agendaId: string,
     @Param('fileId', ParseBigIntPipe) fileId: bigint,
     @Body() { html, outdated }: EditAgendaFileBlockDto,
   ): Promise<void> {
-    return this.agendas.editAgendaFileBlock({ agendaId, fileId, html, outdated });
+    return this.agendas.editAgendaFileBlock({ agendaId, authorId: authUser.id, fileId, html, outdated });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -172,17 +173,25 @@ export class AgendasController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
   resetAgendaFileBlock(
+    @AuthedUser() authUser: { id: string },
     @Param('agendaId') agendaId: string,
     @Param('fileId', ParseBigIntPipe) fileId: bigint,
   ): Promise<void> {
-    return this.agendas.resetAgendaFileBlock({ agendaId, fileId });
+    return this.agendas.resetAgendaFileBlock({ agendaId, authorId: authUser.id, fileId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Delete('/agendas/:agendaId/document')
+  @Post('/agendas/:agendaId/validation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetAgendaDocument(@Param('agendaId') agendaId: string): Promise<void> {
-    return this.agendas.resetAgendaDocument({ id: agendaId });
+  validateAgenda(@AuthedUser() authUser: { id: string }, @Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.validateAgenda({ agendaId, authorId: authUser.id });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/draft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  discardAgendaDraft(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.discardAgendaDraft({ agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

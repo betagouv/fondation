@@ -47,11 +47,14 @@ export function TransparenceDocumentsTab() {
 
   const allDocs = docs?.items ?? [];
   const states = selectedStates.filter(isSessionDocumentGroupState);
-  const groups = groupSessionDocuments(allDocs).filter(
-    (group) =>
-      (states.length === 0 || states.includes(sessionDocumentGroupState(group))) &&
-      (!search || group.some((doc) => matchesSearch(doc.name, search))),
-  );
+  const groups = groupSessionDocuments(allDocs).filter((group) => {
+    const groupState = sessionDocumentGroupState(group);
+
+    return (
+      (states.length === 0 || (!!groupState && states.includes(groupState))) &&
+      (!search || group.some((doc) => matchesSearch(doc.name, search)))
+    );
+  });
   const shownDocsCount = groups.reduce((count, group) => count + group.length, 0);
 
   const isFiltered = states.length > 0 || !!search.trim();
@@ -130,13 +133,13 @@ export function TransparenceDocumentsTab() {
             <div className="-ml-2 grid grid-cols-4 items-center gap-1">
               {doc.type === 'agenda' && (
                 <>
-                  <DocActionAgendaFiles
+                  <DocActionAgendaMetadata
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
                     sessionId={transparence.id}
                   />
-                  <DocActionAgendaMetadata
+                  <DocActionAgendaFiles
                     agendaId={doc.id}
                     disabled={isActing}
                     name={doc.name}
@@ -146,7 +149,6 @@ export function TransparenceDocumentsTab() {
               )}
               {doc.type === 'officialReport' && (
                 <DocActionOfficialReportMetadata
-                  className="col-start-2"
                   disabled={isActing}
                   officialReport={doc}
                   sessionId={transparence.id}

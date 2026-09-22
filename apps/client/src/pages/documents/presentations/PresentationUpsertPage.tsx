@@ -38,7 +38,7 @@ function PresentationBreadcrumb() {
 
 const STEP_TITLES = {
   AGENDA_COMMENTS: defineMessage({ defaultMessage: 'Commentaires sur les ordres du jour' }),
-  METADATA: defineMessage({ defaultMessage: 'Métadonnées de la notice' }),
+  METADATA: defineMessage({ defaultMessage: 'Informations de la notice' }),
 };
 
 export function PresentationUpsertPage() {

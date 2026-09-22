@@ -61,9 +61,16 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     [sessionFetching, officialReportMetadataFetching, state, metadataFetched, officialReportMetadata],
   );
 
+  // the same provider serves the creation and the edition: cancelling an edition goes back to the
+  // report being edited, where the reader came from, not to the session they left long ago
   const cancel = useCallback(
-    () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId })),
-    [navigate, sessionId],
+    () =>
+      navigate(
+        officialReportId
+          ? generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, { officialReportId, sessionId })
+          : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+      ),
+    [navigate, officialReportId, sessionId],
   );
 
   const submit = useCallback(

@@ -16,7 +16,7 @@ export class FindJusticeContactsQuery {
       select: {
         id: true,
         name: true,
-        officialReports: {
+        officialReportVersions: {
           select: { createdAt: true, id: true },
           orderBy: [{ createdAt: 'desc' }],
           take: 1,
@@ -28,8 +28,8 @@ export class FindJusticeContactsQuery {
       items: contacts
         .sort(
           (a, b) =>
-            (b.officialReports[0]?.createdAt.getTime() ?? Infinity) -
-            (a.officialReports[0]?.createdAt.getTime() ?? Infinity),
+            (b.officialReportVersions[0]?.createdAt.getTime() ?? Infinity) -
+            (a.officialReportVersions[0]?.createdAt.getTime() ?? Infinity),
         )
         .map((c) => ({ id: String(c.id), name: c.name })),
     };

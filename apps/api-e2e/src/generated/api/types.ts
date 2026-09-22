@@ -1014,12 +1014,21 @@ export type FoundSessionDocsDto = {
         id: string;
         name: string;
         officialReportId: string | null;
+        hasPresentationPlan: boolean;
         outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        hasDraft: boolean;
+        createdAt: string;
+        validatedAt: string | null;
     } | {
         type: 'officialReport';
         id: string;
         name: string;
         outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        hasDraft: boolean;
+        createdAt: string;
+        validatedAt: string | null;
     }>;
 };
 
@@ -1031,6 +1040,9 @@ export type DocGenerationSessionReadinessDto = {
     officialReportBlocker: {
         reason: 'NO_AGENDA' | 'ALL_AGENDAS_REPORTED' | 'NEVER_PUBLISHED' | 'INCOMPLETE_AGENDA';
         agendas: Array<{
+            agendaId: string;
+            chairmanInitials: string;
+            filesCount: number;
             meetingDate: {
                 year: number;
                 month: number;
@@ -1127,6 +1139,10 @@ export type DetailedSessionAgenda = {
 
 export type DetailedAgendaMetadata = {
     id: string;
+    status: 'DRAFT' | 'VALIDATED';
+    outdated: boolean;
+    outdatedPropositions: number;
+    hasValidatedVersion: boolean;
     chairmanId: string | null;
     isManuallyEdited: boolean;
     date: {
@@ -1149,7 +1165,13 @@ export type DetailedAgendaDocumentBlocksDto = {
     blocks: Array<{
         kind: 'file';
         weight: number;
+        nominationFileId: string | null;
         edited: boolean;
+        editedAt: string | null;
+        editedBy: {
+            id: string;
+            name: string;
+        } | null;
         outdated: boolean;
         generatedHtml?: string;
         html: string;
@@ -1266,6 +1288,10 @@ export type DetailedOfficialReportMetadataDto = {
         seconds: number;
     };
     isManuallyEdited: boolean;
+    status: 'DRAFT' | 'VALIDATED';
+    outdated: boolean;
+    outdatedPropositions: number;
+    hasValidatedVersion: boolean;
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
@@ -1326,6 +1352,18 @@ export type DetailedOfficialReportDocumentDto = {
         html: string;
         kind: 'file';
         nominationFileId: string | null;
+        agendaHtml: string | null;
+        agendaEditedAt: string | null;
+        agendaEditedBy: {
+            id: string;
+            name: string;
+        } | null;
+        editedAt: string | null;
+        editedBy: {
+            id: string;
+            name: string;
+        } | null;
+        fromAgenda: boolean;
     } | {
         weight: number;
         edited: boolean;
@@ -3330,20 +3368,35 @@ export type EditAgendaFileBlockResponses = {
 
 export type EditAgendaFileBlockResponse = EditAgendaFileBlockResponses[keyof EditAgendaFileBlockResponses];
 
-export type ResetAgendaDocumentData = {
+export type ValidateAgendaData = {
     body?: never;
     path: {
         agendaId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/document';
+    url: '/api/docs/v1/agendas/{agendaId}/validation';
 };
 
-export type ResetAgendaDocumentResponses = {
+export type ValidateAgendaResponses = {
     204: void;
 };
 
-export type ResetAgendaDocumentResponse = ResetAgendaDocumentResponses[keyof ResetAgendaDocumentResponses];
+export type ValidateAgendaResponse = ValidateAgendaResponses[keyof ValidateAgendaResponses];
+
+export type DiscardAgendaDraftData = {
+    body?: never;
+    path: {
+        agendaId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/agendas/{agendaId}/draft';
+};
+
+export type DiscardAgendaDraftResponses = {
+    204: void;
+};
+
+export type DiscardAgendaDraftResponse = DiscardAgendaDraftResponses[keyof DiscardAgendaDraftResponses];
 
 export type DetailsSessionOfficialReportData = {
     body?: never;
@@ -3484,6 +3537,21 @@ export type ValidateOfficialReportResponses = {
 };
 
 export type ValidateOfficialReportResponse = ValidateOfficialReportResponses[keyof ValidateOfficialReportResponses];
+
+export type DiscardOfficialReportDraftData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/draft';
+};
+
+export type DiscardOfficialReportDraftResponses = {
+    204: void;
+};
+
+export type DiscardOfficialReportDraftResponse = DiscardOfficialReportDraftResponses[keyof DiscardOfficialReportDraftResponses];
 
 export type DetailsOfficialReportDocumentData = {
     body?: never;
@@ -3655,21 +3723,6 @@ export type EditOfficialReportFileResponses = {
 };
 
 export type EditOfficialReportFileResponse = EditOfficialReportFileResponses[keyof EditOfficialReportFileResponses];
-
-export type ResetOfficialReportDocumentData = {
-    body?: never;
-    path: {
-        officialReportId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/official-reports/{officialReportId}/document';
-};
-
-export type ResetOfficialReportDocumentResponses = {
-    204: void;
-};
-
-export type ResetOfficialReportDocumentResponse = ResetOfficialReportDocumentResponses[keyof ResetOfficialReportDocumentResponses];
 
 export type ListPresentationPlanAgendasData = {
     body?: never;

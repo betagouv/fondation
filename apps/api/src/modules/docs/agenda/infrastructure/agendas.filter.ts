@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { AgendaFilesAlreadyReported, EmptyAgenda } from '../domain/agenda';
+import {
+  AgendaDocumentNotStored,
+  AgendaFilesAlreadyReported,
+  EmptyAgenda,
+  UnknownAgendaFileBlock,
+} from '../domain/agenda';
 
 @Injectable()
 export class AgendasFilter implements NestInterceptor {
@@ -17,7 +22,21 @@ export class AgendasFilter implements NestInterceptor {
         throwError(() => {
           if (err instanceof EmptyAgenda) {
             return new BadRequestException({
-              validationError: `Au moins un dossier valide doit être sélectionné`,
+              validationError:
+                "Un ordre du jour ne peut pas être vide. Pour le supprimer, utilisez l'action Supprimer dans la liste des documents de la session.",
+            });
+          }
+
+          if (err instanceof AgendaDocumentNotStored) {
+            return new BadRequestException({
+              validationError: `Le document n'a pas pu être enregistré, l'ordre du jour n'est donc pas validé`,
+            });
+          }
+
+          if (err instanceof UnknownAgendaFileBlock) {
+            return new BadRequestException({
+              validationError:
+                "Cette section ne fait plus partie de l'ordre du jour. Rechargez la page pour repartir de son contenu à jour.",
             });
           }
 

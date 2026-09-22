@@ -8,17 +8,21 @@ describe('AgendaEditionBlock', () => {
   describe('#equals', () => {
     it('is true for identical file blocks', () => {
       const a = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>a</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: false,
       });
       const b = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>a</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: false,
       });
 
@@ -27,17 +31,21 @@ describe('AgendaEditionBlock', () => {
 
     it('is false when only the outdated flag differs', () => {
       const acknowledged = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>a</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: false,
       });
       const outdated = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>a</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: true,
       });
 
@@ -46,17 +54,21 @@ describe('AgendaEditionBlock', () => {
 
     it('is false when the content differs', () => {
       const a = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>a</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: false,
       });
       const b = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:1',
+        edited: false,
         fileId: '1',
+        generatedHtml: null,
         html: '<strong>b</strong>',
+        key: 'file:1',
+        kind: 'file',
         outdated: false,
       });
 
@@ -73,10 +85,12 @@ describe('AgendaEditionBlock', () => {
         .mockResolvedValue({ data: undefined, error: undefined });
 
       const block = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:42',
+        edited: false,
         fileId: '42',
+        generatedHtml: null,
         html: '<strong>Contenu</strong>',
+        key: 'file:42',
+        kind: 'file',
         outdated: true,
       });
 
@@ -96,10 +110,12 @@ describe('AgendaEditionBlock', () => {
         .mockResolvedValue({ data: undefined, error: undefined });
 
       const block = new AgendaEditionBlock({
-        kind: 'file',
-        key: 'file:42',
+        edited: false,
         fileId: '42',
+        generatedHtml: null,
         html: '<strong>Contenu</strong>',
+        key: 'file:42',
+        kind: 'file',
         outdated: false,
       });
 

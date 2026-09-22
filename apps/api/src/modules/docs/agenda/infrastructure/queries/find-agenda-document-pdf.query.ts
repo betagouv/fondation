@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
+import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
@@ -23,27 +24,41 @@ export class FindAgendaDocumentPdfQuery {
     private readonly db: Db,
     private readonly pdfRenderer: PdfRenderer,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
+    private readonly agendaVersionFinder: AgendaVersionFinder,
   ) {}
 
+  /** makes sure the version carries its PDF, without opening a stream nobody reads */
+  async ensure(query: { id: string }): Promise<void> {
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.id });
+    const version = await this.db.tx.agendaVersion.findUnique({
+      where: { id: versionId },
+      select: { pdfFileId: true },
+    });
+
+    if (version?.pdfFileId) return;
+    await this.handle({ id: query.id, forceNew: true });
+  }
+
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const agenda = await this.db.tx.agenda.findUnique({
-      where: { id: query.id },
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.id });
+
+    const version = await this.db.tx.agendaVersion.findUnique({
+      where: { id: versionId },
       select: {
-        sessionId: true,
-        sessionName: true,
-        formation: true,
         sessionMeetingDate: true,
         chairmanFirstName: true,
         chairmanLastName: true,
         pdf: { select: { id: true, name: true } },
+        agenda: { select: { sessionId: true, sessionName: true, formation: true } },
       },
     });
 
-    if (!agenda) throw new NotFoundException();
+    if (!version) throw new NotFoundException();
+    const agenda = version.agenda;
 
     // Stream the cached PDF from S3 outside of any transaction.
-    if (!query.forceNew && agenda.pdf?.id) {
-      const file$ = await this.files.getFile({ fileId: agenda.pdf.id });
+    if (!query.forceNew && version.pdf?.id) {
+      const file$ = await this.files.getFile({ fileId: version.pdf.id });
       if (!file$) {
         this.logger.error(`Could not retrieve the agenda PDF file from S3`);
         throw new InternalServerErrorException();
@@ -51,7 +66,7 @@ export class FindAgendaDocumentPdfQuery {
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,
-        disposition: contentDisposition({ name: agenda.pdf.name }),
+        disposition: contentDisposition({ name: version.pdf.name }),
       });
     }
 
@@ -61,19 +76,21 @@ export class FindAgendaDocumentPdfQuery {
     const name = docFileName({
       type: 'AGENDA',
       formation: agenda.formation,
-      date: DateOnly.fromUtcDate(agenda.sessionMeetingDate),
+      date: DateOnly.fromUtcDate(version.sessionMeetingDate),
       sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
-      chairman: { firstName: agenda.chairmanFirstName, lastName: agenda.chairmanLastName },
+      chairman: { firstName: version.chairmanFirstName, lastName: version.chairmanLastName },
     });
 
-    const path = `sessions/${agenda.sessionId}/agendas/${query.id}.pdf`;
+    // the version belongs in the path: a shared one would have the validation delete the object it
+    // has just written, since it renders the draft before dropping the version it replaces
+    const path = `sessions/${agenda.sessionId}/agendas/${query.id}/${versionId}.pdf`;
 
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.tx.agenda.update({
-        where: { id: query.id },
+      await this.db.tx.agendaVersion.update({
+        where: { id: versionId },
         data: { pdfFileId },
       });
     } else {

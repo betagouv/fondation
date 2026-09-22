@@ -7,8 +7,10 @@ import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
+import { changedWords } from '@/features/documents/components/blocks/changed-words';
+
 import type { AgendaBlocksModel } from './blocks/agenda-blocks.model';
-import { AgendaFileBlockNode } from './blocks/AgendaFileBlock';
+import { AgendaFileBlock, AgendaFileBlockNode } from './blocks/AgendaFileBlock';
 
 const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null }>({
   name: 'agendaModel',
@@ -37,10 +39,10 @@ const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null 
 
 /**
  * Undo/redo restore the block content *and* its `outdated` attribute (tracked by
- * prosemirror-history). `onHistory` lets the model re-persist the restored state so the
+ * prosemirror-history). `onHistory` lets the model restage the restored state so the
  * backend `outdated` flag follows the editor.
  */
-const AgendaUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => Promise<void>) | null }>({
+const AgendaUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) | null }>({
   addOptions() {
     return { ...this.parent?.(), onHistory: null };
   },
@@ -73,6 +75,7 @@ export function buildAgendaExtensions(model: AgendaBlocksModel): AnyExtension[] 
     Text,
     Bold,
     Italic,
+    changedWords({ blocks: [AgendaFileBlock.name], name: 'agendaChangedWords' }),
     AgendaModelExtension.configure({ model }),
     AgendaUndoRedo.configure({ onHistory: (editor) => model.onEditorUpdate(editor) }),
     AgendaFileBlockNode,

@@ -7,13 +7,15 @@ import { agendaInlineExtensions, buildAgendaExtensions } from '../agenda-tiptap-
 import { AgendaBlocksModel } from '../blocks/agenda-blocks.model';
 import { AgendaFileBlock } from '../blocks/AgendaFileBlock';
 
-export function useAgendaEditor(model: AgendaBlocksModel): Editor {
+export function useAgendaEditor(model: AgendaBlocksModel) {
   const extensions = useMemo(() => buildAgendaExtensions(model), [model]);
 
   const content = modelToDoc(model);
+  // short enough for the save button to light up as the reader stops typing, long enough
+  // to spare a diff of every block on each keystroke. Nothing reaches the server here.
   const onUpdate = useDebouncedCallback(
     ({ editor }: { editor: Editor }) => model.onEditorUpdate(editor),
-    600,
+    200,
   );
 
   useEffect(
@@ -23,12 +25,14 @@ export function useAgendaEditor(model: AgendaBlocksModel): Editor {
     [onUpdate],
   );
 
-  return useEditor({
-    extensions,
+  const editor = useEditor({
     content,
-    onUpdate,
+    extensions,
     onCreate: ({ editor }) => model.withEditor(editor),
+    onUpdate,
   });
+
+  return { editor, flushUpdates: () => onUpdate.flush() };
 }
 
 function modelToDoc({ agendaId, blocks }: AgendaBlocksModel): JSONContent {

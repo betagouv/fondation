@@ -6,28 +6,62 @@ import {
   type SessionDocument,
 } from './session-document-groups';
 
+const CREATED_AT = '2026-03-12T09:00:00.000Z';
+const VALIDATED_AT = '2026-03-12T11:00:00.000Z';
+
 const AGENDA_SIEGE: SessionDocument = {
+  createdAt: CREATED_AT,
+  hasDraft: false,
   id: 'agenda-siege',
-  type: 'agenda',
   name: 'ODJ siège',
   officialReportId: 'pv-1',
   outdated: false,
+  status: 'VALIDATED',
+  type: 'agenda',
+  hasPresentationPlan: false,
+  validatedAt: VALIDATED_AT,
 };
 const AGENDA_PARQUET: SessionDocument = {
+  createdAt: CREATED_AT,
+  hasDraft: false,
   id: 'agenda-parquet',
-  type: 'agenda',
   name: 'ODJ parquet',
   officialReportId: 'pv-1',
   outdated: false,
+  status: 'VALIDATED',
+  type: 'agenda',
+  hasPresentationPlan: false,
+  validatedAt: VALIDATED_AT,
 };
 const AGENDA_SANS_PV: SessionDocument = {
+  createdAt: CREATED_AT,
+  hasDraft: false,
   id: 'agenda-orphan',
-  type: 'agenda',
   name: 'ODJ sans PV',
   officialReportId: null,
   outdated: false,
+  status: 'VALIDATED',
+  type: 'agenda',
+  hasPresentationPlan: false,
+  validatedAt: VALIDATED_AT,
 };
-const PV: SessionDocument = { id: 'pv-1', type: 'officialReport', name: 'PV du 12 mars', outdated: false };
+const AGENDA_BROUILLON: SessionDocument = {
+  ...AGENDA_SANS_PV,
+  id: 'agenda-draft',
+  name: 'ODJ jamais validé',
+  status: 'DRAFT',
+  validatedAt: null,
+};
+const PV: SessionDocument = {
+  createdAt: CREATED_AT,
+  hasDraft: false,
+  id: 'pv-1',
+  name: 'PV du 12 mars',
+  outdated: false,
+  status: 'VALIDATED',
+  type: 'officialReport',
+  validatedAt: VALIDATED_AT,
+};
 
 describe('groupSessionDocuments', () => {
   it('should gather an official report with every agenda it covers', () => {
@@ -46,6 +80,10 @@ describe('groupSessionDocuments', () => {
 describe('sessionDocumentGroupState', () => {
   it('should await an official report as long as none covers the agenda', () => {
     expect(sessionDocumentGroupState([AGENDA_SANS_PV])).toBe('awaitingOfficialReport');
+  });
+
+  it('should await nothing from an agenda that has never been validated', () => {
+    expect(sessionDocumentGroupState([AGENDA_BROUILLON])).toBeNull();
   });
 
   it('should ask to check an outdated official report', () => {

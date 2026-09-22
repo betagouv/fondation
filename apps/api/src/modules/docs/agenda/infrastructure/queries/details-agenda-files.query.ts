@@ -2,15 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsAgendaFilesQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly agendaVersionFinder: AgendaVersionFinder,
+  ) {}
 
   async handle(query: { agendaId: string }): Promise<DetailedAgendaFilesDto> {
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
+
     const items = await this.db.tx.agendaNominationFile.findMany({
-      where: { agendaId: query.agendaId, nominationFileId: { not: null } },
+      where: { versionId, nominationFileId: { not: null } },
       select: { nominationFileId: true },
     });
 

@@ -7,16 +7,20 @@ import {
   OfficialReportEditionBlockPersistor,
 } from './official-report-blocks.model';
 
+const UNTOUCHED = { agendaHtml: null, edited: false, generatedHtml: null };
+
 describe('OfficialReportEditionBlock', () => {
   describe('#equals', () => {
     it('is true for identical intro blocks', () => {
       const a = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>a</p>',
         outdated: false,
       });
       const b = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>a</p>',
@@ -28,12 +32,14 @@ describe('OfficialReportEditionBlock', () => {
 
     it('is false when only the outdated flag differs', () => {
       const acknowledged = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>a</p>',
         outdated: false,
       });
       const outdated = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>a</p>',
@@ -45,12 +51,14 @@ describe('OfficialReportEditionBlock', () => {
 
     it('is false when the content differs', () => {
       const a = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>a</p>',
         outdated: false,
       });
       const b = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'intro',
         key: 'intro',
         html: '<p>b</p>',
@@ -61,7 +69,12 @@ describe('OfficialReportEditionBlock', () => {
     });
 
     it('compares section titles by text', () => {
-      const base = { kind: 'section-title', key: 'section-title:VALIDATED', outcome: 'VALIDATED' } as const;
+      const base = {
+        ...UNTOUCHED,
+        kind: 'section-title',
+        key: 'section-title:VALIDATED',
+        outcome: 'VALIDATED',
+      } as const;
       const a = new OfficialReportEditionBlock({ ...base, text: 'Titre' });
       const sameText = new OfficialReportEditionBlock({ ...base, text: 'Titre' });
       const otherText = new OfficialReportEditionBlock({ ...base, text: 'Autre' });
@@ -80,6 +93,7 @@ describe('OfficialReportEditionBlock', () => {
         .mockResolvedValueOnce({ data: undefined, error: undefined });
 
       const block = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'conclusion',
         key: 'conclusion',
         html: '<p>Fin de séance</p>',
@@ -102,6 +116,7 @@ describe('OfficialReportEditionBlock', () => {
         .mockResolvedValue({ data: undefined, error: undefined });
 
       const block = new OfficialReportEditionBlock({
+        ...UNTOUCHED,
         kind: 'file',
         key: 'file:file-1',
         nominationFileId: 'file-1',

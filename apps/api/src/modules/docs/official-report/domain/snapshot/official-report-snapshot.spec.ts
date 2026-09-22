@@ -169,7 +169,7 @@ describe('OfficialReportSnapshot', () => {
     expect(firstFile.action).toBe('update');
     assert.ok(firstFile.action === 'update');
 
-    expect(firstFile.id).toBe(file.id);
+    expect(firstFile.nominationFileId).toBe(file.nominationFileId);
     expect(firstFile.outcome).toBe('VALIDATED');
     expect(firstFile.outcomeComment).toBe('an updated comment');
 
@@ -268,7 +268,6 @@ describe('OfficialReportSnapshot', () => {
             'file-1',
             OfficialReportSnapshotFile.from({
               hasManuallyEditedHtml: true,
-              id: 1n,
               nominationFileId: 'file-1',
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
@@ -338,13 +337,9 @@ describe('OfficialReportSnapshot', () => {
     it('keeps the other files of the official report when a single outcome changes', () => {
       const { snapshot } = makeSnapshot({
         files: new Map(
-          [
-            { id: 0n, nominationFileId: 'file-1' },
-            { id: 1n, nominationFileId: 'file-2' },
-          ].map(({ id, nominationFileId }) => [
+          ['file-1', 'file-2'].map((nominationFileId) => [
             nominationFileId,
             OfficialReportSnapshotFile.from({
-              id,
               nominationFileId,
               hasManuallyEditedHtml: false,
               outcome: { value: 'VALIDATED', comment: null },
@@ -369,7 +364,6 @@ describe('OfficialReportSnapshot', () => {
           [
             'file-1',
             OfficialReportSnapshotFile.from({
-              id: 0n,
               nominationFileId: 'file-1',
               hasManuallyEditedHtml: true,
               reporters: ['M. John DOE'],
@@ -415,7 +409,6 @@ describe('OfficialReportSnapshot', () => {
 
 function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
   const file = {
-    id: 0n,
     nominationFileId: 'file-1',
     hasManuallyEditedHtml: false,
     outcome: { value: 'VALIDATED', comment: null },

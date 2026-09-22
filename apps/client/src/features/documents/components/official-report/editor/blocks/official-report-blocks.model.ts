@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
+import { plainText, readsTheSame } from '@/features/documents/components/blocks/proposed-text';
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 import { assertNever } from '@/utils/types.util';
 import * as $api from '@api/sdk';
@@ -14,18 +15,80 @@ import { OfficialReportIntroBlock } from './OfficialReportIntroBlock';
 import { OfficialReportSectionIntroBlock } from './OfficialReportSectionIntroBlock';
 import { OfficialReportSectionTitleBlock } from './OfficialReportSectionTitleBlock';
 
+export class OfficialReportBlockEmptied extends Error {
+  constructor(readonly emptied: OfficialReportEditionBlockState) {
+    super();
+  }
+}
+
+type PendingChange =
+  | { block: OfficialReportEditionBlock; kind: 'edit' }
+  | { block: OfficialReportEditionBlock; kind: 'reset' };
+
 export class OfficialReportBlocksModel {
   readonly blocks: readonly OfficialReportBlock[];
   readonly officialReportId: string;
 
+  private readonly onDirtyChange: (isDirty: boolean) => void;
+  private readonly pending = new Map<BlockKey, PendingChange>();
   private readonly persistor: OfficialReportEditionBlockPersistor;
   private state: Map<BlockKey, OfficialReportEditionBlock> | undefined;
 
-  constructor(props: { officialReportId: string; blocks: readonly OfficialReportBlock[] }) {
+  constructor(props: {
+    blocks: readonly OfficialReportBlock[];
+    officialReportId: string;
+    onDirtyChange?: (isDirty: boolean) => void;
+  }) {
     this.blocks = props.blocks;
     this.officialReportId = props.officialReportId;
+    this.onDirtyChange = props.onDirtyChange ?? (() => {});
 
     this.persistor = new OfficialReportEditionBlockPersistor(this.officialReportId);
+  }
+
+  get isDirty(): boolean {
+    return this.pending.size > 0;
+  }
+
+  private stage(key: BlockKey, change: PendingChange | null): void {
+    if (change) {
+      this.pending.set(key, change);
+    } else {
+      this.pending.delete(key);
+    }
+
+    this.onDirtyChange(this.isDirty);
+  }
+
+  /**
+   * sends every staged edition to the server, in the order the reader made them.
+   * @warning the caller flushes the pending staging first: recomputing it here would duplicate
+   * the comparison and could unstage the very edition being saved.
+   */
+  async save(): Promise<void> {
+    for (const { block, kind } of this.pending.values()) {
+      if (kind === 'edit' && !plainText(block.content).trim()) {
+        throw new OfficialReportBlockEmptied(block.block);
+      }
+    }
+
+    for (const [key, change] of this.pending) {
+      if (change.kind === 'reset') {
+        await this.persistor.reset(change.block);
+      } else {
+        await this.persistor.persist(change.block);
+      }
+
+      this.state?.set(key, change.block);
+    }
+
+    this.pending.clear();
+    this.onDirtyChange(false);
+  }
+
+  discard(): void {
+    this.pending.clear();
+    this.onDirtyChange(false);
   }
 
   /**
@@ -50,14 +113,24 @@ export class OfficialReportBlocksModel {
     this.state = state;
   }
 
-  /** synchronizes text edition with the backend  */
-  async onEditorUpdate(editor: Editor): Promise<void> {
+  onEditorUpdate(editor: Editor): void {
     if (!this.state) return;
 
-    const diff = OfficialReportEditorDiff.from(this.state, editor);
-    for (const block of diff) {
-      await this.persistor.persist(block);
-      this.state.set(block.key, block);
+    const changed = new Set(Array.from(OfficialReportEditorDiff.from(this.state, editor), ({ key }) => key));
+
+    for (const block of OfficialReportEditorDiff.blocksOf(editor)) {
+      const { agendaHtml, edited, generatedHtml } = block.block;
+
+      // a stored edition typed back to the text giving it back would restore is no longer an
+      // edition of it, and that text is the agenda's sentence whenever the agenda wrote one
+      const restored = agendaHtml ?? generatedHtml;
+      if (edited && restored && readsTheSame(block.content, restored)) {
+        this.stage(block.key, { block, kind: 'reset' });
+      } else if (changed.has(block.key)) {
+        this.stage(block.key, { block, kind: 'edit' });
+      } else if (this.pending.has(block.key)) {
+        this.stage(block.key, null);
+      }
     }
   }
 
@@ -73,18 +146,19 @@ export class OfficialReportBlocksModel {
 
     props.updateAttributes({ isPending: true });
     try {
-      await this.persistor.reset(block);
-
       const pos = props.getPos();
       if (pos == null) return;
 
       editor
         .chain()
         .command(({ tr }) => {
-          tr.setNodeAttribute(pos, 'outdated', false).setNodeAttribute(pos, 'generatedHtml', null);
+          tr.setNodeAttribute(pos, 'outdated', false);
           return true;
         })
-        .insertContentAt({ from: pos + 1, to: pos + node.nodeSize - 1 }, node.attrs.generatedHtml)
+        .insertContentAt(
+          { from: pos + 1, to: pos + node.nodeSize - 1 },
+          node.attrs.agendaHtml ?? node.attrs.generatedHtml,
+        )
         .run();
 
       const nextNode = editor.state.doc.nodeAt(pos);
@@ -93,7 +167,7 @@ export class OfficialReportBlocksModel {
       const nextBlock = OfficialReportEditionBlock.from(editor, nextNode);
       if (!nextBlock) return;
 
-      this.state?.set(nextBlock.key, nextBlock);
+      this.stage(nextBlock.key, { block: nextBlock, kind: 'reset' });
     } finally {
       props.updateAttributes({ isPending: false });
     }
@@ -140,40 +214,54 @@ type BlockKey =
   | `section-intro:${DocNominationFileOutcomeEnum}`
   | `file:${string}`;
 
-type OfficialReportEditionBlockState =
-  | { kind: 'intro'; key: BlockKey; html: string; outdated: boolean }
-  | { kind: 'conclusion'; key: BlockKey; html: string; outdated: boolean }
-  | { kind: 'section-title'; key: BlockKey; outcome: DocNominationFileOutcomeEnum; text: string }
-  | { kind: 'section-intro'; key: BlockKey; outcome: DocNominationFileOutcomeEnum; html: string }
-  | { kind: 'file'; key: BlockKey; nominationFileId: string; html: string; outdated: boolean };
+type EditionState = {
+  agendaHtml: string | null;
+  edited: boolean;
+  generatedHtml: string | null;
+  key: BlockKey;
+};
+
+export type OfficialReportEditionBlockState =
+  | { kind: 'intro'; html: string; outdated: boolean }
+  | { kind: 'conclusion'; html: string; outdated: boolean }
+  | { kind: 'section-title'; outcome: DocNominationFileOutcomeEnum; text: string }
+  | { kind: 'section-intro'; outcome: DocNominationFileOutcomeEnum; html: string }
+  | { kind: 'file'; nominationFileId: string; html: string; outdated: boolean };
 
 export class OfficialReportEditionBlock {
   get key(): BlockKey {
     return this.block.key;
   }
 
-  constructor(readonly block: OfficialReportEditionBlockState) {}
+  get content(): string {
+    return this.block.kind === 'section-title' ? this.block.text : this.block.html;
+  }
+
+  constructor(readonly block: OfficialReportEditionBlockState & EditionState) {}
 
   static from(editor: Editor, node: PMNode): OfficialReportEditionBlock | null {
-    const block = this.state(editor, node);
-    if (!block) return null;
+    const state = this.state(editor, node);
+    const key = this.key(node);
+    if (!state || !key) return null;
 
-    return new OfficialReportEditionBlock(block);
+    return new OfficialReportEditionBlock({
+      ...state,
+      key,
+      agendaHtml: (node.attrs.agendaHtml as string | null) ?? null,
+      edited: Boolean(node.attrs.edited),
+      generatedHtml: (node.attrs.generatedHtml as string | null) ?? null,
+    });
   }
 
   private computedOutdated(): boolean {
     return 'outdated' in this.block ? this.block.outdated : false;
   }
 
-  private computedContent(): string {
-    return this.block.kind === 'section-title' ? this.block.text : this.block.html;
-  }
-
   equals(other: OfficialReportEditionBlock): boolean {
     return (
       this.block.key === other.block.key &&
       this.block.kind === other.block.kind &&
-      this.computedContent() === other.computedContent() &&
+      this.content === other.content &&
       this.computedOutdated() === other.computedOutdated()
     );
   }
@@ -201,42 +289,34 @@ export class OfficialReportEditionBlock {
   }
 
   private static state(editor: Editor, node: PMNode): OfficialReportEditionBlockState | null {
-    const key = this.key(node);
-    if (!key) return null;
-
     switch (node.type.name) {
       case OfficialReportIntroBlock.name:
         return {
           kind: 'intro',
-          key,
           html: tipTapNodeToHtml(node, editor.schema),
           outdated: node.attrs.outdated,
         };
       case OfficialReportConclusionBlock.name:
         return {
           kind: 'conclusion',
-          key,
           html: tipTapNodeToHtml(node, editor.schema),
           outdated: node.attrs.outdated,
         };
       case OfficialReportSectionTitleBlock.name:
         return {
           kind: 'section-title',
-          key,
           outcome: node.attrs.outcome as DocNominationFileOutcomeEnum,
           text: node.textContent,
         };
       case OfficialReportSectionIntroBlock.name:
         return {
           kind: 'section-intro',
-          key,
           outcome: node.attrs.outcome as DocNominationFileOutcomeEnum,
           html: tipTapNodeToHtml(node, editor.schema),
         };
       case OfficialReportFileBlock.name:
         return {
           kind: 'file',
-          key,
           html: tipTapNodeToHtml(node, editor.schema),
           outdated: node.attrs.outdated as boolean,
           nominationFileId: node.attrs.nominationFileId as string,
@@ -253,6 +333,21 @@ class OfficialReportEditorDiff implements Iterable<OfficialReportEditionBlock> {
 
   *[Symbol.iterator]() {
     return yield* this.blocks;
+  }
+
+  static blocksOf(editor: Editor): OfficialReportEditionBlock[] {
+    const blocks: OfficialReportEditionBlock[] = [];
+
+    editor.state.doc.descendants((node) => {
+      if (!officialReportBlocks.has(node.type.name)) return true;
+
+      const block = OfficialReportEditionBlock.from(editor, node);
+      if (block) blocks.push(block);
+
+      return false;
+    });
+
+    return blocks;
   }
 
   static from(state: Map<BlockKey, OfficialReportEditionBlock>, editor: Editor): OfficialReportEditorDiff {

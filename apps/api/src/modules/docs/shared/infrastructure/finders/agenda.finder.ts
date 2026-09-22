@@ -3,6 +3,7 @@ import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger } 
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -64,10 +65,7 @@ export class AgendaFinder {
       versionId = publishedVersion.id;
     }
 
-    return {
-      sessionId: query.sessionId,
-      id: { in: query.ids ? Array.from(query.ids) : undefined },
-      OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }],
+    const decidedFiles = {
       nominationFiles: {
         every: {
           nominationFile: {
@@ -76,6 +74,22 @@ export class AgendaFinder {
           },
         },
       },
+    } satisfies Prisma.AgendaVersionWhereInput;
+
+    return {
+      sessionId: query.sessionId,
+      id: { in: query.ids ? Array.from(query.ids) : undefined },
+      AND: [
+        { OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }] },
+        // the version asked to carry decided files is the very one the report will be made of, or
+        // a draft would qualify an agenda whose validated version the report then reads
+        {
+          OR: [
+            { versions: { some: { status: 'VALIDATED', ...decidedFiles } } },
+            { versions: { every: { status: 'DRAFT' }, some: decidedFiles } },
+          ],
+        },
+      ],
     };
   }
 
@@ -100,20 +114,25 @@ export class AgendaFinder {
       throw new InternalServerErrorException();
     }
 
-    const items = await this.db.tx.agenda.findMany({
+    const found = await this.db.tx.agenda.findMany({
       where,
-      orderBy: { date: 'asc' },
       select: {
         id: true,
-        date: true,
         formation: true,
         sessionId: true,
-        chairmanId: true,
-        chairmanFirstName: true,
-        chairmanLastName: true,
         sessionName: true,
-        sessionMeetingDate: true,
         officialReportId: true,
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            date: true,
+            status: true,
+            chairmanId: true,
+            chairmanFirstName: true,
+            chairmanLastName: true,
+            sessionMeetingDate: true,
+          },
+        },
         justicePresentationPlan: {
           select: {
             plan: {
@@ -132,9 +151,16 @@ export class AgendaFinder {
       },
     });
 
+    const items = found
+      .flatMap(({ versions, ...agenda }) => {
+        const published = agendaContentOf(versions);
+        return published ? [{ ...agenda, published }] : [];
+      })
+      .sort((a, b) => a.published.date.getTime() - b.published.date.getTime());
+
     if (ids && items.length !== ids.size) {
-      const found = new Set(items.map(({ id }) => id));
-      const missing = ids.difference(found);
+      const foundIds = new Set(items.map(({ id }) => id));
+      const missing = ids.difference(foundIds);
 
       this.logger.warn(`Agendas not found: ${Array.from(missing).join(', ')}`);
     }
@@ -150,15 +176,15 @@ export class AgendaFinder {
       items: items.map((item) => ({
         id: item.id,
         /** @deprecated */
-        chairmanId: item.chairmanId,
+        chairmanId: item.published.chairmanId,
 
         chairman: {
-          id: item.chairmanId,
-          lastName: item.chairmanLastName,
-          firstName: item.chairmanFirstName,
+          id: item.published.chairmanId,
+          lastName: item.published.chairmanLastName,
+          firstName: item.published.chairmanFirstName,
         },
 
-        date: DateOnly.fromUtcDate(item.date).toJson(),
+        date: DateOnly.fromUtcDate(item.published.date).toJson(),
         session: {
           id: item.sessionId,
           name: item.sessionName,
@@ -166,7 +192,7 @@ export class AgendaFinder {
           date: sessions.get(item.sessionId)!.date,
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),
-        sessionMeetingDate: DateOnly.fromUtcDate(item.sessionMeetingDate).toJson(),
+        sessionMeetingDate: DateOnly.fromUtcDate(item.published.sessionMeetingDate).toJson(),
         officialReportId: item.officialReportId,
         presentationPlan: item.justicePresentationPlan
           ? {

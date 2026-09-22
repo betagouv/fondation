@@ -1,54 +1,53 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useState } from 'react';
-import { FormattedMessage } from 'react-intl';
-import { generatePath, useNavigate, useParams } from 'react-router';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
-import { AgendaDocumentEditor } from '@/features/documents/components/agenda/editor';
+import { DocumentDraftBanner } from '../DocumentDraftBanner';
+import { DocumentDriftBanner } from '../DocumentDriftBanner';
+import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
+import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
-import { AlertBanner } from '@/shared/ui/alert-banner';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useAgendaDocumentBlocksQuery, useGenerateAgendaPdfMutation } from '@queries/agenda.queries';
-import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
+import {
+  useAgendaHtmlQuery,
+  useDetailsAgendaMetadataQuery,
+  useDiscardAgendaDraftMutation,
+  useValidateAgendaMutation,
+} from '@queries/agenda.queries';
 
 export function AgendaPreviewPage() {
   const navigate = useNavigate();
+  const { $t } = useIntl();
   const describeFailure = useDocumentFailure();
 
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
 
-  const { data: session } = useDetailedNominationSessionQuery({ sessionId });
-  const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
+  const { data: html, isPending } = useAgendaHtmlQuery({ force: false, id: agendaId });
+  const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
-  const generatePdf = useGenerateAgendaPdfMutation({
-    force: true,
-    sessionId: sessionId!,
+  const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
+    sessionId: sessionId!,
   });
 
-  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
+  const discardDraft = useDiscardAgendaDraftMutation({
+    agendaId: agendaId!,
+    sessionId: sessionId!,
+  });
+
+  const title = $t({ defaultMessage: 'Ordre du jour' });
+  const isDraft = metadata?.status === 'DRAFT';
+  const isBusy = validate.isPending || discardDraft.isPending;
 
   return (
     <DocumentScreen
       actions={
         <>
           <Button
-            iconId="ri-file-list-3-line"
-            linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
-                agendaId: agendaId!,
-                sessionId: sessionId!,
-              }),
-            }}
-            priority="secondary"
-          >
-            <FormattedMessage defaultMessage="Propositions" />
-          </Button>
-          <Button
-            iconId="ri-calendar-event-line"
             linkProps={{
               to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
                 agendaId: agendaId!,
@@ -57,79 +56,102 @@ export function AgendaPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Métadonnées" />
+            <FormattedMessage defaultMessage="Modifier les informations" />
           </Button>
           <Button
-            className={clsx({ 'after:animate-spin': generatePdf.isPending })}
-            disabled={generatePdf.isPending || hasPendingRevalidation}
-            iconId={generatePdf.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-            iconPosition="right"
-            onClick={() => generatePdf.mutate()}
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+                agendaId: agendaId!,
+                sessionId: sessionId!,
+              }),
+            }}
+            priority="secondary"
           >
-            {generatePdf.isPending ? (
-              <FormattedMessage defaultMessage="Génération en cours..." />
-            ) : (
-              <FormattedMessage defaultMessage="Valider le document" />
-            )}
+            <FormattedMessage defaultMessage="Modifier les propositions" />
           </Button>
+          <Button
+            linkProps={{
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                agendaId: agendaId!,
+                sessionId: sessionId!,
+              }),
+            }}
+            priority="secondary"
+          >
+            <FormattedMessage defaultMessage="Éditer le texte" />
+          </Button>
+          {isDraft && (
+            <Button
+              className={clsx({ 'after:animate-spin': validate.isPending })}
+              disabled={isBusy}
+              iconId={validate.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+              iconPosition="right"
+              onClick={() => validate.mutate()}
+            >
+              {validate.isPending ? (
+                <FormattedMessage defaultMessage="Validation en cours..." />
+              ) : (
+                <FormattedMessage defaultMessage="Valider l'ODJ" />
+              )}
+            </Button>
+          )}
         </>
       }
-      breadcrumb={
-        <Breadcrumb
-          id="breadcrumb"
-          ariaLabel="fil d'Ariane"
-          breadcrumb={{
-            currentPageLabel: "Validation de l'ordre du jour",
-            segments: [
-              { label: 'Secrétariat Général', to: generatePath(ROUTE_PATHS.SG.DASHBOARD) },
-              { label: 'Gérer une session', to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION) },
-              {
-                label: session?.name || 'Session',
-                to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: sessionId! }),
-              },
-            ],
-          }}
-        />
+      backLink={
+        <Link
+          className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
+          to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
+        >
+          <FormattedMessage defaultMessage="Fermer" />
+        </Link>
       }
+      breadcrumb={<AgendaBreadCrumb />}
       notices={
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
-            {hasPendingRevalidation && (
-              <AlertBanner
-                className="fr-mt-4v px-4 py-3"
-                icon="fr-icon-warning-fill"
-                message={
-                  <FormattedMessage defaultMessage="Certains dossiers ont changé et doivent être validés" />
+            {isDraft && (
+              <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion}>
+                {metadata.hasValidatedVersion && (
+                  <AlertBannerAction disabled={isBusy} onClick={() => discardDraft.mutate()}>
+                    <FormattedMessage defaultMessage="Revenir au document validé" />
+                  </AlertBannerAction>
+                )}
+              </DocumentDraftBanner>
+            )}
+            {metadata?.outdated && (
+              <DocumentDriftBanner
+                onEdit={() =>
+                  navigate(
+                    generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                      agendaId: agendaId!,
+                      sessionId: sessionId!,
+                    }),
+                  )
                 }
-                tone="warning"
+                outdatedPropositions={metadata.outdatedPropositions}
               />
             )}
           </div>
           <div role="alert">
-            {generatePdf.isError && (
+            {(validate.isError || discardDraft.isError) && (
               <AlertBanner
-                className="fr-mt-4v px-4 py-3"
+                className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={describeFailure(generatePdf.error)}
+                message={describeFailure(validate.error ?? discardDraft.error)}
                 tone="error"
               />
             )}
           </div>
         </>
       }
-      title={<FormattedMessage defaultMessage="Ordre du jour" />}
+      title={title}
+      tone="alt"
     >
-      {!isFetchedAfterMount || !agendaId || !document ? (
+      {isPending || !html ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
       ) : (
-        <AgendaDocumentEditor
-          key={agendaId}
-          sessionId={sessionId!}
-          agendaId={agendaId}
-          blocks={document.blocks}
-          onPendingRevalidationChange={setHasPendingRevalidation}
-        />
+        <DocumentViewer className="mx-auto w-full max-w-4xl border-0" html={html} title={title} />
       )}
     </DocumentScreen>
   );

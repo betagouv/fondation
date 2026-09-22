@@ -21,7 +21,7 @@ export class ReportedNominationFilesFinder {
       where: {
         nominationFile: { outcome: { in: NominationFileOutcome.finalOutcomes() } },
         nominationFileId: { in: [...query.fileIds] },
-        officialReport: { validatedAt: { not: null } },
+        version: { validatedAt: { not: null } },
         outcome: { in: Object.values(FinalDocNominationFileOutcomeEnum) },
       },
     });

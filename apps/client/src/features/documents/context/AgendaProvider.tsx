@@ -61,13 +61,13 @@ export function AgendaProvider(props: PropsWithChildren) {
       if (!metadata) {
         const { isConfirmed } = await waitForConfirmation({
           content: formatMessage({
-            defaultMessage: "Merci de renseigner les données de l'ODJ avant de continuer",
+            defaultMessage: "Merci de renseigner les informations de l'ordre du jour avant de continuer",
           }),
           i18n: {
             cancel: formatMessage({ defaultMessage: 'Rester sur cette étape' }),
             confirm: formatMessage({ defaultMessage: "Retourner à l'étape 1" }),
           },
-          title: formatMessage({ defaultMessage: 'Métadonnées manquantes' }),
+          title: formatMessage({ defaultMessage: 'Informations manquantes' }),
         });
         if (isConfirmed) goToMetadata();
         return;
