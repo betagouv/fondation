@@ -13,14 +13,19 @@ import { Db } from '../../framework/database';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
+import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
+import { Clock } from 'src/modules/framework/clock';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
 import { TimeOnly } from 'src/utils/time-only';
 
-import { JusticePresentationPlan } from './domain/justice-presentation-plan';
+import {
+  JusticePresentationPlan,
+  JusticePresentationPlanAlreadyPresented,
+} from './domain/justice-presentation-plan';
 import {
   DetailedPresentationPlanMetadataDto,
   DetailsPresentationPlanMetadataQuery,
@@ -38,18 +43,21 @@ import {
 } from './infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/presentation-plan.html';
+import { InternalInvalidatePresentationPlanUseCase } from './infrastructure/use-cases/invalidate-presentation-plan.use-case';
 
 @Injectable()
 export class PresentationPlansService {
   private readonly logger = new Logger(PresentationPlansService.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly files: Files,
     private readonly agendaFinder: AgendaFinder,
     private readonly detailsPresentationPlanMetadataQuery: DetailsPresentationPlanMetadataQuery,
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
+    private readonly internalInvalidatePresentationPlanUseCase: InternalInvalidatePresentationPlanUseCase,
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
@@ -62,6 +70,10 @@ export class PresentationPlansService {
 
   findPresentationPlanAgendas(query: { ignorePlanId: string | undefined }): Promise<FoundAgendasDto> {
     return this.agendaFinder.findNonIncludedInPresentationPlan(query);
+  }
+
+  internalInvalidatePresentationPlan(cause: DocInvalidation): Promise<void> {
+    return this.internalInvalidatePresentationPlanUseCase.handle(cause);
   }
 
   detailsPresentationPlanMetadata(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
@@ -223,10 +235,10 @@ export class PresentationPlansService {
     return this.listPresentedPlansQuery.handle(query);
   }
 
-  async presentPlan(command: { id: string; endTime: TimeOnly }): Promise<void> {
+  async presentPlan(command: { id: string; endTime: TimeOnly; presenterId: string }): Promise<void> {
     await this.db.withTransaction(async () => {
       const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
-      plan.present({ endTime: command.endTime });
+      plan.present({ endTime: command.endTime, presenterId: command.presenterId });
       await this.justicePresentationPlanRepository.persist(plan);
 
       const htmlPlan = await this.db.tx.justicePresentationPlan.findUnique({
@@ -246,11 +258,11 @@ export class PresentationPlansService {
 
       await this.db.tx.justicePresentationPlan.update({
         where: { id: command.id },
-        data: { html: updatedHtml, pdfId: null },
+        data: { html: updatedHtml },
       });
     });
 
-    await this.findPresentationPlanDocumentPdf({ id: command.id });
+    await this.findPresentationPlanDocumentPdfQuery.renew({ id: command.id });
   }
 
   @Transactional()
@@ -264,31 +276,45 @@ export class PresentationPlansService {
     return this.detailsPresentationPlanPdfDocumentQuery.handle(query);
   }
 
-  async resetPresentationPlanDocument(command: { id: string }): Promise<void> {
+  async resetPresentationPlanDocument(command: { authorId: string; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { isPresented: true, pdf: { select: { id: true, path: true } } },
     });
     if (!plan) throw new NotFoundException();
+    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
-      data: { html: null, isManuallyEdited: false, pdfId: null },
+      data: {
+        html: null,
+        isManuallyEdited: false,
+        pdfId: null,
+        updatedAt: this.clock.now(),
+        updatedBy: command.authorId,
+      },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);
   }
 
-  async updatePresentationPlanHtml(command: { id: string; html: Buffer }): Promise<void> {
+  async updatePresentationPlanHtml(command: { authorId: string; html: Buffer; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { isPresented: true, pdf: { select: { id: true, path: true } } },
     });
     if (!plan) throw new NotFoundException();
+    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
-      data: { html: command.html.toString('utf-8'), isManuallyEdited: true, pdfId: null },
+      data: {
+        html: command.html.toString('utf-8'),
+        isManuallyEdited: true,
+        pdfId: null,
+        updatedAt: this.clock.now(),
+        updatedBy: command.authorId,
+      },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);

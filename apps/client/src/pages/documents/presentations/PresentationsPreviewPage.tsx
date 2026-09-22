@@ -1,18 +1,20 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useCallback, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, useNavigate, useParams } from 'react-router';
+import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
-import { DocumentHtmlEditor } from '@/features/documents/components/DocumentHtmlEditor';
+import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
-import { DocumentViewer, type DocumentViewerHandle } from '@/features/documents/components/DocumentViewer';
+import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
+import { PresentationBreadcrumb } from '@/features/documents/components/presentations/PresentationBreadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useJusticePresentationPlanHtmlQuery,
+  useJusticePresentationPlanMetadataQuery,
   useJusticePresentationPlanPdfMutation,
-  useUpdatePresentationPlanHtmlMutation,
 } from '@queries/agenda.queries';
+
+import { PresentationDriftBanner } from './PresentationDriftBanner';
 
 export function PresentationPreviewPage() {
   const { formatMessage } = useIntl();
@@ -20,78 +22,71 @@ export function PresentationPreviewPage() {
   const navigate = useNavigate();
 
   const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
+  const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
   const generatePdf = useJusticePresentationPlanPdfMutation({
     planId: planId!,
     force: false,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
   });
-  const updateHtml = useUpdatePresentationPlanHtmlMutation(planId!);
-
-  const viewerRef = useRef<DocumentViewerHandle>(null);
-  const [reloadKey, setReloadKey] = useState(() => crypto.randomUUID());
-
-  const [isEditing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null);
-
-  const cancel = useCallback(() => {
-    setEditing(false);
-    setDraft(null);
-    setReloadKey(crypto.randomUUID());
-  }, []);
-
-  const onDraftChange = useCallback((next: string) => {
-    setDraft(next);
-    viewerRef.current?.updateContent(next);
-  }, []);
-
-  const saveDraft = () => (draft ? updateHtml.mutate({ html: draft }, { onSuccess: cancel }) : cancel());
-
-  const isSaving = updateHtml.isPending;
-  const isValidating = isSaving || generatePdf.isPending;
+  const isValidating = generatePdf.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
   return (
     <DocumentScreen
       actions={
-        isEditing ? (
+        !isPending &&
+        html &&
+        !metadata?.isPresented && (
           <>
-            <Button disabled={isSaving} onClick={cancel} priority="secondary">
-              <FormattedMessage defaultMessage="Annuler" />
+            <Button
+              linkProps={{
+                to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
+              }}
+              priority="secondary"
+            >
+              <FormattedMessage defaultMessage="Modifier les informations" />
             </Button>
             <Button
-              className={clsx({ 'after:animate-spin': isSaving })}
-              disabled={isSaving}
-              iconId={isSaving ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-              iconPosition="right"
-              onClick={saveDraft}
+              linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
+              priority="secondary"
             >
-              <FormattedMessage defaultMessage="Sauvegarder" />
+              <FormattedMessage defaultMessage="Éditer le texte" />
+            </Button>
+            <Button
+              className={clsx({ 'after:animate-spin': isValidating })}
+              disabled={isValidating}
+              iconId={isValidating ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
+              iconPosition="right"
+              onClick={() => generatePdf.mutate()}
+            >
+              <FormattedMessage defaultMessage="Valider le document" />
             </Button>
           </>
-        ) : (
-          !isPending &&
-          html && (
-            <>
-              <Button
-                iconId="fr-icon-edit-line"
-                iconPosition="left"
-                onClick={() => setEditing(true)}
-                priority="secondary"
-              >
-                <FormattedMessage defaultMessage="Éditer" />
-              </Button>
-              <Button
-                className={clsx({ 'after:animate-spin': isValidating })}
-                disabled={isValidating}
-                iconId={isValidating ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-                iconPosition="right"
-                onClick={() => generatePdf.mutate()}
-              >
-                <FormattedMessage defaultMessage="Valider le document" />
-              </Button>
-            </>
-          )
         )
+      }
+      backLink={
+        <Link
+          className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
+          to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)}
+        >
+          <FormattedMessage defaultMessage="Fermer" />
+        </Link>
+      }
+      breadcrumb={<PresentationBreadcrumb />}
+      notices={
+        /** @warning the live region is always rendered: a screen reader ignores one that appears already filled */
+        <div role="status">
+          {metadata?.status === 'DRAFT' && <DocumentDraftBanner hasValidatedVersion={false} />}
+          {metadata?.outdated && (
+            <PresentationDriftBanner
+              editionPath={
+                metadata.isPresented
+                  ? undefined
+                  : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+              }
+            />
+          )}
+        </div>
       }
       title={title}
       tone="alt"
@@ -99,23 +94,7 @@ export function PresentationPreviewPage() {
       {isPending || !html ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
       ) : (
-        <>
-          {isEditing && (
-            <div className="flex min-w-0 flex-1 flex-col xl:flex-2">
-              <DocumentHtmlEditor html={html} title={title} onHtmlChange={onDraftChange} />
-            </div>
-          )}
-          <DocumentViewer
-            ref={viewerRef}
-            className={clsx('border-0', {
-              'hidden md:block md:flex-1 xl:flex-3': isEditing,
-              'mx-auto w-full max-w-4xl': !isEditing,
-            })}
-            html={html}
-            reloadKey={reloadKey}
-            title={title}
-          />
-        </>
+        <DocumentViewer className="mx-auto w-full max-w-4xl border-0" html={html} title={title} />
       )}
     </DocumentScreen>
   );

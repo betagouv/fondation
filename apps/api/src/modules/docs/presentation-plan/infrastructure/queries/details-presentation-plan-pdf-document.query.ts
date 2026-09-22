@@ -5,35 +5,20 @@ import z from 'zod';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
-import { FindPresentationPlanDocumentPdfQuery } from './find-presentation-plan-document-pdf.query';
-
 @Injectable()
 export class DetailsPresentationPlanPdfDocumentQuery {
   constructor(
     private readonly files: Files,
     private readonly db: Db,
-    private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
   ) {}
 
+  /** handing out the stored pdf is a read: making one is validating, and only the author does that */
   async handle(query: { id: string }): Promise<DetailedPresentationPlanPdfDocumentDto> {
-    return this.innerHandle({ ...query, afterGeneration: false });
-  }
-
-  private async innerHandle(query: {
-    id: string;
-    afterGeneration: boolean;
-  }): Promise<DetailedPresentationPlanPdfDocumentDto> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: query.id, html: { not: null } },
+      where: { id: query.id },
       select: { id: true, pdf: { select: { id: true } } },
     });
-    if (!plan) throw new NotFoundException();
-    if (!plan.pdf && query.afterGeneration) throw new NotFoundException();
-
-    if (!plan.pdf) {
-      await this.findPresentationPlanDocumentPdfQuery.handle({ id: query.id, forceNew: false });
-      return this.innerHandle({ ...query, afterGeneration: true });
-    }
+    if (!plan?.pdf) throw new NotFoundException();
 
     const { [plan.pdf.id]: pdfFileUrl } = await this.files.getPublicUrls([plan.pdf.id]);
     if (!pdfFileUrl) throw new NotFoundException();

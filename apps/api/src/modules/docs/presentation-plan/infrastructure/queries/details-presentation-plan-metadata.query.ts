@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -23,6 +24,8 @@ export class DetailsPresentationPlanMetadataQuery {
         secretaryId: true,
         date: true,
         time: true,
+        outdated: true,
+        pdfId: true,
         isPresented: true,
         isManuallyEdited: true,
         justiceDepartmentContactId: true,
@@ -44,6 +47,8 @@ export class DetailsPresentationPlanMetadataQuery {
       id: plan.id,
       chairmanId: plan.chairmanId,
       secretaryId: plan.secretaryId,
+      outdated: plan.outdated,
+      status: presentationPlanStatusOf(plan),
       isPresented: plan.isPresented,
       isManuallyEdited: plan.isManuallyEdited,
       hasRenunciation: plan.hasRenunciation,
@@ -65,6 +70,8 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     id: z.string(),
     time: timeOnlySchema,
     date: dateOnlyJsonSchema,
+    outdated: z.boolean(),
+    status: presentationPlanStatusSchema,
     isPresented: z.boolean(),
     isManuallyEdited: z.boolean(),
     formation: z.enum(FormationEnum),

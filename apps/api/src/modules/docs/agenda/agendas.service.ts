@@ -211,6 +211,8 @@ export class AgendasService {
         await this.agendaRepository.persist(agenda);
       }),
     );
+
+    await this.emitInvalidations([{ type: 'AgendaValidated', payload: { agendaId: command.agendaId } }]);
   }
 
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {

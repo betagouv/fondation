@@ -28,19 +28,7 @@ export class FindPresentationPlanDocumentPdfQuery {
   ) {}
 
   async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: query.id },
-      select: {
-        date: true,
-        pdf: { select: { id: true, name: true } },
-        agendas: {
-          take: 1,
-          select: { agenda: { select: { formation: true } } },
-        },
-      },
-    });
-
-    if (!plan || !plan.agendas.length) throw new NotFoundException();
+    const plan = await this.findPlan(query.id);
 
     // Stream the cached PDF from S3 outside of any transaction.
     if (plan.pdf?.id && !query.forceNew) {
@@ -56,8 +44,60 @@ export class FindPresentationPlanDocumentPdfQuery {
       });
     }
 
-    const formation = assertIsDefined(plan.agendas[0]).agenda.formation;
     const html = await this.findPresentationPlanDocumentQuery.handle(query);
+    const { buffer, name, pdfFileId } = await this.store(plan, html);
+
+    await this.db.tx.justicePresentationPlan
+      .update({
+        where: { id: query.id },
+        data: { pdfId: pdfFileId },
+      })
+      .catch((err) => {
+        this.logger.warn(`Failed storing presentation plan ${query.id} pdf file`, err);
+      });
+
+    return new StreamableFile(buffer, {
+      type: FILE_MIME_TYPES.pdf,
+      disposition: contentDisposition({ name }),
+    });
+  }
+
+  /** renders the pdf again from the text as it reads, and drops the one it replaces only once stored */
+  async renew(query: { id: string }): Promise<void> {
+    const plan = await this.findPlan(query.id);
+    const html = await this.findPresentationPlanDocumentQuery.handle({ id: query.id });
+    const { pdfFileId } = await this.store(plan, html);
+
+    await this.db.tx.justicePresentationPlan.update({
+      where: { id: query.id },
+      data: { pdfId: pdfFileId },
+    });
+
+    if (plan.pdf) this.files.delete([plan.pdf]);
+  }
+
+  private async findPlan(id: string) {
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id },
+      select: {
+        date: true,
+        pdf: { select: { id: true, name: true, path: true } },
+        agendas: {
+          take: 1,
+          select: { agenda: { select: { formation: true } } },
+        },
+      },
+    });
+
+    if (!plan || !plan.agendas.length) throw new NotFoundException();
+    return plan;
+  }
+
+  private async store(
+    plan: { date: Date; agendas: { agenda: { formation: string } }[] },
+    html: string,
+  ): Promise<{ buffer: Buffer; name: string; pdfFileId: string }> {
+    const formation = assertIsDefined(plan.agendas[0]).agenda.formation;
     const buffer = await this.pdfRenderer.render(html);
 
     const planDate = DateOnly.fromUtcDate(plan.date).toLocalStartOfDay();
@@ -75,18 +115,6 @@ export class FindPresentationPlanDocumentPdfQuery {
       },
     ]);
 
-    await this.db.tx.justicePresentationPlan
-      .update({
-        where: { id: query.id },
-        data: { pdfId: pdfFileId },
-      })
-      .catch((err) => {
-        this.logger.warn(`Failed storing presentation plan ${query.id} pdf file`, err);
-      });
-
-    return new StreamableFile(buffer, {
-      type: FILE_MIME_TYPES.pdf,
-      disposition: contentDisposition({ name }),
-    });
+    return { buffer, name, pdfFileId: assertIsDefined(pdfFileId) };
   }
 }

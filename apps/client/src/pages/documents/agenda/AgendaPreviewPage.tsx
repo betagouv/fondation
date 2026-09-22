@@ -20,7 +20,7 @@ import {
 
 export function AgendaPreviewPage() {
   const navigate = useNavigate();
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const describeFailure = useDocumentFailure();
 
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
@@ -39,7 +39,7 @@ export function AgendaPreviewPage() {
     sessionId: sessionId!,
   });
 
-  const title = $t({ defaultMessage: 'Ordre du jour' });
+  const title = formatMessage({ defaultMessage: 'Ordre du jour' });
   const isDraft = metadata?.status === 'DRAFT';
   const isBusy = validate.isPending || discardDraft.isPending;
 
@@ -121,14 +121,10 @@ export function AgendaPreviewPage() {
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner
-                onEdit={() =>
-                  navigate(
-                    generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
-                      agendaId: agendaId!,
-                      sessionId: sessionId!,
-                    }),
-                  )
-                }
+                editionPath={generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                  agendaId: agendaId!,
+                  sessionId: sessionId!,
+                })}
                 outdatedPropositions={metadata.outdatedPropositions}
               />
             )}

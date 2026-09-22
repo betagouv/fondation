@@ -9,7 +9,6 @@ import {
   presentationPlanKeys,
   useCreateJusticePresentationPlanMutation,
   useJusticePresentationPlanMetadataQuery,
-  useResetPresentationPlanDocumentMutation,
   useUpdateJusticePresentationPlanMutation,
 } from '@queries/agenda.queries';
 
@@ -37,7 +36,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
     isPending: isUpdating,
     reset: resetUpdate,
   } = useUpdateJusticePresentationPlanMutation();
-  const { mutate: resetPlan, reset: resetReset } = useResetPresentationPlanDocumentMutation(planId ?? '');
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -113,6 +111,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       date: { day: number; month: number; year: number };
       time: { hours: number; minutes: number };
       absentMemberIds: readonly string[];
+      hasRenunciation: boolean;
     }) => {
       setState((s) => ({
         ...s,
@@ -120,8 +119,33 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         step: 'AGENDA_COMMENTS',
         absentMemberIds: [...options.absentMemberIds],
       }));
+
+      /** the meeting informations are enough to hold a notice, so its draft exists from this step on */
+      if (planId || isCreating) return;
+
+      create(
+        {
+          absentMembers: [...options.absentMemberIds],
+          agendas: Object.entries(state.agendas).map(([id, comment]) => ({ id, comment })),
+          chairmanId: options.chairmanId,
+          date: options.date,
+          hasRenunciation: options.hasRenunciation,
+          justiceContactId: options.justiceContactId,
+          secretaryId: options.secretaryId,
+          time: options.time,
+        },
+        {
+          onSuccess: ({ data }) => {
+            if (!data) return;
+
+            navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: data.id }), {
+              replace: true,
+            });
+          },
+        },
+      );
     },
-    [setState],
+    [create, isCreating, navigate, planId, setState, state.agendas],
   );
 
   const missingMetadata = MANDATORY_METADATA.filter((key) => !state[key]);
@@ -135,7 +159,10 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         throw new Error(`Cannot create a presentation plan, missing ${missingMetadata.join(', ')}`);
       }
 
-      if (planId) {
+      /** a notice nobody validated nor rewrote has nothing to lose: its text is written again */
+      const hasSomethingToLose = metadata?.status === 'VALIDATED' || metadata?.isManuallyEdited;
+
+      if (planId && hasSomethingToLose) {
         const { isConfirmed } = await waitForConfirmation({
           title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
           i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser la notice` }) },
@@ -187,14 +214,11 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
         resetCreation();
         resetUpdate();
-        resetReset();
         navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
       }
 
       if (planId) {
-        resetPlan(undefined, {
-          onSuccess: () => update({ ...payload, id: planId }, { onSuccess: () => onSuccess(planId) }),
-        });
+        update({ ...payload, id: planId }, { onSuccess: () => onSuccess(planId) });
       } else {
         create(payload, {
           onSuccess: ({ data }) => {
@@ -210,15 +234,14 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       update,
       create,
       missingMetadata,
-      resetPlan,
       navigate,
       queryClient,
       waitForConfirmation,
       formatMessage,
       metadata?.isManuallyEdited,
+      metadata?.status,
       resetCreation,
       resetUpdate,
-      resetReset,
     ],
   );
 

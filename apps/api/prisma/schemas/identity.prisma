@@ -69,6 +69,8 @@ model User {
   chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
   secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")
   authorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_author")
+  editorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_editor")
+  presenterOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_presenter")
   deletorOfSessions                   Session[]                  @relation("session_deletion_author")
   archiverOfSessions                  Session[]                  @relation("session_archive_author")
 

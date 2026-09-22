@@ -10,7 +10,9 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
+  JusticePresentationPlanAlreadyPresented,
   JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
+  JusticePresentationPlanNotValidated,
   PresentationPlanAgendaAlreadyReported,
   UnknownPresentationPlanChairman,
   UnknownPresentationPlanSecretary,
@@ -49,6 +51,18 @@ export class PresentationPlansFilter implements NestInterceptor {
           if (err instanceof JusticePresentationPlanEndTimeShouldBeBeforeStartTime) {
             return new BadRequestException({
               validationError: `L'heure de fin de séance, doit être après l'heure de début de séance`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanNotValidated) {
+            return new BadRequestException({
+              validationError: `La notice doit être validée avant d'être restituée`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanAlreadyPresented) {
+            return new BadRequestException({
+              validationError: `Une notice restituée ne peut plus être modifiée`,
             });
           }
 

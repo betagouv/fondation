@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
 
-export type PresentedPlan = { planId: string; startTime: { hours: number; minutes: number } };
+export type PresentedPlan = { name: string; planId: string; startTime: { hours: number; minutes: number } };
 
 type PresentPlanModalContextType = {
-  presentPlan: (plan: PresentedPlan) => void;
+  presentPlans: (plans: readonly PresentedPlan[]) => void;
 };
 
 /** @internal */

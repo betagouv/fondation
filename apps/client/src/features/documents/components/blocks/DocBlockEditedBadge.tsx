@@ -1,8 +1,9 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
+import { useWhen } from '@/features/documents/hooks/useWhen';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -14,14 +15,8 @@ export function DocBlockEditedBadge(props: {
   editedBy?: Writer;
   fromAgenda?: boolean;
 }) {
-  const { formatDate, formatTime } = useIntl();
+  const when = useWhen();
   const { agendaEditedAt, agendaEditedBy, editedAt, editedBy, fromAgenda } = props;
-
-  const when = (at: string) => ({
-    date: formatDate(at, { format: 'zonedDayMonth' }),
-    // French writes the time as 12h30, where Intl separates with a colon
-    time: formatTime(at, { format: 'zonedTimeShort' }).replace(':', 'h'),
-  });
 
   const writtenHere = Boolean(editedAt) && !fromAgenda;
 

@@ -1236,6 +1236,16 @@ export type FoundAgendasDto = {
             firstName: string;
             lastName: string;
         };
+        createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+        } | null;
+        validatedAt: string | null;
+        validatedBy: {
+            id: string;
+            name: string;
+        } | null;
         officialReportId: string | null;
         session: {
             id: string;
@@ -1395,11 +1405,33 @@ export type ListedPresentedPlansDto = {
             minutes: number;
             seconds: number;
         };
+        endTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
         date: {
             year: number;
             month: number;
             day: number;
         };
+        outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+        } | null;
+        updatedAt: string | null;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+        presentedAt: string | null;
+        presentedBy: {
+            id: string;
+            name: string;
+        } | null;
         formation: 'SIEGE' | 'PARQUET';
         chairman: {
             firstName: string;
@@ -1428,6 +1460,8 @@ export type DetailedPresentationPlanMetadataDto = {
         month: number;
         day: number;
     };
+    outdated: boolean;
+    status: 'DRAFT' | 'VALIDATED';
     isPresented: boolean;
     isManuallyEdited: boolean;
     formation: 'SIEGE' | 'PARQUET';
@@ -1491,6 +1525,18 @@ export type ListedNonPresentedPlansDto = {
             month: number;
             day: number;
         };
+        outdated: boolean;
+        status: 'DRAFT' | 'VALIDATED';
+        createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+        } | null;
+        updatedAt: string | null;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
         formation: 'SIEGE' | 'PARQUET';
         chairman: {
             firstName: string;

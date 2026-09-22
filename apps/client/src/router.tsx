@@ -307,6 +307,13 @@ export const router = sentryCreateBrowserRouter([
                   ),
                 children: [
                   {
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationsTabAgendas').then(
+                        ({ PresentationsTabAgendas }) => ({ Component: PresentationsTabAgendas }),
+                      ),
+                  },
+                  {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
                     lazy: () =>
                       import('@/pages/documents/presentations/PresentationsTabPast').then(
@@ -341,6 +348,13 @@ export const router = sentryCreateBrowserRouter([
                 lazy: () =>
                   import('@/pages/documents/presentations/PresentationsPreviewPage').then(
                     ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
+                lazy: () =>
+                  import('@/pages/documents/presentations/PresentationEditPage').then(
+                    ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
                   ),
               },
             ],

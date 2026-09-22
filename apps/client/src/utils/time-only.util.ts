@@ -62,6 +62,10 @@ export function dateToTimeOnly(date: Date): PlainTimeOnly | null {
   return { hours, minutes, seconds };
 }
 
+export function toFrenchHours(hoursAndMinutes: string): string {
+  return hoursAndMinutes.replace(':', 'h');
+}
+
 export function timeOnlyToString(
   timeOnly: { hours: number; minutes: number; seconds?: number },
   format: 'HH:mm' | 'HH:mm:ss',

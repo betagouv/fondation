@@ -543,9 +543,11 @@ export function useUpdateJusticePresentationPlanMutation() {
         body,
         path: { planId: body.id },
       }),
-    onSuccess: () =>
+    onSuccess: (_, { id }) =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id }) }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) }),
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
@@ -598,6 +600,7 @@ export function useUpdatePresentationPlanHtmlMutation(planId: string) {
         body: { html: new Blob([html], { type: 'text/html' }) },
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
     },
@@ -609,6 +612,7 @@ export function useJusticePresentationPlanPdfMutation(mutation: {
   force: boolean;
   onSuccess?: () => unknown;
 }) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () =>
       $api.docs
@@ -619,7 +623,16 @@ export function useJusticePresentationPlanPdfMutation(mutation: {
         })
         .then(({ response }) => response?.body?.cancel()),
 
-    onSuccess: mutation.onSuccess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
+        queryClient.invalidateQueries({
+          queryKey: presentationPlanKeys.planMetadata({ id: mutation.planId }),
+        }),
+      ]);
+
+      mutation.onSuccess?.();
+    },
   });
 }
 
@@ -628,6 +641,7 @@ export function useResetPresentationPlanDocumentMutation(planId: string) {
   return useMutation({
     mutationFn: () => $api.docs.resetPresentationPlanDocument({ path: { planId } }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
     },
@@ -650,15 +664,32 @@ export function useDeleteJusticePresentationPlanMutation() {
   });
 }
 
-export function usePresentPlanMutation() {
+export type PresentedPlansResult = {
+  presentedIds: string[];
+  failure: { error: unknown; planId: string } | null;
+};
+
+export function usePresentPlansMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (mutation: { presentationPlanId: string; endTime: { hours: number; minutes: number } }) =>
-      $api.docs.presentPlan({
-        path: { planId: mutation.presentationPlanId },
-        body: { endTime: mutation.endTime },
-      }),
-    onSuccess: () =>
+    mutationFn: async (mutation: {
+      planIds: readonly string[];
+      endTime: { hours: number; minutes: number };
+    }): Promise<PresentedPlansResult> => {
+      const presentedIds: string[] = [];
+
+      for (const planId of mutation.planIds) {
+        try {
+          await $api.docs.presentPlan({ path: { planId }, body: { endTime: mutation.endTime } });
+          presentedIds.push(planId);
+        } catch (error: unknown) {
+          return { presentedIds, failure: { error, planId } };
+        }
+      }
+
+      return { presentedIds, failure: null };
+    },
+    onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.presented() }),
         queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),

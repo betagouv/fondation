@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
+import { fullname } from '../services/renderers/helpers';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -13,6 +14,12 @@ import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcom
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+
+const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+
+function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
+  return user ? { id: user.id, name: fullname(user) } : null;
+}
 
 @Injectable()
 export class AgendaFinder {
@@ -131,6 +138,10 @@ export class AgendaFinder {
             chairmanFirstName: true,
             chairmanLastName: true,
             sessionMeetingDate: true,
+            createdAt: true,
+            author: { select: { id: true, firstName: true, lastName: true } },
+            validatedAt: true,
+            validator: { select: { id: true, firstName: true, lastName: true } },
           },
         },
         justicePresentationPlan: {
@@ -193,6 +204,10 @@ export class AgendaFinder {
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromUtcDate(item.published.sessionMeetingDate).toJson(),
+        createdAt: item.published.createdAt.toISOString(),
+        createdBy: writerOf(item.published.author),
+        validatedAt: item.published.validatedAt?.toISOString() ?? null,
+        validatedBy: writerOf(item.published.validator),
         officialReportId: item.officialReportId,
         presentationPlan: item.justicePresentationPlan
           ? {
@@ -224,6 +239,11 @@ export class FoundAgendasDto extends createZodDto(
         sessionMeetingDate: dateOnlyJsonSchema,
         formation: z.enum(FormationEnum),
         chairman: z.object({ id: z.string().nullable(), firstName: z.string(), lastName: z.string() }),
+        createdAt: z.iso.datetime(),
+        createdBy: writerSchema,
+        /** null while the agenda only exists as a draft */
+        validatedAt: z.iso.datetime().nullable(),
+        validatedBy: writerSchema,
         officialReportId: z.string().nullable(),
         session: z.object({
           id: z.string(),

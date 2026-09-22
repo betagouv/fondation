@@ -6,13 +6,17 @@ import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infras
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   JusticePresentationPlan,
+  JusticePresentationPlanContentChecked,
   JusticePresentationPlanCreated,
   JusticePresentationPlanDeleted,
   JusticePresentationPlanPresented,
   JusticePresentationPlanUnPresented,
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
+import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
+import { presentationPlanStatusOf } from '../presentation-plan-status';
 import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -25,6 +29,7 @@ export class JusticePresentationPlanRepository {
   private readonly logger = new Logger(JusticePresentationPlanRepository.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly files: Files,
@@ -36,10 +41,23 @@ export class JusticePresentationPlanRepository {
       where: { id: query.id },
       select: {
         id: true,
+        pdfId: true,
+        isPresented: true,
+        outdated: true,
         time: true,
         agendas: {
-          take: 1,
-          select: { agenda: { select: { formation: true } } },
+          select: { agendaId: true, agenda: { select: { formation: true } } },
+        },
+        nominationFiles: {
+          select: {
+            name: true,
+            nominationFileId: true,
+            number: true,
+            outcome: true,
+            outcomeComment: true,
+            targetedGrade: true,
+            targetedPosition: true,
+          },
         },
       },
     });
@@ -49,6 +67,15 @@ export class JusticePresentationPlanRepository {
       id: found.id,
       formation: prismaFormationEnumToFormationEnum(assertIsDefined(found.agendas[0]).agenda.formation),
       startTime: dateToTimeOnly(found.time),
+      agendaIds: found.agendas.map(({ agendaId }) => agendaId),
+      isValidated: presentationPlanStatusOf(found) === 'VALIDATED',
+      isPresented: found.isPresented,
+      outdated: found.outdated,
+      content: JusticePresentationPlanContent.from(
+        found.nominationFiles.flatMap(({ nominationFileId, ...file }) =>
+          isDefined(nominationFileId) ? [{ ...file, nominationFileId }] : [],
+        ),
+      ),
     });
   }
 
@@ -66,6 +93,8 @@ export class JusticePresentationPlanRepository {
         await this.persistJusticePresentationPlanPresented(message);
       } else if (message instanceof JusticePresentationPlanUnPresented) {
         await this.persistJusticePresentationPlanUnPresented(message);
+      } else if (message instanceof JusticePresentationPlanContentChecked) {
+        await this.persistJusticePresentationPlanContentChecked(message);
       } else {
         assertNever(message);
       }
@@ -138,10 +167,11 @@ export class JusticePresentationPlanRepository {
     }));
 
     const data = {
+      outdated: false,
+      isManuallyEdited: false,
       date: message.state.date.toDate(),
       time: timeOnlyToDate(message.state.time),
       endTime: message.state.endingTime ? timeOnlyToDate(message.state.endingTime) : null,
-      authorId: message.authorId,
       hasRenunciation: message.state.hasRenunciation,
 
       chairmanId: message.state.chairman.id,
@@ -195,6 +225,9 @@ export class JusticePresentationPlanRepository {
         html: null,
         pdfId: null,
         id: message.id,
+        createdBy: message.authorId,
+        updatedAt: null,
+        updatedBy: null,
         nominationFiles: { createMany: { data: nominationFilesCreateMany } },
         agendas: {
           createMany: {
@@ -210,6 +243,8 @@ export class JusticePresentationPlanRepository {
         ...data,
         html: null,
         pdfId: null,
+        updatedAt: this.clock.now(),
+        updatedBy: message.authorId,
         members: {
           createMany: { data: message.state.members.map((m) => ({ memberId: m.id, isAbsent: m.isAbsent })) },
         },
@@ -253,14 +288,26 @@ export class JusticePresentationPlanRepository {
   private async persistJusticePresentationPlanPresented(message: JusticePresentationPlanPresented) {
     await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
-      data: { isPresented: true, endTime: timeOnlyToDate(message.endTime) },
+      data: {
+        isPresented: true,
+        endTime: timeOnlyToDate(message.endTime),
+        presentedAt: this.clock.now(),
+        presentedBy: message.presenterId,
+      },
     });
   }
 
   private async persistJusticePresentationPlanUnPresented(message: JusticePresentationPlanUnPresented) {
     await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
-      data: { isPresented: false },
+      data: { isPresented: false, presentedAt: null, presentedBy: null },
+    });
+  }
+
+  private async persistJusticePresentationPlanContentChecked(message: JusticePresentationPlanContentChecked) {
+    await this.db.tx.justicePresentationPlan.update({
+      where: { id: message.id },
+      data: { outdated: message.outdated },
     });
   }
 

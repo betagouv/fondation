@@ -173,15 +173,23 @@ export class PresentationPlansController {
   updatePresentationPlanHtml(
     @Param('planId') planId: string,
     @UploadedFile() file: Express.Multer.File,
+    @AuthedUser() user: { id: string },
   ): Promise<void> {
-    return this.presentationPlans.updatePresentationPlanHtml({ id: planId, html: file.buffer });
+    return this.presentationPlans.updatePresentationPlanHtml({
+      authorId: user.id,
+      html: file.buffer,
+      id: planId,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/presentation-plans/:planId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetPresentationPlanDocument(@Param('planId') planId: string): Promise<void> {
-    return this.presentationPlans.resetPresentationPlanDocument({ id: planId });
+  resetPresentationPlanDocument(
+    @Param('planId') planId: string,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.resetPresentationPlanDocument({ authorId: user.id, id: planId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -202,8 +210,12 @@ export class PresentationPlansController {
   @Put('/presentation-plans/:planId/presentation')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  presentPlan(@Param('planId') planId: string, @Body() body: PresentPlanDto): Promise<void> {
-    return this.presentationPlans.presentPlan({ id: planId, endTime: body.endTime });
+  presentPlan(
+    @Param('planId') planId: string,
+    @Body() body: PresentPlanDto,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.presentPlan({ id: planId, endTime: body.endTime, presenterId: user.id });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

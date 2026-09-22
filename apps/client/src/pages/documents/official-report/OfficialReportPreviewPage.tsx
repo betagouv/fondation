@@ -20,7 +20,7 @@ import {
 
 export function OfficialReportPreviewPage() {
   const navigate = useNavigate();
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const describeFailure = useDocumentFailure();
 
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
@@ -39,7 +39,7 @@ export function OfficialReportPreviewPage() {
     sessionId: sessionId!,
   });
 
-  const title = $t({ defaultMessage: 'PV de restitution' });
+  const title = formatMessage({ defaultMessage: 'PV de restitution' });
   const isDraft = metadata?.status === 'DRAFT';
   const isBusy = validate.isPending || discardDraft.isPending;
 
@@ -110,14 +110,10 @@ export function OfficialReportPreviewPage() {
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner
-                onEdit={() =>
-                  navigate(
-                    generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
-                      officialReportId: officialReportId!,
-                      sessionId: sessionId!,
-                    }),
-                  )
-                }
+                editionPath={generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+                  officialReportId: officialReportId!,
+                  sessionId: sessionId!,
+                })}
                 outdatedPropositions={metadata.outdatedPropositions}
               />
             )}

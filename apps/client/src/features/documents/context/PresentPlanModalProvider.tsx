@@ -7,7 +7,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import z from 'zod';
 
+import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { Modal } from '@/shared/ui/modal';
+import { useToasts } from '@/shared/ui/toast';
 import {
   dateToTimeOnly,
   formTimeOnlyCodec,
@@ -15,7 +17,7 @@ import {
   timeOnlyToString,
   type PlainTimeOnly,
 } from '@/utils/time-only.util';
-import { usePresentPlanMutation } from '@queries/agenda.queries';
+import { usePresentPlansMutation, type PresentedPlansResult } from '@queries/agenda.queries';
 
 import { PresentPlanModalContext, type PresentedPlan } from './present-plan-modal.context';
 
@@ -25,18 +27,28 @@ function PresentPlanModal(props: {
   onClose: () => void;
   onClosed: () => void;
   open: boolean;
-  plan: PresentedPlan;
+  plans: readonly PresentedPlan[];
 }) {
-  const { $t } = useIntl();
-  const presentPlanMutation = usePresentPlanMutation();
+  const { $t, formatList } = useIntl();
+  const toasts = useToasts();
+  const describeFailure = useDocumentFailure();
+  const presentPlansMutation = usePresentPlansMutation();
+
+  const latestStartTime = useMemo(
+    () =>
+      props.plans
+        .map(({ startTime }) => timeOnlyToDate(startTime))
+        .filter((startTime): startTime is Date => startTime !== null)
+        .sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
+    [props.plans],
+  );
 
   const defaultEndTime = useMemo(() => {
-    const startTime = timeOnlyToDate(props.plan.startTime);
-    if (!startTime) return '';
+    if (!latestStartTime) return '';
 
-    const timeOnly = dateToTimeOnly(add(startTime, { minutes: 10 }));
+    const timeOnly = dateToTimeOnly(add(latestStartTime, { minutes: 10 }));
     return timeOnly ? (timeOnlyToString(timeOnly, 'HH:mm') ?? '') : '';
-  }, [props.plan.startTime]);
+  }, [latestStartTime]);
 
   const {
     control,
@@ -49,11 +61,10 @@ function PresentPlanModal(props: {
       z.object({
         endTime: formTimeOnlyCodec.refine(
           (endTimeOnly) => {
-            const startTime = timeOnlyToDate(props.plan.startTime);
-            if (!startTime) return true;
+            if (!latestStartTime) return true;
 
             const endTime = timeOnlyToDate(endTimeOnly);
-            return endTime ? endTime.getTime() >= startTime.getTime() : false;
+            return endTime ? endTime.getTime() >= latestStartTime.getTime() : false;
           },
           { error: `L'heure de début de la séance doit être avant son heure de fin` },
         ),
@@ -61,25 +72,60 @@ function PresentPlanModal(props: {
     ),
   });
 
+  const reportFailure = useCallback(
+    ({ failure, presentedIds }: PresentedPlansResult) => {
+      if (!failure) return;
+
+      const nameOf = (planId: string) => props.plans.find((plan) => plan.planId === planId)?.name ?? planId;
+      const presentedNames = presentedIds.map(nameOf);
+
+      toasts.error({
+        description: [
+          presentedNames.length > 0
+            ? $t(
+                {
+                  defaultMessage:
+                    '{count, plural, one {{names} est restituée.} other {{names} sont restituées.}}',
+                },
+                { count: presentedNames.length, names: formatList(presentedNames) },
+              )
+            : null,
+          describeFailure(failure.error),
+        ]
+          .filter(Boolean)
+          .join(' '),
+        title: $t(
+          { defaultMessage: `La restitution s'est arrêtée à {name}` },
+          { name: nameOf(failure.planId) },
+        ),
+      });
+    },
+    [$t, describeFailure, formatList, props.plans, toasts],
+  );
+
   const onSubmit = useCallback(
-    ({ endTime: { hours, minutes } }: { endTime: PlainTimeOnly }) =>
-      presentPlanMutation.mutate(
-        { endTime: { hours, minutes }, presentationPlanId: props.plan.planId },
-        { onSuccess: props.onClose },
-      ),
-    [presentPlanMutation, props],
+    async ({ endTime: { hours, minutes } }: { endTime: PlainTimeOnly }) => {
+      const result = await presentPlansMutation.mutateAsync({
+        endTime: { hours, minutes },
+        planIds: props.plans.map(({ planId }) => planId),
+      });
+
+      reportFailure(result);
+      props.onClose();
+    },
+    [presentPlansMutation, props, reportFailure],
   );
 
   return (
     <Modal
       actions={
         <>
-          <Button disabled={presentPlanMutation.isPending} onClick={props.onClose} priority="secondary">
+          <Button disabled={presentPlansMutation.isPending} onClick={props.onClose} priority="secondary">
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
 
           <Button
-            disabled={presentPlanMutation.isPending}
+            disabled={presentPlansMutation.isPending}
             nativeButtonProps={{ form: FORM_ID, type: 'submit' }}
           >
             <FormattedMessage defaultMessage="Confirmer" />
@@ -94,7 +140,10 @@ function PresentPlanModal(props: {
     >
       <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)}>
         <p>
-          <FormattedMessage defaultMessage="Vous allez marquer cette notice comme restituée." />
+          <FormattedMessage
+            defaultMessage="{count, plural, one {Vous allez marquer cette notice comme restituée.} other {Vous allez marquer ces {count} notices comme restituées.}}"
+            values={{ count: props.plans.length }}
+          />
         </p>
 
         <Controller
@@ -114,7 +163,7 @@ function PresentPlanModal(props: {
   );
 }
 
-type PresentPlanSession = { id: number; plan: PresentedPlan };
+type PresentPlanSession = { id: number; plans: readonly PresentedPlan[] };
 
 type PresentPlanState =
   | { session: PresentPlanSession; status: 'closing' }
@@ -125,9 +174,9 @@ export function PresentPlanModalProvider({ children }: PropsWithChildren) {
   const [state, setState] = useState<PresentPlanState>({ status: 'idle' });
   const lastSessionId = useRef(0);
 
-  const presentPlan = useCallback((plan: PresentedPlan) => {
+  const presentPlans = useCallback((plans: readonly PresentedPlan[]) => {
     lastSessionId.current += 1;
-    setState({ session: { id: lastSessionId.current, plan }, status: 'presenting' });
+    setState({ session: { id: lastSessionId.current, plans }, status: 'presenting' });
   }, []);
 
   const close = useCallback(
@@ -138,7 +187,7 @@ export function PresentPlanModalProvider({ children }: PropsWithChildren) {
     [],
   );
 
-  const value = useMemo(() => ({ presentPlan }), [presentPlan]);
+  const value = useMemo(() => ({ presentPlans }), [presentPlans]);
 
   return (
     <PresentPlanModalContext value={value}>
@@ -150,7 +199,7 @@ export function PresentPlanModalProvider({ children }: PropsWithChildren) {
             setState((current) => (current.status === 'closing' ? { status: 'idle' } : current))
           }
           open={state.status === 'presenting'}
-          plan={state.session.plan}
+          plans={state.session.plans}
         />
       )}
 

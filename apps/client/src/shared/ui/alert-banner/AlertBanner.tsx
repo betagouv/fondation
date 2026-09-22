@@ -36,15 +36,27 @@ export function AlertBanner(props: {
   );
 }
 
+const ACTION_CLASS =
+  'min-h-0! px-3.5! py-0! whitespace-nowrap text-inherit! underline underline-offset-4 hover:bg-transparent! hover:decoration-2';
+
 export function AlertBannerAction(props: { children: ReactNode; disabled?: boolean; onClick: () => void }) {
   return (
     <Button
-      className="min-h-0! cursor-pointer! px-3.5! py-0! whitespace-nowrap text-inherit! underline underline-offset-4 hover:bg-transparent! hover:decoration-2 disabled:cursor-not-allowed!"
+      className={ACTION_CLASS}
       disabled={props.disabled}
       onClick={props.onClick}
       priority="tertiary no outline"
       size="small"
     >
+      {props.children}
+    </Button>
+  );
+}
+
+/** navigating is a link's job: the cursor, the middle click and the reading out all come from there */
+export function AlertBannerLink(props: { children: ReactNode; to: string }) {
+  return (
+    <Button className={ACTION_CLASS} linkProps={{ to: props.to }} priority="tertiary no outline" size="small">
       {props.children}
     </Button>
   );

@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
+import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+
+const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 
 @Injectable()
 export class ListNonPresentedPlansQuery {
@@ -19,6 +23,12 @@ export class ListNonPresentedPlansQuery {
         id: true,
         date: true,
         time: true,
+        outdated: true,
+        pdfId: true,
+        createdAt: true,
+        updatedAt: true,
+        author: { select: { id: true, firstName: true, lastName: true } },
+        editor: { select: { id: true, firstName: true, lastName: true } },
         chairmanLastName: true,
         chairmanFirstName: true,
         agendas: {
@@ -26,10 +36,7 @@ export class ListNonPresentedPlansQuery {
           select: { agenda: { select: { formation: true } } },
         },
       },
-      where: {
-        html: { not: null },
-        isPresented: false,
-      },
+      where: { isPresented: false },
     });
 
     return {
@@ -42,6 +49,12 @@ export class ListNonPresentedPlansQuery {
             id: plan.id,
             time: dateToTimeOnly(plan.time),
             date: DateOnly.fromUtcDate(plan.date).toJson(),
+            outdated: plan.outdated,
+            createdAt: plan.createdAt.toISOString(),
+            createdBy: writerOf(plan.author),
+            updatedAt: plan.updatedAt?.toISOString() ?? null,
+            updatedBy: writerOf(plan.editor),
+            status: presentationPlanStatusOf(plan),
             formation: prismaFormationEnumToFormationEnum(formation),
             chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
           },
@@ -58,9 +71,20 @@ export class ListedNonPresentedPlansDto extends createZodDto(
         id: z.string(),
         time: timeOnlySchema,
         date: dateOnlyJsonSchema,
+        outdated: z.boolean(),
+        /** DRAFT while nobody has validated the notice, whatever its text already reads */
+        status: presentationPlanStatusSchema,
+        createdAt: z.iso.datetime(),
+        createdBy: writerSchema,
+        updatedAt: z.iso.datetime().nullable(),
+        updatedBy: writerSchema,
         formation: z.enum(FormationEnum),
         chairman: z.object({ firstName: z.string(), lastName: z.string() }),
       }),
     ),
   }),
 ) {}
+
+function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
+  return user ? { id: user.id, name: fullname(user) } : null;
+}

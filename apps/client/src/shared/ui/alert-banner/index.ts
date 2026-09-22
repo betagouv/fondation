@@ -1,1 +1,1 @@
-export { AlertBanner, AlertBannerAction } from './AlertBanner';
+export { AlertBanner, AlertBannerAction, AlertBannerLink } from './AlertBanner';
