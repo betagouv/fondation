@@ -75,13 +75,14 @@ export class AgendaRepository {
   }
 
   @Transactional()
-  async find(query: { agendaId: string }): Promise<Agenda> {
+  async find(query: { actorId?: string | null; agendaId: string }): Promise<Agenda> {
     const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
 
     const foundVersion = await this.db.tx.agendaVersion.findUnique({
       select: {
         date: true,
         status: true,
+        pdfFileId: true,
         sessionMeetingDate: true,
         chairmanId: true,
         agenda: { select: { id: true, sessionId: true, officialReportId: true } },
@@ -117,6 +118,8 @@ export class AgendaRepository {
 
     return Agenda.from({
       snapshot,
+      actorId: query.actorId ?? null,
+      isDocumentStored: isDefined(foundVersion.pdfFileId),
       isValidated: foundVersion.status === 'VALIDATED',
       id: makeId('AgendaId', foundAgenda.id),
       sessionId: makeId('SessionId', foundAgenda.sessionId),
@@ -242,7 +245,7 @@ export class AgendaRepository {
   private async invalidateAgendaDocument(versionId: string): Promise<void> {
     const version = await this.db.tx.agendaVersion.findUnique({
       where: { id: versionId },
-      select: { pdfFileId: true },
+      select: { pdf: { select: { id: true, path: true } } },
     });
 
     await this.db.tx.agendaVersion.update({
@@ -250,7 +253,7 @@ export class AgendaRepository {
       data: { html: null, pdfFileId: null },
     });
 
-    if (version?.pdfFileId) await this.db.tx.file.deleteMany({ where: { id: version.pdfFileId } });
+    if (version?.pdf) this.files.delete([version.pdf]);
   }
 
   private async persistAgendaDeleted(message: AgendaDeleted) {
@@ -259,13 +262,25 @@ export class AgendaRepository {
       select: {
         justicePresentationPlanId: true,
         officialReportId: true,
-        versions: { select: { pdfFileId: true }, where: { pdfFileId: { not: null } } },
+        versions: {
+          select: { pdf: { select: { id: true, path: true } } },
+          where: { pdfFileId: { not: null } },
+        },
+        officialReport: {
+          select: {
+            versions: {
+              select: { pdf: { select: { id: true, path: true } } },
+              where: { pdfId: { not: null } },
+            },
+          },
+        },
+        justicePresentationPlan: {
+          select: { plan: { select: { pdf: { select: { id: true, path: true } } } } },
+        },
       },
     });
     if (!found) return;
 
-    const pdfFileIds = found.versions.flatMap(({ pdfFileId }) => (pdfFileId ? [pdfFileId] : []));
-    if (pdfFileIds.length > 0) await this.db.tx.file.deleteMany({ where: { id: { in: pdfFileIds } } });
     if (found.officialReportId)
       await this.db.tx.officialReport.delete({ where: { id: found.officialReportId } });
     if (found.justicePresentationPlanId) {
@@ -277,6 +292,14 @@ export class AgendaRepository {
     }
 
     await this.db.tx.agenda.delete({ where: { id: message.agendaId } });
+
+    const pdfs = [
+      ...found.versions,
+      ...(found.officialReport?.versions ?? []),
+      { pdf: found.justicePresentationPlan?.plan.pdf ?? null },
+    ].flatMap(({ pdf }) => (pdf ? [pdf] : []));
+
+    if (pdfs.length > 0) this.files.delete(pdfs);
   }
 
   private async persistAgendaDraftOpened(message: AgendaDraftOpened) {
@@ -295,7 +318,6 @@ export class AgendaRepository {
         chairmanGender: true,
         outdated: true,
         isManuallyEdited: true,
-        createdBy: true,
         nominationFiles: {
           select: {
             nominationFileId: true,
@@ -323,6 +345,7 @@ export class AgendaRepository {
     await this.db.tx.agendaVersion.create({
       data: {
         ...content,
+        createdBy: message.authorId,
         version: version + 1,
         status: 'DRAFT',
         id: makeId('AgendaVersionId'),
@@ -378,7 +401,6 @@ export class AgendaRepository {
 
     const pdfs = versions.flatMap(({ pdf }) => (pdf ? [pdf] : []));
     if (pdfs.length > 0) {
-      await this.db.tx.file.deleteMany({ where: { id: { in: pdfs.map(({ id }) => id) } } });
       this.files.delete(pdfs);
     }
   }

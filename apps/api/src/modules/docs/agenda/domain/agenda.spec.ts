@@ -8,6 +8,7 @@ import { makeId } from 'src/utils/id';
 import {
   Agenda,
   AgendaAlreadyValidated,
+  AgendaDocumentNotStored,
   AgendaDraftDiscarded,
   AgendaDraftOpened,
   AgendaFileBlockEdited,
@@ -270,7 +271,7 @@ describe('Agenda', () => {
       agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
       expect(agenda.messages).toEqual([
-        new AgendaDraftOpened(agenda.id),
+        new AgendaDraftOpened(agenda.id, null),
         new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
       ]);
     });
@@ -306,7 +307,7 @@ describe('Agenda', () => {
     });
 
     it('should open a new draft after being validated again', () => {
-      const agenda = makeAgenda();
+      const agenda = makeAgenda({ isDocumentStored: true });
 
       agenda.validate({ at: new Date(), authorId: props.authorId });
       agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
@@ -327,7 +328,7 @@ describe('Agenda', () => {
     });
 
     it('should be validated', () => {
-      const agenda = makeAgenda();
+      const agenda = makeAgenda({ isDocumentStored: true });
       const at = new Date();
 
       agenda.validate({ at, authorId: props.authorId });
@@ -335,6 +336,15 @@ describe('Agenda', () => {
       expect(agenda.messages).toEqual([
         new AgendaValidated(agenda.id, at, makeId('AuthorId', props.authorId)),
       ]);
+    });
+
+    it('should refuse to be validated while its document is not stored', () => {
+      const agenda = makeAgenda();
+
+      const act = () => agenda.validate({ at: new Date(), authorId: props.authorId });
+
+      expect(act).toThrow(AgendaDocumentNotStored);
+      expect(agenda.messages).toEqual([]);
     });
 
     it('should be discarded when a validated version remains underneath', () => {

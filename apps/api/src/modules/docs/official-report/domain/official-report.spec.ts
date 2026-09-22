@@ -15,14 +15,13 @@ import { OfficialReportSnapshot } from './snapshot/official-report-snapshot';
 
 const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
-const FIRST_VALIDATION = new Date('2026-06-08T08:00:00.000Z');
 
-function makeReport(state: { isDocumentStored?: boolean; validatedAt?: Date | null } = {}): OfficialReport {
+function makeReport(state: { isDocumentStored?: boolean; isValidated?: boolean } = {}): OfficialReport {
   return OfficialReport.from({
     id: makeId('OfficialReportId'),
     snapshot: OfficialReportSnapshot.from(helpers.makeSnapshot()),
     isDocumentStored: state.isDocumentStored ?? true,
-    validatedAt: state.validatedAt ?? null,
+    isValidated: state.isValidated ?? false,
   });
 }
 
@@ -51,7 +50,7 @@ describe('OfficialReport', () => {
   });
 
   it('refuses to be validated twice', () => {
-    const report = makeReport({ validatedAt: FIRST_VALIDATION });
+    const report = makeReport({ isValidated: true });
 
     expect(() => report.validate({ at: VALIDATED_AT, authorId: AUTHOR })).toThrow(
       OfficialReportAlreadyValidated,
@@ -60,7 +59,7 @@ describe('OfficialReport', () => {
   });
 
   describe('a validated report', () => {
-    const validated = () => makeReport({ validatedAt: FIRST_VALIDATION });
+    const validated = () => makeReport({ isValidated: true });
 
     it('should fork a draft before writing anything', () => {
       const report = validated();
@@ -68,7 +67,7 @@ describe('OfficialReport', () => {
       report.editIntro({ html: '<p>edited</p>', outdated: false });
 
       expect(report.messages).toEqual([
-        new OfficialReportDraftOpened(report.id),
+        new OfficialReportDraftOpened(report.id, null),
         new OfficialReportIntroEdited(report.id, '<p>edited</p>', false),
       ]);
     });

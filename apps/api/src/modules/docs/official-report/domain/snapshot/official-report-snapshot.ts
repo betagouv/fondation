@@ -111,7 +111,7 @@ class OfficialReportSnapshotFilesCollection {
 
     return {
       action: 'outdate',
-      id: file.id,
+      nominationFileId,
       reporters: undefined,
       outcome: undefined,
       outcomeComment: undefined,

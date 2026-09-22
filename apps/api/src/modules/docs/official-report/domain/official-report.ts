@@ -31,10 +31,6 @@ export class OfficialReportDeleted {
   constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
 }
 
-export class OfficialReportDocumentReset {
-  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
-}
-
 export class OfficialReportIntroEdited {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
@@ -122,7 +118,10 @@ export class OfficialReportInvalidated {
 }
 
 export class OfficialReportDraftOpened {
-  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly authorId: string | null,
+  ) {}
 }
 
 export class OfficialReportDraftDiscarded {
@@ -133,7 +132,6 @@ export type OfficialReportEvent =
   | OfficialReportCreated
   | OfficialReportUpdated
   | OfficialReportDeleted
-  | OfficialReportDocumentReset
   | OfficialReportIntroEdited
   | OfficialReportIntroReset
   | OfficialReportConclusionEdited
@@ -155,7 +153,10 @@ export class OfficialReportAlreadyValidated extends Error {}
 
 export class OfficialReportWithoutValidatedVersion extends Error {}
 
-type OfficialReportState = { isDocumentStored: boolean; validatedAt: Date | null };
+type OfficialReportState = { isDocumentStored: boolean; isValidated: boolean };
+
+/** whoever is acting on the report: the draft a change opens is theirs, not the previous author's */
+type OfficialReportActor = { actorId?: string | null };
 
 export class OfficialReport {
   readonly #messages: OfficialReportEvent[] = [];
@@ -171,13 +172,19 @@ export class OfficialReport {
     readonly id: Id<'OfficialReportId'>,
     readonly snapshot: OfficialReportSnapshot,
     private readonly state: OfficialReportState,
+    private readonly actorId: string | null = null,
   ) {}
 
-  static from(props: { id: Id<'OfficialReportId'>; snapshot: OfficialReportSnapshot } & OfficialReportState) {
-    return new OfficialReport(props.id, props.snapshot, {
-      isDocumentStored: props.isDocumentStored,
-      validatedAt: props.validatedAt,
-    });
+  static from(
+    props: { id: Id<'OfficialReportId'>; snapshot: OfficialReportSnapshot } & OfficialReportActor &
+      OfficialReportState,
+  ) {
+    return new OfficialReport(
+      props.id,
+      props.snapshot,
+      { isDocumentStored: props.isDocumentStored, isValidated: props.isValidated },
+      props.actorId ?? null,
+    );
   }
 
   static create(command: {
@@ -191,7 +198,7 @@ export class OfficialReport {
         files: new Map(),
         manuallyEditedPart: { intro: false, conclusion: false },
       }),
-      { isDocumentStored: false, validatedAt: null },
+      { isDocumentStored: false, isValidated: false },
     );
 
     report.#messages.push(new OfficialReportCreated(report.id, command.authorId, report.snapshot));
@@ -201,27 +208,28 @@ export class OfficialReport {
 
   /** a validated version never changes: editing it forks the draft everything is then written into */
   private openDraft(): void {
-    if (!this.state.validatedAt) return;
+    if (!this.state.isValidated) return;
 
-    this.#messages.push(new OfficialReportDraftOpened(this.id));
-    this.state.validatedAt = null;
+    this.#messages.push(new OfficialReportDraftOpened(this.id, this.actorId));
+    this.state.isValidated = false;
   }
 
   validate(command: { at: Date; authorId: string }): void {
-    if (this.state.validatedAt) throw new OfficialReportAlreadyValidated();
+    if (this.state.isValidated) throw new OfficialReportAlreadyValidated();
     if (!this.state.isDocumentStored) throw new OfficialReportDocumentNotStored();
 
     this.#messages.push(
       new OfficialReportValidated(this.id, command.at, makeId('AuthorId', command.authorId)),
     );
-    this.state.validatedAt = command.at;
+    this.state.isValidated = true;
   }
 
   discardDraft(command: { hasValidatedVersion: boolean }): void {
-    if (this.state.validatedAt) return;
+    if (this.state.isValidated) return;
     if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
 
     this.#messages.push(new OfficialReportDraftDiscarded(this.id));
+    this.state.isValidated = true;
   }
 
   invalidate(command: InvalidateOfficialReportCommand): void {
@@ -242,11 +250,6 @@ export class OfficialReport {
 
   delete(): void {
     this.#messages.push(new OfficialReportDeleted(this.id));
-  }
-
-  resetDocument(): void {
-    this.openDraft();
-    this.#messages.push(new OfficialReportDocumentReset(this.id));
   }
 
   editIntro(command: { html: string; outdated: boolean }): void {

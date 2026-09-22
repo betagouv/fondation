@@ -65,7 +65,7 @@ export type OfficialReportSnapshotDiff = {
     | { action: 'noop' }
     | {
         action: 'outdate' | 'update';
-        id: bigint;
+        nominationFileId: string;
         reporters: readonly string[] | undefined;
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;

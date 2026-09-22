@@ -17,7 +17,6 @@ import {
   OfficialReportConclusionReset,
   OfficialReportCreated,
   OfficialReportDeleted,
-  OfficialReportDocumentReset,
   OfficialReportFileEdited,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
@@ -70,7 +69,7 @@ export class OfficialReportRepository {
   ) {}
 
   @Transactional()
-  async find(query: { id: string }): Promise<OfficialReport> {
+  async find(query: { actorId?: string | null; id: string }): Promise<OfficialReport> {
     const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
@@ -227,7 +226,8 @@ export class OfficialReportRepository {
       id: officialReportId,
       snapshot: snapshot,
       isDocumentStored: isDefined(officialReport.pdfId),
-      validatedAt: officialReport.validatedAt,
+      actorId: query.actorId ?? null,
+      isValidated: isDefined(officialReport.validatedAt),
     });
   }
 
@@ -275,7 +275,6 @@ export class OfficialReportRepository {
         map.set(
           file.nominationFileId,
           OfficialReportSnapshotFile.from({
-            id: file.id,
             outcome: { value: file.outcome, comment: file.outcomeComment },
             reporters: file.reporters,
             nominationFileId: file.nominationFileId,
@@ -297,8 +296,6 @@ export class OfficialReportRepository {
         await this.persistOfficialReportUpdated(message);
       } else if (message instanceof OfficialReportDeleted) {
         await this.persistOfficialReportDeleted(message);
-      } else if (message instanceof OfficialReportDocumentReset) {
-        await this.persistOfficialReportDocumentReset(message);
       } else if (message instanceof OfficialReportIntroEdited) {
         await this.persistOfficialReportIntroEdited(message);
       } else if (message instanceof OfficialReportIntroReset) {
@@ -427,13 +424,17 @@ export class OfficialReportRepository {
       });
     }
 
+    const editedVersionId = await this.officialReportVersionFinder.latest(message);
+
     const filesToUpdate = message.diff.files.filter(
       (file): file is typeof file & { action: 'outdate' | 'update' } =>
         file.action === 'outdate' || file.action === 'update',
     );
+    // the snapshot was read before the draft was opened, so its row ids name the version being
+    // replaced: the proposition is what the write follows from one version to the next
     for (const file of filesToUpdate) {
-      await this.db.tx.officialReportNominationFile.update({
-        where: { id: file.id },
+      await this.db.tx.officialReportNominationFile.updateMany({
+        where: { versionId: editedVersionId, nominationFileId: file.nominationFileId },
         data: {
           htmlOutdated: file.action === 'outdate',
           reporters: file.reporters as string[] | undefined,
@@ -446,8 +447,6 @@ export class OfficialReportRepository {
     const filesToDelete = message.diff.files
       .filter((file) => file.action === 'delete')
       .map((file) => file.nominationFileId);
-
-    const editedVersionId = await this.officialReportVersionFinder.latest(message);
 
     if (filesToDelete.length > 0) {
       await this.db.tx.officialReportNominationFile.deleteMany({
@@ -620,10 +619,6 @@ export class OfficialReportRepository {
     }));
   }
 
-  private async persistOfficialReportDocumentReset(message: OfficialReportDocumentReset) {
-    await this.recomputeState(await this.officialReportVersionFinder.latest(message));
-  }
-
   private async persistOfficialReportIntroEdited(message: OfficialReportIntroEdited) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportVersion.update({
@@ -793,7 +788,14 @@ export class OfficialReportRepository {
     const validated = await this.db.tx.officialReportVersion.findFirst({
       where: { officialReportId: message.officialReportId, status: 'VALIDATED' },
       orderBy: { version: 'desc' },
-      omit: { id: true, createdAt: true, validatedAt: true, validatedBy: true, status: true },
+      omit: {
+        id: true,
+        createdAt: true,
+        createdBy: true,
+        validatedAt: true,
+        validatedBy: true,
+        status: true,
+      },
       include: {
         members: { omit: { id: true, versionId: true } },
         nominationFiles: { omit: { id: true, versionId: true, createdAt: true, updatedAt: true } },
@@ -809,6 +811,7 @@ export class OfficialReportRepository {
     await this.db.tx.officialReportVersion.create({
       data: {
         ...content,
+        createdBy: message.authorId,
         version: version + 1,
         status: 'DRAFT',
         id: makeId('OfficialReportVersionId'),
@@ -845,7 +848,6 @@ export class OfficialReportRepository {
     const pdfs = versions.flatMap(({ pdf }) => (pdf ? [pdf] : []));
     if (pdfs.length === 0) return;
 
-    await this.db.tx.file.deleteMany({ where: { id: { in: pdfs.map(({ id }) => id) } } });
     this.files.delete(pdfs);
   }
 
@@ -932,7 +934,6 @@ export class OfficialReportRepository {
     const pdfs = versions.flatMap(({ pdf }) => (pdf ? [pdf] : []));
     if (pdfs.length === 0) return;
 
-    await this.db.tx.file.deleteMany({ where: { id: { in: pdfs.map(({ id }) => id) } } });
     this.files.delete(pdfs);
   }
 

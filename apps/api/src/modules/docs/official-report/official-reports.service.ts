@@ -256,17 +256,13 @@ export class OfficialReportsService {
   }
 
   deleteOfficialReport(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.delete());
-  }
-
-  resetOfficialReportDocument(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetDocument());
+    return this.withOfficialReport({ id: command.id }, (report) => report.delete());
   }
 
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
     await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
-    await this.withOfficialReport(command.id, (report) =>
+    await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.validate({ at: this.clock.now(), authorId: command.authorId }),
     );
   }
@@ -274,29 +270,43 @@ export class OfficialReportsService {
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
 
-    await this.withOfficialReport(command.id, (report) =>
+    await this.withOfficialReport({ id: command.id }, (report) =>
       report.discardDraft({ hasValidatedVersion: isDefined(publishedId) }),
     );
   }
 
-  editOfficialReportIntro(command: { id: string; html: string; outdated: boolean }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  editOfficialReportIntro(command: {
+    authorId: string;
+    id: string;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editIntro({ html: command.html, outdated: command.outdated }),
     );
   }
 
-  resetOfficialReportIntro(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetIntro());
+  resetOfficialReportIntro(command: { authorId: string; id: string }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetIntro(),
+    );
   }
 
-  editOfficialReportConclusion(command: { id: string; html: string; outdated: boolean }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  editOfficialReportConclusion(command: {
+    authorId: string;
+    id: string;
+    html: string;
+    outdated: boolean;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editConclusion({ html: command.html, outdated: command.outdated }),
     );
   }
 
-  resetOfficialReportConclusion(command: { id: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) => report.resetConclusion());
+  resetOfficialReportConclusion(command: { authorId: string; id: string }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetConclusion(),
+    );
   }
 
   editOfficialReportFile(command: {
@@ -306,7 +316,7 @@ export class OfficialReportsService {
     html: string;
     outdated: boolean;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editFile({
         authorId: command.authorId,
         nominationFileId: command.nominationFileId,
@@ -316,46 +326,54 @@ export class OfficialReportsService {
     );
   }
 
-  resetOfficialReportFile(command: { id: string; nominationFileId: string }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+  resetOfficialReportFile(command: {
+    authorId: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetFile({ nominationFileId: command.nominationFileId }),
     );
   }
 
   editOfficialReportSectionTitle(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
     text: string;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editSectionTitle({ outcome: command.outcome, text: command.text }),
     );
   }
 
   resetOfficialReportSectionTitle(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetSectionTitle({ outcome: command.outcome }),
     );
   }
 
   editOfficialReportSectionIntro(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
     html: string;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editSectionIntro({ outcome: command.outcome, html: command.html }),
     );
   }
 
   resetOfficialReportSectionIntro(command: {
+    authorId: string;
     id: string;
     outcome: DocNominationFileOutcomeEnum;
   }): Promise<void> {
-    return this.withOfficialReport(command.id, (report) =>
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetSectionIntro({ outcome: command.outcome }),
     );
   }
@@ -365,8 +383,11 @@ export class OfficialReportsService {
   }
 
   @Transactional()
-  private async withOfficialReport(id: string, mutation: (report: OfficialReport) => void): Promise<void> {
-    const report = await this.officialReportRepository.find({ id });
+  private async withOfficialReport(
+    query: { actorId?: string | null; id: string },
+    mutation: (report: OfficialReport) => void,
+  ): Promise<void> {
+    const report = await this.officialReportRepository.find(query);
 
     mutation(report);
 

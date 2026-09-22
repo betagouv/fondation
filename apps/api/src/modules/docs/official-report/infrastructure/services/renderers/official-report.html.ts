@@ -66,7 +66,7 @@ export type OfficialReportRenderContext = {
     files: Record<
       NominationFileId,
       {
-        html: string;
+        html: string | null;
         isOutdated: boolean;
         editedAt: Date | null;
         editedBy: { id: string; name: string } | null;

@@ -1,6 +1,26 @@
+import postgres from 'postgres';
+import { inject } from 'vitest';
+
 import { test } from '../fixtures.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
 import * as seed from '../utils/seed.ts';
+
+async function outdatedFilesOfValidatedVersions(): Promise<number> {
+  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+
+  try {
+    const [row] = await sql<{ count: bigint }[]>`
+      select count(*)
+      from docs.official_report_nomination_file as f
+      inner join docs.official_report_version as v on v.id = f.version_id
+      where v.status = 'VALIDATED' and f.html_outdated
+    `;
+
+    return Number(row?.count ?? 0);
+  } finally {
+    await sql.end();
+  }
+}
 
 function statusOf(items: PaginatedNominationFiles['items'], nominationFileId: string) {
   return items.find(({ id }) => id === nominationFileId)?.content.status;
@@ -556,6 +576,163 @@ test.describe('Docs Service', () => {
       .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
 
     expect(accepted).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
+  });
+
+  test('should warn the draft of a validated report, not the version it no longer touches', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        nominationFileIds,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    const agendaId = agenda.data!.id;
+
+    const agendaBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [firstBlock] = agendaBlocks.data!.blocks;
+    const nominationFileId = firstBlock!.nominationFileId!;
+
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const created = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agendaId],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    const officialReportId = created.data!.id;
+
+    const validated = await agent.docs.validateOfficialReport({ path: { officialReportId } });
+    expect(validated.response?.status).toBe(204);
+
+    const later = `<strong>MME HANNAH ARENDT</strong>, réécrite après la validation du procès-verbal.`;
+    await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: firstBlock!.id },
+      body: { html: later, outdated: false },
+    });
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const afterAgendaMovedOn = await agent.docs.detailsOfficialReportDocument({
+      path: { officialReportId },
+    });
+    const warned = afterAgendaMovedOn
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === nominationFileId);
+
+    expect(warned).toMatchObject({ agendaHtml: later, outdated: true });
+
+    // the validated version is what the readers still see: nothing may land on it
+    expect(await outdatedFilesOfValidatedVersions()).toBe(0);
+  });
+
+  test('should delete a validated agenda and its notice, with the pdfs they hold', async ({
+    agent,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          reporterIds: [member['@user']!.id],
+          priorities: [],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { sessionId, nominationFileId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        nominationFileIds,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    const agendaId = agenda.data!.id;
+
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agendaId }],
+        chairmanId,
+        date: MEETING_DATE,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    const planId = plan.data!.id;
+
+    await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
+
+    const deletedPlan = await agent.docs.deleteJusticePresentationPlan({ path: { planId } });
+    expect(deletedPlan.response?.status).toBe(204);
+
+    const deletedAgenda = await agent.docs.deleteAgenda({ path: { agendaId } });
+    expect(deletedAgenda.response?.status).toBe(204);
   });
 
   test('should drop the notice pdf that no longer says what the notice says', async ({

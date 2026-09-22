@@ -16,7 +16,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
-import { Id, makeId } from 'src/utils/id';
+import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
 
@@ -240,9 +240,11 @@ export class OfficialReportRenderContextFinder {
       },
     );
 
+    // a block the report never rewrote still goes stale when the agenda writes its own sentence,
+    // so the flag travels even with no text of its own
     const userDefinedFiles = Object.fromEntries(
       report.nominationFiles
-        .filter((f) => f.nominationFileId && f.htmlEdited?.trim())
+        .filter((f) => f.nominationFileId && (f.htmlEdited?.trim() || f.htmlOutdated))
         .map(
           (f) =>
             [
@@ -256,16 +258,7 @@ export class OfficialReportRenderContextFinder {
               },
             ] as const,
         ),
-    ) as Record<
-      Id<'NominationFileId'>,
-      {
-        html: string;
-        isOutdated: boolean;
-        editedAt: Date | null;
-        editedBy: { id: string; name: string } | null;
-        fromAgenda: boolean;
-      }
-    >;
+    );
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromUtcDate(report.sessionMeetingDate),

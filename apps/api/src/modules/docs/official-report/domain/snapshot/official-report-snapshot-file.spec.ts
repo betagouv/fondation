@@ -7,7 +7,6 @@ const NOMINATION_FILE_ID = 'nomination-file-id';
 
 function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): OfficialReportSnapshotFile {
   return OfficialReportSnapshotFile.from({
-    id: 1n,
     nominationFileId: NOMINATION_FILE_ID,
     hasManuallyEditedHtml: false,
     reporters: ['Madame Camille DURAND'],

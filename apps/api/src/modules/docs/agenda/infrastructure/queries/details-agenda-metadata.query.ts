@@ -24,10 +24,12 @@ export class DetailsAgendaMetadataQuery {
       select: {
         agendaId: true,
         status: true,
+        outdated: true,
         chairmanId: true,
         date: true,
         sessionMeetingDate: true,
         isManuallyEdited: true,
+        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
       },
     });
 
@@ -36,6 +38,8 @@ export class DetailsAgendaMetadataQuery {
     return {
       id: version.agendaId,
       status: version.status,
+      outdated: version.outdated,
+      outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion: isDefined(publishedId),
       chairmanId: version.chairmanId,
       isManuallyEdited: version.isManuallyEdited,
@@ -49,6 +53,10 @@ export class DetailedAgendaMetadata extends createZodDto(
   z.object({
     id: z.string(),
     status: z.enum(['DRAFT', 'VALIDATED']),
+    /** another text is proposed for at least one of its blocks, and waits for the reader's call */
+    outdated: z.boolean(),
+    /** zero while the introduction or the conclusion is the one waiting */
+    outdatedPropositions: z.number().int(),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
     chairmanId: z.string().nullable(),

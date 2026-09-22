@@ -173,10 +173,11 @@ export class AgendasController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
   resetAgendaFileBlock(
+    @AuthedUser() authUser: { id: string },
     @Param('agendaId') agendaId: string,
     @Param('fileId', ParseBigIntPipe) fileId: bigint,
   ): Promise<void> {
-    return this.agendas.resetAgendaFileBlock({ agendaId, fileId });
+    return this.agendas.resetAgendaFileBlock({ agendaId, authorId: authUser.id, fileId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -191,13 +192,6 @@ export class AgendasController {
   @HttpCode(HttpStatus.NO_CONTENT)
   discardAgendaDraft(@Param('agendaId') agendaId: string): Promise<void> {
     return this.agendas.discardAgendaDraft({ agendaId });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Delete('/agendas/:agendaId/document')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  resetAgendaDocument(@Param('agendaId') agendaId: string): Promise<void> {
-    return this.agendas.resetAgendaDocument({ id: agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

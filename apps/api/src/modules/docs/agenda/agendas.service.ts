@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Db } from '../../framework/database';
@@ -12,7 +12,6 @@ import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructu
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Clock } from 'src/modules/framework/clock';
-import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -43,7 +42,6 @@ import { InvalidateAgendasUseCase } from './infrastructure/use-cases/invalidate-
 @Injectable()
 export class AgendasService {
   constructor(
-    private readonly files: Files,
     private readonly agendaRepository: AgendaRepository,
     private readonly agendaVersionFinder: AgendaVersionFinder,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
@@ -119,7 +117,10 @@ export class AgendasService {
     sessionMeetingDate: DateOnlyJson;
   }): Promise<void> {
     const invalidations = await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+      const agenda = await this.agendaRepository.find({
+        actorId: command.authorId,
+        agendaId: command.agendaId,
+      });
       const diff = agenda.updateMetadata({
         chairmanId: command.chairmanId,
         authorId: command.authorId,
@@ -141,7 +142,10 @@ export class AgendasService {
     nominationFileIds: readonly string[];
   }): Promise<void> {
     const invalidations = await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+      const agenda = await this.agendaRepository.find({
+        actorId: command.authorId,
+        agendaId: command.agendaId,
+      });
       const nominationFileIds = new Set(command.nominationFileIds);
       const reportedNominationFileIds = await this.reportedNominationFilesFinder.find({
         fileIds: nominationFileIds,
@@ -199,7 +203,10 @@ export class AgendasService {
 
     await this.announcingSentenceChanges(command.agendaId, () =>
       this.db.withTransaction(async () => {
-        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        const agenda = await this.agendaRepository.find({
+          actorId: command.authorId,
+          agendaId: command.agendaId,
+        });
         agenda.validate({ at: this.clock.now(), authorId: command.authorId });
         await this.agendaRepository.persist(agenda);
       }),
@@ -219,23 +226,6 @@ export class AgendasService {
   }
 
   @Transactional()
-  async resetAgendaDocument(command: { id: string }): Promise<void> {
-    const versionId = await this.agendaVersionFinder.latest({ agendaId: command.id });
-
-    const version = await this.db.tx.agendaVersion.findUnique({
-      where: { id: versionId },
-      select: { pdf: { select: { id: true, path: true } } },
-    });
-    if (!version) throw new NotFoundException();
-
-    await this.db.tx.agendaVersion.update({
-      where: { id: versionId },
-      data: { html: null, isManuallyEdited: false, pdfFileId: null },
-    });
-
-    if (version.pdf) this.files.delete([version.pdf]);
-  }
-
   async editAgendaFileBlock(command: {
     agendaId: string;
     authorId: string;
@@ -245,7 +235,10 @@ export class AgendasService {
   }): Promise<void> {
     await this.announcingSentenceChanges(command.agendaId, () =>
       this.db.withTransaction(async () => {
-        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        const agenda = await this.agendaRepository.find({
+          actorId: command.authorId,
+          agendaId: command.agendaId,
+        });
         agenda.editFileBlock({
           authorId: command.authorId,
           fileId: command.fileId,
@@ -257,10 +250,13 @@ export class AgendasService {
     );
   }
 
-  async resetAgendaFileBlock(command: { agendaId: string; fileId: bigint }): Promise<void> {
+  async resetAgendaFileBlock(command: { agendaId: string; authorId: string; fileId: bigint }): Promise<void> {
     await this.announcingSentenceChanges(command.agendaId, () =>
       this.db.withTransaction(async () => {
-        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        const agenda = await this.agendaRepository.find({
+          actorId: command.authorId,
+          agendaId: command.agendaId,
+        });
         agenda.resetFileBlock({ fileId: command.fileId });
         await this.agendaRepository.persist(agenda);
       }),

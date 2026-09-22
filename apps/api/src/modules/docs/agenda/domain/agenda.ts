@@ -40,7 +40,10 @@ export class AgendaDeleted {
 }
 
 export class AgendaDraftOpened {
-  constructor(readonly agendaId: Id<'AgendaId'>) {}
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly authorId: string | null,
+  ) {}
 }
 
 export class AgendaValidated {
@@ -115,6 +118,7 @@ export type AgendaEvent =
 export class EmptyAgenda extends Error {}
 
 export class AgendaAlreadyValidated extends Error {}
+export class AgendaDocumentNotStored extends Error {}
 
 export class AgendaWithoutValidatedVersion extends Error {}
 
@@ -128,15 +132,21 @@ export class AgendaFilesAlreadyReported extends Error {
 
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
+  #actorId: string | null;
+  #isDocumentStored: boolean;
   #isValidated: boolean;
 
   private constructor(
     readonly id: Id<'AgendaId'>,
     readonly sessionId: Id<'SessionId'>,
     readonly officialReportId: Id<'OfficialReportId'> | null,
+    actorId: string | null,
+    isDocumentStored: boolean,
     isValidated: boolean,
     private readonly snapshot?: AgendaSnapshot,
   ) {
+    this.#actorId = actorId;
+    this.#isDocumentStored = isDocumentStored;
     this.#isValidated = isValidated;
   }
 
@@ -148,6 +158,9 @@ export class Agenda {
     id: Id<'AgendaId'>;
     sessionId: Id<'SessionId'>;
     officialReportId: Id<'OfficialReportId'> | null;
+    /** whoever is acting on the agenda: the draft a change opens is theirs, not the previous author's */
+    actorId?: string | null;
+    isDocumentStored?: boolean;
     isValidated?: boolean;
     snapshot?: AgendaSnapshot;
   }): Agenda {
@@ -155,6 +168,8 @@ export class Agenda {
       props.id,
       props.sessionId,
       props.officialReportId,
+      props.actorId ?? null,
+      props.isDocumentStored ?? false,
       props.isValidated ?? false,
       props.snapshot,
     );
@@ -164,12 +179,13 @@ export class Agenda {
   private openDraft(): void {
     if (!this.#isValidated) return;
 
-    this.#messages.push(new AgendaDraftOpened(this.id));
+    this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
     this.#isValidated = false;
   }
 
   validate(command: { at: Date; authorId: string }): void {
     if (this.#isValidated) throw new AgendaAlreadyValidated();
+    if (!this.#isDocumentStored) throw new AgendaDocumentNotStored();
 
     this.#messages.push(new AgendaValidated(this.id, command.at, makeId('AuthorId', command.authorId)));
     this.#isValidated = true;
