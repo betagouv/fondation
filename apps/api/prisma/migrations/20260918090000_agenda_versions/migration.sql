@@ -85,7 +85,7 @@ ALTER TABLE "docs"."agenda_version"
     ADD CONSTRAINT "agenda_version_chairman_id_fkey" FOREIGN KEY ("chairman_id") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     ADD CONSTRAINT "agenda_version_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     ADD CONSTRAINT "agenda_version_validated_by_fkey" FOREIGN KEY ("validated_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
-    ADD CONSTRAINT "agenda_version_pdf_file_id_fkey" FOREIGN KEY ("pdf_file_id") REFERENCES "files_context"."files" ("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+    ADD CONSTRAINT "agenda_version_pdf_file_id_fkey" FOREIGN KEY ("pdf_file_id") REFERENCES "files_context"."files" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
 
 -- AlterTable: the propositions now belong to a version, not to the agenda itself
 ALTER TABLE "docs"."agenda_nomination_file" ADD COLUMN "version_id" UUID;

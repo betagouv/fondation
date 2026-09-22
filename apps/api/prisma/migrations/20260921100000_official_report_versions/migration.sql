@@ -125,7 +125,7 @@ ALTER TABLE "docs"."official_report_version"
     ADD CONSTRAINT "official_report_version_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     ADD CONSTRAINT "official_report_version_validated_by_fkey" FOREIGN KEY ("validated_by") REFERENCES "identity_and_access_context"."users" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     ADD CONSTRAINT "official_report_version_justice_department_contact_id_fkey" FOREIGN KEY ("justice_department_contact_id") REFERENCES "docs"."justice_department_contact" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
-    ADD CONSTRAINT "official_report_version_pdf_id_fkey" FOREIGN KEY ("pdf_id") REFERENCES "files_context"."files" ("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+    ADD CONSTRAINT "official_report_version_pdf_id_fkey" FOREIGN KEY ("pdf_id") REFERENCES "files_context"."files" ("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
 
 -- AlterTable: the four children now belong to a version, not to the report itself
 ALTER TABLE "docs"."official_report_member" ADD COLUMN "version_id" UUID;
