@@ -141,33 +141,6 @@ const htmlMutationKeys = {
   presentationPlanHtml: ['docs', 'updatePresentationPlanHtml'] as const,
 };
 
-export function useGenerateAgendaPdfMutation(mutation: {
-  sessionId: string;
-  agendaId: string;
-  force: boolean;
-  onSuccess?: () => unknown;
-}) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () =>
-      $api.docs
-        .generateAgendaPdf({
-          path: { agendaId: mutation.agendaId },
-          query: { force: mutation.force },
-          parseAs: 'stream',
-        })
-        .then(({ response }) => response?.body?.cancel()),
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: agendaKeys.findSessionDocs(mutation.sessionId),
-      });
-
-      mutation.onSuccess?.();
-    },
-  });
-}
-
 export function useValidateAgendaMutation(mutation: {
   agendaId: string;
   onSuccess?: () => unknown;

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildOfficialReportExtensions } from '../official-report-tiptap-extensions';
 import * as $api from '@api/sdk';
 
-import { OfficialReportBlocksModel } from './official-report-blocks.model';
+import { OfficialReportBlockEmptied, OfficialReportBlocksModel } from './official-report-blocks.model';
 import type { OfficialReportBlock } from './official-report-blocks.type';
 import { OfficialReportFileBlock } from './OfficialReportFileBlock';
 
@@ -55,7 +55,12 @@ function editorHolding(blocks: readonly OfficialReportBlock[]): Editor {
             officialReportId: 'report-1',
             outdated: block.outdated,
           },
-          content: [{ content: [{ text: textOf(block), type: 'text' }], type: 'paragraph' }],
+          content: [
+            {
+              content: textOf(block) ? [{ text: textOf(block), type: 'text' }] : [],
+              type: 'paragraph',
+            },
+          ],
           type: OfficialReportFileBlock.name,
         })),
         type: 'fileListBlock',
@@ -163,6 +168,21 @@ describe('the official report editor holds its changes back', () => {
     await model.save();
 
     expect(resetFile).toHaveBeenCalledTimes(1);
+    expect(editFile).not.toHaveBeenCalled();
+  });
+
+  it('should refuse an emptied block, which the report would store then ignore', async () => {
+    const model = modelOn([fileBlock({ id: 1, text: PROPOSED })]);
+
+    model.onEditorUpdate(editorHolding([fileBlock({ id: 1, text: '' })]));
+
+    const failure = await model.save().catch((error: unknown) => error);
+
+    expect(failure).toBeInstanceOf(OfficialReportBlockEmptied);
+    expect((failure as OfficialReportBlockEmptied).emptied).toMatchObject({
+      kind: 'file',
+      nominationFileId: 'nf-1',
+    });
     expect(editFile).not.toHaveBeenCalled();
   });
 

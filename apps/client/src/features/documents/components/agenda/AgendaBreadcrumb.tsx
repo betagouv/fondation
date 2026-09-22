@@ -39,9 +39,18 @@ export function AgendaBreadCrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          { to: generatePath(ROUTE_PATHS.SG.DASHBOARD), label: 'Secrétariat général' },
-          { to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION), label: 'Gérer une session' },
-          { to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }), label: session?.name ?? 'Session' },
+          {
+            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
+            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION),
+            label: formatMessage({ defaultMessage: 'Gérer une session' }),
+          },
+          {
+            to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+            label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),
+          },
         ],
       }}
     />

@@ -88,7 +88,7 @@ export const SingleBlock: Story = {
 };
 
 function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
-  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
+  const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
 
   return (
     <DocumentScreen
@@ -100,7 +100,11 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
           <Button iconId="ri-calendar-event-line" priority="secondary">
             Informations
           </Button>
-          <Button disabled={hasPendingRevalidation} iconId="fr-icon-success-fill" iconPosition="right">
+          <Button
+            disabled={pendingRevalidations.propositions > 0}
+            iconId="fr-icon-success-fill"
+            iconPosition="right"
+          >
             Valider le document
           </Button>
         </>
@@ -108,11 +112,11 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
       notices={
         <>
           <div role="status">
-            {hasPendingRevalidation && (
+            {pendingRevalidations.propositions > 0 && (
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
-                message="Un autre texte est proposé pour certaines propositions"
+                message="Un autre texte est proposé pour 2 propositions"
                 tone="warning"
               />
             )}
@@ -125,7 +129,7 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
       <AgendaDocumentEditor
         agendaId={AGENDA_ID}
         blocks={props.blocks}
-        onPendingRevalidationChange={setHasPendingRevalidation}
+        onPendingRevalidationChange={setPendingRevalidations}
         sessionId={SESSION_ID}
       />
     </DocumentScreen>

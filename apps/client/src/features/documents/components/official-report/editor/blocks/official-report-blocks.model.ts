@@ -2,7 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
-import { readsTheSame } from '@/features/documents/components/blocks/proposed-text';
+import { plainText, readsTheSame } from '@/features/documents/components/blocks/proposed-text';
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 import { assertNever } from '@/utils/types.util';
 import * as $api from '@api/sdk';
@@ -14,6 +14,12 @@ import { OfficialReportFileBlock } from './OfficialReportFileBlock';
 import { OfficialReportIntroBlock } from './OfficialReportIntroBlock';
 import { OfficialReportSectionIntroBlock } from './OfficialReportSectionIntroBlock';
 import { OfficialReportSectionTitleBlock } from './OfficialReportSectionTitleBlock';
+
+export class OfficialReportBlockEmptied extends Error {
+  constructor(readonly emptied: OfficialReportEditionBlockState) {
+    super();
+  }
+}
 
 type PendingChange =
   | { block: OfficialReportEditionBlock; kind: 'edit' }
@@ -60,6 +66,12 @@ export class OfficialReportBlocksModel {
    * the comparison and could unstage the very edition being saved.
    */
   async save(): Promise<void> {
+    for (const { block, kind } of this.pending.values()) {
+      if (kind === 'edit' && !plainText(block.content).trim()) {
+        throw new OfficialReportBlockEmptied(block.block);
+      }
+    }
+
     for (const [key, change] of this.pending) {
       if (change.kind === 'reset') {
         await this.persistor.reset(change.block);
@@ -209,7 +221,7 @@ type EditionState = {
   key: BlockKey;
 };
 
-type OfficialReportEditionBlockState =
+export type OfficialReportEditionBlockState =
   | { kind: 'intro'; html: string; outdated: boolean }
   | { kind: 'conclusion'; html: string; outdated: boolean }
   | { kind: 'section-title'; outcome: DocNominationFileOutcomeEnum; text: string }

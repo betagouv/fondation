@@ -29,8 +29,10 @@ export function useToasts() {
 
   return useMemo(
     () => ({
-      error: (notice: ToastNotice) =>
-        manager.add({ ...optionsOf(notice), priority: 'low', timeout: 0, type: 'error' }),
+      close: (toastId: string) => manager.close(toastId),
+
+      error: (notice: ToastNotice & { id?: string }) =>
+        manager.add({ ...optionsOf(notice), id: notice.id, priority: 'low', timeout: 0, type: 'error' }),
 
       success: (notice: ToastNotice) =>
         manager.add({

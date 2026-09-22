@@ -11,6 +11,8 @@ import type { AgendaBlock } from './blocks/agenda-blocks.type';
 import { AgendaFileBlock } from './blocks/AgendaFileBlock';
 import { useAgendaEditor } from './hooks/useAgendaEditor';
 
+const EMPTIED_TOAST = 'agenda-emptied';
+
 export type AgendaDocumentEditorHandle = {
   discard: () => void;
   save: () => Promise<{ hasRemovedPropositions: boolean }>;
@@ -21,7 +23,7 @@ export function AgendaDocumentEditor(props: {
   blocks: readonly AgendaBlock[];
   handleRef?: RefObject<AgendaDocumentEditorHandle | null>;
   onDirtyChange?: (isDirty: boolean) => void;
-  onPendingRevalidationChange?: (pending: boolean) => void;
+  onPendingRevalidationChange?: (pending: { others: number; propositions: number }) => void;
   sessionId: string;
 }) {
   const navigate = useNavigate();
@@ -52,7 +54,10 @@ export function AgendaDocumentEditor(props: {
   const save = useCallback(async () => {
     flushUpdates();
     try {
-      return await model.save();
+      const saved = await model.save();
+      toasts.close(EMPTIED_TOAST);
+
+      return saved;
     } catch (error) {
       if (error instanceof AgendaEmptied) {
         toasts.error({
@@ -64,6 +69,7 @@ export function AgendaDocumentEditor(props: {
             defaultMessage:
               'Pour le supprimer, ouvrez la liste des documents de la session. Sinon, cliquez sur Annuler les changements pour revenir au dernier enregistrement.',
           }),
+          id: EMPTIED_TOAST,
           title: formatMessage({ defaultMessage: 'Un ordre du jour ne peut pas être vide' }),
         });
       }
@@ -73,7 +79,10 @@ export function AgendaDocumentEditor(props: {
   }, [flushUpdates, formatMessage, model, navigate, sessionId, toasts]);
 
   useImperativeHandle(props.handleRef, () => ({
-    discard: () => model.discard(),
+    discard: () => {
+      toasts.close(EMPTIED_TOAST);
+      model.discard();
+    },
     save,
   }));
 
@@ -87,7 +96,7 @@ export function AgendaDocumentEditor(props: {
 
   return (
     <DocumentBlocksEditor
-      blockName={AgendaFileBlock.name}
+      propositionBlockName={AgendaFileBlock.name}
       editor={editor}
       onPendingRevalidationChange={props.onPendingRevalidationChange}
       onPreview={onPreview}

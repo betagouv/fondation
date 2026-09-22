@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { EditorContent, EditorContext, useEditorState, type Editor } from '@tiptap/react';
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { BoldButton, ItalicButton, RedoButton, UndoButton } from '@/shared/ui/tip-tap-editor';
@@ -11,30 +11,36 @@ import { DOCUMENT_CONTENT_CLASSES } from './document-content';
 import './blocks/doc-block.css';
 
 export function DocumentBlocksEditor(props: {
-  blockName: string;
   editor: Editor;
-  onPendingRevalidationChange?: (pending: boolean) => void;
+  otherBlockNames?: readonly string[];
+  onPendingRevalidationChange?: (pending: { others: number; propositions: number }) => void;
+  propositionBlockName: string;
   onPreview: () => Promise<unknown>;
   previewDisabledReason?: string;
 }) {
-  const { blockName, editor, previewDisabledReason } = props;
+  const { editor, otherBlockNames, previewDisabledReason, propositionBlockName } = props;
 
-  const hasPendingRevalidation = useEditorState({
+  const others = useMemo(() => new Set(otherBlockNames), [otherBlockNames]);
+  const pendingRevalidations = useEditorState({
     editor,
-    selector: ({ editor }): boolean => {
-      let pending = false;
+    selector: ({ editor }): { others: number; propositions: number } => {
+      const pending = { others: 0, propositions: 0 };
       editor?.state.doc.descendants((node) => {
-        if (node.type.name === blockName && node.attrs.outdated) pending = true;
-        return !pending;
+        if (!node.attrs.outdated) return true;
+        if (node.type.name === propositionBlockName) pending.propositions += 1;
+        else if (others.has(node.type.name)) pending.others += 1;
+
+        return true;
       });
       return pending;
     },
+    equalityFn: (a, b) => a.others === b?.others && a.propositions === b?.propositions,
   });
 
   const { onPendingRevalidationChange } = props;
   useEffect(() => {
-    onPendingRevalidationChange?.(hasPendingRevalidation);
-  }, [hasPendingRevalidation, onPendingRevalidationChange]);
+    onPendingRevalidationChange?.(pendingRevalidations);
+  }, [onPendingRevalidationChange, pendingRevalidations]);
 
   const [isPersisting, setIsPersisting] = useState(false);
   const { onPreview } = props;

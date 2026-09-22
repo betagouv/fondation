@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
+import { DocumentDriftBanner } from '../DocumentDriftBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
@@ -106,6 +107,19 @@ export function OfficialReportPreviewPage() {
                   </AlertBannerAction>
                 )}
               </DocumentDraftBanner>
+            )}
+            {metadata?.outdated && (
+              <DocumentDriftBanner
+                onEdit={() =>
+                  navigate(
+                    generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+                      officialReportId: officialReportId!,
+                      sessionId: sessionId!,
+                    }),
+                  )
+                }
+                outdatedPropositions={metadata.outdatedPropositions}
+              />
             )}
           </div>
           <div role="alert">

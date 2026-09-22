@@ -6,7 +6,7 @@ import { AlertBanner } from '@/shared/ui/alert-banner';
 export function DocumentDraftBanner(props: { children?: ReactNode; hasValidatedVersion: boolean }) {
   return (
     <AlertBanner
-      className="justify-center px-4 py-3"
+      className="justify-center px-4 py-3 text-center"
       icon="fr-icon-draft-line"
       message={
         props.hasValidatedVersion ? (

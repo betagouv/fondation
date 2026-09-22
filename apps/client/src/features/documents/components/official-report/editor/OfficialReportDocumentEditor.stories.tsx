@@ -73,7 +73,7 @@ const BLOCKS = [
 ] as OfficialReportBlock[];
 
 function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] }) {
-  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
+  const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
 
   return (
     <DocumentScreen
@@ -82,7 +82,11 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
           <Button iconId="ri-edit-fill" priority="secondary">
             Informations
           </Button>
-          <Button disabled={hasPendingRevalidation} iconId="fr-icon-success-fill" iconPosition="right">
+          <Button
+            disabled={pendingRevalidations.propositions > 0}
+            iconId="fr-icon-success-fill"
+            iconPosition="right"
+          >
             Valider le document
           </Button>
         </>
@@ -90,11 +94,11 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
       notices={
         <>
           <div role="status">
-            {hasPendingRevalidation && (
+            {pendingRevalidations.propositions > 0 && (
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-warning-fill"
-                message="Un autre texte est proposé pour certaines propositions"
+                message="Un autre texte est proposé pour 2 propositions"
                 tone="warning"
               />
             )}
@@ -107,7 +111,7 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
       <OfficialReportDocumentEditor
         blocks={props.blocks}
         officialReportId={OFFICIAL_REPORT_ID}
-        onPendingRevalidationChange={setHasPendingRevalidation}
+        onPendingRevalidationChange={setPendingRevalidations}
         sessionId={SESSION_ID}
       />
     </DocumentScreen>

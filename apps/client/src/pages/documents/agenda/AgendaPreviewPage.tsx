@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
+import { DocumentDriftBanner } from '../DocumentDriftBanner';
 import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
@@ -117,6 +118,19 @@ export function AgendaPreviewPage() {
                   </AlertBannerAction>
                 )}
               </DocumentDraftBanner>
+            )}
+            {metadata?.outdated && (
+              <DocumentDriftBanner
+                onEdit={() =>
+                  navigate(
+                    generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                      agendaId: agendaId!,
+                      sessionId: sessionId!,
+                    }),
+                  )
+                }
+                outdatedPropositions={metadata.outdatedPropositions}
+              />
             )}
           </div>
           <div role="alert">

@@ -2,7 +2,7 @@ import type { Editor } from '@tiptap/core';
 import { Node as PMNode } from '@tiptap/pm/model';
 import type { ReactNodeViewProps } from '@tiptap/react';
 
-import { readsTheSame } from '@/features/documents/components/blocks/proposed-text';
+import { plainText, readsTheSame } from '@/features/documents/components/blocks/proposed-text';
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 import * as $api from '@api/sdk';
 
@@ -141,7 +141,7 @@ export class AgendaBlocksModel {
 
     // a block torn out of the document, or left blank, means its proposition leaves the agenda:
     // whoever meant to keep it would have written something in it
-    const kept = present.filter(({ block }) => hasText(block.html));
+    const kept = present.filter(({ block }) => plainText(block.html).trim());
     this.remaining = new Set(kept.map(({ block }) => block.fileId));
     this.onDirtyChange(this.isDirty);
 
@@ -236,15 +236,6 @@ type AgendaEditionBlockState = {
   kind: 'file';
   outdated: boolean;
 };
-
-function hasText(html: string): boolean {
-  return (
-    html
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim().length > 0
-  );
-}
 
 export class AgendaEditionBlock {
   get key(): BlockKey {

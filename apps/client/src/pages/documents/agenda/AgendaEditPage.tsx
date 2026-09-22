@@ -5,6 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
+import { DocumentDriftBanner } from '../DocumentDriftBanner';
 import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import {
   AgendaDocumentEditor,
@@ -37,7 +38,7 @@ export function AgendaEditPage() {
   const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
-  const [hasPendingRevalidation, setHasPendingRevalidation] = useState(false);
+  const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
@@ -121,7 +122,7 @@ export function AgendaEditPage() {
           <Button disabled={isSaving || !isDirty} onClick={cancel} priority="secondary">
             <FormattedMessage defaultMessage="Annuler les changements" />
           </Button>
-          <Button disabled={isSaving || !isDirty} onClick={save}>
+          <Button disabled={isSaving || !isDirty} onClick={() => void save().catch(() => {})}>
             {isSaving ? (
               <FormattedMessage defaultMessage="Enregistrement..." />
             ) : (
@@ -138,15 +139,8 @@ export function AgendaEditPage() {
             {metadata?.status === 'DRAFT' && (
               <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />
             )}
-            {hasPendingRevalidation && (
-              <AlertBanner
-                className="justify-center px-4 py-3"
-                icon="fr-icon-warning-fill"
-                message={
-                  <FormattedMessage defaultMessage="Un autre texte est proposé pour certaines propositions" />
-                }
-                tone="warning"
-              />
+            {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (
+              <DocumentDriftBanner outdatedPropositions={pendingRevalidations.propositions} />
             )}
           </div>
           <div role="alert">
@@ -172,7 +166,7 @@ export function AgendaEditPage() {
           handleRef={editorRef}
           key={editorKey}
           onDirtyChange={setDirty}
-          onPendingRevalidationChange={setHasPendingRevalidation}
+          onPendingRevalidationChange={setPendingRevalidations}
           sessionId={sessionId!}
         />
       )}
