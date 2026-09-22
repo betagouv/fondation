@@ -25,6 +25,7 @@ export class DetailsOfficialReportQuery {
       where: { id: versionId },
       select: {
         status: true,
+        outdated: true,
         hasRenunciation: true,
         members: { select: { memberId: true, isAbsent: true } },
         justiceDepartmentContactId: true,
@@ -34,6 +35,7 @@ export class DetailsOfficialReportQuery {
         sessionMeetingStartingTime: true,
         sessionMeetingEndingTime: true,
         isManuallyEdited: true,
+        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
         officialReport: { select: { id: true, agendas: { select: { id: true } } } },
       },
     });
@@ -46,6 +48,8 @@ export class DetailsOfficialReportQuery {
 
     return {
       id: report.id,
+      outdated: version.outdated,
+      outdatedPropositions: version._count.nominationFiles,
       hasRenunciation: report.hasRenunciation,
       agendas: report.agendas.map(({ id }) => id).filter(isDefined),
       absentMembers: report.members.flatMap((member) =>
@@ -75,6 +79,10 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     sessionMeetingEndingTime: timeOnlySchema,
     isManuallyEdited: z.boolean(),
     status: z.enum(['DRAFT', 'VALIDATED']),
+    /** another text is proposed for at least one of its blocks, and waits for the reader's call */
+    outdated: z.boolean(),
+    /** zero while the introduction or the conclusion is the one waiting */
+    outdatedPropositions: z.number().int(),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
     chairmanId: z.string().nullable(),
