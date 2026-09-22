@@ -1017,6 +1017,7 @@ export type FoundSessionDocsDto = {
         id: string;
         name: string;
         officialReportId: string | null;
+        hasPresentationPlan: boolean;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         hasDraft: boolean;
@@ -1142,6 +1143,8 @@ export type DetailedSessionAgenda = {
 export type DetailedAgendaMetadata = {
     id: string;
     status: 'DRAFT' | 'VALIDATED';
+    outdated: boolean;
+    outdatedPropositions: number;
     hasValidatedVersion: boolean;
     chairmanId: string | null;
     isManuallyEdited: boolean;
@@ -1289,6 +1292,8 @@ export type DetailedOfficialReportMetadataDto = {
     };
     isManuallyEdited: boolean;
     status: 'DRAFT' | 'VALIDATED';
+    outdated: boolean;
+    outdatedPropositions: number;
     hasValidatedVersion: boolean;
     chairmanId: string | null;
     secretaryId: string | null;
@@ -3396,21 +3401,6 @@ export type DiscardAgendaDraftResponses = {
 
 export type DiscardAgendaDraftResponse = DiscardAgendaDraftResponses[keyof DiscardAgendaDraftResponses];
 
-export type ResetAgendaDocumentData = {
-    body?: never;
-    path: {
-        agendaId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/document';
-};
-
-export type ResetAgendaDocumentResponses = {
-    204: void;
-};
-
-export type ResetAgendaDocumentResponse = ResetAgendaDocumentResponses[keyof ResetAgendaDocumentResponses];
-
 export type DetailsSessionOfficialReportData = {
     body?: never;
     path: {
@@ -3736,21 +3726,6 @@ export type EditOfficialReportFileResponses = {
 };
 
 export type EditOfficialReportFileResponse = EditOfficialReportFileResponses[keyof EditOfficialReportFileResponses];
-
-export type ResetOfficialReportDocumentData = {
-    body?: never;
-    path: {
-        officialReportId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/official-reports/{officialReportId}/document';
-};
-
-export type ResetOfficialReportDocumentResponses = {
-    204: void;
-};
-
-export type ResetOfficialReportDocumentResponse = ResetOfficialReportDocumentResponses[keyof ResetOfficialReportDocumentResponses];
 
 export type ListPresentationPlanAgendasData = {
     body?: never;
