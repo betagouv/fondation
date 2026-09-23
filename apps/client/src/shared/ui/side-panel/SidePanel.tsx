@@ -57,7 +57,7 @@ export function SidePanel(props: {
       const target = event.target instanceof Element ? event.target : null;
       if (!target) return;
       if (panelRef.current?.contains(target)) return;
-      if (target.closest('dialog, [role="dialog"], .fr-modal')) return;
+      if (target.closest('dialog, [role="dialog"], .fr-modal, [data-side-panel-companion]')) return;
       if (id && target.closest(`[aria-controls="${id}"]`)) return;
       onClose();
     }
@@ -65,6 +65,23 @@ export function SidePanel(props: {
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [id, onClose, open]);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+
+    const root = document.documentElement;
+    function publishWidth() {
+      root.style.setProperty('--fondation-side-panel-width', `${panel!.getBoundingClientRect().width}px`);
+    }
+
+    publishWidth();
+    window.addEventListener('resize', publishWidth);
+    return () => {
+      window.removeEventListener('resize', publishWidth);
+      root.style.removeProperty('--fondation-side-panel-width');
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
