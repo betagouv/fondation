@@ -5,6 +5,9 @@ import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { IconButton } from '@/shared/ui/icon-button';
 import { ACTION_ICONS } from '@/shared/ui/icons';
 import { useToasts } from '@/shared/ui/toast';
+import { formatDateOnly } from '@/utils/date-only.util';
+import { timeOnlyToDate } from '@/utils/time-only.util';
+import { toInitials } from '@/utils/user.utils';
 import type { FoundSessionDocsDto } from '@api/types';
 import { useDeleteAgenda, useDeleteOfficialReportMutation } from '@queries/agenda.queries';
 
@@ -47,10 +50,28 @@ function deletionConsequences(query: {
     }
   }
 
-  if (doc.hasPresentationPlan) {
+  for (const plan of doc.presentationPlans) {
     consequences.push({
-      key: 'presentation-plan',
-      message: <FormattedMessage defaultMessage="La notice de restitution liée sera supprimée elle aussi." />,
+      key: `presentation-plan-${plan.id}`,
+      message: (
+        <FormattedMessage
+          defaultMessage="La notice {name}, {status, select, PRESENTED {restituée} VALIDATED {validée} other {en brouillon}}, sera supprimée elle aussi{others, plural, =0 {} one {, et son autre ordre du jour pourra être repris dans une autre notice} other {, et ses # autres ordres du jour pourront être repris dans une autre notice}}."
+          values={{
+            name: (
+              <FormattedMessage
+                defaultMessage="NDR {date}, {time, time, short} - {initials}"
+                values={{
+                  date: formatDateOnly(plan.date),
+                  initials: toInitials(plan.chairman),
+                  time: timeOnlyToDate(plan.time),
+                }}
+              />
+            ),
+            others: plan.otherAgendasCount,
+            status: plan.isPresented ? 'PRESENTED' : plan.status,
+          }}
+        />
+      ),
     });
   }
 

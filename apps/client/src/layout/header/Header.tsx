@@ -51,8 +51,12 @@ export const AppHeader = () => {
     },
     {
       text: $t({ defaultMessage: `Restitutions` }),
-      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_READY },
-      isActive: routeMatches([ROUTE_PATHS.SG.PRESENTATIONS_PAST, ROUTE_PATHS.SG.PRESENTATIONS_READY]),
+      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS },
+      isActive: routeMatches([
+        ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
+        ROUTE_PATHS.SG.PRESENTATIONS_PAST,
+        ROUTE_PATHS.SG.PRESENTATIONS_READY,
+      ]),
     },
     {
       text: 'Gérer les membres',

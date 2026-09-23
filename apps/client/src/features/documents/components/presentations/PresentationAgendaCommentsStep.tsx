@@ -69,7 +69,7 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
             <FormattedMessage defaultMessage="Réessayez et prévenez le support si cela persiste." />
           }
           severity="error"
-          title={<FormattedMessage defaultMessage="La création de la notice a échoué" />}
+          title={<FormattedMessage defaultMessage="L'enregistrement de la notice a échoué" />}
         />
       )}
 
@@ -98,10 +98,10 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
             type: 'button',
           },
           {
-            children: formatMessage({ defaultMessage: 'Créer la notice' }),
-            type: 'button',
-            onClick: onSubmit,
+            children: formatMessage({ defaultMessage: 'Enregistrer la notice' }),
             disabled: isDisabled || !hasAllMandatoryMetadata,
+            onClick: onSubmit,
+            type: 'button',
           },
         ]}
         className="fr-mt-6v"

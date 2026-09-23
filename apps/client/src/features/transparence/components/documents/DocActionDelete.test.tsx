@@ -35,9 +35,9 @@ const AGENDA: SessionDocument = {
   name: 'Ordre du jour du 12 mars 2028',
   officialReportId: null,
   outdated: false,
+  presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',
-  hasPresentationPlan: false,
   validatedAt: '2028-03-10T11:00:00.000Z',
 };
 
@@ -51,6 +51,22 @@ const OFFICIAL_REPORT: SessionDocument = {
   type: 'officialReport',
   validatedAt: '2028-03-13T11:00:00.000Z',
 };
+
+type PresentationPlan = Extract<SessionDocument, { type: 'agenda' }>['presentationPlans'][number];
+
+function aPresentationPlan(
+  props: Pick<PresentationPlan, 'status'> & Partial<PresentationPlan>,
+): PresentationPlan {
+  return {
+    chairman: { firstName: 'Paul', lastName: 'Pasteur' },
+    date: { day: 30, month: 9, year: 2026 },
+    id: 'plan-1',
+    isPresented: false,
+    otherAgendasCount: 0,
+    time: { hours: 8, minutes: 46, seconds: 0 },
+    ...props,
+  };
+}
 
 async function clickDelete(doc: SessionDocument, association?: Association) {
   const user = userEvent.setup();
@@ -144,11 +160,30 @@ describe('DocActionDelete', () => {
     ).toBeInTheDocument();
   });
 
-  it('should say the notice goes away with the agenda', async () => {
-    await clickDelete({ ...AGENDA, hasPresentationPlan: true });
+  it('should name the notice that goes away with the agenda', async () => {
+    await clickDelete({
+      ...AGENDA,
+      presentationPlans: [aPresentationPlan({ isPresented: true, status: 'VALIDATED' })],
+    });
     await confirmationContent();
 
-    expect(screen.getByText('La notice de restitution liée sera supprimée elle aussi.')).toBeInTheDocument();
+    expect(
+      screen.getByText('La notice NDR 30/09/2026, 08:46 - PP, restituée, sera supprimée elle aussi.'),
+    ).toBeInTheDocument();
+  });
+
+  it('should say the other agendas of the notice can go in another one', async () => {
+    await clickDelete({
+      ...AGENDA,
+      presentationPlans: [aPresentationPlan({ otherAgendasCount: 2, status: 'DRAFT' })],
+    });
+    await confirmationContent();
+
+    expect(
+      screen.getByText(
+        'La notice NDR 30/09/2026, 08:46 - PP, en brouillon, sera supprimée elle aussi, et ses 2 autres ordres du jour pourront être repris dans une autre notice.',
+      ),
+    ).toBeInTheDocument();
   });
   it('should warn that the linked official report goes with the agenda', async () => {
     await clickDelete({ ...AGENDA, officialReportId: 'official-report-1' });

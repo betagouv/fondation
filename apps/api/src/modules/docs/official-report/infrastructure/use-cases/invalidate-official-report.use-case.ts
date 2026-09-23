@@ -43,6 +43,10 @@ export class InternalInvalidateOfficialReportUseCase {
       case 'NominationFileOutcomeUpdated':
         return this.invalidate(await this.mapNominationFileOutcomeUpdated({ invalidation }));
 
+      // the report already answered when the draft was opened, and its own draft carries the answer
+      case 'AgendaValidated':
+        return;
+
       default:
         return assertNever(invalidation);
     }
@@ -64,7 +68,6 @@ export class InternalInvalidateOfficialReportUseCase {
   }): Promise<InvalidateOfficialReportCommand[]> {
     const { nominationFileId, comment, outcome } = query.invalidation.payload;
 
-    // We don't handle files without outcome in official reports
     if (!isDefined(outcome)) return [];
 
     // a report holding a draft carries the file twice, and it is invalidated once

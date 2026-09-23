@@ -4,7 +4,10 @@ import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
+import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
+
+import { JusticePresentationPlanContent } from './justice-presentation-plan-content';
 
 export class JusticePresentationPlanCreated {
   constructor(
@@ -31,6 +34,7 @@ export class JusticePresentationPlanPresented {
   constructor(
     readonly id: Id<'JusticePresentationPlanId'>,
     readonly endTime: TimeOnly,
+    readonly presenterId: string,
   ) {}
 }
 
@@ -38,12 +42,30 @@ export class JusticePresentationPlanUnPresented {
   constructor(readonly id: Id<'JusticePresentationPlanId'>) {}
 }
 
+export class JusticePresentationPlanContentChecked {
+  constructor(
+    readonly id: Id<'JusticePresentationPlanId'>,
+    readonly outdated: boolean,
+  ) {}
+}
+
+export class JusticePresentationPlanAgendaRemoved {
+  constructor(
+    readonly id: Id<'JusticePresentationPlanId'>,
+    readonly agendaId: string,
+    readonly takenByPlanId: string,
+    readonly removerId: string,
+  ) {}
+}
+
 export type JusticePresentationPlanMessage =
   | JusticePresentationPlanCreated
   | JusticePresentationPlanUpdated
   | JusticePresentationPlanDeleted
   | JusticePresentationPlanPresented
-  | JusticePresentationPlanUnPresented;
+  | JusticePresentationPlanUnPresented
+  | JusticePresentationPlanContentChecked
+  | JusticePresentationPlanAgendaRemoved;
 
 export class UnknownPresentationPlanSecretary extends Error {}
 export class UnknownPresentationPlanChairman extends Error {}
@@ -52,6 +74,10 @@ export class EmptyAgendaList extends Error {}
 export class JusticePresentationPlanEndTimeShouldBeBeforeStartTime extends Error {}
 export class PresentationPlanAgendaAlreadyReported extends Error {}
 export class EmptyPresentationPlanMemberList extends Error {}
+export class JusticePresentationPlanNotValidated extends Error {}
+export class JusticePresentationPlanAlreadyPresented extends Error {}
+export class JusticePresentationPlanAlreadyValidated extends Error {}
+export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
@@ -63,13 +89,32 @@ export class JusticePresentationPlan {
     readonly id: Id<'JusticePresentationPlanId'>,
     readonly formation: FormationEnum,
     readonly startTime: TimeOnly,
+    readonly agendaIds: readonly string[] = [],
+    private readonly isValidated: boolean = false,
+    private readonly isPresented: boolean = false,
+    private readonly outdated: boolean = false,
+    private readonly content?: JusticePresentationPlanContent,
   ) {}
 
-  static from(props: { id: string; formation: FormationEnum; startTime: TimeOnly }): JusticePresentationPlan {
+  static from(props: {
+    id: string;
+    formation: FormationEnum;
+    startTime: TimeOnly;
+    agendaIds: readonly string[];
+    isValidated: boolean;
+    isPresented: boolean;
+    outdated: boolean;
+    content: JusticePresentationPlanContent;
+  }): JusticePresentationPlan {
     return new JusticePresentationPlan(
       makeId('JusticePresentationPlanId', props.id),
       props.formation,
       props.startTime,
+      props.agendaIds,
+      props.isValidated,
+      props.isPresented,
+      props.outdated,
+      props.content,
     );
   }
 
@@ -84,7 +129,10 @@ export class JusticePresentationPlan {
     return plan;
   }
 
+  /** the presented notice is the one the DSJ received: rewriting it would drop the pdf that left */
   update(command: UpdateJusticePresentationPlanCommand): void {
+    if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+
     this.#messages.push(
       new JusticePresentationPlanUpdated(this.id, command.authorId, this.buildState(command)),
     );
@@ -94,12 +142,39 @@ export class JusticePresentationPlan {
     this.#messages.push(new JusticePresentationPlanDeleted(this.id));
   }
 
-  present(command: { endTime: TimeOnly }): void {
-    this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime));
+  present(command: { endTime: TimeOnly; presenterId: string }): void {
+    if (!this.isValidated) throw new JusticePresentationPlanNotValidated();
+    if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+
+    this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime, command.presenterId));
+  }
+
+  /** another notice validated with these agendas takes them for good, a draft can only give them up */
+  removeAgendas(command: { agendaIds: readonly string[]; takenByPlanId: string; removerId: string }): void {
+    if (this.isValidated) throw new JusticePresentationPlanAlreadyValidated();
+
+    const removed = this.agendaIds.filter((id) => command.agendaIds.includes(id));
+    if (removed.length === 0) return;
+    if (removed.length === this.agendaIds.length) return this.delete();
+
+    for (const agendaId of removed) {
+      this.#messages.push(
+        new JusticePresentationPlanAgendaRemoved(this.id, agendaId, command.takenByPlanId, command.removerId),
+      );
+    }
   }
 
   unPresent(): void {
     this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
+  }
+
+  /** the notice holds no draft and no version: all it can do is say it no longer matches the agendas */
+  checkContent(command: { current: JusticePresentationPlanContent }): void {
+    const content = assertIsDefined(this.content, 'unknown presentation plan content');
+    const outdated = content.differsFrom(command.current);
+    if (outdated === this.outdated) return;
+
+    this.#messages.push(new JusticePresentationPlanContentChecked(this.id, outdated));
   }
 
   private buildState(

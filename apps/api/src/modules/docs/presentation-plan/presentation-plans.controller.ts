@@ -13,7 +13,6 @@ import {
   Post,
   Put,
   Query,
-  StreamableFile,
   UploadedFile,
   UseInterceptors,
   UsePipes,
@@ -23,7 +22,6 @@ import { ApiConsumes, ApiOperation, ApiProduces, ApiQuery, ApiResponse, ApiTags 
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
@@ -73,18 +71,13 @@ export class PresentationPlansController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/presentation-plans/:planId.pdf')
-  @ApiProduces(FILE_MIME_TYPES.pdf)
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
-  generatePresentationPlanPdf(
-    @Param('planId') planId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.presentationPlans.findPresentationPlanDocumentPdf({
-      forceNew,
-      id: planId,
-    });
+  @Post('/presentation-plans/:planId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  validatePresentationPlan(
+    @Param('planId', ParseUUIDPipe) planId: string,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.validatePresentationPlan({ id: planId, validatorId: user.id });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -173,15 +166,23 @@ export class PresentationPlansController {
   updatePresentationPlanHtml(
     @Param('planId') planId: string,
     @UploadedFile() file: Express.Multer.File,
+    @AuthedUser() user: { id: string },
   ): Promise<void> {
-    return this.presentationPlans.updatePresentationPlanHtml({ id: planId, html: file.buffer });
+    return this.presentationPlans.updatePresentationPlanHtml({
+      authorId: user.id,
+      html: file.buffer,
+      id: planId,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/presentation-plans/:planId/document')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetPresentationPlanDocument(@Param('planId') planId: string): Promise<void> {
-    return this.presentationPlans.resetPresentationPlanDocument({ id: planId });
+  resetPresentationPlanDocument(
+    @Param('planId') planId: string,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.resetPresentationPlanDocument({ authorId: user.id, id: planId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -202,8 +203,12 @@ export class PresentationPlansController {
   @Put('/presentation-plans/:planId/presentation')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  presentPlan(@Param('planId') planId: string, @Body() body: PresentPlanDto): Promise<void> {
-    return this.presentationPlans.presentPlan({ id: planId, endTime: body.endTime });
+  presentPlan(
+    @Param('planId') planId: string,
+    @Body() body: PresentPlanDto,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.presentPlan({ id: planId, endTime: body.endTime, presenterId: user.id });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

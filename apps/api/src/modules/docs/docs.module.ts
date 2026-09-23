@@ -32,6 +32,7 @@ import { OfficialReportRenderer } from './official-report/infrastructure/service
 import { InternalInvalidateOfficialReportUseCase } from './official-report/infrastructure/use-cases/invalidate-official-report.use-case';
 import { OfficialReportsController } from './official-report/official-reports.controller';
 import { OfficialReportsService } from './official-report/official-reports.service';
+import { OnPresentationPlanInvalidatedEventHandler } from './presentation-plan/infrastructure/events/on-presentation-plan-invalidated.event-handler';
 import { DetailsPresentationPlanMetadataQuery } from './presentation-plan/infrastructure/queries/details-presentation-plan-metadata.query';
 import { DetailsPresentationPlanPdfDocumentQuery } from './presentation-plan/infrastructure/queries/details-presentation-plan-pdf-document.query';
 import { FindPresentationPlanDocumentPdfQuery } from './presentation-plan/infrastructure/queries/find-presentation-plan-document-pdf.query';
@@ -40,6 +41,8 @@ import { ListNonPresentedPlansQuery } from './presentation-plan/infrastructure/q
 import { ListPresentedPlansQuery } from './presentation-plan/infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './presentation-plan/infrastructure/repositories/justice-presentation-plan.repository';
 import { PresentationPlanRenderer } from './presentation-plan/infrastructure/services/renderers/presentation-plan.renderer';
+import { InternalInvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { ValidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/validate-presentation-plan.use-case';
 import { PresentationPlansController } from './presentation-plan/presentation-plans.controller';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
 import { DocsController } from './shared/infrastructure/docs.controller';
@@ -82,6 +85,8 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
     InternalInvalidateOfficialReportUseCase,
+    InternalInvalidatePresentationPlanUseCase,
+    ValidatePresentationPlanUseCase,
     OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
     IsSessionReadyForDocGenerationQuery,
@@ -96,6 +101,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     OfficialReportsService,
     OnAgendaInvalidatedEventHandler,
     OnOfficialReportInvalidatedEventHandler,
+    OnPresentationPlanInvalidatedEventHandler,
     PresentationPlanRenderer,
     PresentationPlansService,
     ReportedNominationFilesFinder,

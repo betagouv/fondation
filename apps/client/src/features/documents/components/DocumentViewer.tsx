@@ -2,10 +2,10 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import { useIntl } from 'react-intl';
 
 const VIEWER_CSS = /* css */ `
-  html, body { min-height: 100%; }
+  /** @warning no min-height here: it would keep the measured height from shrinking back with the frame */
   html { overflow-x: hidden; }
   body { background: var(--background-alt-grey); margin: 0; }
-  .pagedjs_pages { display: flex; flex-direction: column; row-gap: 2rem; align-items: center; padding: 50px 0; }
+  .pagedjs_pages { display: flex; flex-direction: column; row-gap: 2rem; align-items: center; padding: 0; }
   .pagedjs_page { margin: 0; }
   .pagedjs_sheet { background: white; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
 `;
@@ -85,7 +85,7 @@ export type DocumentViewerHandle = { updateContent: (html: string) => void };
 
 export const DocumentViewer = forwardRef<
   DocumentViewerHandle,
-  { className?: string; fillHeight?: boolean; html: string; reloadKey?: string; title: string }
+  { className?: string; html: string; reloadKey?: string; title: string }
 >(function DocumentViewer(props, ref) {
   const { $t } = useIntl();
 
@@ -93,7 +93,6 @@ export const DocumentViewer = forwardRef<
   const [height, setHeight] = useState<number>();
 
   useEffect(() => {
-    if (props.fillHeight) return;
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frameRef.current?.contentWindow) return;
       if (event.data?.type === 'CONTENT_HEIGHT' && typeof event.data.height === 'number') {
@@ -102,7 +101,7 @@ export const DocumentViewer = forwardRef<
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [props.fillHeight]);
+  }, []);
 
   useImperativeHandle(ref, () => ({
     updateContent: (html: string) =>
@@ -116,12 +115,12 @@ export const DocumentViewer = forwardRef<
 
   return (
     <iframe
+      className={props.className}
       key={props.reloadKey}
       ref={frameRef}
-      className={props.className}
       src={window.location.origin}
       srcDoc={srcDoc}
-      style={props.fillHeight ? undefined : { height }}
+      style={{ height }}
       title={$t({ defaultMessage: 'Aperçu de {title}' }, { title: props.title })}
     />
   );

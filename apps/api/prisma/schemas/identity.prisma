@@ -45,32 +45,35 @@ model User {
   excludedJurisdictionIds             ExcludedJurisdiction[]
   reporterOnNominationFileIds         NominationFileToReporter[]
   publishedVersions                   AffectationVersion[]
-  commentAccess                       CommentAccess[]            @ignore
-  createdObservations                 Observation[]              @relation("user_to_observation")
+  commentAccess                       CommentAccess[]                        @ignore
+  createdObservations                 Observation[]                          @relation("user_to_observation")
   observationMemberComments           ObservationMemberComment[]
   memos                               MemberMemo[]
   authorOfSummaries                   Summary[]
   readerOfSummaries                   SummaryReader[]
-  followedUpObservations              Observation[]              @relation("user_to_observation_follow_up")
+  followedUpObservations              Observation[]                          @relation("user_to_observation_follow_up")
   validatedSessions                   Session[]
-  agendasAuthor                       Agenda[]                   @relation("agenda_author")
+  agendasAuthor                       Agenda[]                               @relation("agenda_author")
   chairmanOfAgendaVersions            AgendaVersion[]
-  authorOfAgendaVersions              AgendaVersion[]            @relation("agenda_version_author")
-  validatorOfAgendaVersions           AgendaVersion[]            @relation("agenda_version_validator")
+  authorOfAgendaVersions              AgendaVersion[]                        @relation("agenda_version_author")
+  validatorOfAgendaVersions           AgendaVersion[]                        @relation("agenda_version_validator")
   authImpersonations                  AuthImpersonation[]
   authorOfJusticeDepartmentContacts   JusticeDepartmentContact[]
-  chairmanOfOfficialReports           OfficialReportVersion[]    @relation("official_report_version_chairman")
-  secretaryOfOfficialReports          OfficialReportVersion[]    @relation("official_report_version_secretary")
-  authorOfOfficialReportVersions      OfficialReportVersion[]    @relation("official_report_version_author")
-  validatorOfOfficialReportVersions   OfficialReportVersion[]    @relation("official_report_version_validator")
-  editorOfAgendaBlocks                AgendaNominationFile[]     @relation("agenda_block_editor")
-  editorOfOfficialReportBlocks        OfficialReportNominationFile[] @relation("official_report_block_editor")
-  authorOfOfficialReports             OfficialReport[]           @relation("official_reports_author")
-  chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
-  secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")
-  authorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_author")
-  deletorOfSessions                   Session[]                  @relation("session_deletion_author")
-  archiverOfSessions                  Session[]                  @relation("session_archive_author")
+  chairmanOfOfficialReports           OfficialReportVersion[]                @relation("official_report_version_chairman")
+  secretaryOfOfficialReports          OfficialReportVersion[]                @relation("official_report_version_secretary")
+  authorOfOfficialReportVersions      OfficialReportVersion[]                @relation("official_report_version_author")
+  validatorOfOfficialReportVersions   OfficialReportVersion[]                @relation("official_report_version_validator")
+  editorOfAgendaBlocks                AgendaNominationFile[]                 @relation("agenda_block_editor")
+  editorOfOfficialReportBlocks        OfficialReportNominationFile[]         @relation("official_report_block_editor")
+  authorOfOfficialReports             OfficialReport[]                       @relation("official_reports_author")
+  chairmanOfJusticePresentationPlans  JusticePresentationPlan[]              @relation("justice_presentation_chairman")
+  secretaryOfJusticePresentationPlans JusticePresentationPlan[]              @relation("justice_presentation_secretary")
+  authorOfJusticePresentationPlans    JusticePresentationPlan[]              @relation("justice_presentation_author")
+  editorOfJusticePresentationPlans    JusticePresentationPlan[]              @relation("justice_presentation_editor")
+  presenterOfJusticePresentationPlans JusticePresentationPlan[]              @relation("justice_presentation_presenter")
+  removerOfJusticePresentationAgendas JusticePresentationPlanRemovedAgenda[] @relation("justice_presentation_agenda_remover")
+  deletorOfSessions                   Session[]                              @relation("session_deletion_author")
+  archiverOfSessions                  Session[]                              @relation("session_archive_author")
 
   @@map("users")
   @@schema("identity_and_access_context")

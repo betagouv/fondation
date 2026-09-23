@@ -1,3 +1,4 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
 import Heading from '@tiptap/extension-heading';
@@ -9,6 +10,7 @@ import { UndoRedo } from '@tiptap/extensions';
 import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { useDebouncedCallback } from 'use-debounce';
 
 import {
@@ -18,6 +20,7 @@ import {
   RedoButton,
   UndoButton,
 } from '@/shared/ui/tip-tap-editor';
+import { Tooltip } from '@/shared/ui/tooltip';
 
 import { DOCUMENT_CONTENT_CLASSES } from './document-content';
 
@@ -43,10 +46,13 @@ function useContentReinjector(originalHtml: string | undefined | null) {
 }
 
 export function DocumentHtmlEditor(props: {
-  title: string;
   html: string | undefined | null;
   onHtmlChange: (fullHtml: string) => void;
+  onPreview?: () => void;
+  previewDisabledReason?: string;
+  title: string;
 }) {
+  const { onPreview, previewDisabledReason } = props;
   const reinjectContent = useContentReinjector(props.html);
   const debouncedOnChange = useDebouncedCallback(props.onHtmlChange, 600);
 
@@ -79,6 +85,22 @@ export function DocumentHtmlEditor(props: {
           <div className="fr-mx-1v w-px self-stretch bg-(--border-default-grey)" />
           <UndoButton />
           <RedoButton />
+          {onPreview && (
+            <Tooltip className="ml-auto" focusable={!!previewDisabledReason} label={previewDisabledReason}>
+              <Button
+                // a disabled button swallows the pointer, and the tooltip would never open
+                className={clsx({ 'pointer-events-none': !!previewDisabledReason })}
+                disabled={!!previewDisabledReason}
+                iconId="fr-icon-eye-line"
+                iconPosition="right"
+                onClick={onPreview}
+                priority="tertiary no outline"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Retour à l'aperçu" />
+              </Button>
+            </Tooltip>
+          )}
         </div>
       </EditorContext>
 

@@ -1,14 +1,8 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { formatDate } from 'date-fns';
 
 import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
+import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -18,8 +12,6 @@ import { FindPresentationPlanDocumentQuery } from './find-presentation-plan-docu
 
 @Injectable()
 export class FindPresentationPlanDocumentPdfQuery {
-  private readonly logger = new Logger(FindPresentationPlanDocumentPdfQuery.name);
-
   constructor(
     private readonly db: Db,
     private readonly files: Files,
@@ -27,12 +19,30 @@ export class FindPresentationPlanDocumentPdfQuery {
     private readonly pdfRenderer: PdfRenderer,
   ) {}
 
-  async handle(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+  async render(query: { id: string }): Promise<{ html: string; pdf: { id: string; path: string[] } }> {
+    const plan = await this.findPlan(query.id);
+    const html = await this.findPresentationPlanDocumentQuery.handle({ id: query.id });
+    return { html, pdf: await this.store(plan, html) };
+  }
+
+  async renew(query: { id: string }): Promise<void> {
+    const { pdf: previous } = await this.findPlan(query.id);
+    const { pdf } = await this.render(query);
+
+    await this.db.tx.justicePresentationPlan.update({
       where: { id: query.id },
+      data: { pdfId: pdf.id },
+    });
+
+    if (previous) this.files.delete([previous]);
+  }
+
+  private async findPlan(id: string) {
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id },
       select: {
         date: true,
-        pdf: { select: { id: true, name: true } },
+        pdf: { select: { id: true, name: true, path: true } },
         agendas: {
           take: 1,
           select: { agenda: { select: { formation: true } } },
@@ -41,23 +51,14 @@ export class FindPresentationPlanDocumentPdfQuery {
     });
 
     if (!plan || !plan.agendas.length) throw new NotFoundException();
+    return plan;
+  }
 
-    // Stream the cached PDF from S3 outside of any transaction.
-    if (plan.pdf?.id && !query.forceNew) {
-      const file$ = await this.files.getFile({ fileId: plan.pdf.id });
-      if (!file$) {
-        this.logger.error(`Could not retrieve the presentation plan (${query.id}) from S3`);
-        throw new InternalServerErrorException();
-      }
-
-      return new StreamableFile(file$, {
-        type: FILE_MIME_TYPES.pdf,
-        disposition: contentDisposition({ name: plan.pdf.name }),
-      });
-    }
-
+  private async store(
+    plan: { date: Date; agendas: { agenda: { formation: string } }[] },
+    html: string,
+  ): Promise<{ id: string; path: string[] }> {
     const formation = assertIsDefined(plan.agendas[0]).agenda.formation;
-    const html = await this.findPresentationPlanDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
     const planDate = DateOnly.fromUtcDate(plan.date).toLocalStartOfDay();
@@ -75,18 +76,6 @@ export class FindPresentationPlanDocumentPdfQuery {
       },
     ]);
 
-    await this.db.tx.justicePresentationPlan
-      .update({
-        where: { id: query.id },
-        data: { pdfId: pdfFileId },
-      })
-      .catch((err) => {
-        this.logger.warn(`Failed storing presentation plan ${query.id} pdf file`, err);
-      });
-
-    return new StreamableFile(buffer, {
-      type: FILE_MIME_TYPES.pdf,
-      disposition: contentDisposition({ name }),
-    });
+    return { id: assertIsDefined(pdfFileId), path: path.split('/') };
   }
 }

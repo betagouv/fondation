@@ -10,7 +10,6 @@ export function getBaseUrl() {
 export const LONG_RUNNING_ROUTES = [
   '/api/docs/v1/agendas/{agendaId}.pdf',
   '/api/docs/v1/official-reports/{officialReportId}.pdf',
-  '/api/docs/v1/presentation-plans/{planId}.pdf',
   '/api/docs/v1/presentation-plans/{planId}/url',
   '/api/docs/v1/sessions/{sessionId}/agendas/{agendaId}',
   '/api/docs/v1/sessions/{sessionId}/official-reports/{officialReportId}',

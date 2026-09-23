@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, Link, useNavigate, useParams } from 'react-router';
+import { generatePath, Link, useLocation, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentDriftBanner } from '../DocumentDriftBanner';
@@ -20,17 +20,22 @@ import {
 
 export function AgendaPreviewPage() {
   const navigate = useNavigate();
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const describeFailure = useDocumentFailure();
 
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
+  const { state } = useLocation();
+  const returnPath: string =
+    typeof state?.returnPath === 'string'
+      ? state.returnPath
+      : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
   const { data: html, isPending } = useAgendaHtmlQuery({ force: false, id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
+    onSuccess: () => navigate(returnPath),
     sessionId: sessionId!,
   });
 
@@ -39,7 +44,7 @@ export function AgendaPreviewPage() {
     sessionId: sessionId!,
   });
 
-  const title = $t({ defaultMessage: 'Ordre du jour' });
+  const title = formatMessage({ defaultMessage: 'Ordre du jour' });
   const isDraft = metadata?.status === 'DRAFT';
   const isBusy = validate.isPending || discardDraft.isPending;
 
@@ -98,10 +103,7 @@ export function AgendaPreviewPage() {
         </>
       }
       backLink={
-        <Link
-          className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
-          to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
-        >
+        <Link className="fr-link fr-link--icon-left fr-icon-arrow-left-line" to={returnPath}>
           <FormattedMessage defaultMessage="Fermer" />
         </Link>
       }
@@ -121,14 +123,10 @@ export function AgendaPreviewPage() {
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner
-                onEdit={() =>
-                  navigate(
-                    generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
-                      agendaId: agendaId!,
-                      sessionId: sessionId!,
-                    }),
-                  )
-                }
+                editionPath={generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                  agendaId: agendaId!,
+                  sessionId: sessionId!,
+                })}
                 outdatedPropositions={metadata.outdatedPropositions}
               />
             )}

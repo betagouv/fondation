@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -10,7 +11,11 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
+  JusticePresentationPlanAlreadyPresented,
+  JusticePresentationPlanAlreadyValidated,
+  JusticePresentationPlanChangedWhileValidated,
   JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
+  JusticePresentationPlanNotValidated,
   PresentationPlanAgendaAlreadyReported,
   UnknownPresentationPlanChairman,
   UnknownPresentationPlanSecretary,
@@ -52,9 +57,33 @@ export class PresentationPlansFilter implements NestInterceptor {
             });
           }
 
+          if (err instanceof JusticePresentationPlanNotValidated) {
+            return new BadRequestException({
+              validationError: `La notice doit être validée avant d'être restituée`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanAlreadyPresented) {
+            return new BadRequestException({
+              validationError: `Une notice restituée ne peut plus être modifiée`,
+            });
+          }
+
           if (err instanceof PresentationPlanAgendaAlreadyReported) {
             return new BadRequestException({
               validationError: `Un des ordre du jour sélectionnés fait déjà partie d'une notice de restitution`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanAlreadyValidated) {
+            return new BadRequestException({
+              validationError: `Un des ordres du jour fait déjà partie d'une notice validée`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanChangedWhileValidated) {
+            return new ConflictException({
+              validationError: `La notice a changé pendant sa validation, veuillez la relire avant de la valider`,
             });
           }
 

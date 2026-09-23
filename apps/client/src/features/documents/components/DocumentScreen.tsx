@@ -43,7 +43,7 @@ export function DocumentScreen(props: {
         </div>
         <div className="flex w-full flex-col *:empty:hidden">{props.notices}</div>
       </div>
-      <div className="fr-container fr-mt-6v fr-pb-6v mx-auto flex w-full max-w-7xl flex-1 items-start gap-6">
+      <div className="fr-container fr-mt-6v fr-pb-6v mx-auto flex w-full max-w-7xl flex-1 items-start gap-3">
         {props.children}
       </div>
     </div>

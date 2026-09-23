@@ -1,9 +1,9 @@
 import { FormattedMessage } from 'react-intl';
 
-import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
+import { AlertBanner, AlertBannerLink } from '@/shared/ui/alert-banner';
 
-export function DocumentDriftBanner(props: { onEdit?: () => void; outdatedPropositions: number }) {
-  const { onEdit } = props;
+export function DocumentDriftBanner(props: { editionPath?: string; outdatedPropositions: number }) {
+  const { editionPath } = props;
 
   return (
     <AlertBanner
@@ -21,12 +21,12 @@ export function DocumentDriftBanner(props: { onEdit?: () => void; outdatedPropos
       }
       tone="warning"
     >
-      {onEdit && (
-        <AlertBannerAction onClick={onEdit}>
+      {editionPath && (
+        <AlertBannerLink to={editionPath}>
           {props.outdatedPropositions === 0 && <FormattedMessage defaultMessage="Voir le texte" />}
           {props.outdatedPropositions === 1 && <FormattedMessage defaultMessage="Voir la proposition" />}
           {props.outdatedPropositions > 1 && <FormattedMessage defaultMessage="Voir les propositions" />}
-        </AlertBannerAction>
+        </AlertBannerLink>
       )}
     </AlertBanner>
   );

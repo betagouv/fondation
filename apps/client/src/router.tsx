@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, redirect } from 'react-router';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { roleGuard } from '@/features/auth/guards/role-guard';
@@ -307,6 +307,17 @@ export const router = sentryCreateBrowserRouter([
                   ),
                 children: [
                   {
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationsTabAgendas').then(
+                        ({ PresentationsTabAgendas }) => ({ Component: PresentationsTabAgendas }),
+                      ),
+                  },
+                  {
+                    path: '/secretariat-general/restitutions/passees',
+                    loader: () => redirect(ROUTE_PATHS.SG.PRESENTATIONS_PAST),
+                  },
+                  {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
                     lazy: () =>
                       import('@/pages/documents/presentations/PresentationsTabPast').then(
@@ -341,6 +352,13 @@ export const router = sentryCreateBrowserRouter([
                 lazy: () =>
                   import('@/pages/documents/presentations/PresentationsPreviewPage').then(
                     ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
+                  ),
+              },
+              {
+                path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
+                lazy: () =>
+                  import('@/pages/documents/presentations/PresentationEditPage').then(
+                    ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
                   ),
               },
             ],

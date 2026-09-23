@@ -23,6 +23,7 @@ export class InvalidateAgendasUseCase {
       case 'AgendaDateUpdated':
       case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
+      case 'AgendaValidated':
       case 'NominationFileOutcomeUpdated':
       case 'SessionDateUpdated':
         return;
