@@ -35,7 +35,8 @@ describe('DbStorage', () => {
 
   beforeEach(async () => {
     tx = { file: mock(), filePublicUrl: mock() };
-    db = mock<Db>({ tx });
+    // comparing the two delegates to a deep partial of the Prisma client exhausts the compiler
+    db = mock<Db>({ tx: tx as never });
     db.withTransaction.mockImplementation(((...args: unknown[]) => {
       const fn = args.find((a) => typeof a === 'function') as () => unknown;
       return fn();
