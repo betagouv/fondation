@@ -4,6 +4,8 @@ import { useEffect, type ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 
+import { frFormat } from '@/i18n/formats';
+
 import { groupSessionDocuments } from './session-document-groups';
 import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsTable';
 
@@ -43,7 +45,7 @@ const DOCS: SessionDocument[] = [
 
 function table(docs: readonly SessionDocument[], renderName?: (doc: SessionDocument) => ReactNode) {
   return (
-    <IntlProvider defaultLocale="fr" locale="fr">
+    <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
       <SessionDocumentsTable groups={groupSessionDocuments(docs)} renderName={renderName} />
     </IntlProvider>
   );
