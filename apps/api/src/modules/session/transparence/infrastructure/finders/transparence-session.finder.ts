@@ -19,6 +19,15 @@ export class NominationSessionFinder {
     return prismaFormationEnumToFormationEnum(session.formation);
   }
 
+  async comments(query: { sessionIds: readonly string[] }): Promise<Map<string, string | null>> {
+    const sessions = await this.db.tx.session.findMany({
+      select: { comment: true, id: true } satisfies Prisma.SessionSelect,
+      where: { id: { in: [...query.sessionIds] } },
+    });
+
+    return new Map(sessions.map(({ comment, id }) => [id, comment] as const));
+  }
+
   async attachmentsCount(query: { sessionId: string }): Promise<number> {
     const count = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },

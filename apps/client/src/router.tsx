@@ -186,6 +186,13 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
           {
+            path: ROUTE_PATHS.SG.SESSION_ID_COMMENT,
+            lazy: () =>
+              import('@/pages/transparence/SessionCommentPage').then(({ SessionCommentPage }) => ({
+                Component: SessionCommentPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({

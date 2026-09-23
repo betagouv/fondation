@@ -198,6 +198,7 @@ export class AgendaFinder {
       const session = await this.transparences.details({ formation: undefined, sessionId });
       sessions.set(sessionId, { date: session.date, typeDeSaisine: session.typeDeSaisine });
     }
+    const comments = await this.transparences.internalFindComments({ sessionIds: [...sessionIds] });
 
     return {
       items: items.map((item) => ({
@@ -217,6 +218,7 @@ export class AgendaFinder {
           name: item.sessionName,
           typeDeSaisine: sessions.get(item.sessionId)!.typeDeSaisine,
           date: sessions.get(item.sessionId)!.date,
+          comment: comments.get(item.sessionId) ?? null,
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),
         sessionMeetingDate: DateOnly.fromUtcDate(item.published.sessionMeetingDate).toJson(),
@@ -266,6 +268,8 @@ export class FoundAgendasDto extends createZodDto(
           name: z.string(),
           typeDeSaisine: z.enum(TypeDeSaisineEnum),
           date: dateOnlyJsonSchema,
+          /** the default comment of its session in a notice */
+          comment: z.string().nullable(),
         }),
         draftPresentationPlans: z.array(
           z.object({

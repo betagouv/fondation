@@ -129,7 +129,7 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     isPresented: z.boolean(),
     isManuallyEdited: z.boolean(),
     formation: z.enum(FormationEnum),
-    agendas: z.array(z.object({ id: z.string(), comment: z.string().nullable() })),
+    agendas: z.array(z.object({ id: z.string(), comment: z.string() })),
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

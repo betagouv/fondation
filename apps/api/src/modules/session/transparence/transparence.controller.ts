@@ -48,6 +48,7 @@ import {
   UpdateNominationSessionFilesObserversDto,
   UploadNominationFileAttachmentsDto,
   UploadSessionAttachmentsDto,
+  WriteSessionCommentDto,
 } from './infrastructure/dtos/transparence-session.dto';
 import {
   FoundAffectationVersion,
@@ -61,6 +62,7 @@ import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-n
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
+import { DetailedSessionCommentDto } from './infrastructure/queries/detail-session-comment.query';
 import { LolfiMagistratUrlDto } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { ListedCurrentlyAffectedReportersDto } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListedNominationFileAttachmentDto } from './infrastructure/queries/list-nomination-file-attachments.query';
@@ -122,6 +124,26 @@ export class SessionController {
     @AuthedUserId() userId: string,
   ): Promise<void> {
     return this.sessions.archiveSession({ sessionId, userId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/comment')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedSessionCommentDto })
+  detailSessionComment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<DetailedSessionCommentDto> {
+    return this.sessions.detailComment({ sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/comment')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  writeSessionComment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() body: WriteSessionCommentDto,
+  ): Promise<void> {
+    return this.sessions.writeComment({ comment: body.comment, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

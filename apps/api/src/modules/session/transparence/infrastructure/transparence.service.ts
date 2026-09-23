@@ -60,6 +60,10 @@ import {
   type DetailedNominationSessionDto,
   DetailNominationSessionQuery,
 } from './queries/detail-nomination-session.query';
+import {
+  type DetailedSessionCommentDto,
+  DetailSessionCommentQuery,
+} from './queries/detail-session-comment.query';
 import { GetLolfiMagistratUrlQuery, LolfiMagistratUrlDto } from './queries/get-lolfi-magistrat-url.query';
 import {
   InternalFindDocsNominationFilesQuery,
@@ -106,6 +110,7 @@ export class TransparenceService {
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
+    private readonly detailSessionCommentQuery: DetailSessionCommentQuery,
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
     private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
@@ -496,6 +501,22 @@ export class TransparenceService {
         new DocInvalidatedIntegrationEvent(invalidation),
       );
     }
+  }
+
+  detailComment(query: { sessionId: string }): Promise<DetailedSessionCommentDto> {
+    return this.detailSessionCommentQuery.handle(query);
+  }
+
+  @Transactional()
+  async writeComment(command: { comment: string; sessionId: string }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+    session.writeComment(command);
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  /** @internal */
+  internalFindComments(query: { sessionIds: readonly string[] }): Promise<Map<string, string | null>> {
+    return this.sessionsFinder.comments(query);
   }
 
   listNominationSessions(query: {

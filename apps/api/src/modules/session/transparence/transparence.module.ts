@@ -23,6 +23,7 @@ import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/de
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
+import { DetailSessionCommentQuery } from './infrastructure/queries/detail-session-comment.query';
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
@@ -57,6 +58,7 @@ import { SessionController } from './transparence.controller';
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
+    DetailSessionCommentQuery,
     GetLolfiMagistratUrlQuery,
     HydratedNominationFilesFinder,
     InternalFindDocsNominationFilesQuery,

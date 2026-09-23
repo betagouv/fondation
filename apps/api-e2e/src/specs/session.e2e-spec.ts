@@ -376,6 +376,19 @@ test.describe('Session E2E', () => {
       expect(forbidden.response?.status).toBe(404);
     }, 10_000);
 
+    test('should write then read back the session comment', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+
+      const written = await agent.sessions.writeSessionComment({
+        body: { comment: 'Une note pour la notice' },
+        path: { sessionId: session.id },
+      });
+      expect(written.response?.status).toBe(204);
+
+      const { data } = await agent.sessions.detailSessionComment({ path: { sessionId: session.id } });
+      expect(data).toEqual({ comment: 'Une note pour la notice' });
+    });
+
     test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 

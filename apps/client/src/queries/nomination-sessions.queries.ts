@@ -23,7 +23,7 @@ import type {
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
-import { agendaKeys } from './agenda.queries';
+import { agendaKeys, presentationPlanKeys } from './agenda.queries';
 import { archivedSessionKeys } from './archived-nomination-sessions.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
@@ -58,6 +58,8 @@ export const sessionKeys = {
   }) => key('sessions', 'detailSessionNominationFile', props.sessionId, props.nominationFileId),
   detailSession: (props?: { sessionId: string | undefined }) =>
     key('sessions', 'detailSession', props?.sessionId),
+  detailSessionComment: (props: { sessionId: string }) =>
+    key('sessions', 'detailSessionComment', props.sessionId),
   listGdsSessions: (props?: {
     pagination: { pageIndex: number; pageSize: number } | undefined;
     sorting:
@@ -502,6 +504,27 @@ export const useDetailedNominationSessionQuery = (input: { sessionId: string | u
         })
         .then(({ data = null }) => data),
   });
+
+export const useSessionCommentQuery = (input: { sessionId: string }) =>
+  useQuery({
+    queryKey: sessionKeys.detailSessionComment(input),
+    queryFn: () => $api.sessions.detailSessionComment({ path: input }).then(({ data = null }) => data),
+  });
+
+export function useWriteSessionCommentMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: { comment: string }) =>
+      $api.sessions.writeSessionComment({ body: mutation, path: input }),
+
+    onSuccess: () =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: sessionKeys.detailSessionComment(input) }),
+        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.all() }),
+      ]),
+  });
+}
 
 export const useListedGdsNominationSessionsQuery = (options: {
   pagination: { pageIndex: number; pageSize: number } | undefined;

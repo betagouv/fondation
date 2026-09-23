@@ -252,6 +252,14 @@ export type CountUsersNewSessionsDto = {
     count: number;
 };
 
+export type DetailedSessionCommentDto = {
+    comment: string | null;
+};
+
+export type WriteSessionCommentDto = {
+    comment: string;
+};
+
 export type ImportNominationSessionFromLodamXlsxDto = {
     file: Blob | File;
     form: {
@@ -1279,6 +1287,7 @@ export type FoundAgendasDto = {
                 month: number;
                 day: number;
             };
+            comment: string | null;
         };
         draftPresentationPlans: Array<{
             id: string;
@@ -1508,7 +1517,7 @@ export type DetailedPresentationPlanMetadataDto = {
     formation: 'SIEGE' | 'PARQUET';
     agendas: Array<{
         id: string;
-        comment: string | null;
+        comment: string;
     }>;
     chairmanId: string | null;
     secretaryId: string | null;
@@ -2364,6 +2373,36 @@ export type ArchiveSessionResponses = {
 };
 
 export type ArchiveSessionResponse = ArchiveSessionResponses[keyof ArchiveSessionResponses];
+
+export type DetailSessionCommentData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/comment';
+};
+
+export type DetailSessionCommentResponses = {
+    200: DetailedSessionCommentDto;
+};
+
+export type DetailSessionCommentResponse = DetailSessionCommentResponses[keyof DetailSessionCommentResponses];
+
+export type WriteSessionCommentData = {
+    body: WriteSessionCommentDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/comment';
+};
+
+export type WriteSessionCommentResponses = {
+    204: void;
+};
+
+export type WriteSessionCommentResponse = WriteSessionCommentResponses[keyof WriteSessionCommentResponses];
 
 export type CreateSessionFromLodamData = {
     body: ImportNominationSessionFromLodamXlsxDto;

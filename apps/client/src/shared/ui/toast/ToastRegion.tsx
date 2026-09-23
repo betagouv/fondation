@@ -14,7 +14,7 @@ function ToastRegion() {
     <BaseToast.Portal>
       <BaseToast.Viewport
         aria-label={formatMessage({ defaultMessage: 'Notifications' })}
-        className="fr-p-4v pointer-events-none fixed right-0 bottom-0 z-(--z-index-popover) flex w-[min(28rem,100vw)] flex-col gap-2 outline-hidden"
+        className="fr-p-4v pointer-events-none fixed right-0 bottom-(--fondation-toast-offset) z-(--z-index-popover) flex w-[min(28rem,100vw)] flex-col gap-2 outline-hidden"
       >
         {toasts
           .filter((toast) => !toast.limited)

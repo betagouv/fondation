@@ -24,6 +24,7 @@ export const ROUTE_PATHS = {
     NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     SESSION_ID: '/secretariat-general/session/:sessionId',
     SESSION_ID_ATTACHMENTS: '/secretariat-general/session/:sessionId/pieces-jointes',
+    SESSION_ID_COMMENT: '/secretariat-general/session/:sessionId/commentaire',
     SESSION_ID_DOCUMENTS: '/secretariat-general/session/:sessionId/documents',
     SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/session/:sessionId/evaluations-manquantes',
     OBSERVATION_DETAILS:

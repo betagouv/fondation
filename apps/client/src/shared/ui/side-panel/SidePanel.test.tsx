@@ -65,6 +65,27 @@ describe('SidePanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('stays open on a pointer down in a companion standing beside it', () => {
+    const { onClose } = renderPanel();
+    const companion = document.createElement('div');
+    companion.setAttribute('data-side-panel-companion', '');
+    const button = companion.appendChild(document.createElement('button'));
+    document.body.appendChild(companion);
+
+    fireEvent.pointerDown(button);
+
+    expect(onClose).not.toHaveBeenCalled();
+    companion.remove();
+  });
+
+  it('publishes its width while open so a companion can stand beside it', () => {
+    const { view } = renderPanel();
+    expect(document.documentElement.style.getPropertyValue('--fondation-side-panel-width')).toBe('0px');
+
+    view.unmount();
+    expect(document.documentElement.style.getPropertyValue('--fondation-side-panel-width')).toBe('');
+  });
+
   it('restores focus to the previously focused element on close', () => {
     const onClose = vi.fn();
     const trigger = document.createElement('button');

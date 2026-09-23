@@ -28,6 +28,7 @@ import {
   SessionTransparenceAttachmentRemoved,
   SessionTransparenceAuditionScheduled,
   SessionTransparenceAuditionUnScheduled,
+  SessionTransparenceCommentWritten,
   SessionTransparenceCreated,
   SessionTransparenceDeleted,
   SessionTransparenceFileAlertHidden,
@@ -178,6 +179,8 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceFileAttachmentRemoved(message);
       } else if (message instanceof SessionTransparenceUpdated) {
         invalidations.push(...(await this.persistSessionTransparenceUpdated(message)));
+      } else if (message instanceof SessionTransparenceCommentWritten) {
+        await this.persistSessionTransparenceCommentWritten(message);
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
         invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(message)));
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
@@ -572,6 +575,13 @@ export class SessionTransparenceRepository {
     });
 
     return invalidations;
+  }
+
+  private async persistSessionTransparenceCommentWritten(message: SessionTransparenceCommentWritten) {
+    await this.db.tx.session.update({
+      data: { comment: message.comment },
+      where: { id: message.sessionId },
+    });
   }
 
   private async persistSessionTransparenceOutcomeDefined(
