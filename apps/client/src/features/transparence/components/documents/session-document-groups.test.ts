@@ -16,9 +16,9 @@ const AGENDA_SIEGE: SessionDocument = {
   name: 'ODJ siège',
   officialReportId: 'pv-1',
   outdated: false,
+  presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',
-  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_PARQUET: SessionDocument = {
@@ -28,9 +28,9 @@ const AGENDA_PARQUET: SessionDocument = {
   name: 'ODJ parquet',
   officialReportId: 'pv-1',
   outdated: false,
+  presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',
-  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_SANS_PV: SessionDocument = {
@@ -40,9 +40,9 @@ const AGENDA_SANS_PV: SessionDocument = {
   name: 'ODJ sans PV',
   officialReportId: null,
   outdated: false,
+  presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',
-  hasPresentationPlan: false,
   validatedAt: VALIDATED_AT,
 };
 const AGENDA_BROUILLON: SessionDocument = {

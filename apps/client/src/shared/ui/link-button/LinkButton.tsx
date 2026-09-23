@@ -15,7 +15,11 @@ export function LinkButton({
   return (
     <button
       {...props}
-      className={clsx(cx('fr-link', 'fr-link--icon-left', iconId), 'fr-icon--sm link-button', className)}
+      className={clsx(
+        cx('fr-link', 'fr-link--sm', 'fr-link--icon-left', iconId),
+        'fr-icon--sm link-button',
+        className,
+      )}
       type="button"
     />
   );

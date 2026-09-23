@@ -49,13 +49,23 @@ export class JusticePresentationPlanContentChecked {
   ) {}
 }
 
+export class JusticePresentationPlanAgendaRemoved {
+  constructor(
+    readonly id: Id<'JusticePresentationPlanId'>,
+    readonly agendaId: string,
+    readonly takenByPlanId: string,
+    readonly removerId: string,
+  ) {}
+}
+
 export type JusticePresentationPlanMessage =
   | JusticePresentationPlanCreated
   | JusticePresentationPlanUpdated
   | JusticePresentationPlanDeleted
   | JusticePresentationPlanPresented
   | JusticePresentationPlanUnPresented
-  | JusticePresentationPlanContentChecked;
+  | JusticePresentationPlanContentChecked
+  | JusticePresentationPlanAgendaRemoved;
 
 export class UnknownPresentationPlanSecretary extends Error {}
 export class UnknownPresentationPlanChairman extends Error {}
@@ -66,6 +76,8 @@ export class PresentationPlanAgendaAlreadyReported extends Error {}
 export class EmptyPresentationPlanMemberList extends Error {}
 export class JusticePresentationPlanNotValidated extends Error {}
 export class JusticePresentationPlanAlreadyPresented extends Error {}
+export class JusticePresentationPlanAlreadyValidated extends Error {}
+export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
@@ -135,6 +147,21 @@ export class JusticePresentationPlan {
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
     this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime, command.presenterId));
+  }
+
+  /** another notice validated with these agendas takes them for good, a draft can only give them up */
+  removeAgendas(command: { agendaIds: readonly string[]; takenByPlanId: string; removerId: string }): void {
+    if (this.isValidated) throw new JusticePresentationPlanAlreadyValidated();
+
+    const removed = this.agendaIds.filter((id) => command.agendaIds.includes(id));
+    if (removed.length === 0) return;
+    if (removed.length === this.agendaIds.length) return this.delete();
+
+    for (const agendaId of removed) {
+      this.#messages.push(
+        new JusticePresentationPlanAgendaRemoved(this.id, agendaId, command.takenByPlanId, command.removerId),
+      );
+    }
   }
 
   unPresent(): void {

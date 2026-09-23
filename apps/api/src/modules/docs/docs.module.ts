@@ -42,6 +42,7 @@ import { ListPresentedPlansQuery } from './presentation-plan/infrastructure/quer
 import { JusticePresentationPlanRepository } from './presentation-plan/infrastructure/repositories/justice-presentation-plan.repository';
 import { PresentationPlanRenderer } from './presentation-plan/infrastructure/services/renderers/presentation-plan.renderer';
 import { InternalInvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { ValidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/validate-presentation-plan.use-case';
 import { PresentationPlansController } from './presentation-plan/presentation-plans.controller';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
 import { DocsController } from './shared/infrastructure/docs.controller';
@@ -85,6 +86,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindSessionDocsQuery,
     InternalInvalidateOfficialReportUseCase,
     InternalInvalidatePresentationPlanUseCase,
+    ValidatePresentationPlanUseCase,
     OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
     IsSessionReadyForDocGenerationQuery,

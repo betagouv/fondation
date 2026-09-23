@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -11,6 +12,8 @@ import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
   JusticePresentationPlanAlreadyPresented,
+  JusticePresentationPlanAlreadyValidated,
+  JusticePresentationPlanChangedWhileValidated,
   JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
   JusticePresentationPlanNotValidated,
   PresentationPlanAgendaAlreadyReported,
@@ -69,6 +72,18 @@ export class PresentationPlansFilter implements NestInterceptor {
           if (err instanceof PresentationPlanAgendaAlreadyReported) {
             return new BadRequestException({
               validationError: `Un des ordre du jour sélectionnés fait déjà partie d'une notice de restitution`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanAlreadyValidated) {
+            return new BadRequestException({
+              validationError: `Un des ordres du jour fait déjà partie d'une notice validée`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanChangedWhileValidated) {
+            return new ConflictException({
+              validationError: `La notice a changé pendant sa validation, veuillez la relire avant de la valider`,
             });
           }
 

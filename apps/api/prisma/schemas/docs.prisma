@@ -33,12 +33,11 @@ enum PrismaDocVersionStatusEnum {
 
 // #region Agenda
 model Agenda {
-  id                        String              @id @db.Uuid
-  sessionId                 String              @map("session_id") @db.Uuid
-  sessionName               String              @map("session_name")
-  formation                 PrismaFormationEnum
-  officialReportId          String?             @map("official_report_id") @db.Uuid
-  justicePresentationPlanId String?             @map("justice_presentation_plan_id") @db.Uuid
+  id               String              @id @db.Uuid
+  sessionId        String              @map("session_id") @db.Uuid
+  sessionName      String              @map("session_name")
+  formation        PrismaFormationEnum
+  officialReportId String?             @map("official_report_id") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.Uuid
@@ -46,10 +45,10 @@ model Agenda {
   versions                               AgendaVersion[]
   author                                 User?                                   @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_author")
   officialReport                         OfficialReport?                         @relation(fields: [officialReportId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  justicePresentationPlan                JusticePresentationPlanToAgenda?
+  justicePresentationPlans               JusticePresentationPlanToAgenda[]
   justicePresentationPlanNominationFiles JusticePresentationPlanNominationFile[]
+  removedFromJusticePresentationPlans    JusticePresentationPlanRemovedAgenda[]
 
-  @@unique([justicePresentationPlanId, id])
   @@map("agenda")
   @@schema("docs")
 }
@@ -238,13 +237,13 @@ model OfficialReportNominationFile {
   outcomeComment   String?                   @map("outcome_comment")
   reporters        String[]
 
-  htmlEdited   String?   @map("html_edited")
-  htmlOutdated Boolean   @default(false) @map("html_outdated")
+  htmlEdited     String?   @map("html_edited")
+  htmlOutdated   Boolean   @default(false) @map("html_outdated")
   // when the block was last rewritten by hand, untouched by the upstream data changes
-  htmlEditedAt DateTime? @map("html_edited_at")
+  htmlEditedAt   DateTime? @map("html_edited_at")
   // the text was written in the agenda and taken as is, so the report is not the one to credit
-  htmlFromAgenda Boolean @default(false) @map("html_from_agenda")
-  htmlEditedBy   String? @map("html_edited_by") @db.Uuid
+  htmlFromAgenda Boolean   @default(false) @map("html_from_agenda")
+  htmlEditedBy   String?   @map("html_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -298,11 +297,11 @@ model JusticePresentationPlan {
   hasRenunciation  Boolean   @map("has_renunciation")
   isPresented      Boolean   @default(false) @map("is_presented")
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  createdBy String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.Uuid
   // written by the gestures a person makes, never by the html and pdf the application caches on its own
-  updatedAt DateTime? @map("updated_at")
-  updatedBy String?   @map("updated_by") @db.Uuid
+  updatedAt   DateTime? @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.Uuid
   // null on the notices presented before the application kept that trace
   presentedAt DateTime? @map("presented_at")
   presentedBy String?   @map("presented_by") @db.Uuid
@@ -326,6 +325,8 @@ model JusticePresentationPlan {
 
   nominationFiles JusticePresentationPlanNominationFile[]
   agendas         JusticePresentationPlanToAgenda[]
+  removedAgendas  JusticePresentationPlanRemovedAgenda[]  @relation("justice_presentation_removed_agenda")
+  takenAgendas    JusticePresentationPlanRemovedAgenda[]  @relation("justice_presentation_taken_agenda")
   chairman        User?                                   @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_chairman")
   secretary       User?                                   @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_secretary")
   author          User?                                   @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_author")
@@ -370,17 +371,36 @@ model JusticePresentationPlanNominationFile {
   @@schema("docs")
 }
 
+// a draft notice shares its agendas with the others, a validated one holds them alone
 model JusticePresentationPlanToAgenda {
   planId   String @map("plan_id") @db.Uuid
-  agendaId String @unique @map("agenda_id") @db.Uuid
+  agendaId String @map("agenda_id") @db.Uuid
 
   comment String @default("")
 
   plan   JusticePresentationPlan @relation(fields: [planId], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  agenda Agenda                  @relation(fields: [planId, agendaId], references: [justicePresentationPlanId, id], onDelete: Restrict, onUpdate: NoAction)
+  agenda Agenda                  @relation(fields: [agendaId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   @@id([planId, agendaId])
+  @@index([agendaId])
   @@map("justice_presentation_plan_to_agenda")
+  @@schema("docs")
+}
+
+model JusticePresentationPlanRemovedAgenda {
+  planId        String   @map("plan_id") @db.Uuid
+  agendaId      String   @map("agenda_id") @db.Uuid
+  takenByPlanId String   @map("taken_by_plan_id") @db.Uuid
+  removedAt     DateTime @map("removed_at")
+  removedBy     String?  @map("removed_by") @db.Uuid
+
+  plan    JusticePresentationPlan @relation(fields: [planId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "justice_presentation_removed_agenda")
+  takenBy JusticePresentationPlan @relation(fields: [takenByPlanId], references: [id], onDelete: Cascade, onUpdate: NoAction, name: "justice_presentation_taken_agenda")
+  agenda  Agenda                  @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  remover User?                   @relation(fields: [removedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "justice_presentation_agenda_remover")
+
+  @@id([planId, agendaId])
+  @@map("justice_presentation_plan_removed_agenda")
   @@schema("docs")
 }
 

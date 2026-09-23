@@ -1017,7 +1017,26 @@ export type FoundSessionDocsDto = {
         id: string;
         name: string;
         officialReportId: string | null;
-        hasPresentationPlan: boolean;
+        presentationPlans: Array<{
+            id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+            chairman: {
+                firstName: string;
+                lastName: string;
+            };
+            status: 'DRAFT' | 'VALIDATED';
+            isPresented: boolean;
+            otherAgendasCount: number;
+        }>;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         hasDraft: boolean;
@@ -1260,6 +1279,23 @@ export type FoundAgendasDto = {
                 day: number;
             };
         };
+        draftPresentationPlans: Array<{
+            id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            startTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+            chairman: {
+                firstName: string;
+                lastName: string;
+            };
+        }>;
         presentationPlan: {
             id: string;
             startTime: {
@@ -1477,6 +1513,42 @@ export type DetailedPresentationPlanMetadataDto = {
     justiceDepartmentContactId: string | null;
     hasRenunciation: boolean;
     absentMemberIds: Array<string>;
+    removedAgendas: Array<{
+        agenda: {
+            id: string;
+            sessionMeetingDate: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            chairman: {
+                firstName: string;
+                lastName: string;
+            };
+        };
+        takenBy: {
+            id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+            chairman: {
+                firstName: string;
+                lastName: string;
+            };
+        };
+        removedAt: string;
+        removedBy: {
+            id: string;
+            name: string;
+        } | null;
+    }>;
 };
 
 export type CreateOrUpdateJusticePresentationPlanDto = {
@@ -1529,6 +1601,7 @@ export type ListedNonPresentedPlansDto = {
             day: number;
         };
         outdated: boolean;
+        hasRemovedAgendas: boolean;
         status: 'DRAFT' | 'VALIDATED';
         createdAt: string;
         createdBy: {
@@ -3803,20 +3876,20 @@ export type GeneratePresentationPlanHtmlResponses = {
     default: unknown;
 };
 
-export type GeneratePresentationPlanPdfData = {
+export type ValidatePresentationPlanData = {
     body?: never;
     path: {
         planId: string;
     };
-    query?: {
-        force?: boolean;
-    };
-    url: '/api/docs/v1/presentation-plans/{planId}.pdf';
+    query?: never;
+    url: '/api/docs/v1/presentation-plans/{planId}/validation';
 };
 
-export type GeneratePresentationPlanPdfResponses = {
-    200: unknown;
+export type ValidatePresentationPlanResponses = {
+    204: void;
 };
+
+export type ValidatePresentationPlanResponse = ValidatePresentationPlanResponses[keyof ValidatePresentationPlanResponses];
 
 export type ListPresentedPlansData = {
     body?: never;

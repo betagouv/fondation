@@ -314,7 +314,6 @@ export const router = sentryCreateBrowserRouter([
                       ),
                   },
                   {
-                    // the url the tab had until it was renamed, kept for the bookmarks
                     path: '/secretariat-general/restitutions/passees',
                     loader: () => redirect(ROUTE_PATHS.SG.PRESENTATIONS_PAST),
                   },

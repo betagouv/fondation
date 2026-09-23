@@ -13,7 +13,6 @@ import {
   Post,
   Put,
   Query,
-  StreamableFile,
   UploadedFile,
   UseInterceptors,
   UsePipes,
@@ -23,7 +22,6 @@ import { ApiConsumes, ApiOperation, ApiProduces, ApiQuery, ApiResponse, ApiTags 
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
@@ -73,18 +71,13 @@ export class PresentationPlansController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/presentation-plans/:planId.pdf')
-  @ApiProduces(FILE_MIME_TYPES.pdf)
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
-  generatePresentationPlanPdf(
-    @Param('planId') planId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.presentationPlans.findPresentationPlanDocumentPdf({
-      forceNew,
-      id: planId,
-    });
+  @Post('/presentation-plans/:planId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  validatePresentationPlan(
+    @Param('planId', ParseUUIDPipe) planId: string,
+    @AuthedUser() user: { id: string },
+  ): Promise<void> {
+    return this.presentationPlans.validatePresentationPlan({ id: planId, validatorId: user.id });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

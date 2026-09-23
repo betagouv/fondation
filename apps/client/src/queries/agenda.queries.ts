@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
 import type { PlainDateOnly } from '@/utils/date-only.util';
+import { HttpException } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
 
@@ -155,6 +156,7 @@ export function useValidateAgendaMutation(mutation: {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(mutation.agendaId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(mutation.agendaId) });
       await queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
+      await queryClient.invalidateQueries({ queryKey: presentationPlanKeys.all() });
 
       mutation.onSuccess?.();
     },
@@ -475,13 +477,14 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
 }
 
 export const presentationPlanKeys = {
-  planMetadata: (query: { id: string | undefined | null }) =>
-    ['justicePresentationPlan', 'metadata', query.id ?? undefined] as const,
-  planHtml: (query: { id: string | undefined | null }) =>
-    ['justicePresentationPlan', 'html', query.id ?? undefined] as const,
+  all: () => ['justicePresentationPlan'] as const,
+  nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const,
   planAgendas: (query: { ignore: string | null | undefined }) =>
     ['justicePresentationPlan', 'agendas', query.ignore || undefined] as const,
-  nonPresented: () => ['justicePresentationPlan', 'nonPresented'] as const,
+  planHtml: (query: { id: string | undefined | null }) =>
+    ['justicePresentationPlan', 'html', query.id ?? undefined] as const,
+  planMetadata: (query: { id: string | undefined | null }) =>
+    ['justicePresentationPlan', 'metadata', query.id ?? undefined] as const,
   presented: (query: { pageIndex?: number; pageSize?: number } = {}) =>
     ['justicePresentationPlan', 'presented', query.pageIndex, query.pageSize] as const,
 };
@@ -601,37 +604,35 @@ export function useUpdatePresentationPlanHtmlMutation(planId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() });
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
     },
   });
 }
 
-export function useJusticePresentationPlanPdfMutation(mutation: {
-  planId: string;
-  force: boolean;
-  onSuccess?: () => unknown;
-}) {
+export function useValidatePresentationPlanMutation(mutation: { planId: string; onSuccess?: () => unknown }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () =>
-      $api.docs
-        .generatePresentationPlanPdf({
-          path: { planId: mutation.planId },
-          query: { force: mutation.force },
-          parseAs: 'stream',
-        })
-        .then(({ response }) => response?.body?.cancel()),
+    mutationFn: async () => {
+      try {
+        await $api.docs.validatePresentationPlan({ path: { planId: mutation.planId } });
+      } catch (error) {
+        if (error instanceof HttpException && [400, 409].includes(error.statusCode)) {
+          const body = await error.response.json().catch(() => null);
+          if (body?.validationError)
+            throw Object.assign(new Error(), { validationError: body.validationError });
+        }
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() }),
-        queryClient.invalidateQueries({
-          queryKey: presentationPlanKeys.planMetadata({ id: mutation.planId }),
-        }),
-      ]);
+        throw error;
+      }
+    },
 
-      mutation.onSuccess?.();
+    // validating takes the notice's agendas away from the other drafts, and a refused one has changed meanwhile
+    onSettled: async (_, error) => {
+      await queryClient.invalidateQueries({ queryKey: presentationPlanKeys.all() });
+
+      if (!error) mutation.onSuccess?.();
     },
   });
 }
@@ -642,6 +643,7 @@ export function useResetPresentationPlanDocumentMutation(planId: string) {
     mutationFn: () => $api.docs.resetPresentationPlanDocument({ path: { planId } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() });
+      queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
     },
@@ -665,8 +667,8 @@ export function useDeleteJusticePresentationPlanMutation() {
 }
 
 export type PresentedPlansResult = {
-  presentedIds: string[];
   failure: { error: unknown; planId: string } | null;
+  presentedIds: string[];
 };
 
 export function usePresentPlansMutation() {
@@ -683,11 +685,11 @@ export function usePresentPlansMutation() {
           await $api.docs.presentPlan({ path: { planId }, body: { endTime: mutation.endTime } });
           presentedIds.push(planId);
         } catch (error: unknown) {
-          return { presentedIds, failure: { error, planId } };
+          return { failure: { error, planId }, presentedIds };
         }
       }
 
-      return { presentedIds, failure: null };
+      return { failure: null, presentedIds };
     },
     onSettled: () =>
       Promise.all([

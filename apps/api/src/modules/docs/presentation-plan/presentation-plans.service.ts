@@ -6,7 +6,6 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  StreamableFile,
 } from '@nestjs/common';
 
 import { Db } from '../../framework/database';
@@ -44,6 +43,7 @@ import {
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/presentation-plan.html';
 import { InternalInvalidatePresentationPlanUseCase } from './infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { ValidatePresentationPlanUseCase } from './infrastructure/use-cases/validate-presentation-plan.use-case';
 
 @Injectable()
 export class PresentationPlansService {
@@ -61,6 +61,7 @@ export class PresentationPlansService {
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
+    private readonly validatePresentationPlanUseCase: ValidatePresentationPlanUseCase,
     private readonly auth: SimpleAuthService,
     private readonly db: Db,
 
@@ -69,7 +70,7 @@ export class PresentationPlansService {
   ) {}
 
   findPresentationPlanAgendas(query: { ignorePlanId: string | undefined }): Promise<FoundAgendasDto> {
-    return this.agendaFinder.findNonIncludedInPresentationPlan(query);
+    return this.agendaFinder.findAwaitingPresentationPlan(query);
   }
 
   internalInvalidatePresentationPlan(cause: DocInvalidation): Promise<void> {
@@ -94,7 +95,7 @@ export class PresentationPlansService {
   }): Promise<{ id: string }> {
     const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
     const agendaIds = new Set(commentByAgendaId.keys());
-    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({ ids: agendaIds });
+    const { items } = await this.agendaFinder.findAwaitingPresentationPlan({ ids: agendaIds });
 
     if (items.length !== agendaIds.size) throw new NotFoundException();
 
@@ -161,7 +162,7 @@ export class PresentationPlansService {
 
     const commentByAgendaId = new Map(command.agendas.map((a) => [a.id, a] as const));
     const agendaIds = new Set(commentByAgendaId.keys());
-    const { items } = await this.agendaFinder.findNonIncludedInPresentationPlan({
+    const { items } = await this.agendaFinder.findAwaitingPresentationPlan({
       ids: agendaIds,
       ignorePlanId: command.id,
     });
@@ -223,8 +224,8 @@ export class PresentationPlansService {
     return this.findPresentationPlanDocumentQuery.handle(query);
   }
 
-  findPresentationPlanDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
-    return this.findPresentationPlanDocumentPdfQuery.handle(query);
+  validatePresentationPlan(command: { id: string; validatorId: string }): Promise<void> {
+    return this.validatePresentationPlanUseCase.handle(command);
   }
 
   listNonPresentedPlans(): Promise<ListedNonPresentedPlansDto> {

@@ -13,6 +13,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
@@ -100,14 +101,16 @@ export class AgendaFinder {
     };
   }
 
-  findNonIncludedInPresentationPlan(query: {
+  findAwaitingPresentationPlan(query: {
     ids?: Set<string>;
     ignorePlanId?: string;
   }): Promise<FoundAgendasDto> {
     return this.find(
       {
         id: { in: query.ids ? Array.from(query.ids) : undefined },
-        OR: [{ justicePresentationPlanId: null }, { justicePresentationPlanId: query.ignorePlanId }],
+        justicePresentationPlans: {
+          none: { planId: { not: query.ignorePlanId }, plan: { pdfId: { not: null } } },
+        },
       },
       query.ids,
     );
@@ -144,11 +147,15 @@ export class AgendaFinder {
             validator: { select: { id: true, firstName: true, lastName: true } },
           },
         },
-        justicePresentationPlan: {
+        justicePresentationPlans: {
           select: {
             plan: {
               select: {
                 id: true,
+                pdfId: true,
+                date: true,
+                chairmanFirstName: true,
+                chairmanLastName: true,
                 time: true,
                 endTime: true,
                 secretaryId: true,
@@ -163,9 +170,15 @@ export class AgendaFinder {
     });
 
     const items = found
-      .flatMap(({ versions, ...agenda }) => {
+      .flatMap(({ versions, justicePresentationPlans, ...agenda }) => {
         const published = agendaContentOf(versions);
-        return published ? [{ ...agenda, published }] : [];
+        if (!published) return [];
+
+        const [draftPlans, [validatedPlan]] = partition(
+          justicePresentationPlans.map(({ plan }) => plan),
+          ({ pdfId }) => pdfId === null,
+        );
+        return [{ ...agenda, published, draftPlans, validatedPlan }];
       })
       .sort((a, b) => a.published.date.getTime() - b.published.date.getTime());
 
@@ -209,20 +222,21 @@ export class AgendaFinder {
         validatedAt: item.published.validatedAt?.toISOString() ?? null,
         validatedBy: writerOf(item.published.validator),
         officialReportId: item.officialReportId,
-        presentationPlan: item.justicePresentationPlan
+        draftPresentationPlans: item.draftPlans.map((plan) => ({
+          id: plan.id,
+          date: DateOnly.fromUtcDate(plan.date).toJson(),
+          startTime: dateToTimeOnly(plan.time),
+          chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
+        })),
+        presentationPlan: item.validatedPlan
           ? {
-              id: item.justicePresentationPlan.plan.id,
-              startTime: dateToTimeOnly(item.justicePresentationPlan.plan.time),
-              endTime: item.justicePresentationPlan.plan.endTime
-                ? dateToTimeOnly(item.justicePresentationPlan.plan.endTime)
-                : null,
-              secretaryId: item.justicePresentationPlan.plan.secretaryId,
-              justiceContactId:
-                item.justicePresentationPlan.plan.justiceDepartmentContactId?.toString() ?? null,
-              absentMembers: item.justicePresentationPlan.plan.members.flatMap((m) =>
-                m.isAbsent ? [m.memberId] : [],
-              ),
-              hasRenunciation: item.justicePresentationPlan.plan.hasRenunciation,
+              id: item.validatedPlan.id,
+              startTime: dateToTimeOnly(item.validatedPlan.time),
+              endTime: item.validatedPlan.endTime ? dateToTimeOnly(item.validatedPlan.endTime) : null,
+              secretaryId: item.validatedPlan.secretaryId,
+              justiceContactId: item.validatedPlan.justiceDepartmentContactId?.toString() ?? null,
+              absentMembers: item.validatedPlan.members.flatMap((m) => (m.isAbsent ? [m.memberId] : [])),
+              hasRenunciation: item.validatedPlan.hasRenunciation,
             }
           : null,
       })),
@@ -241,7 +255,6 @@ export class FoundAgendasDto extends createZodDto(
         chairman: z.object({ id: z.string().nullable(), firstName: z.string(), lastName: z.string() }),
         createdAt: z.iso.datetime(),
         createdBy: writerSchema,
-        /** null while the agenda only exists as a draft */
         validatedAt: z.iso.datetime().nullable(),
         validatedBy: writerSchema,
         officialReportId: z.string().nullable(),
@@ -251,6 +264,15 @@ export class FoundAgendasDto extends createZodDto(
           typeDeSaisine: z.enum(TypeDeSaisineEnum),
           date: dateOnlyJsonSchema,
         }),
+        draftPresentationPlans: z.array(
+          z.object({
+            id: z.string(),
+            date: dateOnlyJsonSchema,
+            startTime: timeOnlySchema,
+            chairman: z.object({ firstName: z.string(), lastName: z.string() }),
+          }),
+        ),
+        /** the validated notice, the only one that holds the agenda for good */
         presentationPlan: z
           .object({
             id: z.string(),

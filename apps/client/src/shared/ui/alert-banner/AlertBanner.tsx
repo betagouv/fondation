@@ -53,7 +53,6 @@ export function AlertBannerAction(props: { children: ReactNode; disabled?: boole
   );
 }
 
-/** navigating is a link's job: the cursor, the middle click and the reading out all come from there */
 export function AlertBannerLink(props: { children: ReactNode; to: string }) {
   return (
     <Button className={ACTION_CLASS} linkProps={{ to: props.to }} priority="tertiary no outline" size="small">

@@ -6,6 +6,7 @@ import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infras
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   JusticePresentationPlan,
+  JusticePresentationPlanAgendaRemoved,
   JusticePresentationPlanContentChecked,
   JusticePresentationPlanCreated,
   JusticePresentationPlanDeleted,
@@ -95,6 +96,8 @@ export class JusticePresentationPlanRepository {
         await this.persistJusticePresentationPlanUnPresented(message);
       } else if (message instanceof JusticePresentationPlanContentChecked) {
         await this.persistJusticePresentationPlanContentChecked(message);
+      } else if (message instanceof JusticePresentationPlanAgendaRemoved) {
+        await this.persistJusticePresentationPlanAgendaRemoved(message);
       } else {
         assertNever(message);
       }
@@ -196,16 +199,6 @@ export class JusticePresentationPlanRepository {
       where: { planId: message.id },
     });
 
-    await this.db.tx.agenda.updateMany({
-      data: { justicePresentationPlanId: null },
-      where: { justicePresentationPlanId: message.id },
-    });
-
-    await this.db.tx.agenda.updateMany({
-      data: { justicePresentationPlanId: message.id },
-      where: { id: { in: message.state.agendas.map(({ id }) => id) } },
-    });
-
     const stale = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
       select: { pdf: { select: { id: true, path: true } } },
@@ -268,11 +261,6 @@ export class JusticePresentationPlanRepository {
       where: { planId: message.id },
     });
 
-    await this.db.tx.agenda.updateMany({
-      data: { justicePresentationPlanId: null },
-      where: { justicePresentationPlanId: message.id },
-    });
-
     const file = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
       select: { pdf: { select: { id: true, path: true } } },
@@ -308,6 +296,34 @@ export class JusticePresentationPlanRepository {
     await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
       data: { outdated: message.outdated },
+    });
+  }
+
+  private async persistJusticePresentationPlanAgendaRemoved(message: JusticePresentationPlanAgendaRemoved) {
+    const agenda = { agendaId: message.agendaId, planId: message.id };
+
+    await this.db.tx.justicePresentationPlanToAgenda.delete({ where: { planId_agendaId: agenda } });
+    await this.db.tx.justicePresentationPlanNominationFile.deleteMany({ where: agenda });
+
+    // a text edited by hand is kept as it reads: the removal notice tells its author what to take out
+    await this.db.tx.justicePresentationPlan.updateMany({
+      where: { id: message.id, isManuallyEdited: false },
+      data: { html: null },
+    });
+
+    await this.db.tx.justicePresentationPlanRemovedAgenda.upsert({
+      where: { planId_agendaId: agenda },
+      create: {
+        ...agenda,
+        takenByPlanId: message.takenByPlanId,
+        removedAt: this.clock.now(),
+        removedBy: message.removerId,
+      },
+      update: {
+        takenByPlanId: message.takenByPlanId,
+        removedAt: this.clock.now(),
+        removedBy: message.removerId,
+      },
     });
   }
 

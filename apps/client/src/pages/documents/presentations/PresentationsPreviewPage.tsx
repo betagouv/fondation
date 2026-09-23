@@ -7,28 +7,31 @@ import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { PresentationBreadcrumb } from '@/features/documents/components/presentations/PresentationBreadcrumb';
+import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useJusticePresentationPlanHtmlQuery,
   useJusticePresentationPlanMetadataQuery,
-  useJusticePresentationPlanPdfMutation,
+  useValidatePresentationPlanMutation,
 } from '@queries/agenda.queries';
 
 import { PresentationDriftBanner } from './PresentationDriftBanner';
+import { PresentationRemovedAgendasBanner } from './PresentationRemovedAgendasBanner';
 
 export function PresentationPreviewPage() {
   const { formatMessage } = useIntl();
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
+  const describeFailure = useDocumentFailure();
 
   const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
   const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
-  const generatePdf = useJusticePresentationPlanPdfMutation({
+  const validate = useValidatePresentationPlanMutation({
     planId: planId!,
-    force: false,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
   });
-  const isValidating = generatePdf.isPending;
+  const isValidating = validate.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
   return (
@@ -57,7 +60,7 @@ export function PresentationPreviewPage() {
               disabled={isValidating}
               iconId={isValidating ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
               iconPosition="right"
-              onClick={() => generatePdf.mutate()}
+              onClick={() => validate.mutate()}
             >
               <FormattedMessage defaultMessage="Valider le document" />
             </Button>
@@ -74,19 +77,38 @@ export function PresentationPreviewPage() {
       }
       breadcrumb={<PresentationBreadcrumb />}
       notices={
-        /** @warning the live region is always rendered: a screen reader ignores one that appears already filled */
-        <div role="status">
-          {metadata?.status === 'DRAFT' && <DocumentDraftBanner hasValidatedVersion={false} />}
-          {metadata?.outdated && (
-            <PresentationDriftBanner
-              editionPath={
-                metadata.isPresented
-                  ? undefined
-                  : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
-              }
-            />
-          )}
-        </div>
+        <>
+          {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
+          <div role="status">
+            {metadata?.status === 'DRAFT' && <DocumentDraftBanner hasValidatedVersion={false} />}
+            {metadata && metadata.removedAgendas.length > 0 && (
+              <PresentationRemovedAgendasBanner removedAgendas={metadata.removedAgendas} />
+            )}
+            {metadata?.outdated && (
+              <PresentationDriftBanner
+                editionPath={
+                  metadata.isPresented
+                    ? undefined
+                    : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                }
+              />
+            )}
+          </div>
+          <div role="alert">
+            {validate.isError && (
+              <AlertBanner
+                className="justify-center px-4 py-3"
+                icon="fr-icon-error-fill"
+                message={
+                  'validationError' in validate.error
+                    ? String(validate.error.validationError)
+                    : describeFailure(validate.error)
+                }
+                tone="error"
+              />
+            )}
+          </div>
+        </>
       }
       title={title}
       tone="alt"

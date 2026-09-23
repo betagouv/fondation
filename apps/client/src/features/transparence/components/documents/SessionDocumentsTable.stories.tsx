@@ -37,8 +37,8 @@ const DOCS: SessionDocument[] = [
     name: 'Ordre du jour du 12 mars 2028 - Mme MARTIN Camille',
     officialReportId: 'official-report-1',
     outdated: false,
+    presentationPlans: [],
     type: 'agenda',
-    hasPresentationPlan: false,
   },
   {
     ...AGENDA_DATES,
@@ -46,8 +46,8 @@ const DOCS: SessionDocument[] = [
     name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
     officialReportId: null,
     outdated: false,
+    presentationPlans: [],
     type: 'agenda',
-    hasPresentationPlan: false,
   },
   {
     ...AGENDA_DATES,
@@ -55,8 +55,8 @@ const DOCS: SessionDocument[] = [
     name: 'Ordre du jour du 8 janvier 2028 - M. BERNARD Lucas',
     officialReportId: 'official-report-2',
     outdated: false,
+    presentationPlans: [],
     type: 'agenda',
-    hasPresentationPlan: false,
   },
   {
     ...REPORT_DATES,
@@ -143,8 +143,8 @@ export const AgendasSharingAnOfficialReport: Story = {
         name: 'Ordre du jour du 12 mars 2028 - Siège',
         officialReportId: 'official-report-1',
         outdated: false,
+        presentationPlans: [],
         type: 'agenda',
-        hasPresentationPlan: false,
       },
       {
         ...AGENDA_DATES,
@@ -152,8 +152,8 @@ export const AgendasSharingAnOfficialReport: Story = {
         name: 'Ordre du jour du 12 mars 2028 - Parquet',
         officialReportId: 'official-report-1',
         outdated: false,
+        presentationPlans: [],
         type: 'agenda',
-        hasPresentationPlan: false,
       },
       {
         ...REPORT_DATES,
@@ -168,8 +168,8 @@ export const AgendasSharingAnOfficialReport: Story = {
         name: 'Ordre du jour du 4 février 2028 - M. BERNARD Lucas',
         officialReportId: null,
         outdated: false,
+        presentationPlans: [],
         type: 'agenda',
-        hasPresentationPlan: false,
       },
     ]),
   },
@@ -186,11 +186,11 @@ export const ManyRows: Story = {
         index % 2 === 0
           ? {
               ...AGENDA_DATES,
-              hasPresentationPlan: false,
               id: `agenda-${index}`,
               name: `Ordre du jour du ${(index % 28) + 1} mars 2028`,
               officialReportId: index % 4 === 0 ? `official-report-${index + 1}` : null,
               outdated: false,
+              presentationPlans: [],
               type: 'agenda' as const,
             }
           : {

@@ -35,6 +35,7 @@ export class ListNonPresentedPlansQuery {
           take: 1,
           select: { agenda: { select: { formation: true } } },
         },
+        removedAgendas: { take: 1, select: { agendaId: true } },
       },
       where: { isPresented: false },
     });
@@ -50,6 +51,7 @@ export class ListNonPresentedPlansQuery {
             time: dateToTimeOnly(plan.time),
             date: DateOnly.fromUtcDate(plan.date).toJson(),
             outdated: plan.outdated,
+            hasRemovedAgendas: plan.removedAgendas.length > 0,
             createdAt: plan.createdAt.toISOString(),
             createdBy: writerOf(plan.author),
             updatedAt: plan.updatedAt?.toISOString() ?? null,
@@ -72,7 +74,7 @@ export class ListedNonPresentedPlansDto extends createZodDto(
         time: timeOnlySchema,
         date: dateOnlyJsonSchema,
         outdated: z.boolean(),
-        /** DRAFT while nobody has validated the notice, whatever its text already reads */
+        hasRemovedAgendas: z.boolean(),
         status: presentationPlanStatusSchema,
         createdAt: z.iso.datetime(),
         createdBy: writerSchema,

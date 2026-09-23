@@ -115,9 +115,9 @@ export const DocumentViewer = forwardRef<
 
   return (
     <iframe
+      className={props.className}
       key={props.reloadKey}
       ref={frameRef}
-      className={props.className}
       src={window.location.origin}
       srcDoc={srcDoc}
       style={{ height }}

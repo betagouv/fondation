@@ -260,7 +260,6 @@ export class AgendaRepository {
     const found = await this.db.tx.agenda.findUnique({
       where: { id: message.agendaId },
       select: {
-        justicePresentationPlanId: true,
         officialReportId: true,
         versions: {
           select: { pdf: { select: { id: true, path: true } } },
@@ -274,8 +273,8 @@ export class AgendaRepository {
             },
           },
         },
-        justicePresentationPlan: {
-          select: { plan: { select: { pdf: { select: { id: true, path: true } } } } },
+        justicePresentationPlans: {
+          select: { planId: true, plan: { select: { pdf: { select: { id: true, path: true } } } } },
         },
       },
     });
@@ -283,20 +282,17 @@ export class AgendaRepository {
 
     if (found.officialReportId)
       await this.db.tx.officialReport.delete({ where: { id: found.officialReportId } });
-    if (found.justicePresentationPlanId) {
-      await this.db.tx.justicePresentationPlanToAgenda.delete({
-        where: { agendaId: message.agendaId, planId: found.justicePresentationPlanId },
-      });
-
-      await this.db.tx.justicePresentationPlan.delete({ where: { id: found.justicePresentationPlanId } });
-    }
+    // every notice the agenda belongs to goes with it, the other agendas it held included
+    const planIds = found.justicePresentationPlans.map(({ planId }) => planId);
+    await this.db.tx.justicePresentationPlanToAgenda.deleteMany({ where: { planId: { in: planIds } } });
+    await this.db.tx.justicePresentationPlan.deleteMany({ where: { id: { in: planIds } } });
 
     await this.db.tx.agenda.delete({ where: { id: message.agendaId } });
 
     const pdfs = [
       ...found.versions,
       ...(found.officialReport?.versions ?? []),
-      { pdf: found.justicePresentationPlan?.plan.pdf ?? null },
+      ...found.justicePresentationPlans.map(({ plan }) => plan),
     ].flatMap(({ pdf }) => (pdf ? [pdf] : []));
 
     if (pdfs.length > 0) this.files.delete(pdfs);

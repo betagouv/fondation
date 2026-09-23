@@ -28,12 +28,7 @@ export function PresentationPresentedList() {
   const openPresentationPdf = useOpenJusticePresentationPlanPdfDocumentMutation();
 
   const viewItems = (pastPresentations?.items ?? []).map((item) => ({
-    authoring: {
-      createdAt: item.createdAt,
-      createdBy: item.createdBy,
-      updatedAt: item.updatedAt,
-      updatedBy: item.updatedBy,
-    },
+    authoring: { createdAt: item.createdAt, createdBy: item.createdBy },
     date: formatDateOnly(item.date),
     formation: formatMessage(FormationEnumMessages[item.formation]),
     hasPdf: item.status === 'VALIDATED',
@@ -70,7 +65,7 @@ export function PresentationPresentedList() {
   }
 
   return (
-    <ul className="fr-m-0 fr-p-0 list-none">
+    <ul className="fr-m-0 fr-p-0 grid list-none grid-cols-[repeat(4,auto)]">
       {viewItems.map(({ authoring, hasPdf, meeting, outdated, restitution, ...item }) => {
         const name = formatMessage(
           { defaultMessage: 'NDR {date}, {time, time, short} - {initials}' },
@@ -79,35 +74,43 @@ export function PresentationPresentedList() {
 
         return (
           <li
-            className="fr-py-4v grid grid-cols-[minmax(0,0.6fr)_minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] items-center gap-x-8 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey)"
+            className="fr-py-4v col-span-full grid min-h-16 grid-cols-subgrid items-center gap-x-8 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey)"
             key={item.id}
           >
             <span>
-              <Badge as="span" className="fr-mb-0 w-24 justify-center" noIcon>
+              <Badge as="span" className="fr-mb-0 h-6 w-24 justify-center" noIcon small>
                 {item.formation}
               </Badge>
             </span>
 
-            <span className="fr-px-2v flex items-center gap-x-2">
-              {hasPdf ? (
-                <LinkButton
-                  data-plan-id={item.id}
-                  disabled={openPresentationPdf.isPending}
-                  iconId="fr-icon-file-text-line"
-                  onClick={onOpenPdf}
-                >
-                  {name}
-                </LinkButton>
-              ) : (
-                <span className="fr-link--icon-left fr-icon-file-text-line fr-icon--sm text-(--text-disabled-grey)">
-                  {name}
-                </span>
-              )}
+            <span className="fr-px-2v flex flex-col gap-y-1">
+              <span className="flex items-center gap-x-2">
+                {hasPdf ? (
+                  <LinkButton
+                    data-plan-id={item.id}
+                    disabled={openPresentationPdf.isPending}
+                    iconId="fr-icon-file-text-line"
+                    onClick={onOpenPdf}
+                  >
+                    {name}
+                  </LinkButton>
+                ) : (
+                  <span className="fr-link--icon-left fr-icon-file-text-line fr-icon--sm fr-text--sm fr-mb-0 text-(--text-disabled-grey)">
+                    {name}
+                  </span>
+                )}
 
-              {outdated && (
-                <Badge as="span" className="fr-mb-0 shrink-0 rounded-full" severity="warning" small>
-                  <FormattedMessage defaultMessage="À vérifier" />
-                </Badge>
+                {outdated && (
+                  <Badge as="span" className="fr-mb-0 h-6 shrink-0 rounded-full" severity="warning" small>
+                    <FormattedMessage defaultMessage="À vérifier" />
+                  </Badge>
+                )}
+              </span>
+
+              {meeting.end && (
+                <span className="fr-text--xs fr-mb-0 text-(--text-mention-grey)">
+                  <FormattedMessage defaultMessage="Séance de {start} à {end}" values={meeting} />
+                </span>
               )}
             </span>
 
@@ -117,12 +120,6 @@ export function PresentationPresentedList() {
 
             <span>
               <PresentationRestitution {...restitution} />
-            </span>
-
-            <span className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
-              {meeting.end && (
-                <FormattedMessage defaultMessage="Séance de {start} à {end}" values={meeting} />
-              )}
             </span>
           </li>
         );

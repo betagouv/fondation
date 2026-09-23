@@ -126,7 +126,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       create(
         {
           absentMembers: [...options.absentMemberIds],
-          agendas: Object.entries(state.agendas).map(([id, comment]) => ({ id, comment })),
+          agendas: Object.entries(state.agendas).map(([id, comment]) => ({ comment, id })),
           chairmanId: options.chairmanId,
           date: options.date,
           hasRenunciation: options.hasRenunciation,
@@ -159,7 +159,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         throw new Error(`Cannot create a presentation plan, missing ${missingMetadata.join(', ')}`);
       }
 
-      /** a notice nobody validated nor rewrote has nothing to lose: its text is written again */
       const hasSomethingToLose = metadata?.status === 'VALIDATED' || metadata?.isManuallyEdited;
 
       if (planId && hasSomethingToLose) {

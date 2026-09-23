@@ -89,7 +89,6 @@ export class ListedPresentedPlansDto extends createPaginatedZodDto(
     createdBy: writerSchema,
     updatedAt: z.iso.datetime().nullable(),
     updatedBy: writerSchema,
-    /** null on the notices presented before the application kept that trace */
     presentedAt: z.iso.datetime().nullable(),
     presentedBy: writerSchema,
     formation: z.enum(FormationEnum),

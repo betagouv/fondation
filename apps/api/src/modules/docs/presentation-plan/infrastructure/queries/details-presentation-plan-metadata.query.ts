@@ -3,6 +3,11 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
+import {
+  AGENDA_CONTENT_VERSIONS,
+  agendaContentOf,
+} from 'src/modules/docs/shared/infrastructure/agenda-content';
+import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -10,6 +15,8 @@ import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+
+const chairmanSchema = z.object({ firstName: z.string(), lastName: z.string() });
 
 @Injectable()
 export class DetailsPresentationPlanMetadataQuery {
@@ -38,6 +45,30 @@ export class DetailsPresentationPlanMetadataQuery {
             agenda: { select: { formation: true } },
           },
         },
+        removedAgendas: {
+          orderBy: { removedAt: 'asc' },
+          select: {
+            agendaId: true,
+            removedAt: true,
+            remover: { select: { id: true, firstName: true, lastName: true } },
+            agenda: {
+              select: {
+                versions: {
+                  ...AGENDA_CONTENT_VERSIONS,
+                  select: {
+                    status: true,
+                    sessionMeetingDate: true,
+                    chairmanFirstName: true,
+                    chairmanLastName: true,
+                  },
+                },
+              },
+            },
+            takenBy: {
+              select: { id: true, date: true, time: true, chairmanFirstName: true, chairmanLastName: true },
+            },
+          },
+        },
       },
     });
 
@@ -61,6 +92,28 @@ export class DetailsPresentationPlanMetadataQuery {
       })),
       justiceDepartmentContactId: plan.justiceDepartmentContactId?.toString() ?? null,
       absentMemberIds: plan.members.filter((m) => m.isAbsent).map((m) => m.memberId),
+      removedAgendas: plan.removedAgendas.flatMap(({ agenda, agendaId, remover, removedAt, takenBy }) => {
+        const content = agendaContentOf(agenda.versions);
+        if (!content) return [];
+
+        return [
+          {
+            agenda: {
+              id: agendaId,
+              sessionMeetingDate: DateOnly.fromUtcDate(content.sessionMeetingDate).toJson(),
+              chairman: { firstName: content.chairmanFirstName, lastName: content.chairmanLastName },
+            },
+            takenBy: {
+              id: takenBy.id,
+              date: DateOnly.fromUtcDate(takenBy.date).toJson(),
+              time: dateToTimeOnly(takenBy.time),
+              chairman: { firstName: takenBy.chairmanFirstName, lastName: takenBy.chairmanLastName },
+            },
+            removedAt: removedAt.toISOString(),
+            removedBy: writerOf(remover),
+          },
+        ];
+      }),
     };
   }
 }
@@ -81,5 +134,26 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     justiceDepartmentContactId: z.string().nullable(),
     hasRenunciation: z.boolean(),
     absentMemberIds: z.array(z.string()),
+    removedAgendas: z.array(
+      z.object({
+        agenda: z.object({
+          id: z.string(),
+          sessionMeetingDate: dateOnlyJsonSchema,
+          chairman: chairmanSchema,
+        }),
+        takenBy: z.object({
+          id: z.string(),
+          date: dateOnlyJsonSchema,
+          time: timeOnlySchema,
+          chairman: chairmanSchema,
+        }),
+        removedAt: z.iso.datetime(),
+        removedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+      }),
+    ),
   }),
 ) {}
+
+function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
+  return user ? { id: user.id, name: fullname(user) } : null;
+}

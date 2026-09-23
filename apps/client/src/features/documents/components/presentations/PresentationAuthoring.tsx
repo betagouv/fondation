@@ -1,6 +1,8 @@
 import { FormattedMessage } from 'react-intl';
+import { Link } from 'react-router';
 
 import { useWhen } from '@/features/documents/hooks/useWhen';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -8,8 +10,8 @@ type Writer = { id: string; name: string } | null;
 export function PresentationAuthoring(props: {
   createdAt: string;
   createdBy: Writer;
-  updatedAt: string | null;
-  updatedBy: Writer;
+  updatedAt?: string | null;
+  updatedBy?: Writer;
 }) {
   const when = useWhen();
   const { createdAt, createdBy, updatedAt, updatedBy } = props;
@@ -17,7 +19,7 @@ export function PresentationAuthoring(props: {
   const sameWriter = Boolean(createdBy && updatedBy && createdBy.id === updatedBy.id);
 
   return (
-    <span className="fr-text--sm fr-ml-2v text-(--text-mention-grey)">
+    <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
       <FormattedMessage defaultMessage="Créée le {date} à {time}" values={when(createdAt)} />
       {!sameWriter && <PresentationWriter writer={createdBy} />}
 
@@ -25,7 +27,7 @@ export function PresentationAuthoring(props: {
         <>
           {' '}
           <FormattedMessage defaultMessage="et modifiée le {date} à {time}" values={when(updatedAt)} />
-          <PresentationWriter writer={updatedBy} />
+          <PresentationWriter writer={updatedBy ?? null} />
         </>
       )}
     </span>
@@ -35,6 +37,7 @@ export function PresentationAuthoring(props: {
 export function AgendaValidation(props: {
   createdAt: string;
   createdBy: Writer;
+  draftPath: string;
   validatedAt: string | null;
   validatedBy: Writer;
 }) {
@@ -42,15 +45,29 @@ export function AgendaValidation(props: {
   const { createdAt, createdBy, validatedAt, validatedBy } = props;
 
   return (
-    <span className="fr-text--sm fr-ml-2v text-(--text-mention-grey)">
+    <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
       {validatedAt ? (
         <>
-          <FormattedMessage defaultMessage="Validé le {date} à {time}" values={when(validatedAt)} />
+          <FormattedMessage defaultMessage="ODJ validé le {date} à {time}" values={when(validatedAt)} />
           <PresentationWriter writer={validatedBy} />
         </>
       ) : (
         <>
-          <FormattedMessage defaultMessage="Brouillon créé le {date} à {time}" values={when(createdAt)} />
+          <FormattedMessage
+            defaultMessage="<link>ODJ en brouillon</link> créé le {date} à {time}"
+            values={{
+              ...when(createdAt),
+              link: (chunks) => (
+                <Link
+                  className="fr-link fr-link--sm"
+                  state={{ returnPath: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS }}
+                  to={props.draftPath}
+                >
+                  {chunks}
+                </Link>
+              ),
+            }}
+          />
           <PresentationWriter writer={createdBy} />
         </>
       )}
@@ -63,14 +80,13 @@ export function PresentationRestitution(props: { presentedAt: string | null; pre
   const { presentedAt, presentedBy } = props;
 
   return (
-    <span className="fr-text--sm fr-ml-2v text-(--text-mention-grey)">
+    <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
       {presentedAt ? (
         <>
           <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={when(presentedAt)} />
           <PresentationWriter writer={presentedBy} />
         </>
       ) : (
-        /** the notices restituted before the application kept that trace carry none */
         <FormattedMessage defaultMessage="Restituée à une date inconnue" />
       )}
     </span>

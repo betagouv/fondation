@@ -53,6 +53,7 @@ function InnerPresentationNoticesList() {
     },
     date: formatDateOnly(item.date),
     formation: formatMessage(FormationEnumMessages[item.formation]),
+    hasRemovedAgendas: item.hasRemovedAgendas,
     id: item.id,
     initials: toInitials(item.chairman),
     isDraft: item.status === 'DRAFT',
@@ -80,8 +81,8 @@ function InnerPresentationNoticesList() {
   );
 
   const selection = useSelection({
-    items: planItems,
     defaultSelection: [],
+    items: planItems,
     toString: ({ id }) => id,
   });
 
@@ -152,7 +153,7 @@ function InnerPresentationNoticesList() {
     <div className="flex flex-col gap-y-8">
       <ul className="fr-m-0 fr-p-0 grid list-none grid-cols-[auto_auto_auto_minmax(0,1fr)_auto]">
         {planItems.map((plan) => {
-          const { startTime: _, authoring, isDraft, name, outdated, ...item } = plan;
+          const { startTime: _, authoring, hasRemovedAgendas, isDraft, name, outdated, ...item } = plan;
 
           return (
             <li
@@ -168,15 +169,16 @@ function InnerPresentationNoticesList() {
               />
 
               <span className="flex items-center gap-x-3">
-                <Badge as="span" className="fr-mb-0 w-24 shrink-0 justify-center" noIcon>
+                <Badge as="span" className="fr-mb-0 h-6 w-24 shrink-0 justify-center" noIcon small>
                   {item.formation}
                 </Badge>
 
                 <Badge
                   as="span"
-                  className="fr-mb-0 shrink-0 rounded-full"
+                  className="fr-mb-0 h-6 shrink-0 rounded-full"
                   noIcon
                   severity={isDraft ? 'new' : 'success'}
+                  small
                 >
                   {isDraft ? (
                     <FormattedMessage defaultMessage="brouillon" />
@@ -188,7 +190,7 @@ function InnerPresentationNoticesList() {
 
               <span className="fr-px-2v flex items-center gap-x-2">
                 {isDraft ? (
-                  <span className="fr-link--icon-left fr-icon-file-text-line fr-icon--sm text-(--text-disabled-grey)">
+                  <span className="fr-link--icon-left fr-icon-file-text-line fr-icon--sm fr-text--sm fr-mb-0 text-(--text-disabled-grey)">
                     {name}
                   </span>
                 ) : (
@@ -203,8 +205,14 @@ function InnerPresentationNoticesList() {
                 )}
 
                 {outdated && (
-                  <Badge as="span" className="fr-mb-0 shrink-0 rounded-full" severity="warning" small>
+                  <Badge as="span" className="fr-mb-0 h-6 shrink-0 rounded-full" severity="warning" small>
                     <FormattedMessage defaultMessage="À vérifier" />
+                  </Badge>
+                )}
+
+                {hasRemovedAgendas && (
+                  <Badge as="span" className="fr-mb-0 h-6 shrink-0 rounded-full" noIcon severity="info" small>
+                    <FormattedMessage defaultMessage="ODJ retiré" />
                   </Badge>
                 )}
               </span>

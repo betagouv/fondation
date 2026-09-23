@@ -4,10 +4,14 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
+import {
+  presentationPlanStatusOf,
+  presentationPlanStatusSchema,
+} from 'src/modules/docs/presentation-plan/infrastructure/presentation-plan-status';
 import { Db } from 'src/modules/framework/database';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class FindSessionDocsQuery {
@@ -25,7 +29,22 @@ export class FindSessionDocsQuery {
         id: true,
         createdAt: true,
         officialReportId: true,
-        justicePresentationPlanId: true,
+        justicePresentationPlans: {
+          select: {
+            plan: {
+              select: {
+                id: true,
+                date: true,
+                time: true,
+                pdfId: true,
+                isPresented: true,
+                chairmanFirstName: true,
+                chairmanLastName: true,
+                _count: { select: { agendas: true } },
+              },
+            },
+          },
+        },
         // an agenda holds at most its validated version and the draft opened on top of it
         versions: {
           take: 2,
@@ -105,7 +124,15 @@ export class FindSessionDocsQuery {
         type: 'agenda' as const,
         date: file.sessionMeetingDate,
         officialReportId: file.officialReportId,
-        hasPresentationPlan: isDefined(file.justicePresentationPlanId),
+        presentationPlans: file.justicePresentationPlans.map(({ plan }) => ({
+          id: plan.id,
+          date: DateOnly.fromUtcDate(plan.date).toJson(),
+          time: dateToTimeOnly(plan.time),
+          chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
+          status: presentationPlanStatusOf(plan),
+          isPresented: plan.isPresented,
+          otherAgendasCount: plan._count.agendas - 1,
+        })),
         outdated: file.outdated,
         status: file.status,
         hasDraft: file.hasDraft,
@@ -167,7 +194,17 @@ export class FoundSessionDocsDto extends createZodDto(
           id: z.string(),
           name: z.string(),
           officialReportId: z.string().nullable(),
-          hasPresentationPlan: z.boolean(),
+          presentationPlans: z.array(
+            z.object({
+              id: z.string(),
+              date: dateOnlyJsonSchema,
+              time: timeOnlySchema,
+              chairman: z.object({ firstName: z.string(), lastName: z.string() }),
+              status: presentationPlanStatusSchema,
+              isPresented: z.boolean(),
+              otherAgendasCount: z.number(),
+            }),
+          ),
           outdated: z.boolean(),
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),

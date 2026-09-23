@@ -99,9 +99,9 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
           },
           {
             children: formatMessage({ defaultMessage: 'Enregistrer la notice' }),
-            type: 'button',
-            onClick: onSubmit,
             disabled: isDisabled || !hasAllMandatoryMetadata,
+            onClick: onSubmit,
+            type: 'button',
           },
         ]}
         className="fr-mt-6v"
