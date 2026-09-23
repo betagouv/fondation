@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { FinalDocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
@@ -17,7 +18,7 @@ export class ReportedNominationFilesFinder {
 
     const files = await this.db.tx.officialReportNominationFile.findMany({
       distinct: ['nominationFileId'],
-      select: { nominationFileId: true },
+      select: { nominationFileId: true } satisfies Prisma.OfficialReportNominationFileSelect,
       where: {
         nominationFile: { outcome: { in: NominationFileOutcome.finalOutcomes() } },
         nominationFileId: { in: [...query.fileIds] },

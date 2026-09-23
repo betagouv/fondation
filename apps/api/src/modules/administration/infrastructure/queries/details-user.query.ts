@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
@@ -25,7 +26,7 @@ export class DetailsUserQuery {
         duty: true,
         displayTitle: true,
         gender: true,
-      },
+      } satisfies Prisma.UserSelect,
       where: { id: query.userId },
     });
     if (!user) throw new NotFoundException();

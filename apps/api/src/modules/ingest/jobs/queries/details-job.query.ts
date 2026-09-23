@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { Db } from 'src/modules/framework/database';
 
@@ -38,7 +39,7 @@ export class DetailsJobQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.IngestionJobSelect,
     });
 
     if (!job) throw new NotFoundException();

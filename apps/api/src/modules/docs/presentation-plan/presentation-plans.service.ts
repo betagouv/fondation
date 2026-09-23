@@ -14,6 +14,7 @@ import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Files } from 'src/modules/framework/files';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
@@ -244,7 +245,7 @@ export class PresentationPlansService {
 
       const htmlPlan = await this.db.tx.justicePresentationPlan.findUnique({
         where: { id: command.id },
-        select: { html: true },
+        select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
       });
 
       if (!htmlPlan || !htmlPlan.html) {
@@ -280,7 +281,10 @@ export class PresentationPlansService {
   async resetPresentationPlanDocument(command: { authorId: string; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { isPresented: true, pdf: { select: { id: true, path: true } } },
+      select: {
+        isPresented: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
     if (!plan) throw new NotFoundException();
     if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
@@ -302,7 +306,10 @@ export class PresentationPlansService {
   async updatePresentationPlanHtml(command: { authorId: string; html: Buffer; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { isPresented: true, pdf: { select: { id: true, path: true } } },
+      select: {
+        isPresented: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
     if (!plan) throw new NotFoundException();
     if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();

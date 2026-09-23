@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class SearchNominationFileMembersReportQuery {
         sessionId: query.sessionId,
       },
       orderBy: { createdAt: 'desc' },
-      select: { id: true },
+      select: { id: true } satisfies Prisma.ReportSelect,
     });
 
     return { reportId: report?.id ?? null };

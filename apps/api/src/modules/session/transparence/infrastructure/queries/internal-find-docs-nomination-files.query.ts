@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
+import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -48,7 +49,7 @@ export class InternalFindDocsNominationFilesQuery {
     const items = await z.array(SqlNominationFilesSchema).parseAsync(rows);
     const identified = new Set(items.map(({ id }) => id));
     const sessionFiles = await this.db.tx.dossierDeNomination.findMany({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
       where: {
         sessionId: query.sessionId,
         ...(query.ids ? { id: { in: [...query.ids] } } : {}),

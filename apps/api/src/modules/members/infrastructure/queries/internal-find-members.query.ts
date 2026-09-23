@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { MEMBER_ROLES } from '../member.utils';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -29,7 +30,7 @@ export class InternalFindMembersQuery {
     }
 
     const users = await this.db.tx.user.findMany({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.UserSelect,
       where: {
         role: { in: roles },
         id: { in: query.ids as string[] | undefined },

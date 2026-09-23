@@ -201,7 +201,7 @@ export class LolfiFilesIngestor {
       .withTransaction(async () => {
         const runningJob = await this.db.tx.ingestionJob.findFirst({
           where: { status: 'RUNNING' },
-          select: { id: true },
+          select: { id: true } satisfies Prisma.IngestionJobSelect,
         });
 
         if (isDefined(runningJob)) {
@@ -220,7 +220,7 @@ export class LolfiFilesIngestor {
                 file: { select: { id: true, name: true } },
               },
             },
-          },
+          } satisfies Prisma.IngestionJobSelect,
         });
 
         const currentJob = await this.db.tx.ingestionJob.update({
@@ -236,7 +236,7 @@ export class LolfiFilesIngestor {
                 file: { select: { id: true, name: true } },
               },
             },
-          },
+          } satisfies Prisma.IngestionJobSelect,
         });
 
         return [lastSucceededJob, currentJob] as const;

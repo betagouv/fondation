@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -9,7 +10,7 @@ export class TransparenceAnomaliesRepository {
   async findAlerted(lolfiSessionIds: readonly number[]): Promise<Map<number, string>> {
     const anomalies = await this.db.tx.lolfiTransparenceAnomaly.findMany({
       where: { lolfiSessionId: { in: [...lolfiSessionIds] } },
-      select: { lolfiSessionId: true, reason: true },
+      select: { lolfiSessionId: true, reason: true } satisfies Prisma.LolfiTransparenceAnomalySelect,
     });
 
     return new Map(anomalies.map(({ lolfiSessionId, reason }) => [lolfiSessionId, reason]));

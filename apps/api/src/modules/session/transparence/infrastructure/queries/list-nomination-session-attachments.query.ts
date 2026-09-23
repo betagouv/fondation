@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
@@ -17,7 +18,7 @@ export class ListNominationSessionAttachmentsQuery {
           select: { file: { select: { id: true, name: true, createdAt: true, sizeInBytes: true } } },
           orderBy: { file: { createdAt: 'desc' } },
         },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     if (!session) throw new NotFoundException();

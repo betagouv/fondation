@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -25,7 +26,7 @@ export class ListNominationFileAttachmentsQuery {
           },
           orderBy: { createdAt: 'desc' },
         },
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
     });
 
     if (!nominationFile) throw new NotFoundException();

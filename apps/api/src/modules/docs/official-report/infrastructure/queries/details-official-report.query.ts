@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -37,7 +38,7 @@ export class DetailsOfficialReportQuery {
         isManuallyEdited: true,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
         officialReport: { select: { id: true, agendas: { select: { id: true } } } },
-      },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     if (!version) throw new NotFoundException();

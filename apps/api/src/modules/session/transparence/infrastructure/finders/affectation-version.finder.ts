@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from 'src/modules/shared/mappers/statut-affectation.mapper';
 import { StatutAffectationEnum } from 'src/modules/shared/statut-affectation.enum';
@@ -52,7 +53,7 @@ export class AffectationVersionFinder {
         statut: true,
         datePublication: true,
         user: { select: { id: true, firstName: true, lastName: true } },
-      },
+      } satisfies Prisma.AffectationVersionSelect,
       where: props.version
         ? { version: props.version, sessionId: props.sessionId }
         : { sessionId: props.sessionId },
@@ -82,7 +83,9 @@ export class AffectationVersionFinder {
     if (version.isNone()) return [];
 
     const reporters = await this.db.tx.nominationFileToReporter.findMany({
-      select: { user: { select: { id: true, firstName: true, lastName: true } } },
+      select: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+      } satisfies Prisma.NominationFileToReporterSelect,
       where: {
         versionId: version.id,
         nominationFileId: query.nominationFileId,

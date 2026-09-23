@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import {
   AuthImpersonationRevoked,
@@ -19,7 +20,7 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findFirst({
-      select: { id: true, password: true },
+      select: { id: true, password: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
@@ -31,7 +32,7 @@ export class AuthUserRepository {
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
       where: { id },
-      select: { id: true, password: true },
+      select: { id: true, password: true } satisfies Prisma.UserSelect,
     });
 
     if (!user) throw new NotFoundException();

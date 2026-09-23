@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
@@ -20,7 +21,10 @@ export class DetailsSessionAgendaQuery {
 
     const version = await this.db.tx.agendaVersion.findUnique({
       where: { id: publishedVersionId, agenda: { sessionId: query.sessionId } },
-      select: { pdf: { select: { id: true } }, agenda: { select: { id: true } } },
+      select: {
+        pdf: { select: { id: true } },
+        agenda: { select: { id: true } },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!version?.pdf) throw new NotFoundException();

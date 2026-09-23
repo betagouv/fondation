@@ -4,6 +4,7 @@ import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -88,7 +89,7 @@ export class DetailReportQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.ReportSelect,
     });
 
     if (!report) throw new NotFoundException();

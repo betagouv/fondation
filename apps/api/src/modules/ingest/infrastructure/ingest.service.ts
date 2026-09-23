@@ -12,6 +12,7 @@ import {
   IngestedLolfiArchiveFailed,
   LolfiArchiveIngestor,
 } from '../services/lolfi-archive-ingest';
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 
@@ -50,7 +51,7 @@ export class IngestService {
   > {
     const runningJob = await this.db.tx.ingestionJob.findFirst({
       where: { status: 'RUNNING' },
-      select: { id: true, startedAt: true },
+      select: { id: true, startedAt: true } satisfies Prisma.IngestionJobSelect,
     });
 
     if (runningJob) {
@@ -134,7 +135,7 @@ export class IngestService {
   private async prepareJob(props: { start: Date; result: IngestedLolfiArchive }): Promise<number> {
     const now = this.clock.now();
     const job = await this.db.tx.ingestionJob.create({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.IngestionJobSelect,
       data: props.result.success
         ? { status: 'IDLE' }
         : { status: 'FAILED', startedAt: props.start, endedAt: now },
@@ -175,7 +176,7 @@ export class IngestService {
     const lastSucceededJob = await this.db.tx.ingestionJob.findFirst({
       orderBy: { endedAt: 'desc' },
       where: { status: 'SUCCEEDED' },
-      select: { endedAt: true },
+      select: { endedAt: true } satisfies Prisma.IngestionJobSelect,
     });
 
     const lastSuccessAt = lastSucceededJob?.endedAt ?? null;

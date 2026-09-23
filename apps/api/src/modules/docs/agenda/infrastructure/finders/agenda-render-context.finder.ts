@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
 import type { AgendaRenderContext } from '../services/renderers/agenda.renderer';
+import { Prisma } from 'src/generated/prisma/client';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
@@ -51,7 +52,7 @@ export class AgendaRenderContextFinder {
             editor: { select: { id: true, firstName: true, lastName: true } },
           },
         },
-      },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!agenda) throw new NotFoundException();

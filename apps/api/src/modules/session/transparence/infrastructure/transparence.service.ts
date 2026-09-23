@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/node';
 
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
@@ -147,7 +148,7 @@ export class TransparenceService {
     user: { role: RoleEnum };
   }): Promise<void> {
     const session = await this.db.tx.session.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.SessionSelect,
       where: {
         deletedAt: null,
         formation: roleToFormation(query.user.role),

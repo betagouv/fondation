@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { HydratedNominationFilesFinder } from '../finders/hydrated-nomination-files.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { paginate, Pagination } from 'src/modules/framework/pagination';
 
@@ -21,7 +22,7 @@ export class InternalListMagistratNominationFilesQuery {
       orderBy: [{ session: { date: 'desc' } }, { number: { sort: 'asc', nulls: 'last' } }],
       skip: (query.pagination.page - 1) * query.pagination.limit,
       take: query.pagination.limit,
-      select: { id: true },
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
     });
 
     const nominationFiles = await this.hydratedNominationFiles.hydrate({

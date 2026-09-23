@@ -9,6 +9,7 @@ import {
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import type { InternalFoundAgendaNominationFiles } from 'src/modules/session/transparence/infrastructure/queries/internal-find-docs-nomination-files.query';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -102,7 +103,7 @@ export class DocsNominationFilesFinder {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const bySessionId = Map.groupBy(agendaList, (x) => x.sessionId);

@@ -7,6 +7,7 @@ import {
   MemberDisplayTitleUpdated,
   MemberTitleUpdated,
 } from '../domain/member';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { assertNever } from 'src/utils/assert-never';
@@ -21,7 +22,7 @@ export class MemberRepository {
   @Transactional()
   async find(userId: string): Promise<Member> {
     const user = await this.db.tx.user.findFirst({
-      select: { id: true, role: true },
+      select: { id: true, role: true } satisfies Prisma.UserSelect,
       where: { id: userId, role: { in: MEMBER_ROLES } },
     });
 
@@ -44,7 +45,7 @@ export class MemberRepository {
     if (props.jurisdictionIds.length === 0) return member;
 
     const jurisdictions = await this.db.tx.jurisdiction.findMany({
-      select: { codejur: true },
+      select: { codejur: true } satisfies Prisma.JurisdictionSelect,
       where: { codejur: { in: props.jurisdictionIds as string[] } },
     });
 

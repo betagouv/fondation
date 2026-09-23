@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
+import { Prisma } from 'src/generated/prisma/client';
 import {
   AGENDA_CONTENT_VERSIONS,
   agendaContentOf,
@@ -69,7 +70,7 @@ export class DetailsPresentationPlanMetadataQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     if (!plan) throw new NotFoundException();

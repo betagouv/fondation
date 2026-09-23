@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class ListCurrentlyAffectedReportersQuery {
         where: { versionId: txVersion.id },
         select: {
           user: { select: { id: true, firstName: true, lastName: true } },
-        },
+        } satisfies Prisma.NominationFileToReporterSelect,
       });
     });
 

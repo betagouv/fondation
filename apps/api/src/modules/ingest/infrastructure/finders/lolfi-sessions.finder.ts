@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { ReceivedDesignations } from '../../domain/incomplete-transparence';
+import { Prisma } from 'src/generated/prisma/client';
 import { countLolfiSessionDesignations } from 'src/generated/prisma/sql';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
@@ -28,7 +29,7 @@ export class LolfiSessionsFinder {
   async find(): Promise<LolfiSessionToSynchronise[]> {
     const sessions = await this.db.tx.lolfiSession.findMany({
       where: this.publishedFrom ? { createdAt: { gte: this.publishedFrom } } : undefined,
-      select: { id: true, label: true, createdAt: true },
+      select: { id: true, label: true, createdAt: true } satisfies Prisma.LolfiSessionSelect,
     });
 
     return sessions.map(({ id, label, createdAt }) => ({

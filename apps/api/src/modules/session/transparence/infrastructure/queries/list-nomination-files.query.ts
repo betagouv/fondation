@@ -10,6 +10,7 @@ import {
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
 import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { DocsService } from 'src/modules/docs/docs.service';
@@ -138,7 +139,7 @@ export class ListNominationFilesQuery {
 
   private findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
     return this.db.tx.session.findFirst({
-      select: { archivedAt: true },
+      select: { archivedAt: true } satisfies Prisma.SessionSelect,
       where: { deletedAt: null, formation: roleToFormation(query.user.role), id: query.sessionId },
     });
   }

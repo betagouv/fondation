@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { isMember } from '../member.utils';
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
+import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -35,7 +35,7 @@ export class InternalFindMembersByFormationQuery {
         displayTitle: true,
         duty: true,
         sort: true,
-      },
+      } satisfies Prisma.UserSelect,
     });
 
     return users.filter(isMember).map((u) => ({

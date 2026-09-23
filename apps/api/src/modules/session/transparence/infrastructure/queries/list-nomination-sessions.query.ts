@@ -62,7 +62,7 @@ export class ListNominationSessionsQuery {
           validatedAt: true,
 
           transparenceGds: { select: { dueDate: true } },
-        },
+        } satisfies Prisma.SessionSelect,
       });
 
       const txReportedIds = await this.reportedSessionsFinder.reportedSessionIds({

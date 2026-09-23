@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -58,7 +59,7 @@ export class DetailNominationSessionQuery {
             _count: { select: { affectations: true } },
           },
         },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     if (!session) throw new NotFoundException();

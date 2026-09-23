@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class FindJusticeContactsQuery {
           orderBy: [{ createdAt: 'desc' }],
           take: 1,
         },
-      },
+      } satisfies Prisma.JusticeDepartmentContactSelect,
     });
 
     return {

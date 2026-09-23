@@ -28,6 +28,7 @@ import * as Sentry from '@sentry/node';
 import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../clock';
+import { Prisma } from 'src/generated/prisma/client';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
 import { afterCommit, Db } from 'src/modules/framework/database';
 import { makeId } from 'src/utils/id';
@@ -132,7 +133,7 @@ export class Files implements OnApplicationBootstrap {
           orderBy: [{ expiresAt: 'desc' }],
           take: 1,
         },
-      },
+      } satisfies Prisma.FileSelect,
     });
 
     const publicUrls = await Promise.allSettled(
@@ -417,7 +418,11 @@ export class Files implements OnApplicationBootstrap {
     const file = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.filePublicUrl.findUnique({
         where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
-        select: { url: true, expiresAt: true, file: { select: { name: true } } },
+        select: {
+          url: true,
+          expiresAt: true,
+          file: { select: { name: true } },
+        } satisfies Prisma.FilePublicUrlSelect,
       }),
     );
 
@@ -454,7 +459,7 @@ export class Files implements OnApplicationBootstrap {
     const storedFile = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.file.findUnique({
         where: { id: props.fileId },
-        select: { path: true },
+        select: { path: true } satisfies Prisma.FileSelect,
       }),
     );
 

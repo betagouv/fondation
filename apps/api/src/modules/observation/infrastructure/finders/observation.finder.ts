@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class ObservationFinder {
           select: { magistratId: true },
           where: { magistratId: query.magistratId },
         },
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
     });
   }
 
@@ -37,7 +38,7 @@ export class ObservationFinder {
     }[];
   }): Promise<{ items: { observationId: string; fileId: string }[] }> {
     const observations = await this.db.tx.observation.findMany({
-      select: { files: { select: { observationId: true, fileId: true } } },
+      select: { files: { select: { observationId: true, fileId: true } } } satisfies Prisma.ObservationSelect,
       where: {
         OR: query.files.map(({ magistratId, observationId: id, fileId }) => ({
           id,

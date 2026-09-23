@@ -87,7 +87,7 @@ export class SessionTransparenceRepository {
         formation: true,
         archivedAt: true,
         typeDeSaisine: true,
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     if (!session) throw new NotFoundException();
@@ -122,7 +122,9 @@ export class SessionTransparenceRepository {
     [K in FormationEnum]?: LolfiSessionIngestion;
   }> {
     const sessions = await this.db.tx.sessionTransparenceGds.findMany({
-      select: { session: { select: { id: true, archivedAt: true, deletedAt: true, formation: true } } },
+      select: {
+        session: { select: { id: true, archivedAt: true, deletedAt: true, formation: true } },
+      } satisfies Prisma.SessionTransparenceGdsSelect,
       where: { lolfiSessionId },
     });
 
@@ -275,7 +277,7 @@ export class SessionTransparenceRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     if (!session) {
@@ -287,7 +289,7 @@ export class SessionTransparenceRepository {
     // We can't use upsert, since `message.versionId` is nullable. It doesn't appear in prisma TS error but at runtime
     if (message.versionId) {
       const affectationVersion = await this.db.tx.affectationVersion.update({
-        select: { id: true },
+        select: { id: true } satisfies Prisma.AffectationVersionSelect,
         where: { id: message.versionId },
         data: {
           statut: 'PUBLIEE',
@@ -299,7 +301,7 @@ export class SessionTransparenceRepository {
       versionId = affectationVersion.id;
     } else {
       const affectationVersion = await this.db.tx.affectationVersion.create({
-        select: { id: true },
+        select: { id: true } satisfies Prisma.AffectationVersionSelect,
         data: {
           statut: 'PUBLIEE',
           auteurPublicationId: message.userId,
@@ -326,7 +328,7 @@ export class SessionTransparenceRepository {
 
     for (const reportToCreate of reportsToCreate) {
       const [existingReport] = await this.db.tx.report.updateManyAndReturn({
-        select: { id: true },
+        select: { id: true } satisfies Prisma.ReportSelect,
         data: { isDeleted: false },
         where: {
           sessionId: reportToCreate.sessionId,
@@ -373,7 +375,7 @@ export class SessionTransparenceRepository {
         select: {
           id: true,
           affectations: { select: { nominationFileId: true, userId: true } },
-        },
+        } satisfies Prisma.AffectationVersionSelect,
         where: {
           sessionId_version: {
             sessionId: message.sessionId,
@@ -448,7 +450,7 @@ export class SessionTransparenceRepository {
   private async persistLodamSessionTransparenceFilesCreated(message: LodamSessionTransparenceFilesCreated) {
     const session = await this.db.tx.sessionTransparenceGds.findUnique({
       where: { sessionId: message.sessionId },
-      select: { dueDate: true },
+      select: { dueDate: true } satisfies Prisma.SessionTransparenceGdsSelect,
     });
 
     await this.db.tx.$queryRawTyped(
@@ -486,7 +488,9 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceAttachmentRemoved(message: SessionTransparenceAttachmentRemoved) {
     const attachment = await this.db.tx.sessionAttachment.findFirst({
       where: { fileId: message.fileId, sessionId: message.sessionId },
-      select: { file: { select: { path: true, name: true, id: true } } },
+      select: {
+        file: { select: { path: true, name: true, id: true } },
+      } satisfies Prisma.SessionAttachmentSelect,
     });
 
     if (!attachment) return;
@@ -516,7 +520,7 @@ export class SessionTransparenceRepository {
   ) {
     const attachment = await this.db.tx.nominationFileAttachment.findFirst({
       where: { fileId: message.fileId, nominationFileId: message.nominationFileId },
-      select: { file: { select: { path: true, id: true } } },
+      select: { file: { select: { path: true, id: true } } } satisfies Prisma.NominationFileAttachmentSelect,
     });
 
     if (!attachment) return;
@@ -537,7 +541,7 @@ export class SessionTransparenceRepository {
     const invalidations: DocInvalidation[] = [];
     const old = await this.db.tx.session.findUnique({
       where: { id: message.sessionId },
-      select: { date: true },
+      select: { date: true } satisfies Prisma.SessionSelect,
     });
 
     if (message.data.date.toDate().getTime() !== old?.date.getTime()) {
@@ -658,7 +662,7 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceFilesAssociated(message: SessionTransparenceLolfiFilesAssociated) {
     const session = await this.db.tx.sessionTransparenceGds.findFirst({
       where: { sessionId: message.sessionId },
-      select: { dueDate: true },
+      select: { dueDate: true } satisfies Prisma.SessionTransparenceGdsSelect,
     });
 
     if (!session) {

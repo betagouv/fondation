@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
@@ -140,7 +141,7 @@ export class ObservationService {
             magistratId: command.magistratId,
           },
         },
-        select: { id: true },
+        select: { id: true } satisfies Prisma.ObservationSelect,
       });
 
       if (existingObservation) {

@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -29,7 +30,7 @@ export class GetObservationDetailsQuery {
     return this.db.withTransaction(async () => {
       const session = await this.db.tx.session.findUnique({
         where: { id: query.sessionId },
-        select: { archivedAt: true },
+        select: { archivedAt: true } satisfies Prisma.SessionSelect,
       });
 
       const observation = await this.db.tx.observation.findUnique({
@@ -110,7 +111,7 @@ export class GetObservationDetailsQuery {
               },
             },
           },
-        },
+        } satisfies Prisma.ObservationSelect,
       });
 
       if (!observation || !observation.magistrat) {
@@ -228,7 +229,7 @@ export class GetObservationDetailsQuery {
         id: true,
         targetedPosition: true,
         rank: true,
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
     });
 
     if (!dossier) return null;

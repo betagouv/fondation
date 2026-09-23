@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -34,13 +35,23 @@ export class SearchJurisdictionsQuery {
             },
           ],
         },
-        select: { codejur: true, libelle: true, typeJur: true, ville: true },
+        select: {
+          codejur: true,
+          libelle: true,
+          typeJur: true,
+          ville: true,
+        } satisfies Prisma.JurisdictionSelect,
       });
 
       if (query.includeIds) {
         const includedJurisdictions = await this.db.tx.jurisdiction.findMany({
           where: { codejur: { in: query.includeIds as string[] } },
-          select: { codejur: true, libelle: true, typeJur: true, ville: true },
+          select: {
+            codejur: true,
+            libelle: true,
+            typeJur: true,
+            ville: true,
+          } satisfies Prisma.JurisdictionSelect,
           orderBy: [{ codejur: 'asc' }],
         });
 

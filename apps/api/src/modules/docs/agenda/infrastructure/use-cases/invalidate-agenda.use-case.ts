@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { AgendaRepository } from '../repositories/agenda.repository';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
@@ -46,7 +47,7 @@ export class InvalidateAgendasUseCase {
       select: {
         agendaId: true,
         nominationFiles: { select: { nominationFileId: true } },
-      },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     const allNominationFileIds = new Set(

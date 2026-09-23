@@ -64,7 +64,7 @@ export class ListArchivedNominationSessionsQuery {
         validatedAt: true,
 
         transparenceGds: { select: { dueDate: true } },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     const items = sessions.map((s) => ({

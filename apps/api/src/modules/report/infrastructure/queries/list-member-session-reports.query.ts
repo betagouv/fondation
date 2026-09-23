@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
@@ -26,7 +27,7 @@ export class ListMemberSessionReportsQuery {
         nominationFileId: true,
         state: true,
         nominationFile: { select: { name: true, number: true } },
-      },
+      } satisfies Prisma.ReportSelect,
     });
 
     return {

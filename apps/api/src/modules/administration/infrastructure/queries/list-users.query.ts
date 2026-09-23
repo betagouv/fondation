@@ -75,7 +75,7 @@ export class ListUsersQuery {
         title: true,
         duty: true,
         gender: true,
-      },
+      } satisfies Prisma.UserSelect,
       where,
       orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
       skip: (query.pagination.page - 1) * query.pagination.limit,

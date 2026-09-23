@@ -132,7 +132,7 @@ export class OfficialReportRepository {
             sort: true,
           },
         },
-      },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     if (!version) throw new NotFoundException();
@@ -264,7 +264,7 @@ export class OfficialReportRepository {
           reporters: true,
           htmlEdited: true,
           nominationFileId: true,
-        },
+        } satisfies Prisma.OfficialReportNominationFileSelect,
       });
 
       cursor = files.at(-1)?.id;
@@ -396,7 +396,7 @@ export class OfficialReportRepository {
               },
             },
           },
-        },
+        } satisfies Prisma.OfficialReportSelect,
       });
       const rawAgenda = assertIsDefined(self.agendas[0]);
       const { sessionId } = rawAgenda;
@@ -470,7 +470,7 @@ export class OfficialReportRepository {
   ): Promise<{ id: bigint; name: string }> {
     const justiceContact = await this.db.tx.justiceDepartmentContact.findUnique({
       where: { id: justiceDepartmentContactId },
-      select: { id: true, name: true },
+      select: { id: true, name: true } satisfies Prisma.JusticeDepartmentContactSelect,
     });
 
     if (!justiceContact) {
@@ -508,7 +508,7 @@ export class OfficialReportRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     if (!agenda) return [];
@@ -716,7 +716,7 @@ export class OfficialReportRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const file = agendaContentOf(agenda?.versions ?? [])?.nominationFiles[0];
@@ -769,7 +769,11 @@ export class OfficialReportRepository {
     const versions = await this.db.tx.officialReportVersion.findMany({
       where: { officialReportId: message.officialReportId },
       orderBy: { version: 'desc' },
-      select: { id: true, status: true, pdf: { select: { id: true, path: true } } },
+      select: {
+        id: true,
+        status: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     const [draft, ...superseded] = versions;
@@ -801,7 +805,7 @@ export class OfficialReportRepository {
         nominationFiles: { omit: { id: true, versionId: true, createdAt: true, updatedAt: true } },
         sectionTitles: { omit: { versionId: true } },
         sectionIntros: { omit: { versionId: true, createdAt: true, updatedAt: true } },
-      },
+      } satisfies Prisma.OfficialReportVersionInclude,
     });
 
     if (!validated) throw new NotFoundException();
@@ -830,7 +834,10 @@ export class OfficialReportRepository {
   private async persistOfficialReportDraftDiscarded(message: OfficialReportDraftDiscarded) {
     const drafts = await this.db.tx.officialReportVersion.findMany({
       where: { officialReportId: message.officialReportId, status: 'DRAFT' },
-      select: { id: true, pdf: { select: { id: true, path: true } } },
+      select: {
+        id: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     await this.discardVersions(drafts);
@@ -864,7 +871,7 @@ export class OfficialReportRepository {
   private async resetDocumentData(versionId: string): Promise<void> {
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { pdf: { select: { id: true, path: true } } } satisfies Prisma.OfficialReportVersionSelect,
     });
     await this.db.tx.officialReportVersion.update({
       where: { id: versionId },
@@ -877,7 +884,7 @@ export class OfficialReportRepository {
 
   private async recomputeManuallyEdited(versionId: string): Promise<void> {
     const manuallyEditedOfficialReport = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: {
         id: versionId,
         OR: [
@@ -898,7 +905,7 @@ export class OfficialReportRepository {
 
   private async recomputeOutdated(versionId: string): Promise<void> {
     const outdatedOfficialReport = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: {
         id: versionId,
         OR: [
@@ -924,7 +931,7 @@ export class OfficialReportRepository {
     // the versions cascade away with the report, their stored files do not
     const versions = await this.db.tx.officialReportVersion.findMany({
       where: { officialReportId: message.officialReportId, pdfId: { not: null } },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { pdf: { select: { id: true, path: true } } } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     await this.db.tx.officialReport.delete({

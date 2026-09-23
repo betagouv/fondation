@@ -6,6 +6,7 @@ import z from 'zod';
 import { FinalDocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { AgendaFinder } from '../finders/agenda.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -83,7 +84,7 @@ export class IsSessionReadyForDocGenerationQuery {
     });
 
     const hasAnyUnreportedFile = await this.db.tx.dossierDeNomination.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
       where: {
         sessionId: query.sessionId,
         NOT: {
@@ -99,14 +100,14 @@ export class IsSessionReadyForDocGenerationQuery {
     });
 
     const hasAnyPublishedReporter = await this.db.tx.nominationFileToReporter.findFirst({
-      select: { userId: true },
+      select: { userId: true } satisfies Prisma.NominationFileToReporterSelect,
       where: { versionId: publishedVersion.id },
     });
 
     const hasAnyDraftReporter =
       !hasAnyPublishedReporter &&
       (await this.db.tx.nominationFileToReporter.findFirst({
-        select: { userId: true },
+        select: { userId: true } satisfies Prisma.NominationFileToReporterSelect,
         where: { nominationFile: { sessionId: query.sessionId } },
       }));
 
@@ -156,7 +157,7 @@ export class IsSessionReadyForDocGenerationQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const agendas = found

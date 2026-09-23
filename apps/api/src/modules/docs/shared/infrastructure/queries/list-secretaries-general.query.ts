@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { Db } from 'src/modules/framework/database';
@@ -23,7 +24,7 @@ export class ListSecretariesGeneralQuery {
         duty: true,
         title: true,
         gender: true,
-      },
+      } satisfies Prisma.UserSelect,
     });
 
     return {

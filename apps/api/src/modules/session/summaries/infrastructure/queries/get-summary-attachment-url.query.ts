@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
@@ -45,7 +46,7 @@ export class GetSummaryAttachmentUrlQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     const summary = session?.dossierDeNominations[0]?.summary;

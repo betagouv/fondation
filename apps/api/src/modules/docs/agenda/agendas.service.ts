@@ -11,6 +11,7 @@ import {
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -302,7 +303,7 @@ export class AgendasService {
             nominationFiles: { select: { nominationFileId: true, htmlEdited: true } },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     return new Map(
