@@ -5,10 +5,10 @@ packages:
 catalog:
   'zod': 4.4.3
   '@faker-js/faker': 10.6.0
-  'oxlint': 1.80.0
+  'oxlint': 1.82.0
   'oxlint-tsgolint': 0.25.0
   'typescript': 6.0.3
-  '@types/node': 26.4.0
+  '@types/node': 26.5.0
   '@hey-api/openapi-ts': 0.99.0
   'vitest': 4.1.11
   'vitest-mock-extended': 5.1.1
