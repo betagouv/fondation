@@ -19,6 +19,7 @@ import {
   ObservationMemberCommentWritten,
   ObservationUpdated,
 } from '../../domain/observation';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files/files';
 import { assertNever } from 'src/utils/assert-never';
@@ -52,7 +53,7 @@ export class ObservationRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.ObservationSelect,
     });
 
     if (!result) throw new NotFoundException();
@@ -139,7 +140,7 @@ export class ObservationRepository {
   private async persistObservationFilesDetached(message: ObservationFilesDetached) {
     const observation = await this.db.tx.observationFile.findMany({
       where: { fileId: { in: message.fileIds as string[] } },
-      select: { file: { select: { id: true, path: true } } },
+      select: { file: { select: { id: true, path: true } } } satisfies Prisma.ObservationFileSelect,
     });
 
     await this.db.tx.observationFile.deleteMany({
@@ -223,7 +224,7 @@ export class ObservationRepository {
 
   private async persistObservationFileLinked(message: ObservationFileLinked) {
     const existingFile = await this.db.tx.file.findUnique({
-      select: { name: true, path: true, bucket: true },
+      select: { name: true, path: true, bucket: true } satisfies Prisma.FileSelect,
       where: { id: message.file.fileId },
     });
 
@@ -234,7 +235,7 @@ export class ObservationRepository {
 
     const { bucket, path, name } = existingFile;
     const file = await this.db.tx.file.create({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.FileSelect,
       data: {
         id: makeId('FileId'),
         bucket,

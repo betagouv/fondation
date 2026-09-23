@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
@@ -28,7 +29,7 @@ export class UnaffectedFilesFinder {
         id: true,
         targetedGrade: true,
         number: true,
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
       where: {
         outcome: null,
         sessionId: predicate.sessionId,

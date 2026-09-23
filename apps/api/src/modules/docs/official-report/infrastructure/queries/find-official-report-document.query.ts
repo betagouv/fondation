@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { OfficialReportRenderContextFinder } from '../finders/official-report-render-context.finder';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -22,7 +23,7 @@ export class FindOfficialReportDocumentQuery {
     if (!query.forceNew) {
       const version = await this.db.tx.officialReportVersion.findUnique({
         where: { id: versionId },
-        select: { html: true },
+        select: { html: true } satisfies Prisma.OfficialReportVersionSelect,
       });
 
       if (version?.html) return version.html;

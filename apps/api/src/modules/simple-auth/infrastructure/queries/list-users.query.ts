@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaRoleEnum } from 'src/generated/prisma/client';
+import { Prisma, PrismaRoleEnum } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
@@ -36,7 +36,7 @@ export class ListUsersQuery {
 
       if (includeIds.size) {
         const nextItems = await this.db.tx.user.findMany({
-          select: { id: true, firstName: true, lastName: true, role: true },
+          select: { id: true, firstName: true, lastName: true, role: true } satisfies Prisma.UserSelect,
           where: { id: { in: [...includeIds] } },
           orderBy: { lastName: 'asc' },
         });
@@ -45,7 +45,7 @@ export class ListUsersQuery {
 
       if (!(includeIds.size > 0 && query.includeIdsOnly)) {
         const nextItems = await this.db.tx.user.findMany({
-          select: { id: true, role: true, firstName: true, lastName: true },
+          select: { id: true, role: true, firstName: true, lastName: true } satisfies Prisma.UserSelect,
           orderBy: { lastName: 'asc' },
           take: query.limit ? query.limit - union.length : undefined,
           where: {

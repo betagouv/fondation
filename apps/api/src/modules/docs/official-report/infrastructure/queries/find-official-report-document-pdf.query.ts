@@ -8,6 +8,7 @@ import {
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
@@ -32,7 +33,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
-      select: { pdfId: true },
+      select: { pdfId: true } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     if (version?.pdfId) return;
@@ -51,7 +52,7 @@ export class FindOfficialReportDocumentPdfQuery {
           select: { agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 } },
         },
         pdf: { select: { id: true, name: true } },
-      },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     if (!officialReport) throw new NotFoundException();

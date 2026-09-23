@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
 import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
@@ -24,7 +25,7 @@ export class ListMagistratNominationFilesQuery {
     return this.db.withTransaction(async () => {
       const magistrat = await this.db.tx.magistrat.findUnique({
         where: { id: query.magistratId },
-        select: { id: true },
+        select: { id: true } satisfies Prisma.MagistratSelect,
       });
       if (!magistrat) throw new NotFoundException();
 

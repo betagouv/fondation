@@ -1,6 +1,7 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import {
@@ -34,7 +35,7 @@ export class SummaryRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     const summary = session?.dossierDeNominations[0]?.summary;
@@ -91,7 +92,7 @@ export class SummaryRepository {
     });
 
     const files = await this.db.tx.file.findMany({
-      select: { id: true, path: true },
+      select: { id: true, path: true } satisfies Prisma.FileSelect,
       where: { id: { in: message.fileIds as string[] } },
     });
 

@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
@@ -42,7 +43,7 @@ export class AutoAffectationsFinder {
       select: {
         date: true,
         formation: true,
-      },
+      } satisfies Prisma.SessionSelect,
     });
 
     if (!session) throw new NotFoundException();
@@ -141,7 +142,7 @@ export class AutoAffectationsFinder {
           excludedJurisdictionIds: {
             select: { jurisdictionId: true },
           },
-        },
+        } satisfies Prisma.UserSelect,
       }),
 
       await this.db.tx.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),

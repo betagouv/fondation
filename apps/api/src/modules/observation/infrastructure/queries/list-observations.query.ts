@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
+import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 
@@ -83,7 +84,7 @@ export class ListObservationsQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.ObservationSelect,
     });
 
     const magistratIds = [

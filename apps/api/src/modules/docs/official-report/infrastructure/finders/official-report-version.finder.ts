@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async published(query: { officialReportId: string }): Promise<string | null> {
     const version = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId, status: 'VALIDATED' },
       orderBy: { version: 'desc' },
     });
@@ -26,7 +27,7 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async latest(query: { officialReportId: string }): Promise<string> {
     const version = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId },
       orderBy: { version: 'desc' },
     });

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
@@ -18,7 +19,7 @@ export class GetLolfiMagistratUrlQuery {
         select: {
           name: true,
           detectedMagistrat: { select: { externalId: true } },
-        },
+        } satisfies Prisma.DossierDeNominationSelect,
       });
 
       if (!nominationFile) return null;

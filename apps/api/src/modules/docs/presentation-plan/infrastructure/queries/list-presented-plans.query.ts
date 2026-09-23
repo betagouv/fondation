@@ -48,7 +48,7 @@ export class ListPresentedPlansQuery {
           take: 1,
           select: { agenda: { select: { formation: true } } },
         },
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     return paginate({

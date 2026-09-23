@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class SearchMagistratAuthorizationQuery {
   async handle(query: { email: string }): Promise<FoundMagistratAuthorizationDto> {
     const magistrat = await this.db.tx.magistrat.findFirst({
       where: { professionalEmail: { equals: query.email, mode: 'insensitive' } },
-      select: { externalId: true },
+      select: { externalId: true } satisfies Prisma.MagistratSelect,
     });
 
     return {

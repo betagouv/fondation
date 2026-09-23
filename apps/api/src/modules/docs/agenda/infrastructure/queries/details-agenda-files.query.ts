@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class DetailsAgendaFilesQuery {
 
     const items = await this.db.tx.agendaNominationFile.findMany({
       where: { versionId, nominationFileId: { not: null } },
-      select: { nominationFileId: true },
+      select: { nominationFileId: true } satisfies Prisma.AgendaNominationFileSelect,
     });
 
     return { items: items.flatMap(({ nominationFileId }) => (nominationFileId ? [nominationFileId] : [])) };

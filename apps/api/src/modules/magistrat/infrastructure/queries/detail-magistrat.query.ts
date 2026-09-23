@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
@@ -31,7 +32,7 @@ export class DetailMagistratQuery {
           careerHistory: true,
           currentPositionId: true,
           externalId: true,
-        },
+        } satisfies Prisma.MagistratSelect,
       });
 
       if (!magistrat) throw new NotFoundException();
@@ -72,7 +73,7 @@ export class DetailMagistratQuery {
         gradeId: true,
         function: { select: { id: true, label: true } },
         jurisdiction: { select: { codejur: true, libelle: true } },
-      },
+      } satisfies Prisma.PositionSelect,
     });
 
     if (!position) return null;

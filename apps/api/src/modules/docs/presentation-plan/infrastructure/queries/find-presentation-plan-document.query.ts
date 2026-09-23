@@ -6,6 +6,7 @@ import {
   PresentationPlanRenderContext,
   PresentationPlanRenderer,
 } from '../services/renderers/presentation-plan.renderer';
+import { Prisma } from 'src/generated/prisma/client';
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -26,7 +27,7 @@ export class FindPresentationPlanDocumentQuery {
     if (!query.forceNew) {
       const plan = await this.db.tx.justicePresentationPlan.findUnique({
         where: { id: query.id },
-        select: { html: true },
+        select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
       });
 
       if (!plan) throw new NotFoundException();
@@ -83,7 +84,7 @@ export class FindPresentationPlanDocumentQuery {
 
         secretaryFirstName: true,
         secretaryLastName: true,
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     if (!plan) throw new NotFoundException();

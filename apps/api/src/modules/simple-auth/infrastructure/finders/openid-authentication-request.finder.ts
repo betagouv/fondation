@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { OpenIdProvider } from 'src/modules/simple-auth/openid';
 import { Id, makeId } from 'src/utils/id';
@@ -29,7 +30,7 @@ export class OpenIdAuthenticationRequestFinder {
         id: true,
         nonce: true,
         provider: true,
-      },
+      } satisfies Prisma.OpenIdRequestSelect,
     });
 
     if (!found) {

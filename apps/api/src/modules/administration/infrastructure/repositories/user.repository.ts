@@ -13,6 +13,7 @@ import {
   UserRoleUpdated,
   UsersUntitled,
 } from '../../domain/user';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import {
   prismaRoleEnumToRoleEnum,
@@ -32,7 +33,7 @@ export class UserRepository {
         role: true,
         title: true,
         duty: true,
-      },
+      } satisfies Prisma.UserSelect,
     });
     if (!user) throw new NotFoundException();
 
@@ -49,7 +50,7 @@ export class UserRepository {
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.db.tx.user.findMany({
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
-      select: { id: true, lastName: true, role: true, title: true, duty: true },
+      select: { id: true, lastName: true, role: true, title: true, duty: true } satisfies Prisma.UserSelect,
     });
 
     return new Map(

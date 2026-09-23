@@ -4,6 +4,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { isDefined } from 'src/utils/is-defined';
@@ -29,7 +30,7 @@ export class GetReportFileUrlsQuery {
           where: { file: { name: { in: query.fileNames as string[] } } },
           select: { file: { select: { id: true, name: true, path: true } } },
         },
-      },
+      } satisfies Prisma.ReportSelect,
     });
 
     if (!report) throw new NotFoundException();

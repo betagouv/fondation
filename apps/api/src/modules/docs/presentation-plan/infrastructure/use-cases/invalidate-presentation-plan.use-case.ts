@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
@@ -41,7 +42,7 @@ export class InternalInvalidatePresentationPlanUseCase {
   private async planIdsOfAgenda(agendaId: string): Promise<string[]> {
     const links = await this.db.tx.justicePresentationPlanToAgenda.findMany({
       where: { agendaId },
-      select: { planId: true },
+      select: { planId: true } satisfies Prisma.JusticePresentationPlanToAgendaSelect,
     });
 
     return links.map(({ planId }) => planId);
@@ -51,7 +52,7 @@ export class InternalInvalidatePresentationPlanUseCase {
     const files = await this.db.tx.justicePresentationPlanNominationFile.findMany({
       where: { nominationFileId },
       distinct: ['planId'],
-      select: { planId: true },
+      select: { planId: true } satisfies Prisma.JusticePresentationPlanNominationFileSelect,
     });
 
     return files.map(({ planId }) => planId);

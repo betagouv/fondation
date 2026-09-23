@@ -5,6 +5,7 @@ import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infras
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
+import { Prisma } from 'src/generated/prisma/client';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
@@ -73,7 +74,9 @@ export class InternalInvalidateOfficialReportUseCase {
     // a report holding a draft carries the file twice, and it is invalidated once
     const files = await this.db.tx.officialReportNominationFile.findMany({
       where: { nominationFileId: query.invalidation.payload.nominationFileId },
-      select: { version: { select: { officialReportId: true } } },
+      select: {
+        version: { select: { officialReportId: true } },
+      } satisfies Prisma.OfficialReportNominationFileSelect,
       distinct: ['versionId'],
     });
 
@@ -111,7 +114,7 @@ export class InternalInvalidateOfficialReportUseCase {
             nominationFiles: { select: { htmlEdited: true }, where: { nominationFileId } },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     if (!agenda?.officialReportId) return [];
@@ -122,7 +125,7 @@ export class InternalInvalidateOfficialReportUseCase {
     });
     const reportFile = await this.db.tx.officialReportNominationFile.findFirst({
       where: { versionId: reportVersionId, nominationFileId },
-      select: { htmlEdited: true },
+      select: { htmlEdited: true } satisfies Prisma.OfficialReportNominationFileSelect,
     });
 
     const reportHtml = reportFile?.htmlEdited ?? null;
@@ -152,7 +155,7 @@ export class InternalInvalidateOfficialReportUseCase {
           ...AGENDA_CONTENT_VERSIONS,
           select: { status: true, nominationFiles: { select: { nominationFileId: true } } },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const agendasWithOfficialReport = agendas.filter(
@@ -198,7 +201,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }): Promise<InvalidateOfficialReportCommand[]> {
     const agenda = await this.db.tx.agenda.findUnique({
       where: { id: query.invalidation.payload.agendaId },
-      select: { id: true, sessionId: true, officialReportId: true },
+      select: { id: true, sessionId: true, officialReportId: true } satisfies Prisma.AgendaSelect,
     });
 
     if (!agenda?.officialReportId) return [];
@@ -221,7 +224,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }): Promise<InvalidateOfficialReportCommand[]> {
     const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.invalidation.payload.sessionId, officialReportId: { not: null } },
-      select: { id: true, sessionId: true, officialReportId: true },
+      select: { id: true, sessionId: true, officialReportId: true } satisfies Prisma.AgendaSelect,
     });
 
     return agendas
@@ -254,7 +257,7 @@ export class InternalInvalidateOfficialReportUseCase {
           ...AGENDA_CONTENT_VERSIONS,
           select: { status: true, nominationFiles: { select: { nominationFileId: true } } },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const agendasWithOfficialReport = agendas.filter(

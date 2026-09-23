@@ -7,6 +7,7 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { assertNever } from 'src/utils/assert-never';
@@ -24,7 +25,7 @@ export class ReportRepository {
     const result = await this.db.withTransaction(async () => {
       const report = await this.db.tx.report.findUnique({
         where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
-        select: { id: true, sessionId: true, nominationFileId: true },
+        select: { id: true, sessionId: true, nominationFileId: true } satisfies Prisma.ReportSelect,
       });
       if (!report) return null;
 
@@ -37,7 +38,7 @@ export class ReportRepository {
        */
       const user = await this.db.tx.user.findUnique({
         where: { id: props.reporterId },
-        select: { firstName: true, lastName: true },
+        select: { firstName: true, lastName: true } satisfies Prisma.UserSelect,
       });
       if (!user) return null;
 
@@ -46,7 +47,7 @@ export class ReportRepository {
         lastName.toUpperCase() + ' ' + (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
 
       const session = await this.db.tx.session.findUnique({
-        select: { name: true, deletedAt: true, archivedAt: true },
+        select: { name: true, deletedAt: true, archivedAt: true } satisfies Prisma.SessionSelect,
         where: { id: report?.sessionId },
       });
 
@@ -103,7 +104,7 @@ export class ReportRepository {
             where: { file: { name: { in: message.fileNames as string[] } } },
             include: { file: { select: { name: true, path: true, id: true } } },
           },
-        },
+        } satisfies Prisma.ReportInclude,
       });
 
       const files = (report?.files ?? []).map(({ file }) => ({

@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Objects } from 'src/modules/framework/files';
 
@@ -21,7 +22,10 @@ export class DetailsSessionOfficialReportQuery {
     const version = await this.db.withTransaction(() =>
       this.db.tx.officialReportVersion.findUnique({
         where: { id: publishedVersionId },
-        select: { officialReportId: true, pdf: { select: { id: true } } },
+        select: {
+          officialReportId: true,
+          pdf: { select: { id: true } },
+        } satisfies Prisma.OfficialReportVersionSelect,
       }),
     );
 

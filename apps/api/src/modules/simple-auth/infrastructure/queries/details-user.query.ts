@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -31,7 +32,7 @@ export class DetailsUserQuery {
         duty: true,
         title: true,
         displayTitle: true,
-      },
+      } satisfies Prisma.UserSelect,
     });
 
     if (!maybeUser) throw new NotFoundException();

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { formatDate } from 'date-fns';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
@@ -47,7 +48,7 @@ export class FindPresentationPlanDocumentPdfQuery {
           take: 1,
           select: { agenda: { select: { formation: true } } },
         },
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     if (!plan || !plan.agendas.length) throw new NotFoundException();

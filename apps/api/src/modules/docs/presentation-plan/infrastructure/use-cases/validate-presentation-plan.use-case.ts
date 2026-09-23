@@ -4,6 +4,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { JusticePresentationPlanChangedWhileValidated } from '../../domain/justice-presentation-plan';
 import { FindPresentationPlanDocumentPdfQuery } from '../queries/find-presentation-plan-document-pdf.query';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
+import { Prisma } from 'src/generated/prisma/client';
 import { lockAgendasRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -21,7 +22,10 @@ export class ValidatePresentationPlanUseCase {
   async handle(command: { id: string; validatorId: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { pdfId: true, agendas: { select: { agendaId: true } } },
+      select: {
+        pdfId: true,
+        agendas: { select: { agendaId: true } },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
     if (!plan) throw new NotFoundException();
     if (plan.pdfId) return;
@@ -49,7 +53,10 @@ export class ValidatePresentationPlanUseCase {
     // another validation may have taken an agenda meanwhile, even from a text edited by hand that still reads it
     const stored = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
-      select: { html: true, agendas: { select: { agendaId: true } } },
+      select: {
+        html: true,
+        agendas: { select: { agendaId: true } },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
     const agendaIds = new Set(stored?.agendas.map(({ agendaId }) => agendaId));
     if (stored?.html !== command.html || agendaIds.symmetricDifference(new Set(command.agendaIds)).size > 0) {
@@ -65,7 +72,7 @@ export class ValidatePresentationPlanUseCase {
     const drafts = await this.db.tx.justicePresentationPlanToAgenda.findMany({
       where: { agendaId: { in: command.agendaIds }, planId: { not: command.id } },
       distinct: ['planId'],
-      select: { planId: true },
+      select: { planId: true } satisfies Prisma.JusticePresentationPlanToAgendaSelect,
     });
 
     for (const { planId } of drafts) {

@@ -1,6 +1,7 @@
 import { Propagation } from '@nestjs-cls/transactional';
 import { Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
@@ -74,7 +75,7 @@ export class DbStorage implements Storage {
         for (const file of files) {
           const { path } = await this.db.tx.file.delete({
             where: { id: file.id },
-            select: { path: true },
+            select: { path: true } satisfies Prisma.FileSelect,
           });
           file.path = path as unknown as StorablePath;
         }
@@ -107,7 +108,7 @@ export class DbStorage implements Storage {
             orderBy: { expiresAt: 'desc' },
             take: 1,
           },
-        },
+        } satisfies Prisma.FileSelect,
       });
 
       const [withExistingUrl, withoutExistingUrl] = partition(
@@ -172,7 +173,7 @@ export class DbStorage implements Storage {
     if ('id' in object) {
       const file = await this.db.tx.file.findUnique({
         where: { id: object.id },
-        select: { id: true, name: true, path: true },
+        select: { id: true, name: true, path: true } satisfies Prisma.FileSelect,
       });
 
       return this.storage.toStreamableFile(
@@ -182,7 +183,7 @@ export class DbStorage implements Storage {
 
     const publicUrl = await this.db.tx.filePublicUrl.findUnique({
       where: { id: object.publicUrlId, expiresAt: { gt: this.clock.now() } },
-      select: { url: true, expiresAt: true },
+      select: { url: true, expiresAt: true } satisfies Prisma.FilePublicUrlSelect,
     });
 
     if (!publicUrl) {

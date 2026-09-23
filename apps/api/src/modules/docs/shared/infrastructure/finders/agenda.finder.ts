@@ -41,7 +41,10 @@ export class AgendaFinder {
     const where = await this.buildFindReportableInOfficialReport(query);
     if (!where) return false;
 
-    const result = await this.db.tx.agenda.findFirst({ where, select: { id: true } });
+    const result = await this.db.tx.agenda.findFirst({
+      where,
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
     return Boolean(result);
   }
 
@@ -166,7 +169,7 @@ export class AgendaFinder {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const items = found

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -60,7 +61,7 @@ export class ListNominationFilesAsExcelQuery {
               },
             },
           },
-        },
+        } satisfies Prisma.SessionSelect,
       });
     });
 

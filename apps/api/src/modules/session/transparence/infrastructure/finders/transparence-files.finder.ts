@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
@@ -26,7 +27,7 @@ export class TransparenceFilesFinder {
         sessionId: query.sessionId,
         number: { in: query.fileNumbers as number[] },
       },
-      select: { id: true, number: true },
+      select: { id: true, number: true } satisfies Prisma.DossierDeNominationSelect,
     });
 
     return files
@@ -48,7 +49,7 @@ export class TransparenceFilesFinder {
       select: {
         id: true,
         outcome: true,
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
     });
 
     const reportedFileIds = await this.docs.internalFindReportedNominationFiles({

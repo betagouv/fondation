@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -34,7 +35,7 @@ export class ListJobsQuery {
         startedAt: true,
         endedAt: true,
         errors: { select: { error: true } },
-      },
+      } satisfies Prisma.IngestionJobSelect,
     });
 
     return paginate({

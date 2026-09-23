@@ -60,7 +60,7 @@ export class JusticePresentationPlanRepository {
             targetedPosition: true,
           },
         },
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     if (!found || found.agendas.length === 0) throw new NotFoundException();
@@ -109,7 +109,7 @@ export class JusticePresentationPlanRepository {
   ) {
     const justiceContact = await this.db.tx.justiceDepartmentContact.findUnique({
       where: { id: BigInt(message.state.justiceContactId) },
-      select: { id: true, name: true },
+      select: { id: true, name: true } satisfies Prisma.JusticeDepartmentContactSelect,
     });
 
     if (!justiceContact) {
@@ -134,7 +134,7 @@ export class JusticePresentationPlanRepository {
             },
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const nominationFiles = await Promise.all(
@@ -201,7 +201,7 @@ export class JusticePresentationPlanRepository {
 
     const stale = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { pdf: { select: { id: true, path: true } } } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     await this.db.tx.justicePresentationPlanMember.deleteMany({ where: { planId: message.id } });
@@ -263,7 +263,7 @@ export class JusticePresentationPlanRepository {
 
     const file = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: message.id },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { pdf: { select: { id: true, path: true } } } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     await this.db.tx.justicePresentationPlan.delete({

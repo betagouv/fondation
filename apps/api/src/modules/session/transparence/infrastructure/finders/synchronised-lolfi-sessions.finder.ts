@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -13,7 +14,10 @@ export class SynchronisedLolfiSessionsFinder {
   async find(lolfiSessionIds: readonly number[]): Promise<Map<number, Set<FormationEnum>>> {
     const sessions = await this.db.tx.sessionTransparenceGds.findMany({
       where: { lolfiSessionId: { in: [...lolfiSessionIds] } },
-      select: { lolfiSessionId: true, session: { select: { formation: true } } },
+      select: {
+        lolfiSessionId: true,
+        session: { select: { formation: true } },
+      } satisfies Prisma.SessionTransparenceGdsSelect,
     });
 
     const perLolfiSession = new Map<number, Set<FormationEnum>>();

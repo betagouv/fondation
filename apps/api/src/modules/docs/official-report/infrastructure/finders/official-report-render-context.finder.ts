@@ -7,6 +7,7 @@ import { OfficialReportMembersList } from '../../domain/official-report-member-l
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
@@ -136,7 +137,7 @@ export class OfficialReportRenderContextFinder {
         conclusionOutdated: true,
         sectionTitles: { select: { outcome: true, title: true } },
         sectionIntros: { select: { outcome: true, html: true } },
-      },
+      } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     if (!report) throw new NotFoundException();
@@ -163,7 +164,7 @@ export class OfficialReportRenderContextFinder {
 
     const session = await this.db.tx.session.findUnique({
       where: { id: agenda.sessionId, deletedAt: null },
-      select: { date: true, formation: true },
+      select: { date: true, formation: true } satisfies Prisma.SessionSelect,
     });
     if (!session) throw new NotFoundException();
 

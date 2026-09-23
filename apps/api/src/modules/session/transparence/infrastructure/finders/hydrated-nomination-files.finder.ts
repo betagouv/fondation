@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -103,7 +104,7 @@ export class HydratedNominationFilesFinder {
             validatedAt: true,
           },
         },
-      },
+      } satisfies Prisma.DossierDeNominationSelect,
     });
 
     if (!file) return null;

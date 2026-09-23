@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
+import { Prisma } from 'src/generated/prisma/client';
 import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -36,7 +37,7 @@ export class ListNonPresentedPlansQuery {
           select: { agenda: { select: { formation: true } } },
         },
         removedAgendas: { take: 1, select: { agendaId: true } },
-      },
+      } satisfies Prisma.JusticePresentationPlanSelect,
       where: { isPresented: false },
     });
 

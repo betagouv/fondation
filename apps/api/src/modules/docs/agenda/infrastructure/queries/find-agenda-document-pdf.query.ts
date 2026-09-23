@@ -8,6 +8,7 @@ import {
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
 import { PdfRenderer } from 'src/modules/framework/pdf';
@@ -32,7 +33,7 @@ export class FindAgendaDocumentPdfQuery {
     const versionId = await this.agendaVersionFinder.latest({ agendaId: query.id });
     const version = await this.db.tx.agendaVersion.findUnique({
       where: { id: versionId },
-      select: { pdfFileId: true },
+      select: { pdfFileId: true } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (version?.pdfFileId) return;
@@ -50,7 +51,7 @@ export class FindAgendaDocumentPdfQuery {
         chairmanLastName: true,
         pdf: { select: { id: true, name: true } },
         agenda: { select: { sessionId: true, sessionName: true, formation: true } },
-      },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!version) throw new NotFoundException();

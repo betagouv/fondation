@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { captureException } from '@sentry/node';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 
@@ -29,7 +30,7 @@ export class DetailsUserFromImpersonationQuery {
             user: { select: { id: true, role: true } },
           },
         },
-      },
+      } satisfies Prisma.AuthImpersonationSelect,
     });
 
     if (!found) return null;

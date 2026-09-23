@@ -22,6 +22,7 @@ import {
 } from '../../domain/agenda';
 import { AgendaSnapshot } from '../../domain/agenda-snapshot';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
+import { Prisma } from 'src/generated/prisma/client';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
@@ -90,7 +91,7 @@ export class AgendaRepository {
           where: { nominationFileId: { not: null } },
           select: { id: true, nominationFileId: true, reporters: true, htmlEdited: true },
         },
-      },
+      } satisfies Prisma.AgendaVersionSelect,
       where: { id: versionId },
     });
 
@@ -132,7 +133,7 @@ export class AgendaRepository {
   private async persistAgendaCreated(message: AgendaCreated) {
     const session = await this.db.tx.session.findUnique({
       where: { id: message.sessionId, deletedAt: null },
-      select: { formation: true, name: true },
+      select: { formation: true, name: true } satisfies Prisma.SessionSelect,
     });
 
     if (!session) throw new InternalServerErrorException();
@@ -245,7 +246,7 @@ export class AgendaRepository {
   private async invalidateAgendaDocument(versionId: string): Promise<void> {
     const version = await this.db.tx.agendaVersion.findUnique({
       where: { id: versionId },
-      select: { pdf: { select: { id: true, path: true } } },
+      select: { pdf: { select: { id: true, path: true } } } satisfies Prisma.AgendaVersionSelect,
     });
 
     await this.db.tx.agendaVersion.update({
@@ -276,7 +277,7 @@ export class AgendaRepository {
         justicePresentationPlans: {
           select: { planId: true, plan: { select: { pdf: { select: { id: true, path: true } } } } },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
     if (!found) return;
 
@@ -331,7 +332,7 @@ export class AgendaRepository {
             htmlOutdated: true,
           },
         },
-      },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!validated) throw new NotFoundException();
@@ -357,7 +358,11 @@ export class AgendaRepository {
     const versions = await this.db.tx.agendaVersion.findMany({
       where: { agendaId: message.agendaId },
       orderBy: { version: 'desc' },
-      select: { id: true, status: true, pdf: { select: { id: true, path: true } } },
+      select: {
+        id: true,
+        status: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.AgendaVersionSelect,
     });
 
     const [draft, ...superseded] = versions;
@@ -380,7 +385,7 @@ export class AgendaRepository {
     const draft = await this.db.tx.agendaVersion.findFirst({
       where: { agendaId: message.agendaId, status: 'DRAFT' },
       orderBy: { version: 'desc' },
-      select: { id: true, pdf: { select: { id: true, path: true } } },
+      select: { id: true, pdf: { select: { id: true, path: true } } } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!draft) throw new NotFoundException();
@@ -443,12 +448,12 @@ export class AgendaRepository {
 
   private async recomputeAgendaState(versionId: string): Promise<void> {
     const manuallyEdited = await this.db.tx.agendaVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.AgendaVersionSelect,
       where: { id: versionId, nominationFiles: { some: { htmlEdited: { not: null } } } },
     });
 
     const outdated = await this.db.tx.agendaVersion.findFirst({
-      select: { id: true },
+      select: { id: true } satisfies Prisma.AgendaVersionSelect,
       where: { id: versionId, nominationFiles: { some: { htmlOutdated: true } } },
     });
 

@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { isMember, MEMBER_ROLES } from '../member.utils';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
@@ -29,7 +30,7 @@ export class InternalGetMemberQuery {
         title: true,
         duty: true,
         sort: true,
-      },
+      } satisfies Prisma.UserSelect,
     });
 
     if (!member || !isMember(member)) throw new NotFoundException();

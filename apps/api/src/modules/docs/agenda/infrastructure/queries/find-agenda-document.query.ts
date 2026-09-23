@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
+import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class FindAgendaDocumentQuery {
     if (!query.forceNew) {
       const version = await this.db.tx.agendaVersion.findUnique({
         where: { id: versionId },
-        select: { html: true },
+        select: { html: true } satisfies Prisma.AgendaVersionSelect,
       });
 
       if (!version) throw new NotFoundException();

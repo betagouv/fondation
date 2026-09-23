@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
+import { Prisma } from 'src/generated/prisma/client';
 import {
   presentationPlanStatusOf,
   presentationPlanStatusSchema,
@@ -21,7 +22,7 @@ export class FindSessionDocsQuery {
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
     const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId },
-      select: { typeDeSaisine: true },
+      select: { typeDeSaisine: true } satisfies Prisma.SessionSelect,
     });
     const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.sessionId },
@@ -58,7 +59,7 @@ export class FindSessionDocsQuery {
             chairmanLastName: true,
           },
         },
-      },
+      } satisfies Prisma.AgendaSelect,
     });
 
     const agendaFiles = agendas.flatMap(({ versions, ...agenda }) => {
@@ -96,7 +97,7 @@ export class FindSessionDocsQuery {
             chairmanLastName: true,
           },
         },
-      },
+      } satisfies Prisma.OfficialReportSelect,
     });
 
     const officialReportFiles = officialReports.flatMap(({ versions, ...report }) => {
