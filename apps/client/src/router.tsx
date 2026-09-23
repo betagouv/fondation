@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, redirect } from 'react-router';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { roleGuard } from '@/features/auth/guards/role-guard';
@@ -312,6 +312,11 @@ export const router = sentryCreateBrowserRouter([
                       import('@/pages/documents/presentations/PresentationsTabAgendas').then(
                         ({ PresentationsTabAgendas }) => ({ Component: PresentationsTabAgendas }),
                       ),
+                  },
+                  {
+                    // the url the tab had until it was renamed, kept for the bookmarks
+                    path: '/secretariat-general/restitutions/passees',
+                    loader: () => redirect(ROUTE_PATHS.SG.PRESENTATIONS_PAST),
                   },
                   {
                     path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,

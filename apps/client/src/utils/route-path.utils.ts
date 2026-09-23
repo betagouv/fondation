@@ -47,7 +47,7 @@ export const ROUTE_PATHS = {
 
     PRESENTATIONS_AGENDAS: '/secretariat-general/restitutions/ordres-du-jour',
     PRESENTATIONS_READY: '/secretariat-general/restitutions/a-restituer',
-    PRESENTATIONS_PAST: '/secretariat-general/restitutions/passees',
+    PRESENTATIONS_PAST: '/secretariat-general/restitutions/restituees',
     PRESENTATIONS_NEW: '/secretariat-general/restitutions/nouvelle-notice',
     PRESENTATIONS_UPDATE: '/secretariat-general/restitutions/:planId',
     PRESENTATIONS_PREVIEW: '/secretariat-general/restitutions/:planId/validation',
