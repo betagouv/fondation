@@ -63,7 +63,7 @@ export class InvalidateAgendasUseCase {
     const nominationFilesPerId = new Map(updatedNominationFiles.map((file) => [file.id, file]));
 
     for (const { agendaId, nominationFiles } of agendas) {
-      const agenda = await this.agendaRepository.find({ agendaId });
+      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
       agenda.updateFilesReporters({
         nominationFiles: nominationFiles.flatMap(({ nominationFileId }) => {
           if (!nominationFileId) return [];

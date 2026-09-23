@@ -1143,4 +1143,139 @@ test.describe('Docs Service', () => {
     const awaiting = await agent.docs.listPresentationPlanAgendas();
     expect(awaiting.data!.items.map(({ id }) => id)).toContain(keptAgendaId);
   });
+
+  test('should tell apart a draft the application opened from one a person works on', async ({
+    agent,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const otherReporter = await registerUser('MEMBRE_DU_PARQUET');
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+
+    const affect = async (reporterId: string) => {
+      await agent.sessions.affectReporters({
+        path: { sessionId },
+        body: {
+          items: foundFiles.data!.items.map(({ id }) => ({
+            nominationFileId: id,
+            priorities: [],
+            reporterIds: [reporterId],
+          })),
+        },
+      });
+      await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    };
+    await affect(member['@user']!.id);
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    const agendaId = agenda.data!.id;
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const draftOf = async () => {
+      const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+      return docs.data!.items.find(({ id }) => id === agendaId)?.draftChangesBy;
+    };
+    expect(await draftOf()).toBeNull();
+
+    // the new reporters land in a draft the application opens on its own
+    await affect(otherReporter.id);
+    expect(await draftOf()).toBe('SYSTEM');
+
+    await agent.docs.validateAgenda({ path: { agendaId } });
+    const edited = await agent.docs.updateAgendaMetadata({
+      path: { agendaId },
+      body: { chairmanId, date: { day: 2, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+    });
+    expect(edited.response?.status).toBe(204);
+    expect(await draftOf()).toBe('PERSON');
+
+    await affect(member['@user']!.id);
+    expect(await draftOf()).toBe('PERSON_AND_SYSTEM');
+  });
+
+  test('should tell a person changing the metadata of a validated official report', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    // a report is only ever made from an agenda whose files are all decided and reported on
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        path: { nominationFileId, sessionId },
+        body: { comment: null, outcome: 'VALIDATED' },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
+        sessionMeetingDate: MEETING_DATE,
+      },
+    });
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId,
+      hasRenunciation: true,
+      justiceDepartmentContactId: justiceContact.data!.id,
+      secretaryId: firstSecretaryId,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const created = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: { ...metadata, agendas: [agenda.data!.id] },
+    });
+    const officialReportId = created.data!.id;
+    await agent.docs.validateOfficialReport({ path: { officialReportId } });
+
+    const updated = await agent.docs.updateOfficialReport({
+      path: { officialReportId },
+      body: { ...metadata, hasRenunciation: false },
+    });
+    expect(updated.response?.status).toBe(204);
+
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ draftChangesBy: 'PERSON', status: 'DRAFT' });
+
+    // the draft the application opens later on starts from the validated version, not from its traces
+    await agent.docs.updateOfficialReport({ path: { officialReportId }, body: metadata });
+    await agent.docs.validateOfficialReport({ path: { officialReportId } });
+    await agent.docs.updateAgendaMetadata({
+      path: { agendaId: agenda.data!.id },
+      body: { chairmanId, date: { day: 3, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+    });
+
+    const reopened = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(reopened.data).toMatchObject({ draftChangesBy: 'SYSTEM', status: 'DRAFT' });
+  });
 });

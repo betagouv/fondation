@@ -19,7 +19,7 @@ function MountProbe(props: { name: string; onMount: () => void }) {
 const DOCS: SessionDocument[] = [
   {
     createdAt: CREATED_AT,
-    hasDraft: false,
+    draftChangesBy: null,
     id: 'agenda-1',
     name: 'Ordre du jour du 12 mars',
     officialReportId: null,
@@ -31,7 +31,7 @@ const DOCS: SessionDocument[] = [
   },
   {
     createdAt: '2028-03-13T09:00:00.000Z',
-    hasDraft: false,
+    draftChangesBy: null,
     id: 'pv-1',
     name: 'Procès-verbal du 12 mars',
     outdated: true,
@@ -56,6 +56,37 @@ const rowTexts = () =>
     .map((row) => row.textContent);
 
 describe('SessionDocumentsTable', () => {
+  describe('a validated document with a draft', () => {
+    const [agenda, officialReport] = DOCS;
+
+    it('should say someone has changes in progress', () => {
+      render(table([{ ...agenda!, draftChangesBy: 'PERSON' }]));
+
+      expect(screen.getByText('modifications en cours')).toBeInTheDocument();
+    });
+
+    it('should say the application updated it and it waits for validation', () => {
+      render(table([{ ...agenda!, draftChangesBy: 'SYSTEM' }]));
+
+      expect(screen.getByText('mis à jour, à valider')).toBeInTheDocument();
+      expect(screen.queryByText('modifications en cours')).not.toBeInTheDocument();
+    });
+
+    it('should say both when the application changed a draft someone works on', () => {
+      render(table([{ ...agenda!, draftChangesBy: 'PERSON_AND_SYSTEM' }]));
+
+      expect(screen.getByText('modifications en cours')).toBeInTheDocument();
+      expect(screen.getByText('mis à jour, à valider')).toBeInTheDocument();
+    });
+
+    it('should only ask to check a document the application made outdated', () => {
+      render(table([agenda!, { ...officialReport!, draftChangesBy: 'SYSTEM' }]));
+
+      expect(screen.getByText('À vérifier')).toBeInTheDocument();
+      expect(screen.queryByText('mis à jour, à valider')).not.toBeInTheDocument();
+    });
+  });
+
   it('should let the name cell handle its own clicks', async () => {
     const onOpen = vi.fn();
 
@@ -89,7 +120,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -101,7 +132,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-orphan',
           name: 'ODJ sans PV',
           officialReportId: null,
@@ -113,7 +144,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-parquet',
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
@@ -125,7 +156,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: false,
@@ -149,7 +180,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -161,7 +192,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: false,
@@ -171,7 +202,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-orphan',
           name: 'ODJ sans PV',
           officialReportId: null,
@@ -204,7 +235,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -216,7 +247,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-parquet',
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
@@ -228,7 +259,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: false,
@@ -248,7 +279,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -260,7 +291,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-parquet',
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
@@ -272,7 +303,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: false,
@@ -295,7 +326,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -307,7 +338,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-parquet',
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
@@ -319,7 +350,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: false,
@@ -347,7 +378,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: 'pv-1',
@@ -359,7 +390,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-parquet',
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
@@ -371,7 +402,7 @@ describe('SessionDocumentsTable', () => {
         },
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'pv-1',
           name: 'PV du 12 mars',
           outdated: true,
@@ -391,7 +422,7 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
-          hasDraft: false,
+          draftChangesBy: null,
           id: 'agenda-siege',
           name: 'ODJ siège',
           officialReportId: null,

@@ -100,7 +100,15 @@ export function OfficialReportPreviewPage() {
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
             {isDraft && (
-              <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion}>
+              <DocumentDraftBanner
+                hasValidatedVersion={metadata.hasValidatedVersion}
+                systemUpdate={
+                  (metadata.draftChangesBy === 'SYSTEM' ||
+                    metadata.draftChangesBy === 'PERSON_AND_SYSTEM') && (
+                    <FormattedMessage defaultMessage="l'ordre du jour ou ses dossiers ont changé" />
+                  )
+                }
+              >
                 {metadata.hasValidatedVersion && (
                   <AlertBannerAction disabled={isBusy} onClick={() => discardDraft.mutate()}>
                     <FormattedMessage defaultMessage="Revenir au document validé" />

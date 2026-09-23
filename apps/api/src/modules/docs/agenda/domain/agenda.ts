@@ -46,6 +46,17 @@ export class AgendaDraftOpened {
   ) {}
 }
 
+export class AgendaDraftEdited {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly authorId: string,
+  ) {}
+}
+
+export class AgendaDraftUpdatedBySystem {
+  constructor(readonly agendaId: Id<'AgendaId'>) {}
+}
+
 export class AgendaValidated {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
@@ -109,6 +120,8 @@ export type AgendaEvent =
   | AgendaFilesUpdated
   | AgendaDeleted
   | AgendaDraftOpened
+  | AgendaDraftEdited
+  | AgendaDraftUpdatedBySystem
   | AgendaValidated
   | AgendaDraftDiscarded
   | AgendaFileBlockEdited
@@ -177,10 +190,14 @@ export class Agenda {
 
   /** a validated version never changes: editing it forks the draft everything is then written into */
   private openDraft(): void {
-    if (!this.#isValidated) return;
+    if (this.#isValidated) {
+      this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
+      this.#isValidated = false;
+    } else if (this.#actorId) {
+      this.#messages.push(new AgendaDraftEdited(this.id, this.#actorId));
+    }
 
-    this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
-    this.#isValidated = false;
+    if (!this.#actorId) this.#messages.push(new AgendaDraftUpdatedBySystem(this.id));
   }
 
   validate(command: { at: Date; authorId: string }): void {

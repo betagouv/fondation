@@ -1036,7 +1036,7 @@ export type FoundSessionDocsDto = {
         }>;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
-        hasDraft: boolean;
+        draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
         createdAt: string;
         validatedAt: string | null;
     } | {
@@ -1045,7 +1045,7 @@ export type FoundSessionDocsDto = {
         name: string;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
-        hasDraft: boolean;
+        draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
         createdAt: string;
         validatedAt: string | null;
     }>;
@@ -1162,6 +1162,7 @@ export type DetailedAgendaMetadata = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     chairmanId: string | null;
     isManuallyEdited: boolean;
     date: {
@@ -1338,6 +1339,7 @@ export type DetailedOfficialReportMetadataDto = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;

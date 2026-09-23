@@ -22,7 +22,9 @@ import {
   OfficialReportIntroEdited,
   OfficialReportIntroReset,
   OfficialReportDraftDiscarded,
+  OfficialReportDraftEdited,
   OfficialReportDraftOpened,
+  OfficialReportDraftUpdatedBySystem,
   OfficialReportInvalidated,
   OfficialReportSectionIntroEdited,
   OfficialReportSectionIntroReset,
@@ -69,7 +71,7 @@ export class OfficialReportRepository {
   ) {}
 
   @Transactional()
-  async find(query: { actorId?: string | null; id: string }): Promise<OfficialReport> {
+  async find(query: { actorId: string | null; id: string }): Promise<OfficialReport> {
     const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
@@ -324,6 +326,10 @@ export class OfficialReportRepository {
         await this.persistOfficialReportDraftOpened(message);
       } else if (message instanceof OfficialReportDraftDiscarded) {
         await this.persistOfficialReportDraftDiscarded(message);
+      } else if (message instanceof OfficialReportDraftEdited) {
+        await this.persistOfficialReportDraftEdited(message);
+      } else if (message instanceof OfficialReportDraftUpdatedBySystem) {
+        await this.persistOfficialReportDraftUpdatedBySystem(message);
       } else {
         assertNever(message);
       }
@@ -788,6 +794,20 @@ export class OfficialReportRepository {
     await this.discardVersions(superseded);
   }
 
+  private async persistOfficialReportDraftUpdatedBySystem(message: OfficialReportDraftUpdatedBySystem) {
+    await this.db.tx.officialReportVersion.updateMany({
+      where: { officialReportId: message.officialReportId, status: 'DRAFT' },
+      data: { systemUpdatedAt: this.clock.now() },
+    });
+  }
+
+  private async persistOfficialReportDraftEdited(message: OfficialReportDraftEdited) {
+    await this.db.tx.officialReportVersion.updateMany({
+      where: { officialReportId: message.officialReportId, status: 'DRAFT' },
+      data: { updatedAt: this.clock.now(), updatedBy: message.authorId },
+    });
+  }
+
   private async persistOfficialReportDraftOpened(message: OfficialReportDraftOpened) {
     const validated = await this.db.tx.officialReportVersion.findFirst({
       where: { officialReportId: message.officialReportId, status: 'VALIDATED' },
@@ -796,6 +816,9 @@ export class OfficialReportRepository {
         id: true,
         createdAt: true,
         createdBy: true,
+        updatedAt: true,
+        updatedBy: true,
+        systemUpdatedAt: true,
         validatedAt: true,
         validatedBy: true,
         status: true,

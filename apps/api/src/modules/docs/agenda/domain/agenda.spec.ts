@@ -10,7 +10,9 @@ import {
   AgendaAlreadyValidated,
   AgendaDocumentNotStored,
   AgendaDraftDiscarded,
+  AgendaDraftEdited,
   AgendaDraftOpened,
+  AgendaDraftUpdatedBySystem,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
   UnknownAgendaFileBlock,
@@ -86,6 +88,7 @@ describe('Agenda', () => {
         ...snapshot,
       }),
 
+      actorId: AUTHOR,
       ...agendaProps,
     });
   }
@@ -154,9 +157,9 @@ describe('Agenda', () => {
 
     agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>custom</p>', outdated: true });
 
-    expect(agenda.messages).toEqual([
+    expect(agenda.messages).toContainEqual(
       new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>custom</p>', true, AUTHOR),
-    ]);
+    );
   });
 
   it('should emit a reset event when resetting a file block', () => {
@@ -164,7 +167,7 @@ describe('Agenda', () => {
 
     agenda.resetFileBlock({ fileId: 1n });
 
-    expect(agenda.messages).toEqual([new AgendaFileBlockReset(agenda.id, 'nf-1')]);
+    expect(agenda.messages).toContainEqual(new AgendaFileBlockReset(agenda.id, 'nf-1'));
   });
 
   it('should refuse a block the agenda does not carry', () => {
@@ -249,7 +252,7 @@ describe('Agenda', () => {
       reportedNominationFileIds: NO_PRESENTED_FILE,
     });
 
-    expect(agenda.messages).toEqual([
+    expect(agenda.messages).toContainEqual(
       new AgendaFilesUpdated(
         agenda.id,
         makeId('AuthorId', props.authorId),
@@ -259,7 +262,7 @@ describe('Agenda', () => {
           removed: ['nf-1'],
         }),
       ),
-    ]);
+    );
   });
 
   describe('a validated agenda', () => {
@@ -271,7 +274,7 @@ describe('Agenda', () => {
       agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
       expect(agenda.messages).toEqual([
-        new AgendaDraftOpened(agenda.id, null),
+        new AgendaDraftOpened(agenda.id, AUTHOR),
         new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
       ]);
     });
@@ -317,12 +320,33 @@ describe('Agenda', () => {
   });
 
   describe('a draft agenda', () => {
+    it('should record the person who edits it', () => {
+      const agenda = makeAgenda({ actorId: AUTHOR });
+
+      agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
+
+      expect(agenda.messages).toContainEqual(new AgendaDraftEdited(agenda.id, AUTHOR));
+    });
+
+    it('should tell the application updated it on its own', () => {
+      const agenda = makeAgenda({ actorId: null });
+
+      agenda.updateFilesReporters({
+        nominationFiles: [{ id: props.nominationFiles[0].id, reporters: ['Mme DURAND Lucie'] }],
+      });
+
+      expect(agenda.messages).toContainEqual(new AgendaDraftUpdatedBySystem(agenda.id));
+
+      expect(agenda.messages.some((message) => message instanceof AgendaDraftEdited)).toBe(false);
+    });
+
     it('should not open another draft', () => {
       const agenda = makeAgenda();
 
       agenda.editFileBlock({ authorId: AUTHOR, fileId: 1n, html: '<p>edited</p>', outdated: false });
 
       expect(agenda.messages).toEqual([
+        new AgendaDraftEdited(agenda.id, AUTHOR),
         new AgendaFileBlockEdited(agenda.id, 'nf-1', '<p>edited</p>', false, AUTHOR),
       ]);
     });

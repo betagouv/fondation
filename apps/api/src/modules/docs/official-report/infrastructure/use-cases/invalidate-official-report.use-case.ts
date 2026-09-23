@@ -55,7 +55,9 @@ export class InternalInvalidateOfficialReportUseCase {
 
   private async invalidate(commands: readonly InvalidateOfficialReportCommand[]): Promise<void> {
     for (const command of commands) {
-      const officialReport = await this.officialReportRepository.find({ id: command.id }).catch(() => null);
+      const officialReport = await this.officialReportRepository
+        .find({ actorId: null, id: command.id })
+        .catch(() => null);
 
       if (!officialReport) continue;
 

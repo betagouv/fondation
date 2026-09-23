@@ -12,7 +12,9 @@ import {
   AgendaCreated,
   AgendaDeleted,
   AgendaDraftDiscarded,
+  AgendaDraftEdited,
   AgendaDraftOpened,
+  AgendaDraftUpdatedBySystem,
   AgendaValidated,
   AgendaFileBlockEdited,
   AgendaFileBlockReset,
@@ -63,6 +65,10 @@ export class AgendaRepository {
         await this.persistAgendaValidated(message);
       } else if (message instanceof AgendaDraftDiscarded) {
         await this.persistAgendaDraftDiscarded(message);
+      } else if (message instanceof AgendaDraftEdited) {
+        await this.persistAgendaDraftEdited(message);
+      } else if (message instanceof AgendaDraftUpdatedBySystem) {
+        await this.persistAgendaDraftUpdatedBySystem(message);
       } else if (message instanceof AgendaFileBlockEdited) {
         await this.persistAgendaFileBlockEdited(message);
       } else if (message instanceof AgendaFileBlockReset) {
@@ -76,7 +82,7 @@ export class AgendaRepository {
   }
 
   @Transactional()
-  async find(query: { actorId?: string | null; agendaId: string }): Promise<Agenda> {
+  async find(query: { actorId: string | null; agendaId: string }): Promise<Agenda> {
     const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
 
     const foundVersion = await this.db.tx.agendaVersion.findUnique({
@@ -297,6 +303,20 @@ export class AgendaRepository {
     ].flatMap(({ pdf }) => (pdf ? [pdf] : []));
 
     if (pdfs.length > 0) this.files.delete(pdfs);
+  }
+
+  private async persistAgendaDraftUpdatedBySystem(message: AgendaDraftUpdatedBySystem) {
+    await this.db.tx.agendaVersion.updateMany({
+      where: { agendaId: message.agendaId, status: 'DRAFT' },
+      data: { systemUpdatedAt: this.clock.now() },
+    });
+  }
+
+  private async persistAgendaDraftEdited(message: AgendaDraftEdited) {
+    await this.db.tx.agendaVersion.updateMany({
+      where: { agendaId: message.agendaId, status: 'DRAFT' },
+      data: { updatedAt: this.clock.now(), updatedBy: message.authorId },
+    });
   }
 
   private async persistAgendaDraftOpened(message: AgendaDraftOpened) {

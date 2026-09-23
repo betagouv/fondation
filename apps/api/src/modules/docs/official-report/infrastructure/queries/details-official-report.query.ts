@@ -5,6 +5,10 @@ import z from 'zod';
 
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
+import {
+  draftChangesBy,
+  draftChangesBySchema,
+} from 'src/modules/docs/shared/infrastructure/draft-changes-by';
 import { Db } from 'src/modules/framework/database';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -36,6 +40,9 @@ export class DetailsOfficialReportQuery {
         sessionMeetingStartingTime: true,
         sessionMeetingEndingTime: true,
         isManuallyEdited: true,
+        createdBy: true,
+        systemUpdatedAt: true,
+        updatedBy: true,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
         officialReport: { select: { id: true, agendas: { select: { id: true } } } },
       } satisfies Prisma.OfficialReportVersionSelect,
@@ -61,6 +68,7 @@ export class DetailsOfficialReportQuery {
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       isManuallyEdited: report.isManuallyEdited,
       hasValidatedVersion: isDefined(publishedId),
+      draftChangesBy: draftChangesBy(version),
       status: report.status,
       sessionMeetingDate: DateOnly.fromUtcDate(report.sessionMeetingDate).toJson(),
       sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
@@ -86,6 +94,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     outdatedPropositions: z.number().int(),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
+    draftChangesBy: draftChangesBySchema,
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

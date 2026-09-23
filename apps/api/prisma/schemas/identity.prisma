@@ -72,6 +72,8 @@ model User {
   editorOfJusticePresentationPlans    JusticePresentationPlan[]              @relation("justice_presentation_editor")
   presenterOfJusticePresentationPlans JusticePresentationPlan[]              @relation("justice_presentation_presenter")
   removerOfJusticePresentationAgendas JusticePresentationPlanRemovedAgenda[] @relation("justice_presentation_agenda_remover")
+  editorOfAgendaVersions              AgendaVersion[]                        @relation("agenda_version_editor")
+  editorOfOfficialReportVersions      OfficialReportVersion[]                @relation("official_report_version_editor")
   deletorOfSessions                   Session[]                              @relation("session_deletion_author")
   archiverOfSessions                  Session[]                              @relation("session_archive_author")
 

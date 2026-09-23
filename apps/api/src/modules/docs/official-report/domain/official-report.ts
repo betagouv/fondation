@@ -124,6 +124,17 @@ export class OfficialReportDraftOpened {
   ) {}
 }
 
+export class OfficialReportDraftUpdatedBySystem {
+  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
+}
+
+export class OfficialReportDraftEdited {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly authorId: string,
+  ) {}
+}
+
 export class OfficialReportDraftDiscarded {
   constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
 }
@@ -145,6 +156,8 @@ export type OfficialReportEvent =
   | OfficialReportValidated
   | OfficialReportInvalidated
   | OfficialReportDraftOpened
+  | OfficialReportDraftEdited
+  | OfficialReportDraftUpdatedBySystem
   | OfficialReportDraftDiscarded;
 
 export class OfficialReportDocumentNotStored extends Error {}
@@ -208,10 +221,14 @@ export class OfficialReport {
 
   /** a validated version never changes: editing it forks the draft everything is then written into */
   private openDraft(): void {
-    if (!this.state.isValidated) return;
+    if (this.state.isValidated) {
+      this.#messages.push(new OfficialReportDraftOpened(this.id, this.actorId));
+      this.state.isValidated = false;
+    } else if (this.actorId) {
+      this.#messages.push(new OfficialReportDraftEdited(this.id, this.actorId));
+    }
 
-    this.#messages.push(new OfficialReportDraftOpened(this.id, this.actorId));
-    this.state.isValidated = false;
+    if (!this.actorId) this.#messages.push(new OfficialReportDraftUpdatedBySystem(this.id));
   }
 
   validate(command: { at: Date; authorId: string }): void {
