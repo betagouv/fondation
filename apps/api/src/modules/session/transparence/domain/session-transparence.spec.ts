@@ -18,6 +18,7 @@ import {
   SessionTransparenceAffectationVersionPublished,
   SessionTransparenceAuditionScheduled,
   SessionTransparenceAuditionUnScheduled,
+  SessionTransparenceCommentWritten,
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
@@ -666,6 +667,34 @@ describe('SessionTransparence', () => {
     expect(session.messages).toEqual([
       new SessionTransparenceAuditionUnScheduled('session-id', 'nomination-file-id-1'),
     ]);
+  });
+
+  it('should write a trimmed session comment', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [],
+      version: null,
+    });
+
+    session.writeComment({ comment: '  Une note pour la notice \n' });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceCommentWritten('session-id', 'Une note pour la notice'),
+    ]);
+  });
+
+  it('should clear the session comment when only blanks are written', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [],
+      version: null,
+    });
+
+    session.writeComment({ comment: ' \n ' });
+
+    expect(session.messages).toEqual([new SessionTransparenceCommentWritten('session-id', null)]);
   });
 
   it('should flag a missing evaluation on a nomination file', () => {

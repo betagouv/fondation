@@ -135,6 +135,13 @@ export class SessionTransparenceUpdated {
   ) {}
 }
 
+export class SessionTransparenceCommentWritten {
+  constructor(
+    readonly sessionId: string,
+    readonly comment: string | null,
+  ) {}
+}
+
 export class SessionTransparenceOutcomeDefined {
   constructor(
     readonly nominationFileId: string,
@@ -222,6 +229,7 @@ type NominationSessionEvent =
   | SessionTransparenceFileAlertHidden
   | SessionTransparenceAuditionScheduled
   | SessionTransparenceAuditionUnScheduled
+  | SessionTransparenceCommentWritten
   | SessionTransparenceFileMemberMemoWritten
   | SessionTransparenceFileMissingEvaluationUpdated
   | SessionTransparenceFileMissingEvaluationCommentUpdated
@@ -545,6 +553,10 @@ export class SessionTransparence {
     positionStartDate: DateOnly | null;
   }): void {
     this.#messages.push(new SessionTransparenceUpdated(this.id, command));
+  }
+
+  writeComment(command: { comment: string }): void {
+    this.#messages.push(new SessionTransparenceCommentWritten(this.id, command.comment.trim() || null));
   }
 
   defineNominationFileOutcome(command: { nominationFileId: string; outcome: NominationFileOutcome | null }) {

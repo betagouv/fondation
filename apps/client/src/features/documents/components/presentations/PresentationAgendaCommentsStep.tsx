@@ -33,8 +33,15 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
     });
   }, [agendas]);
 
-  const [comments, setComments] = useState<Record<string, string>>(() =>
-    Object.fromEntries(agendaIds.map((id) => [id, state.agendas[id] ?? ''])),
+  const [comments, setComments] = useState<Record<string, string | null>>(() => ({ ...state.agendas }));
+
+  const sessionComments = useMemo(
+    () => new Map(uniqueAgendas.map(({ id, session }) => [id, session.comment] as const)),
+    [uniqueAgendas],
+  );
+  const commentOf = useCallback(
+    (agendaId: string) => comments[agendaId] ?? sessionComments.get(agendaId) ?? '',
+    [comments, sessionComments],
   );
 
   const onCommentChange = useCallback((agendaId: string, value: string) => {
@@ -43,11 +50,10 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
 
   const onSubmit = useCallback(() => {
     createPlan({
-      agendas: Object.fromEntries(
-        Object.entries(comments).map(([id, comment]) => [id, comment.trim() || null]),
-      ),
+      // a comment emptied on purpose stays '' in the state, null would bring the session one back
+      agendas: Object.fromEntries(agendaIds.map((id) => [id, commentOf(id).trim()])),
     });
-  }, [comments, createPlan]);
+  }, [agendaIds, commentOf, createPlan]);
 
   return (
     <div className={clsx('mx-auto max-w-2xl', props.className)}>
@@ -78,10 +84,10 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
           <Input
             label={formatMessage({ defaultMessage: 'Commentaire' })}
             nativeTextAreaProps={{
-              rows: 4,
-              value: comments[agenda.id] ?? '',
-              style: { fieldSizing: 'content' },
               onChange: (e) => onCommentChange(agenda.id, e.target.value),
+              rows: 4,
+              style: { fieldSizing: 'content' },
+              value: commentOf(agenda.id),
             }}
             textArea
           />

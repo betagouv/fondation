@@ -166,6 +166,7 @@ model Session {
   formation     PrismaFormationEnum
   typeDeSaisine PrismaTypeDeSaisineEnum @map("type_de_saisine")
   date          DateTime                @db.Date
+  comment       String?
 
   /// @deprecated - unused to delete
   version                 Int       @default(1) @ignore
