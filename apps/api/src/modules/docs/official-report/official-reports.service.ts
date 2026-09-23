@@ -166,7 +166,7 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
-    const report = await this.officialReportRepository.find({ id: command.id });
+    const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
     const secretary = await this.auth.detailsUser({
       userId: command.secretaryId,
@@ -256,7 +256,7 @@ export class OfficialReportsService {
   }
 
   deleteOfficialReport(command: { id: string }): Promise<void> {
-    return this.withOfficialReport({ id: command.id }, (report) => report.delete());
+    return this.withOfficialReport({ actorId: null, id: command.id }, (report) => report.delete());
   }
 
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
@@ -270,7 +270,7 @@ export class OfficialReportsService {
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
 
-    await this.withOfficialReport({ id: command.id }, (report) =>
+    await this.withOfficialReport({ actorId: null, id: command.id }, (report) =>
       report.discardDraft({ hasValidatedVersion: isDefined(publishedId) }),
     );
   }
@@ -384,7 +384,7 @@ export class OfficialReportsService {
 
   @Transactional()
   private async withOfficialReport(
-    query: { actorId?: string | null; id: string },
+    query: { actorId: string | null; id: string },
     mutation: (report: OfficialReport) => void,
   ): Promise<void> {
     const report = await this.officialReportRepository.find(query);

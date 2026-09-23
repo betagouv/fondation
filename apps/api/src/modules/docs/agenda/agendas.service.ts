@@ -177,7 +177,7 @@ export class AgendasService {
 
   @Transactional()
   async deleteAgenda(command: { agendaId: string }): Promise<void> {
-    const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+    const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
     agenda.delete();
     await this.agendaRepository.persist(agenda);
   }
@@ -221,7 +221,7 @@ export class AgendasService {
       this.db.withTransaction(async () => {
         const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
 
-        const agenda = await this.agendaRepository.find({ agendaId: command.agendaId });
+        const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
         agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
         await this.agendaRepository.persist(agenda);
       }),

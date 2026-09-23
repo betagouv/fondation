@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
+import { draftChangesBy, draftChangesBySchema } from '../draft-changes-by';
 import { Prisma } from 'src/generated/prisma/client';
 import {
   presentationPlanStatusOf,
@@ -57,6 +58,9 @@ export class FindSessionDocsQuery {
             sessionMeetingDate: true,
             chairmanFirstName: true,
             chairmanLastName: true,
+            createdBy: true,
+            systemUpdatedAt: true,
+            updatedBy: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -64,6 +68,7 @@ export class FindSessionDocsQuery {
 
     const agendaFiles = agendas.flatMap(({ versions, ...agenda }) => {
       const published = versions.find(({ status }) => status === 'VALIDATED');
+      const draft = versions.find(({ status }) => status === 'DRAFT');
       const shown = published ?? versions[0];
       if (!shown) return [];
 
@@ -74,7 +79,7 @@ export class FindSessionDocsQuery {
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
           outdated: versions.some((version) => version.outdated),
-          hasDraft: versions.some(({ status }) => status === 'DRAFT'),
+          draftChangesBy: draft ? draftChangesBy(draft) : null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
         },
       ];
@@ -95,6 +100,9 @@ export class FindSessionDocsQuery {
             sessionMeetingDate: true,
             chairmanFirstName: true,
             chairmanLastName: true,
+            createdBy: true,
+            systemUpdatedAt: true,
+            updatedBy: true,
           },
         },
       } satisfies Prisma.OfficialReportSelect,
@@ -102,6 +110,7 @@ export class FindSessionDocsQuery {
 
     const officialReportFiles = officialReports.flatMap(({ versions, ...report }) => {
       const published = versions.find(({ status }) => status === 'VALIDATED');
+      const draft = versions.find(({ status }) => status === 'DRAFT');
       const shown = published ?? versions[0];
       if (!shown) return [];
 
@@ -110,7 +119,7 @@ export class FindSessionDocsQuery {
           ...report,
           ...shown,
           outdated: versions.some((version) => version.outdated),
-          hasDraft: versions.some(({ status }) => status === 'DRAFT'),
+          draftChangesBy: draft ? draftChangesBy(draft) : null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
         },
       ];
@@ -136,7 +145,7 @@ export class FindSessionDocsQuery {
         })),
         outdated: file.outdated,
         status: file.status,
-        hasDraft: file.hasDraft,
+        draftChangesBy: file.draftChangesBy,
         createdAt: file.createdAt.toISOString(),
         validatedAt: file.validatedAt?.toISOString() ?? null,
         name: docFileName({
@@ -154,7 +163,7 @@ export class FindSessionDocsQuery {
         date: file.sessionMeetingDate,
         type: 'officialReport' as const,
         status: file.status,
-        hasDraft: file.hasDraft,
+        draftChangesBy: file.draftChangesBy,
         createdAt: file.createdAt.toISOString(),
         validatedAt: file.validatedAt?.toISOString() ?? null,
         name: docFileName({
@@ -209,7 +218,7 @@ export class FoundSessionDocsDto extends createZodDto(
           outdated: z.boolean(),
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),
-          hasDraft: z.boolean(),
+          draftChangesBy: draftChangesBySchema,
           /** tells apart the agendas sharing a name, since the file name holds no time */
           createdAt: z.iso.datetime(),
           validatedAt: z.iso.datetime().nullable(),
@@ -221,7 +230,7 @@ export class FoundSessionDocsDto extends createZodDto(
           outdated: z.boolean(),
           /** DRAFT while the report has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),
-          hasDraft: z.boolean(),
+          draftChangesBy: draftChangesBySchema,
           createdAt: z.iso.datetime(),
           validatedAt: z.iso.datetime().nullable(),
         }),

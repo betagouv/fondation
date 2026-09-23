@@ -11,7 +11,7 @@ const VALIDATED_AT = '2026-03-12T11:00:00.000Z';
 
 const AGENDA_SIEGE: SessionDocument = {
   createdAt: CREATED_AT,
-  hasDraft: false,
+  draftChangesBy: null,
   id: 'agenda-siege',
   name: 'ODJ siège',
   officialReportId: 'pv-1',
@@ -23,7 +23,7 @@ const AGENDA_SIEGE: SessionDocument = {
 };
 const AGENDA_PARQUET: SessionDocument = {
   createdAt: CREATED_AT,
-  hasDraft: false,
+  draftChangesBy: null,
   id: 'agenda-parquet',
   name: 'ODJ parquet',
   officialReportId: 'pv-1',
@@ -35,7 +35,7 @@ const AGENDA_PARQUET: SessionDocument = {
 };
 const AGENDA_SANS_PV: SessionDocument = {
   createdAt: CREATED_AT,
-  hasDraft: false,
+  draftChangesBy: null,
   id: 'agenda-orphan',
   name: 'ODJ sans PV',
   officialReportId: null,
@@ -54,7 +54,7 @@ const AGENDA_BROUILLON: SessionDocument = {
 };
 const PV: SessionDocument = {
   createdAt: CREATED_AT,
-  hasDraft: false,
+  draftChangesBy: null,
   id: 'pv-1',
   name: 'PV du 12 mars',
   outdated: false,

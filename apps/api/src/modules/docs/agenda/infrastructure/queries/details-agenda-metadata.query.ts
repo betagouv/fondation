@@ -4,6 +4,10 @@ import z from 'zod';
 
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
+import {
+  draftChangesBy,
+  draftChangesBySchema,
+} from 'src/modules/docs/shared/infrastructure/draft-changes-by';
 import { Db } from 'src/modules/framework/database';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
@@ -30,6 +34,9 @@ export class DetailsAgendaMetadataQuery {
         date: true,
         sessionMeetingDate: true,
         isManuallyEdited: true,
+        createdBy: true,
+        systemUpdatedAt: true,
+        updatedBy: true,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
       } satisfies Prisma.AgendaVersionSelect,
     });
@@ -42,6 +49,7 @@ export class DetailsAgendaMetadataQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion: isDefined(publishedId),
+      draftChangesBy: draftChangesBy(version),
       chairmanId: version.chairmanId,
       isManuallyEdited: version.isManuallyEdited,
       date: DateOnly.fromUtcDate(version.date).toJson(),
@@ -60,6 +68,7 @@ export class DetailedAgendaMetadata extends createZodDto(
     outdatedPropositions: z.number().int(),
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
+    draftChangesBy: draftChangesBySchema,
     chairmanId: z.string().nullable(),
     isManuallyEdited: z.boolean(),
     date: dateOnlyJsonSchema,

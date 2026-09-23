@@ -18,14 +18,14 @@ const SESSION_ID = 'session-1';
 
 const AGENDA_DATES = {
   createdAt: '2028-03-10T09:00:00.000Z',
-  hasDraft: false,
+  draftChangesBy: null,
   status: 'VALIDATED',
   validatedAt: '2028-03-10T11:00:00.000Z',
 } as const;
 
 const REPORT_DATES = {
   createdAt: '2028-03-13T09:00:00.000Z',
-  hasDraft: false,
+  draftChangesBy: null,
   status: 'VALIDATED',
   validatedAt: '2028-03-13T11:00:00.000Z',
 } as const;

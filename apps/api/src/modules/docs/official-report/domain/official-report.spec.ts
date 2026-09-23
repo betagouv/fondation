@@ -5,7 +5,9 @@ import {
   OfficialReportAlreadyValidated,
   OfficialReportDocumentNotStored,
   OfficialReportDraftDiscarded,
+  OfficialReportDraftEdited,
   OfficialReportDraftOpened,
+  OfficialReportDraftUpdatedBySystem,
   OfficialReportIntroEdited,
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
@@ -16,8 +18,11 @@ import { OfficialReportSnapshot } from './snapshot/official-report-snapshot';
 const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
 
-function makeReport(state: { isDocumentStored?: boolean; isValidated?: boolean } = {}): OfficialReport {
+function makeReport(
+  state: { actorId?: string | null; isDocumentStored?: boolean; isValidated?: boolean } = {},
+): OfficialReport {
   return OfficialReport.from({
+    actorId: state.actorId === undefined ? AUTHOR : state.actorId,
     id: makeId('OfficialReportId'),
     snapshot: OfficialReportSnapshot.from(helpers.makeSnapshot()),
     isDocumentStored: state.isDocumentStored ?? true,
@@ -58,6 +63,34 @@ describe('OfficialReport', () => {
     expect(report.messages).toEqual([]);
   });
 
+  describe('a draft report', () => {
+    it('should record the person who edits it', () => {
+      const report = makeReport({ actorId: AUTHOR });
+
+      report.editIntro({ html: '<p>edited</p>', outdated: false });
+
+      expect(report.messages).toContainEqual(new OfficialReportDraftEdited(report.id, AUTHOR));
+    });
+
+    it('should tell the application updated it on its own', () => {
+      const report = makeReport({ actorId: null });
+
+      report.invalidate({
+        id: report.id,
+        payload: {
+          currentDate: { day: 21, month: 2, year: 2026 },
+          previousDate: null,
+          sessionId: 'session-1',
+        },
+        type: 'SessionDateUpdated',
+      });
+
+      expect(report.messages).toContainEqual(new OfficialReportDraftUpdatedBySystem(report.id));
+
+      expect(report.messages.some((m) => m instanceof OfficialReportDraftEdited)).toBe(false);
+    });
+  });
+
   describe('a validated report', () => {
     const validated = () => makeReport({ isValidated: true });
 
@@ -67,7 +100,7 @@ describe('OfficialReport', () => {
       report.editIntro({ html: '<p>edited</p>', outdated: false });
 
       expect(report.messages).toEqual([
-        new OfficialReportDraftOpened(report.id, null),
+        new OfficialReportDraftOpened(report.id, AUTHOR),
         new OfficialReportIntroEdited(report.id, '<p>edited</p>', false),
       ]);
     });
@@ -97,7 +130,10 @@ describe('OfficialReport', () => {
 
       report.editIntro({ html: '<p>edited</p>', outdated: false });
 
-      expect(report.messages).toEqual([new OfficialReportIntroEdited(report.id, '<p>edited</p>', false)]);
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportIntroEdited(report.id, '<p>edited</p>', false),
+      ]);
     });
 
     it('should be discarded when a validated version remains underneath', () => {

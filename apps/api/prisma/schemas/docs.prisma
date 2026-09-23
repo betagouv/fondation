@@ -75,16 +75,22 @@ model AgendaVersion {
   isManuallyEdited Boolean @default(false) @map("is_manually_edited")
   pdfFileId        String? @map("pdf_file_id") @db.Uuid
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  createdBy   String?   @map("created_by") @db.Uuid
-  validatedAt DateTime? @map("validated_at")
-  validatedBy String?   @map("validated_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at")
+  createdBy       String?   @map("created_by") @db.Uuid
+  validatedAt     DateTime? @map("validated_at")
+  validatedBy     String?   @map("validated_by") @db.Uuid
+  // written by the gestures a person makes on the draft, never by the application updating it on its own
+  updatedAt       DateTime? @map("updated_at")
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  // written whenever the application changes the draft on its own, so the person working on it is told
+  systemUpdatedAt DateTime? @map("system_updated_at")
 
   nominationFiles AgendaNominationFile[]
   agenda          Agenda                 @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   chairman        User?                  @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   author          User?                  @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_author")
   validator       User?                  @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_validator")
+  editor          User?                  @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_editor")
   pdf             File?                  @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   @@unique([agendaId, version])
@@ -180,10 +186,15 @@ model OfficialReportVersion {
   isManuallyEdited Boolean @default(false) @map("is_manually_edited")
   pdfId            String? @map("pdf_id") @db.Uuid
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  createdBy   String?   @map("created_by") @db.Uuid
-  validatedAt DateTime? @map("validated_at")
-  validatedBy String?   @map("validated_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at")
+  createdBy       String?   @map("created_by") @db.Uuid
+  validatedAt     DateTime? @map("validated_at")
+  validatedBy     String?   @map("validated_by") @db.Uuid
+  // written by the gestures a person makes on the draft, never by the application updating it on its own
+  updatedAt       DateTime? @map("updated_at")
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  // written whenever the application changes the draft on its own, so the person working on it is told
+  systemUpdatedAt DateTime? @map("system_updated_at")
 
   members                  OfficialReportMember[]
   nominationFiles          OfficialReportNominationFile[]
@@ -194,6 +205,7 @@ model OfficialReportVersion {
   secretary                User?                          @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
   author                   User?                          @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
   validator                User?                          @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
+  editor                   User?                          @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_editor")
   justiceDepartmentContact JusticeDepartmentContact?      @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pdf                      File?                          @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
 

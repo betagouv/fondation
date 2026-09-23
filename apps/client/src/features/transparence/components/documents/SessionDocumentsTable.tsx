@@ -129,6 +129,9 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
   const { associations, states } = useContext(SessionDocumentsTableContext);
   const doc = props.row.original;
   const association = associations?.get(doc.id);
+  const state = states?.get(doc.id);
+  // an outdated document already says it waits for the reader's call
+  const isAwaitingCall = state === 'outdatedOfficialReport' || state === 'outdatedAgenda';
 
   return (
     <div className="flex flex-wrap items-center gap-1">
@@ -137,12 +140,20 @@ function StateCell(props: CellContext<SessionDocument, unknown>) {
           <FormattedMessage defaultMessage="brouillon" />
         </Badge>
       )}
-      {doc.status === 'VALIDATED' && doc.hasDraft && (
-        <Badge as="span" className="rounded-full" noIcon severity="info" small>
-          <FormattedMessage defaultMessage="modifications en cours" />
-        </Badge>
-      )}
-      <DocumentState state={states?.get(doc.id)} />
+      {doc.status === 'VALIDATED' &&
+        (doc.draftChangesBy === 'PERSON' || doc.draftChangesBy === 'PERSON_AND_SYSTEM') && (
+          <Badge as="span" className="rounded-full" noIcon severity="info" small>
+            <FormattedMessage defaultMessage="modifications en cours" />
+          </Badge>
+        )}
+      {doc.status === 'VALIDATED' &&
+        (doc.draftChangesBy === 'SYSTEM' || doc.draftChangesBy === 'PERSON_AND_SYSTEM') &&
+        !isAwaitingCall && (
+          <Badge as="span" className="rounded-full" noIcon severity="info" small>
+            <FormattedMessage defaultMessage="mis à jour, à valider" />
+          </Badge>
+        )}
+      <DocumentState state={state} />
       {association && <AssociationLink association={association} doc={doc} />}
     </div>
   );
