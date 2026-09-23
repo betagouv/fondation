@@ -29,7 +29,7 @@ import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../clock';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { afterCommit, Db } from 'src/modules/framework/database';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
@@ -289,15 +289,20 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
-  /** this is a best effort request to delete the files */
+  /**
+   * this is a best effort request to delete the files, made once the current transaction is committed:
+   * a file left over is litter, a file gone while its row still points to it is a breakdown
+   */
   delete(files: readonly { id: string; path: readonly string[] }[]): void {
-    ignoreAsync(() =>
-      Sentry.startSpan(
-        {
-          name: 'fr.csm.fondation:files:delete',
-          attributes: { objectsCount: files.length },
-        },
-        () => this._delete(files),
+    afterCommit(this.db, () =>
+      ignoreAsync(() =>
+        Sentry.startSpan(
+          {
+            name: 'fr.csm.fondation:files:delete',
+            attributes: { objectsCount: files.length },
+          },
+          () => this._delete(files),
+        ),
       ),
     );
   }
