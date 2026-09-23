@@ -141,7 +141,7 @@ describe('SidePanelProvider', () => {
     view.rerender(baseProps());
     view.rerender(baseProps({ nominationFiles: allFiles }));
 
-    expect(view.panel.activeFile).toBeNull();
+    expect(view.panel.activeFile?.id).toBe('b');
   });
 
   it('closes and clears the active file', () => {
