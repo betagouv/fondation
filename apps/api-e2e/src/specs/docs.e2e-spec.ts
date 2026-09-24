@@ -192,6 +192,74 @@ test.describe('Docs Service', () => {
     });
   });
 
+  test('should tell each agenda what it lacks for its official report, until one can be made of it', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const [file] = foundFiles.data!.items;
+
+    await agent.sessions.affectReporters({
+      path: { sessionId },
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    await agent.sessions.defineNominationFileOutcome({
+      path: { sessionId, nominationFileId: file!.id },
+      body: { comment: null, outcome: 'ASSESSING' },
+    });
+
+    const agenda = await agent.docs.createAgenda({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
+        nominationFileIds: [file!.id],
+      },
+    });
+    const readinessOf = async () => {
+      const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+      const found = docs.data!.items.find(({ id }) => id === agenda.data!.id);
+      return found?.type === 'agenda' ? found.officialReportReadiness : undefined;
+    };
+
+    expect(await readinessOf()).toEqual({
+      filesWithoutOutcome: 1,
+      filesWithoutReporter: 0,
+      filesWithUnpublishedReporter: 0,
+      status: 'INCOMPLETE',
+    });
+
+    await agent.sessions.defineNominationFileOutcome({
+      path: { sessionId, nominationFileId: file!.id },
+      body: { comment: null, outcome: 'VALIDATED' },
+    });
+
+    expect(await readinessOf()).toEqual({ status: 'READY' });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const officialReport = await agent.docs.createOfficialReport({
+      path: { sessionId },
+      body: {
+        chairmanId,
+        absentMemberIds: [],
+        agendas: [agenda.data!.id],
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      },
+    });
+    expect(officialReport.response?.status).toBe(201);
+    expect(await readinessOf()).toBeNull();
+  });
+
   test('should report the session only once every file is acted in a validated official report', async ({
     agent,
     expect,
@@ -641,6 +709,9 @@ test.describe('Docs Service', () => {
       .find((block) => block.nominationFileId === nominationFileId);
 
     expect(taken).toMatchObject({ fromAgenda: true, html: later, outdated: false });
+
+    const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(metadata.data!.draft).toMatchObject({ openedBy: null, systemCauses: ['AGENDA_TEXT'] });
 
     // the validated version is what the readers still see: nothing may land on it
     expect(await filesOfValidatedVersionsReading(later)).toBe(0);

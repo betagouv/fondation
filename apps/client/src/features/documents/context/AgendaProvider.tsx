@@ -39,7 +39,7 @@ export function AgendaProvider(props: PropsWithChildren) {
     () => ({
       1: {
         index: 1,
-        title: formatMessage({ defaultMessage: "Définir les informations de l'ordre du jour" }),
+        title: formatMessage({ defaultMessage: "Définir les données de l'ordre du jour" }),
       },
       2: { index: 2, title: formatMessage({ defaultMessage: 'Sélectionnez les propositions' }) },
     }),
@@ -61,13 +61,13 @@ export function AgendaProvider(props: PropsWithChildren) {
       if (!metadata) {
         const { isConfirmed } = await waitForConfirmation({
           content: formatMessage({
-            defaultMessage: "Merci de renseigner les informations de l'ordre du jour avant de continuer",
+            defaultMessage: "Merci de renseigner les données de l'ordre du jour avant de continuer",
           }),
           i18n: {
             cancel: formatMessage({ defaultMessage: 'Rester sur cette étape' }),
             confirm: formatMessage({ defaultMessage: "Retourner à l'étape 1" }),
           },
-          title: formatMessage({ defaultMessage: 'Informations manquantes' }),
+          title: formatMessage({ defaultMessage: 'Données manquantes' }),
         });
         if (isConfirmed) goToMetadata();
         return;

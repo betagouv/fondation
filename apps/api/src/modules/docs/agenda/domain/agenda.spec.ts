@@ -335,7 +335,7 @@ describe('Agenda', () => {
         nominationFiles: [{ id: props.nominationFiles[0].id, reporters: ['Mme DURAND Lucie'] }],
       });
 
-      expect(agenda.messages).toContainEqual(new AgendaDraftUpdatedBySystem(agenda.id));
+      expect(agenda.messages).toContainEqual(new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'));
 
       expect(agenda.messages.some((message) => message instanceof AgendaDraftEdited)).toBe(false);
     });

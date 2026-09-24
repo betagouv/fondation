@@ -86,7 +86,9 @@ describe('OfficialReport', () => {
         type: 'SessionDateUpdated',
       });
 
-      expect(report.messages).toContainEqual(new OfficialReportDraftUpdatedBySystem(report.id));
+      expect(report.messages).toContainEqual(
+        new OfficialReportDraftUpdatedBySystem(report.id, 'SESSION_DATE'),
+      );
 
       expect(report.messages.some((m) => m instanceof OfficialReportDraftEdited)).toBe(false);
     });
@@ -107,7 +109,7 @@ describe('OfficialReport', () => {
 
       expect(report.messages).toEqual([
         new OfficialReportDraftOpened(report.id, null),
-        new OfficialReportDraftUpdatedBySystem(report.id),
+        new OfficialReportDraftUpdatedBySystem(report.id, 'AGENDA_TEXT'),
         new OfficialReportFileReset(report.id, 'file-1'),
       ]);
     });

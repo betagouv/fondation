@@ -6,8 +6,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
 
-import { groupSessionDocuments } from './session-document-groups';
+import { groupSessionDocuments, type AgendaDocument } from './session-document-groups';
 import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsTable';
+
+vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'me' } }) }));
 
 const CREATED_AT = '2028-03-10T09:00:00.000Z';
 const VALIDATED_AT = '2028-03-10T11:00:00.000Z';
@@ -21,32 +23,49 @@ function MountProbe(props: { name: string; onMount: () => void }) {
 const DOCS: SessionDocument[] = [
   {
     createdAt: CREATED_AT,
+    createdBy: null,
     draftChangesBy: null,
+    draftUpdate: null,
     id: 'agenda-1',
+    meetingDate: { day: 12, month: 3, year: 2028 },
     name: 'Ordre du jour du 12 mars',
     officialReportId: null,
+    officialReportReadiness: { status: 'READY' },
     outdated: false,
     presentationPlans: [],
     status: 'VALIDATED',
     type: 'agenda',
     validatedAt: VALIDATED_AT,
+    validatedBy: null,
   },
   {
     createdAt: '2028-03-13T09:00:00.000Z',
+    createdBy: null,
     draftChangesBy: null,
+    draftUpdate: null,
     id: 'pv-1',
+    meetingDate: { day: 12, month: 3, year: 2028 },
     name: 'Procès-verbal du 12 mars',
     outdated: true,
     status: 'VALIDATED',
     type: 'officialReport',
     validatedAt: '2028-03-13T11:00:00.000Z',
+    validatedBy: null,
   },
 ];
 
-function table(docs: readonly SessionDocument[], renderName?: (doc: SessionDocument) => ReactNode) {
+function table(
+  docs: readonly SessionDocument[],
+  renderName?: (doc: SessionDocument) => ReactNode,
+  newOfficialReport?: (agenda: AgendaDocument) => ReactNode,
+) {
   return (
     <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-      <SessionDocumentsTable groups={groupSessionDocuments(docs)} renderName={renderName} />
+      <SessionDocumentsTable
+        groups={groupSessionDocuments(docs)}
+        newOfficialReport={newOfficialReport}
+        renderName={renderName}
+      />
     </IntlProvider>
   );
 }
@@ -84,6 +103,62 @@ describe('SessionDocumentsTable', () => {
     );
   });
 
+  it('should date both the validation and the last change of a draft opened on it', () => {
+    const [agenda] = DOCS;
+    render(
+      table([
+        {
+          ...agenda!,
+          draftChangesBy: 'PERSON',
+          draftUpdate: { at: '2028-03-12T15:30:00.000Z', by: null, causes: [], origin: 'PERSON' },
+        },
+      ]),
+    );
+
+    expect(rowTexts()).toEqual([expect.stringMatching(/Validé le 10\/03\/2028.*Modifié le 12\/03\/2028/)]);
+  });
+
+  it('should say why the application updated a draft', () => {
+    const [agenda] = DOCS;
+    render(
+      table([
+        {
+          ...agenda!,
+          draftChangesBy: 'SYSTEM',
+          draftUpdate: {
+            at: '2028-03-12T15:30:00.000Z',
+            by: null,
+            causes: ['REPORTERS', 'AGENDA_TEXT'],
+            origin: 'SYSTEM',
+          },
+        },
+      ]),
+    );
+
+    expect(rowTexts()).toEqual([
+      expect.stringContaining(
+        "Mis à jour automatiquement suite au changement de rapporteurs et à la modification du texte d'une proposition dans l'ordre du jour, la dernière fois le 12/03/2028",
+      ),
+    ]);
+  });
+
+  it('should name who created a document, and say "vous" for whoever reads it', () => {
+    const [agenda] = DOCS;
+    render(
+      table([
+        {
+          ...agenda!,
+          createdBy: { id: 'user-1', name: 'Camille Martin' },
+          validatedBy: { id: 'me', name: 'Lucas Bernard' },
+        },
+      ]),
+    );
+
+    expect(rowTexts()).toEqual([
+      expect.stringMatching(/Créé le .* par Camille Martin.*Validé le 10\/03\/2028 à \d{2}h\d{2} par vous/),
+    ]);
+  });
+
   it('should let the name cell handle its own clicks', async () => {
     const onOpen = vi.fn();
 
@@ -112,255 +187,81 @@ describe('SessionDocumentsTable', () => {
     expect(onMount.mock.calls.length).toBe(mountsAfterFirstRender);
   });
 
-  it('should place an official report right after the agendas it covers', () => {
+  it('should show a meeting on a single row, its agendas beside their official report', () => {
     render(
       table([
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-siege',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ siège',
           officialReportId: 'pv-1',
+          officialReportReadiness: null,
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-orphan',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ sans PV',
           officialReportId: null,
+          officialReportReadiness: { status: 'READY' },
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-parquet',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
+          officialReportReadiness: null,
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'pv-1',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'PV du 12 mars',
           outdated: false,
           status: 'VALIDATED',
           type: 'officialReport',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
       ]),
     );
 
     expect(rowTexts()).toEqual([
-      expect.stringContaining('ODJ siège'),
-      expect.stringContaining('ODJ parquet'),
-      expect.stringContaining('PV du 12 mars'),
+      expect.stringMatching(/ODJ siège.*ODJ parquet.*PV du 12 mars/),
       expect.stringContaining('ODJ sans PV'),
     ]);
-  });
-
-  it('should group the documents until the reader asks for a sort by type', async () => {
-    render(
-      table([
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-siege',
-          name: 'ODJ siège',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'pv-1',
-          name: 'PV du 12 mars',
-          outdated: false,
-          status: 'VALIDATED',
-          type: 'officialReport',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-orphan',
-          name: 'ODJ sans PV',
-          officialReportId: null,
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-      ]),
-    );
-
-    expect(rowTexts()).toEqual([
-      expect.stringContaining('ODJ siège'),
-      expect.stringContaining('PV du 12 mars'),
-      expect.stringContaining('ODJ sans PV'),
-    ]);
-
-    await userEvent.click(screen.getByRole('button', { name: /Type/ }));
-
-    expect(rowTexts()).toEqual([
-      expect.stringContaining('ODJ siège'),
-      expect.stringContaining('ODJ sans PV'),
-      expect.stringContaining('PV du 12 mars'),
-    ]);
-  });
-
-  it('should offer to see the associated documents from both sides', () => {
-    render(
-      table([
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-siege',
-          name: 'ODJ siège',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-parquet',
-          name: 'ODJ parquet',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'pv-1',
-          name: 'PV du 12 mars',
-          outdated: false,
-          status: 'VALIDATED',
-          type: 'officialReport',
-          validatedAt: VALIDATED_AT,
-        },
-      ]),
-    );
-
-    expect(screen.getAllByRole('button', { name: 'Voir le PV associé' })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Voir les 2 ODJ associés' })).toBeVisible();
-  });
-
-  it('should highlight the associated document', async () => {
-    render(
-      table([
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-siege',
-          name: 'ODJ siège',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-parquet',
-          name: 'ODJ parquet',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'pv-1',
-          name: 'PV du 12 mars',
-          outdated: false,
-          status: 'VALIDATED',
-          type: 'officialReport',
-          validatedAt: VALIDATED_AT,
-        },
-      ]),
-    );
-
-    const [seeOfficialReport] = screen.getAllByRole('button', { name: 'Voir le PV associé' });
-    await userEvent.click(seeOfficialReport);
-
-    const [, , , officialReportRow] = screen.getAllByRole('row');
-    expect(officialReportRow.className).toContain('bg-(--background-alt-blue-france)');
-  });
-
-  it('should name the highlighted documents to a screen reader', async () => {
-    render(
-      table([
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-siege',
-          name: 'ODJ siège',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'agenda-parquet',
-          name: 'ODJ parquet',
-          officialReportId: 'pv-1',
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-        },
-        {
-          createdAt: CREATED_AT,
-          draftChangesBy: null,
-          id: 'pv-1',
-          name: 'PV du 12 mars',
-          outdated: false,
-          status: 'VALIDATED',
-          type: 'officialReport',
-          validatedAt: VALIDATED_AT,
-        },
-      ]),
-    );
-
-    await userEvent.click(screen.getByRole('button', { name: 'Voir les 2 ODJ associés' }));
-
-    expect(screen.getByText('Documents associés : ODJ siège, ODJ parquet')).toBeInTheDocument();
   });
 
   it('should tell an agenda still waiting for its official report', () => {
@@ -370,42 +271,89 @@ describe('SessionDocumentsTable', () => {
     expect(screen.getByText('À vérifier')).toBeVisible();
   });
 
+  it('should offer to generate the official report an agenda is waiting for', () => {
+    render(
+      table(DOCS, undefined, (agenda) => (
+        <button type="button">Générer le procès-verbal de {agenda.name}</button>
+      )),
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Générer le procès-verbal de Ordre du jour du 12 mars' }),
+    ).toBeVisible();
+  });
+
+  it('should list the newest meeting first, and the oldest on demand', async () => {
+    const [agenda] = DOCS;
+    render(
+      table([
+        { ...agenda!, id: 'agenda-march', meetingDate: { day: 12, month: 3, year: 2028 }, name: 'ODJ mars' },
+        {
+          ...agenda!,
+          id: 'agenda-january',
+          meetingDate: { day: 8, month: 1, year: 2028 },
+          name: 'ODJ janvier',
+        },
+      ]),
+    );
+
+    expect(rowTexts()).toEqual([expect.stringContaining('ODJ mars'), expect.stringContaining('ODJ janvier')]);
+
+    await userEvent.click(screen.getByRole('button', { name: /Séance de restitution/ }));
+
+    expect(rowTexts()).toEqual([expect.stringContaining('ODJ janvier'), expect.stringContaining('ODJ mars')]);
+  });
+
   it('should badge the official report rather than the agendas it covers', () => {
     render(
       table([
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-siege',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ siège',
           officialReportId: 'pv-1',
+          officialReportReadiness: null,
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-parquet',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ parquet',
           officialReportId: 'pv-1',
+          officialReportReadiness: null,
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'pv-1',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'PV du 12 mars',
           outdated: true,
           status: 'VALIDATED',
           type: 'officialReport',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
       ]),
     );
@@ -419,15 +367,20 @@ describe('SessionDocumentsTable', () => {
       table([
         {
           createdAt: CREATED_AT,
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-siege',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ siège',
           officialReportId: null,
+          officialReportReadiness: { status: 'READY' },
           outdated: true,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: VALIDATED_AT,
+          validatedBy: null,
         },
       ]),
     );

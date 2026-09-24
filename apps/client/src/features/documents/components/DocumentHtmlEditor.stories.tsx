@@ -37,9 +37,7 @@ function NoticeWorkspace() {
       actions={
         <>
           <Button priority="secondary">Annuler</Button>
-          <Button iconId="fr-icon-success-fill" iconPosition="right">
-            Sauvegarder
-          </Button>
+          <Button>Sauvegarder</Button>
         </>
       }
       title="Notice de restitution"

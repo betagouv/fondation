@@ -13,12 +13,8 @@ function viewer(props: { html: string; title: string }) {
   );
 }
 
-function validate() {
-  return (
-    <Button iconId="fr-icon-success-fill" iconPosition="right">
-      Valider le document
-    </Button>
-  );
+function validate(label: string) {
+  return <Button>{label}</Button>;
 }
 
 const meta = {
@@ -35,13 +31,11 @@ export const Agenda: Story = {
   args: {
     actions: (
       <>
-        <Button iconId="ri-file-list-3-line" priority="secondary">
-          Propositions
-        </Button>
-        <Button iconId="ri-calendar-event-line" priority="secondary">
-          Informations
-        </Button>
-        {validate()}
+        <Button priority="secondary">Modifier les données</Button>
+        <Button priority="secondary">Modifier les propositions</Button>
+        <Button priority="secondary">Éditer le texte</Button>
+        <Button priority="secondary">Revenir à la version validée</Button>
+        {validate("Valider l'ODJ")}
       </>
     ),
     children: viewer({ html: agendaDocument(), title: 'Ordre du jour' }),
@@ -54,14 +48,13 @@ export const OfficialReport: Story = {
   args: {
     actions: (
       <>
-        <Button iconId="ri-edit-fill" priority="secondary">
-          Informations
-        </Button>
-        {validate()}
+        <Button priority="secondary">Modifier les données</Button>
+        <Button priority="secondary">Éditer le texte</Button>
+        {validate('Valider le PV')}
       </>
     ),
-    children: viewer({ html: officialReportDocument(), title: 'PV de restitution' }),
-    title: 'PV de restitution',
+    children: viewer({ html: officialReportDocument(), title: 'Procès-verbal' }),
+    title: 'Procès-verbal',
     tone: 'alt',
   },
 };
@@ -70,10 +63,9 @@ export const PresentationNotice: Story = {
   args: {
     actions: (
       <>
-        <Button iconId="fr-icon-edit-line" iconPosition="left" priority="secondary">
-          Éditer
-        </Button>
-        {validate()}
+        <Button priority="secondary">Modifier les données</Button>
+        <Button priority="secondary">Éditer le texte</Button>
+        {validate('Valider le document')}
       </>
     ),
     children: viewer({ html: presentationNoticeDocument(), title: 'Notice de restitution' }),
@@ -88,10 +80,10 @@ export const WithNotices: Story = {
     notices: (
       <>
         <AlertBanner
-          className="justify-center px-4 py-3"
-          icon="fr-icon-warning-fill"
-          message="Un autre texte est proposé pour 2 propositions"
-          tone="warning"
+          className="justify-center px-4 py-3 text-center"
+          icon="fr-icon-info-fill"
+          message="Les rapporteurs de 2 propositions ont changé depuis la réécriture de leur texte"
+          tone="info"
         />
         <AlertBanner
           className="justify-center px-4 py-3"

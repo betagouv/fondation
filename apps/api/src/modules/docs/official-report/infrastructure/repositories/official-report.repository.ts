@@ -779,9 +779,17 @@ export class OfficialReportRepository {
   }
 
   private async persistOfficialReportDraftUpdatedBySystem(message: OfficialReportDraftUpdatedBySystem) {
-    await this.db.tx.officialReportVersion.updateMany({
-      where: { officialReportId: message.officialReportId, status: 'DRAFT' },
-      data: { systemUpdatedAt: this.clock.now() },
+    const at = this.clock.now();
+    const versionId = await this.officialReportVersionFinder.latest(message);
+
+    await this.db.tx.officialReportVersion.update({
+      where: { id: versionId },
+      data: { systemUpdatedAt: at },
+    });
+    await this.db.tx.officialReportVersionSystemUpdate.upsert({
+      where: { primaryKey: { cause: message.cause, versionId } },
+      create: { at, cause: message.cause, versionId },
+      update: { at },
     });
   }
 

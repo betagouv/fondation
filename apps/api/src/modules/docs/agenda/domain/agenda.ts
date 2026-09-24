@@ -1,3 +1,4 @@
+import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -54,7 +55,10 @@ export class AgendaDraftEdited {
 }
 
 export class AgendaDraftUpdatedBySystem {
-  constructor(readonly agendaId: Id<'AgendaId'>) {}
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly cause: DocSystemUpdateCause,
+  ) {}
 }
 
 export class AgendaValidated {
@@ -189,7 +193,7 @@ export class Agenda {
   }
 
   /** a validated version never changes: editing it forks the draft everything is then written into */
-  private openDraft(): void {
+  private openDraft(systemCause?: DocSystemUpdateCause): void {
     if (this.#isValidated) {
       this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
       this.#isValidated = false;
@@ -197,7 +201,10 @@ export class Agenda {
       this.#messages.push(new AgendaDraftEdited(this.id, this.#actorId));
     }
 
-    if (!this.#actorId) this.#messages.push(new AgendaDraftUpdatedBySystem(this.id));
+    if (!this.#actorId) {
+      const cause = assertIsDefined(systemCause, 'the application updates a draft for a reason');
+      this.#messages.push(new AgendaDraftUpdatedBySystem(this.id, cause));
+    }
   }
 
   validate(command: { at: Date; authorId: string }): void {
@@ -266,7 +273,7 @@ export class Agenda {
 
     const diff = assertIsDefined(this.snapshot).diffReporters(command);
     if (diff.hasAny) {
-      this.openDraft();
+      this.openDraft('REPORTERS');
       this.#messages.push(new AgendaFilesReportersUpdated(this.id, diff.updated));
     }
   }

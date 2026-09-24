@@ -27,7 +27,7 @@ export function AgendaUpdateMetadataPage() {
       update.mutate(values, {
         onError: async (err) => {
           const defaultError = formatMessage({
-            defaultMessage: `Impossible de mettre à jour les informations de l'ordre du jour`,
+            defaultMessage: `Impossible de mettre à jour les données de l'ordre du jour`,
           });
           if (err instanceof HttpException) {
             const body = await err.response.json().catch(() => null);
@@ -53,7 +53,7 @@ export function AgendaUpdateMetadataPage() {
       error={error}
       title={
         <h1 className="fr-h3 fr-m-0">
-          <FormattedMessage defaultMessage="Informations de l'ordre du jour" />
+          <FormattedMessage defaultMessage="Données de l'ordre du jour" />
         </h1>
       }
     >

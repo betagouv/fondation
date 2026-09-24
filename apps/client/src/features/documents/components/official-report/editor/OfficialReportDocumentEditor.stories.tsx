@@ -46,7 +46,11 @@ const BLOCKS = [
     weight: 3,
   },
   {
+    agendaEditedAt: '2026-09-22T08:12:00.000Z',
+    agendaEditedBy: { id: 'user-2', name: 'Lucas BERNARD' },
+    agendaId: '22222222-2222-2222-2222-222222222222',
     edited: true,
+    fromAgenda: true,
     html: "<strong>MME Sophie GERMAIN</strong>, actuellement conseillère à la cour d'appel de Douai (G1), au poste de présidente de chambre à la cour d'appel d'Amiens (HH).",
     kind: 'file',
     nominationFileId: 'file-2',
@@ -79,16 +83,8 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
     <DocumentScreen
       actions={
         <>
-          <Button iconId="ri-edit-fill" priority="secondary">
-            Informations
-          </Button>
-          <Button
-            disabled={pendingRevalidations.propositions > 0}
-            iconId="fr-icon-success-fill"
-            iconPosition="right"
-          >
-            Valider le document
-          </Button>
+          <Button priority="secondary">Modifier les données</Button>
+          <Button disabled={pendingRevalidations.propositions > 0}>Valider le PV</Button>
         </>
       }
       notices={

@@ -30,26 +30,35 @@ vi.mock('@queries/agenda.queries', () => ({
 
 const AGENDA: SessionDocument = {
   createdAt: '2028-03-10T09:00:00.000Z',
+  createdBy: null,
   draftChangesBy: null,
+  draftUpdate: null,
   id: 'agenda-1',
+  meetingDate: { day: 12, month: 3, year: 2028 },
   name: 'Ordre du jour du 12 mars 2028',
   officialReportId: null,
+  officialReportReadiness: { status: 'READY' },
   outdated: false,
   presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',
   validatedAt: '2028-03-10T11:00:00.000Z',
+  validatedBy: null,
 };
 
 const OFFICIAL_REPORT: SessionDocument = {
   createdAt: '2028-03-13T09:00:00.000Z',
+  createdBy: null,
   draftChangesBy: null,
+  draftUpdate: null,
   id: 'official-report-1',
+  meetingDate: { day: 12, month: 3, year: 2028 },
   name: 'Procès-verbal du 12 mars 2028',
   outdated: false,
   status: 'VALIDATED',
   type: 'officialReport',
   validatedAt: '2028-03-13T11:00:00.000Z',
+  validatedBy: null,
 };
 
 type PresentationPlan = Extract<SessionDocument, { type: 'agenda' }>['presentationPlans'][number];
@@ -140,7 +149,7 @@ describe('DocActionDelete', () => {
   it('should say the linked official report is validated', async () => {
     const officialReport = { ...OFFICIAL_REPORT, status: 'VALIDATED' as const };
     await clickDelete(
-      { ...AGENDA, officialReportId: officialReport.id },
+      { ...AGENDA, officialReportId: officialReport.id, officialReportReadiness: null },
       { agendasCount: 1, associated: [officialReport] },
     );
     await confirmationContent();
@@ -150,7 +159,7 @@ describe('DocActionDelete', () => {
 
   it('should say how many other agendas lose their official report', async () => {
     await clickDelete(
-      { ...AGENDA, officialReportId: OFFICIAL_REPORT.id },
+      { ...AGENDA, officialReportId: OFFICIAL_REPORT.id, officialReportReadiness: null },
       { agendasCount: 3, associated: [OFFICIAL_REPORT] },
     );
     await confirmationContent();
@@ -186,7 +195,7 @@ describe('DocActionDelete', () => {
     ).toBeInTheDocument();
   });
   it('should warn that the linked official report goes with the agenda', async () => {
-    await clickDelete({ ...AGENDA, officialReportId: 'official-report-1' });
+    await clickDelete({ ...AGENDA, officialReportId: 'official-report-1', officialReportReadiness: null });
 
     const { content } = waitForConfirmation.mock.calls[0][0];
     render(

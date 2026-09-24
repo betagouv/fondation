@@ -1,5 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
@@ -48,7 +47,7 @@ export function PresentationPreviewPage() {
               }}
               priority="secondary"
             >
-              <FormattedMessage defaultMessage="Modifier les informations" />
+              <FormattedMessage defaultMessage="Modifier les données" />
             </Button>
             <Button
               linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
@@ -56,13 +55,7 @@ export function PresentationPreviewPage() {
             >
               <FormattedMessage defaultMessage="Éditer le texte" />
             </Button>
-            <Button
-              className={clsx({ 'after:animate-spin': isValidating })}
-              disabled={isValidating}
-              iconId={isValidating ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-              iconPosition="right"
-              onClick={() => validate.mutate()}
-            >
+            <Button disabled={isValidating} onClick={() => validate.mutate()}>
               <FormattedMessage defaultMessage="Valider le document" />
             </Button>
           </>

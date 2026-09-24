@@ -98,7 +98,7 @@ export class DetailsPresentationPlanMetadataQuery {
       status,
       isPresented: plan.isPresented,
       // a notice has no version underneath: its draft is the notice itself, never opened by the application
-      draft: draftTrace({ ...plan, status, systemUpdatedAt: null }),
+      draft: draftTrace({ ...plan, status, systemUpdatedAt: null, systemUpdates: [] }),
       validation: status === 'VALIDATED' ? traceOf(plan.validatedAt, plan.validator) : null,
       presentation: plan.isPresented ? traceOf(plan.presentedAt, plan.presenter) : null,
       isManuallyEdited: plan.isManuallyEdited,

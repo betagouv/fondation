@@ -201,6 +201,7 @@ export function AgendaEditPage() {
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
                 kind="agenda"
+                validatedAt={metadata.validation?.at}
               />
             )}
             {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (

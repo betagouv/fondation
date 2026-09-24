@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, type ChangeEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { useLocation } from 'react-router';
 import z from 'zod';
 
 import { AbsentMemberSelector } from '@/features/documents/components/AbsentMemberSelector';
@@ -77,6 +78,8 @@ const OfficialReportMetadataSchema = z
 export function OfficialReportForm() {
   const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
   const { formatMessage } = useIntl();
+  const { state } = useLocation();
+  const requestedAgendaId: string | null = typeof state?.agendaId === 'string' ? state.agendaId : null;
 
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
@@ -108,6 +111,7 @@ export function OfficialReportForm() {
 
   const {
     control,
+    getValues,
     setValue,
     setValues,
     handleSubmit,
@@ -170,6 +174,14 @@ export function OfficialReportForm() {
 
     return unsubscribe;
   }, [subscribe, setValues, agendas]);
+
+  // selected as the reader would, once the list is there, so the fields it fills follow
+  useEffect(() => {
+    if (officialReportId || !requestedAgendaId || getValues('agendaId')) return;
+    if (!agendas?.items.some(({ id }) => id === requestedAgendaId)) return;
+
+    setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  }, [agendas, getValues, officialReportId, requestedAgendaId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {

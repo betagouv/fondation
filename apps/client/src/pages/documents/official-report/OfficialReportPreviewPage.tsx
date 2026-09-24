@@ -1,5 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
@@ -9,8 +8,10 @@ import { DocumentValidatedBanner } from '../DocumentValidatedBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
-import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useDetailsOfficialReportQuery,
@@ -42,6 +43,29 @@ export function OfficialReportPreviewPage() {
 
   const title = formatMessage({ defaultMessage: 'PV de restitution' });
   const isDraft = metadata?.status === 'DRAFT';
+  const confirmation = useConfirmModal();
+  const dateAndTime = useDateAndTime();
+
+  const revertToValidated = async () => {
+    const validatedAt = metadata?.validation?.at;
+    const { isConfirmed } = await confirmation.waitForConfirmation({
+      content: (
+        <p>
+          <FormattedMessage defaultMessage="Les modifications faites depuis seront perdues." />
+        </p>
+      ),
+      i18n: { confirm: formatMessage({ defaultMessage: 'Revenir à cette version' }) },
+      title: validatedAt
+        ? formatMessage(
+            { defaultMessage: 'Revenir à la version validée le {date} à {time} ?' },
+            dateAndTime(validatedAt),
+          )
+        : formatMessage({ defaultMessage: 'Revenir à la version validée ?' }),
+    });
+
+    if (isConfirmed) discardDraft.mutate();
+  };
+
   const isBusy = validate.isPending || discardDraft.isPending;
 
   return (
@@ -57,7 +81,7 @@ export function OfficialReportPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Modifier les informations" />
+            <FormattedMessage defaultMessage="Modifier les données" />
           </Button>
           <Button
             linkProps={{
@@ -70,14 +94,14 @@ export function OfficialReportPreviewPage() {
           >
             <FormattedMessage defaultMessage="Éditer le texte" />
           </Button>
+          {/* what the application brought in is taken without asking: only a person's draft is theirs to drop */}
+          {isDraft && metadata.hasValidatedVersion && metadata.draftChangesBy === 'PERSON' && (
+            <Button disabled={isBusy} onClick={() => void revertToValidated()} priority="secondary">
+              <FormattedMessage defaultMessage="Revenir à la version validée" />
+            </Button>
+          )}
           {isDraft && (
-            <Button
-              className={clsx({ 'after:animate-spin': validate.isPending })}
-              disabled={isBusy}
-              iconId={validate.isPending ? 'ri-loader-4-line' : 'fr-icon-success-fill'}
-              iconPosition="right"
-              onClick={() => validate.mutate()}
-            >
+            <Button disabled={isBusy} onClick={() => validate.mutate()}>
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
@@ -108,20 +132,8 @@ export function OfficialReportPreviewPage() {
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
                 kind="officialReport"
-                systemUpdate={
-                  (metadata.draftChangesBy === 'SYSTEM' ||
-                    metadata.draftChangesBy === 'PERSON_AND_SYSTEM') && (
-                    <FormattedMessage defaultMessage="l'ordre du jour ou ses dossiers ont changé" />
-                  )
-                }
-              >
-                {/* what the application brought in is taken without asking: only a person's draft is theirs to drop */}
-                {metadata.hasValidatedVersion && metadata.draftChangesBy === 'PERSON' && (
-                  <AlertBannerAction disabled={isBusy} onClick={() => discardDraft.mutate()}>
-                    <FormattedMessage defaultMessage="Abandonner ce brouillon" />
-                  </AlertBannerAction>
-                )}
-              </DocumentDraftBanner>
+                validatedAt={metadata.validation?.at}
+              />
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner

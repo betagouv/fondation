@@ -31,6 +31,18 @@ enum PrismaDocVersionStatusEnum {
   @@schema("docs")
 }
 
+enum PrismaDocSystemUpdateCauseEnum {
+  AGENDA_DATE
+  AGENDA_PROPOSITIONS
+  AGENDA_TEXT
+  OUTCOME
+  REPORTERS
+  SESSION_DATE
+
+  @@map("doc_system_update_cause_enum")
+  @@schema("docs")
+}
+
 // #region Agenda
 model Agenda {
   id               String              @id @db.Uuid
@@ -86,12 +98,13 @@ model AgendaVersion {
   systemUpdatedAt DateTime? @map("system_updated_at")
 
   nominationFiles AgendaNominationFile[]
-  agenda          Agenda                 @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  chairman        User?                  @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  author          User?                  @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_author")
-  validator       User?                  @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_validator")
-  editor          User?                  @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_editor")
-  pdf             File?                  @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  agenda          Agenda                      @relation(fields: [agendaId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman        User?                       @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  author          User?                       @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_author")
+  validator       User?                       @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_validator")
+  editor          User?                       @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "agenda_version_editor")
+  pdf             File?                       @relation("agenda_pdf_file", fields: [pdfFileId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  systemUpdates   AgendaVersionSystemUpdate[]
 
   @@unique([agendaId, version])
   @@map("agenda_version")
@@ -200,14 +213,15 @@ model OfficialReportVersion {
   nominationFiles          OfficialReportNominationFile[]
   sectionTitles            OfficialReportSectionTitle[]
   sectionIntros            OfficialReportSectionIntro[]
-  officialReport           OfficialReport                 @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  chairman                 User?                          @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_chairman")
-  secretary                User?                          @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
-  author                   User?                          @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
-  validator                User?                          @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
-  editor                   User?                          @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_editor")
-  justiceDepartmentContact JusticeDepartmentContact?      @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  pdf                      File?                          @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
+  officialReport           OfficialReport                      @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman                 User?                               @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_chairman")
+  secretary                User?                               @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
+  author                   User?                               @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
+  validator                User?                               @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
+  editor                   User?                               @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_editor")
+  justiceDepartmentContact JusticeDepartmentContact?           @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  pdf                      File?                               @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
+  systemUpdates            OfficialReportVersionSystemUpdate[]
 
   @@unique([officialReportId, version])
   @@map("official_report_version")
@@ -434,3 +448,29 @@ model JusticePresentationPlanMember {
 }
 
 // #endregion JusticePresentationPlan
+
+/// each reason the application changed an agenda draft on its own, with the last time it did
+model AgendaVersionSystemUpdate {
+  versionId String                         @map("version_id") @db.Uuid
+  cause     PrismaDocSystemUpdateCauseEnum
+  at        DateTime
+
+  version AgendaVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([versionId, cause], name: "primaryKey")
+  @@map("agenda_version_system_update")
+  @@schema("docs")
+}
+
+/// each reason the application changed an official report draft on its own, with the last time it did
+model OfficialReportVersionSystemUpdate {
+  versionId String                         @map("version_id") @db.Uuid
+  cause     PrismaDocSystemUpdateCauseEnum
+  at        DateTime
+
+  version OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([versionId, cause], name: "primaryKey")
+  @@map("official_report_version_system_update")
+  @@schema("docs")
+}

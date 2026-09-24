@@ -132,6 +132,7 @@ export class IsSessionReadyForDocGenerationQuery {
     };
   }
 
+  // TODO: see AgendaFinder.findOfficialReportReadiness
   private async officialReportBlocker(query: {
     affectationVersionId: string;
     sessionId: string;

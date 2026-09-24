@@ -1,6 +1,10 @@
 import z from 'zod';
 
 import type { Prisma } from 'src/generated/prisma/client';
+import {
+  DOC_SYSTEM_UPDATE_CAUSES,
+  type DocSystemUpdateCause,
+} from 'src/modules/docs/shared/domain/doc-system-update-cause';
 import { fullname } from 'src/utils/user.util';
 
 const writerSchema = z.object({ id: z.string(), name: z.string() });
@@ -10,6 +14,7 @@ export const draftTraceSchema = z
   .object({
     openedAt: z.iso.datetime(),
     openedBy: writerSchema.nullable(),
+    systemCauses: z.array(z.enum(DOC_SYSTEM_UPDATE_CAUSES)),
     systemUpdatedAt: z.iso.datetime().nullable(),
     updatedAt: z.iso.datetime().nullable(),
     updatedBy: writerSchema.nullable(),
@@ -23,6 +28,7 @@ export const DRAFT_TRACE_SELECT = {
   createdAt: true,
   editor: { select: { firstName: true, id: true, lastName: true } },
   systemUpdatedAt: true,
+  systemUpdates: { orderBy: { at: 'asc' }, select: { cause: true } },
   updatedAt: true,
 } as const satisfies Prisma.AgendaVersionSelect & Prisma.OfficialReportVersionSelect;
 
@@ -32,6 +38,7 @@ export function draftTrace(version: {
   editor: Person;
   status: 'DRAFT' | 'VALIDATED';
   systemUpdatedAt: Date | null;
+  systemUpdates: readonly { cause: DocSystemUpdateCause }[];
   updatedAt: Date | null;
 }): z.infer<typeof draftTraceSchema> {
   if (version.status === 'VALIDATED') return null;
@@ -41,6 +48,7 @@ export function draftTrace(version: {
   return {
     openedAt: version.createdAt.toISOString(),
     openedBy: writer(version.author),
+    systemCauses: version.systemUpdates.map(({ cause }) => cause),
     systemUpdatedAt: version.systemUpdatedAt?.toISOString() ?? null,
     updatedAt: version.updatedAt?.toISOString() ?? null,
     updatedBy: writer(version.editor),

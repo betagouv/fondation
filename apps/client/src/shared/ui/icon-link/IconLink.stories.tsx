@@ -82,7 +82,7 @@ const LINKS: (ComponentProps<typeof IconLink> & { title: string })[] = [
   },
   {
     iconId: ACTION_ICONS.agendaMetadata,
-    label: "Modifier les informations de l'ordre du jour",
+    label: "Modifier les données de l'ordre du jour",
     title: "Informations de l'ordre du jour",
     to: '/agendas/1/metadonnees',
   },
