@@ -12,7 +12,6 @@ import {
 import clsx from 'clsx';
 
 import { DocBlockDriftBanner } from '@/features/documents/components/blocks/DocBlockDriftBanner';
-import { DocBlockEditedBadge } from '@/features/documents/components/blocks/DocBlockEditedBadge';
 import { useBlockActive } from '@/features/documents/components/blocks/useBlockActive';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
@@ -35,11 +34,11 @@ export const OfficialReportConclusionBlock = {
       {
         type: this.name,
         attrs: {
+          edited: block.edited,
+          generatedHtml: block.generatedHtml,
           isPending: false,
           officialReportId,
-          edited: block.edited,
           outdated: block.outdated,
-          generatedHtml: block.generatedHtml,
         },
         content: generateJSON(block.html, extensions).content ?? [],
       },
@@ -59,8 +58,6 @@ function ConclusionBlockView(props: ReactNodeViewProps) {
         'doc-block--edited': edited,
       })}
     >
-      {edited && <DocBlockEditedBadge />}
-
       <NodeViewContent />
       <DocBlockDriftBanner {...props} />
     </NodeViewWrapper>
@@ -75,11 +72,11 @@ export const OfficialReportConclusionBlockNode = Node.create({
   selectable: false,
 
   addAttributes: () => ({
-    outdated: { default: false },
-    isPending: { default: false, rendered: false },
     edited: { default: false, rendered: false },
     generatedHtml: { default: null, rendered: false },
+    isPending: { default: false, rendered: false },
     officialReportId: { default: null, rendered: false },
+    outdated: { default: false },
   }),
 
   parseHTML() {

@@ -12,7 +12,6 @@ import {
 import clsx from 'clsx';
 
 import { DocBlockDriftBanner } from '@/features/documents/components/blocks/DocBlockDriftBanner';
-import { DocBlockEditedBadge } from '@/features/documents/components/blocks/DocBlockEditedBadge';
 import { useBlockActive } from '@/features/documents/components/blocks/useBlockActive';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
@@ -35,11 +34,11 @@ export const OfficialReportIntroBlock = {
       {
         type: this.name,
         attrs: {
+          edited: block.edited,
+          generatedHtml: block.generatedHtml,
           isPending: false,
           officialReportId,
-          edited: block.edited,
           outdated: block.outdated,
-          generatedHtml: block.generatedHtml,
         },
         content: generateJSON(block.html, extensions).content ?? [],
       },
@@ -60,8 +59,6 @@ function IntroBlockView(props: ReactNodeViewProps) {
         'doc-block--warning': outdated,
       })}
     >
-      {edited && <DocBlockEditedBadge />}
-
       <NodeViewContent />
 
       <DocBlockDriftBanner {...props} />
@@ -77,11 +74,11 @@ export const OfficialReportIntroBlockNode = Node.create({
   selectable: false,
 
   addAttributes: () => ({
-    isPending: { default: false, rendered: false },
     edited: { default: false, rendered: false },
-    outdated: { default: false },
     generatedHtml: { default: null, rendered: false },
+    isPending: { default: false, rendered: false },
     officialReportId: { default: null, rendered: false },
+    outdated: { default: false },
   }),
 
   parseHTML: () => [{ tag: 'div[data-block-type="intro"]' }],
