@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import {
+  useSystemUpdateCauses,
+  type SystemUpdateCause,
+} from '@/features/documents/hooks/useSystemUpdateCauses';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useUser } from '@queries/auth.queries';
@@ -11,6 +15,8 @@ type Writer = { id: string; name: string } | null;
 export type DraftTrace = {
   openedAt: string;
   openedBy: Writer;
+  /** every reason the application changed the draft for, empty on the drafts updated before it said */
+  systemCauses: readonly SystemUpdateCause[];
   systemUpdatedAt: string | null;
   updatedAt: string | null;
   updatedBy: Writer;
@@ -21,10 +27,11 @@ export function DocumentDraftBanner(props: {
   draft?: DraftTrace | null;
   hasValidatedVersion: boolean;
   kind: 'agenda' | 'notice' | 'officialReport';
-  /** why the application changed the draft on its own, whether or not a person works on it too */
-  systemUpdate?: ReactNode;
+  /** when the version the draft would replace was validated, null before that trace was kept */
+  validatedAt?: string | null;
 }) {
-  const { draft, hasValidatedVersion, systemUpdate } = props;
+  const { draft, hasValidatedVersion, validatedAt } = props;
+  const dateAndTime = useDateAndTime();
 
   return (
     <AlertBanner
@@ -34,24 +41,28 @@ export function DocumentDraftBanner(props: {
           <span className="font-medium">
             <span aria-hidden className="fr-icon-draft-line fr-icon--sm fr-mr-1w" />
             {hasValidatedVersion ? (
-              <FormattedMessage defaultMessage="Brouillon en cours : le PDF reste celui de la version validée tant que ce brouillon n'est pas validé" />
+              <FormattedMessage
+                defaultMessage="Modifications en cours, pas encore validées : le PDF reste celui de la version validée{validated, select, yes { le {date} à {time}} other {}}"
+                values={{
+                  ...(validatedAt ? dateAndTime(validatedAt) : {}),
+                  validated: validatedAt ? 'yes' : 'no',
+                }}
+              />
             ) : (
-              <FormattedMessage defaultMessage="Brouillon : le PDF sera produit à la validation" />
+              <FormattedMessage
+                defaultMessage="Brouillon : le PDF sera disponible après avoir validé {kind, select, agenda {l'ODJ} officialReport {le PV} other {la notice}}"
+                values={{ kind: props.kind }}
+              />
             )}
           </span>
-          {(draft || systemUpdate) && (
+          {draft && (
             <span className="fr-text--sm fr-mb-0">
-              {draft && <DocumentDraftHistory draft={draft} kind={props.kind} />}
-              {draft && systemUpdate && ' - '}
-              {systemUpdate &&
-                (draft?.systemUpdatedAt ? (
-                  <DocumentDraftSystemUpdate at={draft.systemUpdatedAt} reason={systemUpdate} />
-                ) : (
-                  <FormattedMessage
-                    defaultMessage="Mis à jour automatiquement ({reason})"
-                    values={{ reason: systemUpdate }}
-                  />
-                ))}
+              <DocumentDraftHistory draft={draft} kind={props.kind} />
+            </span>
+          )}
+          {draft?.systemUpdatedAt && (
+            <span className="fr-text--sm fr-mb-0">
+              <DocumentDraftSystemUpdate at={draft.systemUpdatedAt} causes={draft.systemCauses} />
             </span>
           )}
         </span>
@@ -95,13 +106,18 @@ function DocumentDraftHistory(props: { draft: DraftTrace; kind: 'agenda' | 'noti
   );
 }
 
-function DocumentDraftSystemUpdate(props: { at: string; reason: ReactNode }) {
+function DocumentDraftSystemUpdate(props: { at: string; causes: readonly SystemUpdateCause[] }) {
   const dateAndTime = useDateAndTime();
+  const systemUpdateCauses = useSystemUpdateCauses();
 
   return (
     <FormattedMessage
-      defaultMessage="Mis à jour automatiquement le {date} à {time} ({reason})"
-      values={{ ...dateAndTime(props.at), reason: props.reason }}
+      defaultMessage="{count, plural, =0 {Mis à jour automatiquement le {date} à {time}} =1 {Mis à jour automatiquement le {date} à {time} suite {causes}} other {Mis à jour automatiquement suite {causes}, la dernière fois le {date} à {time}}}"
+      values={{
+        ...dateAndTime(props.at),
+        causes: systemUpdateCauses(props.causes),
+        count: props.causes.length,
+      }}
     />
   );
 }

@@ -200,6 +200,7 @@ export function AgendaEditPage() {
               <DocumentDraftBanner
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
+                validatedAt={metadata.validation?.at}
                 kind="agenda"
               />
             )}
