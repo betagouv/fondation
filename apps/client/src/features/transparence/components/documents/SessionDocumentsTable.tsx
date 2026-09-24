@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -7,167 +6,222 @@ import {
   useReactTable,
   type CellContext,
 } from '@tanstack/react-table';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { NewTable, rowCell } from '@/shared/ui/new-table';
+import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { NewTable } from '@/shared/ui/new-table';
+import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import { useUser } from '@queries/auth.queries';
 
 import {
+  sessionDocumentGroupState,
   sessionDocumentStates,
+  type AgendaDocument,
+  type OfficialReportDocument,
   type SessionDocument,
+  type SessionDocumentGroup,
   type SessionDocumentGroupState,
 } from './session-document-groups';
 
 export type { SessionDocument } from './session-document-groups';
 
-const HIGHLIGHT_DURATION = 3000;
-
 export type Association = { agendasCount: number; associated: SessionDocument[] };
 
-const h = createColumnHelper<SessionDocument>();
+type SessionMeeting = {
+  agendas: AgendaDocument[];
+  id: string;
+  meetingDate: PlainDateOnly;
+  officialReport: OfficialReportDocument | undefined;
+  state: SessionDocumentGroupState | null;
+};
+
+const h = createColumnHelper<SessionMeeting>();
 
 export const SessionDocumentsTableContext = createContext<{
   actions?: (doc: SessionDocument) => ReactNode;
   associations?: ReadonlyMap<string, Association>;
-  highlightAssociated?: (doc: SessionDocument) => void;
+  newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   renderName?: (doc: SessionDocument) => ReactNode;
   states?: ReadonlyMap<string, SessionDocumentGroupState>;
 }>({});
 
-function DocumentState(props: { state: SessionDocumentGroupState | undefined }) {
-  if (props.state === 'awaitingOfficialReport') {
-    return (
-      <Badge as="span" className="rounded-full" noIcon severity="error" small>
-        <FormattedMessage defaultMessage="pv attendu" />
-      </Badge>
-    );
-  }
+function toSessionMeeting(group: SessionDocumentGroup): SessionMeeting {
+  const agendas = group.filter((doc): doc is AgendaDocument => doc.type === 'agenda');
+  const officialReport = group.find((doc): doc is OfficialReportDocument => doc.type === 'officialReport');
+  const [first] = group;
 
-  if (props.state === 'outdatedOfficialReport' || props.state === 'outdatedAgenda') {
-    return (
-      <Badge as="span" className="rounded-full" severity="warning" small>
-        <FormattedMessage defaultMessage="À vérifier" />
-      </Badge>
-    );
-  }
-
-  return null;
-}
-
-const typeCell = rowCell<SessionDocument>((doc) =>
-  doc.type === 'agenda' ? (
-    <FormattedMessage defaultMessage="Ordre du jour" />
-  ) : (
-    <FormattedMessage defaultMessage="Procès-verbal" />
-  ),
-);
-
-function NameCell(props: CellContext<SessionDocument, string>) {
-  const { renderName } = useContext(SessionDocumentsTableContext);
-  return renderName?.(props.row.original) ?? props.cell.getValue();
+  return {
+    agendas,
+    id: first.id,
+    // the report takes its meeting date from its agenda, but can be moved away from it by hand
+    meetingDate: (agendas[0] ?? first).meetingDate,
+    officialReport,
+    state: sessionDocumentGroupState(group),
+  };
 }
 
 function Moment(props: { at: string }) {
-  const { formatDate, formatTime } = useIntl();
+  const dateAndTime = useDateAndTime();
 
   return (
     <span className="whitespace-nowrap">
-      <FormattedMessage
-        defaultMessage="{date} à {time}"
-        values={{
-          date: formatDate(props.at, { format: 'zonedDateShort' }),
-          time: formatTime(props.at, { format: 'zonedTimeShort' }),
-        }}
-      />
+      <FormattedMessage defaultMessage="{date} à {time}" values={dateAndTime(props.at)} />
     </span>
   );
 }
 
-/** the file name carries no time, so two documents of the same day are told apart here */
-function CreatedAtCell(props: CellContext<SessionDocument, unknown>) {
-  return <Moment at={props.row.original.createdAt} />;
+/** a gesture whose author is unknown, the application or a person since gone, keeps only its date */
+function useAuthorship() {
+  const { user } = useUser();
+
+  return (at: string, by: SessionDocument['createdBy']) => ({
+    author: by?.name,
+    moment: <Moment at={at} />,
+    who: !by ? 'nobody' : by.id === user?.id ? 'self' : 'someone',
+  });
 }
 
-function ValidatedAtCell(props: CellContext<SessionDocument, unknown>) {
-  const { validatedAt } = props.row.original;
-  return validatedAt ? <Moment at={validatedAt} /> : null;
-}
+function DocumentStatus(props: { doc: SessionDocument }) {
+  const { doc } = props;
 
-function AssociationLink(props: { association: Association; doc: SessionDocument }) {
-  const { highlightAssociated } = useContext(SessionDocumentsTableContext);
-  const { association, doc } = props;
+  if (!doc.validatedAt) {
+    return (
+      <Badge as="span" className="rounded-full" noIcon severity="new" small>
+        <FormattedMessage defaultMessage="brouillon" />
+      </Badge>
+    );
+  }
+
+  if (doc.draftChangesBy) {
+    // the "Validé le" line underneath tells these changes sit on top of a validated version
+    return (
+      <Badge as="span" className="rounded-full" noIcon severity="info" small>
+        <FormattedMessage defaultMessage="modifications en cours" />
+      </Badge>
+    );
+  }
 
   return (
-    <Button
-      className="fr-btn--align-on-content whitespace-nowrap"
-      onClick={() => highlightAssociated?.(doc)}
-      priority="tertiary no outline"
-      size="small"
-    >
-      {doc.type === 'agenda' ? (
-        <FormattedMessage defaultMessage="Voir le PV associé" />
-      ) : (
-        <FormattedMessage
-          defaultMessage="{count, plural, one {Voir l'ODJ associé} other {Voir les # ODJ associés}}"
-          values={{ count: association.agendasCount }}
-        />
-      )}
-    </Button>
+    <Badge as="span" className="rounded-full" noIcon severity="success" small>
+      <FormattedMessage defaultMessage="validé" />
+    </Badge>
   );
 }
 
-function StateCell(props: CellContext<SessionDocument, unknown>) {
-  const { associations, states } = useContext(SessionDocumentsTableContext);
-  const doc = props.row.original;
-  const association = associations?.get(doc.id);
-  const state = states?.get(doc.id);
+function OutdatedDocument(props: { state: SessionDocumentGroupState | undefined }) {
+  if (props.state !== 'outdatedOfficialReport' && props.state !== 'outdatedAgenda') return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {!doc.validatedAt ? (
-        <Badge as="span" className="rounded-full" noIcon severity="new" small>
-          <FormattedMessage defaultMessage="brouillon" />
-        </Badge>
-      ) : doc.draftChangesBy ? (
-        // who opened the draft, a person or the application, is told on the document itself
-        <Badge as="span" className="rounded-full" noIcon severity="info" small>
-          <FormattedMessage defaultMessage="modifications en cours" />
-        </Badge>
-      ) : (
-        <Badge as="span" className="rounded-full" noIcon severity="success" small>
-          <FormattedMessage defaultMessage="validé" />
-        </Badge>
-      )}
-      <DocumentState state={state} />
-      {association && <AssociationLink association={association} doc={doc} />}
+    <Badge as="span" className="rounded-full" severity="warning" small>
+      <FormattedMessage defaultMessage="À vérifier" />
+    </Badge>
+  );
+}
+
+function Trace(props: { children: ReactNode }) {
+  return <span className="text-xs text-(--text-mention-grey)">{props.children}</span>;
+}
+
+function SessionDocumentItem(props: { doc: SessionDocument }) {
+  const { actions, renderName, states } = useContext(SessionDocumentsTableContext);
+  const authorship = useAuthorship();
+  const systemUpdateCauses = useSystemUpdateCauses();
+  const { doc } = props;
+
+  return (
+    <div className="flex w-full min-w-0 items-start justify-between gap-4 py-4">
+      <div className="flex min-w-0 flex-col items-start gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0">{renderName?.(doc) ?? doc.name}</div>
+          <DocumentStatus doc={doc} />
+          <OutdatedDocument state={states?.get(doc.id)} />
+        </div>
+        {/* the file name carries no time, so two documents of the same day are told apart here */}
+        <Trace>
+          <FormattedMessage
+            defaultMessage="Créé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+            values={authorship(doc.createdAt, doc.createdBy)}
+          />
+        </Trace>
+        {doc.validatedAt && (
+          <Trace>
+            <FormattedMessage
+              defaultMessage="Validé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+              values={authorship(doc.validatedAt, doc.validatedBy)}
+            />
+          </Trace>
+        )}
+        {doc.draftUpdate && (
+          <Trace>
+            {doc.draftUpdate.origin === 'SYSTEM' ? (
+              <FormattedMessage
+                defaultMessage="{count, plural, =0 {Mis à jour automatiquement le {moment}} =1 {Mis à jour automatiquement le {moment} suite {causes}} other {Mis à jour automatiquement suite {causes}, la dernière fois le {moment}}}"
+                values={{
+                  causes: systemUpdateCauses(doc.draftUpdate.causes),
+                  count: doc.draftUpdate.causes.length,
+                  moment: <Moment at={doc.draftUpdate.at} />,
+                }}
+              />
+            ) : (
+              <FormattedMessage
+                defaultMessage="Modifié le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+                values={authorship(doc.draftUpdate.at, doc.draftUpdate.by)}
+              />
+            )}
+          </Trace>
+        )}
+      </div>
+      {actions?.(doc)}
     </div>
   );
 }
 
-function ActionsCell(props: CellContext<SessionDocument, unknown>) {
-  const { actions } = useContext(SessionDocumentsTableContext);
-  return actions?.(props.row.original) ?? null;
+function MeetingDateCell(props: CellContext<SessionMeeting, PlainDateOnly>) {
+  return formatLongDateOnly(props.getValue());
+}
+
+function AgendasCell(props: CellContext<SessionMeeting, unknown>) {
+  return (
+    <div className="flex w-full flex-col divide-y divide-(--border-default-grey)">
+      {props.row.original.agendas.map((agenda) => (
+        <SessionDocumentItem doc={agenda} key={agenda.id} />
+      ))}
+    </div>
+  );
+}
+
+function OfficialReportCell(props: CellContext<SessionMeeting, unknown>) {
+  const { newOfficialReport } = useContext(SessionDocumentsTableContext);
+  const { agendas, officialReport, state } = props.row.original;
+
+  if (officialReport) return <SessionDocumentItem doc={officialReport} />;
+  if (state !== 'awaitingOfficialReport') return null;
+
+  const [agenda] = agendas;
+
+  return (
+    <div className="flex w-full flex-col items-center gap-3 py-4">
+      <Badge as="span" className="rounded-full" noIcon severity="error" small>
+        <FormattedMessage defaultMessage="pv attendu" />
+      </Badge>
+      {agenda && newOfficialReport?.(agenda)}
+    </div>
+  );
 }
 
 export function SessionDocumentsTable(props: {
   actions?: (doc: SessionDocument) => ReactNode;
-  groups: readonly (readonly SessionDocument[])[];
+  groups: readonly SessionDocumentGroup[];
+  newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   renderName?: (doc: SessionDocument) => ReactNode;
   scrollsWithPage?: boolean;
 }) {
   const { formatMessage } = useIntl();
-  const { actions, groups, renderName } = props;
+  const { actions, groups, newOfficialReport, renderName } = props;
 
-  const data = useMemo(() => groups.flat(), [groups]);
+  const data = useMemo(() => groups.map(toSessionMeeting), [groups]);
   const states = useMemo(() => sessionDocumentStates(groups), [groups]);
 
   const associations = useMemo(
@@ -186,87 +240,43 @@ export function SessionDocumentsTable(props: {
     [groups],
   );
 
-  const [highlighted, setHighlighted] = useState<{ announcement: string; ids: readonly string[] }>({
-    announcement: '',
-    ids: [],
-  });
-  const highlightTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => () => clearTimeout(highlightTimeout.current), []);
-
-  const highlightAssociated = useCallback(
-    (doc: SessionDocument) => {
-      const association = associations.get(doc.id);
-      if (!association) return;
-
-      clearTimeout(highlightTimeout.current);
-      setHighlighted({
-        announcement: formatMessage(
-          {
-            defaultMessage: '{count, plural, one {Document associé} other {Documents associés}} : {names}',
-          },
-          {
-            count: association.associated.length,
-            names: association.associated.map(({ name }) => name).join(', '),
-          },
-        ),
-        ids: association.associated.map(({ id }) => id),
-      });
-      highlightTimeout.current = setTimeout(
-        () => setHighlighted({ announcement: '', ids: [] }),
-        HIGHLIGHT_DURATION,
-      );
-    },
-    [associations, formatMessage],
-  );
-
   const renderers = useMemo(
-    () => ({ actions, associations, highlightAssociated, renderName, states }),
-    [actions, associations, highlightAssociated, renderName, states],
+    () => ({ actions, associations, newOfficialReport, renderName, states }),
+    [actions, associations, newOfficialReport, renderName, states],
   );
 
   const columns = useMemo(
     () => [
-      h.accessor('type', {
-        cell: typeCell,
+      h.accessor('meetingDate', {
+        cell: MeetingDateCell,
         enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Type' }),
-        size: 150,
-      }),
-
-      h.accessor('name', {
-        cell: NameCell,
-        enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Nom du document' }),
-        size: 260,
-      }),
-
-      h.accessor('createdAt', {
-        cell: CreatedAtCell,
-        enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Créé le' }),
-        size: 190,
-      }),
-
-      h.accessor('validatedAt', {
-        cell: ValidatedAtCell,
-        enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Validé le' }),
-        size: 190,
+        header: formatMessage({ defaultMessage: 'Séance de restitution' }),
+        meta: {
+          cellBackground: () => 'bg-(--background-alt-grey)',
+          cellClassName: () => 'border-r border-(--border-default-grey)',
+          headerClassName: 'border-r border-(--border-default-grey)',
+        },
+        size: 200,
+        sortingFn: (a, b) => compareDateOnly(a.original.meetingDate, b.original.meetingDate),
       }),
 
       h.display({
-        cell: StateCell,
-        header: formatMessage({ defaultMessage: 'État' }),
-        id: 'state',
-        size: 290,
+        cell: AgendasCell,
+        header: formatMessage({ defaultMessage: 'Ordre du jour' }),
+        id: 'agendas',
+        meta: {
+          cellClassName: () => 'border-r border-(--border-default-grey) py-0!',
+          headerClassName: 'border-r border-(--border-default-grey)',
+        },
+        size: 520,
       }),
 
       h.display({
-        cell: ActionsCell,
-        header: formatMessage({ defaultMessage: 'Actions' }),
-        id: 'actions',
-        size: 190,
+        cell: OfficialReportCell,
+        header: formatMessage({ defaultMessage: 'Procès-verbal' }),
+        id: 'officialReport',
+        meta: { cellClassName: () => 'py-0!' },
+        size: 520,
       }),
     ],
     [formatMessage],
@@ -275,9 +285,11 @@ export function SessionDocumentsTable(props: {
   const table = useReactTable({
     columns,
     data,
+    enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     getSortedRowModel: getSortedRowModel(),
+    initialState: { sorting: [{ desc: true, id: 'meetingDate' }] },
   });
 
   return (
@@ -286,18 +298,11 @@ export function SessionDocumentsTable(props: {
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid
-        revealedRowId={highlighted.ids[0] ?? null}
-        rowTint={(row) =>
-          highlighted.ids.includes(row.id) ? 'bg-(--background-alt-blue-france)' : undefined
-        }
         scrollsWithPage={props.scrollsWithPage}
         table={table}
         unvirtualized
         visibleRows={props.scrollsWithPage ? undefined : 10}
       />
-      <span aria-live="polite" className="fr-sr-only">
-        {highlighted.announcement}
-      </span>
     </SessionDocumentsTableContext.Provider>
   );
 }

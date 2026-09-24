@@ -4,13 +4,9 @@ import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext } from 'react-router';
 
-import { DocActionAgendaFiles } from '@/features/transparence/components/documents/DocActionAgendaFiles';
-import { DocActionAgendaMetadata } from '@/features/transparence/components/documents/DocActionAgendaMetadata';
-import { DocActionDelete } from '@/features/transparence/components/documents/DocActionDelete';
 import { DocActionDetails } from '@/features/transparence/components/documents/DocActionDetails';
-import { DocActionOfficialReportMetadata } from '@/features/transparence/components/documents/DocActionOfficialReportMetadata';
-import { DocActionUpdate } from '@/features/transparence/components/documents/DocActionUpdate';
 import { DocGenerationMenu } from '@/features/transparence/components/documents/DocGenerationMenu';
+import { NewOfficialReportButton } from '@/features/transparence/components/documents/NewOfficialReportButton';
 import {
   groupSessionDocuments,
   isSessionDocumentGroupState,
@@ -18,6 +14,7 @@ import {
   sessionDocumentGroupState,
   type SessionDocumentGroupState,
 } from '@/features/transparence/components/documents/session-document-groups';
+import { SessionDocumentActions } from '@/features/transparence/components/documents/SessionDocumentActions';
 import { SessionDocumentsTable } from '@/features/transparence/components/documents/SessionDocumentsTable';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
@@ -128,38 +125,13 @@ export function TransparenceDocumentsTab() {
       <SessionDocumentsTable
         actions={(doc) =>
           isArchived ? null : (
-            <div className="-ml-2 grid grid-cols-4 items-center gap-1">
-              {doc.type === 'agenda' && (
-                <>
-                  <DocActionAgendaMetadata
-                    agendaId={doc.id}
-                    disabled={isActing}
-                    name={doc.name}
-                    sessionId={transparence.id}
-                  />
-                  <DocActionAgendaFiles
-                    agendaId={doc.id}
-                    disabled={isActing}
-                    name={doc.name}
-                    sessionId={transparence.id}
-                  />
-                </>
-              )}
-              {doc.type === 'officialReport' && (
-                <DocActionOfficialReportMetadata
-                  disabled={isActing}
-                  officialReport={doc}
-                  sessionId={transparence.id}
-                />
-              )}
-              <div className="col-start-3">
-                <DocActionUpdate disabled={isActing} doc={doc} sessionId={transparence.id} />
-              </div>
-              <DocActionDelete disabled={isActing} doc={doc} sessionId={transparence.id} />
-            </div>
+            <SessionDocumentActions disabled={isActing} doc={doc} sessionId={transparence.id} />
           )
         }
         groups={groups}
+        newOfficialReport={(agenda) =>
+          isArchived ? null : <NewOfficialReportButton agenda={agenda} sessionId={transparence.id} />
+        }
         renderName={(doc) => (
           <DocActionDetails
             disabled={isActing}

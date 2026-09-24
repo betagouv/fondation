@@ -38,15 +38,20 @@ function renderDocActionDetails(setIsActing = vi.fn()) {
         disabled={false}
         doc={{
           createdAt: '2028-03-10T09:00:00.000Z',
+          createdBy: null,
           draftChangesBy: null,
+          draftUpdate: null,
           id: 'agenda-1',
+          meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'Ordre du jour du 12 mars',
           officialReportId: null,
+          officialReportReadiness: { status: 'READY' },
           outdated: false,
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
           validatedAt: '2028-03-10T11:00:00.000Z',
+          validatedBy: null,
         }}
         sessionId="session-1"
         setIsActing={setIsActing}
