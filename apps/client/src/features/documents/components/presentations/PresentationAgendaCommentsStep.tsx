@@ -61,10 +61,10 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
         <Alert
           className="fr-mb-6v"
           description={
-            <FormattedMessage defaultMessage="Les informations de la séance ont été perdues, probablement après un rechargement de la page. Revenez à l'étape précédente pour les saisir à nouveau." />
+            <FormattedMessage defaultMessage="Les données de la séance ont été perdues, probablement après un rechargement de la page. Revenez à l'étape précédente pour les saisir à nouveau." />
           }
           severity="warning"
-          title={<FormattedMessage defaultMessage="Informations de la séance incomplètes" />}
+          title={<FormattedMessage defaultMessage="Données de la séance incomplètes" />}
         />
       )}
 

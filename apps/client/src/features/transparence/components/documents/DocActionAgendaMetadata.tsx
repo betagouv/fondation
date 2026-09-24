@@ -17,7 +17,7 @@ export function DocActionAgendaMetadata(props: {
     <IconLink
       disabled={props.disabled}
       iconId={ACTION_ICONS.agendaMetadata}
-      label={formatMessage({ defaultMessage: 'Modifier les informations de {name}' }, { name: props.name })}
+      label={formatMessage({ defaultMessage: 'Modifier les données de {name}' }, { name: props.name })}
       small
       to={generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
         agendaId: props.agendaId,

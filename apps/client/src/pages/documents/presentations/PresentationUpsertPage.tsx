@@ -10,7 +10,7 @@ import { usePresentationPlan } from '@/features/documents/context/presentation-p
 
 const STEP_TITLES = {
   AGENDA_COMMENTS: defineMessage({ defaultMessage: 'Commentaires sur les ordres du jour' }),
-  METADATA: defineMessage({ defaultMessage: 'Informations de la notice' }),
+  METADATA: defineMessage({ defaultMessage: 'Données de la notice' }),
 };
 
 export function PresentationUpsertPage() {
