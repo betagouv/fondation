@@ -48,10 +48,9 @@ export class FindSessionDocsQuery {
     const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.sessionId },
       select: {
-        id: true,
+        author: { select: { firstName: true, id: true, lastName: true } },
         createdAt: true,
-        author: { select: { id: true, firstName: true, lastName: true } },
-        officialReportId: true,
+        id: true,
         justicePresentationPlans: {
           select: {
             plan: {
@@ -68,26 +67,27 @@ export class FindSessionDocsQuery {
             },
           },
         },
+        officialReportId: true,
         // an agenda holds at most its validated version and the draft opened on top of it
         versions: {
           take: 2,
           orderBy: { version: 'desc' },
           select: {
-            status: true,
-            outdated: true,
-            validatedAt: true,
-            sessionMeetingDate: true,
+            author: { select: { firstName: true, id: true, lastName: true } },
             chairmanFirstName: true,
             chairmanLastName: true,
             createdAt: true,
             createdBy: true,
+            editor: { select: { firstName: true, id: true, lastName: true } },
+            outdated: true,
+            sessionMeetingDate: true,
+            status: true,
             systemUpdatedAt: true,
-            systemUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+            systemUpdates: { orderBy: { at: 'asc' }, select: { cause: true } },
             updatedAt: true,
             updatedBy: true,
-            author: { select: { id: true, firstName: true, lastName: true } },
-            editor: { select: { id: true, firstName: true, lastName: true } },
-            validator: { select: { id: true, firstName: true, lastName: true } },
+            validatedAt: true,
+            validator: { select: { firstName: true, id: true, lastName: true } },
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -105,14 +105,14 @@ export class FindSessionDocsQuery {
           ...shown,
           // the version carries its own createdAt, which must not pass for the agenda's
           createdAt: agenda.createdAt,
+          creator: author,
+          draftChange: draft ? draftLastChange(draft) : null,
+          draftChangesBy: draft ? draftChangesBy(draft) : null,
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
           outdated: versions.some((version) => version.outdated),
-          draftChangesBy: draft ? draftChangesBy(draft) : null,
-          creator: author,
-          draftChange: draft ? draftLastChange(draft) : null,
-          validator: published?.validator ?? null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
+          validator: published?.validator ?? null,
         },
       ];
     });
@@ -121,29 +121,29 @@ export class FindSessionDocsQuery {
     const officialReports = await this.db.tx.officialReport.findMany({
       where: { agendas: { some: { sessionId: query.sessionId } } },
       select: {
-        id: true,
+        author: { select: { firstName: true, id: true, lastName: true } },
         createdAt: true,
-        author: { select: { id: true, firstName: true, lastName: true } },
+        id: true,
         // a report holds at most its validated version and the draft opened on top of it
         versions: {
           take: 2,
           orderBy: { version: 'desc' },
           select: {
-            status: true,
-            outdated: true,
-            validatedAt: true,
-            sessionMeetingDate: true,
+            author: { select: { firstName: true, id: true, lastName: true } },
             chairmanFirstName: true,
             chairmanLastName: true,
             createdAt: true,
             createdBy: true,
+            editor: { select: { firstName: true, id: true, lastName: true } },
+            outdated: true,
+            sessionMeetingDate: true,
+            status: true,
             systemUpdatedAt: true,
-            systemUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+            systemUpdates: { orderBy: { at: 'asc' }, select: { cause: true } },
             updatedAt: true,
             updatedBy: true,
-            author: { select: { id: true, firstName: true, lastName: true } },
-            editor: { select: { id: true, firstName: true, lastName: true } },
-            validator: { select: { id: true, firstName: true, lastName: true } },
+            validatedAt: true,
+            validator: { select: { firstName: true, id: true, lastName: true } },
           },
         },
       } satisfies Prisma.OfficialReportSelect,
@@ -160,12 +160,12 @@ export class FindSessionDocsQuery {
           ...report,
           ...shown,
           createdAt: report.createdAt,
-          outdated: versions.some((version) => version.outdated),
-          draftChangesBy: draft ? draftChangesBy(draft) : null,
           creator: author,
           draftChange: draft ? draftLastChange(draft) : null,
-          validator: published?.validator ?? null,
+          draftChangesBy: draft ? draftChangesBy(draft) : null,
+          outdated: versions.some((version) => version.outdated),
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
+          validator: published?.validator ?? null,
         },
       ];
     });

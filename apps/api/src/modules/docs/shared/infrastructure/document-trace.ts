@@ -28,7 +28,7 @@ export const DRAFT_TRACE_SELECT = {
   createdAt: true,
   editor: { select: { firstName: true, id: true, lastName: true } },
   systemUpdatedAt: true,
-  systemUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+  systemUpdates: { orderBy: { at: 'asc' }, select: { cause: true } },
   updatedAt: true,
 } as const satisfies Prisma.AgendaVersionSelect & Prisma.OfficialReportVersionSelect;
 

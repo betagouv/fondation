@@ -100,13 +100,7 @@ function AgendaScreen(props: { blocks: readonly AgendaBlock[] }) {
           <Button iconId="ri-calendar-event-line" priority="secondary">
             Informations
           </Button>
-          <Button
-            disabled={pendingRevalidations.propositions > 0}
-            iconId="fr-icon-success-fill"
-            iconPosition="right"
-          >
-            Valider le document
-          </Button>
+          <Button disabled={pendingRevalidations.propositions > 0}>Valider le document</Button>
         </>
       }
       notices={

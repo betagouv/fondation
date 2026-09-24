@@ -131,8 +131,8 @@ export function OfficialReportPreviewPage() {
               <DocumentDraftBanner
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
-                validatedAt={metadata.validation?.at}
                 kind="officialReport"
+                validatedAt={metadata.validation?.at}
               />
             )}
             {metadata?.outdated && (

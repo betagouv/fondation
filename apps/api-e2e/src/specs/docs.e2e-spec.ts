@@ -202,7 +202,7 @@ test.describe('Docs Service', () => {
 
     await agent.sessions.affectReporters({
       path: { sessionId },
-      body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id], priorities: [] }] },
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
     await agent.sessions.defineNominationFileOutcome({

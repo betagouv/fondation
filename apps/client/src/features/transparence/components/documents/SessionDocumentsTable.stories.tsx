@@ -134,11 +134,16 @@ function DocName(doc: SessionDocument) {
 }
 
 const meta = {
-  title: 'Session/Transparence/SessionDocumentsTable',
-  component: SessionDocumentsTable,
+  args: {
+    actions: Actions,
+    groups: groupSessionDocuments(DOCS),
+    newOfficialReport: NewOfficialReport,
+    renderName: DocName,
+  },
   beforeEach: ({ msw }) => {
     msw.use(...sessionDocsHandlers);
   },
+  component: SessionDocumentsTable,
   decorators: [
     (Story) => (
       <StoryQueryClient>
@@ -152,12 +157,7 @@ const meta = {
   ],
   parameters: { controls: { include: ['groups'] }, layout: 'padded' },
   tags: ['autodocs'],
-  args: {
-    actions: Actions,
-    groups: groupSessionDocuments(DOCS),
-    newOfficialReport: NewOfficialReport,
-    renderName: DocName,
-  },
+  title: 'Session/Transparence/SessionDocumentsTable',
 } satisfies Meta<typeof SessionDocumentsTable>;
 
 export default meta;

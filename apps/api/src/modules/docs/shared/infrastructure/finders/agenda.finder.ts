@@ -67,7 +67,7 @@ export class AgendaFinder {
     sessionId: string;
   }): Promise<Map<string, OfficialReportReadiness>> {
     const agendas = await this.db.tx.agenda.findMany({
-      where: { sessionId: query.sessionId, officialReportId: null },
+      where: { officialReportId: null, sessionId: query.sessionId },
       select: {
         id: true,
         versions: {

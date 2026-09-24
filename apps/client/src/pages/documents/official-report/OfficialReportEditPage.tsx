@@ -129,8 +129,8 @@ export function OfficialReportEditPage() {
               <DocumentDraftBanner
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
-                validatedAt={metadata.validation?.at}
                 kind="officialReport"
+                validatedAt={metadata.validation?.at}
               />
             )}
             {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (

@@ -145,8 +145,8 @@ export function AgendaPreviewPage() {
               <DocumentDraftBanner
                 draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
-                validatedAt={metadata.validation?.at}
                 kind="agenda"
+                validatedAt={metadata.validation?.at}
               />
             )}
             {metadata?.outdated && (
