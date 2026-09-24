@@ -5,11 +5,7 @@ import {
   commonDocumentCss,
   documentLayout,
 } from '../../../../shared/infrastructure/services/renderers/common.html';
-import {
-  date,
-  fullname,
-  requiresElision,
-} from '../../../../shared/infrastructure/services/renderers/helpers';
+import { date, requiresElision } from '../../../../shared/infrastructure/services/renderers/helpers';
 import {
   DocNominationFileOutcomeEnum,
   docNominationFileOutcomeLabel,
@@ -19,6 +15,7 @@ import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly, timeOnlyToString } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 function css(): string {
   return /* css */ `

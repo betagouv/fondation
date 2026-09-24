@@ -1,13 +1,9 @@
 import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { capitalize } from 'src/utils/capitalize';
 import { DateOnlyJson } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';
-
-export function fullname(props: { firstName: string; lastName: string }): string {
-  return `${capitalize(props.firstName)}\u00A0${props.lastName.toUpperCase()}`;
-}
+import { fullname } from 'src/utils/user.util';
 
 export function titled(props: {
   title: UserTitleEnum | null;
