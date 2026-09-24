@@ -4,7 +4,14 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
-import { draftChangesBy, draftChangesBySchema } from '../draft-changes-by';
+import { DOC_SYSTEM_UPDATE_CAUSES } from '../../domain/doc-system-update-cause';
+import { draftChangesBy, draftChangesBySchema, draftLastChange } from '../draft-changes-by';
+import {
+  AgendaFinder,
+  officialReportReadinessSchema,
+  writerOf,
+  writerSchema,
+} from '../finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import {
   presentationPlanStatusOf,
@@ -15,9 +22,22 @@ import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappe
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
+const draftUpdateSchema = z
+  .object({
+    at: z.iso.datetime(),
+    /** null when the application made the change, or its author is gone */
+    by: writerSchema,
+    causes: z.array(z.enum(DOC_SYSTEM_UPDATE_CAUSES)),
+    origin: z.enum(['PERSON', 'SYSTEM']),
+  })
+  .nullable();
+
 @Injectable()
 export class FindSessionDocsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly agendas: AgendaFinder,
+  ) {}
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
@@ -30,6 +50,7 @@ export class FindSessionDocsQuery {
       select: {
         id: true,
         createdAt: true,
+        author: { select: { id: true, firstName: true, lastName: true } },
         officialReportId: true,
         justicePresentationPlans: {
           select: {
@@ -58,15 +79,21 @@ export class FindSessionDocsQuery {
             sessionMeetingDate: true,
             chairmanFirstName: true,
             chairmanLastName: true,
+            createdAt: true,
             createdBy: true,
             systemUpdatedAt: true,
+            systemUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+            updatedAt: true,
             updatedBy: true,
+            author: { select: { id: true, firstName: true, lastName: true } },
+            editor: { select: { id: true, firstName: true, lastName: true } },
+            validator: { select: { id: true, firstName: true, lastName: true } },
           },
         },
       } satisfies Prisma.AgendaSelect,
     });
 
-    const agendaFiles = agendas.flatMap(({ versions, ...agenda }) => {
+    const agendaFiles = agendas.flatMap(({ author, versions, ...agenda }) => {
       const published = versions.find(({ status }) => status === 'VALIDATED');
       const draft = versions.find(({ status }) => status === 'DRAFT');
       const shown = published ?? versions[0];
@@ -76,19 +103,27 @@ export class FindSessionDocsQuery {
         {
           ...agenda,
           ...shown,
+          // the version carries its own createdAt, which must not pass for the agenda's
+          createdAt: agenda.createdAt,
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
           outdated: versions.some((version) => version.outdated),
           draftChangesBy: draft ? draftChangesBy(draft) : null,
+          creator: author,
+          draftChange: draft ? draftLastChange(draft) : null,
+          validator: published?.validator ?? null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
         },
       ];
     });
+    const officialReportReadiness = await this.agendas.findOfficialReportReadiness(query);
+
     const officialReports = await this.db.tx.officialReport.findMany({
       where: { agendas: { some: { sessionId: query.sessionId } } },
       select: {
         id: true,
         createdAt: true,
+        author: { select: { id: true, firstName: true, lastName: true } },
         // a report holds at most its validated version and the draft opened on top of it
         versions: {
           take: 2,
@@ -100,15 +135,21 @@ export class FindSessionDocsQuery {
             sessionMeetingDate: true,
             chairmanFirstName: true,
             chairmanLastName: true,
+            createdAt: true,
             createdBy: true,
             systemUpdatedAt: true,
+            systemUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+            updatedAt: true,
             updatedBy: true,
+            author: { select: { id: true, firstName: true, lastName: true } },
+            editor: { select: { id: true, firstName: true, lastName: true } },
+            validator: { select: { id: true, firstName: true, lastName: true } },
           },
         },
       } satisfies Prisma.OfficialReportSelect,
     });
 
-    const officialReportFiles = officialReports.flatMap(({ versions, ...report }) => {
+    const officialReportFiles = officialReports.flatMap(({ author, versions, ...report }) => {
       const published = versions.find(({ status }) => status === 'VALIDATED');
       const draft = versions.find(({ status }) => status === 'DRAFT');
       const shown = published ?? versions[0];
@@ -118,8 +159,12 @@ export class FindSessionDocsQuery {
         {
           ...report,
           ...shown,
+          createdAt: report.createdAt,
           outdated: versions.some((version) => version.outdated),
           draftChangesBy: draft ? draftChangesBy(draft) : null,
+          creator: author,
+          draftChange: draft ? draftLastChange(draft) : null,
+          validator: published?.validator ?? null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
         },
       ];
@@ -133,7 +178,9 @@ export class FindSessionDocsQuery {
         id: file.id,
         type: 'agenda' as const,
         date: file.sessionMeetingDate,
+        meetingDate: DateOnly.fromUtcDate(file.sessionMeetingDate).toJson(),
         officialReportId: file.officialReportId,
+        officialReportReadiness: officialReportReadiness.get(file.id) ?? null,
         presentationPlans: file.justicePresentationPlans.map(({ plan }) => ({
           id: plan.id,
           date: DateOnly.fromUtcDate(plan.date).toJson(),
@@ -146,8 +193,18 @@ export class FindSessionDocsQuery {
         outdated: file.outdated,
         status: file.status,
         draftChangesBy: file.draftChangesBy,
+        draftUpdate: file.draftChange
+          ? {
+              at: file.draftChange.at.toISOString(),
+              by: writerOf(file.draftChange.by),
+              causes: file.draftChange.causes,
+              origin: file.draftChange.origin,
+            }
+          : null,
         createdAt: file.createdAt.toISOString(),
+        createdBy: writerOf(file.creator),
         validatedAt: file.validatedAt?.toISOString() ?? null,
+        validatedBy: writerOf(file.validator),
         name: docFileName({
           formation: null,
           type: 'AGENDA',
@@ -161,11 +218,22 @@ export class FindSessionDocsQuery {
         id: file.id,
         outdated: file.outdated,
         date: file.sessionMeetingDate,
+        meetingDate: DateOnly.fromUtcDate(file.sessionMeetingDate).toJson(),
         type: 'officialReport' as const,
         status: file.status,
         draftChangesBy: file.draftChangesBy,
+        draftUpdate: file.draftChange
+          ? {
+              at: file.draftChange.at.toISOString(),
+              by: writerOf(file.draftChange.by),
+              causes: file.draftChange.causes,
+              origin: file.draftChange.origin,
+            }
+          : null,
         createdAt: file.createdAt.toISOString(),
+        createdBy: writerOf(file.creator),
         validatedAt: file.validatedAt?.toISOString() ?? null,
+        validatedBy: writerOf(file.validator),
         name: docFileName({
           formation: null,
           sessionName: null,
@@ -203,7 +271,10 @@ export class FoundSessionDocsDto extends createZodDto(
           type: z.enum(['agenda']),
           id: z.string(),
           name: z.string(),
+          meetingDate: dateOnlyJsonSchema,
           officialReportId: z.string().nullable(),
+          /** null once the agenda has its report */
+          officialReportReadiness: officialReportReadinessSchema.nullable(),
           presentationPlans: z.array(
             z.object({
               id: z.string(),
@@ -219,20 +290,27 @@ export class FoundSessionDocsDto extends createZodDto(
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),
           draftChangesBy: draftChangesBySchema,
+          draftUpdate: draftUpdateSchema,
           /** tells apart the agendas sharing a name, since the file name holds no time */
           createdAt: z.iso.datetime(),
+          createdBy: writerSchema,
           validatedAt: z.iso.datetime().nullable(),
+          validatedBy: writerSchema,
         }),
         z.object({
           type: z.enum(['officialReport']),
           id: z.string(),
           name: z.string(),
+          meetingDate: dateOnlyJsonSchema,
           outdated: z.boolean(),
           /** DRAFT while the report has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),
           draftChangesBy: draftChangesBySchema,
+          draftUpdate: draftUpdateSchema,
           createdAt: z.iso.datetime(),
+          createdBy: writerSchema,
           validatedAt: z.iso.datetime().nullable(),
+          validatedBy: writerSchema,
         }),
       ]),
     ),

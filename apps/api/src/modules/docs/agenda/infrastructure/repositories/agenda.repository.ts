@@ -306,9 +306,14 @@ export class AgendaRepository {
   }
 
   private async persistAgendaDraftUpdatedBySystem(message: AgendaDraftUpdatedBySystem) {
-    await this.db.tx.agendaVersion.updateMany({
-      where: { agendaId: message.agendaId, status: 'DRAFT' },
-      data: { systemUpdatedAt: this.clock.now() },
+    const at = this.clock.now();
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: message.agendaId });
+
+    await this.db.tx.agendaVersion.update({ where: { id: versionId }, data: { systemUpdatedAt: at } });
+    await this.db.tx.agendaVersionSystemUpdate.upsert({
+      where: { primaryKey: { cause: message.cause, versionId } },
+      create: { at, cause: message.cause, versionId },
+      update: { at },
     });
   }
 

@@ -1,6 +1,8 @@
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
+import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import type { FormationEnum } from 'src/modules/shared/formation.enum';
 import { makeId, type Id } from 'src/utils/id';
+import { assertIsDefined } from 'src/utils/is-defined';
 
 import {
   InvalidateOfficialReportCommand,
@@ -115,7 +117,10 @@ export class OfficialReportDraftOpened {
 }
 
 export class OfficialReportDraftUpdatedBySystem {
-  constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly cause: DocSystemUpdateCause,
+  ) {}
 }
 
 export class OfficialReportDraftEdited {
@@ -148,6 +153,17 @@ export type OfficialReportEvent =
   | OfficialReportDraftEdited
   | OfficialReportDraftUpdatedBySystem
   | OfficialReportDraftDiscarded;
+
+const INVALIDATION_CAUSES = {
+  AgendaDateUpdated: 'AGENDA_DATE',
+  AgendaNominationFilesUpdated: 'AGENDA_PROPOSITIONS',
+  NominationFilesOutcomeUpdated: 'OUTCOME',
+  NominationFilesReportersUpdated: 'REPORTERS',
+  SessionDateUpdated: 'SESSION_DATE',
+} as const satisfies Record<
+  Exclude<InvalidateOfficialReportCommand['type'], 'AgendaFileBlockEdited'>,
+  DocSystemUpdateCause
+>;
 
 export class OfficialReportDocumentNotStored extends Error {}
 
@@ -209,7 +225,7 @@ export class OfficialReport {
   }
 
   /** a validated version never changes: editing it forks the draft everything is then written into */
-  private openDraft(): void {
+  private openDraft(systemCause?: DocSystemUpdateCause): void {
     if (this.state.isValidated) {
       this.#messages.push(new OfficialReportDraftOpened(this.id, this.actorId));
       this.state.isValidated = false;
@@ -217,7 +233,10 @@ export class OfficialReport {
       this.#messages.push(new OfficialReportDraftEdited(this.id, this.actorId));
     }
 
-    if (!this.actorId) this.#messages.push(new OfficialReportDraftUpdatedBySystem(this.id));
+    if (!this.actorId) {
+      const cause = assertIsDefined(systemCause, 'the application updates a draft for a reason');
+      this.#messages.push(new OfficialReportDraftUpdatedBySystem(this.id, cause));
+    }
   }
 
   validate(command: { at: Date; authorId: string }): void {
@@ -241,14 +260,17 @@ export class OfficialReport {
   invalidate(command: InvalidateOfficialReportCommand): void {
     // the report follows the agenda's sentence on its own: the reader was never asked to choose
     if (command.type === 'AgendaFileBlockEdited') {
-      if (this.snapshot.holdsFile(command.payload.nominationFileId)) this.resetFile(command.payload);
+      if (!this.snapshot.holdsFile(command.payload.nominationFileId)) return;
+
+      this.openDraft('AGENDA_TEXT');
+      this.#messages.push(new OfficialReportFileReset(this.id, command.payload.nominationFileId));
       return;
     }
 
     const diff = this.snapshot.invalidate(command);
     if (!diff.hasAny) return;
 
-    this.openDraft();
+    this.openDraft(INVALIDATION_CAUSES[command.type]);
     this.#messages.push(new OfficialReportInvalidated(this.id, diff));
   }
 

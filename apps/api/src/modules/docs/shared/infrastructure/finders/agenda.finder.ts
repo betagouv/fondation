@@ -16,9 +16,23 @@ import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 import { fullname } from 'src/utils/user.util';
 
-const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+export const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 
-function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
+export const officialReportReadinessSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.enum(['READY']) }),
+  z.object({ status: z.enum(['NEVER_PUBLISHED']) }),
+  z.object({
+    status: z.enum(['INCOMPLETE']),
+    /** all at zero when the report rule fails on something these counts do not see */
+    filesWithoutOutcome: z.number().int(),
+    filesWithoutReporter: z.number().int(),
+    filesWithUnpublishedReporter: z.number().int(),
+  }),
+]);
+
+export type OfficialReportReadiness = z.infer<typeof officialReportReadinessSchema>;
+
+export function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
   return user ? { id: user.id, name: fullname(user) } : null;
 }
 
@@ -46,6 +60,73 @@ export class AgendaFinder {
       select: { id: true } satisfies Prisma.AgendaSelect,
     });
     return Boolean(result);
+  }
+
+  @Transactional()
+  async findOfficialReportReadiness(query: {
+    sessionId: string;
+  }): Promise<Map<string, OfficialReportReadiness>> {
+    const agendas = await this.db.tx.agenda.findMany({
+      where: { sessionId: query.sessionId, officialReportId: null },
+      select: {
+        id: true,
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            status: true,
+            nominationFiles: {
+              select: {
+                nominationFile: {
+                  select: { outcome: true, reporterIds: { select: { versionId: true } } },
+                },
+              },
+            },
+          },
+        },
+      } satisfies Prisma.AgendaSelect,
+    });
+
+    const publishedVersion = await this.transparences.versions.lastPublished({ sessionId: query.sessionId });
+    if (publishedVersion.isNone()) {
+      return new Map(
+        agendas.map(({ id }): [string, OfficialReportReadiness] => [id, { status: 'NEVER_PUBLISHED' }]),
+      );
+    }
+
+    // the very rule the report creation checks, so the answer given here never contradicts it
+    const where = await this.buildFindReportableInOfficialReport({
+      affectationVersionId: publishedVersion.id,
+      sessionId: query.sessionId,
+    });
+    const reportable = where
+      ? await this.db.tx.agenda.findMany({ where, select: { id: true } satisfies Prisma.AgendaSelect })
+      : [];
+    const reportableIds = new Set(reportable.map(({ id }) => id));
+
+    return new Map(
+      agendas.map(({ id, versions }): [string, OfficialReportReadiness] => {
+        if (reportableIds.has(id)) return [id, { status: 'READY' }];
+
+        const files = (agendaContentOf(versions)?.nominationFiles ?? []).flatMap(({ nominationFile }) =>
+          nominationFile ? [nominationFile] : [],
+        );
+        const unaffected = files.filter(
+          ({ reporterIds }) => !reporterIds.some(({ versionId }) => versionId === publishedVersion.id),
+        );
+
+        return [
+          id,
+          {
+            filesWithoutOutcome: files.filter(({ outcome }) => NominationFileOutcome.isAwaited(outcome))
+              .length,
+            filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
+            filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0)
+              .length,
+            status: 'INCOMPLETE',
+          },
+        ];
+      }),
+    );
   }
 
   @Transactional()

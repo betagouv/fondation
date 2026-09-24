@@ -1048,7 +1048,22 @@ export type FoundSessionDocsDto = {
         type: 'agenda';
         id: string;
         name: string;
+        meetingDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
         officialReportId: string | null;
+        officialReportReadiness: {
+            status: 'READY';
+        } | {
+            status: 'NEVER_PUBLISHED';
+        } | {
+            status: 'INCOMPLETE';
+            filesWithoutOutcome: number;
+            filesWithoutReporter: number;
+            filesWithUnpublishedReporter: number;
+        } | null;
         presentationPlans: Array<{
             id: string;
             date: {
@@ -1072,17 +1087,56 @@ export type FoundSessionDocsDto = {
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
+        draftUpdate: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+            origin: 'PERSON' | 'SYSTEM';
+        } | null;
         createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+        } | null;
         validatedAt: string | null;
+        validatedBy: {
+            id: string;
+            name: string;
+        } | null;
     } | {
         type: 'officialReport';
         id: string;
         name: string;
+        meetingDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
+        draftUpdate: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+            origin: 'PERSON' | 'SYSTEM';
+        } | null;
         createdAt: string;
+        createdBy: {
+            id: string;
+            name: string;
+        } | null;
         validatedAt: string | null;
+        validatedBy: {
+            id: string;
+            name: string;
+        } | null;
     }>;
 };
 
@@ -1204,6 +1258,7 @@ export type DetailedAgendaMetadata = {
             id: string;
             name: string;
         } | null;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1403,6 +1458,7 @@ export type DetailedOfficialReportMetadataDto = {
             id: string;
             name: string;
         } | null;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1585,6 +1641,7 @@ export type DetailedPresentationPlanMetadataDto = {
             id: string;
             name: string;
         } | null;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
