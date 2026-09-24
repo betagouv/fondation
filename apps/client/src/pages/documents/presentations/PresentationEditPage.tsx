@@ -3,14 +3,13 @@ import { useCallback, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Navigate, useNavigate, useParams } from 'react-router';
 
+import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentHtmlEditor } from '@/features/documents/components/DocumentHtmlEditor';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
-import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { PresentationBreadcrumb } from '@/features/documents/components/presentations/PresentationBreadcrumb';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
-import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useToasts } from '@/shared/ui/toast';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -40,7 +39,6 @@ export function PresentationEditPage() {
   /** a ref, not a state: the guard saves from a callback it captured before the last keystroke */
   const draftRef = useRef<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
-  const [reloadKey, setReloadKey] = useState(() => crypto.randomUUID());
 
   const previewPath = generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: planId! });
   const seePreview = {
@@ -74,7 +72,6 @@ export function PresentationEditPage() {
     }
 
     setDirty(false);
-    setReloadKey(crypto.randomUUID());
 
     toasts.success({
       action: seePreview,
@@ -117,12 +114,8 @@ export function PresentationEditPage() {
     }
 
     cancel();
-    setReloadKey(crypto.randomUUID());
-
-    toasts.success({
-      action: seePreview,
-      title: formatMessage({ defaultMessage: 'La notice est revenue à son texte généré.' }),
-    });
+    await navigate(previewPath);
+    toasts.success({ title: formatMessage({ defaultMessage: 'La notice est revenue à son texte généré.' }) });
   };
 
   const isSaving = updateHtml.isPending;
@@ -140,7 +133,12 @@ export function PresentationEditPage() {
               <FormattedMessage defaultMessage="Revenir au texte généré" />
             </Button>
           )}
-          <Button disabled={isSaving || !isDirty} onClick={cancel} priority="secondary">
+          <Button
+            disabled={isSaving || !isDirty}
+            iconId="fr-icon-arrow-go-back-line"
+            onClick={cancel}
+            priority="secondary"
+          >
             <FormattedMessage defaultMessage="Annuler les changements" />
           </Button>
           <Button disabled={isSaving || !isDirty} onClick={() => void save()}>
@@ -155,14 +153,9 @@ export function PresentationEditPage() {
       breadcrumb={<PresentationBreadcrumb />}
       notices={
         <div role="status">
-          <AlertBanner
-            className="justify-center px-4 py-3 text-center"
-            icon="fr-icon-info-fill"
-            message={
-              <FormattedMessage defaultMessage="Vos changements apparaissent dans l'aperçu au moment de l'enregistrement." />
-            }
-            tone="info"
-          />
+          {metadata?.status === 'DRAFT' && (
+            <DocumentDraftBanner draft={metadata.draft} hasValidatedVersion={false} kind="notice" />
+          )}
         </div>
       }
       title={<FormattedMessage defaultMessage="Texte de la notice de restitution" />}
@@ -172,13 +165,7 @@ export function PresentationEditPage() {
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
       ) : (
         <>
-          <DocumentViewer
-            className="hidden border-0 md:block md:flex-1 xl:flex-3"
-            html={html}
-            reloadKey={reloadKey}
-            title={title}
-          />
-          <div className="flex max-h-[calc(100svh-var(--document-bar-offset)-6rem)] min-w-0 flex-1 flex-col overflow-auto xl:flex-4">
+          <div className="mx-auto w-full max-w-3xl min-w-0">
             <DocumentHtmlEditor
               html={html}
               key={editorKey}

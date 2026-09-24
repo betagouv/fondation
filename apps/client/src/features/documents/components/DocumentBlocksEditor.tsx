@@ -12,11 +12,11 @@ import './blocks/doc-block.css';
 
 export function DocumentBlocksEditor(props: {
   editor: Editor;
-  otherBlockNames?: readonly string[];
   onPendingRevalidationChange?: (pending: { others: number; propositions: number }) => void;
-  propositionBlockName: string;
-  onPreview: () => Promise<unknown>;
+  onPreview?: () => Promise<unknown>;
+  otherBlockNames?: readonly string[];
   previewDisabledReason?: string;
+  propositionBlockName: string;
 }) {
   const { editor, otherBlockNames, previewDisabledReason, propositionBlockName } = props;
 
@@ -47,7 +47,7 @@ export function DocumentBlocksEditor(props: {
   const preview = useCallback(async () => {
     try {
       setIsPersisting(true);
-      await onPreview();
+      await onPreview?.();
     } finally {
       setIsPersisting(false);
     }
@@ -62,26 +62,28 @@ export function DocumentBlocksEditor(props: {
           <div className="fr-mx-1v w-px self-stretch bg-(--border-default-grey)" />
           <UndoButton />
           <RedoButton />
-          <Tooltip className="ml-auto" focusable={!!previewDisabledReason} label={previewDisabledReason}>
-            <Button
-              // a disabled button swallows the pointer, and the tooltip would never open
-              className={clsx({ 'pointer-events-none': !!previewDisabledReason })}
-              disabled={isPersisting || !!previewDisabledReason}
-              iconId="fr-icon-eye-line"
-              iconPosition="right"
-              onClick={preview}
-              priority="tertiary no outline"
-              size="small"
-            >
-              <FormattedMessage defaultMessage="Retour à l'aperçu" />
-            </Button>
-          </Tooltip>
+          {onPreview && (
+            <Tooltip className="ml-auto" focusable={!!previewDisabledReason} label={previewDisabledReason}>
+              <Button
+                // a disabled button swallows the pointer, and the tooltip would never open
+                className={clsx({ 'pointer-events-none': !!previewDisabledReason })}
+                disabled={isPersisting || !!previewDisabledReason}
+                iconId="fr-icon-eye-line"
+                iconPosition="right"
+                onClick={preview}
+                priority="tertiary no outline"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Retour à l'aperçu" />
+              </Button>
+            </Tooltip>
+          )}
         </div>
       </EditorContext>
       <EditorContent
-        editor={editor}
-        disabled={isPersisting}
         className={clsx('fr-p-4v [&_.tiptap]:outline-none', DOCUMENT_CONTENT_CLASSES)}
+        disabled={isPersisting}
+        editor={editor}
       />
     </div>
   );

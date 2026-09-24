@@ -136,6 +136,12 @@ test.describe('Session Affectations E2E', () => {
       throwOnError: true,
     });
 
+    // changing the reporters after a publication reopens the affectations, in the name of whoever did it
+    const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
+    expect(history.data).toMatchObject({ lastPublished: { version: 1 }, pending: { version: 2 } });
+    expect(history.data!.pending!.openedBy).not.toBeNull();
+    expect(history.data!.pending!.openedBy).toEqual(history.data!.lastPublished!.by);
+
     const publishedAffectationsResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
       path: { sessionId },
     });
@@ -143,6 +149,11 @@ test.describe('Session Affectations E2E', () => {
 
     const unaffected = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(unaffected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: false }));
+
+    const { data: removedReports } = await member.members.listMemberSessionReports({
+      path: { userId: memberId, sessionId },
+    });
+    expect(removedReports!.items).toEqual([]);
 
     // Re-affecting must restore the previous report edition rather than resetting it
     await agent.sessions.affectReporters({

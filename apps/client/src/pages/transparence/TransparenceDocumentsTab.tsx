@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext } from 'react-router';
 
-import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { DocActionAgendaFiles } from '@/features/transparence/components/documents/DocActionAgendaFiles';
 import { DocActionAgendaMetadata } from '@/features/transparence/components/documents/DocActionAgendaMetadata';
 import { DocActionDelete } from '@/features/transparence/components/documents/DocActionDelete';
@@ -105,7 +104,6 @@ export function TransparenceDocumentsTab() {
   const toolbar = (
     <div className="flex min-h-10 items-center justify-between gap-4">
       <div className="flex items-center gap-6">
-        <AffectationVersionStatusBadge sessionId={transparence.id} />
         <TotalBadge value={allDocs.length}>
           <FormattedMessage defaultMessage="Total" />
         </TotalBadge>

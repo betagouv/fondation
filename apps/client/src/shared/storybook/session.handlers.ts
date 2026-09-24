@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { GradeEnum } from '@/shared/enums/grade.enum';
 import type {
   CountedUnaffectedFilesDto,
+  DetailedAffectationHistoryDto,
   DocGenerationSessionReadinessDto,
   FoundAgendaNominationFiles,
   ListedCurrentlyAffectedReportersDto,
@@ -161,6 +162,18 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
         datasetOf(params.sessionId).affectationsVersion ?? draftAffectationsVersion,
       ),
     ),
+
+    http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/history', ({ params }) => {
+      const { publicationDate, status, version } =
+        datasetOf(params.sessionId).affectationsVersion ?? draftAffectationsVersion;
+
+      return HttpResponse.json<DetailedAffectationHistoryDto>({
+        lastPublished:
+          status === 'PUBLIEE' && publicationDate ? { at: publicationDate, by: null, version } : null,
+        pending:
+          status === 'BROUILLON' ? { openedAt: '2026-09-24T08:00:00.000Z', openedBy: null, version } : null,
+      });
+    }),
 
     http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count', ({ params }) =>
       HttpResponse.json<CountedUnaffectedFilesDto>({

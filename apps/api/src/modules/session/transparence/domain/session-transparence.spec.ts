@@ -49,6 +49,7 @@ describe('SessionTransparence', () => {
     });
 
     session.affectNominationFileReporters({
+      authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       affectations: [
         {
@@ -85,6 +86,7 @@ describe('SessionTransparence', () => {
 
     expect(() =>
       session.affectNominationFileReporters({
+        authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1', 'reporter-2']),
         affectations: [
           {
@@ -111,6 +113,7 @@ describe('SessionTransparence', () => {
     });
 
     session.affectNominationFileReporters({
+      authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       affectations: [
         {
@@ -122,10 +125,11 @@ describe('SessionTransparence', () => {
 
     const { messages } = session;
     expect(messages).toEqual([
-      new SessionTransparenceAffectationVersionCreated('session-id', {
-        id: expect.any(String),
-        version: 4,
-      }),
+      new SessionTransparenceAffectationVersionCreated(
+        'session-id',
+        { id: expect.any(String), version: 4 },
+        'author-id',
+      ),
       new SessionTransparenceFileReportersAffected('session-id', expect.any(String), [
         {
           nominationFileId: 'nomination-file-id-1',
@@ -151,6 +155,7 @@ describe('SessionTransparence', () => {
 
     expect(() =>
       session.affectNominationFileReporters({
+        authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1']),
         affectations: [
           {
@@ -677,10 +682,14 @@ describe('SessionTransparence', () => {
       version: null,
     });
 
-    session.writeComment({ comment: '  Une note pour la notice \n' });
+    session.writeComment({
+      comment: '  Une note pour la notice \n',
+      impersonatorId: null,
+      userId: 'user-id',
+    });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceCommentWritten('session-id', 'Une note pour la notice'),
+      new SessionTransparenceCommentWritten('session-id', 'Une note pour la notice', 'user-id', null),
     ]);
   });
 
@@ -692,9 +701,11 @@ describe('SessionTransparence', () => {
       version: null,
     });
 
-    session.writeComment({ comment: ' \n ' });
+    session.writeComment({ comment: ' \n ', impersonatorId: 'admin-id', userId: 'user-id' });
 
-    expect(session.messages).toEqual([new SessionTransparenceCommentWritten('session-id', null)]);
+    expect(session.messages).toEqual([
+      new SessionTransparenceCommentWritten('session-id', null, 'user-id', 'admin-id'),
+    ]);
   });
 
   it('should flag a missing evaluation on a nomination file', () => {

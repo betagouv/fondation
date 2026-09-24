@@ -8,6 +8,7 @@ import {
   OfficialReportDraftEdited,
   OfficialReportDraftOpened,
   OfficialReportDraftUpdatedBySystem,
+  OfficialReportFileReset,
   OfficialReportIntroEdited,
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
@@ -88,6 +89,35 @@ describe('OfficialReport', () => {
       expect(report.messages).toContainEqual(new OfficialReportDraftUpdatedBySystem(report.id));
 
       expect(report.messages.some((m) => m instanceof OfficialReportDraftEdited)).toBe(false);
+    });
+  });
+
+  describe('when the agenda rewrites a proposition', () => {
+    const agendaFileBlockEdited = (report: OfficialReport, nominationFileId: string) =>
+      report.invalidate({
+        id: report.id,
+        payload: { nominationFileId },
+        type: 'AgendaFileBlockEdited',
+      });
+
+    it('should take the agenda sentence without asking', () => {
+      const report = makeReport({ actorId: null, isValidated: true });
+
+      agendaFileBlockEdited(report, 'file-1');
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftOpened(report.id, null),
+        new OfficialReportDraftUpdatedBySystem(report.id),
+        new OfficialReportFileReset(report.id, 'file-1'),
+      ]);
+    });
+
+    it('should ignore a proposition it does not carry', () => {
+      const report = makeReport({ actorId: null });
+
+      agendaFileBlockEdited(report, 'file-unknown');
+
+      expect(report.messages).toEqual([]);
     });
   });
 

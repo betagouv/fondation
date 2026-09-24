@@ -58,35 +58,30 @@ const rowTexts = () =>
     .map((row) => row.textContent);
 
 describe('SessionDocumentsTable', () => {
-  describe('a validated document with a draft', () => {
-    const [agenda, officialReport] = DOCS;
+  describe('the state of a document', () => {
+    const [agenda] = DOCS;
 
-    it('should say someone has changes in progress', () => {
-      render(table([{ ...agenda!, draftChangesBy: 'PERSON' }]));
+    it('should call a document never validated a draft', () => {
+      render(table([{ ...agenda!, status: 'DRAFT', validatedAt: null }]));
 
-      expect(screen.getByText('modifications en cours')).toBeInTheDocument();
+      expect(screen.getByText('brouillon')).toBeInTheDocument();
     });
 
-    it('should say the application updated it and it waits for validation', () => {
-      render(table([{ ...agenda!, draftChangesBy: 'SYSTEM' }]));
+    it('should call a validated document with nothing pending validated', () => {
+      render(table([agenda!]));
 
-      expect(screen.getByText('mis à jour, à valider')).toBeInTheDocument();
-      expect(screen.queryByText('modifications en cours')).not.toBeInTheDocument();
+      expect(screen.getByText('validé')).toBeInTheDocument();
     });
 
-    it('should say both when the application changed a draft someone works on', () => {
-      render(table([{ ...agenda!, draftChangesBy: 'PERSON_AND_SYSTEM' }]));
+    it.each(['PERSON', 'SYSTEM', 'PERSON_AND_SYSTEM'] as const)(
+      'should say changes are in progress whoever opened the draft (%s)',
+      (draftChangesBy) => {
+        render(table([{ ...agenda!, draftChangesBy }]));
 
-      expect(screen.getByText('modifications en cours')).toBeInTheDocument();
-      expect(screen.getByText('mis à jour, à valider')).toBeInTheDocument();
-    });
-
-    it('should only ask to check a document the application made outdated', () => {
-      render(table([agenda!, { ...officialReport!, draftChangesBy: 'SYSTEM' }]));
-
-      expect(screen.getByText('À vérifier')).toBeInTheDocument();
-      expect(screen.queryByText('mis à jour, à valider')).not.toBeInTheDocument();
-    });
+        expect(screen.getByText('modifications en cours')).toBeInTheDocument();
+        expect(screen.queryByText('validé')).not.toBeInTheDocument();
+      },
+    );
   });
 
   it('should let the name cell handle its own clicks', async () => {

@@ -16,6 +16,7 @@ const AgendaBlockFileDtoSchema = z.object({
   generatedHtml: z.string().optional(),
   html: z.string(),
   id: z.string(),
+  reporters: z.array(z.string()),
 });
 
 @Injectable()
@@ -31,6 +32,7 @@ export class DetailsAgendaDocumentBlocksQuery {
         id: block.id.toString(),
         editedAt: block.editedAt?.toISOString() ?? null,
         editedBy: block.editedBy,
+        reporters: [...block.reporters],
       })),
     };
   }

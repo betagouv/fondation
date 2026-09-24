@@ -1,9 +1,18 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
+import {
+  DRAFT_TRACE_SELECT,
+  draftTrace,
+  draftTraceSchema,
+  VALIDATION_TRACE_SELECT,
+  traceOf,
+  traceSchema,
+} from 'src/modules/docs/shared/infrastructure/document-trace';
 import {
   draftChangesBy,
   draftChangesBySchema,
@@ -20,6 +29,7 @@ export class DetailsAgendaMetadataQuery {
     private readonly agendaVersionFinder: AgendaVersionFinder,
   ) {}
 
+  @Transactional()
   async handle(query: { agendaId: string }): Promise<DetailedAgendaMetadata> {
     const versionId = await this.agendaVersionFinder.latest({ agendaId: query.agendaId });
     const publishedId = await this.agendaVersionFinder.published({ agendaId: query.agendaId });
@@ -35,13 +45,20 @@ export class DetailsAgendaMetadataQuery {
         sessionMeetingDate: true,
         isManuallyEdited: true,
         createdBy: true,
-        systemUpdatedAt: true,
         updatedBy: true,
+        ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
       } satisfies Prisma.AgendaVersionSelect,
     });
 
     if (!version) throw new NotFoundException();
+
+    const published = publishedId
+      ? await this.db.tx.agendaVersion.findUnique({
+          select: VALIDATION_TRACE_SELECT satisfies Prisma.AgendaVersionSelect,
+          where: { id: publishedId },
+        })
+      : null;
 
     return {
       id: version.agendaId,
@@ -50,6 +67,8 @@ export class DetailsAgendaMetadataQuery {
       outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion: isDefined(publishedId),
       draftChangesBy: draftChangesBy(version),
+      draft: draftTrace(version),
+      validation: traceOf(published?.validatedAt, published?.validator),
       chairmanId: version.chairmanId,
       isManuallyEdited: version.isManuallyEdited,
       date: DateOnly.fromUtcDate(version.date).toJson(),
@@ -69,6 +88,8 @@ export class DetailedAgendaMetadata extends createZodDto(
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
     draftChangesBy: draftChangesBySchema,
+    draft: draftTraceSchema,
+    validation: traceSchema,
     chairmanId: z.string().nullable(),
     isManuallyEdited: z.boolean(),
     date: dateOnlyJsonSchema,

@@ -48,6 +48,10 @@ import {
   CountUsersNewSessionsQuery,
 } from './queries/count-users-new-sessions.query';
 import {
+  DetailAffectationHistoryQuery,
+  DetailedAffectationHistoryDto,
+} from './queries/detail-affectation-history.query';
+import {
   type DetailedNominationFileAttachmentDto,
   DetailNominationFileAttachmentQuery,
 } from './queries/detail-nomination-file-attachment.query';
@@ -107,6 +111,7 @@ export class TransparenceService {
     private readonly members: MembersService,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
+    private readonly detailAffectationHistoryQuery: DetailAffectationHistoryQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
@@ -166,6 +171,7 @@ export class TransparenceService {
 
   @Transactional()
   async affectReportersAndPriorities(command: {
+    authorId: string;
     sessionId: string;
     affectations: readonly {
       nominationFileId: string;
@@ -225,6 +231,10 @@ export class TransparenceService {
     return file;
   }
 
+  detailAffectationHistory(query: { sessionId: string }): Promise<DetailedAffectationHistoryDto> {
+    return this.detailAffectationHistoryQuery.handle(query);
+  }
+
   detailNominationSessionAffectationsVersion(query: { sessionId: string }): Promise<FoundAffectationVersion> {
     return this.detailNominationSessionAffectationVersionQuery.handle(query);
   }
@@ -249,6 +259,7 @@ export class TransparenceService {
 
   @Transactional()
   async autoAffectation(command: {
+    authorId: string;
     sessionId: string;
     nominationFileIds: readonly string[] | undefined;
     excludedMemberIds: readonly string[] | undefined;
@@ -268,6 +279,7 @@ export class TransparenceService {
       .then((ids) => new Set(ids));
 
     session.autoAffectNominationFileReporters({
+      authorId: command.authorId,
       autoAffectations,
       formationMemberIds,
     });
@@ -508,7 +520,12 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async writeComment(command: { comment: string; sessionId: string }): Promise<void> {
+  async writeComment(command: {
+    comment: string;
+    impersonatorId: string | null;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.writeComment(command);
     await this.nominationSessionRepository.persist(session);

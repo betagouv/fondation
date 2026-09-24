@@ -6,12 +6,14 @@ import { FindPresentationPlanDocumentPdfQuery } from '../queries/find-presentati
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
 import { Prisma } from 'src/generated/prisma/client';
 import { lockAgendasRawQuery } from 'src/generated/prisma/sql';
+import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 @Injectable()
 export class ValidatePresentationPlanUseCase {
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
@@ -65,7 +67,7 @@ export class ValidatePresentationPlanUseCase {
 
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
-      data: { pdfId: command.pdfId },
+      data: { pdfId: command.pdfId, validatedAt: this.clock.now(), validatedBy: command.validatorId },
     });
     await this.db.tx.justicePresentationPlanRemovedAgenda.deleteMany({ where: { planId: command.id } });
 

@@ -2,10 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, useNavigate, useParams } from 'react-router';
+import { generatePath, Link, useLocation, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
-import { DocumentDriftBanner } from '../DocumentDriftBanner';
 import { AgendaBreadCrumb } from '@/features/documents/components/agenda/AgendaBreadcrumb';
 import {
   AgendaDocumentEditor,
@@ -24,8 +23,11 @@ import {
   officialReportKeys,
   useAgendaDocumentBlocksQuery,
   useDetailsAgendaMetadataQuery,
+  useValidateAgendaMutation,
 } from '@queries/agenda.queries';
 import { sessionKeys } from '@queries/nomination-sessions.queries';
+
+import { AgendaReportersChangedBanner } from './AgendaReportersChangedBanner';
 
 export function AgendaEditPage() {
   const navigate = useNavigate();
@@ -34,9 +36,12 @@ export function AgendaEditPage() {
   const { formatMessage } = useIntl();
   const describeFailure = useDocumentFailure();
   const { agendaId, sessionId } = useParams<{ agendaId: string; sessionId: string }>();
+  const { state } = useLocation();
+  const officialReportPath: string | null =
+    typeof state?.officialReportPath === 'string' ? state.officialReportPath : null;
 
   const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
-  const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
+  const { data: metadata, refetch: refetchMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -44,6 +49,27 @@ export function AgendaEditPage() {
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
 
   const editorRef = useRef<AgendaDocumentEditorHandle>(null);
+
+  const { mutateAsync: validateAgenda } = useValidateAgendaMutation({
+    agendaId: agendaId!,
+    sessionId: sessionId!,
+  });
+
+  // the report only follows a validated agenda: going back to it validates first, or the reader
+  // would find the report still reading the former sentence
+  const validateAndReturnToOfficialReport = useCallback(async () => {
+    if (!officialReportPath) return;
+
+    setSaveError(null);
+    try {
+      const { data: latest } = await refetchMetadata();
+      if (latest?.status === 'DRAFT') await validateAgenda();
+      await navigate(officialReportPath);
+    } catch (error) {
+      setSaveError(describeFailure(error));
+    }
+  }, [describeFailure, navigate, officialReportPath, refetchMetadata, validateAgenda]);
+
   const rebuildEditorOnStoredBlocks = useCallback(() => setEditorKey(crypto.randomUUID()), []);
 
   const save = useCallback(async () => {
@@ -56,6 +82,8 @@ export function AgendaEditPage() {
       // the rendered document with them: the server dropped the one it had stored
       await queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
       await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId!) });
+      // the first save of a validated agenda opens its draft, which the banner has to tell
+      await queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
 
       if (saved?.hasRemovedPropositions) {
         await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId!) });
@@ -72,16 +100,21 @@ export function AgendaEditPage() {
       rebuildEditorOnStoredBlocks();
 
       toasts.success({
-        action: {
-          label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
-          onClick: () =>
-            navigate(
-              generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
-                agendaId: agendaId!,
-                sessionId: sessionId!,
-              }),
-            ),
-        },
+        action: officialReportPath
+          ? undefined
+          : {
+              label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
+              onClick: () =>
+                navigate(
+                  generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
+                    agendaId: agendaId!,
+                    sessionId: sessionId!,
+                  }),
+                ),
+            },
+        description: officialReportPath
+          ? formatMessage({ defaultMessage: "Validez l'ODJ pour qu'elles apparaissent dans le PV." })
+          : undefined,
         title: formatMessage({ defaultMessage: 'Vos modifications ont bien été enregistrées.' }),
       });
     } catch (error) {
@@ -100,6 +133,7 @@ export function AgendaEditPage() {
     describeFailure,
     formatMessage,
     navigate,
+    officialReportPath,
     queryClient,
     rebuildEditorOnStoredBlocks,
     sessionId,
@@ -107,6 +141,7 @@ export function AgendaEditPage() {
   ]);
 
   const { isDirty, setDirty } = useUnsavedChangesGuard({ onSave: save });
+  const canValidate = !isSaving && !isDirty && metadata?.status === 'DRAFT';
 
   // nothing was sent, so the stored blocks are still the last save
   const cancel = () => {
@@ -119,17 +154,42 @@ export function AgendaEditPage() {
     <DocumentScreen
       actions={
         <>
-          <Button disabled={isSaving || !isDirty} onClick={cancel} priority="secondary">
+          <Button
+            disabled={isSaving || !isDirty}
+            iconId="fr-icon-arrow-go-back-line"
+            onClick={cancel}
+            priority="secondary"
+          >
             <FormattedMessage defaultMessage="Annuler les changements" />
           </Button>
-          <Button disabled={isSaving || !isDirty} onClick={() => void save().catch(() => {})}>
+          <Button
+            disabled={isSaving || !isDirty}
+            onClick={() => void save().catch(() => {})}
+            priority={!officialReportPath || isDirty ? 'primary' : 'secondary'}
+          >
             {isSaving ? (
               <FormattedMessage defaultMessage="Enregistrement..." />
             ) : (
               <FormattedMessage defaultMessage="Enregistrer les changements" />
             )}
           </Button>
+          {officialReportPath && (
+            <Button
+              disabled={!canValidate}
+              onClick={() => void validateAndReturnToOfficialReport()}
+              priority={canValidate ? 'primary' : 'secondary'}
+            >
+              <FormattedMessage defaultMessage="Valider" />
+            </Button>
+          )}
         </>
+      }
+      backLink={
+        officialReportPath && (
+          <Link className="fr-link fr-link--icon-left fr-icon-arrow-left-line" to={officialReportPath}>
+            <FormattedMessage defaultMessage="Revenir au PV" />
+          </Link>
+        )
       }
       breadcrumb={<AgendaBreadCrumb />}
       notices={
@@ -137,10 +197,14 @@ export function AgendaEditPage() {
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
             {metadata?.status === 'DRAFT' && (
-              <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />
+              <DocumentDraftBanner
+                draft={metadata.draft}
+                hasValidatedVersion={metadata.hasValidatedVersion}
+                kind="agenda"
+              />
             )}
             {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (
-              <DocumentDriftBanner outdatedPropositions={pendingRevalidations.propositions} />
+              <AgendaReportersChangedBanner propositions={pendingRevalidations.propositions} />
             )}
           </div>
           <div role="alert">
@@ -168,6 +232,7 @@ export function AgendaEditPage() {
           onDirtyChange={setDirty}
           onPendingRevalidationChange={setPendingRevalidations}
           sessionId={sessionId!}
+          withPreview={!officialReportPath}
         />
       )}
     </DocumentScreen>

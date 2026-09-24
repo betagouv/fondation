@@ -14,16 +14,16 @@ describe('OfficialReportEditionBlock', () => {
     it('is true for identical intro blocks', () => {
       const a = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>a</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: false,
       });
       const b = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>a</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: false,
       });
 
@@ -33,16 +33,16 @@ describe('OfficialReportEditionBlock', () => {
     it('is false when only the outdated flag differs', () => {
       const acknowledged = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>a</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: false,
       });
       const outdated = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>a</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: true,
       });
 
@@ -52,16 +52,16 @@ describe('OfficialReportEditionBlock', () => {
     it('is false when the content differs', () => {
       const a = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>a</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: false,
       });
       const b = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'intro',
-        key: 'intro',
         html: '<p>b</p>',
+        key: 'intro',
+        kind: 'intro',
         outdated: false,
       });
 
@@ -71,8 +71,8 @@ describe('OfficialReportEditionBlock', () => {
     it('compares section titles by text', () => {
       const base = {
         ...UNTOUCHED,
-        kind: 'section-title',
         key: 'section-title:VALIDATED',
+        kind: 'section-title',
         outcome: 'VALIDATED',
       } as const;
       const a = new OfficialReportEditionBlock({ ...base, text: 'Titre' });
@@ -94,9 +94,9 @@ describe('OfficialReportEditionBlock', () => {
 
       const block = new OfficialReportEditionBlock({
         ...UNTOUCHED,
-        kind: 'conclusion',
-        key: 'conclusion',
         html: '<p>Fin de séance</p>',
+        key: 'conclusion',
+        kind: 'conclusion',
         outdated: false,
       });
 
@@ -106,30 +106,6 @@ describe('OfficialReportEditionBlock', () => {
         expect.objectContaining({
           path: { officialReportId: 'report-1' },
           body: { html: '<p class="end-time">Fin de séance</p>', outdated: false },
-        }),
-      );
-    });
-
-    it('forwards html and outdated for a file block', async () => {
-      const editFile = vi
-        .spyOn($api.docs, 'editOfficialReportFile')
-        .mockResolvedValue({ data: undefined, error: undefined });
-
-      const block = new OfficialReportEditionBlock({
-        ...UNTOUCHED,
-        kind: 'file',
-        key: 'file:file-1',
-        nominationFileId: 'file-1',
-        html: '<p>Contenu</p>',
-        outdated: true,
-      });
-
-      await persistor.persist(block);
-
-      expect(editFile).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: { officialReportId: 'report-1', nominationFileId: 'file-1' },
-          body: { html: '<p>Contenu</p>', outdated: true },
         }),
       );
     });

@@ -55,16 +55,6 @@ export class OfficialReportConclusionReset {
   constructor(readonly officialReportId: Id<'OfficialReportId'>) {}
 }
 
-export class OfficialReportFileEdited {
-  constructor(
-    readonly officialReportId: Id<'OfficialReportId'>,
-    readonly nominationFileId: string,
-    readonly html: string,
-    readonly outdated: boolean,
-    readonly authorId: string,
-  ) {}
-}
-
 export class OfficialReportFileReset {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
@@ -147,7 +137,6 @@ export type OfficialReportEvent =
   | OfficialReportIntroReset
   | OfficialReportConclusionEdited
   | OfficialReportConclusionReset
-  | OfficialReportFileEdited
   | OfficialReportFileReset
   | OfficialReportSectionTitleEdited
   | OfficialReportSectionTitleReset
@@ -250,6 +239,12 @@ export class OfficialReport {
   }
 
   invalidate(command: InvalidateOfficialReportCommand): void {
+    // the report follows the agenda's sentence on its own: the reader was never asked to choose
+    if (command.type === 'AgendaFileBlockEdited') {
+      if (this.snapshot.holdsFile(command.payload.nominationFileId)) this.resetFile(command.payload);
+      return;
+    }
+
     const diff = this.snapshot.invalidate(command);
     if (!diff.hasAny) return;
 
@@ -287,19 +282,6 @@ export class OfficialReport {
   resetConclusion(): void {
     this.openDraft();
     this.#messages.push(new OfficialReportConclusionReset(this.id));
-  }
-
-  editFile(command: { authorId: string; nominationFileId: string; html: string; outdated: boolean }): void {
-    this.openDraft();
-    this.#messages.push(
-      new OfficialReportFileEdited(
-        this.id,
-        command.nominationFileId,
-        command.html,
-        command.outdated,
-        command.authorId,
-      ),
-    );
   }
 
   resetFile(command: { nominationFileId: string }): void {

@@ -35,6 +35,8 @@ const BlockFileSchema = z.object({
   nominationFileId: z.string().nullable(),
   /** the sentence the agenda carries today, offered when the two documents part ways */
   agendaHtml: z.string().nullable(),
+  /** the agenda the proposition comes from, the one place its sentence is written */
+  agendaId: z.string().nullable(),
   agendaEditedAt: z.iso.datetime().nullable(),
   agendaEditedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   editedAt: z.iso.datetime().nullable(),

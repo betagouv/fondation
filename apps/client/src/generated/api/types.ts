@@ -254,6 +254,11 @@ export type CountUsersNewSessionsDto = {
 
 export type DetailedSessionCommentDto = {
     comment: string | null;
+    writtenAt: string | null;
+    writtenBy: {
+        id: string;
+        name: string;
+    } | null;
 };
 
 export type WriteSessionCommentDto = {
@@ -434,6 +439,25 @@ export type SomeAffectationVersion = {
 export type NoneAffectationVersion = {
     '@type': 'fr.csm.fondation.affectations.version.none';
     version: 0;
+};
+
+export type DetailedAffectationHistoryDto = {
+    lastPublished: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+        version: number;
+    } | null;
+    pending: {
+        openedAt: string;
+        openedBy: {
+            id: string;
+            name: string;
+        } | null;
+        version: number;
+    } | null;
 };
 
 export type CountedUnaffectedFilesDto = {
@@ -1174,6 +1198,26 @@ export type DetailedAgendaMetadata = {
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
+    draft: {
+        openedAt: string;
+        openedBy: {
+            id: string;
+            name: string;
+        } | null;
+        systemUpdatedAt: string | null;
+        updatedAt: string | null;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    validation: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     chairmanId: string | null;
     isManuallyEdited: boolean;
     date: {
@@ -1207,6 +1251,7 @@ export type DetailedAgendaDocumentBlocksDto = {
         generatedHtml?: string;
         html: string;
         id: string;
+        reporters: Array<string>;
     }>;
 };
 
@@ -1352,6 +1397,26 @@ export type DetailedOfficialReportMetadataDto = {
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
+    draft: {
+        openedAt: string;
+        openedBy: {
+            id: string;
+            name: string;
+        } | null;
+        systemUpdatedAt: string | null;
+        updatedAt: string | null;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    validation: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     chairmanId: string | null;
     secretaryId: string | null;
     justiceDepartmentContactId: string | null;
@@ -1413,6 +1478,7 @@ export type DetailedOfficialReportDocumentDto = {
         kind: 'file';
         nominationFileId: string | null;
         agendaHtml: string | null;
+        agendaId: string | null;
         agendaEditedAt: string | null;
         agendaEditedBy: {
             id: string;
@@ -1513,6 +1579,33 @@ export type DetailedPresentationPlanMetadataDto = {
     outdated: boolean;
     status: 'DRAFT' | 'VALIDATED';
     isPresented: boolean;
+    draft: {
+        openedAt: string;
+        openedBy: {
+            id: string;
+            name: string;
+        } | null;
+        systemUpdatedAt: string | null;
+        updatedAt: string | null;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    validation: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    presentation: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     isManuallyEdited: boolean;
     formation: 'SIEGE' | 'PARQUET';
     agendas: Array<{
@@ -2520,6 +2613,21 @@ export type DetailNominationSessionAffectationsVersionResponses = {
 };
 
 export type DetailNominationSessionAffectationsVersionResponse = DetailNominationSessionAffectationsVersionResponses[keyof DetailNominationSessionAffectationsVersionResponses];
+
+export type DetailAffectationHistoryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/reporters/versions/history';
+};
+
+export type DetailAffectationHistoryResponses = {
+    200: DetailedAffectationHistoryDto;
+};
+
+export type DetailAffectationHistoryResponse = DetailAffectationHistoryResponses[keyof DetailAffectationHistoryResponses];
 
 export type CountUnaffectedNominationFilesData = {
     body?: never;
@@ -3870,22 +3978,6 @@ export type ResetOfficialReportFileResponses = {
 };
 
 export type ResetOfficialReportFileResponse = ResetOfficialReportFileResponses[keyof ResetOfficialReportFileResponses];
-
-export type EditOfficialReportFileData = {
-    body: EditOfficialReportBlockDto;
-    path: {
-        officialReportId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}';
-};
-
-export type EditOfficialReportFileResponses = {
-    204: void;
-};
-
-export type EditOfficialReportFileResponse = EditOfficialReportFileResponses[keyof EditOfficialReportFileResponses];
 
 export type ListPresentationPlanAgendasData = {
     body?: never;

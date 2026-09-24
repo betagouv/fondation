@@ -62,8 +62,10 @@ export function changedWordsOf(doc: PMNode, blocks: ReadonlySet<string>): Decora
   doc.descendants((node, pos) => {
     if (!blocks.has(node.type.name)) return true;
 
+    // an outdated block was written against a proposal that has since moved: comparing it with the
+    // new one would credit the reader with words they never removed
     const generatedHtml = node.attrs.generatedHtml as string | null;
-    if (!generatedHtml) return false;
+    if (!generatedHtml || node.attrs.outdated) return false;
 
     const { positionAt, text } = readable(node, pos);
     const proposed = plainText(generatedHtml);

@@ -17,7 +17,6 @@ import {
   OfficialReportConclusionReset,
   OfficialReportCreated,
   OfficialReportDeleted,
-  OfficialReportFileEdited,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
   OfficialReportIntroReset,
@@ -251,6 +250,7 @@ export class OfficialReportRepository {
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
         htmlEdited: string | null;
+        htmlFromAgenda: boolean;
         nominationFileId: string | null;
         reporters: string[];
       }[] = await this.db.tx.officialReportNominationFile.findMany({
@@ -265,6 +265,7 @@ export class OfficialReportRepository {
           outcomeComment: true,
           reporters: true,
           htmlEdited: true,
+          htmlFromAgenda: true,
           nominationFileId: true,
         } satisfies Prisma.OfficialReportNominationFileSelect,
       });
@@ -280,7 +281,8 @@ export class OfficialReportRepository {
             outcome: { value: file.outcome, comment: file.outcomeComment },
             reporters: file.reporters,
             nominationFileId: file.nominationFileId,
-            hasManuallyEditedHtml: (file.htmlEdited ?? '').trim().length > 0,
+            // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
+            hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
           }),
         );
       }
@@ -306,8 +308,6 @@ export class OfficialReportRepository {
         await this.persistOfficialReportConclusionEdited(message);
       } else if (message instanceof OfficialReportConclusionReset) {
         await this.persistOfficialReportConclusionReset(message);
-      } else if (message instanceof OfficialReportFileEdited) {
-        await this.persistOfficialReportFileEdited(message);
       } else if (message instanceof OfficialReportFileReset) {
         await this.persistOfficialReportFileReset(message);
       } else if (message instanceof OfficialReportSectionTitleEdited) {
@@ -666,22 +666,6 @@ export class OfficialReportRepository {
     await this.db.tx.officialReportVersion.update({
       where: { id: versionId },
       data: { conclusionHtml: null, conclusionOutdated: false, html: null, pdfId: null },
-    });
-
-    await this.recomputeState(versionId);
-  }
-
-  private async persistOfficialReportFileEdited(message: OfficialReportFileEdited) {
-    const versionId = await this.officialReportVersionFinder.latest(message);
-    await this.db.tx.officialReportNominationFile.updateMany({
-      where: { versionId, nominationFileId: message.nominationFileId },
-      data: {
-        htmlEdited: message.html,
-        htmlOutdated: message.outdated,
-        htmlEditedAt: this.clock.now(),
-        htmlEditedBy: message.authorId,
-        htmlFromAgenda: false,
-      },
     });
 
     await this.recomputeState(versionId);

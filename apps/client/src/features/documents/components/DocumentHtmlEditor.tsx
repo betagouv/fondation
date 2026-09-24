@@ -78,7 +78,7 @@ export function DocumentHtmlEditor(props: {
   return (
     <div className="mx-auto max-w-3xl rounded border border-solid border-(--border-default-grey) bg-(--background-default-grey)">
       <EditorContext value={{ editor }}>
-        <div className="fr-p-2v sticky top-0 z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey) bg-(--background-default-grey)">
+        <div className="fr-p-2v sticky top-[calc(var(--fondation-banner-height)+var(--document-bar-offset))] z-10 flex items-center gap-2 border-x-0 border-t-0 border-b border-solid border-(--border-default-grey) bg-(--background-default-grey)">
           <BoldButton />
           <ItalicButton />
           <BulletListButton />
@@ -105,8 +105,8 @@ export function DocumentHtmlEditor(props: {
       </EditorContext>
 
       <EditorContent
+        className={clsx('fr-p-4v min-h-[75svh] [&_.tiptap]:outline-none', DOCUMENT_CONTENT_CLASSES)}
         editor={editor}
-        className={clsx('fr-p-4v min-h-100 [&_.tiptap]:outline-none', DOCUMENT_CONTENT_CLASSES)}
       />
     </div>
   );

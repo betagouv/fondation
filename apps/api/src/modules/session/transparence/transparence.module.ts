@@ -19,6 +19,7 @@ import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
+import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-affectation-history.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -55,6 +56,7 @@ import { SessionController } from './transparence.controller';
     CountUnaffectedFilesQuery,
     CountUsersNewSessionsQuery,
     DetailNominationFileAttachmentQuery,
+    DetailAffectationHistoryQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,

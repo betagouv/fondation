@@ -22,6 +22,7 @@ function agendaBlock(props: { edited?: boolean; id: number; text: string }): Age
     kind: 'file',
     nominationFileId: `nf-${props.id}`,
     outdated: false,
+    reporters: [],
     weight: props.id,
   };
 }

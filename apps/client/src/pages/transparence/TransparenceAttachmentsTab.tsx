@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext } from 'react-router';
 
-import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { ImportAttachmentModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
 import { SessionAttachmentsTab } from '@/features/transparence/components/attachments/SessionAttachmentsTab';
 import { useArchivedSession } from '@/shared/context/archived-session';
@@ -69,7 +68,6 @@ export function TransparenceAttachmentsTab() {
             </Button>
           )
         }
-        headerStart={<AffectationVersionStatusBadge sessionId={transparence.id} />}
         scrollsWithPage
         sessionId={transparence.id}
         toolbarSlot={toolbarSlot}

@@ -10,7 +10,6 @@ import type { OfficialReportRenderContext } from '../services/renderers/official
 import { Prisma } from 'src/generated/prisma/client';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
-import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -20,6 +19,7 @@ import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
 
@@ -141,6 +141,23 @@ export class OfficialReportRenderContextFinder {
     });
 
     if (!report) throw new NotFoundException();
+
+    const agendaFiles = await this.db.tx.agendaNominationFile.findMany({
+      distinct: ['nominationFileId'],
+      select: {
+        nominationFileId: true,
+        version: { select: { agendaId: true } },
+      } satisfies Prisma.AgendaNominationFileSelect,
+      where: {
+        nominationFileId: { not: null },
+        version: { agenda: { officialReportId: query.officialReportId } },
+      },
+    });
+    const fileAgendas = new Map(
+      agendaFiles.flatMap(({ nominationFileId, version }) =>
+        nominationFileId ? [[nominationFileId, version.agendaId] as const] : [],
+      ),
+    );
 
     const agenda = report.officialReport.agendas[0];
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
@@ -275,6 +292,7 @@ export class OfficialReportRenderContextFinder {
       hasRenouncement: report.hasRenunciation,
       justiceDepartmentContact: report.justiceDepartmentContactName,
       agendaProposals,
+      fileAgendas,
       session: { id: agenda.sessionId, date: DateOnly.fromUtcDate(session.date) },
       agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
       userDefinedBlocks: {

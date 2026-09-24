@@ -1,6 +1,6 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useWhen } from '@/features/documents/hooks/useWhen';
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { timeOnlyToDate } from '@/utils/time-only.util';
@@ -31,12 +31,12 @@ export function PresentationRemovedAgendasBanner(props: { removedAgendas: readon
 
 function RemovedAgendaMessage(props: { removed: RemovedAgenda }) {
   const { formatMessage } = useIntl();
-  const when = useWhen();
+  const dateAndTime = useDateAndTime();
   const { user } = useUser();
   const { agenda, removedAt, removedBy, takenBy } = props.removed;
 
   const values = {
-    ...when(removedAt),
+    ...dateAndTime(removedAt),
     agendaDate: formatDateOnly(agenda.sessionMeetingDate),
     agendaInitials: toInitials(agenda.chairman),
     noticeDate: formatDateOnly(takenBy.date),

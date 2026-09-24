@@ -34,7 +34,13 @@ export class OfficialReportSnapshot {
     };
   }
 
-  invalidate(command: InvalidateOfficialReportCommand): OfficialReportSnapshotDiff {
+  holdsFile(nominationFileId: string): boolean {
+    return this.filesSnapshot.files.has(nominationFileId);
+  }
+
+  invalidate(
+    command: Exclude<InvalidateOfficialReportCommand, { type: 'AgendaFileBlockEdited' }>,
+  ): OfficialReportSnapshotDiff {
     switch (command.type) {
       case 'SessionDateUpdated':
         return this.invalidateIntroIf(
@@ -53,9 +59,6 @@ export class OfficialReportSnapshot {
       case 'NominationFilesReportersUpdated':
       case 'AgendaNominationFilesUpdated':
         return this.invalidateFiles(this.filesSnapshot.diff(command.payload));
-
-      case 'AgendaFileBlockEdited':
-        return this.invalidateFiles([this.filesSnapshot.outdateFile(command.payload.nominationFileId)]);
 
       default:
         return assertNever(command);
@@ -103,20 +106,6 @@ export class OfficialReportSnapshot {
 
 class OfficialReportSnapshotFilesCollection {
   constructor(readonly files: ReadonlyMap<string, OfficialReportSnapshotFile>) {}
-
-  /** the file's text is stale whatever its reporters and its outcome say */
-  outdateFile(nominationFileId: string): OfficialReportSnapshotDiff['files'][number] {
-    const file = this.files.get(nominationFileId);
-    if (!file) return { action: 'noop' };
-
-    return {
-      action: 'outdate',
-      nominationFileId,
-      reporters: undefined,
-      outcome: undefined,
-      outcomeComment: undefined,
-    };
-  }
 
   diffFile(next: {
     nominationFileId: string;

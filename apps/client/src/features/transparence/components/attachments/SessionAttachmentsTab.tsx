@@ -26,7 +26,6 @@ export function SessionAttachmentsTab(props: {
   extraActions?: (attachment: SessionAttachment) => ReactNode;
   filtersSlot: Element | null;
   headerEnd?: ReactNode;
-  headerStart?: ReactNode;
   scrollsWithPage?: boolean;
   sessionId: string;
   toolbarSlot?: Element | null;
@@ -156,7 +155,6 @@ export function SessionAttachmentsTab(props: {
   const toolbar = (
     <div className="flex min-h-10 items-center justify-between gap-4">
       <div className="flex items-center gap-6">
-        {props.headerStart}
         <TotalBadge value={allAttachments.length}>
           <FormattedMessage defaultMessage="Total" />
         </TotalBadge>
