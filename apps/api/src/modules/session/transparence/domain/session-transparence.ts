@@ -52,6 +52,8 @@ export class SessionTransparenceAffectationVersionCreated {
   constructor(
     readonly sessionId: string,
     readonly version: { id: string; version: number },
+    /** whose change reopened the affectations, null when the application did */
+    readonly authorId: string | null,
   ) {}
 }
 
@@ -139,6 +141,8 @@ export class SessionTransparenceCommentWritten {
   constructor(
     readonly sessionId: string,
     readonly comment: string | null,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
   ) {}
 }
 
@@ -433,6 +437,7 @@ export class SessionTransparence {
     if (affectations.length > 0) {
       session.affectNominationFileReporters({
         affectations,
+        authorId: null,
         formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
       });
     }
@@ -453,6 +458,7 @@ export class SessionTransparence {
   }
 
   affectNominationFileReporters(command: {
+    authorId: string | null;
     formationMemberIds: Set<string>;
     affectations: readonly {
       nominationFileId: string;
@@ -466,10 +472,11 @@ export class SessionTransparence {
     if (this.version && !this.version.isDraft) {
       versionId = makeId('AffectationVersionId');
       this.#messages.push(
-        new SessionTransparenceAffectationVersionCreated(this.id, {
-          id: versionId,
-          version: this.version.version + 1,
-        }),
+        new SessionTransparenceAffectationVersionCreated(
+          this.id,
+          { id: versionId, version: this.version.version + 1 },
+          command.authorId,
+        ),
       );
     }
 
@@ -499,12 +506,14 @@ export class SessionTransparence {
   }
 
   autoAffectNominationFileReporters(command: {
+    authorId: string;
     autoAffectations: AutoAffectations;
     formationMemberIds: Set<string>;
   }) {
     const affectations = command.autoAffectations.distribute();
     this.affectNominationFileReporters({
       affectations,
+      authorId: command.authorId,
       formationMemberIds: command.formationMemberIds,
     });
   }
@@ -555,8 +564,15 @@ export class SessionTransparence {
     this.#messages.push(new SessionTransparenceUpdated(this.id, command));
   }
 
-  writeComment(command: { comment: string }): void {
-    this.#messages.push(new SessionTransparenceCommentWritten(this.id, command.comment.trim() || null));
+  writeComment(command: { comment: string; impersonatorId: string | null; userId: string }): void {
+    this.#messages.push(
+      new SessionTransparenceCommentWritten(
+        this.id,
+        command.comment.trim() || null,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
   }
 
   defineNominationFileOutcome(command: { nominationFileId: string; outcome: NominationFileOutcome | null }) {

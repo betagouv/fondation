@@ -9,4 +9,5 @@ export type AgendaBlockFile = {
   generatedHtml?: string;
   html: string;
   id: bigint;
+  reporters: readonly string[];
 };

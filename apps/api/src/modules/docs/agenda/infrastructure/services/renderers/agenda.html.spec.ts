@@ -62,6 +62,9 @@ describe('agendaTemplate', () => {
           "kind": "file",
           "nominationFileId": "nf-1",
           "outdated": false,
+          "reporters": [
+            "MME Rosalind FRANKLIN",
+          ],
           "weight": 1,
         },
       ]
@@ -101,6 +104,9 @@ describe('agendaTemplate', () => {
           "kind": "file",
           "nominationFileId": "nf-1",
           "outdated": true,
+          "reporters": [
+            "MME Rosalind FRANKLIN",
+          ],
           "weight": 1,
         },
       ]

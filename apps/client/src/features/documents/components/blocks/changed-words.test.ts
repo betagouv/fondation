@@ -20,13 +20,13 @@ const INTRO =
   "<p>Sous la présidence de Paul PARQUET, en présence des membres du Conseil supérieur de la magistrature suivants&nbsp;:</p><ul> <li>Mme Camille COMMUN</li> </ul><p><strong>En présence de&nbsp;:</strong></p><ul> <li>M.&nbsp;Serge GÉNÉRAL, secrétaire général adjoint</li> <li>Marie Dupont</li> </ul><p> Marie Dupont, indique renoncer au délai de convocation de huit jours prévus par l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la magistrature. </p><p> À 09:39, Paul PARQUET, déclare la séance ouverte. </p> ";
 
 /** the agenda writes its text straight in the block, with nothing between it and the words */
-function agendaDoc(text: string): PMNode {
+function agendaDoc(text: string, options: { outdated?: boolean } = {}): PMNode {
   const schema = getSchema(buildAgendaExtensions({} as AgendaBlocksModel));
 
   return PMNode.fromJSON(schema, {
     content: [
       {
-        attrs: { generatedHtml: PROPOSED },
+        attrs: { generatedHtml: PROPOSED, outdated: options.outdated ?? false },
         content: [{ text, type: 'text' }],
         type: AgendaFileBlock.name,
       },
@@ -77,6 +77,12 @@ describe('changedWordsOf', () => {
     const [changed] = wordsOf(doc, new Set([AgendaFileBlock.name]));
 
     expect(doc.textBetween(changed!.from, changed!.to)).toBe('juge');
+  });
+
+  it('should mark nothing on a block written against a proposal that has since moved', () => {
+    const doc = agendaDoc('Mme GAMBIN Audrey au poste de juge', { outdated: true });
+
+    expect(changedWordsOf(doc, new Set([AgendaFileBlock.name]))).toEqual([]);
   });
 
   it('should mark the rewritten word across the paragraphs of a report block', () => {

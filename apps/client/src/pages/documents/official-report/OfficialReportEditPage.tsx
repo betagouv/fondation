@@ -103,7 +103,12 @@ export function OfficialReportEditPage() {
     <DocumentScreen
       actions={
         <>
-          <Button disabled={isSaving || !isDirty} onClick={cancel} priority="secondary">
+          <Button
+            disabled={isSaving || !isDirty}
+            iconId="fr-icon-arrow-go-back-line"
+            onClick={cancel}
+            priority="secondary"
+          >
             <FormattedMessage defaultMessage="Annuler les changements" />
           </Button>
           <Button disabled={isSaving || !isDirty} onClick={() => void save().catch(() => {})}>
@@ -121,7 +126,11 @@ export function OfficialReportEditPage() {
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
             {metadata?.status === 'DRAFT' && (
-              <DocumentDraftBanner hasValidatedVersion={metadata.hasValidatedVersion} />
+              <DocumentDraftBanner
+                draft={metadata.draft}
+                hasValidatedVersion={metadata.hasValidatedVersion}
+                kind="officialReport"
+              />
             )}
             {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (
               <DocumentDriftBanner outdatedPropositions={pendingRevalidations.propositions} />

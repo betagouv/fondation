@@ -4,7 +4,6 @@ import z from 'zod';
 
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 import { Prisma } from 'src/generated/prisma/client';
-import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
@@ -13,6 +12,7 @@ import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class ListPresentedPlansQuery {

@@ -8,7 +8,6 @@ import {
   conjunctionList,
   date,
   displayTitled,
-  fullname,
   readsTheSame,
   requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
@@ -23,6 +22,7 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
+import { fullname } from 'src/utils/user.util';
 
 type NominationFileId = Id<'NominationFileId'>;
 
@@ -59,6 +59,9 @@ export type OfficialReportRenderContext = {
     string,
     { at: Date | null; by: { id: string; name: string } | null; html: string }
   >;
+
+  /** the agenda each proposition comes from, where its sentence is written */
+  fileAgendas: ReadonlyMap<string, string>;
 
   userDefinedBlocks: {
     intro: { html: string; isOutdated: boolean } | undefined;
@@ -534,6 +537,7 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         editedBy: editedFile ? (userDefinedFile?.editedBy ?? null) : null,
         fromAgenda: editedFile && Boolean(userDefinedFile?.fromAgenda),
         agendaHtml: agendaProposal?.html ?? null,
+        agendaId: file.nominationFileId ? (ctx.fileAgendas.get(file.nominationFileId) ?? null) : null,
         agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
         agendaEditedBy: agendaProposal?.by ?? null,
         generatedHtml: templateFile,

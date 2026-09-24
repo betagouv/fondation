@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
+import { DocumentValidatedBanner } from '../DocumentValidatedBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { PresentationBreadcrumb } from '@/features/documents/components/presentations/PresentationBreadcrumb';
@@ -28,8 +29,8 @@ export function PresentationPreviewPage() {
   const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
   const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
   const validate = useValidatePresentationPlanMutation({
-    planId: planId!,
     onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
+    planId: planId!,
   });
   const isValidating = validate.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
@@ -80,7 +81,16 @@ export function PresentationPreviewPage() {
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
-            {metadata?.status === 'DRAFT' && <DocumentDraftBanner hasValidatedVersion={false} />}
+            {metadata?.status === 'DRAFT' && (
+              <DocumentDraftBanner draft={metadata.draft} hasValidatedVersion={false} kind="notice" />
+            )}
+            {metadata?.status === 'VALIDATED' && (
+              <DocumentValidatedBanner
+                kind="notice"
+                presentation={metadata.presentation}
+                validation={metadata.validation}
+              />
+            )}
             {metadata && metadata.removedAgendas.length > 0 && (
               <PresentationRemovedAgendasBanner removedAgendas={metadata.removedAgendas} />
             )}

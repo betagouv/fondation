@@ -349,6 +349,7 @@ export class AgendaRepository {
             reporters: true,
             htmlEdited: true,
             htmlEditedAt: true,
+            htmlEditedBy: true,
             htmlOutdated: true,
           },
         },

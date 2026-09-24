@@ -1,3 +1,4 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import {
   generateJSON,
   mergeAttributes,
@@ -10,10 +11,12 @@ import {
   type ReactNodeViewProps,
 } from '@tiptap/react';
 import clsx from 'clsx';
+import { FormattedMessage } from 'react-intl';
+import { generatePath, useLocation, useParams } from 'react-router';
 
 import { DocBlockDriftBanner } from '@/features/documents/components/blocks/DocBlockDriftBanner';
 import { DocBlockEditedBadge } from '@/features/documents/components/blocks/DocBlockEditedBadge';
-import { useBlockActive } from '@/features/documents/components/blocks/useBlockActive';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
 
@@ -35,18 +38,19 @@ export const OfficialReportFileBlock = {
       {
         type: this.name,
         attrs: {
-          isPending: false,
-          officialReportId,
-          nominationFileId: block.nominationFileId,
           agendaEditedAt: block.agendaEditedAt,
           agendaEditedBy: block.agendaEditedBy,
           agendaHtml: block.agendaHtml,
+          agendaId: block.agendaId,
           edited: block.edited,
           editedAt: block.editedAt,
           editedBy: block.editedBy,
           fromAgenda: block.fromAgenda,
-          outdated: block.outdated,
           generatedHtml: block.generatedHtml,
+          isPending: false,
+          nominationFileId: block.nominationFileId,
+          officialReportId,
+          outdated: block.outdated,
         },
         content: generateJSON(block.html, extensions).content,
       },
@@ -58,37 +62,57 @@ function FileBlockView(props: ReactNodeViewProps) {
   const {
     agendaEditedAt,
     agendaEditedBy,
+    agendaId,
     edited,
     editedAt,
     editedBy,
     fromAgenda,
-    outdated,
     nominationFileId,
+    outdated,
   } = props.node.attrs;
-  const active = useBlockActive(props);
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const { pathname } = useLocation();
 
   return (
     <NodeViewWrapper
-      data-block-type="file"
       className={clsx('doc-block doc-block--file', {
-        'doc-block--active': active && !edited,
-        'doc-block--edited': edited,
         'doc-block--warning': outdated && nominationFileId,
       })}
+      data-block-type="file"
     >
-      {edited && (
-        <DocBlockEditedBadge
-          agendaEditedAt={agendaEditedAt}
-          agendaEditedBy={agendaEditedBy}
-          editedAt={editedAt}
-          editedBy={editedBy}
-          fromAgenda={fromAgenda}
-        />
+      <div className={clsx('doc-block__read-only', { 'doc-block--edited': edited })} contentEditable={false}>
+        {edited && (
+          <DocBlockEditedBadge
+            agendaEditedAt={agendaEditedAt}
+            agendaEditedBy={agendaEditedBy}
+            editedAt={editedAt}
+            editedBy={editedBy}
+            fromAgenda={fromAgenda}
+            place="officialReport"
+          />
+        )}
+
+        <NodeViewContent contentEditable={false} />
+      </div>
+
+      {agendaId && sessionId && (
+        <div className="flex justify-end" contentEditable={false}>
+          <Button
+            iconId="fr-icon-edit-line"
+            iconPosition="right"
+            linkProps={{
+              state: { officialReportPath: pathname },
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
+            }}
+            priority="tertiary no outline"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Corriger dans l'ODJ" />
+          </Button>
+        </div>
       )}
 
-      <NodeViewContent />
-
-      <DocBlockDriftBanner {...props} />
+      <DocBlockDriftBanner {...props} acknowledgeable={false} />
     </NodeViewWrapper>
   );
 }
@@ -101,18 +125,19 @@ export const OfficialReportFileBlockNode = Node.create({
   selectable: false,
   draggable: false,
   addAttributes: () => ({
-    isPending: { default: false, rendered: false },
     agendaEditedAt: { default: null, rendered: false },
     agendaEditedBy: { default: null, rendered: false },
     agendaHtml: { default: null, rendered: false },
+    agendaId: { default: null, rendered: false },
     edited: { default: false, rendered: false },
     editedAt: { default: null, rendered: false },
     editedBy: { default: null, rendered: false },
     fromAgenda: { default: false, rendered: false },
-    outdated: { default: false },
-    nominationFileId: { default: null },
     generatedHtml: { default: null, rendered: false },
+    isPending: { default: false, rendered: false },
+    nominationFileId: { default: null },
     officialReportId: { default: null, rendered: false },
+    outdated: { default: false },
   }),
   parseHTML: () => [{ tag: 'fon-block-file' }],
   renderHTML: ({ HTMLAttributes }) =>

@@ -27,6 +27,19 @@
   background: var(--background-alt-blue-france);
 }
 
+.doc-block__read-only {
+  background: var(--background-alt-grey);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  cursor: not-allowed;
+  padding: 12px;
+}
+
+/* the text can still be selected and copied, while the pointer keeps telling it cannot be written */
+.doc-block__read-only * {
+  cursor: not-allowed;
+}
+
 .doc-block--warning {
   background: var(--background-alt-yellow-tournesol);
   border-radius: 4px;

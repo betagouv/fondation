@@ -11,11 +11,11 @@ import {
 } from '@tiptap/react';
 import clsx from 'clsx';
 
-import { DocBlockDriftBanner } from '@/features/documents/components/blocks/DocBlockDriftBanner';
 import { DocBlockEditedBadge } from '@/features/documents/components/blocks/DocBlockEditedBadge';
 import { useBlockActive } from '@/features/documents/components/blocks/useBlockActive';
 
 import { type AgendaBlock } from './agenda-blocks.type';
+import { AgendaReportersChangedNotice } from './AgendaReportersChangedNotice';
 
 type JsonAgendaFileBlock = Extract<AgendaBlock, { kind: 'file' }>;
 export const AgendaFileBlock = {
@@ -38,6 +38,7 @@ export const AgendaFileBlock = {
           generatedHtml: block.generatedHtml ?? null,
           isPending: false,
           outdated: block.outdated,
+          reporters: block.reporters,
         },
         content: toInlineContent(block.html, extensions),
         type: this.name,
@@ -66,11 +67,11 @@ function FileBlockView(props: ReactNodeViewProps) {
       })}
       data-block-type="file"
     >
-      {edited && <DocBlockEditedBadge editedAt={editedAt} editedBy={editedBy} />}
+      {edited && <DocBlockEditedBadge editedAt={editedAt} editedBy={editedBy} place="agenda" />}
 
       <NodeViewContent<'p'> as="p" />
 
-      <DocBlockDriftBanner {...props} />
+      <AgendaReportersChangedNotice {...props} />
     </NodeViewWrapper>
   );
 }
@@ -93,6 +94,7 @@ export const AgendaFileBlockNode = Node.create({
     generatedHtml: { default: null, rendered: false },
     isPending: { default: false, rendered: false },
     outdated: { default: false },
+    reporters: { default: [], rendered: false },
   }),
 
   parseHTML: () => [{ tag: 'p[data-block-type="file"]' }],

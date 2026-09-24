@@ -59,6 +59,7 @@ import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
+import { DetailedAffectationHistoryDto } from './infrastructure/queries/detail-affectation-history.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
@@ -142,8 +143,14 @@ export class SessionController {
   writeSessionComment(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body() body: WriteSessionCommentDto,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
-    return this.sessions.writeComment({ comment: body.comment, sessionId });
+    return this.sessions.writeComment({
+      comment: body.comment,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      sessionId,
+      userId: user.id,
+    });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -199,10 +206,12 @@ export class SessionController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async affectReporters(
+    @AuthedUserId() userId: string,
     @Param('sessionId') sessionId: string,
     @Body() body: AffectReportersDto,
   ): Promise<void> {
     await this.sessions.affectReportersAndPriorities({
+      authorId: userId,
       sessionId,
       affectations: body.items,
     });
@@ -265,6 +274,13 @@ export class SessionController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/files/reporters/versions/history')
+  @ZodResponse({ type: DetailedAffectationHistoryDto, status: HttpStatus.OK })
+  detailAffectationHistory(@Param('sessionId') sessionId: string): Promise<DetailedAffectationHistoryDto> {
+    return this.sessions.detailAffectationHistory({ sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/last/unaffected-count')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: CountedUnaffectedFilesDto, status: HttpStatus.OK })
@@ -319,10 +335,12 @@ export class SessionController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async autoAffectation(
+    @AuthedUserId() userId: string,
     @Param('sessionId') sessionId: string,
     @Body() body: AutoAffectationDto,
   ): Promise<void> {
     await this.sessions.autoAffectation({
+      authorId: userId,
       sessionId,
       nominationFileIds: body.nominationFileIds,
       excludedMemberIds: body.excludedMemberIds,

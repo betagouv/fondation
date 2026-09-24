@@ -5,7 +5,7 @@ import { test } from '../fixtures.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
 import * as seed from '../utils/seed.ts';
 
-async function outdatedFilesOfValidatedVersions(): Promise<number> {
+async function filesOfValidatedVersionsReading(html: string): Promise<number> {
   const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
 
   try {
@@ -13,7 +13,7 @@ async function outdatedFilesOfValidatedVersions(): Promise<number> {
       select count(*)
       from docs.official_report_nomination_file as f
       inner join docs.official_report_version as v on v.id = f.version_id
-      where v.status = 'VALIDATED' and f.html_outdated
+      where v.status = 'VALIDATED' and f.html_edited = ${html}
     `;
 
     return Number(row?.count ?? 0);
@@ -357,6 +357,17 @@ test.describe('Docs Service', () => {
 
     const pdf = await agent.docs.generateAgendaPdf({ path: { agendaId } });
     expect(pdf.response?.status).toBe(200);
+
+    const validatedBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, otherBlock] = validatedBlocks.data!.blocks;
+    await agent.docs.editAgendaFileBlock({
+      path: { agendaId, fileId: otherBlock!.id },
+      body: { html: '<p>Une autre proposition</p>', outdated: false },
+    });
+
+    const forked = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    expect(forked.data!.blocks[0]).toMatchObject({ editedBy: writtenBlock!.editedBy });
+    expect(writtenBlock!.editedBy).not.toBeNull();
   });
 
   test('should keep an official report edition made after a validation, and undo it when discarded', async ({
@@ -521,22 +532,6 @@ test.describe('Docs Service', () => {
     expect(carried).toMatchObject({ edited: true, fromAgenda: true, html });
     expect(carried!.editedAt).not.toBeNull();
 
-    const rewritten = `<p>${html} Complété dans le PV.</p>`;
-    await agent.docs.editOfficialReportFile({
-      path: { officialReportId: created.data!.id, nominationFileId: firstBlock!.nominationFileId! },
-      body: { html: rewritten, outdated: false },
-    });
-
-    const afterEdition = await agent.docs.detailsOfficialReportDocument({
-      path: { officialReportId: created.data!.id },
-    });
-    const own = afterEdition
-      .data!.blocks.filter((block) => block.kind === 'file')
-      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
-
-    expect(own).toMatchObject({ edited: true, fromAgenda: false, html: rewritten });
-    expect(own!.editedAt).not.toBeNull();
-
     // the agenda is corrected afterwards. Its draft says nothing to the report, its validation does
     const later = `<strong>MME HANNAH ARENDT</strong>, corrigée dans l'ordre du jour après coup.`;
     await agent.docs.editAgendaFileBlock({
@@ -558,27 +553,14 @@ test.describe('Docs Service', () => {
     const afterAgendaMovedOn = await agent.docs.detailsOfficialReportDocument({
       path: { officialReportId: created.data!.id },
     });
-    const warned = afterAgendaMovedOn
+    const taken = afterAgendaMovedOn
       .data!.blocks.filter((block) => block.kind === 'file')
       .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
 
-    expect(warned).toMatchObject({ agendaHtml: later, html: rewritten, outdated: true });
-
-    await agent.docs.resetOfficialReportFile({
-      path: { officialReportId: created.data!.id, nominationFileId: firstBlock!.nominationFileId! },
-    });
-
-    const afterAccepting = await agent.docs.detailsOfficialReportDocument({
-      path: { officialReportId: created.data!.id },
-    });
-    const accepted = afterAccepting
-      .data!.blocks.filter((block) => block.kind === 'file')
-      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
-
-    expect(accepted).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
+    expect(taken).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
   });
 
-  test('should warn the draft of a validated report, not the version it no longer touches', async ({
+  test('should rewrite the draft of a validated report, not the version it no longer touches', async ({
     agent,
     expect,
     member,
@@ -654,14 +636,14 @@ test.describe('Docs Service', () => {
     const afterAgendaMovedOn = await agent.docs.detailsOfficialReportDocument({
       path: { officialReportId },
     });
-    const warned = afterAgendaMovedOn
+    const taken = afterAgendaMovedOn
       .data!.blocks.filter((block) => block.kind === 'file')
       .find((block) => block.nominationFileId === nominationFileId);
 
-    expect(warned).toMatchObject({ agendaHtml: later, outdated: true });
+    expect(taken).toMatchObject({ fromAgenda: true, html: later, outdated: false });
 
     // the validated version is what the readers still see: nothing may land on it
-    expect(await outdatedFilesOfValidatedVersions()).toBe(0);
+    expect(await filesOfValidatedVersionsReading(later)).toBe(0);
   });
 
   test('should delete a validated agenda and its notice, with the pdfs they hold', async ({
@@ -947,6 +929,9 @@ test.describe('Docs Service', () => {
     // validating settles the notice, it does not rewrite it
     expect(ready?.updatedAt).toBeNull();
 
+    const validatedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
+    expect(validatedMetadata.data!.validation).toEqual({ at: expect.any(String), by: ready?.createdBy });
+
     const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
     await agent.docs.updatePresentationPlanHtml({
       path: { planId },
@@ -965,6 +950,9 @@ test.describe('Docs Service', () => {
       body: { endTime: { hours: 11, minutes: 0, seconds: 0 } },
     });
     expect(presented.response?.status).toBe(204);
+
+    const presentedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
+    expect(presentedMetadata.data!.presentation).toEqual({ at: expect.any(String), by: ready?.createdBy });
 
     // presenting twice would append a second ending time to the text and its pdf
     const presentedAgain = await agent.docs.presentPlan({

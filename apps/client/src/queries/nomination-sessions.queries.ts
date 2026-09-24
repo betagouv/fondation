@@ -48,6 +48,9 @@ function key<const Parts extends unknown[]>(...parts: Parts): NonNullableKey<Par
 export const sessionKeys = {
   detailSessionAffectationVersion: (props?: { sessionId: string }) =>
     key('sessions', 'detailSessionAffectationVersion', props?.sessionId),
+  // under the version it tells the story of, so whatever refreshes the version refreshes it too
+  detailAffectationHistory: (props: { sessionId: string }) =>
+    key('sessions', 'detailSessionAffectationVersion', props.sessionId, 'history'),
   listSessionNominationFiles: (props?: { sessionId: string; [k: string]: unknown }) => {
     const { sessionId, ...rest } = props ?? {};
     return key('sessions', 'listSessionNominationFiles', sessionId, rest);
@@ -108,6 +111,13 @@ export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: 
       $api.sessions
         .detailNominationSessionAffectationsVersion({ path: { sessionId } })
         .then(({ data = null }) => data),
+  });
+
+export const useDetailAffectationHistoryQuery = (sessionId: string) =>
+  useQuery({
+    queryKey: sessionKeys.detailAffectationHistory({ sessionId }),
+    queryFn: () =>
+      $api.sessions.detailAffectationHistory({ path: { sessionId } }).then(({ data = null }) => data),
   });
 
 export type SessionNominationFile = PaginatedNominationFiles['items'][number];

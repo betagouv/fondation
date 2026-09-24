@@ -1,7 +1,7 @@
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
-import { useWhen } from '@/features/documents/hooks/useWhen';
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
@@ -13,20 +13,19 @@ export function PresentationAuthoring(props: {
   updatedAt?: string | null;
   updatedBy?: Writer;
 }) {
-  const when = useWhen();
+  const dateAndTime = useDateAndTime();
   const { createdAt, createdBy, updatedAt, updatedBy } = props;
 
   const sameWriter = Boolean(createdBy && updatedBy && createdBy.id === updatedBy.id);
 
   return (
     <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
-      <FormattedMessage defaultMessage="Créée le {date} à {time}" values={when(createdAt)} />
+      <FormattedMessage defaultMessage="Créée le {date} à {time}" values={dateAndTime(createdAt)} />
       {!sameWriter && <PresentationWriter writer={createdBy} />}
-
       {updatedAt && (
         <>
           {' '}
-          <FormattedMessage defaultMessage="et modifiée le {date} à {time}" values={when(updatedAt)} />
+          <FormattedMessage defaultMessage="et modifiée le {date} à {time}" values={dateAndTime(updatedAt)} />
           <PresentationWriter writer={updatedBy ?? null} />
         </>
       )}
@@ -41,14 +40,17 @@ export function AgendaValidation(props: {
   validatedAt: string | null;
   validatedBy: Writer;
 }) {
-  const when = useWhen();
+  const dateAndTime = useDateAndTime();
   const { createdAt, createdBy, validatedAt, validatedBy } = props;
 
   return (
     <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
       {validatedAt ? (
         <>
-          <FormattedMessage defaultMessage="ODJ validé le {date} à {time}" values={when(validatedAt)} />
+          <FormattedMessage
+            defaultMessage="ODJ validé le {date} à {time}"
+            values={dateAndTime(validatedAt)}
+          />
           <PresentationWriter writer={validatedBy} />
         </>
       ) : (
@@ -56,7 +58,7 @@ export function AgendaValidation(props: {
           <FormattedMessage
             defaultMessage="<link>ODJ en brouillon</link> créé le {date} à {time}"
             values={{
-              ...when(createdAt),
+              ...dateAndTime(createdAt),
               link: (chunks) => (
                 <Link
                   className="fr-link fr-link--sm"
@@ -76,14 +78,14 @@ export function AgendaValidation(props: {
 }
 
 export function PresentationRestitution(props: { presentedAt: string | null; presentedBy: Writer }) {
-  const when = useWhen();
+  const dateAndTime = useDateAndTime();
   const { presentedAt, presentedBy } = props;
 
   return (
     <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
       {presentedAt ? (
         <>
-          <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={when(presentedAt)} />
+          <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={dateAndTime(presentedAt)} />
           <PresentationWriter writer={presentedBy} />
         </>
       ) : (

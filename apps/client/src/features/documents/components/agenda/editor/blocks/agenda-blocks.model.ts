@@ -160,12 +160,8 @@ export class AgendaBlocksModel {
     }
   }
 
-  /**
-   * removes the user edition in favor of the system generated text,
-   * and unsets the `outdated` flag
-   */
   async resetBlock(props: ReactNodeViewProps): Promise<void> {
-    const { node, editor } = props;
+    const { editor, node } = props;
 
     const block = AgendaEditionBlock.from(editor, node);
     if (!block) return;
@@ -196,7 +192,6 @@ export class AgendaBlocksModel {
     }
   }
 
-  /** unset the outdated flag, but keeps the users edition */
   async acknowledgeBlock(props: ReactNodeViewProps): Promise<void> {
     const { editor, node } = props;
 
@@ -213,7 +208,7 @@ export class AgendaBlocksModel {
       const nextNode = editor.state.doc.nodeAt(pos);
       if (!nextNode) return;
 
-      const block = AgendaEditionBlock.from(editor, node);
+      const block = AgendaEditionBlock.from(editor, nextNode);
       if (!block) return;
 
       this.stage(block.key, { block, kind: 'edit' });

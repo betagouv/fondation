@@ -5,6 +5,7 @@ import { generatePath, Link, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentDriftBanner } from '../DocumentDriftBanner';
+import { DocumentValidatedBanner } from '../DocumentValidatedBanner';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { DocumentViewer } from '@/features/documents/components/DocumentViewer';
 import { OfficialReportBreadCrumb } from '@/features/documents/components/official-report/OfficialReportBreadCrumb';
@@ -99,9 +100,14 @@ export function OfficialReportPreviewPage() {
         <>
           {/** @warning the live region is always rendered: a screen reader ignores one that appears already filled */}
           <div role="status">
+            {metadata?.status === 'VALIDATED' && metadata.validation && (
+              <DocumentValidatedBanner kind="officialReport" validation={metadata.validation} />
+            )}
             {isDraft && (
               <DocumentDraftBanner
+                draft={metadata.draft}
                 hasValidatedVersion={metadata.hasValidatedVersion}
+                kind="officialReport"
                 systemUpdate={
                   (metadata.draftChangesBy === 'SYSTEM' ||
                     metadata.draftChangesBy === 'PERSON_AND_SYSTEM') && (
@@ -109,9 +115,10 @@ export function OfficialReportPreviewPage() {
                   )
                 }
               >
-                {metadata.hasValidatedVersion && (
+                {/* what the application brought in is taken without asking: only a person's draft is theirs to drop */}
+                {metadata.hasValidatedVersion && metadata.draftChangesBy === 'PERSON' && (
                   <AlertBannerAction disabled={isBusy} onClick={() => discardDraft.mutate()}>
-                    <FormattedMessage defaultMessage="Revenir au document validé" />
+                    <FormattedMessage defaultMessage="Abandonner ce brouillon" />
                   </AlertBannerAction>
                 )}
               </DocumentDraftBanner>

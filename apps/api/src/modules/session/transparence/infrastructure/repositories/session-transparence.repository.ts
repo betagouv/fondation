@@ -396,6 +396,7 @@ export class SessionTransparenceRepository {
             statut: 'BROUILLON',
             id: message.version.id,
             version: message.version.version,
+            createdBy: message.authorId,
           },
         },
       },
@@ -581,6 +582,16 @@ export class SessionTransparenceRepository {
     await this.db.tx.session.update({
       data: { comment: message.comment },
       where: { id: message.sessionId },
+    });
+
+    await this.db.tx.sessionCommentVersion.create({
+      data: {
+        comment: message.comment,
+        impersonatorId: message.impersonatorId,
+        sessionId: message.sessionId,
+        writtenAt: this.clock.now(),
+        writtenBy: message.userId,
+      },
     });
   }
 

@@ -25,12 +25,13 @@ export function AgendaDocumentEditor(props: {
   onDirtyChange?: (isDirty: boolean) => void;
   onPendingRevalidationChange?: (pending: { others: number; propositions: number }) => void;
   sessionId: string;
+  withPreview?: boolean;
 }) {
   const navigate = useNavigate();
   const toasts = useToasts();
   const { formatMessage } = useIntl();
 
-  const { onDirtyChange, sessionId } = props;
+  const { onDirtyChange, sessionId, withPreview = true } = props;
   const [isDirty, setIsDirty] = useState(false);
   const trackDirty = useCallback(
     (dirty: boolean) => {
@@ -96,10 +97,9 @@ export function AgendaDocumentEditor(props: {
 
   return (
     <DocumentBlocksEditor
-      propositionBlockName={AgendaFileBlock.name}
       editor={editor}
       onPendingRevalidationChange={props.onPendingRevalidationChange}
-      onPreview={onPreview}
+      onPreview={withPreview ? onPreview : undefined}
       previewDisabledReason={
         isDirty
           ? formatMessage({
@@ -107,6 +107,7 @@ export function AgendaDocumentEditor(props: {
             })
           : undefined
       }
+      propositionBlockName={AgendaFileBlock.name}
     />
   );
 }

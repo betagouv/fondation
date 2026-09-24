@@ -5,11 +5,11 @@ import z from 'zod';
 import type { AgendaRenderContext } from '../services/renderers/agenda.renderer';
 import { Prisma } from 'src/generated/prisma/client';
 import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
-import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { DateOnly } from 'src/utils/date-only';
+import { fullname } from 'src/utils/user.util';
 
 import { AgendaVersionFinder } from './agenda-version.finder';
 

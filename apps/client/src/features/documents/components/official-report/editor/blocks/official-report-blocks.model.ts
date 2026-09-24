@@ -134,12 +134,8 @@ export class OfficialReportBlocksModel {
     }
   }
 
-  /**
-   * removes the user edition in favor of the system generated text,
-   * and unsets the `outdated` flag
-   */
   async resetBlock(props: ReactNodeViewProps): Promise<void> {
-    const { node, editor } = props;
+    const { editor, node } = props;
 
     const block = OfficialReportEditionBlock.from(editor, node);
     if (!block) return;
@@ -173,7 +169,6 @@ export class OfficialReportBlocksModel {
     }
   }
 
-  /** unset the outdated flag, but keeps the users edition */
   async acknowledgeBlock(props: ReactNodeViewProps): Promise<void> {
     const { editor, node } = props;
 
@@ -190,7 +185,7 @@ export class OfficialReportBlocksModel {
       const nextNode = editor.state.doc.nodeAt(pos);
       if (!nextNode) return;
 
-      const block = OfficialReportEditionBlock.from(editor, node);
+      const block = OfficialReportEditionBlock.from(editor, nextNode);
       if (!block) return;
 
       await this.persistor.persist(block);
@@ -292,14 +287,14 @@ export class OfficialReportEditionBlock {
     switch (node.type.name) {
       case OfficialReportIntroBlock.name:
         return {
-          kind: 'intro',
           html: tipTapNodeToHtml(node, editor.schema),
+          kind: 'intro',
           outdated: node.attrs.outdated,
         };
       case OfficialReportConclusionBlock.name:
         return {
-          kind: 'conclusion',
           html: tipTapNodeToHtml(node, editor.schema),
+          kind: 'conclusion',
           outdated: node.attrs.outdated,
         };
       case OfficialReportSectionTitleBlock.name:
@@ -310,16 +305,16 @@ export class OfficialReportEditionBlock {
         };
       case OfficialReportSectionIntroBlock.name:
         return {
+          html: tipTapNodeToHtml(node, editor.schema),
           kind: 'section-intro',
           outcome: node.attrs.outcome as DocNominationFileOutcomeEnum,
-          html: tipTapNodeToHtml(node, editor.schema),
         };
       case OfficialReportFileBlock.name:
         return {
-          kind: 'file',
           html: tipTapNodeToHtml(node, editor.schema),
-          outdated: node.attrs.outdated as boolean,
+          kind: 'file',
           nominationFileId: node.attrs.nominationFileId as string,
+          outdated: node.attrs.outdated as boolean,
         };
 
       default:
@@ -400,10 +395,7 @@ export class OfficialReportEditionBlockPersistor {
       case 'intro':
         return $api.docs.editOfficialReportIntro({
           path: { officialReportId: this.officialReportId },
-          body: {
-            outdated: block.outdated,
-            html: block.html,
-          },
+          body: { html: block.html, outdated: block.outdated },
         });
 
       case 'conclusion':
@@ -421,11 +413,9 @@ export class OfficialReportEditionBlockPersistor {
           body: { html: block.html },
         });
 
+      // the agenda holds a proposition's sentence: the report has none of its own to send
       case 'file':
-        return $api.docs.editOfficialReportFile({
-          path: { officialReportId: this.officialReportId, nominationFileId: block.nominationFileId },
-          body: { html: block.html, outdated: block.outdated },
-        });
+        return;
 
       default:
         return assertNever(block);

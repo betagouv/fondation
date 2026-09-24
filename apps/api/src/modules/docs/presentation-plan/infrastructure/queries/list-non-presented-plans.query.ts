@@ -4,13 +4,13 @@ import z from 'zod';
 
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 import { Prisma } from 'src/generated/prisma/client';
-import { fullname } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 

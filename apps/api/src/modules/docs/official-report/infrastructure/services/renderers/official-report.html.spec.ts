@@ -149,6 +149,7 @@ describe('officialReportTemplate', () => {
       string,
       { at: Date | null; by: { id: string; name: string } | null; html: string }
     >(),
+    fileAgendas: new Map<string, string>(),
 
     userDefinedBlocks: {
       files: {},

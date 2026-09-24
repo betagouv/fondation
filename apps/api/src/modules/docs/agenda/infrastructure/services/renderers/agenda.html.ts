@@ -208,6 +208,7 @@ export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFil
       editedBy: edited ? (userDefined?.editedBy ?? null) : null,
       outdated: Boolean(userDefined?.isOutdated),
       generatedHtml,
+      reporters: file.reporters,
     };
   }
 }

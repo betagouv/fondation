@@ -2,7 +2,6 @@ import { createColumnHelper, type CellContext } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { AffectationVersionStatusBadge } from '@/features/nomination-files-table/components/AffectationVersionStatusBadge';
 import { NominationFilesExportButton } from '@/features/nomination-files-table/components/NominationFilesExportButton';
 import { SessionFilesTable } from '@/features/nomination-files-table/components/SessionFilesTable';
 import {
@@ -152,7 +151,6 @@ function MissingEvaluationsTableInner(props: {
       summary={
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <AffectationVersionStatusBadge sessionId={props.sessionId} />
             <TotalBadge value={counts?.missingEvaluation ?? 0}>
               <FormattedMessage defaultMessage="Total" />
             </TotalBadge>

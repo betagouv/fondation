@@ -328,25 +328,6 @@ export class OfficialReportsController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Patch('/official-reports/:officialReportId/blocks/files/:nominationFileId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  editOfficialReportFile(
-    @AuthedUser() authUser: { id: string },
-    @Param('officialReportId') officialReportId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Body() body: EditOfficialReportBlockDto,
-  ): Promise<void> {
-    return this.officialReports.editOfficialReportFile({
-      authorId: authUser.id,
-      id: officialReportId,
-      nominationFileId,
-      html: body.html,
-      outdated: body.outdated,
-    });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/blocks/files/:nominationFileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   resetOfficialReportFile(

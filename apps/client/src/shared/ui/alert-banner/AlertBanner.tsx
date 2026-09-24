@@ -16,7 +16,7 @@ export function AlertBanner(props: {
   align?: 'center' | 'start';
   children?: ReactNode;
   className?: string;
-  icon: string;
+  icon?: string;
   message: ReactNode;
   tone: keyof typeof TONES;
 }) {
@@ -29,7 +29,7 @@ export function AlertBanner(props: {
         props.className,
       )}
     >
-      <span aria-hidden className={clsx('fr-icon--sm shrink-0', props.icon)} />
+      {props.icon && <span aria-hidden className={clsx('fr-icon--sm shrink-0', props.icon)} />}
       <span>{props.message}</span>
       {props.children}
     </div>

@@ -4,7 +4,6 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
-import { fullname } from '../services/renderers/helpers';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
@@ -15,6 +14,7 @@ import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 

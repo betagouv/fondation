@@ -1,7 +1,7 @@
 -- @param {String} $1:sessionId
 -- @param {String} $2:versionId
 
-UPDATE reports_context.reports SET is_deleted = FALSE
+UPDATE reports_context.reports SET is_deleted = TRUE
 WHERE session_id = $1::UUID AND is_deleted = false AND NOT EXISTS (
   SELECT id FROM nominations_context.nomination_file_to_reporter nfr
   WHERE (

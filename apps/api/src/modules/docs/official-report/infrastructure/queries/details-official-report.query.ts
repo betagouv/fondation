@@ -6,6 +6,14 @@ import z from 'zod';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import {
+  DRAFT_TRACE_SELECT,
+  draftTrace,
+  draftTraceSchema,
+  VALIDATION_TRACE_SELECT,
+  traceOf,
+  traceSchema,
+} from 'src/modules/docs/shared/infrastructure/document-trace';
+import {
   draftChangesBy,
   draftChangesBySchema,
 } from 'src/modules/docs/shared/infrastructure/draft-changes-by';
@@ -41,8 +49,8 @@ export class DetailsOfficialReportQuery {
         sessionMeetingEndingTime: true,
         isManuallyEdited: true,
         createdBy: true,
-        systemUpdatedAt: true,
         updatedBy: true,
+        ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
         officialReport: { select: { id: true, agendas: { select: { id: true } } } },
       } satisfies Prisma.OfficialReportVersionSelect,
@@ -53,6 +61,13 @@ export class DetailsOfficialReportQuery {
     const publishedId = await this.officialReportVersionFinder.published({
       officialReportId: query.officialReportId,
     });
+
+    const published = publishedId
+      ? await this.db.tx.officialReportVersion.findUnique({
+          select: VALIDATION_TRACE_SELECT satisfies Prisma.OfficialReportVersionSelect,
+          where: { id: publishedId },
+        })
+      : null;
 
     return {
       id: report.id,
@@ -69,6 +84,8 @@ export class DetailsOfficialReportQuery {
       isManuallyEdited: report.isManuallyEdited,
       hasValidatedVersion: isDefined(publishedId),
       draftChangesBy: draftChangesBy(version),
+      draft: draftTrace(version),
+      validation: traceOf(published?.validatedAt, published?.validator),
       status: report.status,
       sessionMeetingDate: DateOnly.fromUtcDate(report.sessionMeetingDate).toJson(),
       sessionMeetingStartingTime: dateToTimeOnly(report.sessionMeetingStartingTime),
@@ -95,6 +112,8 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
     draftChangesBy: draftChangesBySchema,
+    draft: draftTraceSchema,
+    validation: traceSchema,
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),
     justiceDepartmentContactId: z.string().nullable(),

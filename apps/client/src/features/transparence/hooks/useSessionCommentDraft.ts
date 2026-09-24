@@ -10,6 +10,8 @@ export type SessionCommentDraft = {
   isError: boolean;
   isPending: boolean;
   isWarned: boolean;
+  /** null for a comment written before its author and date were kept */
+  lastChange: { at: string; by: string | null } | null;
   onChange: (value: string) => void;
   save: () => Promise<void>;
   /** false, and warns about the unsaved changes, when leaving would lose them */
@@ -36,6 +38,7 @@ export function useSessionCommentDraft(props: { sessionId: string }): SessionCom
     isError,
     isPending,
     isWarned: isWarned && draft !== null,
+    lastChange: data?.writtenAt ? { at: data.writtenAt, by: data.writtenBy?.name ?? null } : null,
     onChange: setDraft,
     save: async () => {
       await mutateAsync({ comment: draft ?? '' });
