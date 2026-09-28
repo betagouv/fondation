@@ -119,7 +119,7 @@ export class FindSessionDocsQuery {
     const officialReportReadiness = await this.agendas.findOfficialReportReadiness(query);
 
     const officialReports = await this.db.tx.officialReport.findMany({
-      where: { agendas: { some: { sessionId: query.sessionId } } },
+      where: { agenda: { is: { sessionId: query.sessionId } } },
       select: {
         author: { select: { firstName: true, id: true, lastName: true } },
         createdAt: true,

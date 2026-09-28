@@ -52,7 +52,7 @@ export class OfficialReportRenderContextFinder {
 
         officialReport: {
           select: {
-            agendas: {
+            agenda: {
               select: {
                 id: true,
                 sessionId: true,
@@ -159,7 +159,7 @@ export class OfficialReportRenderContextFinder {
       ),
     );
 
-    const agenda = report.officialReport.agendas[0];
+    const { agenda } = report.officialReport;
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
     // has never been validated, which is the one case where nothing else exists to speak of
     const agendaContent = agendaContentOf(agenda?.versions ?? []);

@@ -314,7 +314,7 @@ export function useCreateOfficialReportMutation() {
       justiceDepartmentContactId: string;
       chairmanId: string;
       secretaryId: string;
-      agendas: string[];
+      agendaId: string;
       members: string[];
     }) =>
       $api.docs
@@ -328,7 +328,7 @@ export function useCreateOfficialReportMutation() {
             justiceDepartmentContactId: command.justiceDepartmentContactId,
             chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
-            agendas: command.agendas as [string, ...string[]],
+            agendaId: command.agendaId,
             absentMemberIds: command.members as [string, ...string[]],
           },
         })

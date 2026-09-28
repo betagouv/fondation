@@ -293,7 +293,7 @@ export class AgendasService {
 
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
   private async readableSentences(agendaId: string): Promise<Map<string, string>> {
-    const agenda = await this.db.tx.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findFirst({
       where: { id: agendaId, officialReportId: { not: null } },
       select: {
         versions: {

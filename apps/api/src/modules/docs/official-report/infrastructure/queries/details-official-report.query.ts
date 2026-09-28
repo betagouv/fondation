@@ -52,7 +52,7 @@ export class DetailsOfficialReportQuery {
         updatedBy: true,
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
-        officialReport: { select: { id: true, agendas: { select: { id: true } } } },
+        officialReport: { select: { agenda: { select: { id: true } }, id: true } },
       } satisfies Prisma.OfficialReportVersionSelect,
     });
 
@@ -74,7 +74,7 @@ export class DetailsOfficialReportQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasRenunciation: report.hasRenunciation,
-      agendas: report.agendas.map(({ id }) => id).filter(isDefined),
+      agendaId: report.agenda?.id ?? null,
       absentMembers: report.members.flatMap((member) =>
         member.isAbsent && member.memberId ? [member.memberId] : [],
       ),
@@ -99,7 +99,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     id: z.string(),
     hasRenunciation: z.boolean(),
     absentMembers: z.array(z.string()),
-    agendas: z.array(z.uuid()),
+    agendaId: z.uuid().nullable(),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,
     sessionMeetingEndingTime: timeOnlySchema,

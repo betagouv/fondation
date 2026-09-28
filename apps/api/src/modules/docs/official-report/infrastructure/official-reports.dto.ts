@@ -18,7 +18,7 @@ const updateOfficialReportDtoSchema = z.object({
   absentMemberIds: z.array(z.uuid()),
 });
 
-const createOfficialReportDtoSchema = updateOfficialReportDtoSchema.extend({ agendas: z.array(z.uuid()) });
+const createOfficialReportDtoSchema = updateOfficialReportDtoSchema.extend({ agendaId: z.uuid() });
 
 export class CreateOfficialReportDto extends createZodDto(createOfficialReportDtoSchema) {}
 

@@ -170,7 +170,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agenda.data!.id],
+        agendaId: agenda.data!.id,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -247,7 +247,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agenda.data!.id],
+        agendaId: agenda.data!.id,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -329,7 +329,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agenda.data!.id],
+        agendaId: agenda.data!.id,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -486,7 +486,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agenda.data!.id],
+        agendaId: agenda.data!.id,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -579,7 +579,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agendaId],
+        agendaId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -680,7 +680,7 @@ test.describe('Docs Service', () => {
       body: {
         chairmanId,
         absentMemberIds: [],
-        agendas: [agendaId],
+        agendaId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -1312,7 +1312,7 @@ test.describe('Docs Service', () => {
     };
     const created = await agent.docs.createOfficialReport({
       path: { sessionId },
-      body: { ...metadata, agendas: [agenda.data!.id] },
+      body: { ...metadata, agendaId: agenda.data!.id },
     });
     const officialReportId = created.data!.id;
     await agent.docs.validateOfficialReport({ path: { officialReportId } });
