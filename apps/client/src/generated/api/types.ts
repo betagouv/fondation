@@ -1341,7 +1341,7 @@ export type CreateOfficialReportDto = {
     chairmanId: string;
     secretaryId: string;
     absentMemberIds: Array<string>;
-    agendas: Array<string>;
+    agendaId: string;
 };
 
 export type CreatedOfficialReportDto = {
@@ -1430,7 +1430,7 @@ export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
     absentMembers: Array<string>;
-    agendas: Array<string>;
+    agendaId: string | null;
     sessionMeetingDate: {
         year: number;
         month: number;

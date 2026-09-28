@@ -90,7 +90,7 @@ export class OfficialReportRepository {
         officialReport: {
           select: {
             id: true,
-            agendas: {
+            agenda: {
               select: {
                 id: true,
                 formation: true,
@@ -102,7 +102,6 @@ export class OfficialReportRepository {
                   select: { date: true, status: true },
                 },
               },
-              take: 1,
             },
           },
         },
@@ -140,10 +139,7 @@ export class OfficialReportRepository {
     const officialReport = { ...version, ...version.officialReport };
 
     const officialReportId = makeId('OfficialReportId', officialReport.id);
-    const rawAgenda = assertIsDefined(
-      officialReport.agendas[0],
-      `Official Report "${query.id}" has no agenda`,
-    );
+    const rawAgenda = assertIsDefined(officialReport.agenda, `Official Report "${query.id}" has no agenda`);
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
     // has never been validated, which is the one case where nothing else exists to speak of
     const agendaDate = assertIsDefined(
@@ -344,7 +340,7 @@ export class OfficialReportRepository {
       data: {
         id: message.id,
         authorId: message.authorId,
-        agendas: { connect: { id: message.snapshot.meta.agenda.id } },
+        agenda: { connect: { id: message.snapshot.meta.agenda.id } },
         versions: {
           create: {
             ...this.versionContent({ justiceContact, snapshot: message.snapshot.meta }),
@@ -382,7 +378,7 @@ export class OfficialReportRepository {
       const self = await this.db.tx.officialReport.findUniqueOrThrow({
         where: { id: message.officialReportId },
         select: {
-          agendas: {
+          agenda: {
             select: {
               sessionId: true,
               versions: {
@@ -404,7 +400,7 @@ export class OfficialReportRepository {
           },
         } satisfies Prisma.OfficialReportSelect,
       });
-      const rawAgenda = assertIsDefined(self.agendas[0]);
+      const rawAgenda = assertIsDefined(self.agenda);
       const { sessionId } = rawAgenda;
       const versionId = await this.officialReportVersionFinder.latest(message);
       const files = await this.resolveNominationFiles({

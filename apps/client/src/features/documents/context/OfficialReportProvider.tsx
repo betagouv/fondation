@@ -41,7 +41,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
 
     setState((s) => ({
       ...s,
-      agendaId: officialReportMetadata.agendas[0],
+      agendaId: officialReportMetadata.agendaId ?? '',
       sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
       sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime,
       sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime,
@@ -83,7 +83,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
         justiceDepartmentContactId: metadata.justiceContactId,
         chairmanId: metadata.chairmanId,
         secretaryId: metadata.secretaryId,
-        agendas: [metadata.agendaId],
+        agendaId: metadata.agendaId,
         members: metadata.memberIds,
       };
 

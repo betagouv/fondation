@@ -187,7 +187,7 @@ describe('SessionDocumentsTable', () => {
     expect(onMount.mock.calls.length).toBe(mountsAfterFirstRender);
   });
 
-  it('should show a meeting on a single row, its agendas beside their official report', () => {
+  it('should show a meeting on a single row, its agenda beside its official report', () => {
     render(
       table([
         {
@@ -229,23 +229,6 @@ describe('SessionDocumentsTable', () => {
           createdBy: null,
           draftChangesBy: null,
           draftUpdate: null,
-          id: 'agenda-parquet',
-          meetingDate: { day: 12, month: 3, year: 2028 },
-          name: 'ODJ parquet',
-          officialReportId: 'pv-1',
-          officialReportReadiness: null,
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-          validatedBy: null,
-        },
-        {
-          createdAt: CREATED_AT,
-          createdBy: null,
-          draftChangesBy: null,
-          draftUpdate: null,
           id: 'pv-1',
           meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'PV du 12 mars',
@@ -259,7 +242,7 @@ describe('SessionDocumentsTable', () => {
     );
 
     expect(rowTexts()).toEqual([
-      expect.stringMatching(/ODJ siège.*ODJ parquet.*PV du 12 mars/),
+      expect.stringMatching(/ODJ siège.*PV du 12 mars/),
       expect.stringContaining('ODJ sans PV'),
     ]);
   });
@@ -304,7 +287,7 @@ describe('SessionDocumentsTable', () => {
     expect(rowTexts()).toEqual([expect.stringContaining('ODJ janvier'), expect.stringContaining('ODJ mars')]);
   });
 
-  it('should badge the official report rather than the agendas it covers', () => {
+  it('should badge the official report rather than its agenda', () => {
     render(
       table([
         {
@@ -315,23 +298,6 @@ describe('SessionDocumentsTable', () => {
           id: 'agenda-siege',
           meetingDate: { day: 12, month: 3, year: 2028 },
           name: 'ODJ siège',
-          officialReportId: 'pv-1',
-          officialReportReadiness: null,
-          outdated: false,
-          presentationPlans: [],
-          status: 'VALIDATED',
-          type: 'agenda',
-          validatedAt: VALIDATED_AT,
-          validatedBy: null,
-        },
-        {
-          createdAt: CREATED_AT,
-          createdBy: null,
-          draftChangesBy: null,
-          draftUpdate: null,
-          id: 'agenda-parquet',
-          meetingDate: { day: 12, month: 3, year: 2028 },
-          name: 'ODJ parquet',
           officialReportId: 'pv-1',
           officialReportReadiness: null,
           outdated: false,

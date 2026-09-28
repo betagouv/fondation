@@ -85,7 +85,7 @@ export class OfficialReportsService {
     justiceDepartmentContactId: string;
     chairmanId: string;
     secretaryId: string;
-    agendaIds: readonly string[];
+    agendaId: string;
     sessionId: string;
     absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
@@ -99,17 +99,14 @@ export class OfficialReportsService {
       impersonationId: undefined,
     });
 
-    const uniqueAgendaIds = new Set(command.agendaIds);
-    const { items: agendas } = await this.agendaFinder.findReportableInOfficialReport({
-      ids: uniqueAgendaIds,
+    const {
+      items: [agenda],
+    } = await this.agendaFinder.findReportableInOfficialReport({
+      ids: new Set([command.agendaId]),
       sessionId: command.sessionId,
     });
+    if (!agenda) throw new NotFoundException();
 
-    if (agendas.length !== 1) {
-      throw new NotFoundException();
-    }
-
-    const firstAgenda = agendas[0]!;
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
     const members = await this.members.internalFindMembersByFormation({ formation: session.formation });
 
@@ -120,10 +117,10 @@ export class OfficialReportsService {
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
 
         agenda: {
-          id: firstAgenda.id,
-          formation: firstAgenda.formation,
-          date: DateOnly.fromJson(firstAgenda.date),
-          session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.session.date) },
+          id: agenda.id,
+          formation: agenda.formation,
+          date: DateOnly.fromJson(agenda.date),
+          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
         },
 
         sessionMeeting: OfficialReportSessionMeeting.from({
@@ -133,14 +130,14 @@ export class OfficialReportsService {
         }),
 
         // oxlint-disable-next-line typescript/no-misused-spread
-        chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: firstAgenda.formation }),
+        chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: agenda.formation }),
         // oxlint-disable-next-line typescript/no-misused-spread
         secretary: OfficialReportSecretary.from({ ...secretary, id: secretary.userId }),
         members: OfficialReportMembersList.from(
           members.map((member) =>
             OfficialReportMember.from({
               ...member, // oxlint-disable-line typescript/no-misused-spread
-              expectedFormation: firstAgenda.formation,
+              expectedFormation: agenda.formation,
               isAbsent: command.absentMemberIds.includes(member.id),
             }),
           ),
@@ -175,31 +172,29 @@ export class OfficialReportsService {
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
     const members = await this.members.internalFindMembersByFormation({ formation: report.formation });
 
-    const { items: agendas } = await this.agendaFinder.findReportableInOfficialReport({
+    const {
+      items: [agenda],
+    } = await this.agendaFinder.findReportableInOfficialReport({
       ignoreOfficialReportId: command.id,
       sessionId: report.snapshot.meta.agenda.session.id,
       ids: new Set([report.snapshot.meta.agenda.id]),
     });
-
-    if (agendas.length !== 1) {
-      throw new NotFoundException();
-    }
+    if (!agenda) throw new NotFoundException();
 
     const { items: agendaFiles } = await this.docsNominationFilesFinder.findByAgendaIds({
       ignoreOfficialReportId: report.id,
-      agendaIds: new Set(agendas.map(({ id }) => id)),
+      agendaIds: new Set([agenda.id]),
     });
 
-    const firstAgenda = agendas[0]!;
     report.update({
       authorId: command.authorId,
       officialReport: {
         hasRenunciation: command.hasRenunciation,
         agenda: {
-          id: firstAgenda.id,
-          formation: firstAgenda.formation,
-          date: DateOnly.fromJson(firstAgenda.date),
-          session: { id: firstAgenda.session.id, date: DateOnly.fromJson(firstAgenda.date) },
+          id: agenda.id,
+          formation: agenda.formation,
+          date: DateOnly.fromJson(agenda.date),
+          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
         },
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
         sessionMeeting: OfficialReportSessionMeeting.from({

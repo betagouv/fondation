@@ -78,7 +78,7 @@ export class OfficialReportsController {
       justiceDepartmentContactId: body.justiceDepartmentContactId,
       chairmanId: body.chairmanId,
       secretaryId: body.secretaryId,
-      agendaIds: body.agendas,
+      agendaId: body.agendaId,
       absentMemberIds: body.absentMemberIds,
     });
   }

@@ -11,19 +11,17 @@ import { toInitials } from '@/utils/user.utils';
 import type { FoundSessionDocsDto } from '@api/types';
 import { useDeleteAgenda, useDeleteOfficialReportMutation } from '@queries/agenda.queries';
 
-import type { SessionDocument } from './session-document-groups';
-import { SessionDocumentsTableContext, type Association } from './SessionDocumentsTable';
+import type { OfficialReportDocument, SessionDocument } from './session-document-groups';
+import { SessionDocumentsTableContext } from './SessionDocumentsTable';
 
 /** everything a deletion carries away besides the document itself, in the order it matters */
 function deletionConsequences(query: {
-  association: Association | undefined;
   doc: SessionDocument;
+  officialReport: OfficialReportDocument | undefined;
 }): { key: string; message: ReactNode }[] {
-  const { association, doc } = query;
+  const { doc, officialReport } = query;
   if (doc.type !== 'agenda') return [];
 
-  const officialReport = association?.associated.find((other) => other.type === 'officialReport');
-  const otherAgendas = (association?.agendasCount ?? 1) - 1;
   const consequences: { key: string; message: ReactNode }[] = [];
 
   if (doc.officialReportId) {
@@ -36,18 +34,6 @@ function deletionConsequences(query: {
           <FormattedMessage defaultMessage="Cela entraînera la suppression du PV lié." />
         ),
     });
-
-    if (otherAgendas > 0) {
-      consequences.push({
-        key: 'other-agendas',
-        message: (
-          <FormattedMessage
-            defaultMessage="Ce PV couvre {count, plural, one {un autre ordre du jour qui perdra} other {# autres ordres du jour qui perdront}} le sien."
-            values={{ count: otherAgendas }}
-          />
-        ),
-      });
-    }
   }
 
   for (const plan of doc.presentationPlans) {
@@ -92,10 +78,10 @@ export function DocActionDelete(props: {
   const { mutate: deleteOfficialReport, isPending: isDeletingOfficialReport } =
     useDeleteOfficialReportMutation(sessionId);
 
-  const { associations } = useContext(SessionDocumentsTableContext);
+  const { officialReports } = useContext(SessionDocumentsTableContext);
   const consequences = useMemo(
-    () => deletionConsequences({ association: associations?.get(doc.id), doc }),
-    [associations, doc],
+    () => deletionConsequences({ doc, officialReport: officialReports?.get(doc.id) }),
+    [doc, officialReports],
   );
 
   const onDeleteDoc = useCallback(async () => {

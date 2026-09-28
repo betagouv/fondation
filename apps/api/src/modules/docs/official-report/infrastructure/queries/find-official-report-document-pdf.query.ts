@@ -49,7 +49,7 @@ export class FindOfficialReportDocumentPdfQuery {
         chairmanFirstName: true,
         chairmanLastName: true,
         officialReport: {
-          select: { agendas: { select: { sessionId: true, sessionName: true, formation: true }, take: 1 } },
+          select: { agenda: { select: { formation: true, sessionId: true, sessionName: true } } },
         },
         pdf: { select: { id: true, name: true } },
       } satisfies Prisma.OfficialReportVersionSelect,
@@ -74,7 +74,7 @@ export class FindOfficialReportDocumentPdfQuery {
     const html = await this.findOfficialReportDocumentQuery.handle(query);
     const buffer = await this.pdfRenderer.render(html);
 
-    const [agenda] = officialReport.officialReport.agendas;
+    const { agenda } = officialReport.officialReport;
     if (!agenda) throw new NotFoundException();
 
     const name = docFileName({

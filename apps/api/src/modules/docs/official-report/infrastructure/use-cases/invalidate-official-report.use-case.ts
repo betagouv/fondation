@@ -105,7 +105,7 @@ export class InternalInvalidateOfficialReportUseCase {
   }): Promise<InvalidateOfficialReportCommand[]> {
     const { agendaId, nominationFileId } = query.invalidation.payload;
 
-    const agenda = await this.db.tx.agenda.findUnique({
+    const agenda = await this.db.tx.agenda.findFirst({
       where: { id: agendaId, officialReportId: { not: null } },
       select: {
         officialReportId: true,
@@ -147,38 +147,30 @@ export class InternalInvalidateOfficialReportUseCase {
   private async mapAgendaNominationFilesUpdated(query: {
     invalidation: Extract<DocInvalidation, { type: 'AgendaNominationFilesUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const agendas = await this.db.tx.agenda.findMany({
+    const agenda = await this.db.tx.agenda.findFirst({
       where: { id: query.invalidation.payload.agendaId, officialReportId: { not: null } },
       select: {
         id: true,
-        sessionId: true,
         officialReportId: true,
+        sessionId: true,
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
-          select: { status: true, nominationFiles: { select: { nominationFileId: true } } },
+          select: { nominationFiles: { select: { nominationFileId: true } }, status: true },
         },
       } satisfies Prisma.AgendaSelect,
     });
+    if (!agenda?.officialReportId) return [];
 
-    const agendasWithOfficialReport = agendas.filter(
-      (agenda): agenda is typeof agenda & { officialReportId: string } => isDefined(agenda.officialReportId),
+    const nominationFileIds = (agendaContentOf(agenda.versions)?.nominationFiles ?? []).flatMap(
+      ({ nominationFileId }) => (isDefined(nominationFileId) ? [nominationFileId] : []),
     );
+    const { items } = await this.docsNominationFilesFinder.find({
+      ids: nominationFileIds,
+      sessionId: agenda.sessionId,
+    });
 
-    if (agendasWithOfficialReport.length === 0) return [];
-
-    const output: InvalidateOfficialReportCommand[] = [];
-
-    for (const agenda of agendasWithOfficialReport) {
-      const nominationFileIds = (agendaContentOf(agenda.versions)?.nominationFiles ?? []).flatMap(
-        ({ nominationFileId }) => (isDefined(nominationFileId) ? [nominationFileId] : []),
-      );
-
-      const { items } = await this.docsNominationFilesFinder.find({
-        ids: nominationFileIds,
-        sessionId: agenda.sessionId,
-      });
-
-      output.push({
+    return [
+      {
         type: 'AgendaNominationFilesUpdated',
         id: agenda.officialReportId,
         payload: {
@@ -192,10 +184,8 @@ export class InternalInvalidateOfficialReportUseCase {
               reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
             })),
         },
-      });
-    }
-
-    return output;
+      },
+    ];
   }
 
   private async mapAgendaDateUpdated(query: {
