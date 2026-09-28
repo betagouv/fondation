@@ -27,10 +27,8 @@ import {
 
 export type { SessionDocument } from './session-document-groups';
 
-export type Association = { agendasCount: number; associated: SessionDocument[] };
-
 type SessionMeeting = {
-  agendas: AgendaDocument[];
+  agenda: AgendaDocument | undefined;
   id: string;
   meetingDate: PlainDateOnly;
   officialReport: OfficialReportDocument | undefined;
@@ -41,22 +39,22 @@ const h = createColumnHelper<SessionMeeting>();
 
 export const SessionDocumentsTableContext = createContext<{
   actions?: (doc: SessionDocument) => ReactNode;
-  associations?: ReadonlyMap<string, Association>;
   newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
+  officialReports?: ReadonlyMap<string, OfficialReportDocument>;
   renderName?: (doc: SessionDocument) => ReactNode;
   states?: ReadonlyMap<string, SessionDocumentGroupState>;
 }>({});
 
 function toSessionMeeting(group: SessionDocumentGroup): SessionMeeting {
-  const agendas = group.filter((doc): doc is AgendaDocument => doc.type === 'agenda');
+  const agenda = group.find((doc): doc is AgendaDocument => doc.type === 'agenda');
   const officialReport = group.find((doc): doc is OfficialReportDocument => doc.type === 'officialReport');
   const [first] = group;
 
   return {
-    agendas,
+    agenda,
     id: first.id,
     // the report takes its meeting date from its agenda, but can be moved away from it by hand
-    meetingDate: (agendas[0] ?? first).meetingDate,
+    meetingDate: (agenda ?? first).meetingDate,
     officialReport,
     state: sessionDocumentGroupState(group),
   };
@@ -182,24 +180,17 @@ function MeetingDateCell(props: CellContext<SessionMeeting, PlainDateOnly>) {
   return formatLongDateOnly(props.getValue());
 }
 
-function AgendasCell(props: CellContext<SessionMeeting, unknown>) {
-  return (
-    <div className="flex w-full flex-col divide-y divide-(--border-default-grey)">
-      {props.row.original.agendas.map((agenda) => (
-        <SessionDocumentItem doc={agenda} key={agenda.id} />
-      ))}
-    </div>
-  );
+function AgendaCell(props: CellContext<SessionMeeting, unknown>) {
+  const { agenda } = props.row.original;
+  return agenda ? <SessionDocumentItem doc={agenda} /> : null;
 }
 
 function OfficialReportCell(props: CellContext<SessionMeeting, unknown>) {
   const { newOfficialReport } = useContext(SessionDocumentsTableContext);
-  const { agendas, officialReport, state } = props.row.original;
+  const { agenda, officialReport, state } = props.row.original;
 
   if (officialReport) return <SessionDocumentItem doc={officialReport} />;
   if (state !== 'awaitingOfficialReport') return null;
-
-  const [agenda] = agendas;
 
   return (
     <div className="flex w-full flex-col items-center gap-3 py-4">
@@ -224,25 +215,19 @@ export function SessionDocumentsTable(props: {
   const data = useMemo(() => groups.map(toSessionMeeting), [groups]);
   const states = useMemo(() => sessionDocumentStates(groups), [groups]);
 
-  const associations = useMemo(
+  const officialReports = useMemo(
     () =>
       new Map(
-        groups
-          .filter((group) => group.length > 1)
-          .flatMap((group): [string, Association][] => {
-            const agendasCount = group.filter((doc) => doc.type === 'agenda').length;
-            return group.map((doc) => [
-              doc.id,
-              { agendasCount, associated: group.filter((other) => other.type !== doc.type) },
-            ]);
-          }),
+        data.flatMap(({ agenda, officialReport }) =>
+          agenda && officialReport ? [[agenda.id, officialReport] as const] : [],
+        ),
       ),
-    [groups],
+    [data],
   );
 
   const renderers = useMemo(
-    () => ({ actions, associations, newOfficialReport, renderName, states }),
-    [actions, associations, newOfficialReport, renderName, states],
+    () => ({ actions, newOfficialReport, officialReports, renderName, states }),
+    [actions, newOfficialReport, officialReports, renderName, states],
   );
 
   const columns = useMemo(
@@ -261,9 +246,9 @@ export function SessionDocumentsTable(props: {
       }),
 
       h.display({
-        cell: AgendasCell,
+        cell: AgendaCell,
         header: formatMessage({ defaultMessage: 'Ordre du jour' }),
-        id: 'agendas',
+        id: 'agenda',
         meta: {
           cellClassName: () => 'border-r border-(--border-default-grey) py-0!',
           headerClassName: 'border-r border-(--border-default-grey)',

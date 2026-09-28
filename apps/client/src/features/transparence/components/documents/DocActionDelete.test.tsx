@@ -6,11 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/shared/ui/toast';
 
 import { DocActionDelete } from './DocActionDelete';
-import {
-  SessionDocumentsTableContext,
-  type Association,
-  type SessionDocument,
-} from './SessionDocumentsTable';
+import type { OfficialReportDocument } from './session-document-groups';
+import { SessionDocumentsTableContext, type SessionDocument } from './SessionDocumentsTable';
 
 const deleteAgenda = vi.fn();
 const deleteOfficialReport = vi.fn();
@@ -46,7 +43,7 @@ const AGENDA: SessionDocument = {
   validatedBy: null,
 };
 
-const OFFICIAL_REPORT: SessionDocument = {
+const OFFICIAL_REPORT: OfficialReportDocument = {
   createdAt: '2028-03-13T09:00:00.000Z',
   createdBy: null,
   draftChangesBy: null,
@@ -77,13 +74,13 @@ function aPresentationPlan(
   };
 }
 
-async function clickDelete(doc: SessionDocument, association?: Association) {
+async function clickDelete(doc: SessionDocument, officialReport?: OfficialReportDocument) {
   const user = userEvent.setup();
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <ToastProvider>
         <SessionDocumentsTableContext.Provider
-          value={{ associations: association && new Map([[doc.id, association]]) }}
+          value={{ officialReports: officialReport && new Map([[doc.id, officialReport]]) }}
         >
           <DocActionDelete disabled={false} doc={doc} sessionId="session-1" />
         </SessionDocumentsTableContext.Provider>
@@ -150,23 +147,11 @@ describe('DocActionDelete', () => {
     const officialReport = { ...OFFICIAL_REPORT, status: 'VALIDATED' as const };
     await clickDelete(
       { ...AGENDA, officialReportId: officialReport.id, officialReportReadiness: null },
-      { agendasCount: 1, associated: [officialReport] },
+      officialReport,
     );
     await confirmationContent();
 
     expect(screen.getByText('Le PV lié est validé et sera supprimé.')).toBeInTheDocument();
-  });
-
-  it('should say how many other agendas lose their official report', async () => {
-    await clickDelete(
-      { ...AGENDA, officialReportId: OFFICIAL_REPORT.id, officialReportReadiness: null },
-      { agendasCount: 3, associated: [OFFICIAL_REPORT] },
-    );
-    await confirmationContent();
-
-    expect(
-      screen.getByText('Ce PV couvre 2 autres ordres du jour qui perdront le sien.'),
-    ).toBeInTheDocument();
   });
 
   it('should name the notice that goes away with the agenda', async () => {

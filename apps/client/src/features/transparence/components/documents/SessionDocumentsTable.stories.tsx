@@ -98,7 +98,6 @@ const DOCS: SessionDocument[] = [
     id: 'agenda-rmbl',
     meetingDate: { day: 23, month: 9, year: 2026 },
     name: fileName('ODJ', { day: 23, month: 9, year: 2026 }, 'RMBL'),
-    officialReportId: 'pv-23-09',
   }),
   anOfficialReport({ id: 'pv-23-09', meetingDate: { day: 23, month: 9, year: 2026 } }),
   anAgenda({

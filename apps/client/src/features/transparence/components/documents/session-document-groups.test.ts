@@ -26,23 +26,6 @@ const AGENDA_SIEGE: SessionDocument = {
   validatedAt: VALIDATED_AT,
   validatedBy: null,
 };
-const AGENDA_PARQUET: SessionDocument = {
-  createdAt: CREATED_AT,
-  createdBy: null,
-  draftChangesBy: null,
-  draftUpdate: null,
-  id: 'agenda-parquet',
-  meetingDate: { day: 12, month: 3, year: 2028 },
-  name: 'ODJ parquet',
-  officialReportId: 'pv-1',
-  officialReportReadiness: null,
-  outdated: false,
-  presentationPlans: [],
-  status: 'VALIDATED',
-  type: 'agenda',
-  validatedAt: VALIDATED_AT,
-  validatedBy: null,
-};
 const AGENDA_SANS_PV: SessionDocument = {
   createdAt: CREATED_AT,
   createdBy: null,
@@ -85,13 +68,13 @@ const PV: SessionDocument = {
 };
 
 describe('groupSessionDocuments', () => {
-  it('should gather an official report with every agenda it covers', () => {
-    const groups = groupSessionDocuments([AGENDA_SIEGE, AGENDA_SANS_PV, AGENDA_PARQUET, PV]);
+  it('should gather an official report with its agenda', () => {
+    const groups = groupSessionDocuments([AGENDA_SIEGE, AGENDA_SANS_PV, PV]);
 
-    expect(groups).toEqual([[AGENDA_SIEGE, AGENDA_PARQUET, PV], [AGENDA_SANS_PV]]);
+    expect(groups).toEqual([[AGENDA_SIEGE, PV], [AGENDA_SANS_PV]]);
   });
 
-  it('should keep the official report after its agendas', () => {
+  it('should keep the official report after its agenda', () => {
     const groups = groupSessionDocuments([PV, AGENDA_SIEGE]);
 
     expect(groups).toEqual([[AGENDA_SIEGE, PV]]);
