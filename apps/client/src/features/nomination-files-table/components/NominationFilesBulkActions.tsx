@@ -159,6 +159,24 @@ export function NominationFilesBulkActions(props: {
     [affectReporters, hasSelection, onFailure, props.selectedFiles, reporterIds, sessionId],
   );
 
+  const clearReporters = useCallback(() => {
+    if (!hasSelection) return;
+
+    setReporterIds([]);
+
+    affectReporters.mutate(
+      {
+        affectations: props.selectedFiles.map((file) => ({
+          nominationFileId: file.id,
+          priorities: file.priorities,
+          reporterIds: [],
+        })),
+        sessionId,
+      },
+      { onError: onFailure },
+    );
+  }, [affectReporters, hasSelection, onFailure, props.selectedFiles, sessionId]);
+
   const changePriorities = useCallback(
     (next: PrioriteEnum[]) => {
       if (!hasSelection) return;
@@ -220,6 +238,7 @@ export function NominationFilesBulkActions(props: {
           disabled={isApplying}
           excludedTitleByRapporteurId={excludedTitleByRapporteurId}
           onChange={changeReporters}
+          onClear={clearReporters}
           value={reporterIds}
         />
         <PrioritySelect disabled={isApplying} onChange={changePriorities} value={priorities} />
