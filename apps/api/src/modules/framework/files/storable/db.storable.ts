@@ -40,9 +40,10 @@ export class DbStorage implements Storage {
       await this.db.withTransaction(Propagation.RequiresNew, () =>
         this.db.tx.file.createMany({
           data: result.successes.map((f) => ({
+            bucket: f.bucket,
+            createdById: f.createdById,
             id: f.id,
             name: f.name,
-            bucket: f.bucket,
             path: f.path as unknown as string[],
             sizeInBytes: f.byteSize,
           })),
@@ -74,8 +75,8 @@ export class DbStorage implements Storage {
       await this.db.withTransaction(async () => {
         for (const file of files) {
           const { path } = await this.db.tx.file.delete({
-            where: { id: file.id },
             select: { path: true } satisfies Prisma.FileSelect,
+            where: { id: file.id },
           });
           file.path = path as unknown as StorablePath;
         }
@@ -94,21 +95,21 @@ export class DbStorage implements Storage {
 
   async publish<T extends { id: string; path?: StorablePath }>(
     objects: readonly T[],
-  ): Promise<(T & { url: URL; expiresAt: Date })[]> {
+  ): Promise<(T & { expiresAt: Date; url: URL })[]> {
     const objectsById = new Map(objects.map((object) => [object.id, object] as const));
     return this.db.withTransaction(Propagation.RequiresNew, async () => {
       const files = await this.db.tx.file.findMany({
-        where: { id: { in: objects.map(({ id }) => id) } },
         select: {
+          filePublicUrls: {
+            orderBy: { expiresAt: 'desc' },
+            select: { expiresAt: true, id: true },
+            take: 1,
+            where: { expiresAt: { gt: this.clock.now() } },
+          },
           id: true,
           path: true,
-          filePublicUrls: {
-            where: { expiresAt: { gt: this.clock.now() } },
-            select: { id: true, expiresAt: true },
-            orderBy: { expiresAt: 'desc' },
-            take: 1,
-          },
         } satisfies Prisma.FileSelect,
+        where: { id: { in: objects.map(({ id }) => id) } },
       });
 
       const [withExistingUrl, withoutExistingUrl] = partition(
@@ -121,14 +122,14 @@ export class DbStorage implements Storage {
           const original = objectsById.get(x.id);
           if (!original || !x.filePublicUrls[0]) return [];
 
-          const [{ id, expiresAt }] = x.filePublicUrls;
-          return [{ ...original, url: this.makeObjectPublicUrl(id), expiresAt }];
+          const [{ expiresAt, id }] = x.filePublicUrls;
+          return [{ ...original, expiresAt, url: this.makeObjectPublicUrl(id) }];
         }),
         ...(await this.storage
           .publish(withoutExistingUrl as unknown as readonly { id: string; path: StorablePath }[])
           .then(async (withUrls) => {
-            const toReturn: (T & { url: URL; expiresAt: Date })[] = [];
-            const toCreate: { fileId: string; url: string; id: string; expiresAt: Date }[] = [];
+            const toReturn: (T & { expiresAt: Date; url: URL })[] = [];
+            const toCreate: { expiresAt: Date; fileId: string; id: string; url: string }[] = [];
 
             for (const x of withUrls) {
               const original = objectsById.get(x.id);
@@ -137,12 +138,12 @@ export class DbStorage implements Storage {
               const id = makeId('FilePublicUrlId');
               const url = this.makeObjectPublicUrl(id);
 
-              toReturn.push({ ...original, url, expiresAt: x.expiresAt });
+              toReturn.push({ ...original, expiresAt: x.expiresAt, url });
               toCreate.push({
+                expiresAt: x.expiresAt,
+                fileId: original.id,
                 id,
                 url: x.url.toString(),
-                fileId: original.id,
-                expiresAt: x.expiresAt,
               });
             }
 
@@ -162,18 +163,18 @@ export class DbStorage implements Storage {
 
   async toStreamableFile(
     object:
-      | { id: string; path?: StorablePath; name?: string; expiresAt?: Date }
-      | { publicUrlId: string; path?: StorablePath; name?: string; expiresAt?: Date }
-      | { url: URL; expiresAt?: Date },
-  ): Promise<{ file: StreamableFile; expiresAt?: Date }> {
+      | { expiresAt?: Date; id: string; name?: string; path?: StorablePath }
+      | { expiresAt?: Date; name?: string; path?: StorablePath; publicUrlId: string }
+      | { expiresAt?: Date; url: URL },
+  ): Promise<{ expiresAt?: Date; file: StreamableFile }> {
     if ('url' in object) {
       return this.storage.toStreamableFile(object);
     }
 
     if ('id' in object) {
       const file = await this.db.tx.file.findUnique({
-        where: { id: object.id },
         select: { id: true, name: true, path: true } satisfies Prisma.FileSelect,
+        where: { id: object.id },
       });
 
       return this.storage.toStreamableFile(
@@ -182,14 +183,14 @@ export class DbStorage implements Storage {
     }
 
     const publicUrl = await this.db.tx.filePublicUrl.findUnique({
-      where: { id: object.publicUrlId, expiresAt: { gt: this.clock.now() } },
-      select: { url: true, expiresAt: true } satisfies Prisma.FilePublicUrlSelect,
+      select: { expiresAt: true, url: true } satisfies Prisma.FilePublicUrlSelect,
+      where: { expiresAt: { gt: this.clock.now() }, id: object.publicUrlId },
     });
 
     if (!publicUrl) {
       throw new NotFoundException();
     }
 
-    return this.toStreamableFile({ url: new URL(publicUrl.url), expiresAt: publicUrl.expiresAt });
+    return this.toStreamableFile({ expiresAt: publicUrl.expiresAt, url: new URL(publicUrl.url) });
   }
 }

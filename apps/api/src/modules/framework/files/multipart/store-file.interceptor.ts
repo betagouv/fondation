@@ -35,7 +35,7 @@ export class StoreFileInterceptor implements NestInterceptor {
           multipartFiles.push(item);
 
           if (item.overrideFiles) {
-            const { id, path, name, mimeType } = item;
+            const { id, mimeType, name, path } = item;
             shouldOverrideBody = true;
             bodyOverride.push({ id, name, path, type: mimeType });
           }
@@ -49,7 +49,7 @@ export class StoreFileInterceptor implements NestInterceptor {
 
       multipartFiles.push(value);
       if (value.overrideFiles) {
-        const { id, path, name } = value;
+        const { id, name, path } = value;
         request.body[key] = {
           id,
           name,
@@ -64,18 +64,19 @@ export class StoreFileInterceptor implements NestInterceptor {
         multipartFiles.map(async (f) => {
           const sanitized = await Sentry.startSpan(
             {
+              attributes: { 'file.size': f.size, 'file.type': f.mimeType },
               name: `fr.csm.fondation:files:sanitize`,
-              attributes: { 'file.type': f.mimeType, 'file.size': f.size },
             },
             () => this.sanitizer.sanitize(f),
           );
 
           return {
-            id: f.id,
-            name: f.name,
-            mime: f.mimeType,
-            path: assertIsDefined(f.path, `unknown object path`),
             content: sanitized,
+            createdById: request.user?.type === 'human' ? request.user.id : undefined,
+            id: f.id,
+            mime: f.mimeType,
+            name: f.name,
+            path: assertIsDefined(f.path, `unknown object path`),
           };
         }),
       ),

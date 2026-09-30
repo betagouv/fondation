@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class ListNominationSessionAttachmentsQuery {
@@ -12,13 +12,23 @@ export class ListNominationSessionAttachmentsQuery {
 
   async handle(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
       select: {
         attachments: {
-          select: { file: { select: { id: true, name: true, createdAt: true, sizeInBytes: true } } },
           orderBy: { file: { createdAt: 'desc' } },
+          select: {
+            file: {
+              select: {
+                createdAt: true,
+                createdBy: { select: { firstName: true, id: true, lastName: true } },
+                id: true,
+                name: true,
+                sizeInBytes: true,
+              },
+            },
+          },
         },
       } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: query.sessionId },
     });
 
     if (!session) throw new NotFoundException();
@@ -26,7 +36,8 @@ export class ListNominationSessionAttachmentsQuery {
       items: session.attachments.map(({ file }) => ({
         id: file.id,
         name: file.name,
-        addedAt: DateOnly.fromInstantInParis(file.createdAt).toJson(),
+        addedAt: file.createdAt.toISOString(),
+        addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
         sizeInBytes: file.sizeInBytes,
       })),
     };
@@ -39,7 +50,8 @@ export class ListedNominationSessionAttachmentDto extends createZodDto(
       z.object({
         name: z.string(),
         id: z.string(),
-        addedAt: dateOnlyJsonSchema,
+        addedAt: z.iso.datetime(),
+        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
         sizeInBytes: z.number().int().nullable(),
       }),
     ),

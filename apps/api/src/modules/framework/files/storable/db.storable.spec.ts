@@ -19,11 +19,11 @@ describe('DbStorage', () => {
   let storage: DbStorage;
 
   const object: Storable = {
-    id: 'file-id',
-    name: 'doc.pdf',
-    mime: 'application/pdf',
-    path: makeStorablePath(['sessions', 'doc.pdf']),
     content: Buffer.from('hello'),
+    id: 'file-id',
+    mime: 'application/pdf',
+    name: 'doc.pdf',
+    path: makeStorablePath(['sessions', 'doc.pdf']),
   };
 
   function storageResult(options: {
@@ -63,6 +63,20 @@ describe('DbStorage', () => {
       expect(result.success).toBe(true);
       expect(result.successes).toContainEqual(expect.objectContaining({ id: object.id }));
       expect(tx.file.createMany).toHaveBeenCalledOnce();
+    });
+
+    it('records who uploaded each file', async () => {
+      const uploaded = { ...object, createdById: 'user-id' };
+      s3.put.mockResolvedValue(
+        storageResult({ success: true, successes: [{ ...uploaded, bucket: 'reports', byteSize: 128 }] }),
+      );
+      tx.file.createMany.mockResolvedValue({ count: 1 });
+
+      await storage.put([uploaded]);
+
+      expect(tx.file.createMany).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ createdById: 'user-id', id: object.id })],
+      });
     });
 
     it('rolls back the storage and does not persist when the upload fails', async () => {
@@ -133,7 +147,7 @@ describe('DbStorage', () => {
 
   describe('toStreamableFile', () => {
     it('delegates url objects to the underlying storage', async () => {
-      const expected = { file: new StreamableFile(Buffer.from('x')), expiresAt: new Date() };
+      const expected = { expiresAt: new Date(), file: new StreamableFile(Buffer.from('x')) };
       s3.toStreamableFile.mockResolvedValue(expected);
       const url = new URL('https://s3.example/object');
 
@@ -158,17 +172,17 @@ describe('DbStorage', () => {
       s3.publish.mockResolvedValue([]);
       tx.file.findMany.mockResolvedValue([
         {
+          filePublicUrls: [{ expiresAt: inOneMonth, id: existingPublicUrlId }],
           id: 'file-123',
           path: ['sessions', 'attachments', crypto.randomUUID() + '.pdf'],
-          filePublicUrls: [{ id: existingPublicUrlId, expiresAt: inOneMonth }],
         },
       ] as any);
 
       const [result] = await storage.publish([{ id: 'file-123' }]);
 
       expect(result).toEqual({
-        id: 'file-123',
         expiresAt: inOneMonth,
+        id: 'file-123',
         url: new URL(`http://localhost:3000/api/files/v1/${existingPublicUrlId}`),
       });
     });
@@ -181,19 +195,19 @@ describe('DbStorage', () => {
 
       s3.publish.mockResolvedValue([
         {
-          path,
-          id: 'file-123',
-          url: new URL('http://s3.example.com/getFile'),
           expiresAt: inOneMonth,
+          id: 'file-123',
+          path,
+          url: new URL('http://s3.example.com/getFile'),
         },
       ]);
 
       tx.filePublicUrl.createMany.mockResolvedValue({ count: 1 });
       tx.file.findMany.mockResolvedValue([
         {
-          path,
-          id: 'file-123',
           filePublicUrls: [],
+          id: 'file-123',
+          path,
         },
       ] as any);
 
@@ -205,8 +219,8 @@ describe('DbStorage', () => {
       });
 
       expect(result).toMatchObject({
-        id: 'file-123',
         expiresAt: expect.any(Date),
+        id: 'file-123',
         url: expect.any(URL),
       });
       expect(result?.url.toString()).toMatch(new RegExp('http://localhost:3000/api/files/v1/.+'));

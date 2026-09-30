@@ -6,10 +6,14 @@ import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { fullname } from 'src/utils/user.util';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
+  size: z.number().int().nullable(),
+  addedAt: z.iso.datetime(),
+  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
 });
 
 const ObservationSchema = z.object({
@@ -51,40 +55,43 @@ export class ListObservationsQuery {
 
   async handle(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
     const observations = await this.db.tx.observation.findMany({
-      where: { nominationFileId: query.nominationFileId },
       orderBy: { createdAt: 'desc' },
       select: {
-        id: true,
-        dateReception: true,
         createdAt: true,
-        description: true,
-        followUp: true,
-        magistrat: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            usedName: true,
-          },
-        },
         createdByUser: {
           select: {
-            id: true,
             firstName: true,
+            id: true,
             lastName: true,
           },
         },
+        dateReception: true,
+        description: true,
         files: {
           select: {
             file: {
               select: {
+                createdAt: true,
+                createdBy: { select: { firstName: true, id: true, lastName: true } },
                 id: true,
                 name: true,
+                sizeInBytes: true,
               },
             },
           },
         },
+        followUp: true,
+        id: true,
+        magistrat: {
+          select: {
+            firstName: true,
+            id: true,
+            lastName: true,
+            usedName: true,
+          },
+        },
       } satisfies Prisma.ObservationSelect,
+      where: { nominationFileId: query.nominationFileId },
     });
 
     const magistratIds = [
@@ -115,6 +122,9 @@ export class ListObservationsQuery {
         files: obs.files.map(({ file }) => ({
           id: file.id,
           name: file.name,
+          size: file.sizeInBytes,
+          addedAt: file.createdAt.toISOString(),
+          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
         })),
       })),
     };

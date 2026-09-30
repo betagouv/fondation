@@ -28,11 +28,12 @@ export function makeStorablePath(value: string | readonly string[]): StorablePat
 }
 
 export type Storable = {
-  id: string;
-  name: string;
-  mime: string;
-  path: StorablePath;
   content: StorableContent;
+  createdById?: string;
+  id: string;
+  mime: string;
+  name: string;
+  path: StorablePath;
 };
 
 export type Stored = Omit<Storable, 'content'> & {
@@ -48,14 +49,14 @@ export interface Storage {
 
   publish<T extends { id: string; path?: StorablePath }>(
     objects: readonly T[],
-  ): Promise<(T & { url: URL; expiresAt: Date })[]>;
+  ): Promise<(T & { expiresAt: Date; url: URL })[]>;
 
   toStreamableFile(
     object:
       | { publicUrlId: string }
-      | { id: string; path?: StorablePath; name?: string; expiresAt?: Date }
-      | { url: URL; expiresAt?: Date },
-  ): Promise<{ file: StreamableFile; expiresAt?: Date }>;
+      | { expiresAt?: Date; id: string; name?: string; path?: StorablePath }
+      | { expiresAt?: Date; url: URL },
+  ): Promise<{ expiresAt?: Date; file: StreamableFile }>;
 }
 
 export class Storage {}

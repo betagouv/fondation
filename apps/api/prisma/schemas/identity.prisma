@@ -78,6 +78,7 @@ model User {
   editorOfOfficialReportVersions       OfficialReportVersion[]                @relation("official_report_version_editor")
   deletorOfSessions                    Session[]                              @relation("session_deletion_author")
   archiverOfSessions                   Session[]                              @relation("session_archive_author")
+  creatorOfFiles                       File[]                                 @relation("file_creator")
   authorOfSessionCommentVersions       SessionCommentVersion[]                @relation("session_comment_version_author")
   impersonatorOfSessionCommentVersions SessionCommentVersion[]                @relation("session_comment_version_impersonator")
 
