@@ -7,7 +7,7 @@ import type { DetailedSummaryDto } from '@api/types';
 import { authKeys } from '@queries/auth.queries';
 import { summaryKeys } from '@queries/summary.queries';
 
-import { Summary } from './Summary';
+import { SummarySection } from './SummarySection';
 
 const SESSION_ID = 'session-1';
 const NOMINATION_FILE_ID = 'nomination-file';
@@ -36,9 +36,30 @@ const READERS = [
 ];
 
 const ATTACHMENTS = [
-  { id: 'attachment-1', name: 'PV - 01/06/2026 - Commission.pdf', type: 'application/pdf' },
-  { id: 'attachment-2', name: 'entretien-camille-durand.docx', type: 'application/msword' },
-  { id: 'attachment-3', name: 'organigramme-juridiction.png', type: 'image/png' },
+  {
+    addedAt: '2026-06-01T08:30:00.000Z',
+    addedBy: { id: 'sg-1', name: 'Sophie BERNARD' },
+    id: 'attachment-1',
+    name: 'PV - 01/06/2026 - Commission.pdf',
+    size: 63_365,
+    type: 'application/pdf',
+  },
+  {
+    addedAt: '2026-06-02T08:30:00.000Z',
+    addedBy: { id: 'sg-1', name: 'Sophie BERNARD' },
+    id: 'attachment-2',
+    name: 'entretien-camille-durand.docx',
+    size: 24_576,
+    type: 'application/msword',
+  },
+  {
+    addedAt: '2026-06-03T08:30:00.000Z',
+    addedBy: null,
+    id: 'attachment-3',
+    name: 'organigramme-juridiction.png',
+    size: null,
+    type: 'image/png',
+  },
 ];
 
 const LONG_CONTENT = [
@@ -55,28 +76,21 @@ function makeSummaryDetail(props: {
   summary: Partial<DetailedSummaryDto['summary']>;
 }): DetailedSummaryDto {
   return {
-    biography: '',
-    birthDate: null,
     auditionDate: null,
     auditionTime: null,
+    biography: '',
+    birthDate: null,
     detectedMagistratId: null,
-    formation: 'SIEGE',
     grade: 'I',
-    id: 'summary-1',
     isArchived: props.isArchived,
     lastPositionDate: null,
-    lastRankingDate: null,
     missingEvaluation: false,
     name: 'Camille DURAND',
-    number: 42,
-    observations: [],
     observers: [],
     outcome: null,
     position: 'Juge au tribunal judiciaire de Lyon',
     priorities: [],
-    priority: null,
     rank: null,
-    sessionId: SESSION_ID,
     summary: {
       attachments: [],
       author: null,
@@ -84,7 +98,6 @@ function makeSummaryDetail(props: {
         '<p>Magistrate au parcours confirmé dont la candidature est portée par une expérience solide en juridiction</p>',
       readers: [],
       screenshots: [],
-      updatedAt: '2026-03-12',
       ...props.summary,
     },
     targetedGrade: 'HH',
@@ -106,7 +119,7 @@ function SummaryStory(props: {
     client.setQueryData(authKeys.introspectSession(), user);
     if (props.hasSummary) {
       client.setQueryData(
-        summaryKeys.detailsSummary({ sessionId: SESSION_ID, nominationFileId: NOMINATION_FILE_ID }),
+        summaryKeys.detailsSummary({ nominationFileId: NOMINATION_FILE_ID, sessionId: SESSION_ID }),
         makeSummaryDetail({
           isArchived: props.isArchived,
           summary: {
@@ -129,7 +142,7 @@ function SummaryStory(props: {
       seed={seed}
     >
       <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
-        <Summary
+        <SummarySection
           canRead={props.hasSummary}
           hasSummary={props.hasSummary}
           nominationFileId={NOMINATION_FILE_ID}
@@ -142,18 +155,6 @@ function SummaryStory(props: {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Summary',
-  component: SummaryStory,
-  parameters: { layout: 'padded' },
-  tags: ['autodocs'],
-  argTypes: {
-    attachments: { control: 'boolean' },
-    hasSummary: { control: 'boolean' },
-    isArchived: { control: 'boolean' },
-    longText: { control: 'boolean' },
-    readers: { control: 'boolean' },
-    view: { control: 'inline-radio', options: VIEWS },
-  },
   args: {
     attachments: false,
     hasSummary: true,
@@ -162,6 +163,18 @@ const meta = {
     readers: false,
     view: 'sg',
   },
+  argTypes: {
+    attachments: { control: 'boolean' },
+    hasSummary: { control: 'boolean' },
+    isArchived: { control: 'boolean' },
+    longText: { control: 'boolean' },
+    readers: { control: 'boolean' },
+    view: { control: 'inline-radio', options: VIEWS },
+  },
+  component: SummaryStory,
+  parameters: { layout: 'padded' },
+  tags: ['autodocs'],
+  title: 'Features/SidePanel/Summary',
 } satisfies Meta<typeof SummaryStory>;
 
 export default meta;
@@ -170,6 +183,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const Member: Story = { args: { view: 'member' } };
-
 export const EmptySg: Story = { args: { hasSummary: false } };
+
+export const Member: Story = { args: { view: 'member' } };

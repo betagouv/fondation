@@ -5,9 +5,11 @@ model File {
   path            String[]                  @db.VarChar
   bucket          String                    @db.VarChar
   sizeInBytes     Int?                      @map("size_in_bytes") @db.Integer
+  createdById     String?                   @map("created_by_id") @db.Uuid
   /// @deprecated
   storageProvider PrismaStorageProviderEnum @default(SCALEWAY) @map("storage_provider") @ignore
 
+  createdBy                           User?                                @relation("file_creator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   attachedToReports                   ReportFile[]
   attachedToSessions                  SessionAttachment[]
   attachedToNominationFiles           NominationFileAttachment[]

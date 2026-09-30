@@ -14,18 +14,26 @@ function MountProbe(props: { name: string; onMount: () => void }) {
 
 const ATTACHMENTS: SessionAttachment[] = [
   {
-    addedAt: { day: 2, month: 3, year: 2028 },
+    addedAt: '2028-03-02T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'c',
     name: 'Tableau des effectifs.xlsx',
     sizeInBytes: 86_000,
   },
   {
-    addedAt: { day: 4, month: 2, year: 2028 },
+    addedAt: '2028-02-04T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'a',
     name: 'Fiche de juridiction.pdf',
     sizeInBytes: 248_000,
   },
-  { addedAt: { day: 11, month: 2, year: 2028 }, id: 'b', name: 'Note DSJ.pdf', sizeInBytes: null },
+  {
+    addedAt: '2028-02-11T08:30:00.000Z',
+    addedBy: null,
+    id: 'b',
+    name: 'Note DSJ.pdf',
+    sizeInBytes: null,
+  },
 ];
 
 function renderTable(sorting: SortingState) {

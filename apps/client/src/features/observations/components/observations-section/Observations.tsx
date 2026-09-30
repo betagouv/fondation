@@ -14,9 +14,11 @@ import {
   ObservationFollowUpEnumMessages,
   type ObservationFollowUpEnum,
 } from '@/shared/enums/observation-follow-up.enum';
+import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';
+import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
@@ -31,11 +33,22 @@ const FOLLOW_UP_TAG_CLASS: Record<ObservationFollowUpEnum, string> = {
 
 const VISIBLE_OBSERVATIONS = 3;
 
-function ObservationCard({ observation, file }: { observation: Observation; file: ActiveFile }) {
+function ObservationCard({
+  canManage,
+  context,
+  file,
+  observation,
+}: {
+  canManage: boolean;
+  context: 'sg' | 'membre';
+  file: ActiveFile;
+  observation: Observation;
+}) {
   const intl = useIntl();
-  const isSg = useIsSgNavigation();
   const { edit, requestDelete } = useObservationsModal();
-  const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
+  const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
+  const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
+  const isLoadingFile = isDownloading || isLoadingUrl;
   const [expanded, setExpanded] = useState(false);
 
   const fileCount = observation.files.length;
@@ -70,19 +83,30 @@ function ObservationCard({ observation, file }: { observation: Observation; file
   const handleFileClick = (fileId: string) =>
     getFileUrl(
       {
-        sessionId: file.sessionId,
+        fileId,
         nominationFileId: file.id,
         observationId: observation.id,
-        fileId,
+        sessionId: file.sessionId,
       },
       { onSuccess: (url) => window.open(url, '_blank') },
     );
 
+  const handleFileDownload = (attachment: { id: string; name: string }) =>
+    getFileUrl(
+      {
+        fileId: attachment.id,
+        nominationFileId: file.id,
+        observationId: observation.id,
+        sessionId: file.sessionId,
+      },
+      { onSuccess: (url) => download({ name: attachment.name, url }) },
+    );
+
   const detailPath = getObservationDetailsPath({
-    sessionId: file.sessionId,
+    context,
     nominationFileId: file.id,
     observationId: observation.id,
-    context: isSg ? 'sg' : 'membre',
+    sessionId: file.sessionId,
   });
   const detailTitle = intl.formatMessage({
     defaultMessage: "Voir le détail de l'observation",
@@ -116,7 +140,7 @@ function ObservationCard({ observation, file }: { observation: Observation; file
               </div>
             )}
           </div>
-          {isSg && (
+          {canManage && (
             <div className="-mr-2 flex shrink-0 gap-1">
               <Button
                 iconId="ri-edit-line"
@@ -183,22 +207,20 @@ function ObservationCard({ observation, file }: { observation: Observation; file
                     />
                   </div>
                 )}
-                <ul className="fr-raw-list flex flex-col items-start">
+                <FileList>
                   {observation.files.map((attachment) => (
-                    <li key={attachment.id}>
-                      <Button
-                        className="px-0! underline underline-offset-3 before:no-underline [&::before]:mr-1!"
-                        disabled={isLoadingFile}
-                        iconId="ri-file-text-line"
-                        onClick={() => handleFileClick(attachment.id)}
-                        priority="tertiary no outline"
-                        size="small"
-                      >
-                        {attachment.name}
-                      </Button>
-                    </li>
+                    <FileListItem
+                      addedAt={attachment.addedAt}
+                      addedBy={attachment.addedBy}
+                      disabled={isLoadingFile}
+                      key={attachment.id}
+                      name={attachment.name}
+                      onDownload={() => handleFileDownload(attachment)}
+                      onOpen={() => handleFileClick(attachment.id)}
+                      size={attachment.size}
+                    />
                   ))}
-                </ul>
+                </FileList>
               </div>
             )}
           </div>
@@ -211,33 +233,37 @@ function ObservationCard({ observation, file }: { observation: Observation; file
 const OBSERVATIONS_SECTION_ID = 'magistrat-observations-section';
 
 export function Observations(props: {
+  context?: 'sg' | 'membre';
   headingLevel?: 2 | 3;
   magistratName: string;
   nominationFileId: string;
   observers: string[] | null;
+  readOnly?: boolean;
   sessionId: string;
 }) {
   const { magistratName, nominationFileId, observers, sessionId } = props;
   const intl = useIntl();
-  const isSg = useIsSgNavigation();
+  const isSgNavigation = useIsSgNavigation();
+  const context = props.context ?? (isSgNavigation ? 'sg' : 'membre');
+  const canManage = !props.readOnly && context === 'sg';
   const { open } = useObservationsModal();
   const Heading = props.headingLevel === 2 ? 'h2' : 'h3';
   const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';
 
   const [showAll, setShowAll] = useState(false);
   const { data } = useObservationsQuery({
-    sessionId,
     nominationFileId,
+    sessionId,
   });
   const observations = data?.observations ?? [];
   const visibleObservations = showAll ? observations : observations.slice(0, VISIBLE_OBSERVATIONS);
   const hiddenCount = observations.length - visibleObservations.length;
 
-  const file: ActiveFile = { sessionId, id: nominationFileId, name: magistratName };
+  const file: ActiveFile = { id: nominationFileId, name: magistratName, sessionId };
   const formattedObservers = observers ? splitLodamObservers(observers) : null;
   const observationsCount = observations.length;
 
-  if (!isSg && observationsCount === 0 && !formattedObservers) return null;
+  if (!canManage && observationsCount === 0 && !formattedObservers) return null;
 
   return (
     <div id={OBSERVATIONS_SECTION_ID}>
@@ -248,7 +274,7 @@ export function Observations(props: {
             values={{ count: observationsCount }}
           />
         </Heading>
-        {isSg && (
+        {canManage && (
           <Button
             className="btn-compact"
             onClick={() => open(file, 'create')}
@@ -276,7 +302,13 @@ export function Observations(props: {
           className="fr-raw-list fr-mt-2v flex flex-col gap-4"
         >
           {visibleObservations.map((observation) => (
-            <ObservationCard key={observation.id} observation={observation} file={file} />
+            <ObservationCard
+              canManage={canManage}
+              context={context}
+              file={file}
+              key={observation.id}
+              observation={observation}
+            />
           ))}
         </ul>
       )}

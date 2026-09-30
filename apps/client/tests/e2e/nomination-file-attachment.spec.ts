@@ -13,28 +13,28 @@ test.describe('Pièces jointes de dossier de nomination', () => {
     await lolfiForm.upload({
       sessions: [
         {
-          name,
-          createdAt: `${day}/${month}/${year}`,
           candidates: [
             {
               firstName: 'pierre',
               lastName: 'bourdieu',
               position: {
-                function: { id: 'PR', label: 'procureur général', formation: 'PARQUET' },
-                jurisdiction: { id: 'CA  LYON' },
+                function: { formation: 'PARQUET', id: 'PR', label: 'procureur général' },
                 grade: 'G2',
+                jurisdiction: { id: 'CA  LYON' },
               },
               targetPosition: {
                 function: {
+                  formation: 'PARQUET',
                   id: '1PRA',
                   label: 'premier procureur de la République adjoint',
-                  formation: 'PARQUET',
                 },
-                jurisdiction: { id: 'CA  LYON' },
                 grade: 'G3',
+                jurisdiction: { id: 'CA  LYON' },
               },
             },
           ],
+          createdAt: `${day}/${month}/${year}`,
+          name,
         },
       ],
     });
@@ -50,9 +50,10 @@ test.describe('Pièces jointes de dossier de nomination', () => {
     const attachment = new File(['preuve'], 'preuve.pdf', { type: 'application/pdf' });
     await modal.addAttachment(attachment);
 
-    // Alors la pièce jointe est visible avec son type
+    // Alors la pièce jointe est visible avec son type et son auteur
     await modal.attachment(attachment.name).waitFor();
     await modal.attachmentType('Fiche de juridiction').waitFor();
+    await modal.attachmentAddedByMe().waitFor();
 
     // Quand je supprime la pièce jointe
     await modal.deleteAttachment(attachment.name);

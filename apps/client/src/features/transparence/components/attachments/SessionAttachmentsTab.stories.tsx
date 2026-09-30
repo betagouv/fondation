@@ -18,19 +18,22 @@ type Attachments = ListedNominationSessionAttachmentDto['items'];
 
 const ATTACHMENTS: Attachments = [
   {
-    addedAt: { day: 4, month: 2, year: 2028 },
+    addedAt: '2028-02-04T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-1',
     name: 'Fiche de juridiction CA DOUAI.pdf',
     sizeInBytes: 248_000,
   },
   {
-    addedAt: { day: 11, month: 2, year: 2028 },
+    addedAt: '2028-02-11T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-2',
     name: 'Note DSJ - évaluations manquantes.pdf',
     sizeInBytes: 1_240_000,
   },
   {
-    addedAt: { day: 2, month: 3, year: 2028 },
+    addedAt: '2028-03-02T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-3',
     name: 'Tableau des effectifs 2028.xlsx',
     sizeInBytes: 86_000,
@@ -38,7 +41,8 @@ const ATTACHMENTS: Attachments = [
 ];
 
 const MANY_ATTACHMENTS: Attachments = Array.from({ length: 100 }, (_, index) => ({
-  addedAt: { day: (index % 28) + 1, month: (index % 12) + 1, year: 2028 },
+  addedAt: new Date(Date.UTC(2028, index % 12, (index % 28) + 1, 8, 30)).toISOString(),
+  addedBy: null,
   id: `file-${index}`,
   name: `Fiche de juridiction ${index + 1}.pdf`,
   sizeInBytes: 120_000 + index * 4_096,
@@ -84,11 +88,11 @@ const managerProps = {
 };
 
 const meta = {
-  title: 'Session/Transparence/SessionAttachmentsTable',
-  component: SessionAttachmentsTab,
+  args: { filtersSlot: null, sessionId: 'draft' },
   beforeEach: ({ msw }) => {
     msw.use(...attachmentsHandlers);
   },
+  component: SessionAttachmentsTab,
   decorators: [
     (Story) => (
       <StoryQueryClient>
@@ -102,7 +106,7 @@ const meta = {
   ],
   parameters: { controls: { disable: true }, layout: 'padded' },
   tags: ['autodocs'],
-  args: { filtersSlot: null, sessionId: 'draft' },
+  title: 'Session/Transparence/SessionAttachmentsTable',
 } satisfies Meta<typeof SessionAttachmentsTab>;
 
 export default meta;
@@ -111,8 +115,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = { args: managerProps };
 
-export const Member: Story = {};
-
 export const Empty: Story = { args: { ...managerProps, sessionId: 'empty' } };
 
 export const ManyRows: Story = { args: { ...managerProps, sessionId: 'many-attachments' } };
+
+export const Member: Story = {};

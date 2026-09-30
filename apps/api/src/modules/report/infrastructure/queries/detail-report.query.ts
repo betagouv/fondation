@@ -22,6 +22,7 @@ import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class DetailReportQuery {
@@ -32,72 +33,82 @@ export class DetailReportQuery {
   ) {}
 
   async handle(query: {
-    user: { id: string; role: RoleEnum };
     reportId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<DetailedReportDto> {
     const reporterId = query.user.role !== 'ADJOINT_SECRETAIRE_GENERAL' ? query.user.id : undefined;
 
     const report = await this.db.tx.report.findUnique({
-      where: { id: query.reportId, reporterId, isDeleted: false },
       select: {
-        reporterId: true,
-        id: true,
         comment: true,
-        sessionId: true,
-        state: true,
         files: {
           select: {
+            file: {
+              select: {
+                createdAt: true,
+                createdBy: { select: { firstName: true, id: true, lastName: true } },
+                id: true,
+                name: true,
+                path: true,
+                sizeInBytes: true,
+              },
+            },
             usage: true,
-            file: { select: { id: true, name: true, path: true } },
           },
         },
+        id: true,
         nominationFile: {
           select: {
-            id: true,
-            name: true,
-            detectedMagistratId: true,
+            auditionDate: true,
+            auditionTime: true,
+            biography: true,
+            birthDate: true,
+            currentPosition: true,
+            detectedJurisdictionId: true,
             detectedMagistrat: {
               select: { firstName: true, lastName: true, usedName: true },
             },
-            biography: true,
-            number: true,
-            birthDate: true,
+            detectedMagistratId: true,
+            detectedTargetedFunctionId: true,
             grade: true,
-            currentPosition: true,
-            targetedGrade: true,
-            targetedPosition: true,
-            rank: true,
+            id: true,
             lastPositionDate: true,
             lastRankingDate: true,
-            priorities: true,
-            outcome: true,
-            auditionDate: true,
-            auditionTime: true,
             missingEvaluation: true,
-            detectedJurisdictionId: true,
-            detectedTargetedFunctionId: true,
-
+            name: true,
+            number: true,
+            outcome: true,
+            priorities: true,
+            rank: true,
             session: {
               select: {
-                name: true,
+                archivedAt: true,
                 date: true,
                 formation: true,
-                archivedAt: true,
-
+                name: true,
                 transparenceGds: { select: { dueDate: true } },
               },
             },
+            targetedGrade: true,
+            targetedPosition: true,
           },
         },
+        reporterId: true,
+        sessionId: true,
+        state: true,
       } satisfies Prisma.ReportSelect,
+      where: { id: query.reportId, isDeleted: false, reporterId },
     });
 
     if (!report) throw new NotFoundException();
 
-    const reportFiles = report.files.map(({ usage, file }) => ({
+    const reportFiles = report.files.map(({ file, usage }) => ({
+      addedAt: file.createdAt.toISOString(),
+      addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
       id: file.id,
       name: file.name,
       path: file.path,
+      size: file.sizeInBytes,
       usage: prismaReportFileUsageEnumToReportFileUsage(usage),
     }));
 
@@ -122,6 +133,9 @@ export class DetailReportQuery {
       attachments: attachments.map((f) => ({
         fileId: f.id,
         name: f.name,
+        size: f.size,
+        addedAt: f.addedAt,
+        addedBy: f.addedBy,
         usage: f.usage,
       })),
 
@@ -175,7 +189,7 @@ export class DetailReportQuery {
     const years = differenceInYears(now, lastPositionDate);
     const months = differenceInMonths(now, lastPositionDate) - years * 12;
 
-    return formatDuration({ months, years }, { locale: fr, delimiter: ' et ' });
+    return formatDuration({ months, years }, { delimiter: ' et ', locale: fr });
   }
 
   private async withUrls<F extends { id: string; name: string; path: readonly string[] }>(
@@ -247,6 +261,9 @@ export class DetailedReportDto extends createZodDto(
         usage: z.enum(['ATTACHMENT']),
         name: z.string(),
         fileId: z.string(),
+        size: z.number().int().nullable(),
+        addedAt: z.iso.datetime(),
+        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
       }),
     ),
   }),

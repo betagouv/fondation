@@ -30,12 +30,20 @@ export function ReportOverview({ id }: { id: string }) {
   const { formatMessage } = useIntl();
   const breadCrumbOf = useTransparencesBreadCrumb();
 
-  const { data: retrievedReport, isPending, error } = useReportQuery(id);
+  const { data: retrievedReport, error, isPending } = useReportQuery(id);
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
   const { mutate: detachReportFiles } = useDetachReportFilesMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
 
-  if (isPending) return null;
+  if (isPending) {
+    return (
+      <div className="fr-container fr-py-6v">
+        <p>
+          <FormattedMessage defaultMessage="Chargement..." />
+        </p>
+      </div>
+    );
+  }
 
   const isForbiddenOrMissing = error instanceof HttpException && [403, 404].includes(error.statusCode);
   if (isForbiddenOrMissing || (!error && !retrievedReport)) {
@@ -113,6 +121,7 @@ export function ReportOverview({ id }: { id: string }) {
           {retrievedReport.attachments.length > 0 && (
             <AttachedFilesList
               attachments={retrievedReport.attachments}
+              isReadOnly={retrievedReport.isArchived}
               onDelete={onAttachedFileDeleted}
               reportId={id}
             />

@@ -6,7 +6,6 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
@@ -19,6 +18,7 @@ import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class DetailSummaryQuery {
@@ -35,70 +35,52 @@ export class DetailSummaryQuery {
     userId: string;
   }): Promise<DetailedSummaryDto> {
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
       select: {
-        id: true,
-        formation: true,
         archivedAt: true,
         dossierDeNominations: {
-          where: { id: query.nominationFileId },
           select: {
-            id: true,
-            number: true,
-            name: true,
-            detectedMagistratId: true,
-            outcome: true,
-            outcomeComment: true,
             auditionDate: true,
             auditionTime: true,
-            missingEvaluation: true,
-            targetedGrade: true,
-            targetedPosition: true,
-            lastPositionDate: true,
-            lastRankingDate: true,
-            priorities: true,
-            birthDate: true,
-            careerInformation: true,
-            currentPosition: true,
-            grade: true,
             biography: true,
-            rank: true,
+            birthDate: true,
+            currentPosition: true,
+            detectedMagistratId: true,
+            grade: true,
+            lastPositionDate: true,
+            missingEvaluation: true,
+            name: true,
             observers: true,
-            observations: {
-              select: {
-                id: true,
-                magistrat: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    usedName: true,
-                  },
-                },
-              },
-            },
+            outcome: true,
+            outcomeComment: true,
+            priorities: true,
+            rank: true,
             summary: {
               select: {
-                author: {
-                  select: { id: true, firstName: true, lastName: true },
-                },
-                content: true,
-                updatedAt: true,
-                readers: {
+                attachments: {
                   select: {
-                    user: {
+                    file: {
                       select: {
+                        createdAt: true,
+                        createdBy: { select: { firstName: true, id: true, lastName: true } },
                         id: true,
-                        firstName: true,
-                        lastName: true,
+                        name: true,
+                        sizeInBytes: true,
                       },
                     },
                   },
                 },
-                attachments: {
+                author: {
+                  select: { firstName: true, id: true, lastName: true },
+                },
+                content: true,
+                readers: {
                   select: {
-                    file: {
-                      select: { id: true, name: true },
+                    user: {
+                      select: {
+                        firstName: true,
+                        id: true,
+                        lastName: true,
+                      },
                     },
                   },
                 },
@@ -109,9 +91,14 @@ export class DetailSummaryQuery {
                 },
               },
             },
+            targetedGrade: true,
+            targetedPosition: true,
           },
+          where: { id: query.nominationFileId },
         },
+        formation: true,
       } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: query.sessionId },
     });
 
     if (!session || !session.dossierDeNominations || !session.dossierDeNominations.length) {
@@ -137,47 +124,30 @@ export class DetailSummaryQuery {
     }
 
     return {
-      id: nominationFile.id,
-      sessionId: session.id,
       isArchived: !!session.archivedAt,
       name: nominationFile.name,
       detectedMagistratId: nominationFile.detectedMagistratId,
-      number: nominationFile.number,
       position: nominationFile.currentPosition,
       rank: nominationFile.rank,
       targetedPosition: nominationFile.targetedPosition,
       biography: nominationFile.biography ?? '',
-      formation: prismaFormationEnumToFormationEnum(session.formation),
       grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
       targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
       birthDate: DateOnly.fromOptionalUtcDate(nominationFile.birthDate)?.toJson() ?? null,
       auditionDate: DateOnly.fromOptionalUtcDate(nominationFile.auditionDate)?.toJson() ?? null,
       auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
       missingEvaluation: nominationFile.missingEvaluation,
-      lastRankingDate: DateOnly.fromOptionalUtcDate(nominationFile.lastRankingDate)?.toJson() ?? null,
       lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
       priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
-      priority: nominationFile.priorities[0]
-        ? prismaPrioriteEnumToPriorityEnum(nominationFile.priorities[0])
-        : null,
 
       observers: nominationFile.observers,
-      observations: nominationFile.observations.map((o) => ({
-        id: o.id,
-        magistrat: {
-          id: o.magistrat.id,
-          firstName: o.magistrat.firstName,
-          lastName: o.magistrat.lastName,
-          usedName: o.magistrat.usedName,
-        },
-      })),
 
       outcome: nominationFile.outcome
         ? {
             value: nominationFile.outcome,
             label: nominationFileOutcomeLabel({
-              outcome: nominationFile.outcome,
               formation: prismaFormationEnumToFormationEnum(session.formation),
+              outcome: nominationFile.outcome,
             }),
             comment: nominationFile.outcomeComment,
           }
@@ -192,7 +162,6 @@ export class DetailSummaryQuery {
               lastName: summary.author.lastName,
             }
           : null,
-        updatedAt: summary.updatedAt.toISOString(),
         readers: summary.readers.map(({ user }) => ({
           id: user.id,
           firstName: user.firstName,
@@ -200,8 +169,11 @@ export class DetailSummaryQuery {
         })),
 
         attachments: summary.attachments.map(({ file }) => ({
+          addedAt: file.createdAt.toISOString(),
+          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
           id: file.id,
           name: file.name,
+          size: file.sizeInBytes,
           type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
         })),
 
@@ -230,14 +202,10 @@ export class DetailSummaryQuery {
 
 export class DetailedSummaryDto extends createZodDto(
   z.object({
-    id: z.string(),
-    sessionId: z.string(),
     isArchived: z.boolean(),
     name: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
     rank: z.string().nullable(),
-    formation: z.enum(FormationEnum),
-    number: z.number().int().gte(1).nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),
     auditionTime: timeOnlySchema.nullable(),
@@ -247,23 +215,10 @@ export class DetailedSummaryDto extends createZodDto(
     targetedGrade: z.enum(GradeEnum).nullable(),
     targetedPosition: z.string().nullable(),
     priorities: z.array(z.enum(PriorityEnum)),
-    priority: z.enum(PriorityEnum).nullable().meta({ deprecated: true, description: 'prefer priorities' }),
     biography: z.string(),
-    lastRankingDate: dateOnlyJsonSchema.nullable(),
     lastPositionDate: dateOnlyJsonSchema.nullable(),
 
     observers: z.array(z.string()),
-    observations: z.array(
-      z.object({
-        id: z.string(),
-        magistrat: z.object({
-          id: z.string(),
-          firstName: z.string(),
-          usedName: z.string().nullable(),
-          lastName: z.string(),
-        }),
-      }),
-    ),
 
     outcome: z
       .object({
@@ -275,12 +230,14 @@ export class DetailedSummaryDto extends createZodDto(
 
     summary: z.object({
       content: z.string(),
-      updatedAt: z.iso.datetime(),
       author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
       attachments: z.array(
         z.object({
+          addedAt: z.iso.datetime(),
+          addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
           id: z.string(),
           name: z.string(),
+          size: z.number().int().nullable(),
           type: z.string(),
         }),
       ),

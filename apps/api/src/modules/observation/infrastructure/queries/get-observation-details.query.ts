@@ -10,6 +10,7 @@ import { TransparenceService } from 'src/modules/session/transparence/infrastruc
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class GetObservationDetailsQuery {
@@ -22,32 +23,67 @@ export class GetObservationDetailsQuery {
   ) {}
 
   async handle(query: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
     observationId: string;
+    sessionId: string;
+    userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.db.withTransaction(async () => {
       const session = await this.db.tx.session.findUnique({
-        where: { id: query.sessionId },
         select: { archivedAt: true } satisfies Prisma.SessionSelect,
+        where: { id: query.sessionId },
       });
 
       const observation = await this.db.tx.observation.findUnique({
-        where: {
-          id: query.observationId,
-          nominationFileId: query.nominationFileId,
-        },
         select: {
-          id: true,
           dateReception: true,
+          description: true,
+          files: {
+            select: {
+              file: {
+                select: {
+                  createdAt: true,
+                  createdBy: { select: { firstName: true, id: true, lastName: true } },
+                  id: true,
+                  name: true,
+                  sizeInBytes: true,
+                },
+              },
+            },
+          },
           followUp: true,
           followUpComment: true,
-          description: true,
-
+          id: true,
+          magistrat: {
+            select: {
+              careerHistory: true,
+              externalId: true,
+              firstName: true,
+              id: true,
+              lastName: true,
+              observations: {
+                orderBy: { dateReception: 'desc' },
+                select: {
+                  dateReception: true,
+                  id: true,
+                  nominationFile: {
+                    select: {
+                      id: true,
+                      name: true,
+                      number: true,
+                      targetedPosition: true,
+                    },
+                  },
+                },
+                where: {
+                  id: { not: query.observationId },
+                  nominationFile: { sessionId: query.sessionId },
+                },
+              },
+              usedName: true,
+            },
+          },
           memberComments: {
-            take: 1,
-            where: { userId: query.userId },
             select: {
               comment: true,
               screenshots: {
@@ -61,57 +97,21 @@ export class GetObservationDetailsQuery {
                 },
               },
             },
+            take: 1,
+            where: { userId: query.userId },
           },
-
-          magistrat: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              usedName: true,
-              careerHistory: true,
-              externalId: true,
-              observations: {
-                orderBy: { dateReception: 'desc' },
-                where: {
-                  id: { not: query.observationId },
-                  nominationFile: { sessionId: query.sessionId },
-                },
-                select: {
-                  id: true,
-                  dateReception: true,
-                  nominationFile: {
-                    select: {
-                      id: true,
-                      number: true,
-                      name: true,
-                      targetedPosition: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-
           nominationFile: {
             select: {
+              detectedMagistratId: true,
               name: true,
               targetedPosition: true,
-              detectedMagistratId: true,
-            },
-          },
-
-          files: {
-            select: {
-              file: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
             },
           },
         } satisfies Prisma.ObservationSelect,
+        where: {
+          id: query.observationId,
+          nominationFileId: query.nominationFileId,
+        },
       });
 
       if (!observation || !observation.magistrat) {
@@ -119,8 +119,8 @@ export class GetObservationDetailsQuery {
       }
 
       const reporters = await this.transparences.versions.findReporters({
-        sessionId: query.sessionId,
         nominationFileId: query.nominationFileId,
+        sessionId: query.sessionId,
       });
       const isUserReporter = reporters.some(({ id }) => id === query.userId);
 
@@ -155,6 +155,9 @@ export class GetObservationDetailsQuery {
         files: observation.files.map(({ file }) => ({
           id: file.id,
           name: file.name,
+          size: file.sizeInBytes,
+          addedAt: file.createdAt.toISOString(),
+          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
         })),
         relatedPropositions: observation.magistrat.observations.map((obs) => ({
           observationId: obs.id,
@@ -221,15 +224,15 @@ export class GetObservationDetailsQuery {
     }
 
     const dossier = await this.db.tx.dossierDeNomination.findFirst({
-      where: {
-        sessionId,
-        OR: searchPatterns.map((pattern) => ({ name: pattern })),
-      },
       select: {
         id: true,
-        targetedPosition: true,
         rank: true,
+        targetedPosition: true,
       } satisfies Prisma.DossierDeNominationSelect,
+      where: {
+        OR: searchPatterns.map((pattern) => ({ name: pattern })),
+        sessionId,
+      },
     });
 
     if (!dossier) return null;
@@ -241,6 +244,14 @@ export class GetObservationDetailsQuery {
     };
   }
 }
+
+const ObservationAttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: z.number().int().nullable(),
+  addedAt: z.iso.datetime(),
+  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+});
 
 const ObservationFileSchema = z.object({
   id: z.string(),
@@ -284,7 +295,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     description: z.string(),
     followUp: z.enum(ObservationFollowUp.enum).nullable(),
     followUpComment: z.string().nullable(),
-    files: z.array(ObservationFileSchema),
+    files: z.array(ObservationAttachmentSchema),
     relatedPropositions: z.array(RelatedPropositionSchema),
     isMemberReporter: z.boolean(),
     memberComment: z

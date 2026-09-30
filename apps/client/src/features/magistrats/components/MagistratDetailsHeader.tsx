@@ -1,5 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
@@ -16,6 +16,7 @@ type MagistratDetailsHeaderProps = {
 };
 
 export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsHeaderProps) {
+  const location = useLocation();
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
 
@@ -43,7 +44,8 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
         ];
 
   const goBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (window.history.length > 1) {
+    const hasPreviousPage = location.key !== 'default';
+    if (hasPreviousPage) {
       event.preventDefault();
       navigate(-1);
     }

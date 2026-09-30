@@ -11,25 +11,29 @@ vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => is
 
 const open = vi.fn();
 vi.mock('@/features/observations/context/ObservationsModalContext', () => ({
-  useObservationsModal: () => ({ open, edit: vi.fn(), requestDelete: vi.fn() }),
+  useObservationsModal: () => ({ edit: vi.fn(), open, requestDelete: vi.fn() }),
 }));
 
 const makeObservation = (id: string) => ({
-  id,
-  description: null,
   dateReception: '2025-01-10',
-  followUp: null,
-  magistrat: null,
+  description: null,
   files: [],
+  followUp: null,
+  id,
+  magistrat: null,
 });
 
 let observations: ReturnType<typeof makeObservation>[] = [];
+vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
+vi.mock('@queries/files.queries', () => ({
+  useDownloadFileMutation: () => ({ isPending: false, mutate: vi.fn() }),
+}));
 vi.mock('@queries/observations.queries', () => ({
+  useGetObservationFileUrlMutation: () => ({ isPending: false, mutate: vi.fn() }),
   useObservationsQuery: () => ({ data: { observations } }),
-  useGetObservationFileUrlMutation: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-function renderObservations(content: { observants?: string[] | null } = {}) {
+function renderObservations(content: { observants?: string[] | null; readOnly?: boolean } = {}) {
   return render(
     <MemoryRouter>
       <IntlProvider defaultLocale="fr" locale="fr">
@@ -37,6 +41,7 @@ function renderObservations(content: { observants?: string[] | null } = {}) {
           magistratName="RAVEL Maurice"
           nominationFileId="dossier-1"
           observers={content.observants ?? null}
+          readOnly={content.readOnly}
           sessionId="session-1"
         />
       </IntlProvider>
@@ -85,9 +90,15 @@ describe('Observations', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter' }));
 
     expect(open).toHaveBeenCalledWith(
-      { sessionId: 'session-1', id: 'dossier-1', name: 'RAVEL Maurice' },
+      { id: 'dossier-1', name: 'RAVEL Maurice', sessionId: 'session-1' },
       'create',
     );
+  });
+
+  it('hides the add button from an SG when read only', () => {
+    renderObservations({ observants: ['Tribunal de Lyon'], readOnly: true });
+
+    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 
   it('hides the add button from a member', () => {

@@ -1,7 +1,7 @@
 import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Observations } from '@/features/observations/components/observations-section/Observations';
-import { Summary } from '@/features/summary/components/summary-section/Summary';
+import { SummarySection } from '@/features/summary/components/summary-section/SummarySection';
 import { Attachments } from '@/features/transparence/components/nomination-file-attachments/Attachments';
 import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -55,8 +55,8 @@ export function MagistratSidePanelContent(props: {
         sessionId={sessionId}
       />
       <SgComment
-        key={`${nominationFile.id}-comment`}
         initialComment={nominationFile.comment}
+        key={`${nominationFile.id}-comment`}
         nominationFileId={nominationFile.id}
       />
       <Attachments
@@ -64,7 +64,7 @@ export function MagistratSidePanelContent(props: {
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
       />
-      <Summary
+      <SummarySection
         canRead={!!nominationFile.summary?.canRead}
         hasSummary={!!nominationFile.summary}
         nominationFileId={nominationFile.id}

@@ -139,6 +139,12 @@ export type DetailedReportDto = {
         usage: 'ATTACHMENT';
         name: string;
         fileId: string;
+        size: number | null;
+        addedAt: string;
+        addedBy: {
+            id: string;
+            name: string;
+        } | null;
     }>;
 };
 
@@ -532,11 +538,11 @@ export type ListedNominationSessionAttachmentDto = {
     items: Array<{
         name: string;
         id: string;
-        addedAt: {
-            year: number;
-            month: number;
-            day: number;
-        };
+        addedAt: string;
+        addedBy: {
+            id: string;
+            name: string;
+        } | null;
         sizeInBytes: number | null;
     }>;
 };
@@ -560,11 +566,11 @@ export type ListedNominationFileAttachmentDto = {
         name: string;
         size: number | null;
         type: 'AUTRE' | 'FICHE_DE_JURIDICTION' | 'NOTE_INTENTION';
-        addedAt: {
-            year: number;
-            month: number;
-            day: number;
-        };
+        addedAt: string;
+        addedBy: {
+            id: string;
+            name: string;
+        } | null;
     }>;
 };
 
@@ -773,14 +779,10 @@ export type GeneratedSummaryAttachmentPublicUrlDto = {
 };
 
 export type DetailedSummaryDto = {
-    id: string;
-    sessionId: string;
     isArchived: boolean;
     name: string | null;
     detectedMagistratId: string | null;
     rank: string | null;
-    formation: 'SIEGE' | 'PARQUET';
-    number: number | null;
     birthDate: {
         year: number;
         month: number;
@@ -802,33 +804,13 @@ export type DetailedSummaryDto = {
     targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
     targetedPosition: string | null;
     priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-    /**
-     * prefer priorities
-     *
-     * @deprecated
-     */
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
     biography: string;
-    lastRankingDate: {
-        year: number;
-        month: number;
-        day: number;
-    } | null;
     lastPositionDate: {
         year: number;
         month: number;
         day: number;
     } | null;
     observers: Array<string>;
-    observations: Array<{
-        id: string;
-        magistrat: {
-            id: string;
-            firstName: string;
-            usedName: string | null;
-            lastName: string;
-        };
-    }>;
     outcome: {
         value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
         label: string;
@@ -836,15 +818,20 @@ export type DetailedSummaryDto = {
     } | null;
     summary: {
         content: string;
-        updatedAt: string;
         author: {
             id: string;
             firstName: string;
             lastName: string;
         } | null;
         attachments: Array<{
+            addedAt: string;
+            addedBy: {
+                id: string;
+                name: string;
+            } | null;
             id: string;
             name: string;
+            size: number | null;
             type: string;
         }>;
         screenshots: Array<{
@@ -2029,6 +2016,12 @@ export type ListObservationsResponseDto = {
         files: Array<{
             id: string;
             name: string;
+            size: number | null;
+            addedAt: string;
+            addedBy: {
+                id: string;
+                name: string;
+            } | null;
         }>;
         createdAt: string;
     }>;
@@ -2066,6 +2059,12 @@ export type GetObservationDetailsResponseDto = {
     files: Array<{
         id: string;
         name: string;
+        size: number | null;
+        addedAt: string;
+        addedBy: {
+            id: string;
+            name: string;
+        } | null;
     }>;
     relatedPropositions: Array<{
         observationId: string;

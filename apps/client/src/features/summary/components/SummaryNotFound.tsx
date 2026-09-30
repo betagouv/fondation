@@ -3,6 +3,7 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 import { useContext } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
@@ -18,27 +19,27 @@ export function SummaryNotFound() {
 
   if (isSg) {
     buttons.push({
-      priority: 'primary',
-      children: 'Liste des propositions',
+      children: <FormattedMessage defaultMessage="Liste des propositions" />,
       linkProps: { to: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId) },
+      priority: 'primary',
     });
   } else {
     buttons.push({
-      priority: 'primary',
-      children: 'Liste des dossiers',
+      children: <FormattedMessage defaultMessage="Liste des dossiers" />,
       linkProps: {
         to: {
           pathname: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId),
           search: '?focus=general',
         },
       },
+      priority: 'primary',
     });
   }
 
   buttons.push({
-    priority: buttons.length ? 'secondary' : 'primary',
-    children: "Page d'accueil",
+    children: <FormattedMessage defaultMessage="Page d'accueil" />,
     linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
+    priority: buttons.length ? 'secondary' : 'primary',
   });
 
   return (
@@ -55,13 +56,17 @@ export function SummaryNotFound() {
         )}
       >
         <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
-          <h1>Pas de synthèse disponible</h1>
-          <p className={cx('fr-text--sm', 'fr-mb-6v')}>Erreur 404</p>
+          <h1>
+            <FormattedMessage defaultMessage="Pas de synthèse disponible" />
+          </h1>
+          <p className={cx('fr-text--sm', 'fr-mb-6v')}>
+            <FormattedMessage defaultMessage="Erreur 404" />
+          </p>
           <p className={cx('fr-text--lead', 'fr-mb-6v')}>
-            La synthèse à laquelle vous tentez d'accéder n'existe probablement plus.
+            <FormattedMessage defaultMessage="La synthèse à laquelle vous tentez d'accéder n'existe probablement plus." />
           </p>
 
-          <ButtonsGroup inlineLayoutWhen="md and up" buttons={buttons as [ButtonProps, ...ButtonProps[]]} />
+          <ButtonsGroup buttons={buttons as [ButtonProps, ...ButtonProps[]]} inlineLayoutWhen="md and up" />
         </div>
 
         <div
@@ -80,9 +85,9 @@ export function SummaryNotFound() {
 
             <TechnicalError
               aria-hidden
-              width="80"
-              height="100"
               className="fr-artwork fr-responsive-img absolute"
+              height="100"
+              width="80"
             />
           </div>
         </div>

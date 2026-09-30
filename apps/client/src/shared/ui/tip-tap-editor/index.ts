@@ -5,3 +5,4 @@ export { ItalicButton } from './buttons/ItalicButton';
 export { RedoButton } from './buttons/RedoButton';
 export { TipTapEditor } from './TipTapEditor';
 export { UndoButton } from './buttons/UndoButton';
+export { useTipTapExtensions } from './extensions/useTipTapExtensions';

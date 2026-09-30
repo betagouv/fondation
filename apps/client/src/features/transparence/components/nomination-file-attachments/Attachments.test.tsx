@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
   settleTab: vi.fn(),
+  user: { id: 'user-2' },
   waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
 
@@ -35,6 +36,7 @@ vi.mock('@/shared/hooks/useTab', () => ({
   }),
 }));
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
+vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: mocks.user }) }));
 vi.mock('@queries/files.queries', () => ({
   useDownloadFileMutation: () => ({
     isError: false,
@@ -72,9 +74,11 @@ function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.isSg.mockReturnValue(true);
+  mocks.user = { id: 'user-2' };
   mocks.attachments = [
     {
-      addedAt: { year: 2026, month: 6, day: 18 },
+      addedAt: '2026-06-18T08:30:00.000Z',
+      addedBy: { id: 'user-1', name: 'Léa MARTIN' },
       id: 'file-1',
       name: 'rapport.pdf',
       size: 2048,
@@ -88,15 +92,29 @@ describe('Attachments listing', () => {
     renderAttachments();
 
     expect(screen.getByRole('button', { name: 'rapport' })).toBeInTheDocument();
-    expect(screen.getByText('PDF - 2 Ko')).toBeInTheDocument();
+    expect(screen.getByText('Taille : 2 Ko')).toBeInTheDocument();
   });
 
-  it('renders the type badge and the date the attachment was added', () => {
+  it('renders the type badge, the date and the author of the attachment', () => {
     renderAttachments();
     const list = within(screen.getByRole('list'));
 
     expect(list.getByText('Fiche de juridiction')).toBeInTheDocument();
-    expect(list.getByText('Ajoutée le 18/06/2026')).toBeInTheDocument();
+    expect(list.getByText('Ajoutée : le 18/06/2026 à 08h30 par Léa MARTIN')).toBeInTheDocument();
+  });
+
+  it('names the current user "vous"', () => {
+    mocks.user = { id: 'user-1' };
+    renderAttachments();
+
+    expect(screen.getByText('Ajoutée : le 18/06/2026 à 08h30 par vous')).toBeInTheDocument();
+  });
+
+  it('renders only the date when the author is unknown', () => {
+    mocks.attachments = [{ ...mocks.attachments[0]!, addedBy: null }];
+    renderAttachments();
+
+    expect(screen.getByText('Ajoutée : le 18/06/2026 à 08h30')).toBeInTheDocument();
   });
 
   it('renders nothing for a member when there is no attachment', () => {

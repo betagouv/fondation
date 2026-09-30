@@ -5,7 +5,7 @@ import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, useNavigate, useParams } from 'react-router';
+import { generatePath, useLocation, useNavigate, useParams } from 'react-router';
 
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import {
@@ -34,9 +34,12 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const [isEditing, setEditing] = useState(false);
   const [email, setEmail] = useState(props.user.email);
-  const { mutate, isPending, error } = useUpdateUserEmailMutation(props.user.id);
+  const { error, isPending, mutate } = useUpdateUserEmailMutation(props.user.id);
 
-  const formError = useMemo(() => (email.trim().length === 0 ? `Champ obligatoire` : undefined), [email]);
+  const formError = useMemo(
+    () => (email.trim().length === 0 ? formatMessage({ defaultMessage: 'Champ obligatoire' }) : undefined),
+    [email, formatMessage],
+  );
 
   const handleEdit = useCallback(() => {
     setEmail(props.user.email);
@@ -68,7 +71,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
               size="small"
               type="button"
             >
-              Fermer
+              <FormattedMessage defaultMessage="Fermer" />
             </Button>
             <Button
               disabled={isPending}
@@ -78,7 +81,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
               size="small"
               type="button"
             >
-              Ok
+              <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
         ) : (
@@ -99,11 +102,11 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
             hideLabel
             label={formatMessage({ defaultMessage: 'Email' })}
             nativeInputProps={{
-              type: 'email',
-              autoFocus: true,
               autoComplete: 'off',
-              value: email,
+              autoFocus: true,
               onChange: (e) => setEmail(e.target.value),
+              type: 'email',
+              value: email,
             }}
             state={formError || error ? 'error' : undefined}
             stateRelatedMessage={
@@ -126,12 +129,12 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   const confirmation = useConfirmModal();
   const [isEditing, setEditing] = useState(false);
   const [password, setPassword] = useState('');
-  const { mutate: updatePassword, isPending, error, reset } = useUpdateUserPasswordMutation(props.user.id);
+  const { error, isPending, mutate: updatePassword, reset } = useUpdateUserPasswordMutation(props.user.id);
 
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const formError = useMemo(
-    () => (isDirty && password.trim().length === 0 ? `Champ obligatoire` : undefined),
-    [isDirty, password],
+    () => (isDirty && password.trim().length === 0 ? $t({ defaultMessage: 'Champ obligatoire' }) : undefined),
+    [isDirty, password, $t],
   );
 
   const onChange = useCallback(
@@ -166,10 +169,6 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 
             const fullName = memberFullName(props.user);
             const { isConfirmed } = await confirmation.waitForConfirmation({
-              title: $t({
-                defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?`,
-              }),
-              i18n: { confirm: $t({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
               content: (
                 <p>
                   <FormattedMessage
@@ -182,6 +181,10 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
                   />
                 </p>
               ),
+              i18n: { confirm: $t({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
+              title: $t({
+                defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?`,
+              }),
             });
 
             if (isConfirmed) {
@@ -233,7 +236,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
               size="small"
               type="button"
             >
-              Fermer
+              <FormattedMessage defaultMessage="Fermer" />
             </Button>
             <Button
               disabled={isPending}
@@ -243,7 +246,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
               size="small"
               type="button"
             >
-              Ok
+              <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
         ) : (
@@ -264,13 +267,13 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             hideLabel
             label={$t({ defaultMessage: 'Mot de passe' })}
             nativeInputProps={{
-              type: 'password',
-              autoFocus: true,
               autoComplete: 'off',
-              required: true,
-              value: password,
+              autoFocus: true,
               onChange: onChange,
               placeholder: $t({ defaultMessage: 'Nouveau mot de passe...' }),
+              required: true,
+              type: 'password',
+              value: password,
             }}
             state={formError || error ? 'error' : undefined}
             stateRelatedMessage={
@@ -288,7 +291,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className?: string }) {
+function AdminUserPromotionToggle(props: { className?: string; user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -304,18 +307,17 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
       } else {
         if (props.user.id === currentUser?.id) {
           const { isConfirmed } = await confirmation.waitForConfirmation({
-            title: `Vous allez changer vos droits`,
             content: (
               <>
                 <p>
-                  En confirmant, vous allez vous retirer les droits d'administration. Vous ne pourrez plus
-                  accéder à cette page ensuite.
+                  <FormattedMessage defaultMessage="En confirmant, vous allez vous retirer les droits d'administration. Vous ne pourrez plus accéder à cette page ensuite." />
                 </p>
                 <p className="font-bold">
                   <FormattedMessage defaultMessage="Êtes-vous sûr de vouloir continuer ?" />
                 </p>
               </>
             ),
+            title: formatMessage({ defaultMessage: 'Vous allez changer vos droits' }),
           });
 
           if (!isConfirmed) return;
@@ -331,7 +333,7 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto; className
         });
       }
     },
-    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate],
+    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate, formatMessage],
   );
 
   if (!PROMOTABLE_ROLES.includes(props.user.role)) return null;
@@ -353,7 +355,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   const intl = useIntl();
   const [isEditing, setEditing] = useState(false);
 
-  const { mutate: updateRole, isPending, error } = useUpdateUserRoleMutation(props.user.id);
+  const { error, isPending, mutate: updateRole } = useUpdateUserRoleMutation(props.user.id);
 
   const handleChange = useCallback(
     async (e: ChangeEvent<HTMLSelectElement>) => {
@@ -376,7 +378,9 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   return (
     <div>
       <div className="fr-mb-2v flex justify-between">
-        <dt className="font-bold">Rôle</dt>
+        <dt className="font-bold">
+          <FormattedMessage defaultMessage="Rôle" />
+        </dt>
         {isEditing ? (
           <Button
             disabled={isPending}
@@ -386,7 +390,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             size="small"
             type="button"
           >
-            Ok
+            <FormattedMessage defaultMessage="Ok" />
           </Button>
         ) : (
           <Button
@@ -405,8 +409,8 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           label=""
           nativeSelectProps={{
             autoFocus: true,
-            onChange: handleChange,
             defaultValue: props.user.role,
+            onChange: handleChange,
           }}
           state={error ? 'error' : undefined}
           stateRelatedMessage={
@@ -437,7 +441,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const [isEditing, setEditing] = useState(false);
   const [displayTitle, setDisplayTitle] = useState(props.user.displayTitle ?? '');
-  const { mutate, isPending, error } = useUpdateUserDisplayTitleMutation(props.user.id);
+  const { error, isPending, mutate } = useUpdateUserDisplayTitleMutation(props.user.id);
 
   const handleEdit = () => {
     setDisplayTitle(props.user.displayTitle ?? '');
@@ -473,7 +477,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
             priority="primary"
             size="small"
           >
-            Ok
+            <FormattedMessage defaultMessage="Ok" />
           </Button>
         ) : (
           <Button
@@ -491,14 +495,14 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
         <form onSubmit={handleSave}>
           <Input
             hideLabel
-            hintText="ex: M. le Président, Mme la ministre"
+            hintText={formatMessage({ defaultMessage: 'ex: M. le Président, Mme la ministre' })}
             label={formatMessage({ defaultMessage: 'Titre affiché' })}
             nativeInputProps={{
-              autoFocus: true,
               autoComplete: 'off',
-              value: displayTitle,
+              autoFocus: true,
               onChange: (e) => setDisplayTitle(e.target.value),
               placeholder: formatMessage({ defaultMessage: 'Saisissez un titre...' }),
+              value: displayTitle,
             }}
             state={error ? 'error' : undefined}
             stateRelatedMessage={
@@ -529,7 +533,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   ).includes(user.role as any); // oxlint-disable-line @typescript-eslint/no-explicit-any
 
   const tab = useTab();
-  const { mutate: impersonate, isPending } = useImpersonateMutation({ userId: props.user.id });
+  const { isPending, mutate: impersonate } = useImpersonateMutation({ userId: props.user.id });
   const onClick = useCallback(() => {
     impersonate(undefined, {
       onSuccess() {
@@ -552,7 +556,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
             priority="secondary"
             size="small"
           >
-            Se connecter
+            <FormattedMessage defaultMessage="Se connecter" />
           </Button>
         </p>
       )}
@@ -572,11 +576,12 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
 export function AdminUserDetailPage() {
   const { formatMessage } = useIntl();
   const params = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const userId = params.userId;
-  const { data: user, isLoading, isError } = useAdminUserDetailQuery(userId);
+  const { data: user, isError, isLoading } = useAdminUserDetailQuery(userId);
 
-  const hasHistory = window.history.length > 0;
+  const hasHistory = location.key !== 'default';
   const goBack = useCallback(() => {
     if (hasHistory) {
       navigate(-1);
@@ -609,7 +614,7 @@ export function AdminUserDetailPage() {
         />
         {hasHistory && (
           <Button iconId="fr-icon-close-line" onClick={goBack} priority="tertiary no outline" size="small">
-            FERMER
+            <FormattedMessage defaultMessage="FERMER" />
           </Button>
         )}
       </div>

@@ -25,15 +25,15 @@ type SummaryTarget = {
   withOpenLink?: boolean;
 };
 
-export function Summary(props: SummaryTarget) {
+export function SummarySection(props: SummaryTarget) {
   return (
     <Sentry.ErrorBoundary
       fallback={
-        <SummarySection headingLevel={props.headingLevel}>
+        <SummarySectionLayout headingLevel={props.headingLevel}>
           <p className="fr-mb-0 text-(--text-mention-grey)">
             <FormattedMessage defaultMessage="La synthèse n'a pas pu être affichée." />
           </p>
-        </SummarySection>
+        </SummarySectionLayout>
       }
     >
       <SummaryContent {...props} />
@@ -51,11 +51,11 @@ function SummaryContent(props: SummaryTarget) {
   if (!canCreate) return null;
 
   return (
-    <SummarySection action={<SummaryButton {...props} />} headingLevel={props.headingLevel}>
+    <SummarySectionLayout action={<SummaryButton {...props} />} headingLevel={props.headingLevel}>
       <p className="fr-mb-0 text-(--text-mention-grey)">
         <FormattedMessage defaultMessage="Aucune synthèse rédigée" />
       </p>
-    </SummarySection>
+    </SummarySectionLayout>
   );
 }
 
@@ -63,25 +63,25 @@ function ReadableSummary(props: SummaryTarget) {
   const { user } = useUser();
   const isSg = useIsSg();
   const { nominationFileId, sessionId } = props;
-  const { data, isLoading } = useSummaryQuery({ sessionId, nominationFileId });
+  const { data, isLoading } = useSummaryQuery({ nominationFileId, sessionId });
 
   if (isLoading) {
     return (
-      <SummarySection headingLevel={props.headingLevel}>
+      <SummarySectionLayout headingLevel={props.headingLevel}>
         <p className="fr-mb-0">
           <FormattedMessage defaultMessage="Chargement…" />
         </p>
-      </SummarySection>
+      </SummarySectionLayout>
     );
   }
 
   if (!data) {
     return (
-      <SummarySection headingLevel={props.headingLevel}>
+      <SummarySectionLayout headingLevel={props.headingLevel}>
         <p className="fr-mb-0 text-(--text-mention-grey)">
           <FormattedMessage defaultMessage="La synthèse n'a pas pu être chargée." />
         </p>
-      </SummarySection>
+      </SummarySectionLayout>
     );
   }
 
@@ -92,15 +92,13 @@ function ReadableSummary(props: SummaryTarget) {
   return (
     <SummaryContext
       value={{
-        sections: [],
-        showSection: () => {},
-        sessionId,
-        nominationFileId,
         canWriteSummary,
+        nominationFileId,
+        sessionId,
         summary: data,
       }}
     >
-      <SummarySection
+      <SummarySectionLayout
         action={
           <div className="flex shrink-0 items-center gap-2">
             <SummaryReaderSelector
@@ -134,12 +132,12 @@ function ReadableSummary(props: SummaryTarget) {
           nominationFileId={nominationFileId}
           sessionId={sessionId}
         />
-      </SummarySection>
+      </SummarySectionLayout>
     </SummaryContext>
   );
 }
 
-function SummarySection(props: {
+function SummarySectionLayout(props: {
   action?: ReactNode;
   children: ReactNode;
   headingLevel?: 2 | 3;

@@ -1,13 +1,13 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import { FormattedMessage } from 'react-intl';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { BiographyList } from '@/shared/components/biography-list';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { type FilesUploader, TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
@@ -18,33 +18,42 @@ import { ObservationDescription } from './ObservationDescription';
 import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
 
 type ObservationDetailsContentProps = {
-  sessionId: string;
-  nominationFileId: string;
-  observationId: string;
-  observation: GetObservationDetailsResponseDto;
-  onDownloadFile: (fileId: string) => void;
-  backLink: {
-    to: string;
-    label: string;
-  };
+  backTo: string;
   context: 'sg' | 'membre';
-  onUpdateMemberComment?: (comment: string) => void;
-  uploadFiles?: FilesUploader;
   isArchived: boolean;
+  nominationFileId: string;
+  observation: GetObservationDetailsResponseDto;
+  observationId: string;
+  onDownloadFile: (file: { id: string; name: string }) => void;
+  onOpenFile: (fileId: string) => void;
+  onUpdateMemberComment?: (comment: string) => void;
+  sessionId: string;
+  uploadFiles?: FilesUploader;
 };
 
 export function ObservationDetailsContent({
-  sessionId,
-  observation,
-  nominationFileId,
-  onDownloadFile,
-  backLink,
+  backTo,
   context,
-  onUpdateMemberComment,
-  uploadFiles,
   isArchived,
+  nominationFileId,
+  observation,
+  onDownloadFile,
+  onOpenFile,
+  onUpdateMemberComment,
+  sessionId,
+  uploadFiles,
 }: ObservationDetailsContentProps) {
   const isSg = useIsSg();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const goBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const hasPreviousPage = location.key !== 'default';
+    if (hasPreviousPage) {
+      event.preventDefault();
+      navigate(-1);
+    }
+  };
   const observant = observation.observant;
   const candidacy = observant.candidacy;
   const relatedPropositions = observation.relatedPropositions ?? [];
@@ -52,8 +61,8 @@ export function ObservationDetailsContent({
   return (
     <div className="fr-p-8v bg-(--background-default-grey)">
       <div className="fr-mb-8v">
-        <Link to={backLink.to} className="fr-link fr-link--icon-left fr-icon-arrow-left-line">
-          {backLink.label}
+        <Link className="fr-link fr-link--icon-left fr-icon-arrow-left-line" onClick={goBack} to={backTo}>
+          <FormattedMessage defaultMessage="Retour" />
         </Link>
       </div>
 
@@ -62,12 +71,12 @@ export function ObservationDetailsContent({
           <FormattedMessage defaultMessage="Fiche observation" />
         </span>
         <ObservationFollowUpSelector
+          comment={observation.followUpComment}
+          followUp={observation.followUp}
           isArchived={isArchived}
-          sessionId={sessionId}
           nominationFileId={nominationFileId}
           observationId={observation.id}
-          followUp={observation.followUp}
-          comment={observation.followUpComment}
+          sessionId={sessionId}
         />
       </h1>
 
@@ -96,9 +105,9 @@ export function ObservationDetailsContent({
                       small
                     />
                     <LolfiLink
-                      sessionId={sessionId}
-                      nominationFileId={nominationFileId}
                       name={observation.observedMagistrat?.name}
+                      nominationFileId={nominationFileId}
+                      sessionId={sessionId}
                       small
                     />
                   </TitleNameIcons>
@@ -183,10 +192,10 @@ export function ObservationDetailsContent({
           {observation.description || (!isArchived && isSg) ? (
             <section className="fr-mb-8v">
               <ObservationDescription
-                sessionId={sessionId}
+                isArchived={isArchived}
                 nominationFileId={nominationFileId}
                 observation={observation}
-                isArchived={isArchived}
+                sessionId={sessionId}
               />
             </section>
           ) : null}
@@ -200,19 +209,19 @@ export function ObservationDetailsContent({
                 <FormattedMessage defaultMessage="Aucune pièce jointe" />
               </p>
             ) : (
-              <ul className="fr-raw-list">
+              <FileList>
                 {observation.files.map((file) => (
-                  <li key={file.id} className="fr-mb-2v">
-                    <Button
-                      priority="tertiary no outline"
-                      iconId="ri-file-download-line"
-                      onClick={() => onDownloadFile(file.id)}
-                    >
-                      {file.name}
-                    </Button>
-                  </li>
+                  <FileListItem
+                    addedAt={file.addedAt}
+                    addedBy={file.addedBy}
+                    key={file.id}
+                    name={file.name}
+                    onDownload={() => onDownloadFile(file)}
+                    onOpen={() => onOpenFile(file.id)}
+                    size={file.size}
+                  />
                 ))}
-              </ul>
+              </FileList>
             )}
           </section>
 
@@ -226,9 +235,8 @@ export function ObservationDetailsContent({
               </p>
               <div className="fr-grid-row fr-grid-row--gutters">
                 {relatedPropositions.map((proposition) => (
-                  <div key={proposition.observationId} className="fr-col-12 fr-col-md-6">
+                  <div className="fr-col-12 fr-col-md-6" key={proposition.observationId}>
                     <Card
-                      title={proposition.magistratName}
                       desc={
                         <span className="fr-text--sm">
                           {proposition.number && (
@@ -243,16 +251,17 @@ export function ObservationDetailsContent({
                           <span className="block text-(--text-mention-grey)"></span>
                         </span>
                       }
+                      enlargeLink
                       linkProps={{
                         to: getObservationDetailsPath({
                           context,
-                          sessionId,
                           nominationFileId: proposition.nominationFileId,
                           observationId: proposition.observationId,
+                          sessionId,
                         }),
                       }}
-                      enlargeLink
                       size="small"
+                      title={proposition.magistratName}
                     />
                   </div>
                 ))}

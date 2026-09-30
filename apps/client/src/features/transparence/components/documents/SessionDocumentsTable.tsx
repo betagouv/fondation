@@ -39,6 +39,7 @@ const h = createColumnHelper<SessionMeeting>();
 
 export const SessionDocumentsTableContext = createContext<{
   actions?: (doc: SessionDocument) => ReactNode;
+  currentUserId?: string;
   newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   officialReports?: ReadonlyMap<string, OfficialReportDocument>;
   renderName?: (doc: SessionDocument) => ReactNode;
@@ -72,12 +73,12 @@ function Moment(props: { at: string }) {
 
 /** a gesture whose author is unknown, the application or a person since gone, keeps only its date */
 function useAuthorship() {
-  const { user } = useUser();
+  const { currentUserId } = useContext(SessionDocumentsTableContext);
 
   return (at: string, by: SessionDocument['createdBy']) => ({
     author: by?.name,
     moment: <Moment at={at} />,
-    who: !by ? 'nobody' : by.id === user?.id ? 'self' : 'someone',
+    who: !by ? 'nobody' : by.id === currentUserId ? 'self' : 'someone',
   });
 }
 
@@ -225,9 +226,12 @@ export function SessionDocumentsTable(props: {
     [data],
   );
 
+  const { user } = useUser();
+  const currentUserId = user?.id;
+
   const renderers = useMemo(
-    () => ({ actions, newOfficialReport, officialReports, renderName, states }),
-    [actions, newOfficialReport, officialReports, renderName, states],
+    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, states }),
+    [actions, currentUserId, newOfficialReport, officialReports, renderName, states],
   );
 
   const columns = useMemo(
