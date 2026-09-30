@@ -50,8 +50,8 @@ const OBSERVATION: Observation = {
   dateReception: '2026-07-02T00:00:00.000Z',
   description: 'Observation initiale',
   files: [
-    { id: 'file-1', name: 'courrier.pdf' },
-    { id: 'file-2', name: 'annexe.docx' },
+    { addedAt: '2026-07-02T08:30:00.000Z', addedBy: null, id: 'file-1', name: 'courrier.pdf', size: null },
+    { addedAt: '2026-07-02T08:30:00.000Z', addedBy: null, id: 'file-2', name: 'annexe.docx', size: null },
   ],
   followUp: null,
   id: 'observation-1',
@@ -266,7 +266,7 @@ describe('ObservationForm', () => {
 
   it('accepts an observation left without text nor attachment as the domain allows it', async () => {
     const user = userEvent.setup();
-    renderForm({ ...OBSERVATION, description: '', files: [{ id: 'file-1', name: 'courrier.pdf' }] });
+    renderForm({ ...OBSERVATION, description: '', files: [OBSERVATION.files[0]!] });
 
     await user.click(removeFileButton('courrier.pdf'));
     await user.click(screen.getByRole('button', { name: 'Envoyer' }));

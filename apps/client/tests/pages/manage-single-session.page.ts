@@ -165,12 +165,16 @@ class MagistratSidePanel {
     return this.attachmentsSection.getByText(label, { exact: true });
   }
 
+  attachmentAddedByMe(): Locator {
+    return this.attachmentsSection.getByText(/^Ajoutée : le .+ par vous$/);
+  }
+
   private deleteButton(name: string): Locator {
     return this.dialog.getByRole('button', { name: `Supprimer ${name}` });
   }
 
   private get confirmDeleteButton(): Locator {
-    return this.page.locator('#modal-confirm').getByRole('button', { name: 'Supprimer', exact: true });
+    return this.page.locator('#modal-confirm').getByRole('button', { exact: true, name: 'Supprimer' });
   }
 
   async addAttachment(file: File, type = 'Fiche de juridiction'): Promise<void> {
@@ -178,9 +182,9 @@ class MagistratSidePanel {
 
     const modal = this.addAttachmentModal;
     await modal.locator('input[type="file"]').setInputFiles({
-      name: file.name,
-      mimeType: file.type,
       buffer: Buffer.from(await file.arrayBuffer()),
+      mimeType: file.type,
+      name: file.name,
     });
     await modal.getByLabel('Type de document').selectOption({ label: type });
     await modal.getByRole('button', { name: 'Ajouter à la proposition' }).click();
@@ -258,7 +262,11 @@ export class ManageSingleSessionPage {
 
   async unfoldPinnedHeader(): Promise<void> {
     await expect(async () => {
-      await this.app.page.evaluate('window.scrollTo({ top: 0 })');
+      // a table mounting after a tab change scrolls the page back, and the bar folds again right after
+      const scrollY = await this.app.page.evaluate<number>(
+        'new Promise((resolve) => { window.scrollTo({ top: 0 }); requestAnimationFrame(() => requestAnimationFrame(() => resolve(window.scrollY))); })',
+      );
+      expect(scrollY).toBe(0);
       await expect(this.app.page.getByText("Délai d'observation")).toBeVisible({ timeout: 250 });
     }).toPass();
   }
@@ -343,7 +351,7 @@ export class ManageSingleSessionPage {
 
     await this.app.page
       .locator('#modal-confirm')
-      .getByRole('button', { name: 'Confirmer', exact: true })
+      .getByRole('button', { exact: true, name: 'Confirmer' })
       .click();
   }
 }

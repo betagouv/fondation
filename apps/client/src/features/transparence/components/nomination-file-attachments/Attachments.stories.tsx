@@ -13,32 +13,30 @@ import { AddNominationFileAttachmentModalProvider } from './context/AddNominatio
 
 const SESSION_ID = 'session-1';
 
-function today() {
-  const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
-}
-
 const SAMPLE_FILES: ListedNominationFileAttachmentDto['items'] = [
   {
+    addedAt: '2026-06-18T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'a1',
     name: 'cv-camille-durand.pdf',
     size: 248_900,
     type: 'FICHE_DE_JURIDICTION',
-    addedAt: { year: 2026, month: 6, day: 18 },
   },
   {
+    addedAt: '2026-06-18T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'a2',
     name: 'lettre-de-motivation.pdf',
     size: 51_200,
     type: 'NOTE_INTENTION',
-    addedAt: { year: 2026, month: 6, day: 18 },
   },
   {
+    addedAt: '2026-06-19T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'a3',
     name: 'photo-identite.png',
     size: null,
     type: 'AUTRE',
-    addedAt: { year: 2026, month: 6, day: 19 },
   },
 ];
 
@@ -70,11 +68,12 @@ const attachmentHandlers = [
         .getAll('files')
         .filter((file): file is File => file instanceof File)
         .map((file) => ({
+          addedAt: new Date().toISOString(),
+          addedBy: { id: 'user-1', name: 'Léa MARTIN' },
           id: crypto.randomUUID(),
           name: file.name,
           size: file.size,
           type,
-          addedAt: today(),
         }));
 
       attachmentsByNominationFile.set(nominationFileId, [...attachmentsOf(nominationFileId), ...uploaded]);
@@ -113,8 +112,12 @@ function AttachmentsStory(props: AttachmentsArgs) {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Attachments',
-  component: AttachmentsStory,
+  args: { hasFiles: true, isUpdatable: true, view: 'sg' },
+  argTypes: {
+    hasFiles: { control: 'boolean' },
+    isUpdatable: { control: 'boolean' },
+    view: { control: 'inline-radio', options: VIEWS },
+  },
   beforeEach: ({ args, msw }) => {
     msw.use(...attachmentHandlers);
 
@@ -124,14 +127,10 @@ const meta = {
       attachmentsByNominationFile.delete(nominationFileId);
     };
   },
+  component: AttachmentsStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
-  argTypes: {
-    hasFiles: { control: 'boolean' },
-    isUpdatable: { control: 'boolean' },
-    view: { control: 'inline-radio', options: VIEWS },
-  },
-  args: { hasFiles: true, isUpdatable: true, view: 'sg' },
+  title: 'Features/SidePanel/Attachments',
 } satisfies Meta<typeof AttachmentsStory>;
 
 export default meta;
@@ -140,6 +139,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const SecretaireGeneralEmpty: Story = { args: { hasFiles: false } };
-
 export const MemberWithFiles: Story = { args: { view: 'member' } };
+
+export const SecretaireGeneralEmpty: Story = { args: { hasFiles: false } };

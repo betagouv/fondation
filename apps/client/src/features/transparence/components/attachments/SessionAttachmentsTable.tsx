@@ -8,10 +8,10 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { createContext, Fragment, useContext, useMemo, type ReactNode } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { NewTable, rowCell } from '@/shared/ui/new-table';
-import { compareDateOnly, formatDateOnly } from '@/utils/date-only.util';
 import { formatFileSize } from '@/utils/file.utils';
 import type { ListedNominationSessionAttachmentDto } from '@api/types';
 
@@ -33,7 +33,12 @@ function NameCell(props: CellContext<SessionAttachment, string>) {
   return renderName?.(props.row.original) ?? props.cell.getValue();
 }
 
-const addedAtCell = rowCell<SessionAttachment>((attachment) => formatDateOnly(attachment.addedAt));
+function AddedAtCell(props: CellContext<SessionAttachment, string>) {
+  const dateAndTime = useDateAndTime();
+  return <FormattedMessage defaultMessage="{date} à {time}" values={dateAndTime(props.cell.getValue())} />;
+}
+
+const addedByCell = rowCell<SessionAttachment>((attachment) => attachment.addedBy?.name ?? '-');
 
 const sizeCell = rowCell<SessionAttachment>((attachment) =>
   attachment.sizeInBytes ? formatFileSize(attachment.sizeInBytes) : null,
@@ -75,11 +80,18 @@ export function SessionAttachmentsTable(props: {
       }),
 
       h.accessor('addedAt', {
-        cell: addedAtCell,
+        cell: AddedAtCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Ajoutée le' }),
         size: 160,
-        sortingFn: (a, b) => compareDateOnly(a.original.addedAt, b.original.addedAt),
+        sortingFn: (a, b) => a.original.addedAt.localeCompare(b.original.addedAt),
+      }),
+
+      h.display({
+        cell: addedByCell,
+        header: formatMessage({ defaultMessage: 'Ajoutée par' }),
+        id: 'addedBy',
+        size: 200,
       }),
 
       h.accessor('sizeInBytes', {
@@ -90,12 +102,12 @@ export function SessionAttachmentsTable(props: {
       }),
 
       h.display({
-        id: 'actions',
         cell: ActionsCell,
         header: formatMessage(
           { defaultMessage: '{count, plural, one {Action} other {Actions}}' },
           { count: actions.length },
         ),
+        id: 'actions',
         size: 160,
       }),
     ],

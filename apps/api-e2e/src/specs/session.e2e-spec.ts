@@ -245,14 +245,16 @@ test.describe('Session E2E', () => {
       const attachments = await agent.sessions.listNominationFileAttachments({
         path: { sessionId, nominationFileId },
       });
+      const { data: me } = await agent.auth.introspectSession();
       expect(attachments.response?.status).toBe(200);
       expect(attachments.data!.items).toEqual([
         {
+          addedAt: expect.any(String),
+          addedBy: { id: me!.userId, name: expect.any(String) },
           id: expect.any(String),
           name: fileToAttach.name,
           size: fileToAttach.size,
           type: 'FICHE_DE_JURIDICTION',
-          addedAt: { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) },
         },
       ]);
 

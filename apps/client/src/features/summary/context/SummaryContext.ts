@@ -1,26 +1,17 @@
 import React, { useContext } from 'react';
 
-import type { SummarySectionAnchor } from '@/features/summary/hooks/useVisibleSummarySections';
 import type { Override } from '@/utils/types.util';
 import type { DetailedSummaryDto } from '@api/types';
 
 type SummaryContextType = {
-  sections: readonly { id: SummarySectionAnchor; label: string }[];
-  showSection: (id: SummarySectionAnchor) => void;
-
-  sessionId: string;
-  nominationFileId: string;
   canWriteSummary: boolean;
+  nominationFileId: string;
+  sessionId: string;
   summary: DetailedSummaryDto | null;
 };
 
 export const SummaryContext = React.createContext<SummaryContextType>(null as unknown as SummaryContextType);
 
-type HookedSummaryContextType = Omit<
-  Override<SummaryContextType, { summary: DetailedSummaryDto }>,
-  'sections' | 'hideSection'
->;
-
-export function useSummary(): HookedSummaryContextType {
-  return useContext(SummaryContext) as HookedSummaryContextType;
+export function useSummary(): Override<SummaryContextType, { summary: DetailedSummaryDto }> {
+  return useContext(SummaryContext) as Override<SummaryContextType, { summary: DetailedSummaryDto }>;
 }

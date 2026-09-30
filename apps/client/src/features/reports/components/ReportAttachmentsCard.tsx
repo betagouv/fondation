@@ -18,8 +18,10 @@ export function ReportAttachmentsCard(props: {
         <FormattedMessage defaultMessage="Mes pièces jointes" />
       </h2>
       <div className="flex flex-col gap-6">
+        {props.children}
         <Upload
           accept={DOCUMENT_FILE_TYPES}
+          clearOnChange
           disabled={props.isReadOnly}
           hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx." />}
           isPending={props.isPending}
@@ -27,7 +29,6 @@ export function ReportAttachmentsCard(props: {
           multiple
           onChange={props.onFilesAttached}
         />
-        {props.children}
       </div>
     </DetailsCard>
   );

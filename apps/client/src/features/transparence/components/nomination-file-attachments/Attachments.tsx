@@ -7,8 +7,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
-import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
-import { formatFileSize, splitFileName } from '@/utils/file.utils';
+import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationFileAttachmentUrlMutation,
@@ -67,13 +66,11 @@ export function Attachments(props: {
       </div>
 
       {attachments.length > 0 ? (
-        <ul
-          aria-labelledby={labelId}
-          className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey) border-y border-(--border-default-grey)"
-        >
+        <FileList aria-labelledby={labelId}>
           {attachments.map((file) => (
             <AttachmentItem
               addedAt={file.addedAt}
+              addedBy={file.addedBy}
               canDelete={canManage}
               fileId={file.id}
               key={file.id}
@@ -84,7 +81,7 @@ export function Attachments(props: {
               type={file.type}
             />
           ))}
-        </ul>
+        </FileList>
       ) : (
         !canManage && (
           <div aria-labelledby={labelId} className="w-full leading-7">
@@ -97,7 +94,8 @@ export function Attachments(props: {
 }
 
 function AttachmentItem(props: {
-  addedAt: PlainDateOnly;
+  addedAt: string;
+  addedBy: { id: string; name: string } | null;
   canDelete: boolean;
   fileId: string;
   name: string;
@@ -109,29 +107,24 @@ function AttachmentItem(props: {
   const { formatMessage } = useIntl();
   const tab = useTab();
   const {
-    mutate: createUrl,
-    isPending: isUrlPending,
     isError: isUrlError,
+    isPending: isUrlPending,
+    mutate: createUrl,
     reset: resetUrl,
   } = useCreateNominationFileAttachmentUrlMutation();
   const {
-    mutate: download,
-    isPending: isDownloadPending,
     isError: isDownloadError,
+    isPending: isDownloadPending,
+    mutate: download,
     reset: resetDownload,
   } = useDownloadFileMutation();
   const {
-    mutate: remove,
-    isPending: isRemovePending,
     isError: isRemoveError,
+    isPending: isRemovePending,
+    mutate: remove,
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
   const { waitForConfirmation } = useConfirmModal();
-
-  const { label, extension } = splitFileName(props.name);
-  const meta = [extension?.toUpperCase(), props.size != null ? formatFileSize(props.size) : null]
-    .filter(Boolean)
-    .join(' - ');
 
   const error =
     isUrlError || isDownloadError
@@ -198,61 +191,17 @@ function AttachmentItem(props: {
   ]);
 
   return (
-    <li className="fr-py-3v">
-      <div className="fr-mb-2v flex items-center gap-2">
-        <NominationFileAttachmentTypeTag type={props.type} />
-        <span className="text-sm text-(--text-mention-grey)">
-          <FormattedMessage
-            defaultMessage="Ajoutée le {date}"
-            values={{ date: formatDateOnly(props.addedAt) }}
-          />
-        </span>
-      </div>
-
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid min-w-0 items-center gap-x-2" style={{ gridTemplateColumns: 'auto 1fr' }}>
-          <span
-            aria-hidden="true"
-            className="fr-icon-file-line fr-icon--sm shrink-0 text-(--text-title-blue-france)"
-            style={{ transform: 'translateY(1px)' }}
-          />
-          <button
-            className="-mx-1 -my-0.5 truncate border-0 bg-transparent px-1 py-0.5 text-left text-(--text-action-high-blue-france) underline underline-offset-2 hover:bg-(--background-default-grey-hover) disabled:opacity-50"
-            disabled={isUrlPending || isDownloadPending || isRemovePending}
-            onClick={onPreview}
-            title={formatMessage(
-              { defaultMessage: 'Ouvrir {name} dans un nouvel onglet' },
-              { name: props.name },
-            )}
-            type="button"
-          >
-            {label}
-          </button>
-          {meta && <span className="col-start-2 text-sm text-(--text-mention-grey)">{meta}</span>}
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            disabled={isUrlPending || isDownloadPending || isRemovePending}
-            iconId="fr-icon-download-line"
-            onClick={onDownload}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: props.name })}
-          />
-          {props.canDelete && (
-            <Button
-              disabled={isRemovePending}
-              iconId="fr-icon-delete-bin-line"
-              onClick={onDelete}
-              priority="tertiary no outline"
-              size="small"
-              title={formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: props.name })}
-            />
-          )}
-        </div>
-      </div>
-
+    <FileListItem
+      addedAt={props.addedAt}
+      addedBy={props.addedBy}
+      disabled={isUrlPending || isDownloadPending || isRemovePending}
+      header={<NominationFileAttachmentTypeTag type={props.type} />}
+      name={props.name}
+      onDelete={props.canDelete ? onDelete : undefined}
+      onDownload={onDownload}
+      onOpen={onPreview}
+      size={props.size}
+    >
       {error && (
         <Alert
           className="fr-mt-2v"
@@ -267,6 +216,6 @@ function AttachmentItem(props: {
           small
         />
       )}
-    </li>
+    </FileListItem>
   );
 }

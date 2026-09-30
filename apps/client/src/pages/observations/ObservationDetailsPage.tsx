@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -9,6 +10,7 @@ import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { getDetailSessionGdsPath, openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useAttachObservationMemberCommentScreenshotsMutation,
   useGetObservationFileUrlMutation,
@@ -17,10 +19,10 @@ import {
 } from '@queries/observations.queries';
 
 export function ObservationDetailsPage() {
-  const { sessionId, nominationFileId, observationId } = useParams<{
-    sessionId: string;
+  const { nominationFileId, observationId, sessionId } = useParams<{
     nominationFileId: string;
     observationId: string;
+    sessionId: string;
   }>();
 
   const [searchParams] = useSearchParams();
@@ -31,14 +33,15 @@ export function ObservationDetailsPage() {
 
   const {
     data: observation,
-    isLoading,
     isError,
+    isLoading,
   } = useObservationDetailsQuery({
-    sessionId: sessionId ?? '',
     nominationFileId: nominationFileId ?? '',
     observationId: observationId ?? '',
+    sessionId: sessionId ?? '',
   });
 
+  const { mutate: download } = useDownloadFileMutation();
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
   const { mutateAsync: attachFiles } = useAttachObservationMemberCommentScreenshotsMutation();
@@ -46,10 +49,10 @@ export function ObservationDetailsPage() {
   const uploadFiles = useCallback<FilesUploader>(
     async (files: readonly File[]) => {
       const result = await attachFiles({
-        sessionId: sessionId ?? '',
+        files: files as File[],
         nominationFileId: nominationFileId ?? '',
         observationId: observationId ?? '',
-        files: files as File[],
+        sessionId: sessionId ?? '',
       });
       return (result?.items ?? []).map(({ id, name, url }) => ({
         id,
@@ -65,7 +68,9 @@ export function ObservationDetailsPage() {
   if (isLoading) {
     return (
       <PageContentLayout fullBackgroundGreen={true}>
-        <p>Chargement...</p>
+        <p>
+          <FormattedMessage defaultMessage="Chargement..." />
+        </p>
       </PageContentLayout>
     );
   }
@@ -78,51 +83,53 @@ export function ObservationDetailsPage() {
     return <Navigate replace={true} to={fallbackPath} />;
   }
 
-  const handleDownloadFile = (fileId: string) => {
+  const handleOpenFile = (fileId: string) => {
     getFileUrl(
-      { sessionId, nominationFileId, observationId, fileId },
+      { fileId, nominationFileId, observationId, sessionId },
       { onSuccess: (url) => window.open(url, '_blank') },
+    );
+  };
+
+  const handleDownloadFile = (file: { id: string; name: string }) => {
+    getFileUrl(
+      { fileId: file.id, nominationFileId, observationId, sessionId },
+      { onSuccess: (url) => download({ name: file.name, url }) },
     );
   };
 
   const handleUpdateMemberComment = (comment: string) => {
     writeMemberComment({
-      sessionId,
+      comment,
       nominationFileId,
       observationId,
-      comment,
+      sessionId,
     });
   };
 
   const openedSidePanel = openedDossierSearch(nominationFileId);
 
-  const backLink = isSgContext
-    ? {
-        to: `/secretariat-general/session/${sessionId}${openedSidePanel}`,
-        label: 'Retour à la session',
-      }
+  const backTo = isSgContext
+    ? `/secretariat-general/session/${sessionId}${openedSidePanel}`
     : reportId
-      ? {
-          to: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId),
-          label: 'Retour au rapport',
-        }
-      : { to: `${getDetailSessionGdsPath({ sessionId })}${openedSidePanel}`, label: 'Retour à la session' };
+      ? ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId)
+      : `${getDetailSessionGdsPath({ sessionId })}${openedSidePanel}`;
 
   return (
     <ArchiveBannerPortal isArchived={observation.isArchived}>
       <PageContentLayout fullBackgroundGreen={true}>
         <ObservationFollowUpCommentProvider>
           <ObservationDetailsContent
-            sessionId={sessionId}
-            nominationFileId={nominationFileId}
-            observationId={observationId}
-            observation={observation}
-            onDownloadFile={handleDownloadFile}
-            backLink={backLink}
+            backTo={backTo}
             context={context}
-            onUpdateMemberComment={handleUpdateMemberComment}
-            uploadFiles={uploadFiles}
             isArchived={observation.isArchived}
+            nominationFileId={nominationFileId}
+            observation={observation}
+            observationId={observationId}
+            onDownloadFile={handleDownloadFile}
+            onOpenFile={handleOpenFile}
+            onUpdateMemberComment={handleUpdateMemberComment}
+            sessionId={sessionId}
+            uploadFiles={uploadFiles}
           />
         </ObservationFollowUpCommentProvider>
       </PageContentLayout>

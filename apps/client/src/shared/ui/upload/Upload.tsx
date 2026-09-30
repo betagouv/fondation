@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl';
 
 export function Upload(props: {
   accept?: string;
+  clearOnChange?: boolean;
   disabled?: boolean;
   hasError?: boolean;
   hint?: ReactNode;
@@ -34,7 +35,10 @@ export function Upload(props: {
         disabled={isLocked}
         id={inputId}
         multiple={props.multiple}
-        onChange={(event) => props.onChange([...(event.target.files ?? [])])}
+        onChange={(event) => {
+          props.onChange([...(event.target.files ?? [])]);
+          if (props.clearOnChange) event.target.value = '';
+        }}
         type="file"
       />
 

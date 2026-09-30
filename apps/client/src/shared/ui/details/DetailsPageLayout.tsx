@@ -1,6 +1,7 @@
 import type React from 'react';
 
 const BACKGROUNDS = {
+  blueFrance: 'bg-(--blue-france-925-125)',
   cafeCreme: 'bg-(--brown-cafe-creme-950-100)',
   greenEmeraude: 'bg-(--background-contrast-green-emeraude)',
   info: 'bg-(--background-contrast-info)',

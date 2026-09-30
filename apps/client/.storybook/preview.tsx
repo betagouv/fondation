@@ -45,6 +45,7 @@ export default definePreview({
     },
     options: {
       storySort: {
+        method: 'alphabetical',
         order: [
           'Guide',
           'Design Tokens',

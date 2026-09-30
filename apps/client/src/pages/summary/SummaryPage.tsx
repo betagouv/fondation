@@ -1,11 +1,10 @@
+import { FormattedMessage } from 'react-intl';
 import { useParams } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { Summary } from '@/features/summary/components/Summary';
-import { SummaryContainer } from '@/features/summary/components/SummaryContainer';
+import { SummaryDetailsContent } from '@/features/summary/components/SummaryDetailsContent';
 import { SummaryNotFound } from '@/features/summary/components/SummaryNotFound';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
-import { useVisibleSummarySections } from '@/features/summary/hooks/useVisibleSummarySections';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
@@ -15,22 +14,22 @@ function SummaryPageInner() {
   const { user } = useUser();
   const isSg = useIsSg();
 
-  const params = useParams<{ sessionId: string; fileId: string }>();
+  const params = useParams<{ fileId: string; sessionId: string }>();
   const sessionId = params.sessionId!;
   const nominationFileId = params.fileId!;
 
-  const { sections, showSection } = useVisibleSummarySections();
-
-  const { data, isLoading, error, isFetched } = useSummaryQuery({
-    sessionId: sessionId!,
+  const { data, error, isFetched, isLoading } = useSummaryQuery({
     nominationFileId: nominationFileId!,
+    sessionId: sessionId!,
   });
 
   if (isLoading) {
     return (
-      <SummaryContainer>
-        <p>Chargement...</p>
-      </SummaryContainer>
+      <div className="fr-container fr-py-6v">
+        <p>
+          <FormattedMessage defaultMessage="Chargement..." />
+        </p>
+      </div>
     );
   }
 
@@ -50,22 +49,14 @@ function SummaryPageInner() {
   return (
     <SummaryContext
       value={{
-        sections,
-        showSection,
-        sessionId,
-        nominationFileId,
         canWriteSummary,
+        nominationFileId,
+        sessionId,
         summary: data ?? null,
       }}
     >
       <ArchiveBannerPortal isArchived={data?.isArchived}>
-        {notFound ? (
-          <SummaryNotFound />
-        ) : (
-          <SummaryContainer>
-            <Summary />
-          </SummaryContainer>
-        )}
+        {notFound ? <SummaryNotFound /> : <SummaryDetailsContent />}
       </ArchiveBannerPortal>
     </SummaryContext>
   );

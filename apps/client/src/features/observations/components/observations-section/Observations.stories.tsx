@@ -90,8 +90,11 @@ function makeObservation(overrides: Partial<Observation> & { id: string }): Obse
 
 function makeFiles(count: number) {
   return Array.from({ length: count }, (_, index) => ({
+    addedAt: '2026-07-02T08:30:00.000Z',
+    addedBy: { id: 'user-1', name: 'Anne ROY' },
     id: `file-${index}`,
     name: `piece-jointe-${index + 1}.pdf`,
+    size: 120_000 + index * 4_096,
   }));
 }
 
@@ -147,7 +150,13 @@ async function readObservationForm(request: Request) {
   return { detachedFileIds: [form.detachFileIds ?? []].flat(), files, form };
 }
 
-const toObservationFile = (file: File) => ({ id: crypto.randomUUID(), name: file.name });
+const toObservationFile = (file: File) => ({
+  addedAt: new Date().toISOString(),
+  addedBy: { id: 'user-1', name: 'Anne ROY' },
+  id: crypto.randomUUID(),
+  name: file.name,
+  size: file.size,
+});
 
 const observationHandlers = [
   http.get('*/api/magistrats/v1', ({ request }) => {
@@ -324,12 +333,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
+export const Empty: Story = { args: { observationsCount: 0 } };
+
 export const Member: Story = { args: { view: 'member' } };
+
+export const ObserversOnly: Story = { args: { observationsCount: 0, observers: 3 } };
 
 export const Qualifications: Story = {
   args: { data: QUALIFIED_OBSERVATIONS, observationsCount: QUALIFIED_OBSERVATIONS.length },
 };
-
-export const ObserversOnly: Story = { args: { observationsCount: 0, observers: 3 } };
-
-export const Empty: Story = { args: { observationsCount: 0 } };
