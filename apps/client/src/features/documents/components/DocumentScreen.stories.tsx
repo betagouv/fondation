@@ -35,7 +35,7 @@ export const Agenda: Story = {
         <Button priority="secondary">Modifier les propositions</Button>
         <Button priority="secondary">Éditer le texte</Button>
         <Button priority="secondary">Revenir à la version validée</Button>
-        {validate("Valider l'ODJ")}
+        {validate('Valider le document')}
       </>
     ),
     children: viewer({ html: agendaDocument(), title: 'Ordre du jour' }),
@@ -50,7 +50,7 @@ export const OfficialReport: Story = {
       <>
         <Button priority="secondary">Modifier les données</Button>
         <Button priority="secondary">Éditer le texte</Button>
-        {validate('Valider le PV')}
+        {validate('Valider le document')}
       </>
     ),
     children: viewer({ html: officialReportDocument(), title: 'Procès-verbal' }),

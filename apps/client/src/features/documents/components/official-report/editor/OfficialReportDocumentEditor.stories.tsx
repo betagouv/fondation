@@ -84,7 +84,7 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
       actions={
         <>
           <Button priority="secondary">Modifier les données</Button>
-          <Button disabled={pendingRevalidations.propositions > 0}>Valider le PV</Button>
+          <Button disabled={pendingRevalidations.propositions > 0}>Valider le document</Button>
         </>
       }
       notices={

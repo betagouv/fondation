@@ -122,7 +122,7 @@ export function AgendaPreviewPage() {
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
-                <FormattedMessage defaultMessage="Valider l'ODJ" />
+                <FormattedMessage defaultMessage="Valider le document" />
               )}
             </Button>
           )}
