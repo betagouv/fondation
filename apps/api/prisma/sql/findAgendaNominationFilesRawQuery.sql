@@ -1,5 +1,5 @@
 -- @param {String} $1:sessionId
--- @param $2:versionId
+-- @param $2:versionId?
 -- @param $3:ids?
 
 SELECT

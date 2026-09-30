@@ -1144,7 +1144,8 @@ export type DocGenerationSessionReadinessDto = {
     isReady: boolean;
     canCreateAgenda: boolean;
     canCreateOfficialReport: boolean;
-    agendaBlocker: 'ARCHIVED' | 'NO_AFFECTATION' | 'UNPUBLISHED_AFFECTATION' | 'ALL_FILES_REPORTED' | null;
+    agendaBlocker: 'ARCHIVED' | 'NO_AFFECTATION' | 'ALL_FILES_REPORTED' | null;
+    agendaWarning: 'NEVER_PUBLISHED' | 'UNPUBLISHED_CHANGES' | null;
     officialReportBlocker: {
         reason: 'NO_AGENDA' | 'ALL_AGENDAS_REPORTED' | 'NEVER_PUBLISHED' | 'INCOMPLETE_AGENDA';
         agendas: Array<{
@@ -1466,6 +1467,7 @@ export type DetailedOfficialReportMetadataDto = {
             name: string;
         } | null;
     } | null;
+    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
     validation: {
         at: string;
         by: {

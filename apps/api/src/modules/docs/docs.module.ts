@@ -46,6 +46,7 @@ import { ValidatePresentationPlanUseCase } from './presentation-plan/infrastruct
 import { PresentationPlansController } from './presentation-plan/presentation-plans.controller';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
 import { DocsController } from './shared/infrastructure/docs.controller';
+import { ActedNominationFilesFinder } from './shared/infrastructure/finders/acted-nomination-files.finder';
 import { AgendaFinder } from './shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from './shared/infrastructure/finders/docs-nomination-files.finder';
 import { NominationFilesLinkedDocsFinder } from './shared/infrastructure/finders/nomination-files-linked-docs.finder';
@@ -105,6 +106,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     PresentationPlanRenderer,
     PresentationPlansService,
     ReportedNominationFilesFinder,
+    ActedNominationFilesFinder,
   ],
   exports: [DocsService],
 })

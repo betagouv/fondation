@@ -19,15 +19,9 @@ function AgendaBlockerHint(props: { blocker: DocGenerationSessionReadinessDto['a
     );
   }
 
-  if (props.blocker === 'UNPUBLISHED_AFFECTATION') {
-    return (
-      <FormattedMessage defaultMessage="Vous devez publier la transparence aux membres dans l'onglet Propositions" />
-    );
-  }
-
   if (props.blocker === 'ALL_FILES_REPORTED') {
     return (
-      <FormattedMessage defaultMessage="Toutes les propositions ont déjà été actées dans un procès-verbal" />
+      <FormattedMessage defaultMessage="Toutes les propositions ont déjà été actées dans des ordres du jour restitués" />
     );
   }
 
@@ -147,9 +141,20 @@ export function DocGenerationMenu(props: { sessionId: string }) {
       <MenuContent>
         {!readiness ? null : canCreateAgenda ? (
           <MenuItem className="px-3! py-2!" linkProps={{ to: getNewAgendaPath(props.sessionId) }}>
-            <span className="flex items-center gap-2">
-              <i aria-hidden className="ri-calendar-line fr-icon--sm" />
-              <FormattedMessage defaultMessage="Ordre du jour" />
+            <span className="flex max-w-lg flex-col items-start gap-2 text-left whitespace-normal">
+              <span className="flex items-center gap-2">
+                <i aria-hidden className="ri-calendar-line fr-icon--sm" />
+                <FormattedMessage defaultMessage="Ordre du jour" />
+              </span>
+              {readiness.agendaWarning && (
+                <span className="text-xs leading-5 font-normal text-(--text-default-warning)">
+                  {readiness.agendaWarning === 'NEVER_PUBLISHED' ? (
+                    <FormattedMessage defaultMessage="Les affectations n'ont jamais été publiées : l'ordre du jour s'affichera sans aucun rapporteur" />
+                  ) : (
+                    <FormattedMessage defaultMessage="Des affectations ne sont pas encore publiées : l'ordre du jour reprendra les rapporteurs de la dernière publication" />
+                  )}
+                </span>
+              )}
             </span>
           </MenuItem>
         ) : (

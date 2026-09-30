@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -15,8 +15,6 @@ import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {
-  private readonly logger = new Logger(InternalFindDocsNominationFilesQuery.name);
-
   constructor(
     private readonly db: Db,
     private readonly version: AffectationVersionFinder,
@@ -24,24 +22,20 @@ export class InternalFindDocsNominationFilesQuery {
 
   @Transactional()
   async handle(query: {
-    sessionId: string;
     ids?: readonly string[];
+    sessionId: string;
   }): Promise<InternalFoundAgendaNominationFiles> {
     if (query.ids) assertPgParams(query.ids);
 
+    // the agenda prints the published reporters only: before any publication, it prints none
     const maybeVersion = await this.version.lastPublished({
       sessionId: query.sessionId,
     });
 
-    if (maybeVersion.isNone()) {
-      this.logger.warn(`There was no published version available for session ${query.sessionId}`);
-      throw new NotFoundException();
-    }
-
     const rows = await this.db.tx.$queryRawTyped(
       findAgendaNominationFilesRawQuery(
         query.sessionId,
-        maybeVersion.id,
+        maybeVersion.optionalId ?? null,
         (query.ids as string[] | null) ?? null,
       ),
     );
@@ -49,11 +43,11 @@ export class InternalFindDocsNominationFilesQuery {
     const items = await z.array(SqlNominationFilesSchema).parseAsync(rows);
     const identified = new Set(items.map(({ id }) => id));
     const sessionFiles = await this.db.tx.dossierDeNomination.findMany({
-      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
       where: {
         sessionId: query.sessionId,
         ...(query.ids ? { id: { in: [...query.ids] } } : {}),
       },
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
     });
 
     return {
@@ -69,52 +63,51 @@ const SqlJurisdictionSchema = z.object({
 });
 
 const SqlFunctionSchema = z.object({
+  addition: z.string().nullable(),
   id: z.string().trim().nonempty(),
   label: z.string().trim().nonempty(),
-  labelOneMale: z.string().nullable(),
   labelOneFemale: z.string().nullable(),
-  addition: z.string().nullable(),
+  labelOneMale: z.string().nullable(),
 });
 
 const SqlNominationFilesSchema = z
   .object({
     id: z.uuid(),
+    magistrat: z.object({
+      civility: z.enum(['M.', 'MME']),
+      externalId: z.number().int().gt(0),
+      firstName: z.string().trim().nonempty(),
+      id: z.string().nonempty(),
+      lastName: z.string().trim().nonempty(),
+      marriedName: z.string().trim().nullable(),
+      position: z.object({
+        arrondissement: SqlJurisdictionSchema.nullable(),
+        function: SqlFunctionSchema.nullable(),
+        grade: z.enum(GradeEnum),
+        jurisdiction: SqlJurisdictionSchema,
+      }),
+      usedName: z.string().trim().nullable(),
+    }),
     number: z.number().int(),
     outcome: z.enum(NominationFileOutcome.enum).nullable(),
     outcomeComment: z.string().trim().nullable(),
-    targetPosition: z.object({
-      grade: z.enum(GradeEnum),
-      jurisdiction: SqlJurisdictionSchema,
-      arrondissement: SqlJurisdictionSchema.nullable(),
-      function: SqlFunctionSchema,
-    }),
-    magistrat: z.object({
-      id: z.string().nonempty(),
-      civility: z.enum(['M.', 'MME']),
-      firstName: z.string().trim().nonempty(),
-      lastName: z.string().trim().nonempty(),
-      marriedName: z.string().trim().nullable(),
-      usedName: z.string().trim().nullable(),
-      externalId: z.number().int().gt(0),
-
-      position: z.object({
-        grade: z.enum(GradeEnum),
-        jurisdiction: SqlJurisdictionSchema,
-        arrondissement: SqlJurisdictionSchema.nullable(),
-        function: SqlFunctionSchema.nullable(),
-      }),
-    }),
     reporters: z.preprocess(
       (x) => x ?? [],
       z.array(
         z.object({
-          id: z.uuid(),
           firstName: z.string().trim().nonempty(),
-          lastName: z.string().trim().nonempty(),
           gender: z.enum(GenderEnum),
+          id: z.uuid(),
+          lastName: z.string().trim().nonempty(),
         }),
       ),
     ),
+    targetPosition: z.object({
+      arrondissement: SqlJurisdictionSchema.nullable(),
+      function: SqlFunctionSchema,
+      grade: z.enum(GradeEnum),
+      jurisdiction: SqlJurisdictionSchema,
+    }),
   })
   .transform((item) => {
     const currentPosition = buildPosition({
@@ -131,8 +124,8 @@ const SqlNominationFilesSchema = z
       item.outcome === null
         ? null
         : NominationFileOutcome.from({
-            outcome: item.outcome,
             comment: item.outcomeComment,
+            outcome: item.outcome,
           });
 
     const reporters = item.reporters.map((u) => ({
@@ -141,8 +134,8 @@ const SqlNominationFilesSchema = z
       firstName: u.firstName,
       lastName: u.lastName,
       fullTitledName: buildMemberName({
-        gender: u.gender,
         firstName: u.firstName,
+        gender: u.gender,
         lastName: u.lastName,
       }),
     }));

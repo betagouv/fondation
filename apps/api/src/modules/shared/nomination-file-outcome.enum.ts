@@ -16,7 +16,7 @@ export type NominationFileOutcomeEnum = (typeof NOMINATION_FILE_OUTCOMES)[number
 
 export type NonFinalNominationFileOutcomeEnum = Extract<
   NominationFileOutcomeEnum,
-  'SUSPENDED' | 'WAITING_DSJ' | 'ASSESSING'
+  'ASSESSING' | 'SUSPENDED' | 'WAITING_DSJ'
 >;
 
 export type FinalNominationFileOutcomeEnum = Exclude<
@@ -38,22 +38,6 @@ const FINAL_OUTCOMES = Object.freeze(
   ),
 );
 
-export type AwaitedNominationFileOutcomeEnum = Extract<
-  NominationFileOutcomeEnum,
-  'ASSESSING' | 'WAITING_DSJ'
->;
-
-const AWAITED_OUTCOMES = Object.freeze(
-  Object.values({
-    ASSESSING: 'ASSESSING',
-    WAITING_DSJ: 'WAITING_DSJ',
-  } satisfies { [K in AwaitedNominationFileOutcomeEnum]: K }),
-);
-
-const DECIDED_OUTCOMES = Object.freeze(
-  NOMINATION_FILE_OUTCOMES.filter((x) => !(AWAITED_OUTCOMES as unknown[]).includes(x)),
-);
-
 const OUTCOMES_IN_SELECTION_ORDER = Object.freeze(
   Object.values({
     VALIDATED: 'VALIDATED',
@@ -67,9 +51,9 @@ const OUTCOMES_IN_SELECTION_ORDER = Object.freeze(
 );
 
 export type SelectableNominationFileOutcome = {
-  value: NominationFileOutcomeEnum;
-  label: string;
   commentRequired: boolean;
+  label: string;
+  value: NominationFileOutcomeEnum;
 };
 
 export class NominationFileOutcome {
@@ -78,14 +62,6 @@ export class NominationFileOutcome {
 
   static finalOutcomes(): FinalNominationFileOutcomeEnum[] {
     return [...FINAL_OUTCOMES];
-  }
-
-  static decidedOutcomes(): NominationFileOutcomeEnum[] {
-    return [...DECIDED_OUTCOMES];
-  }
-
-  static isAwaited(outcome: NominationFileOutcomeEnum | null): boolean {
-    return !isDefined(outcome) || (AWAITED_OUTCOMES as readonly string[]).includes(outcome);
   }
 
   static nonFinalOutcomes(): NonFinalNominationFileOutcomeEnum[] {
@@ -104,9 +80,9 @@ export class NominationFileOutcome {
   // FIXME: move somewhere else
   static selectableOutcomes(formation: FormationEnum): SelectableNominationFileOutcome[] {
     return OUTCOMES_IN_SELECTION_ORDER.map((value) => ({
-      value,
-      label: nominationFileOutcomeLabel({ outcome: value, formation }),
       commentRequired: NominationFileOutcome.commentRequired(value),
+      label: nominationFileOutcomeLabel({ formation, outcome: value }),
+      value,
     }));
   }
 
@@ -115,11 +91,11 @@ export class NominationFileOutcome {
     readonly comment: string | null,
   ) {}
 
-  static from(props: { outcome: string; comment: string | null }): NominationFileOutcome {
+  static from(props: { comment: string | null; outcome: string }): NominationFileOutcome {
     const outcome = this.assertIsNominationFileOutcome(props.outcome);
     const comment = this.assertRequiredComment({
-      outcome,
       comment: props.comment,
+      outcome,
     });
 
     return new NominationFileOutcome(outcome, comment);
@@ -134,8 +110,8 @@ export class NominationFileOutcome {
   }
 
   private static assertRequiredComment(props: {
-    outcome: NominationFileOutcomeEnum;
     comment: string | null;
+    outcome: NominationFileOutcomeEnum;
   }): string | null {
     const comment = props.comment?.trim() || null;
     if (NominationFileOutcome.commentRequired(props.outcome) && !isDefined(comment)) {
@@ -159,8 +135,8 @@ export class NominationFileOutcomeRequiresComment extends Error {
 }
 
 export function nominationFileOutcomeLabel(props: {
-  outcome: NominationFileOutcomeEnum;
   formation: FormationEnum;
+  outcome: NominationFileOutcomeEnum;
 }): string {
   switch (props.outcome) {
     case 'VALIDATED': {

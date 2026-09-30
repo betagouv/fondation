@@ -33,30 +33,30 @@ function presentedFiles(...nominationFileIds: string[]): ReadonlySet<string> {
 
 describe('Agenda', () => {
   const props = Object.freeze({
+    actedNominationFileIds: NO_PRESENTED_FILE,
     authorId: 'author-1',
     chairman: {
-      id: 'chairman-1',
-      title: null,
       displayTitle: null,
-      gender: GenderEnum.MALE,
       firstName: faker.person.firstName(),
+      gender: GenderEnum.MALE,
+      id: 'chairman-1',
       lastName: faker.person.lastName(),
+      title: null,
     },
     date: DateOnly.fromJson({ day: 2, month: 2, year: 2026 }),
     nominationFiles: [
       {
-        id: 'nf-1',
-        number: 1,
-        reporters: [],
         currentPosition: faker.lorem.sentence(10),
         grade: 'G3',
+        id: 'nf-1',
         name: faker.person.fullName(),
-        outcome: { value: 'VALIDATED', comment: null },
+        number: 1,
+        outcome: { comment: null, value: 'VALIDATED' },
+        reporters: [],
         targetedGrade: 'G3',
         targetedPosition: faker.lorem.sentence(10),
       },
     ],
-    reportedNominationFileIds: NO_PRESENTED_FILE,
     sessionId: 'session-1',
     sessionMeetingDate: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
   } as const satisfies Parameters<(typeof Agenda)['create']>[0]);
@@ -69,14 +69,14 @@ describe('Agenda', () => {
 
     const id = makeId('AgendaId');
     return Agenda.from({
+      actorId: AUTHOR,
       id,
-      sessionId: makeId('SessionId'),
       officialReportId: null,
+      sessionId: makeId('SessionId'),
       snapshot: AgendaSnapshot.from({
         agendaId: id,
-        date: props.date,
-        sessionMeetingDate: props.sessionMeetingDate,
         chairmanId: props.chairman.id,
+        date: props.date,
         nominationFiles: [
           {
             id: 1n,
@@ -85,10 +85,10 @@ describe('Agenda', () => {
             reporters: props.nominationFiles[0].reporters,
           },
         ],
+        sessionMeetingDate: props.sessionMeetingDate,
         ...snapshot,
       }),
 
-      actorId: AUTHOR,
       ...agendaProps,
     });
   }
@@ -107,7 +107,7 @@ describe('Agenda', () => {
     const act = () =>
       Agenda.create({
         ...props,
-        reportedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
+        actedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
       });
 
     expect(act).toThrow(AgendaFilesAlreadyReported);
@@ -118,9 +118,9 @@ describe('Agenda', () => {
 
     const act = () =>
       agenda.updateFiles({
+        actedNominationFileIds: presentedFiles('nf-2'),
         authorId: props.authorId,
         nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
-        reportedNominationFileIds: presentedFiles('nf-2'),
       });
 
     expect(act).toThrow(AgendaFilesAlreadyReported);
@@ -131,9 +131,9 @@ describe('Agenda', () => {
 
     const act = () =>
       agenda.updateFiles({
+        actedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
         authorId: props.authorId,
         nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
-        reportedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
       });
 
     expect(act).not.toThrow();
@@ -144,9 +144,9 @@ describe('Agenda', () => {
 
     const act = () =>
       agenda.updateFiles({
+        actedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
         authorId: props.authorId,
         nominationFileIds: new Set(['nf-2']),
-        reportedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
       });
 
     expect(act).not.toThrow();
@@ -183,9 +183,9 @@ describe('Agenda', () => {
     const agenda = makeAgenda();
 
     agenda.updateMetadata({
-      date: props.date,
       authorId: props.authorId,
       chairmanId: props.chairman.id,
+      date: props.date,
       sessionMeetingDate: props.sessionMeetingDate,
     });
 
@@ -197,9 +197,9 @@ describe('Agenda', () => {
     const date = DateOnly.fromJson({ day: 3, month: 3, year: 2026 });
 
     const diff = agenda.updateMetadata({
-      date,
       authorId: props.authorId,
       chairmanId: props.chairman.id,
+      date,
       sessionMeetingDate: props.sessionMeetingDate,
     });
 
@@ -207,12 +207,12 @@ describe('Agenda', () => {
       hasAny: true,
       officialReportInvalidations: [
         {
-          type: 'AgendaDateUpdated',
           payload: {
             agendaId: agenda.id,
             currentDate: date.toJson(),
             previousDate: props.date.toJson(),
           },
+          type: 'AgendaDateUpdated',
         } satisfies DocInvalidation,
       ],
     });
@@ -222,8 +222,8 @@ describe('Agenda', () => {
     const agenda = makeAgenda();
 
     const diff = agenda.updateMetadata({
-      chairmanId: 'chairman-2',
       authorId: props.authorId,
+      chairmanId: 'chairman-2',
       date: props.date,
       sessionMeetingDate: props.sessionMeetingDate,
     });
@@ -235,9 +235,9 @@ describe('Agenda', () => {
     const agenda = makeAgenda();
 
     agenda.updateFiles({
+      actedNominationFileIds: NO_PRESENTED_FILE,
       authorId: props.authorId,
       nominationFileIds: new Set(props.nominationFiles.map(({ id }) => id)),
-      reportedNominationFileIds: NO_PRESENTED_FILE,
     });
 
     expect(agenda.messages).toEqual([]);
@@ -247,9 +247,9 @@ describe('Agenda', () => {
     const agenda = makeAgenda();
 
     agenda.updateFiles({
+      actedNominationFileIds: NO_PRESENTED_FILE,
       authorId: props.authorId,
       nominationFileIds: new Set(['nf-2']),
-      reportedNominationFileIds: NO_PRESENTED_FILE,
     });
 
     expect(agenda.messages).toContainEqual(

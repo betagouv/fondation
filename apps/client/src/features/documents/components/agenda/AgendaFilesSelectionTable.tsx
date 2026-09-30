@@ -17,7 +17,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { NominationFileOutcome } from '@/features/nomination-files-table/components/cells/nomination-file-outcome/NominationFileOutcome';
 import { NominationFileStatusCell } from '@/features/nomination-files-table/components/cells/NominationFileStatusCell';
@@ -71,27 +71,27 @@ function useAgendaFilesColumns() {
   return useMemo(
     () => [
       h.accessor('content.numeroDeDossier', {
-        id: 'fileNumber',
         cell: fileNumberCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'N°' }),
+        id: 'fileNumber',
         size: 42,
         sortDescFirst: true,
       }),
 
       h.accessor('content.nomMagistrat', {
-        id: 'name',
         cell: magistratCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Magistrat' }),
+        id: 'name',
         size: 250,
       }),
 
       h.accessor('content.posteCible', {
-        id: 'targetedGrade',
         cell: posteCibleCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Poste cible' }),
+        id: 'targetedGrade',
         size: 240,
         sortDescFirst: true,
       }),
@@ -164,7 +164,7 @@ function useFiltersHeight(filters: HTMLElement | null) {
 }
 
 function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
-  const { formatMessage } = useIntl();
+  const { formatList, formatMessage } = useIntl();
   const [pinnedFilters, setPinnedFilters] = useState<HTMLDivElement | null>(null);
   const filtersHeight = useFiltersHeight(props.scrollsWithPage ? pinnedFilters : null);
   const { data: agendaFiles, isError } = useFindAgendaNominationFilesQuery({
@@ -231,6 +231,13 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
     [rowSelection],
   );
 
+  const selectedWithoutReporter = useMemo(() => {
+    const selected = new Set(selectedFileIds);
+    return (agendaFiles?.items ?? []).filter(
+      ({ id, reporters }) => selected.has(id) && reporters.length === 0,
+    );
+  }, [agendaFiles, selectedFileIds]);
+
   const canSelectRow = useCallback(
     (row: Row<SessionNominationFile>) => !!agendaFiles && !ineligibilityReasons.has(row.original.id),
     [agendaFiles, ineligibilityReasons],
@@ -248,7 +255,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
         case 'REPORTED':
           return formatMessage({
             defaultMessage:
-              'Cette proposition est déjà actée dans un procès-verbal restitué et avec une issue définitive',
+              'Cette proposition est déjà actée dans un ordre du jour restitué, avec une issue définitive',
           });
         case 'UNIDENTIFIED':
           return formatMessage({
@@ -392,6 +399,28 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
             { count: selectedFileIds.length, total: filesTable.totalCount },
           )}
         </p>
+        {selectedWithoutReporter.length > 0 && (
+          <p className="fr-m-0 text-sm text-(--text-default-warning)">
+            <span aria-hidden className="fr-icon-warning-line fr-icon--sm fr-mr-1w" />
+            <FormattedMessage
+              defaultMessage={`{count, plural,
+                one {La proposition {files} n'a pas de rapporteur publié : elle s'affichera sans "au rapport de".}
+                other {Les propositions {files} n'ont pas de rapporteur publié : elles s'afficheront sans "au rapport de".}}`}
+              values={{
+                count: selectedWithoutReporter.length,
+                files: formatList(
+                  selectedWithoutReporter.map(({ magistrat, number }) =>
+                    formatMessage(
+                      { defaultMessage: 'n° {number} ({name})' },
+                      { name: magistrat.name, number },
+                    ),
+                  ),
+                  { type: 'conjunction' },
+                ),
+              }}
+            />
+          </p>
+        )}
       </div>
 
       <NewTable
