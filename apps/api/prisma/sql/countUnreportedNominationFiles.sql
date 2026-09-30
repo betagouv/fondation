@@ -1,8 +1,6 @@
 -- @param $1:sessionIds
 -- @param $2:finalOutcomes
 -- @param $3:finalDocOutcomes
--- @param {Boolean} $4:requiresPublishedAffectation
--- @param {String} $5:affectationVersionId?
 
 SELECT
   ddn.session_id AS "sessionId",
@@ -23,19 +21,6 @@ WHERE
         ornf.nomination_file_id = ddn.id
         AND orv.validated_at IS NOT NULL
         AND ornf.outcome = ANY(/* finalDocOutcomes */$3::docs.agenda_file_outcome_enum[])
-    )
-    OR (
-      /* requiresPublishedAffectation */$4::BOOLEAN = TRUE
-      AND (
-        /* affectationVersionId */$5::UUID IS NULL
-        OR NOT EXISTS (
-          SELECT 1
-          FROM nominations_context.nomination_file_to_reporter AS nfr
-          WHERE
-            nfr.nomination_file_id = ddn.id
-            AND nfr.version_id = /* affectationVersionId */$5::UUID
-        )
-      )
     )
   )
 GROUP BY ddn.session_id;

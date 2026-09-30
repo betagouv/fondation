@@ -222,6 +222,7 @@ model OfficialReportVersion {
   justiceDepartmentContact JusticeDepartmentContact?           @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pdf                      File?                               @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
   systemUpdates            OfficialReportVersionSystemUpdate[]
+  skippedUpdates           OfficialReportVersionSkippedUpdate[]
 
   @@unique([officialReportId, version])
   @@map("official_report_version")
@@ -472,5 +473,18 @@ model OfficialReportVersionSystemUpdate {
 
   @@id([versionId, cause], name: "primaryKey")
   @@map("official_report_version_system_update")
+  @@schema("docs")
+}
+
+/// each change a validated official report did not follow, since it reports its meeting as it was held
+model OfficialReportVersionSkippedUpdate {
+  versionId String                         @map("version_id") @db.Uuid
+  cause     PrismaDocSystemUpdateCauseEnum
+  at        DateTime
+
+  version OfficialReportVersion @relation(fields: [versionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([versionId, cause], name: "primaryKey")
+  @@map("official_report_version_skipped_update")
   @@schema("docs")
 }

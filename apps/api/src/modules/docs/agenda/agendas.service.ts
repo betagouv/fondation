@@ -9,8 +9,8 @@ import {
   DocInvalidation,
 } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
+import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
-import { ReportedNominationFilesFinder } from '../shared/infrastructure/finders/reported-nomination-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
@@ -46,7 +46,7 @@ export class AgendasService {
     private readonly agendaRepository: AgendaRepository,
     private readonly agendaVersionFinder: AgendaVersionFinder,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
-    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
+    private readonly actedNominationFilesFinder: ActedNominationFilesFinder,
     private readonly detailsAgendaMetadataQuery: DetailsAgendaMetadataQuery,
     private readonly detailsAgendaFilesQuery: DetailsAgendaFilesQuery,
     private readonly detailsAgendaDocumentBlocksQuery: DetailsAgendaDocumentBlocksQuery,
@@ -66,11 +66,11 @@ export class AgendasService {
   @Transactional()
   async createAgenda(command: {
     authorId: string;
-    sessionId: string;
     chairmanId: string;
     date: DateOnlyJson;
-    sessionMeetingDate: DateOnlyJson;
     nominationFileIds: readonly string[];
+    sessionId: string;
+    sessionMeetingDate: DateOnlyJson;
   }): Promise<CreatedAgendaDto> {
     const chairman = await this.members.internalGetMember({
       id: command.chairmanId,
@@ -81,28 +81,28 @@ export class AgendasService {
       sessionId: command.sessionId,
     });
 
-    const reportedNominationFileIds = await this.reportedNominationFilesFinder.find({
+    const actedNominationFileIds = await this.actedNominationFilesFinder.find({
       fileIds: new Set(nominationFiles.map(({ id }) => id)),
     });
 
     const agenda = Agenda.create({
+      actedNominationFileIds,
       authorId: command.authorId,
       chairman,
       date: DateOnly.fromJson(command.date),
-      reportedNominationFileIds,
-      sessionId: command.sessionId,
-      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       nominationFiles: nominationFiles.map((f) => ({
+        currentPosition: f.magistrat.position.label,
+        grade: f.magistrat.position.grade,
         id: f.id,
+        name: f.magistrat.name,
         number: f.number,
         outcome: f.outcome,
-        name: f.magistrat.name,
-        grade: f.magistrat.position.grade,
-        currentPosition: f.magistrat.position.label,
+        reporters: f.reporters.map((r) => r.fullTitledName),
         targetedGrade: f.targetPosition.grade,
         targetedPosition: f.targetPosition.label,
-        reporters: f.reporters.map((r) => r.fullTitledName),
       })),
+      sessionId: command.sessionId,
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
     });
 
     await this.agendaRepository.persist(agenda);
@@ -123,8 +123,8 @@ export class AgendasService {
         agendaId: command.agendaId,
       });
       const diff = agenda.updateMetadata({
-        chairmanId: command.chairmanId,
         authorId: command.authorId,
+        chairmanId: command.chairmanId,
         date: DateOnly.fromJson(command.date),
         sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
       });
@@ -148,14 +148,14 @@ export class AgendasService {
         agendaId: command.agendaId,
       });
       const nominationFileIds = new Set(command.nominationFileIds);
-      const reportedNominationFileIds = await this.reportedNominationFilesFinder.find({
+      const actedNominationFileIds = await this.actedNominationFilesFinder.find({
         fileIds: nominationFileIds,
       });
 
       const diff = agenda.updateFiles({
-        nominationFileIds,
-        reportedNominationFileIds,
+        actedNominationFileIds,
         authorId: command.authorId,
+        nominationFileIds,
       });
 
       await this.agendaRepository.persist(agenda);
@@ -182,15 +182,15 @@ export class AgendasService {
     await this.agendaRepository.persist(agenda);
   }
 
-  getOrCreateAgendaDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
+  getOrCreateAgendaDocument(query: { forceNew?: boolean; id: string }): Promise<string> {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  getOrCreateAgendaDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
+  getOrCreateAgendaDocumentPdf(query: { forceNew?: boolean; id: string }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 
-  detailsSessionAgenda(query: { sessionId: string; agendaId: string }): Promise<DetailedSessionAgenda> {
+  detailsSessionAgenda(query: { agendaId: string; sessionId: string }): Promise<DetailedSessionAgenda> {
     return this.detailsSessionAgendaQuery.handle(query);
   }
 
@@ -213,7 +213,7 @@ export class AgendasService {
       }),
     );
 
-    await this.emitInvalidations([{ type: 'AgendaValidated', payload: { agendaId: command.agendaId } }]);
+    await this.emitInvalidations([{ payload: { agendaId: command.agendaId }, type: 'AgendaValidated' }]);
   }
 
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
@@ -285,8 +285,8 @@ export class AgendasService {
 
     await this.emitInvalidations(
       [...changed].map((nominationFileId) => ({
-        type: 'AgendaFileBlockEdited',
         payload: { agendaId, nominationFileId },
+        type: 'AgendaFileBlockEdited',
       })),
     );
   }
@@ -299,8 +299,8 @@ export class AgendasService {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
+            nominationFiles: { select: { htmlEdited: true, nominationFileId: true } },
             status: true,
-            nominationFiles: { select: { nominationFileId: true, htmlEdited: true } },
           },
         },
       } satisfies Prisma.AgendaSelect,

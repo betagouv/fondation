@@ -16,7 +16,6 @@ import { type OfficialReportBlock } from './official-report-blocks.type';
 type JsonOfficialReportSectionTitleBlock = Extract<OfficialReportBlock, { kind: 'section-title' }>;
 export const OfficialReportSectionTitleBlock = {
   block: 'section-title' satisfies OfficialReportBlock['kind'],
-  name: 'sectionTitleBlock',
 
   handles(block: OfficialReportBlock): block is JsonOfficialReportSectionTitleBlock {
     return block.kind === this.block;
@@ -25,12 +24,14 @@ export const OfficialReportSectionTitleBlock = {
   map(block: JsonOfficialReportSectionTitleBlock): JSONContent[] {
     return [
       {
+        attrs: { edited: block.edited, outcome: block.outcome },
+        content: [{ text: block.text, type: 'text' }],
         type: this.name,
-        attrs: { outcome: block.outcome, edited: block.edited },
-        content: [{ type: 'text', text: block.text }],
       },
     ];
   },
+
+  name: 'sectionTitleBlock',
 };
 
 function SectionTitleBlockView(props: ReactNodeViewProps) {
@@ -49,23 +50,11 @@ function SectionTitleBlockView(props: ReactNodeViewProps) {
 }
 
 export const OfficialReportSectionTitleBlockNode = Node.create({
-  name: OfficialReportSectionTitleBlock.name,
-  group: 'block',
-  content: 'inline*',
-  marks: '',
-  isolating: true,
-  selectable: true,
   addAttributes() {
     return {
-      outcome: { default: null },
       edited: { default: false, rendered: false },
+      outcome: { default: null },
     };
-  },
-  parseHTML() {
-    return [{ tag: 'h2[data-block-type="section-title"]' }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['h2', mergeAttributes(HTMLAttributes, { 'data-block-type': 'section-title' }), 0];
   },
   addKeyboardShortcuts() {
     return { Enter: () => this.editor.isActive('sectionTitleBlock') };
@@ -73,4 +62,16 @@ export const OfficialReportSectionTitleBlockNode = Node.create({
   addNodeView() {
     return ReactNodeViewRenderer(SectionTitleBlockView, { selectedOnTextSelection: true });
   },
+  content: 'text*',
+  group: 'block',
+  isolating: true,
+  marks: '',
+  name: OfficialReportSectionTitleBlock.name,
+  parseHTML() {
+    return [{ tag: 'h2[data-block-type="section-title"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['h2', mergeAttributes(HTMLAttributes, { 'data-block-type': 'section-title' }), 0];
+  },
+  selectable: true,
 });

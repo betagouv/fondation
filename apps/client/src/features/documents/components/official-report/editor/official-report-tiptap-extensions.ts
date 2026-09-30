@@ -2,6 +2,7 @@ import { Extension, type AnyExtension, type Command, type Editor } from '@tiptap
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
 import Document from '@tiptap/extension-document';
+import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
 import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
@@ -27,19 +28,9 @@ import { OfficialReportSectionIntroBlockNode } from './blocks/OfficialReportSect
 import { OfficialReportSectionTitleBlockNode } from './blocks/OfficialReportSectionTitleBlock';
 
 const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlocksModel | null }>({
-  name: 'officialReportModel',
-  addOptions: () => ({ model: null }),
   addCommands() {
     const { model } = this.options;
     return {
-      resetBlock:
-        (viewProps: ReactNodeViewProps) =>
-        ({ editor }) => {
-          // without queueMicrotask, tiptap throws
-          queueMicrotask(() => void model?.resetBlock({ ...viewProps, editor }));
-          return true;
-        },
-
       acknowledgeBlock:
         (viewProps: ReactNodeViewProps) =>
         ({ editor }) => {
@@ -47,8 +38,18 @@ const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlo
           queueMicrotask(() => void model?.acknowledgeBlock({ ...viewProps, editor }));
           return true;
         },
+
+      resetBlock:
+        (viewProps: ReactNodeViewProps) =>
+        ({ editor }) => {
+          // without queueMicrotask, tiptap throws
+          queueMicrotask(() => void model?.resetBlock({ ...viewProps, editor }));
+          return true;
+        },
     };
   },
+  addOptions: () => ({ model: null }),
+  name: 'officialReportModel',
 });
 
 /**
@@ -57,9 +58,6 @@ const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlo
  * backend `outdated` flag follows the editor.
  */
 const OfficialReportUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) | null }>({
-  addOptions() {
-    return { ...this.parent?.(), onHistory: null };
-  },
   addCommands() {
     const parent = this.parent?.();
     type CommandFn = () => Command;
@@ -74,9 +72,12 @@ const OfficialReportUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) =>
 
     return {
       ...parent,
-      undo: wrap(parent?.undo),
       redo: wrap(parent?.redo),
+      undo: wrap(parent?.undo),
     };
+  },
+  addOptions() {
+    return { ...this.parent?.(), onHistory: null };
   },
 });
 
@@ -87,6 +88,7 @@ export function buildOfficialReportExtensions(model: OfficialReportBlocksModel):
     Text,
     Bold,
     Italic,
+    HardBreak,
     BulletList,
     ListItem,
     OrderedList,

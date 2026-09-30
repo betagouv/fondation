@@ -17,7 +17,7 @@ import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 
-import { ReportedNominationFilesFinder } from './reported-nomination-files.finder';
+import { ActedNominationFilesFinder } from './acted-nomination-files.finder';
 
 @Injectable()
 export class DocsNominationFilesFinder {
@@ -25,16 +25,16 @@ export class DocsNominationFilesFinder {
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
 
-    private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
+    private readonly actedNominationFilesFinder: ActedNominationFilesFinder,
 
     private readonly db: Db,
   ) {}
 
   @Transactional()
   async find(query: {
-    sessionId: string;
     formation?: FormationEnum;
     ids?: readonly string[];
+    sessionId: string;
   }): Promise<FoundDocsNominationFiles> {
     const found = await this.sessions.internalFindNominationFiles({
       ids: query.ids,
@@ -49,7 +49,7 @@ export class DocsNominationFilesFinder {
     const found = await this.sessions.internalFindNominationFiles({ sessionId: query.sessionId });
     const sessionNominationFiles = await this.withDocsOutcomes(found, query);
 
-    const reportedNominationFiles = await this.reportedNominationFilesFinder.find({
+    const actedNominationFiles = await this.actedNominationFilesFinder.find({
       fileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
     });
 
@@ -57,7 +57,7 @@ export class DocsNominationFilesFinder {
       items: sessionNominationFiles,
       ineligible: [
         ...sessionNominationFiles.flatMap(({ id }) =>
-          reportedNominationFiles.has(id) ? [{ id, reason: 'REPORTED' as const }] : [],
+          actedNominationFiles.has(id) ? [{ id, reason: 'REPORTED' as const }] : [],
         ),
         ...found.unidentifiedIds.map((id) => ({ id, reason: 'UNIDENTIFIED' as const })),
       ],
@@ -66,7 +66,7 @@ export class DocsNominationFilesFinder {
 
   private async withDocsOutcomes(
     found: InternalFoundAgendaNominationFiles,
-    query: { sessionId: string; formation?: FormationEnum },
+    query: { formation?: FormationEnum; sessionId: string },
   ): Promise<FoundDocsNominationFiles['items']> {
     const items = found.items as FoundDocsNominationFiles['items'];
     if (items.length === 0) return [];
@@ -78,7 +78,7 @@ export class DocsNominationFilesFinder {
       if (!file.outcome) return file;
 
       file.outcome.value = nominationFileOutcomeToDocNominationFileOutcome(file.outcome.value);
-      file.outcome.label = docNominationFileOutcomeLabel({ outcome: file.outcome.value, formation });
+      file.outcome.label = docNominationFileOutcomeLabel({ formation, outcome: file.outcome.value });
       return file;
     });
   }
@@ -96,11 +96,11 @@ export class DocsNominationFilesFinder {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
-            status: true,
             nominationFiles: {
               where: { nominationFileId: { not: null } },
               select: { nominationFileId: true },
             },
+            status: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -111,12 +111,12 @@ export class DocsNominationFilesFinder {
     const allItems: FoundDocsNominationFiles['items'] = [];
     for (const [sessionId, list] of bySessionId) {
       const { items } = await this.find({
-        sessionId,
         ids: list.flatMap(
           (x): string[] =>
             agendaContentOf(x.versions)?.nominationFiles.map(({ nominationFileId }) => nominationFileId!) ??
             [],
         ),
+        sessionId,
       });
 
       allItems.push(...items);

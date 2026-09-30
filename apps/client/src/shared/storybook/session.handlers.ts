@@ -231,11 +231,12 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
 
     http.get('*/api/docs/v1/sessions/:sessionId/readiness', ({ params }) =>
       HttpResponse.json<DocGenerationSessionReadinessDto>({
+        agendaBlocker: null,
+        agendaWarning: null,
         canCreateAgenda: datasetOf(params.sessionId).files.length > 0,
         canCreateOfficialReport: false,
         isReady: datasetOf(params.sessionId).files.length > 0,
-        agendaBlocker: null,
-        officialReportBlocker: { reason: 'NO_AGENDA', agendas: [] },
+        officialReportBlocker: { agendas: [], reason: 'NO_AGENDA' },
       }),
     ),
 

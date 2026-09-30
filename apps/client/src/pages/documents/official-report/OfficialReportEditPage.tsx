@@ -25,6 +25,8 @@ import {
   useOfficialReportDocumentQuery,
 } from '@queries/agenda.queries';
 
+import { OfficialReportChangedSinceValidationBanner } from './OfficialReportChangedSinceValidationBanner';
+
 export function OfficialReportEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -132,6 +134,9 @@ export function OfficialReportEditPage() {
                 kind="officialReport"
                 validatedAt={metadata.validation?.at}
               />
+            )}
+            {metadata && (
+              <OfficialReportChangedSinceValidationBanner changes={metadata.changedSinceValidation} />
             )}
             {(pendingRevalidations.propositions > 0 || pendingRevalidations.others > 0) && (
               <DocumentDriftBanner outdatedPropositions={pendingRevalidations.propositions} />

@@ -9,12 +9,12 @@ import { AgendaNominationFile } from './agenda-nomination-file';
 import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';
 
 export type AgendaChairman = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  gender: GenderEnum;
-  title: UserTitleEnum | null;
   displayTitle: string | null;
+  firstName: string;
+  gender: GenderEnum;
+  id: string;
+  lastName: string;
+  title: UserTitleEnum | null;
 };
 
 export class AgendaCreated {
@@ -23,12 +23,12 @@ export class AgendaCreated {
     readonly sessionId: Id<'SessionId'>,
     readonly authorId: Id<'AuthorId'>,
     readonly chairman: {
-      id: Id<'ChairmanId'>;
-      firstName: string;
-      lastName: string;
-      gender: GenderEnum;
-      title: UserTitleEnum | null;
       displayTitle: string | null;
+      firstName: string;
+      gender: GenderEnum;
+      id: Id<'ChairmanId'>;
+      lastName: string;
+      title: UserTitleEnum | null;
     },
     readonly date: Date,
     readonly sessionMeetingDate: Date,
@@ -172,13 +172,13 @@ export class Agenda {
   }
 
   static from(props: {
-    id: Id<'AgendaId'>;
-    sessionId: Id<'SessionId'>;
-    officialReportId: Id<'OfficialReportId'> | null;
     /** whoever is acting on the agenda: the draft a change opens is theirs, not the previous author's */
     actorId?: string | null;
+    id: Id<'AgendaId'>;
     isDocumentStored?: boolean;
     isValidated?: boolean;
+    officialReportId: Id<'OfficialReportId'> | null;
+    sessionId: Id<'SessionId'>;
     snapshot?: AgendaSnapshot;
   }): Agenda {
     return new Agenda(
@@ -225,9 +225,9 @@ export class Agenda {
 
   updateMetadata(command: {
     authorId: string;
+    chairmanId: string;
     date: DateOnly;
     sessionMeetingDate: DateOnly;
-    chairmanId: string;
   }): AgendaMetadataDiff {
     const diff = assertIsDefined(this.snapshot).diffMetadata(command);
     if (diff.hasAny) {
@@ -241,9 +241,9 @@ export class Agenda {
   }
 
   updateFiles(command: {
+    actedNominationFileIds: ReadonlySet<string>;
     authorId: string;
     nominationFileIds: Set<string>;
-    reportedNominationFileIds: ReadonlySet<string>;
   }): AgendaFilesDiff {
     if (command.nominationFileIds.size === 0) throw new EmptyAgenda();
 
@@ -254,7 +254,7 @@ export class Agenda {
     if (!diff.hasAny) return diff;
 
     const alreadyPresented = diff.added.filter((nominationFileId) =>
-      command.reportedNominationFileIds.has(nominationFileId),
+      command.actedNominationFileIds.has(nominationFileId),
     );
     if (alreadyPresented.length > 0) throw new AgendaFilesAlreadyReported(alreadyPresented);
 
@@ -306,6 +306,7 @@ export class Agenda {
   }
 
   static create(props: {
+    actedNominationFileIds: ReadonlySet<string>;
     authorId: string;
     chairman: {
       displayTitle: string | null;
@@ -317,21 +318,20 @@ export class Agenda {
     };
     date: DateOnly;
     nominationFiles: readonly AgendaNominationFile[];
-    reportedNominationFileIds: ReadonlySet<string>;
     sessionId: string;
     sessionMeetingDate: DateOnly;
   }): Agenda {
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
 
     const alreadyPresented = props.nominationFiles.flatMap(({ id }) =>
-      props.reportedNominationFileIds.has(id) ? [id] : [],
+      props.actedNominationFileIds.has(id) ? [id] : [],
     );
     if (alreadyPresented.length > 0) throw new AgendaFilesAlreadyReported(alreadyPresented);
 
     const agenda = Agenda.from({
       id: makeId('AgendaId'),
-      sessionId: makeId('SessionId', props.sessionId),
       officialReportId: null,
+      sessionId: makeId('SessionId', props.sessionId),
     });
 
     agenda.#messages.push(

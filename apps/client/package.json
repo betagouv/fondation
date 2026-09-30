@@ -42,6 +42,7 @@
     "@tiptap/extension-color": "3.31.3",
     "@tiptap/extension-document": "3.31.3",
     "@tiptap/extension-file-handler": "3.31.3",
+    "@tiptap/extension-hard-break": "3.31.3",
     "@tiptap/extension-heading": "3.31.3",
     "@tiptap/extension-highlight": "3.31.3",
     "@tiptap/extension-history": "3.31.3",

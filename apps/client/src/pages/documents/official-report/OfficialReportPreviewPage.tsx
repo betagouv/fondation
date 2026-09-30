@@ -20,6 +20,8 @@ import {
   useValidateOfficialReportMutation,
 } from '@queries/agenda.queries';
 
+import { OfficialReportChangedSinceValidationBanner } from './OfficialReportChangedSinceValidationBanner';
+
 export function OfficialReportPreviewPage() {
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
@@ -105,7 +107,7 @@ export function OfficialReportPreviewPage() {
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
-                <FormattedMessage defaultMessage="Valider le PV" />
+                <FormattedMessage defaultMessage="Valider le document" />
               )}
             </Button>
           )}
@@ -126,6 +128,9 @@ export function OfficialReportPreviewPage() {
           <div role="status">
             {metadata?.status === 'VALIDATED' && metadata.validation && (
               <DocumentValidatedBanner kind="officialReport" validation={metadata.validation} />
+            )}
+            {metadata && (
+              <OfficialReportChangedSinceValidationBanner changes={metadata.changedSinceValidation} />
             )}
             {isDraft && (
               <DocumentDraftBanner

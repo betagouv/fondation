@@ -1,6 +1,7 @@
 import { Extension, type AnyExtension, type Command, type Editor } from '@tiptap/core';
 import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
+import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
@@ -13,19 +14,9 @@ import type { AgendaBlocksModel } from './blocks/agenda-blocks.model';
 import { AgendaFileBlock, AgendaFileBlockNode } from './blocks/AgendaFileBlock';
 
 const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null }>({
-  name: 'agendaModel',
-  addOptions: () => ({ model: null }),
   addCommands() {
     const { model } = this.options;
     return {
-      resetBlock:
-        (viewProps: ReactNodeViewProps) =>
-        ({ editor }) => {
-          // without queueMicrotask, tiptap throws
-          queueMicrotask(() => void model?.resetBlock({ ...viewProps, editor }));
-          return true;
-        },
-
       acknowledgeBlock:
         (viewProps: ReactNodeViewProps) =>
         ({ editor }) => {
@@ -33,8 +24,18 @@ const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null 
           queueMicrotask(() => void model?.acknowledgeBlock({ ...viewProps, editor }));
           return true;
         },
+
+      resetBlock:
+        (viewProps: ReactNodeViewProps) =>
+        ({ editor }) => {
+          // without queueMicrotask, tiptap throws
+          queueMicrotask(() => void model?.resetBlock({ ...viewProps, editor }));
+          return true;
+        },
     };
   },
+  addOptions: () => ({ model: null }),
+  name: 'agendaModel',
 });
 
 /**
@@ -43,9 +44,6 @@ const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null 
  * backend `outdated` flag follows the editor.
  */
 const AgendaUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) | null }>({
-  addOptions() {
-    return { ...this.parent?.(), onHistory: null };
-  },
   addCommands() {
     const parent = this.parent?.();
     type CommandFn = () => Command;
@@ -60,14 +58,28 @@ const AgendaUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) |
 
     return {
       ...parent,
-      undo: wrap(parent?.undo),
       redo: wrap(parent?.redo),
+      undo: wrap(parent?.undo),
     };
+  },
+  addOptions() {
+    return { ...this.parent?.(), onHistory: null };
+  },
+});
+
+/**
+ * a proposition is a single paragraph: Enter can only break its line. `setHardBreak` refuses to
+ * break inside an isolating block, which the proposition is, so the break is inserted as is.
+ */
+const AgendaHardBreak = HardBreak.extend({
+  addKeyboardShortcuts() {
+    const breakLine = () => this.editor.commands.insertContent({ type: this.name });
+    return { Enter: breakLine, 'Shift-Enter': breakLine };
   },
 });
 
 /** Minimal schema used to parse a block's inline html into inline nodes. */
-export const agendaInlineExtensions: AnyExtension[] = [Document, Paragraph, Text, Bold, Italic];
+export const agendaInlineExtensions: AnyExtension[] = [Document, Paragraph, Text, Bold, Italic, HardBreak];
 
 export function buildAgendaExtensions(model: AgendaBlocksModel): AnyExtension[] {
   return [
@@ -75,6 +87,7 @@ export function buildAgendaExtensions(model: AgendaBlocksModel): AnyExtension[] 
     Text,
     Bold,
     Italic,
+    AgendaHardBreak,
     changedWords({ blocks: [AgendaFileBlock.name], name: 'agendaChangedWords' }),
     AgendaModelExtension.configure({ model }),
     AgendaUndoRedo.configure({ onHistory: (editor) => model.onEditorUpdate(editor) }),

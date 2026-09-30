@@ -33,12 +33,12 @@ test.describe('Docs Service', () => {
   let firstSecretaryId: string;
   let sessionId: string;
 
-  test.beforeEach(async ({ admin, agent, sessions, registerUser, expect }) => {
+  test.beforeEach(async ({ admin, agent, expect, registerUser, sessions }) => {
     const chairman = await registerUser('MEMBRE_DU_PARQUET');
 
     const titleUpdateResponse = await agent.members.updateTitle({
-      path: { userId: chairman.id },
       body: { title: 'PRESIDENT_PARQUET' },
+      path: { userId: chairman.id },
     });
     expect(titleUpdateResponse.response?.status).toBe(204);
 
@@ -46,46 +46,46 @@ test.describe('Docs Service', () => {
 
     const firstSecretary = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
     const roleUpdated = await admin.administration.updateRole({
-      path: { userId: firstSecretary.id },
       body: { role: 'FIRST_SECRETARY' },
+      path: { userId: firstSecretary.id },
     });
     expect(roleUpdated.response?.status).toBe(204);
     firstSecretaryId = firstSecretary.id;
 
     const session = await sessions.createOne({
-      createdAt: '23/04/2026',
       candidates: [
         {
+          civilite: 'M.',
           firstName: 'ANTONIO',
           lastName: 'GRAMSCI',
-          civilite: 'M.',
           position: {
             function: seed.functions.PR,
-            jurisdiction: seed.jurisdictions['CA  AMIENS'],
             grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  AMIENS'],
           },
           targetPosition: {
             function: seed.functions.PR,
-            jurisdiction: seed.jurisdictions['CA  REIMS'],
             grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  REIMS'],
           },
         },
         {
+          civilite: 'MME',
           firstName: 'HANNAH',
           lastName: 'ARENDT',
-          civilite: 'MME',
           position: {
             function: seed.functions.PR,
-            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
             grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
           },
           targetPosition: {
             function: seed.functions.PR,
-            jurisdiction: seed.jurisdictions['CA  LYON'],
             grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  LYON'],
           },
         },
       ],
+      createdAt: '23/04/2026',
     });
     sessionId = session.id;
 
@@ -107,14 +107,14 @@ test.describe('Docs Service', () => {
     expect(foundFiles.data!.items).toHaveLength(2);
 
     const affectationRes = await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: foundFiles.data!.items.map(({ id }) => ({
           nominationFileId: id,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     expect(affectationRes.response?.status).toBe(204);
 
@@ -125,8 +125,8 @@ test.describe('Docs Service', () => {
 
     for (const { id } of foundFiles.data!.items) {
       const outcomeRes = await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId: id },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId: id, sessionId },
       });
       expect(outcomeRes.response?.status).toBe(204);
     }
@@ -135,29 +135,29 @@ test.describe('Docs Service', () => {
 
     const beforeAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(beforeAgenda.data!.items, plannedFile!.id)).toEqual({
-      value: 'TO_REPORT',
       dates: [],
+      value: 'TO_REPORT',
     });
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
         nominationFileIds: [plannedFile!.id],
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
       },
+      path: { sessionId },
     });
     expect(agenda.response?.status).toBe(201);
 
     const afterAgenda = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(afterAgenda.data!.items, plannedFile!.id)).toEqual({
-      value: 'DSJ_PLANNED',
       dates: [{ day: 10, month: 2, year: 2026 }],
+      value: 'DSJ_PLANNED',
     });
     expect(statusOf(afterAgenda.data!.items, untouchedFile!.id)).toEqual({
-      value: 'TO_REPORT',
       dates: [],
+      value: 'TO_REPORT',
     });
 
     const justiceContact = await agent.docs.createJusticeContact({
@@ -166,11 +166,10 @@ test.describe('Docs Service', () => {
     const todayDate = new Date();
 
     const officialReport = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId: agenda.data!.id,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
@@ -179,17 +178,68 @@ test.describe('Docs Service', () => {
           month: todayDate.getMonth() + 1,
           year: todayDate.getFullYear(),
         },
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     expect(officialReport.response?.status).toBe(201);
 
     const afterOfficialReport = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(statusOf(afterOfficialReport.data!.items, plannedFile!.id)).toEqual({
-      value: 'DSJ_PLANNED',
       dates: [{ day: 10, month: 2, year: 2026 }],
+      value: 'DSJ_PLANNED',
     });
+  });
+
+  test('should let an agenda be made from reporters not yet published, and say so', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const [file] = foundFiles.data!.items;
+
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+    });
+
+    const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
+    expect(readiness.data).toMatchObject({
+      agendaBlocker: null,
+      agendaWarning: 'UNPUBLISHED_CHANGES',
+      canCreateAgenda: true,
+    });
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: [file!.id],
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
+      },
+      path: { sessionId },
+    });
+    expect(agenda.response?.status).toBe(201);
+  });
+
+  test('should forget a reporter removed since the last publication', async ({ agent, expect, member }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const [file] = foundFiles.data!.items;
+
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [] }] },
+      path: { sessionId },
+    });
+
+    const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
+    expect(readiness.data).toMatchObject({ agendaBlocker: 'NO_AFFECTATION', canCreateAgenda: false });
   });
 
   test('should tell each agenda what it lacks for its official report, until one can be made of it', async ({
@@ -201,23 +251,19 @@ test.describe('Docs Service', () => {
     const [file] = foundFiles.data!.items;
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
-    await agent.sessions.defineNominationFileOutcome({
-      path: { sessionId, nominationFileId: file!.id },
-      body: { comment: null, outcome: 'ASSESSING' },
-    });
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
         nominationFileIds: [file!.id],
+        sessionMeetingDate: { day: 10, month: 2, year: 2026 },
       },
+      path: { sessionId },
     });
     const readinessOf = async () => {
       const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
@@ -233,8 +279,8 @@ test.describe('Docs Service', () => {
     });
 
     await agent.sessions.defineNominationFileOutcome({
-      path: { sessionId, nominationFileId: file!.id },
       body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId: file!.id, sessionId },
     });
 
     expect(await readinessOf()).toEqual({ status: 'READY' });
@@ -243,18 +289,18 @@ test.describe('Docs Service', () => {
       body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
     });
     const officialReport = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId: agenda.data!.id,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
         sessionMeetingDate: { day: 10, month: 2, year: 2026 },
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     expect(officialReport.response?.status).toBe(201);
     expect(await readinessOf()).toBeNull();
@@ -284,21 +330,21 @@ test.describe('Docs Service', () => {
     expect(fileIds).toHaveLength(2);
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: fileIds.map((nominationFileId) => ({
           nominationFileId,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const nominationFileId of fileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
@@ -310,13 +356,13 @@ test.describe('Docs Service', () => {
     });
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: MEETING_DATE,
         nominationFileIds: fileIds,
+        sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     expect(agenda.response?.status).toBe(201);
 
@@ -325,18 +371,18 @@ test.describe('Docs Service', () => {
     });
 
     const officialReport = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId: agenda.data!.id,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
         sessionMeetingDate: MEETING_DATE,
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     expect(officialReport.response?.status).toBe(201);
 
@@ -352,12 +398,37 @@ test.describe('Docs Service', () => {
     });
     expect(validated.response?.status).toBe(204);
 
+    // the files stay open to another agenda until a notice presents them
     expect(await ruleAcrossEndpoints()).toEqual({
-      agendaBlocker: 'ALL_FILES_REPORTED',
+      agendaBlocker: null,
       isArchivable: true,
       lockedReasons: ['REPORTED', 'REPORTED'],
       status: 'REPORTED',
     });
+
+    await agent.docs.validateAgenda({ path: { agendaId: agenda.data!.id } });
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agenda.data!.id }],
+        chairmanId,
+        date: MEETING_DATE,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    const planId = plan.data!.id;
+    await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    await agent.docs.validatePresentationPlan({ path: { planId } });
+    const presented = await agent.docs.presentPlan({
+      body: { endTime: { hours: 10, minutes: 0, seconds: 0 } },
+      path: { planId },
+    });
+    expect(presented.response?.status).toBe(204);
+
+    expect((await ruleAcrossEndpoints()).agendaBlocker).toBe('ALL_FILES_REPORTED');
 
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
@@ -371,13 +442,13 @@ test.describe('Docs Service', () => {
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
 
     const created = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
-        nominationFileIds,
         date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     expect(created.response?.status).toBe(201);
     const agendaId = created.data!.id;
@@ -392,8 +463,8 @@ test.describe('Docs Service', () => {
     // the block id names a row of the validated version: the edition forks a draft whose rows are
     // brand new, and it has to land there all the same
     const edited = await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: block.id },
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: block.id },
     });
     expect(edited.response?.status).toBe(204);
 
@@ -415,8 +486,8 @@ test.describe('Docs Service', () => {
     // a second validation renders a PDF while dropping the version it replaces: a path shared by
     // both versions would have the drop delete the object just written, and the file would 404
     const reEdited = await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: afterDiscard.data!.blocks[0]!.id },
       body: { html: '<p>Une seconde écriture</p>', outdated: false },
+      path: { agendaId, fileId: afterDiscard.data!.blocks[0]!.id },
     });
     expect(reEdited.response?.status).toBe(204);
 
@@ -429,8 +500,8 @@ test.describe('Docs Service', () => {
     const validatedBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
     const [writtenBlock, otherBlock] = validatedBlocks.data!.blocks;
     await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: otherBlock!.id },
       body: { html: '<p>Une autre proposition</p>', outdated: false },
+      path: { agendaId, fileId: otherBlock!.id },
     });
 
     const forked = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
@@ -448,32 +519,32 @@ test.describe('Docs Service', () => {
 
     // a report is only ever made from an agenda whose files are all decided and reported on
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: nominationFileIds.map((nominationFileId) => ({
           nominationFileId,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const nominationFileId of nominationFileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
-        nominationFileIds,
         date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     expect(agenda.response?.status).toBe(201);
 
@@ -482,18 +553,18 @@ test.describe('Docs Service', () => {
     });
 
     const created = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId: agenda.data!.id,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
         sessionMeetingDate: MEETING_DATE,
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     expect(created.response?.status).toBe(201);
     const officialReportId = created.data!.id;
@@ -506,8 +577,8 @@ test.describe('Docs Service', () => {
 
     // the edition forks a draft whose rows are brand new, and it has to land there all the same
     const edited = await agent.docs.editOfficialReportIntro({
-      path: { officialReportId },
       body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
     });
     expect(edited.response?.status).toBe(204);
 
@@ -530,32 +601,32 @@ test.describe('Docs Service', () => {
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: nominationFileIds.map((nominationFileId) => ({
           nominationFileId,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const nominationFileId of nominationFileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
-        nominationFileIds,
         date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const agendaId = agenda.data!.id;
 
@@ -564,8 +635,8 @@ test.describe('Docs Service', () => {
 
     const html = `<strong>MME HANNAH ARENDT</strong>, réécrite à la main dans l'ordre du jour.`;
     const editedBlock = await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: firstBlock!.id },
       body: { html, outdated: false },
+      path: { agendaId, fileId: firstBlock!.id },
     });
     expect(editedBlock.response?.status).toBe(204);
 
@@ -575,18 +646,18 @@ test.describe('Docs Service', () => {
       body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
     });
     const created = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
         sessionMeetingDate: MEETING_DATE,
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     expect(created.response?.status).toBe(201);
 
@@ -603,8 +674,8 @@ test.describe('Docs Service', () => {
     // the agenda is corrected afterwards. Its draft says nothing to the report, its validation does
     const later = `<strong>MME HANNAH ARENDT</strong>, corrigée dans l'ordre du jour après coup.`;
     await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: firstBlock!.id },
       body: { html: later, outdated: false },
+      path: { agendaId, fileId: firstBlock!.id },
     });
 
     const whileAgendaDrafts = await agent.docs.detailsOfficialReportDocument({
@@ -628,7 +699,7 @@ test.describe('Docs Service', () => {
     expect(taken).toMatchObject({ edited: true, fromAgenda: true, html: later, outdated: false });
   });
 
-  test('should rewrite the draft of a validated report, not the version it no longer touches', async ({
+  test('should keep a validated report as it is when the agenda rewrites a proposition', async ({
     agent,
     expect,
     member,
@@ -637,38 +708,37 @@ test.describe('Docs Service', () => {
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: nominationFileIds.map((nominationFileId) => ({
           nominationFileId,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const nominationFileId of nominationFileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
-        nominationFileIds,
         date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const agendaId = agenda.data!.id;
 
     const agendaBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
     const [firstBlock] = agendaBlocks.data!.blocks;
-    const nominationFileId = firstBlock!.nominationFileId!;
 
     await agent.docs.validateAgenda({ path: { agendaId } });
 
@@ -676,18 +746,18 @@ test.describe('Docs Service', () => {
       body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
     });
     const created = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: {
-        chairmanId,
         absentMemberIds: [],
         agendaId,
+        chairmanId,
         hasRenunciation: true,
         justiceDepartmentContactId: justiceContact.data!.id,
         secretaryId: firstSecretaryId,
         sessionMeetingDate: MEETING_DATE,
-        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
         sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
       },
+      path: { sessionId },
     });
     const officialReportId = created.data!.id;
 
@@ -696,24 +766,17 @@ test.describe('Docs Service', () => {
 
     const later = `<strong>MME HANNAH ARENDT</strong>, réécrite après la validation du procès-verbal.`;
     await agent.docs.editAgendaFileBlock({
-      path: { agendaId, fileId: firstBlock!.id },
       body: { html: later, outdated: false },
+      path: { agendaId, fileId: firstBlock!.id },
     });
     await agent.docs.validateAgenda({ path: { agendaId } });
 
-    const afterAgendaMovedOn = await agent.docs.detailsOfficialReportDocument({
-      path: { officialReportId },
-    });
-    const taken = afterAgendaMovedOn
-      .data!.blocks.filter((block) => block.kind === 'file')
-      .find((block) => block.nominationFileId === nominationFileId);
-
-    expect(taken).toMatchObject({ fromAgenda: true, html: later, outdated: false });
-
     const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
-    expect(metadata.data!.draft).toMatchObject({ openedBy: null, systemCauses: ['AGENDA_TEXT'] });
-
-    // the validated version is what the readers still see: nothing may land on it
+    expect(metadata.data).toMatchObject({
+      changedSinceValidation: ['AGENDA_TEXT'],
+      draft: null,
+      status: 'VALIDATED',
+    });
     expect(await filesOfValidatedVersionsReading(later)).toBe(0);
   });
 
@@ -730,32 +793,32 @@ test.describe('Docs Service', () => {
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: nominationFileIds.map((nominationFileId) => ({
           nominationFileId,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const nominationFileId of nominationFileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
-        nominationFileIds,
         date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const agendaId = agenda.data!.id;
 
@@ -799,13 +862,13 @@ test.describe('Docs Service', () => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: MEETING_DATE,
         nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     expect(agenda.response?.status).toBe(201);
 
@@ -840,8 +903,8 @@ test.describe('Docs Service', () => {
 
     const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
     const edited = await agent.docs.updatePresentationPlanHtml({
-      path: { planId },
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
+      path: { planId },
     });
     expect(edited.response?.status).toBe(204);
 
@@ -866,32 +929,32 @@ test.describe('Docs Service', () => {
     expect(foundFiles.data!.items).toHaveLength(2);
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: foundFiles.data!.items.map(({ id }) => ({
           nominationFileId: id,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
 
     for (const { id } of foundFiles.data!.items) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { sessionId, nominationFileId: id },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId: id, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: MEETING_DATE,
         nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const agendaId = agenda.data!.id;
     await agent.docs.validateAgenda({ path: { agendaId } });
@@ -919,8 +982,8 @@ test.describe('Docs Service', () => {
 
     const [keptFile] = foundFiles.data!.items;
     const dropped = await agent.docs.updateAgendaFiles({
-      path: { agendaId },
       body: { nominationFileIds: [keptFile!.id] },
+      path: { agendaId },
     });
     expect(dropped.response?.status).toBe(204);
 
@@ -933,7 +996,7 @@ test.describe('Docs Service', () => {
     const atValidation = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
     expect(atValidation.data!.outdated).toBe(true);
 
-    const rewritten = await agent.docs.updateJusticePresentationPlan({ path: { planId }, body: planBody });
+    const rewritten = await agent.docs.updateJusticePresentationPlan({ body: planBody, path: { planId } });
     expect(rewritten.response?.status).toBe(204);
 
     const atRewriting = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
@@ -947,13 +1010,13 @@ test.describe('Docs Service', () => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
-        sessionMeetingDate: MEETING_DATE,
         nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
 
     const justiceContact = await agent.docs.createJusticeContact({
@@ -987,8 +1050,8 @@ test.describe('Docs Service', () => {
     expect(written?.updatedBy).toBeNull();
 
     const refused = await agent.docs.presentPlan({
-      path: { planId },
       body: { endTime: { hours: 11, minutes: 0, seconds: 0 } },
+      path: { planId },
     });
     expect(refused.response?.status).toBe(400);
 
@@ -1005,8 +1068,8 @@ test.describe('Docs Service', () => {
 
     const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
     await agent.docs.updatePresentationPlanHtml({
-      path: { planId },
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
+      path: { planId },
     });
 
     const edited = await agent.docs.listNonPresentedPlans();
@@ -1017,8 +1080,8 @@ test.describe('Docs Service', () => {
     await agent.docs.validatePresentationPlan({ path: { planId } });
 
     const presented = await agent.docs.presentPlan({
-      path: { planId },
       body: { endTime: { hours: 11, minutes: 0, seconds: 0 } },
+      path: { planId },
     });
     expect(presented.response?.status).toBe(204);
 
@@ -1027,14 +1090,14 @@ test.describe('Docs Service', () => {
 
     // presenting twice would append a second ending time to the text and its pdf
     const presentedAgain = await agent.docs.presentPlan({
-      path: { planId },
       body: { endTime: { hours: 11, minutes: 0, seconds: 0 } },
+      path: { planId },
     });
     expect(presentedAgain.response?.status).toBe(400);
 
     const rewrittenAfterPresentation = await agent.docs.updatePresentationPlanHtml({
-      path: { planId },
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
+      path: { planId },
     });
     expect(rewrittenAfterPresentation.response?.status).toBe(400);
 
@@ -1042,7 +1105,6 @@ test.describe('Docs Service', () => {
     expect(reverted.response?.status).toBe(400);
 
     const updated = await agent.docs.updateJusticePresentationPlan({
-      path: { planId },
       body: {
         absentMembers: [],
         agendas: [{ comment: null, id: agenda.data!.id }],
@@ -1053,6 +1115,7 @@ test.describe('Docs Service', () => {
         secretaryId: firstSecretaryId,
         time: { hours: 9, minutes: 30, seconds: 0 },
       },
+      path: { planId },
     });
     expect(updated.response?.status).toBe(400);
 
@@ -1072,13 +1135,13 @@ test.describe('Docs Service', () => {
 
     const createAgenda = async (nominationFileId: string) => {
       const agenda = await agent.docs.createAgenda({
-        path: { sessionId },
         body: {
           chairmanId,
           date: { day: 1, month: 2, year: 2026 },
           nominationFileIds: [nominationFileId],
           sessionMeetingDate: MEETING_DATE,
         },
+        path: { sessionId },
       });
       return agenda.data!.id;
     };
@@ -1163,13 +1226,13 @@ test.describe('Docs Service', () => {
     const agendaIds = await Promise.all(
       foundFiles.data!.items.map(async ({ id }) => {
         const agenda = await agent.docs.createAgenda({
-          path: { sessionId },
           body: {
             chairmanId,
             date: { day: 1, month: 2, year: 2026 },
             nominationFileIds: [id],
             sessionMeetingDate: MEETING_DATE,
           },
+          path: { sessionId },
         });
         return agenda.data!.id;
       }),
@@ -1214,7 +1277,6 @@ test.describe('Docs Service', () => {
 
     const affect = async (reporterId: string) => {
       await agent.sessions.affectReporters({
-        path: { sessionId },
         body: {
           items: foundFiles.data!.items.map(({ id }) => ({
             nominationFileId: id,
@@ -1222,19 +1284,20 @@ test.describe('Docs Service', () => {
             reporterIds: [reporterId],
           })),
         },
+        path: { sessionId },
       });
       await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
     };
     await affect(member['@user']!.id);
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
         nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const agendaId = agenda.data!.id;
     await agent.docs.validateAgenda({ path: { agendaId } });
@@ -1251,8 +1314,8 @@ test.describe('Docs Service', () => {
 
     await agent.docs.validateAgenda({ path: { agendaId } });
     const edited = await agent.docs.updateAgendaMetadata({
-      path: { agendaId },
       body: { chairmanId, date: { day: 2, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId },
     });
     expect(edited.response?.status).toBe(204);
     expect(await draftOf()).toBe('PERSON');
@@ -1271,7 +1334,6 @@ test.describe('Docs Service', () => {
 
     // a report is only ever made from an agenda whose files are all decided and reported on
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
         items: nominationFileIds.map((nominationFileId) => ({
           nominationFileId,
@@ -1279,23 +1341,24 @@ test.describe('Docs Service', () => {
           reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
     for (const nominationFileId of nominationFileIds) {
       await agent.sessions.defineNominationFileOutcome({
-        path: { nominationFileId, sessionId },
         body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
       });
     }
 
     const agenda = await agent.docs.createAgenda({
-      path: { sessionId },
       body: {
         chairmanId,
         date: { day: 1, month: 2, year: 2026 },
         nominationFileIds,
         sessionMeetingDate: MEETING_DATE,
       },
+      path: { sessionId },
     });
     const justiceContact = await agent.docs.createJusticeContact({
       body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
@@ -1311,30 +1374,41 @@ test.describe('Docs Service', () => {
       sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
     };
     const created = await agent.docs.createOfficialReport({
-      path: { sessionId },
       body: { ...metadata, agendaId: agenda.data!.id },
+      path: { sessionId },
     });
     const officialReportId = created.data!.id;
     await agent.docs.validateOfficialReport({ path: { officialReportId } });
 
     const updated = await agent.docs.updateOfficialReport({
-      path: { officialReportId },
       body: { ...metadata, hasRenunciation: false },
+      path: { officialReportId },
     });
     expect(updated.response?.status).toBe(204);
 
     const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
     expect(details.data).toMatchObject({ draftChangesBy: 'PERSON', status: 'DRAFT' });
 
-    // the draft the application opens later on starts from the validated version, not from its traces
-    await agent.docs.updateOfficialReport({ path: { officialReportId }, body: metadata });
+    await agent.docs.updateOfficialReport({ body: metadata, path: { officialReportId } });
     await agent.docs.validateOfficialReport({ path: { officialReportId } });
     await agent.docs.updateAgendaMetadata({
-      path: { agendaId: agenda.data!.id },
       body: { chairmanId, date: { day: 3, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId: agenda.data!.id },
     });
 
+    const kept = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(kept.data).toMatchObject({
+      changedSinceValidation: ['AGENDA_DATE'],
+      draftChangesBy: null,
+      status: 'VALIDATED',
+    });
+
+    // the person reopening it to set things right still needs to know why
+    await agent.docs.updateOfficialReport({
+      body: { ...metadata, hasRenunciation: false },
+      path: { officialReportId },
+    });
     const reopened = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
-    expect(reopened.data).toMatchObject({ draftChangesBy: 'SYSTEM', status: 'DRAFT' });
+    expect(reopened.data).toMatchObject({ changedSinceValidation: ['AGENDA_DATE'], status: 'DRAFT' });
   });
 });

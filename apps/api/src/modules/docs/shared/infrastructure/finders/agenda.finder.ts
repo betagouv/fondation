@@ -9,7 +9,6 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { partition } from 'src/utils/iterables';
@@ -32,7 +31,7 @@ export const officialReportReadinessSchema = z.discriminatedUnion('status', [
 
 export type OfficialReportReadiness = z.infer<typeof officialReportReadinessSchema>;
 
-export function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
+export function writerOf(user: { firstName: string; id: string; lastName: string } | null) {
   return user ? { id: user.id, name: fullname(user) } : null;
 }
 
@@ -49,8 +48,8 @@ export class AgendaFinder {
 
   @Transactional()
   async hasAnyReportableInOfficialReport(query: {
-    sessionId: string;
     affectationVersionId: string;
+    sessionId: string;
   }): Promise<boolean> {
     const where = await this.buildFindReportableInOfficialReport(query);
     if (!where) return false;
@@ -73,7 +72,6 @@ export class AgendaFinder {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
-            status: true,
             nominationFiles: {
               select: {
                 nominationFile: {
@@ -81,6 +79,7 @@ export class AgendaFinder {
                 },
               },
             },
+            status: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -117,8 +116,7 @@ export class AgendaFinder {
         return [
           id,
           {
-            filesWithoutOutcome: files.filter(({ outcome }) => NominationFileOutcome.isAwaited(outcome))
-              .length,
+            filesWithoutOutcome: files.filter(({ outcome }) => outcome === null).length,
             filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
             filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0)
               .length,
@@ -132,8 +130,8 @@ export class AgendaFinder {
   @Transactional()
   async findReportableInOfficialReport(query: {
     ids?: Set<string>;
-    sessionId: string;
     ignoreOfficialReportId?: string;
+    sessionId: string;
   }): Promise<FoundAgendasDto> {
     const where = await this.buildFindReportableInOfficialReport(query);
     if (!where) return { items: [] };
@@ -142,10 +140,10 @@ export class AgendaFinder {
   }
 
   private async buildFindReportableInOfficialReport(query: {
-    ids?: Set<string>;
-    sessionId: string;
     affectationVersionId?: string;
+    ids?: Set<string>;
     ignoreOfficialReportId?: string;
+    sessionId: string;
   }): Promise<Prisma.AgendaWhereInput | null> {
     let versionId = query.affectationVersionId;
     if (!versionId) {
@@ -161,7 +159,7 @@ export class AgendaFinder {
       nominationFiles: {
         every: {
           nominationFile: {
-            outcome: { in: NominationFileOutcome.decidedOutcomes() },
+            outcome: { not: null },
             reporterIds: { some: { versionId } },
           },
         },
@@ -169,8 +167,6 @@ export class AgendaFinder {
     } satisfies Prisma.AgendaVersionWhereInput;
 
     return {
-      sessionId: query.sessionId,
-      id: { in: query.ids ? Array.from(query.ids) : undefined },
       AND: [
         { OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }] },
         // the version asked to carry decided files is the very one the report will be made of, or
@@ -182,6 +178,8 @@ export class AgendaFinder {
           ],
         },
       ],
+      id: { in: query.ids ? Array.from(query.ids) : undefined },
+      sessionId: query.sessionId,
     };
   }
 
@@ -193,7 +191,7 @@ export class AgendaFinder {
       {
         id: { in: query.ids ? Array.from(query.ids) : undefined },
         justicePresentationPlans: {
-          none: { planId: { not: query.ignorePlanId }, plan: { pdfId: { not: null } } },
+          none: { plan: { pdfId: { not: null } }, planId: { not: query.ignorePlanId } },
         },
       },
       query.ids,
@@ -211,43 +209,43 @@ export class AgendaFinder {
     const found = await this.db.tx.agenda.findMany({
       where,
       select: {
-        id: true,
         formation: true,
-        sessionId: true,
-        sessionName: true,
-        officialReportId: true,
-        versions: {
-          ...AGENDA_CONTENT_VERSIONS,
-          select: {
-            date: true,
-            status: true,
-            chairmanId: true,
-            chairmanFirstName: true,
-            chairmanLastName: true,
-            sessionMeetingDate: true,
-            createdAt: true,
-            author: { select: { id: true, firstName: true, lastName: true } },
-            validatedAt: true,
-            validator: { select: { id: true, firstName: true, lastName: true } },
-          },
-        },
+        id: true,
         justicePresentationPlans: {
           select: {
             plan: {
               select: {
-                id: true,
-                pdfId: true,
-                date: true,
                 chairmanFirstName: true,
                 chairmanLastName: true,
-                time: true,
+                date: true,
                 endTime: true,
-                secretaryId: true,
                 hasRenunciation: true,
+                id: true,
                 justiceDepartmentContactId: true,
-                members: { select: { memberId: true, isAbsent: true } },
+                members: { select: { isAbsent: true, memberId: true } },
+                pdfId: true,
+                secretaryId: true,
+                time: true,
               },
             },
+          },
+        },
+        officialReportId: true,
+        sessionId: true,
+        sessionName: true,
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: {
+            author: { select: { firstName: true, id: true, lastName: true } },
+            chairmanFirstName: true,
+            chairmanId: true,
+            chairmanLastName: true,
+            createdAt: true,
+            date: true,
+            sessionMeetingDate: true,
+            status: true,
+            validatedAt: true,
+            validator: { select: { firstName: true, id: true, lastName: true } },
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -262,7 +260,7 @@ export class AgendaFinder {
           justicePresentationPlans.map(({ plan }) => plan),
           ({ pdfId }) => pdfId === null,
         );
-        return [{ ...agenda, published, draftPlans, validatedPlan }];
+        return [{ ...agenda, draftPlans, published, validatedPlan }];
       })
       .sort((a, b) => a.published.date.getTime() - b.published.date.getTime());
 
@@ -273,7 +271,7 @@ export class AgendaFinder {
       this.logger.warn(`Agendas not found: ${Array.from(missing).join(', ')}`);
     }
 
-    const sessions = new Map<string, { typeDeSaisine: TypeDeSaisineEnum; date: DateOnlyJson }>();
+    const sessions = new Map<string, { date: DateOnlyJson; typeDeSaisine: TypeDeSaisineEnum }>();
     const sessionIds = new Set(items.map(({ sessionId }) => sessionId));
     for (const sessionId of sessionIds) {
       const session = await this.transparences.details({ formation: undefined, sessionId });

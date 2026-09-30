@@ -30,6 +30,7 @@ import {
   OfficialReportSectionTitleEdited,
   OfficialReportSectionTitleReset,
   OfficialReportUpdated,
+  OfficialReportUpdateSkipped,
   OfficialReportValidated,
 } from '../../domain/official-report';
 import { OfficialReportAgenda } from '../../domain/official-report-agenda';
@@ -75,63 +76,57 @@ export class OfficialReportRepository {
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
       select: {
-        hasRenunciation: true,
-        justiceDepartmentContactId: true,
-        sessionMeetingDate: true,
-        sessionMeetingStartingTime: true,
-        sessionMeetingEndingTime: true,
-
-        introHtml: true,
+        chairmanDisplayTitle: true,
+        chairmanFirstName: true,
+        chairmanGender: true,
+        chairmanId: true,
+        chairmanLastName: true,
+        chairmanTitle: true,
         conclusionHtml: true,
-
-        pdfId: true,
-        validatedAt: true,
-
+        hasRenunciation: true,
+        introHtml: true,
+        justiceDepartmentContactId: true,
+        members: {
+          select: {
+            firstName: true,
+            gender: true,
+            id: true,
+            isAbsent: true,
+            lastName: true,
+            memberId: true,
+            sort: true,
+            title: true,
+          },
+        },
         officialReport: {
           select: {
-            id: true,
             agenda: {
               select: {
-                id: true,
                 formation: true,
+                id: true,
                 officialReportId: true,
                 sessionId: true,
                 versions: {
-                  take: 2,
-                  orderBy: { version: 'desc' },
                   select: { date: true, status: true },
+                  orderBy: { version: 'desc' },
+                  take: 2,
                 },
               },
             },
-          },
-        },
-
-        chairmanId: true,
-        chairmanFirstName: true,
-        chairmanLastName: true,
-        chairmanGender: true,
-        chairmanTitle: true,
-        chairmanDisplayTitle: true,
-
-        secretaryId: true,
-        secretaryFirstName: true,
-        secretaryLastName: true,
-        secretaryGender: true,
-        secretaryTitle: true,
-        secretaryDisplayTitle: true,
-
-        members: {
-          select: {
-            memberId: true,
             id: true,
-            firstName: true,
-            lastName: true,
-            gender: true,
-            title: true,
-            isAbsent: true,
-            sort: true,
           },
         },
+        pdfId: true,
+        secretaryDisplayTitle: true,
+        secretaryFirstName: true,
+        secretaryGender: true,
+        secretaryId: true,
+        secretaryLastName: true,
+        secretaryTitle: true,
+        sessionMeetingDate: true,
+        sessionMeetingEndingTime: true,
+        sessionMeetingStartingTime: true,
+        validatedAt: true,
       } satisfies Prisma.OfficialReportVersionSelect,
     });
 
@@ -153,14 +148,14 @@ export class OfficialReportRepository {
     });
 
     const agenda = OfficialReportAgenda.from({
-      ignoreOfficialReportId: officialReportId,
       agenda: {
-        id: rawAgenda.id,
-        officialReportId: rawAgenda.officialReportId,
         date: DateOnly.fromUtcDate(agendaDate),
         formation: prismaFormationEnumToFormationEnum(rawAgenda.formation),
-        session: { id: rawAgenda.sessionId, date: DateOnly.fromJson(date) },
+        id: rawAgenda.id,
+        officialReportId: rawAgenda.officialReportId,
+        session: { date: DateOnly.fromJson(date), id: rawAgenda.sessionId },
       },
+      ignoreOfficialReportId: officialReportId,
     });
 
     const members = OfficialReportMembersList.from(
@@ -200,31 +195,31 @@ export class OfficialReportRepository {
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromUtcDate(officialReport.sessionMeetingDate),
-      startTime: dateToTimeOnly(officialReport.sessionMeetingStartingTime),
       endTime: dateToTimeOnly(officialReport.sessionMeetingEndingTime),
+      startTime: dateToTimeOnly(officialReport.sessionMeetingStartingTime),
     });
 
     const snapshot = OfficialReportSnapshot.from({
-      files,
       agenda,
-      members,
       chairman,
-      secretary,
-      sessionMeeting,
+      files,
       hasRenunciation: officialReport.hasRenunciation,
       justiceDepartmentContactId: officialReport.justiceDepartmentContactId,
       manuallyEditedPart: {
-        intro: isDefined(officialReport.introHtml?.trim() || undefined),
         conclusion: isDefined(officialReport.conclusionHtml?.trim() || undefined),
+        intro: isDefined(officialReport.introHtml?.trim() || undefined),
       },
+      members,
+      secretary,
+      sessionMeeting,
     });
 
     return OfficialReport.from({
-      id: officialReportId,
-      snapshot: snapshot,
-      isDocumentStored: isDefined(officialReport.pdfId),
       actorId: query.actorId ?? null,
+      id: officialReportId,
+      isDocumentStored: isDefined(officialReport.pdfId),
       isValidated: isDefined(officialReport.validatedAt),
+      snapshot: snapshot,
     });
   }
 
@@ -242,28 +237,28 @@ export class OfficialReportRepository {
 
     do {
       const files: {
-        id: bigint;
-        outcome: PrismaDocsFileOutcomeEnum;
-        outcomeComment: string | null;
         htmlEdited: string | null;
         htmlFromAgenda: boolean;
+        id: bigint;
         nominationFileId: string | null;
+        outcome: PrismaDocsFileOutcomeEnum;
+        outcomeComment: string | null;
         reporters: string[];
       }[] = await this.db.tx.officialReportNominationFile.findMany({
         where: { versionId: await this.officialReportVersionFinder.latest({ officialReportId: query.id }) },
-        orderBy: { id: 'asc' },
-        skip: isDefined(cursor) ? 1 : 0,
-        cursor: isDefined(cursor) ? { id: cursor } : undefined,
-        take: 25,
         select: {
+          htmlEdited: true,
+          htmlFromAgenda: true,
           id: true,
+          nominationFileId: true,
           outcome: true,
           outcomeComment: true,
           reporters: true,
-          htmlEdited: true,
-          htmlFromAgenda: true,
-          nominationFileId: true,
         } satisfies Prisma.OfficialReportNominationFileSelect,
+        orderBy: { id: 'asc' },
+        cursor: isDefined(cursor) ? { id: cursor } : undefined,
+        skip: isDefined(cursor) ? 1 : 0,
+        take: 25,
       });
 
       cursor = files.at(-1)?.id;
@@ -274,11 +269,11 @@ export class OfficialReportRepository {
         map.set(
           file.nominationFileId,
           OfficialReportSnapshotFile.from({
-            outcome: { value: file.outcome, comment: file.outcomeComment },
-            reporters: file.reporters,
-            nominationFileId: file.nominationFileId,
             // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
             hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
+            nominationFileId: file.nominationFileId,
+            outcome: { comment: file.outcomeComment, value: file.outcome },
+            reporters: file.reporters,
           }),
         );
       }
@@ -326,6 +321,8 @@ export class OfficialReportRepository {
         await this.persistOfficialReportDraftEdited(message);
       } else if (message instanceof OfficialReportDraftUpdatedBySystem) {
         await this.persistOfficialReportDraftUpdatedBySystem(message);
+      } else if (message instanceof OfficialReportUpdateSkipped) {
+        await this.persistOfficialReportUpdateSkipped(message);
       } else {
         assertNever(message);
       }
@@ -338,17 +335,17 @@ export class OfficialReportRepository {
 
     await this.db.tx.officialReport.create({
       data: {
-        id: message.id,
-        authorId: message.authorId,
         agenda: { connect: { id: message.snapshot.meta.agenda.id } },
+        authorId: message.authorId,
+        id: message.id,
         versions: {
           create: {
             ...this.versionContent({ justiceContact, snapshot: message.snapshot.meta }),
-            version: 1,
-            id: makeId('OfficialReportVersionId'),
             createdBy: message.authorId,
+            id: makeId('OfficialReportVersionId'),
             members: { createMany: { data: this.memberData(message.snapshot.meta) } },
             nominationFiles: { createMany: { data: nominationFiles } },
+            version: 1,
           },
         },
       },
@@ -384,16 +381,16 @@ export class OfficialReportRepository {
               versions: {
                 ...AGENDA_CONTENT_VERSIONS,
                 select: {
-                  status: true,
                   nominationFiles: {
+                    where: { htmlEdited: { not: null }, nominationFileId: { in: filesToCreate } },
                     select: {
-                      nominationFileId: true,
                       htmlEdited: true,
                       htmlEditedAt: true,
                       htmlEditedBy: true,
+                      nominationFileId: true,
                     },
-                    where: { nominationFileId: { in: filesToCreate }, htmlEdited: { not: null } },
                   },
+                  status: true,
                 },
               },
             },
@@ -404,8 +401,6 @@ export class OfficialReportRepository {
       const { sessionId } = rawAgenda;
       const versionId = await this.officialReportVersionFinder.latest(message);
       const files = await this.resolveNominationFiles({
-        sessionId,
-        ids: filesToCreate,
         // a file joining the report late takes the agenda block as it stands, like the others did
         agendaEditions: new Map(
           agendaContentOf(rawAgenda.versions)?.nominationFiles.flatMap((file) =>
@@ -413,12 +408,14 @@ export class OfficialReportRepository {
               ? [
                   [
                     file.nominationFileId,
-                    { html: file.htmlEdited, at: file.htmlEditedAt, by: file.htmlEditedBy },
+                    { at: file.htmlEditedAt, by: file.htmlEditedBy, html: file.htmlEdited },
                   ] as const,
                 ]
               : [],
           ) ?? [],
         ),
+        ids: filesToCreate,
+        sessionId,
       });
 
       await this.db.tx.officialReportNominationFile.createMany({
@@ -436,12 +433,12 @@ export class OfficialReportRepository {
     // replaced: the proposition is what the write follows from one version to the next
     for (const file of filesToUpdate) {
       await this.db.tx.officialReportNominationFile.updateMany({
-        where: { versionId: editedVersionId, nominationFileId: file.nominationFileId },
+        where: { nominationFileId: file.nominationFileId, versionId: editedVersionId },
         data: {
           htmlOutdated: file.action === 'outdate',
-          reporters: file.reporters as string[] | undefined,
           outcome: file.outcome,
           outcomeComment: file.outcomeComment,
+          reporters: file.reporters as string[] | undefined,
         },
       });
     }
@@ -452,15 +449,15 @@ export class OfficialReportRepository {
 
     if (filesToDelete.length > 0) {
       await this.db.tx.officialReportNominationFile.deleteMany({
-        where: { versionId: editedVersionId, nominationFileId: { in: filesToDelete } },
+        where: { nominationFileId: { in: filesToDelete }, versionId: editedVersionId },
       });
     }
 
     await this.db.tx.officialReportVersion.update({
       where: { id: editedVersionId },
       data: {
-        introOutdated: message.diff.intro === 'OUTDATED' ? true : undefined,
         conclusionOutdated: message.diff.conclusion === 'OUTDATED' ? true : undefined,
+        introOutdated: message.diff.intro === 'OUTDATED' ? true : undefined,
       },
     });
 
@@ -503,11 +500,11 @@ export class OfficialReportRepository {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
-            status: true,
             nominationFiles: {
-              select: { nominationFileId: true, htmlEdited: true, htmlEditedAt: true, htmlEditedBy: true },
               where: { nominationFileId: { not: null } },
+              select: { htmlEdited: true, htmlEditedAt: true, htmlEditedBy: true, nominationFileId: true },
             },
+            status: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -526,7 +523,7 @@ export class OfficialReportRepository {
           ? [
               [
                 file.nominationFileId,
-                { html: file.htmlEdited, at: file.htmlEditedAt, by: file.htmlEditedBy },
+                { at: file.htmlEditedAt, by: file.htmlEditedBy, html: file.htmlEdited },
               ] as const,
             ]
           : [],
@@ -535,17 +532,17 @@ export class OfficialReportRepository {
 
     return this.resolveNominationFiles({
       agendaEditions,
-      sessionId: agenda.sessionId,
       ids: published.nominationFiles.flatMap((file) =>
         file.nominationFileId ? [file.nominationFileId] : [],
       ),
+      sessionId: agenda.sessionId,
     });
   }
 
   private async resolveNominationFiles(query: {
-    agendaEditions?: ReadonlyMap<string, { html: string; at: Date | null; by: string | null }>;
-    sessionId: string;
+    agendaEditions?: ReadonlyMap<string, { at: Date | null; by: string | null; html: string }>;
     ids: readonly string[];
+    sessionId: string;
   }) {
     const { items } = await this.nominationFilesFinder.find({
       ids: query.ids,
@@ -558,52 +555,49 @@ export class OfficialReportRepository {
         const fromAgenda = query.agendaEditions?.get(f.id);
 
         return {
+          grade: f.magistrat.position.grade,
           htmlEdited: fromAgenda?.html ?? null,
           htmlEditedAt: fromAgenda?.at ?? null,
           htmlEditedBy: fromAgenda?.by ?? null,
           htmlFromAgenda: isDefined(fromAgenda),
+          name: f.magistrat.name,
           nominationFileId: f.id,
           number: f.number,
-          name: f.magistrat.name,
-          grade: f.magistrat.position.grade,
-          position: f.magistrat.position.label,
-          targetedPosition: f.targetPosition.label,
-          targetedGrade: f.targetPosition.grade,
           outcome: f.outcome.value,
           outcomeComment: f.outcome.comment,
+          position: f.magistrat.position.label,
           reporters: f.reporters.map((r) => r.fullTitledName),
+          targetedGrade: f.targetPosition.grade,
+          targetedPosition: f.targetPosition.label,
         };
       });
   }
 
   private versionContent(props: {
-    snapshot: OfficialReportSnapshotMeta;
     justiceContact: { id: bigint; name: string };
+    snapshot: OfficialReportSnapshotMeta;
   }) {
     const { snapshot, justiceContact } = props;
 
     return {
-      sessionMeetingDate: snapshot.sessionMeeting.date.toDate(),
-      sessionMeetingStartingTime: timeOnlyToDate(snapshot.sessionMeeting.start),
-      sessionMeetingEndingTime: timeOnlyToDate(snapshot.sessionMeeting.end),
-
+      chairmanDisplayTitle: snapshot.chairman.displayTitle,
+      chairmanFirstName: snapshot.chairman.firstName,
+      chairmanGender: snapshot.chairman.gender,
+      chairmanId: snapshot.chairman.id,
+      chairmanLastName: snapshot.chairman.lastName,
+      chairmanTitle: snapshot.chairman.title,
       hasRenunciation: snapshot.hasRenunciation,
       justiceDepartmentContactId: justiceContact.id,
       justiceDepartmentContactName: justiceContact.name,
-
-      chairmanId: snapshot.chairman.id,
-      chairmanFirstName: snapshot.chairman.firstName,
-      chairmanLastName: snapshot.chairman.lastName,
-      chairmanGender: snapshot.chairman.gender,
-      chairmanTitle: snapshot.chairman.title,
-      chairmanDisplayTitle: snapshot.chairman.displayTitle,
-
-      secretaryId: snapshot.secretary.id,
-      secretaryFirstName: snapshot.secretary.firstName,
-      secretaryLastName: snapshot.secretary.lastName,
-      secretaryGender: snapshot.secretary.gender,
-      secretaryTitle: snapshot.secretary.title,
       secretaryDisplayTitle: snapshot.secretary.displayTitle,
+      secretaryFirstName: snapshot.secretary.firstName,
+      secretaryGender: snapshot.secretary.gender,
+      secretaryId: snapshot.secretary.id,
+      secretaryLastName: snapshot.secretary.lastName,
+      secretaryTitle: snapshot.secretary.title,
+      sessionMeetingDate: snapshot.sessionMeeting.date.toDate(),
+      sessionMeetingEndingTime: timeOnlyToDate(snapshot.sessionMeeting.end),
+      sessionMeetingStartingTime: timeOnlyToDate(snapshot.sessionMeeting.start),
     };
   }
 
@@ -611,13 +605,13 @@ export class OfficialReportRepository {
     members: OfficialReportMembersList;
   }): Prisma.OfficialReportMemberCreateManyVersionInput[] {
     return snapshot.members.map((m) => ({
-      memberId: m.id,
       firstName: m.firstName,
-      lastName: m.lastName,
       gender: m.gender,
-      title: m.displayTitle,
       isAbsent: m.isAbsent,
+      lastName: m.lastName,
+      memberId: m.id,
       sort: m.sort,
+      title: m.displayTitle,
     }));
   }
 
@@ -638,7 +632,7 @@ export class OfficialReportRepository {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportVersion.update({
       where: { id: versionId },
-      data: { introHtml: null, introOutdated: false, html: null, pdfId: null },
+      data: { html: null, introHtml: null, introOutdated: false, pdfId: null },
     });
 
     await this.recomputeState(versionId);
@@ -673,13 +667,13 @@ export class OfficialReportRepository {
     const proposal = await this.agendaProposalOf(message);
 
     await this.db.tx.officialReportNominationFile.updateMany({
-      where: { versionId, nominationFileId: message.nominationFileId },
+      where: { nominationFileId: message.nominationFileId, versionId },
       data: {
         htmlEdited: proposal?.html ?? null,
-        htmlOutdated: false,
         htmlEditedAt: proposal?.at ?? null,
         htmlEditedBy: proposal?.by ?? null,
         htmlFromAgenda: isDefined(proposal),
+        htmlOutdated: false,
       },
     });
 
@@ -695,11 +689,11 @@ export class OfficialReportRepository {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
-            status: true,
             nominationFiles: {
+              where: { htmlEdited: { not: null }, nominationFileId: message.nominationFileId },
               select: { htmlEdited: true, htmlEditedAt: true, htmlEditedBy: true },
-              where: { nominationFileId: message.nominationFileId, htmlEdited: { not: null } },
             },
+            status: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -714,8 +708,8 @@ export class OfficialReportRepository {
   private async persistOfficialReportSectionTitleEdited(message: OfficialReportSectionTitleEdited) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportSectionTitle.upsert({
-      where: { primaryKey: { versionId, outcome: message.outcome } },
-      create: { versionId, outcome: message.outcome, title: message.text },
+      where: { primaryKey: { outcome: message.outcome, versionId } },
+      create: { outcome: message.outcome, title: message.text, versionId },
       update: { title: message.text },
     });
 
@@ -725,7 +719,7 @@ export class OfficialReportRepository {
   private async persistOfficialReportSectionTitleReset(message: OfficialReportSectionTitleReset) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportSectionTitle.deleteMany({
-      where: { versionId, outcome: message.outcome },
+      where: { outcome: message.outcome, versionId },
     });
 
     await this.recomputeState(versionId);
@@ -734,8 +728,8 @@ export class OfficialReportRepository {
   private async persistOfficialReportSectionIntroEdited(message: OfficialReportSectionIntroEdited) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportSectionIntro.upsert({
-      where: { primaryKey: { versionId, outcome: message.outcome } },
-      create: { versionId, outcome: message.outcome, html: message.html },
+      where: { primaryKey: { outcome: message.outcome, versionId } },
+      create: { html: message.html, outcome: message.outcome, versionId },
       update: { html: message.html },
     });
 
@@ -745,7 +739,7 @@ export class OfficialReportRepository {
   private async persistOfficialReportSectionIntroReset(message: OfficialReportSectionIntroReset) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportSectionIntro.deleteMany({
-      where: { versionId, outcome: message.outcome },
+      where: { outcome: message.outcome, versionId },
     });
 
     await this.recomputeState(versionId);
@@ -754,12 +748,12 @@ export class OfficialReportRepository {
   private async persistOfficialReportValidated(message: OfficialReportValidated) {
     const versions = await this.db.tx.officialReportVersion.findMany({
       where: { officialReportId: message.officialReportId },
-      orderBy: { version: 'desc' },
       select: {
         id: true,
-        status: true,
         pdf: { select: { id: true, path: true } },
+        status: true,
       } satisfies Prisma.OfficialReportVersionSelect,
+      orderBy: { version: 'desc' },
     });
 
     const [draft, ...superseded] = versions;
@@ -789,6 +783,17 @@ export class OfficialReportRepository {
     });
   }
 
+  private async persistOfficialReportUpdateSkipped(message: OfficialReportUpdateSkipped) {
+    const at = this.clock.now();
+    const versionId = await this.officialReportVersionFinder.latest(message);
+
+    await this.db.tx.officialReportVersionSkippedUpdate.upsert({
+      where: { primaryKey: { cause: message.cause, versionId } },
+      create: { at, cause: message.cause, versionId },
+      update: { at },
+    });
+  }
+
   private async persistOfficialReportDraftEdited(message: OfficialReportDraftEdited) {
     await this.db.tx.officialReportVersion.updateMany({
       where: { officialReportId: message.officialReportId, status: 'DRAFT' },
@@ -799,24 +804,24 @@ export class OfficialReportRepository {
   private async persistOfficialReportDraftOpened(message: OfficialReportDraftOpened) {
     const validated = await this.db.tx.officialReportVersion.findFirst({
       where: { officialReportId: message.officialReportId, status: 'VALIDATED' },
-      orderBy: { version: 'desc' },
-      omit: {
-        id: true,
-        createdAt: true,
-        createdBy: true,
-        updatedAt: true,
-        updatedBy: true,
-        systemUpdatedAt: true,
-        validatedAt: true,
-        validatedBy: true,
-        status: true,
-      },
       include: {
         members: { omit: { id: true, versionId: true } },
-        nominationFiles: { omit: { id: true, versionId: true, createdAt: true, updatedAt: true } },
+        nominationFiles: { omit: { createdAt: true, id: true, updatedAt: true, versionId: true } },
+        sectionIntros: { omit: { createdAt: true, updatedAt: true, versionId: true } },
         sectionTitles: { omit: { versionId: true } },
-        sectionIntros: { omit: { versionId: true, createdAt: true, updatedAt: true } },
       } satisfies Prisma.OfficialReportVersionInclude,
+      omit: {
+        createdAt: true,
+        createdBy: true,
+        id: true,
+        status: true,
+        systemUpdatedAt: true,
+        updatedAt: true,
+        updatedBy: true,
+        validatedAt: true,
+        validatedBy: true,
+      },
+      orderBy: { version: 'desc' },
     });
 
     if (!validated) throw new NotFoundException();
@@ -827,17 +832,17 @@ export class OfficialReportRepository {
       data: {
         ...content,
         createdBy: message.authorId,
-        version: version + 1,
-        status: 'DRAFT',
-        id: makeId('OfficialReportVersionId'),
         html: null,
-        pdfId: null,
+        id: makeId('OfficialReportVersionId'),
         members: { createMany: { data: members } },
         nominationFiles: {
           createMany: { data: nominationFiles.map((file) => ({ ...file, reporters: [...file.reporters] })) },
         },
-        sectionTitles: { createMany: { data: sectionTitles } },
+        pdfId: null,
         sectionIntros: { createMany: { data: sectionIntros } },
+        sectionTitles: { createMany: { data: sectionTitles } },
+        status: 'DRAFT',
+        version: version + 1,
       },
     });
   }
@@ -895,7 +900,6 @@ export class OfficialReportRepository {
 
   private async recomputeManuallyEdited(versionId: string): Promise<void> {
     const manuallyEditedOfficialReport = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: {
         id: versionId,
         OR: [
@@ -906,6 +910,7 @@ export class OfficialReportRepository {
           { sectionTitles: { some: { title: { not: null } } } },
         ],
       },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     await this.db.tx.officialReportVersion.update({
@@ -916,7 +921,6 @@ export class OfficialReportRepository {
 
   private async recomputeOutdated(versionId: string): Promise<void> {
     const outdatedOfficialReport = await this.db.tx.officialReportVersion.findFirst({
-      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: {
         id: versionId,
         OR: [
@@ -925,6 +929,7 @@ export class OfficialReportRepository {
           { nominationFiles: { some: { htmlOutdated: true } } },
         ],
       },
+      select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
     });
 
     await this.db.tx.officialReportVersion.update({
@@ -956,7 +961,7 @@ export class OfficialReportRepository {
   }
 
   private static hasOutcome<
-    T extends { outcome: { value: DocNominationFileOutcomeEnum; comment: string | null } | null },
+    T extends { outcome: { comment: string | null; value: DocNominationFileOutcomeEnum } | null },
   >(file: T): file is T & { outcome: NonNullable<T['outcome']> } {
     return isDefined(file.outcome);
   }

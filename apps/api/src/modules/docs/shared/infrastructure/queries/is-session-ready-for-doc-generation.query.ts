@@ -14,12 +14,9 @@ import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only'
 import { isDefined } from 'src/utils/is-defined';
 import { initials } from 'src/utils/user.util';
 
-const AGENDA_BLOCKERS = [
-  'ARCHIVED',
-  'NO_AFFECTATION',
-  'UNPUBLISHED_AFFECTATION',
-  'ALL_FILES_REPORTED',
-] as const;
+const AGENDA_BLOCKERS = ['ARCHIVED', 'NO_AFFECTATION', 'ALL_FILES_REPORTED'] as const;
+
+const AGENDA_WARNINGS = ['NEVER_PUBLISHED', 'UNPUBLISHED_CHANGES'] as const;
 
 const OFFICIAL_REPORT_BLOCKERS = [
   'NO_AGENDA',
@@ -29,16 +26,16 @@ const OFFICIAL_REPORT_BLOCKERS = [
 ] as const;
 
 type OfficialReportBlocker = {
-  reason: (typeof OFFICIAL_REPORT_BLOCKERS)[number];
   agendas: {
     agendaId: string;
     chairmanInitials: string;
     filesCount: number;
-    meetingDate: DateOnlyJson;
     filesWithoutOutcome: number;
     filesWithoutReporter: number;
     filesWithUnpublishedReporter: number;
+    meetingDate: DateOnlyJson;
   }[];
+  reason: (typeof OFFICIAL_REPORT_BLOCKERS)[number];
 };
 
 @Injectable()
@@ -59,76 +56,71 @@ export class IsSessionReadyForDocGenerationQuery {
         agendaBlocker: 'ARCHIVED',
         canCreateAgenda: false,
         canCreateOfficialReport: false,
+        agendaWarning: null,
         isReady: false,
         officialReportBlocker: null,
       };
     }
 
+    const lastVersion = await this.transparences.versions.last({ sessionId: query.sessionId });
     const publishedVersion = await this.transparences.versions.lastPublished({
       sessionId: query.sessionId,
     });
 
-    if (publishedVersion.isNone()) {
-      return {
-        agendaBlocker: 'NO_AFFECTATION',
-        canCreateAgenda: false,
-        canCreateOfficialReport: false,
-        isReady: false,
-        officialReportBlocker: blocker('NEVER_PUBLISHED'),
-      };
-    }
-
-    const hasAnyReportableAgenda = await this.agendas.hasAnyReportableInOfficialReport({
-      sessionId: query.sessionId,
-      affectationVersionId: publishedVersion.id,
-    });
-
-    const hasAnyUnreportedFile = await this.db.tx.dossierDeNomination.findFirst({
-      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
+    // acted: a final outcome carried by a presented notice, whatever the official report says
+    const hasAnyUnactedFile = await this.db.tx.dossierDeNomination.findFirst({
       where: {
-        sessionId: query.sessionId,
         NOT: {
           outcome: { in: NominationFileOutcome.finalOutcomes() },
-          officialReportInclusions: {
+          presentationPlanInclusions: {
             some: {
-              version: { validatedAt: { not: null } },
               outcome: { in: Object.values(FinalDocNominationFileOutcomeEnum) },
+              plan: { isPresented: true },
             },
           },
         },
+        sessionId: query.sessionId,
       },
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
     });
 
-    const hasAnyPublishedReporter = await this.db.tx.nominationFileToReporter.findFirst({
-      select: { userId: true } satisfies Prisma.NominationFileToReporterSelect,
-      where: { versionId: publishedVersion.id },
-    });
-
-    const hasAnyDraftReporter =
-      !hasAnyPublishedReporter &&
+    // every version keeps its own rows: a reporter removed since then still sits in the older ones
+    const hasAnyReporter =
+      !lastVersion.isNone() &&
       (await this.db.tx.nominationFileToReporter.findFirst({
+        where: { versionId: lastVersion.id },
         select: { userId: true } satisfies Prisma.NominationFileToReporterSelect,
-        where: { nominationFile: { sessionId: query.sessionId } },
       }));
 
-    const canCreateAgenda = Boolean(hasAnyUnreportedFile) && Boolean(hasAnyPublishedReporter);
-    const canCreateOfficialReport = hasAnyReportableAgenda;
+    const agendaBlocker = agendaBlockerOf({
+      hasAnyReporter: Boolean(hasAnyReporter),
+      hasAnyUnactedFile: Boolean(hasAnyUnactedFile),
+    });
+
+    const canCreateOfficialReport =
+      !publishedVersion.isNone() &&
+      (await this.agendas.hasAnyReportableInOfficialReport({
+        affectationVersionId: publishedVersion.id,
+        sessionId: query.sessionId,
+      }));
 
     return {
-      agendaBlocker: agendaBlockerOf({
-        hasAnyPublishedReporter: Boolean(hasAnyPublishedReporter),
-        hasAnyReporter: Boolean(hasAnyPublishedReporter || hasAnyDraftReporter),
-        hasAnyUnreportedFile: Boolean(hasAnyUnreportedFile),
-      }),
-      canCreateAgenda,
+      agendaBlocker,
+      canCreateAgenda: agendaBlocker === null,
       canCreateOfficialReport,
-      isReady: canCreateAgenda || canCreateOfficialReport,
+      agendaWarning: agendaWarningOf({
+        hasUnpublishedChanges: lastVersion.map((version) => version.status === 'BROUILLON') ?? false,
+        wasEverPublished: !publishedVersion.isNone(),
+      }),
+      isReady: agendaBlocker === null || canCreateOfficialReport,
       officialReportBlocker: canCreateOfficialReport
         ? null
-        : await this.officialReportBlocker({
-            affectationVersionId: publishedVersion.id,
-            sessionId: query.sessionId,
-          }),
+        : publishedVersion.isNone()
+          ? blocker('NEVER_PUBLISHED')
+          : await this.officialReportBlocker({
+              affectationVersionId: publishedVersion.id,
+              sessionId: query.sessionId,
+            }),
     };
   }
 
@@ -145,8 +137,6 @@ export class IsSessionReadyForDocGenerationQuery {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
           select: {
-            status: true,
-            sessionMeetingDate: true,
             chairmanFirstName: true,
             chairmanLastName: true,
             nominationFiles: {
@@ -156,6 +146,8 @@ export class IsSessionReadyForDocGenerationQuery {
                 },
               },
             },
+            sessionMeetingDate: true,
+            status: true,
           },
         },
       } satisfies Prisma.AgendaSelect,
@@ -189,16 +181,16 @@ export class IsSessionReadyForDocGenerationQuery {
           lastName: agenda.published.chairmanLastName,
         }),
         filesCount: files.length,
-        meetingDate: DateOnly.fromUtcDate(agenda.published.sessionMeetingDate).toJson(),
-        filesWithoutOutcome: files.filter(({ outcome }) => NominationFileOutcome.isAwaited(outcome)).length,
+        filesWithoutOutcome: files.filter(({ outcome }) => outcome === null).length,
         filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
         filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0).length,
+        meetingDate: DateOnly.fromUtcDate(agenda.published.sessionMeetingDate).toJson(),
       };
 
       return missingCount(incomplete) > 0 ? [incomplete] : [];
     });
 
-    return { reason: 'INCOMPLETE_AGENDA', agendas: incompleteAgendas };
+    return { agendas: incompleteAgendas, reason: 'INCOMPLETE_AGENDA' };
   }
 }
 
@@ -207,19 +199,26 @@ function missingCount(agenda: OfficialReportBlocker['agendas'][number]): number 
 }
 
 function blocker(reason: OfficialReportBlocker['reason']): OfficialReportBlocker {
-  return { reason, agendas: [] };
+  return { agendas: [], reason };
 }
 
 function agendaBlockerOf(session: {
-  hasAnyPublishedReporter: boolean;
   hasAnyReporter: boolean;
-  hasAnyUnreportedFile: boolean;
+  hasAnyUnactedFile: boolean;
 }): (typeof AGENDA_BLOCKERS)[number] | null {
   if (!session.hasAnyReporter) return 'NO_AFFECTATION';
-  if (!session.hasAnyPublishedReporter) return 'UNPUBLISHED_AFFECTATION';
-  if (!session.hasAnyUnreportedFile) return 'ALL_FILES_REPORTED';
+  if (!session.hasAnyUnactedFile) return 'ALL_FILES_REPORTED';
 
   return null;
+}
+
+function agendaWarningOf(affectations: {
+  hasUnpublishedChanges: boolean;
+  wasEverPublished: boolean;
+}): (typeof AGENDA_WARNINGS)[number] | null {
+  if (!affectations.hasUnpublishedChanges) return null;
+
+  return affectations.wasEverPublished ? 'UNPUBLISHED_CHANGES' : 'NEVER_PUBLISHED';
 }
 
 export class DocGenerationSessionReadinessDto extends createZodDto(
@@ -228,6 +227,8 @@ export class DocGenerationSessionReadinessDto extends createZodDto(
     canCreateAgenda: z.boolean(),
     canCreateOfficialReport: z.boolean(),
     agendaBlocker: z.enum(AGENDA_BLOCKERS).nullable(),
+    /** the agenda does not wait for a publication, yet it prints the published reporters only */
+    agendaWarning: z.enum(AGENDA_WARNINGS).nullable(),
     officialReportBlocker: z
       .object({
         reason: z.enum(OFFICIAL_REPORT_BLOCKERS),
