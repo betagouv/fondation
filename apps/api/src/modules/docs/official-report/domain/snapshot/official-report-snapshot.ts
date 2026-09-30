@@ -38,6 +38,17 @@ export class OfficialReportSnapshot {
     return this.filesSnapshot.files.has(nominationFileId);
   }
 
+  /** a suspension decided since then leaves the files as they are, yet it did happen */
+  changedSince(
+    command: Exclude<InvalidateOfficialReportCommand, { type: 'AgendaFileBlockEdited' }>,
+  ): boolean {
+    if (command.type !== 'NominationFilesOutcomeUpdated') return this.invalidate(command).hasAny;
+
+    return command.payload.files.some(({ nominationFileId, outcome }) =>
+      this.filesSnapshot.files.get(nominationFileId)?.outcomeDiffers(outcome),
+    );
+  }
+
   invalidate(
     command: Exclude<InvalidateOfficialReportCommand, { type: 'AgendaFileBlockEdited' }>,
   ): OfficialReportSnapshotDiff {
@@ -67,19 +78,19 @@ export class OfficialReportSnapshot {
 
   private invalidateFiles(files: OfficialReportSnapshotDiff['files']): OfficialReportSnapshotDiff {
     return {
-      hasAny: files.some((file) => file.action !== 'noop'),
-      intro: 'NOOP',
       conclusion: 'NOOP',
       files,
+      hasAny: files.some((file) => file.action !== 'noop'),
+      intro: 'NOOP',
     };
   }
 
   private invalidateIntroIf(outdated: boolean): OfficialReportSnapshotDiff {
     return {
-      hasAny: outdated,
-      intro: outdated ? 'OUTDATED' : 'NOOP',
       conclusion: 'NOOP',
       files: [],
+      hasAny: outdated,
+      intro: outdated ? 'OUTDATED' : 'NOOP',
     };
   }
 
@@ -88,11 +99,10 @@ export class OfficialReportSnapshot {
     const filesDiff = this.filesSnapshot.diff(next);
 
     return {
-      hasAny: metaDiff.hasAny || filesDiff.some(({ action }) => action !== 'noop'),
-
-      intro: metaDiff.intro,
       conclusion: metaDiff.conclusion,
       files: filesDiff,
+      hasAny: metaDiff.hasAny || filesDiff.some(({ action }) => action !== 'noop'),
+      intro: metaDiff.intro,
     };
   }
 
@@ -109,8 +119,8 @@ class OfficialReportSnapshotFilesCollection {
 
   diffFile(next: {
     nominationFileId: string;
+    outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
     reporters?: readonly string[];
-    outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
   }): OfficialReportSnapshotDiff['files'][number] {
     const file = this.files.get(next.nominationFileId);
     if (!file) {
@@ -135,23 +145,23 @@ class OfficialReportSnapshotFilesCollection {
   diff(next: {
     files: readonly {
       nominationFileId: string;
+      outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
       reporters?: readonly string[];
-      outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
   }): OfficialReportSnapshotDiff['files'] {
     return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));
   }
 }
 
-export type PlainOfficialReportSnapshotManuallyEditedParts = { intro: boolean; conclusion: boolean };
+export type PlainOfficialReportSnapshotManuallyEditedParts = { conclusion: boolean; intro: boolean };
 export type PlainOfficialReportSnapshot = {
-  hasRenunciation: boolean;
   agenda: OfficialReportAgenda;
-  justiceDepartmentContactId: bigint | null;
-  sessionMeeting: OfficialReportSessionMeeting;
   chairman: OfficialReportChairman;
-  secretary: OfficialReportSecretary;
-  members: OfficialReportMembersList;
-  manuallyEditedPart: PlainOfficialReportSnapshotManuallyEditedParts;
   files: ReadonlyMap<string, OfficialReportSnapshotFile>;
+  hasRenunciation: boolean;
+  justiceDepartmentContactId: bigint | null;
+  manuallyEditedPart: PlainOfficialReportSnapshotManuallyEditedParts;
+  members: OfficialReportMembersList;
+  secretary: OfficialReportSecretary;
+  sessionMeeting: OfficialReportSessionMeeting;
 };

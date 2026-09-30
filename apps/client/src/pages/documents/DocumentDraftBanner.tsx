@@ -49,10 +49,7 @@ export function DocumentDraftBanner(props: {
                 }}
               />
             ) : (
-              <FormattedMessage
-                defaultMessage="Brouillon : le PDF sera disponible après avoir validé {kind, select, agenda {l'ODJ} officialReport {le PV} other {la notice}}"
-                values={{ kind: props.kind }}
-              />
+              <FormattedMessage defaultMessage="Brouillon : le PDF sera disponible après avoir validé le document" />
             )}
           </span>
           {draft && (

@@ -10,24 +10,34 @@ import {
   OfficialReportDraftUpdatedBySystem,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
+  OfficialReportUpdateSkipped,
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
 } from './official-report';
 import * as helpers from './official-report-test-utils';
-import { OfficialReportSnapshot } from './snapshot/official-report-snapshot';
+import {
+  OfficialReportSnapshot,
+  type PlainOfficialReportSnapshot,
+} from './snapshot/official-report-snapshot';
+import { OfficialReportSnapshotFile } from './snapshot/official-report-snapshot-file';
 
 const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
 
 function makeReport(
-  state: { actorId?: string | null; isDocumentStored?: boolean; isValidated?: boolean } = {},
+  state: {
+    actorId?: string | null;
+    isDocumentStored?: boolean;
+    isValidated?: boolean;
+    snapshot?: Partial<PlainOfficialReportSnapshot>;
+  } = {},
 ): OfficialReport {
   return OfficialReport.from({
     actorId: state.actorId === undefined ? AUTHOR : state.actorId,
     id: makeId('OfficialReportId'),
-    snapshot: OfficialReportSnapshot.from(helpers.makeSnapshot()),
     isDocumentStored: state.isDocumentStored ?? true,
     isValidated: state.isValidated ?? false,
+    snapshot: OfficialReportSnapshot.from(helpers.makeSnapshot(state.snapshot)),
   });
 }
 
@@ -103,15 +113,22 @@ describe('OfficialReport', () => {
       });
 
     it('should take the agenda sentence without asking', () => {
-      const report = makeReport({ actorId: null, isValidated: true });
+      const report = makeReport({ actorId: null });
 
       agendaFileBlockEdited(report, 'file-1');
 
       expect(report.messages).toEqual([
-        new OfficialReportDraftOpened(report.id, null),
         new OfficialReportDraftUpdatedBySystem(report.id, 'AGENDA_TEXT'),
         new OfficialReportFileReset(report.id, 'file-1'),
       ]);
+    });
+
+    it('should leave a validated report as it is and only say so', () => {
+      const report = makeReport({ actorId: null, isValidated: true });
+
+      agendaFileBlockEdited(report, 'file-1');
+
+      expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'AGENDA_TEXT')]);
     });
 
     it('should ignore a proposition it does not carry', () => {
@@ -145,6 +162,52 @@ describe('OfficialReport', () => {
       report.resetFile({ nominationFileId: 'nf-1' });
 
       expect(report.messages.filter((m) => m instanceof OfficialReportDraftOpened)).toHaveLength(1);
+    });
+
+    it('should keep the session date it reports and only say it changed', () => {
+      const report = makeReport({ actorId: null, isValidated: true });
+
+      report.invalidate({
+        id: report.id,
+        payload: {
+          currentDate: { day: 21, month: 2, year: 2026 },
+          previousDate: null,
+          sessionId: 'session-1',
+        },
+        type: 'SessionDateUpdated',
+      });
+
+      expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'SESSION_DATE')]);
+    });
+
+    it('should keep a suspension decided since then and only say so', () => {
+      const report = makeReport({
+        actorId: null,
+        isValidated: true,
+        snapshot: {
+          files: new Map([
+            [
+              'file-1',
+              OfficialReportSnapshotFile.from({
+                hasManuallyEditedHtml: false,
+                nominationFileId: 'file-1',
+                outcome: { comment: null, value: 'SUSPENDED' },
+                reporters: ['M. John DOE'],
+              }),
+            ],
+          ]),
+        },
+      });
+
+      report.invalidate({
+        id: report.id,
+        payload: {
+          files: [{ nominationFileId: 'file-1', outcome: { comment: null, value: 'VALIDATED' } }],
+        },
+        type: 'NominationFilesOutcomeUpdated',
+      });
+
+      expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'OUTCOME')]);
     });
 
     it('should have nothing to discard', () => {

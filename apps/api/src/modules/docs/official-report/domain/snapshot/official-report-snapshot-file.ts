@@ -1,21 +1,24 @@
-import { type DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import {
+  type DocNominationFileOutcomeEnum,
+  FinalDocNominationFileOutcomeEnum,
+} from '../../../shared/domain/doc-nomination-file-outcome';
 import type { OfficialReportSnapshotDiff } from '../official-report-types';
 
 export type PlainOfficialReportSnapshotFile = {
-  nominationFileId: string | null;
   hasManuallyEditedHtml: boolean;
-  reporters: readonly string[];
+  nominationFileId: string | null;
   outcome: {
-    value: DocNominationFileOutcomeEnum;
     comment: string | null;
+    value: DocNominationFileOutcomeEnum;
   };
+  reporters: readonly string[];
 };
 
 export class OfficialReportSnapshotFile {
   private constructor(
     readonly nominationFileId: string | null,
     readonly reporters: readonly string[],
-    readonly outcome: { value: DocNominationFileOutcomeEnum; comment: string | null },
+    readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
   ) {}
 
@@ -30,9 +33,8 @@ export class OfficialReportSnapshotFile {
 
   diff(next: {
     nominationFileId: string;
+    outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
     reporters?: readonly string[];
-    outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
-    previousOutcome?: { value: DocNominationFileOutcomeEnum; comment: string | null } | null;
   }): OfficialReportSnapshotDiff['files'][number] {
     const reportersChanged = this.reportersChanged(next);
     const outcomeChanged = this.outcomeChanged(next);
@@ -42,9 +44,9 @@ export class OfficialReportSnapshotFile {
     return {
       action: this.hasManuallyEditedHtml ? 'outdate' : 'update',
       nominationFileId: next.nominationFileId,
-      reporters: reportersChanged ? next.reporters : undefined,
       outcome: outcomeChanged ? next.outcome?.value : undefined,
       outcomeComment: outcomeChanged ? next.outcome?.comment : undefined,
+      reporters: reportersChanged ? next.reporters : undefined,
     };
   }
 
@@ -57,15 +59,22 @@ export class OfficialReportSnapshotFile {
     );
   }
 
+  outcomeDiffers(next: { comment: string | null; value: DocNominationFileOutcomeEnum }): boolean {
+    return (
+      this.outcome.value !== next.value || (this.outcome.comment ?? '').trim() !== (next.comment ?? '').trim()
+    );
+  }
+
   private outcomeChanged(next: {
-    outcome?: { value: DocNominationFileOutcomeEnum; comment: string | null };
+    outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
   }): boolean {
     if (!next.outcome) return false;
 
-    const outcomeChanged =
-      this.outcome.value !== next.outcome.value ||
-      (this.outcome.comment ?? '').trim() !== (next.outcome.comment ?? '').trim();
+    // the meeting suspended the file: its later outcome is reported by another meeting, not this one
+    if (this.outcome.value === 'SUSPENDED' && next.outcome.value in FinalDocNominationFileOutcomeEnum) {
+      return false;
+    }
 
-    return outcomeChanged;
+    return this.outcomeDiffers(next.outcome);
   }
 }

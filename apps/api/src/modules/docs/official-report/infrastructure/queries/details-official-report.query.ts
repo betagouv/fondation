@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
+import { DOC_SYSTEM_UPDATE_CAUSES } from 'src/modules/docs/shared/domain/doc-system-update-cause';
 import {
   DRAFT_TRACE_SELECT,
   draftTrace,
@@ -37,18 +38,18 @@ export class DetailsOfficialReportQuery {
     const version = await this.db.tx.officialReportVersion.findUnique({
       where: { id: versionId },
       select: {
-        status: true,
-        outdated: true,
-        hasRenunciation: true,
-        members: { select: { memberId: true, isAbsent: true } },
-        justiceDepartmentContactId: true,
-        secretaryId: true,
         chairmanId: true,
-        sessionMeetingDate: true,
-        sessionMeetingStartingTime: true,
-        sessionMeetingEndingTime: true,
-        isManuallyEdited: true,
         createdBy: true,
+        hasRenunciation: true,
+        isManuallyEdited: true,
+        justiceDepartmentContactId: true,
+        members: { select: { isAbsent: true, memberId: true } },
+        outdated: true,
+        secretaryId: true,
+        sessionMeetingDate: true,
+        sessionMeetingEndingTime: true,
+        sessionMeetingStartingTime: true,
+        status: true,
         updatedBy: true,
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
@@ -64,8 +65,11 @@ export class DetailsOfficialReportQuery {
 
     const published = publishedId
       ? await this.db.tx.officialReportVersion.findUnique({
-          select: VALIDATION_TRACE_SELECT satisfies Prisma.OfficialReportVersionSelect,
           where: { id: publishedId },
+          select: {
+            ...VALIDATION_TRACE_SELECT,
+            skippedUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+          } satisfies Prisma.OfficialReportVersionSelect,
         })
       : null;
 
@@ -85,6 +89,7 @@ export class DetailsOfficialReportQuery {
       hasValidatedVersion: isDefined(publishedId),
       draftChangesBy: draftChangesBy(version),
       draft: draftTrace(version),
+      changedSinceValidation: published?.skippedUpdates.map(({ cause }) => cause) ?? [],
       validation: traceOf(published?.validatedAt, published?.validator),
       status: report.status,
       sessionMeetingDate: DateOnly.fromUtcDate(report.sessionMeetingDate).toJson(),
@@ -113,6 +118,8 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     hasValidatedVersion: z.boolean(),
     draftChangesBy: draftChangesBySchema,
     draft: draftTraceSchema,
+    /** what changed elsewhere since the validated version, which kept the meeting as it was held */
+    changedSinceValidation: z.array(z.enum(DOC_SYSTEM_UPDATE_CAUSES)),
     validation: traceSchema,
     chairmanId: z.string().nullable(),
     secretaryId: z.string().nullable(),

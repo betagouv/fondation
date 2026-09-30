@@ -123,6 +123,13 @@ export class OfficialReportDraftUpdatedBySystem {
   ) {}
 }
 
+export class OfficialReportUpdateSkipped {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly cause: DocSystemUpdateCause,
+  ) {}
+}
+
 export class OfficialReportDraftEdited {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
@@ -152,6 +159,7 @@ export type OfficialReportEvent =
   | OfficialReportDraftOpened
   | OfficialReportDraftEdited
   | OfficialReportDraftUpdatedBySystem
+  | OfficialReportUpdateSkipped
   | OfficialReportDraftDiscarded;
 
 const INVALIDATION_CAUSES = {
@@ -214,7 +222,7 @@ export class OfficialReport {
       OfficialReportSnapshot.from({
         ...command.snapshot,
         files: new Map(),
-        manuallyEditedPart: { intro: false, conclusion: false },
+        manuallyEditedPart: { conclusion: false, intro: false },
       }),
       { isDocumentStored: false, isValidated: false },
     );
@@ -258,6 +266,8 @@ export class OfficialReport {
   }
 
   invalidate(command: InvalidateOfficialReportCommand): void {
+    if (this.state.isValidated) return this.skipUpdate(command);
+
     // the report follows the agenda's sentence on its own: the reader was never asked to choose
     if (command.type === 'AgendaFileBlockEdited') {
       if (!this.snapshot.holdsFile(command.payload.nominationFileId)) return;
@@ -272,6 +282,20 @@ export class OfficialReport {
 
     this.openDraft(INVALIDATION_CAUSES[command.type]);
     this.#messages.push(new OfficialReportInvalidated(this.id, diff));
+  }
+
+  /** a validated report tells its meeting as it was held: the application only says what changed since */
+  private skipUpdate(command: InvalidateOfficialReportCommand): void {
+    if (command.type === 'AgendaFileBlockEdited') {
+      if (this.snapshot.holdsFile(command.payload.nominationFileId)) {
+        this.#messages.push(new OfficialReportUpdateSkipped(this.id, 'AGENDA_TEXT'));
+      }
+      return;
+    }
+
+    if (this.snapshot.changedSince(command)) {
+      this.#messages.push(new OfficialReportUpdateSkipped(this.id, INVALIDATION_CAUSES[command.type]));
+    }
   }
 
   update(command: UpdateOfficialReportCommand): void {
@@ -321,7 +345,7 @@ export class OfficialReport {
     this.#messages.push(new OfficialReportSectionTitleReset(this.id, command.outcome));
   }
 
-  editSectionIntro(command: { outcome: DocNominationFileOutcomeEnum; html: string }): void {
+  editSectionIntro(command: { html: string; outcome: DocNominationFileOutcomeEnum }): void {
     this.openDraft();
     this.#messages.push(new OfficialReportSectionIntroEdited(this.id, command.outcome, command.html));
   }
