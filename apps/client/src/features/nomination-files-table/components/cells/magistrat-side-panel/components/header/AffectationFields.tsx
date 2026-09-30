@@ -13,6 +13,8 @@ const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)
 
 const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
+const NO_REPORTER = 'none';
+
 export function PrioritySelect(props: {
   disabled?: boolean;
   onChange: (value: PrioriteEnum[]) => void;
@@ -43,12 +45,13 @@ export function ReporterSelect(props: {
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
   onChange: (ids: string[]) => void;
+  onClear?: () => void;
   ref?: Ref<DropdownHandle>;
   value: readonly string[];
 }) {
-  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, onChange, ref, value } = props;
+  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, onChange, onClear, ref, value } = props;
 
-  const options = [...available]
+  const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
       const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
@@ -70,12 +73,34 @@ export function ReporterSelect(props: {
       };
     });
 
+  const options = onClear
+    ? [
+        {
+          label: (
+            <span
+              className={clsx(
+                REPORTER_TAG,
+                'fr-tag--icon-left fr-icon-close-circle-line text-(--text-action-high-blue-france)!',
+              )}
+            >
+              <FormattedMessage defaultMessage="Aucun" />
+            </span>
+          ),
+          value: NO_REPORTER,
+        },
+        ...reporterOptions,
+      ]
+    : reporterOptions;
+
   return (
     <Dropdown
       disabled={props.disabled}
       label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
       multiple
-      onSelect={onChange}
+      onSelect={(ids) => {
+        if (ids.includes(NO_REPORTER)) onClear?.();
+        else onChange(ids);
+      }}
       options={options}
       placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
       ref={ref}

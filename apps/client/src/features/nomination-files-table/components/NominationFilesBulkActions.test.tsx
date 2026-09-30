@@ -198,6 +198,36 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
+  it('should empty the reporters of every selected file while keeping their priorities', async () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        priorities: ['ETOILE'],
+        reporters: [{ id: 'member-1' }],
+      }),
+      file({
+        id: 'file-2',
+        nomMagistrat: 'HARENDT Anna',
+        reporters: [{ id: 'member-1' }, { id: 'member-2' }],
+      }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Aucun');
+
+    expect(affectReporters).toHaveBeenCalledWith(
+      {
+        affectations: [
+          { nominationFileId: 'file-1', priorities: ['ETOILE'], reporterIds: [] },
+          { nominationFileId: 'file-2', priorities: [], reporterIds: [] },
+        ],
+        sessionId: 'session-1',
+      },
+      expect.anything(),
+    );
+  });
+
   it('should complete the priorities without dropping the reporters', async () => {
     renderActions([
       file({
