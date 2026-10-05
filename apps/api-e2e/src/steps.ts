@@ -16,6 +16,7 @@ type Complement<T, U> = RemoveEmpty<
 export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: string } | undefined };
 export type TestStepsMember = Pick<TestSteps, 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
+  feedback: Pick<TestSteps['feedback'], 'answerSessionFeedback' | 'findSessionFeedback'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
   members: Pick<
     TestSteps['members'],
@@ -40,6 +41,7 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember> & {
     auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
+    feedback: TestSteps['feedback'];
     // the secretariat also reads the summaries it writes
     summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
   },
