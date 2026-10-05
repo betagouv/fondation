@@ -1,19 +1,18 @@
-import type React from 'react';
-import { useRef } from 'react';
+import { useRef, type MouseEventHandler, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link, type LinkProps } from 'react-router';
 
 import { useSecondBreadcrumbLinkOffset } from '@/shared/hooks/useSecondBreadcrumbLinkOffset';
 
 export function DetailsHeader(props: {
-  action?: React.ReactNode;
-  backLabel?: React.ReactNode;
+  action?: ReactNode;
+  backLabel?: ReactNode;
   backTo: LinkProps['to'];
-  breadcrumb?: React.ReactNode;
-  description?: React.ReactNode;
-  onBackClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  overline?: React.ReactNode;
-  title: React.ReactNode;
+  breadcrumb?: ReactNode;
+  description?: ReactNode;
+  onBackClick?: MouseEventHandler<HTMLAnchorElement>;
+  overline?: ReactNode;
+  title: ReactNode;
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
   const titleOffset = useSecondBreadcrumbLinkOffset(headerRef);

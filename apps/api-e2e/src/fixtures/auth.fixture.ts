@@ -28,7 +28,8 @@ export async function registerUser<Role extends RoleEnum>(options: {
   ) as Partial<RegisterUserDto>;
   const user = {
     role: inputUser.role as Role,
-    email: inputUser.email ?? faker.internet.email(),
+    // faker emails collide over a whole run, while the address must be unique
+    email: inputUser.email ?? faker.internet.email().replace('@', `+${crypto.randomUUID()}@`),
     firstName: inputUser.firstName ?? faker.person.firstName(),
     lastName: inputUser.lastName ?? faker.person.lastName(),
     gender: inputUser.gender ?? faker.helpers.arrayElement(['MALE', 'FEMALE']),

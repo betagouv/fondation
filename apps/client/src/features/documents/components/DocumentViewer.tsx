@@ -87,7 +87,7 @@ export const DocumentViewer = forwardRef<
   DocumentViewerHandle,
   { className?: string; html: string; reloadKey?: string; title: string }
 >(function DocumentViewer(props, ref) {
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState<number>();
@@ -121,7 +121,7 @@ export const DocumentViewer = forwardRef<
       src={window.location.origin}
       srcDoc={srcDoc}
       style={{ height }}
-      title={$t({ defaultMessage: 'Aperçu de {title}' }, { title: props.title })}
+      title={formatMessage({ defaultMessage: 'Aperçu de {title}' }, { title: props.title })}
     />
   );
 });

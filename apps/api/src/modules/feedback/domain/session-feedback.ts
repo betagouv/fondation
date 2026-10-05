@@ -93,14 +93,13 @@ export class SessionFeedback {
   }
 
   static questionnaireOf(role: RoleEnum, formation: FormationEnum): Questionnaire | null {
-    // the admins read the answers: theirs would skew the secretariat's
     if (role === 'ADJOINT_SECRETAIRE_GENERAL') return 'SECRETARIAT';
     if (formationToMemberRole(formation).includes(role)) return 'MEMBER';
     return null;
   }
 
-  /** who answers, and who may only go through the questionnaire without answering it */
   static accessOf(respondent: Respondent, formation: FormationEnum): SessionFeedbackAccess | null {
+    // the admins read the answers: theirs would skew the secretariat's
     if (respondent.role === 'ADMIN') return { mode: 'PREVIEW', questionnaire: 'SECRETARIAT' };
     const questionnaire = SessionFeedback.questionnaireOf(respondent.role, formation);
     if (!questionnaire) return null;

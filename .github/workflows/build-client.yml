@@ -66,8 +66,6 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_CLIENT_AUTH_TOKEN }}
           VITE_MATOMO_BASE_URL: ${{ vars.VITE_MATOMO_BASE_URL }}
           VITE_MATOMO_SITE_ID: ${{ vars.VITE_MATOMO_SITE_ID }}
-          VITE_JDMA_URL_AGENT: ${{ vars.VITE_JDMA_URL_AGENT }}
-          VITE_JDMA_URL_MEMBER: ${{ vars.VITE_JDMA_URL_MEMBER }}
 
       - name: Create Archive
         run: |

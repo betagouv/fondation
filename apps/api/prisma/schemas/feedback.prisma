@@ -1,4 +1,3 @@
-// who has already answered the questionnaire of a session, never what they answered
 model SessionFeedbackParticipation {
   sessionId String @map("session_id") @db.Uuid
   userId    String @map("user_id") @db.Uuid

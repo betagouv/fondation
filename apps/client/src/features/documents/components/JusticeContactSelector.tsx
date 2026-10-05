@@ -25,7 +25,7 @@ export function JusticeContactSelector(
   },
 ) {
   const { field } = useController(props);
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
   const [search, setSearch] = useState('');
 
@@ -70,7 +70,7 @@ export function JusticeContactSelector(
   const { mutate: createJusticeContactMutation, isPending: isCreating } = useCreateJusticeContactMutation();
   const createJusticeContact = useCallback(async () => {
     const { isConfirmed } = await confirmation.waitForConfirmation({
-      title: $t({ defaultMessage: `Créer le contact DSJ\u00A0?` }),
+      title: formatMessage({ defaultMessage: `Créer le contact DSJ\u00A0?` }),
       content: (
         <p>
           <FormattedMessage
@@ -91,7 +91,7 @@ export function JusticeContactSelector(
         },
       },
     );
-  }, [trimmed, confirmation, $t, createJusticeContactMutation, select]);
+  }, [trimmed, confirmation, formatMessage, createJusticeContactMutation, select]);
 
   const onValueChange = useCallback(
     (item: ViewItem | null, details: ComboboxChangeEventDetails) => {
@@ -103,8 +103,8 @@ export function JusticeContactSelector(
   );
 
   const addTitle = useMemo(
-    () => $t({ defaultMessage: `ajouter «\u00A0{trimmed}\u00A0»` }, { trimmed }),
-    [trimmed, $t],
+    () => formatMessage({ defaultMessage: `ajouter «\u00A0{trimmed}\u00A0»` }, { trimmed }),
+    [trimmed, formatMessage],
   );
 
   return (
