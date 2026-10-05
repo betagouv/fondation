@@ -8,7 +8,13 @@ import { gradeAndPositionLabel } from '@/utils/position.utils';
 import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
-export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagistratDto }) {
+export function MagistratIdentityCard({
+  magistrat,
+  phoneNumbers,
+}: {
+  magistrat: DetailedMagistratDto;
+  phoneNumbers?: React.ReactNode;
+}) {
   const position = magistrat.currentPosition;
   const positionLabel = position
     ? [position.function?.label, position.jurisdiction.label].filter(Boolean).join(' ')
@@ -20,51 +26,52 @@ export function MagistratIdentityCard({ magistrat }: { magistrat: DetailedMagist
       <h2 className="fr-h4">
         <FormattedMessage defaultMessage="Informations personnelles" />
       </h2>
-      <InfoList>
-        <InfoItem label={<FormattedMessage defaultMessage="Nom" />}>
+      <MagistratInfoList>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Nom" />}>
           {magistrat.lastName.toUpperCase()}
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
           {capitalizedFirstName(magistrat)}
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Nom d'usage" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Nom d'usage" />}>
           {magistrat.usedName ? magistrat.usedName.toUpperCase() : '-'}
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Date de naissance" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Date de naissance" />}>
           <InfoDate date={magistrat.birthDate} />
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Âge" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Âge" />}>
           {magistrat.birthDate ? <FormattedAge value={magistrat.birthDate} /> : '-'}
-        </InfoItem>
-      </InfoList>
+        </MagistratInfoItem>
+      </MagistratInfoList>
 
       <h2 className="fr-h4 fr-mt-8v">
         <FormattedMessage defaultMessage="Informations professionnelles" />
       </h2>
-      <InfoList>
-        <InfoItem label={<FormattedMessage defaultMessage="Poste actuel" />}>
+      <MagistratInfoList>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Poste actuel" />}>
           {currentPosition || '-'}
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Durée sur le poste" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Durée sur le poste" />}>
           {magistrat.installationDate ? (
             <FormattedPositionDuration value={magistrat.installationDate} />
           ) : (
             '-'
           )}
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Date de nomination" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Date de nomination" />}>
           <InfoDate date={magistrat.nominationDate} />
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Date d'installation" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Date d'installation" />}>
           <InfoDate date={magistrat.installationDate} />
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Date du grade" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Date du grade" />}>
           <InfoDate date={magistrat.gradeDate} />
-        </InfoItem>
-        <InfoItem label={<FormattedMessage defaultMessage="Email" />}>
+        </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Email" />}>
           {magistrat.professionalEmail?.toLowerCase() ?? '-'}
-        </InfoItem>
-      </InfoList>
+        </MagistratInfoItem>
+      </MagistratInfoList>
+      {phoneNumbers}
     </DetailsCard>
   );
 }
@@ -75,11 +82,11 @@ function InfoDate(props: { date: PlainDateOnly | null }) {
   return formatDateOnly(props.date);
 }
 
-function InfoList(props: { children: React.ReactNode }) {
+export function MagistratInfoList(props: { children: React.ReactNode }) {
   return <dl className="m-0 flex flex-col gap-2 p-0">{props.children}</dl>;
 }
 
-function InfoItem(props: { children: React.ReactNode; label: React.ReactNode }) {
+export function MagistratInfoItem(props: { children: React.ReactNode; label: React.ReactNode }) {
   return (
     <div className="leading-relaxed">
       <dt className="inline p-0 font-bold whitespace-nowrap">{props.label}</dt>{' '}

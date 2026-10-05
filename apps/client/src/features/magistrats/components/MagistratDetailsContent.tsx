@@ -8,6 +8,7 @@ import { MagistratDetailsHeader } from './MagistratDetailsHeader';
 import { MagistratIdentityCard } from './MagistratIdentityCard';
 import { MagistratNominationFilesSection } from './MagistratNominationFilesSection';
 import { MagistratObservationsSection } from './MagistratObservationsSection';
+import { MagistratPhoneNumbersSection } from './MagistratPhoneNumbersSection';
 
 type MagistratDetailsContentProps = {
   context: 'sg' | 'membre';
@@ -21,7 +22,12 @@ export function MagistratDetailsContent({ context, magistrat }: MagistratDetails
     <DetailsPageLayout
       background="terreBattue"
       header={<MagistratDetailsHeader context={context} magistrat={magistrat} />}
-      identity={<MagistratIdentityCard magistrat={magistrat} />}
+      identity={
+        <MagistratIdentityCard
+          magistrat={magistrat}
+          phoneNumbers={context === 'sg' ? <MagistratPhoneNumbersSection magistratId={magistrat.id} /> : null}
+        />
+      }
     >
       {careerHistory ? (
         <DetailsCard>
