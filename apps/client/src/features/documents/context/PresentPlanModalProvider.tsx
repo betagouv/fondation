@@ -29,7 +29,7 @@ function PresentPlanModal(props: {
   open: boolean;
   plans: readonly PresentedPlan[];
 }) {
-  const { $t, formatList } = useIntl();
+  const { formatList, formatMessage } = useIntl();
   const toasts = useToasts();
   const describeFailure = useDocumentFailure();
   const presentPlansMutation = usePresentPlansMutation();
@@ -82,7 +82,7 @@ function PresentPlanModal(props: {
       toasts.error({
         description: [
           presentedNames.length > 0
-            ? $t(
+            ? formatMessage(
                 {
                   defaultMessage:
                     '{count, plural, one {{names} est restituée.} other {{names} sont restituées.}}',
@@ -94,13 +94,13 @@ function PresentPlanModal(props: {
         ]
           .filter(Boolean)
           .join(' '),
-        title: $t(
+        title: formatMessage(
           { defaultMessage: `La restitution s'est arrêtée à {name}` },
           { name: nameOf(failure.planId) },
         ),
       });
     },
-    [$t, describeFailure, formatList, props.plans, toasts],
+    [formatMessage, describeFailure, formatList, props.plans, toasts],
   );
 
   const onSubmit = useCallback(
@@ -151,7 +151,7 @@ function PresentPlanModal(props: {
           name="endTime"
           render={({ field }) => (
             <Input
-              label={$t({ defaultMessage: 'Heure de fin de la session' })}
+              label={formatMessage({ defaultMessage: 'Heure de fin de la session' })}
               nativeInputProps={{ ...field, type: 'time' }}
               state={errors.endTime ? 'error' : undefined}
               stateRelatedMessage={errors.endTime?.message}

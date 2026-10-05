@@ -1,18 +1,18 @@
-import type React from 'react';
-import { useRef } from 'react';
+import { useRef, type MouseEventHandler, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link, type LinkProps } from 'react-router';
 
 import { useSecondBreadcrumbLinkOffset } from '@/shared/hooks/useSecondBreadcrumbLinkOffset';
 
 export function DetailsHeader(props: {
-  action?: React.ReactNode;
-  backLabel?: React.ReactNode;
+  action?: ReactNode;
+  backLabel?: ReactNode;
   backTo: LinkProps['to'];
-  breadcrumb?: React.ReactNode;
-  onBackClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  overline?: React.ReactNode;
-  title: React.ReactNode;
+  breadcrumb?: ReactNode;
+  description?: ReactNode;
+  onBackClick?: MouseEventHandler<HTMLAnchorElement>;
+  overline?: ReactNode;
+  title: ReactNode;
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
   const titleOffset = useSecondBreadcrumbLinkOffset(headerRef);
@@ -39,6 +39,11 @@ export function DetailsHeader(props: {
             </p>
           )}
           <h1 className="fr-h2 fr-mb-0">{props.title}</h1>
+          {props.description && (
+            <p className="fr-mt-3v fr-mb-0 max-w-3xl leading-7 text-(--text-mention-grey)">
+              {props.description}
+            </p>
+          )}
         </div>
 
         {props.action && <div className="ml-auto">{props.action}</div>}

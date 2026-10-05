@@ -102,6 +102,13 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
           {
+            path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_FEEDBACK,
+            lazy: () =>
+              import('@/pages/feedback/SessionFeedbackPage').then(({ SessionFeedbackPage }) => ({
+                Component: SessionFeedbackPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
             lazy: () =>
               import('@/pages/reports/ReportOverviewPage').then(({ default: ReportOverviewPage }) => ({
@@ -193,6 +200,13 @@ export const router = sentryCreateBrowserRouter([
                   ),
               },
             ],
+          },
+          {
+            path: ROUTE_PATHS.SG.SESSION_ID_FEEDBACK,
+            lazy: () =>
+              import('@/pages/feedback/SessionFeedbackPage').then(({ SessionFeedbackPage }) => ({
+                Component: SessionFeedbackPage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID_COMMENT,
@@ -407,6 +421,15 @@ export const router = sentryCreateBrowserRouter([
                   })),
               },
             ],
+          },
+          {
+            path: ROUTE_PATHS.ADMIN.SESSION_FEEDBACKS,
+            lazy: () =>
+              import('@/pages/spaces/admin/AdminSessionFeedbacksPage').then(
+                ({ AdminSessionFeedbacksPage }) => ({
+                  Component: AdminSessionFeedbacksPage,
+                }),
+              ),
           },
           {
             path: ROUTE_PATHS.ADMIN.USERS,

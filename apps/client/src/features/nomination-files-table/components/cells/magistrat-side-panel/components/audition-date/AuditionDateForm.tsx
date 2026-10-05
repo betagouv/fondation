@@ -134,7 +134,7 @@ export function AuditionDateForm(props: {
     const { isConfirmed } = await waitForConfirmation({
       content: (
         <p>
-          <FormattedMessage defaultMessage="Cette audition porte sur plusieurs propositions : la modification s'appliquera à toutes. Confirmez-vous votre action de modification ?" />
+          <FormattedMessage defaultMessage="L'observant a fait plusieurs observations, cette modification se répercutera sur l'ensemble des observations correspondantes. Confirmez-vous votre action de modification ?" />
         </p>
       ),
       i18n: {

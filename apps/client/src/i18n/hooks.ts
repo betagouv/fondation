@@ -17,7 +17,7 @@ export function useIntlAge() {
 }
 
 export function useIntlBirthDate() {
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const formatAge = useIntlAge();
 
   return useCallback(
@@ -26,7 +26,7 @@ export function useIntlBirthDate() {
       const age = formatAge(birthDate);
       if (age === null) return null;
 
-      return $t(
+      return formatMessage(
         { defaultMessage: `{birthDate} (<bold>{age}</bold>)` },
         {
           birthDate: formatDateOnly(birthDate),
@@ -36,7 +36,7 @@ export function useIntlBirthDate() {
         },
       );
     },
-    [$t, formatAge],
+    [formatMessage, formatAge],
   );
 }
 

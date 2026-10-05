@@ -125,7 +125,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
 }
 
 function PasswordField(props: { user: DetailedAdminUserDto }) {
-  const { $t } = useIntl();
+  const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
   const [isEditing, setEditing] = useState(false);
   const [password, setPassword] = useState('');
@@ -133,8 +133,11 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const formError = useMemo(
-    () => (isDirty && password.trim().length === 0 ? $t({ defaultMessage: 'Champ obligatoire' }) : undefined),
-    [isDirty, password, $t],
+    () =>
+      isDirty && password.trim().length === 0
+        ? formatMessage({ defaultMessage: 'Champ obligatoire' })
+        : undefined,
+    [isDirty, password, formatMessage],
   );
 
   const onChange = useCallback(
@@ -181,15 +184,15 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
                   />
                 </p>
               ),
-              i18n: { confirm: $t({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
-              title: $t({
+              i18n: { confirm: formatMessage({ defaultMessage: `Notifier {fullName}` }, { fullName }) },
+              title: formatMessage({
                 defaultMessage: `Notifier l'utilisateur de son nouveau mot de passe\u00A0?`,
               }),
             });
 
             if (isConfirmed) {
               const subject = `Mot de passe FONDATION mis à jour`;
-              const intro = $t(
+              const intro = formatMessage(
                 {
                   defaultMessage: `Bonjour {gender, select, MALE {M.} other {Mme}}\u00A0{lastName},`,
                 },
@@ -217,7 +220,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
         },
       );
     },
-    [password, confirmation, props, changeEdition, updatePassword, reset, $t],
+    [password, confirmation, props, changeEdition, updatePassword, reset, formatMessage],
   );
 
   return (
@@ -257,7 +260,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             onClick={() => changeEdition(true)}
             priority="tertiary no outline"
             size="small"
-            title={$t({ defaultMessage: 'Modifier le mot de passe' })}
+            title={formatMessage({ defaultMessage: 'Modifier le mot de passe' })}
           />
         )}
       </div>
@@ -265,12 +268,12 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
         <form onSubmit={handleSave}>
           <Input
             hideLabel
-            label={$t({ defaultMessage: 'Mot de passe' })}
+            label={formatMessage({ defaultMessage: 'Mot de passe' })}
             nativeInputProps={{
               autoComplete: 'off',
               autoFocus: true,
               onChange: onChange,
-              placeholder: $t({ defaultMessage: 'Nouveau mot de passe...' }),
+              placeholder: formatMessage({ defaultMessage: 'Nouveau mot de passe...' }),
               required: true,
               type: 'password',
               value: password,
@@ -278,7 +281,9 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             state={formError || error ? 'error' : undefined}
             stateRelatedMessage={
               formError ??
-              (error ? $t({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }) : undefined)
+              (error
+                ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' })
+                : undefined)
             }
           />
         </form>
