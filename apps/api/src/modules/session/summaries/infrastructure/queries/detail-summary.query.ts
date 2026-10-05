@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -6,6 +6,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
@@ -14,6 +15,11 @@ import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
 } from 'src/modules/shared/nomination-file-outcome.enum';
+import {
+  expectedReportersCount,
+  isAuditionExpected,
+} from 'src/modules/shared/policies/auditioned-position.policy';
+import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -27,7 +33,22 @@ export class DetailSummaryQuery {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
+
+  private async areReportersMissing(query: {
+    expectedReportersCount: number | null;
+    isArchived: boolean;
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<boolean> {
+    if (query.expectedReportersCount === null || query.isArchived) return false;
+
+    const affectation = await this.transparences.internalFindReportersAffectation(query);
+    return !affectation.isLocked && affectation.reportersCount < query.expectedReportersCount;
+  }
 
   async handle(query: {
     nominationFileId: string;
@@ -44,7 +65,10 @@ export class DetailSummaryQuery {
             biography: true,
             birthDate: true,
             currentPosition: true,
+            detectedJurisdiction: { select: { typeJur: true } },
+            detectedJurisdictionId: true,
             detectedMagistratId: true,
+            detectedTargetedFunctionId: true,
             grade: true,
             lastPositionDate: true,
             missingEvaluation: true,
@@ -123,6 +147,11 @@ export class DetailSummaryQuery {
       throw new NotFoundException();
     }
 
+    const auditionedPosition = {
+      ...nominationFile,
+      detectedJurisdictionType: nominationFile.detectedJurisdiction?.typeJur ?? null,
+    };
+
     return {
       isArchived: !!session.archivedAt,
       name: nominationFile.name,
@@ -135,7 +164,15 @@ export class DetailSummaryQuery {
       targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
       birthDate: DateOnly.fromOptionalUtcDate(nominationFile.birthDate)?.toJson() ?? null,
       auditionDate: DateOnly.fromOptionalUtcDate(nominationFile.auditionDate)?.toJson() ?? null,
+      auditionExpected: isAuditionExpected(auditionedPosition),
       auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
+      canScheduleAudition: canScheduleAudition(nominationFile, session),
+      reportersMissing: await this.areReportersMissing({
+        expectedReportersCount: expectedReportersCount(auditionedPosition),
+        isArchived: !!session.archivedAt,
+        nominationFileId: query.nominationFileId,
+        sessionId: query.sessionId,
+      }),
       missingEvaluation: nominationFile.missingEvaluation,
       lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
       priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
@@ -208,7 +245,10 @@ export class DetailedSummaryDto extends createZodDto(
     rank: z.string().nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),
+    auditionExpected: z.boolean(),
     auditionTime: timeOnlySchema.nullable(),
+    canScheduleAudition: z.boolean(),
+    reportersMissing: z.boolean(),
     missingEvaluation: z.boolean(),
     grade: z.enum(GradeEnum).nullable(),
     position: z.string().nullable(),

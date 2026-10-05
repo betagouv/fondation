@@ -18,6 +18,7 @@ import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from 'src/modules/shared/nomination-file-outcome.enum';
+import * as policies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
@@ -26,6 +27,7 @@ import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
+import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
@@ -35,6 +37,7 @@ import {
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
+import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import { NominationSessionFinder } from './finders/transparence-session.finder';
@@ -42,6 +45,7 @@ import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
 } from './queries/count-nomination-files-by-status.query';
+import { CountSessionAuditionsQuery } from './queries/count-session-auditions.query';
 import { CountedUnaffectedFilesDto, CountUnaffectedFilesQuery } from './queries/count-unaffected-files.query';
 import {
   CountUsersNewSessionsDto,
@@ -101,6 +105,8 @@ import {
   ListedNominationSessionsDto,
   ListNominationSessionsQuery,
 } from './queries/list-nomination-sessions.query';
+import { ListSessionAuditionsAsExcelQuery } from './queries/list-session-auditions-as-excel.query';
+import { ListSessionAuditionsQuery } from './queries/list-session-auditions.query';
 import { SessionTransparenceRepository } from './repositories/session-transparence.repository';
 
 @Injectable()
@@ -131,7 +137,10 @@ export class TransparenceService {
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
     private readonly countUsersNewSessionsQuery: CountUsersNewSessionsQuery,
+    private readonly countSessionAuditionsQuery: CountSessionAuditionsQuery,
     private readonly listMissingEvaluationsAsExcelQuery: ListMissingEvaluationsAsExcelQuery,
+    private readonly listSessionAuditionsAsExcelQuery: ListSessionAuditionsAsExcelQuery,
+    private readonly listSessionAuditionsQuery: ListSessionAuditionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
@@ -139,9 +148,36 @@ export class TransparenceService {
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
+    private readonly reportersAffectation: ReportersAffectationFinder,
 
     private readonly events: EventEmitter2,
   ) {}
+
+  /** @internal */
+  internalFindAuditionStates(query: {
+    nominationFileIds: readonly string[];
+    sessionId: string;
+  }): Promise<{ allowsAudition: boolean; isLocked: boolean }[]> {
+    // an empty set would load every nomination file of the session
+    if (!query.nominationFileIds.length) return Promise.resolve([]);
+
+    return this.nominationSessionFileFinder
+      .findSnapshots({ nominationFileIds: new Set(query.nominationFileIds), sessionId: query.sessionId })
+      .then((files) =>
+        files.map((file) => ({
+          allowsAudition: policies.canScheduleAudition(file, { archivedAt: null }),
+          isLocked: !!policies.nominationFileLock(file, { archivedAt: null }),
+        })),
+      );
+  }
+
+  /** @internal */
+  internalFindReportersAffectation(query: {
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<{ isLocked: boolean; reportersCount: number }> {
+    return this.reportersAffectation.find(query);
+  }
 
   /** @internal */
   listMemberSessions(query: {
@@ -338,21 +374,20 @@ export class TransparenceService {
 
   @Transactional()
   async updateNominationFileAuditionDate(command: {
-    sessionId: string;
-    nominationFileId: string;
     auditionDateTime: { date: DateOnly; time: TimeOnly } | null;
+    impersonatorId: string | null;
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set([command.nominationFileId]),
     });
 
     if (!isDefined(command.auditionDateTime)) {
-      session.unscheduleAudition({ nominationFileId: command.nominationFileId });
+      session.unscheduleAudition(command);
     } else {
-      session.scheduleAudition({
-        nominationFileId: command.nominationFileId,
-        auditionDateTime: command.auditionDateTime,
-      });
+      session.scheduleAudition({ ...command, auditionDateTime: command.auditionDateTime });
     }
 
     await this.nominationSessionRepository.persist(session);
@@ -624,6 +659,27 @@ export class TransparenceService {
 
   listNominationFilesAsExcel(query: { sessionId: string }): Promise<StreamableFile> {
     return this.listNominationFilesAsExcelQuery.handle(query);
+  }
+
+  countSessionAuditions(query: { sessionId: string }): Promise<CountedSessionAuditionsDto> {
+    return this.countSessionAuditionsQuery.handle(query);
+  }
+
+  listSessionAuditions(query: {
+    filters: {
+      reporterIds: readonly (string | null)[];
+      search: string | null;
+    };
+    pagination: Pagination;
+    sessionId: string;
+    sortBy: 'auditionDate' | null;
+    sortDesc: boolean;
+  }): Promise<ListedSessionAuditionsDto> {
+    return this.listSessionAuditionsQuery.handle(query);
+  }
+
+  listSessionAuditionsAsExcel(query: { sessionId: string }): Promise<StreamableFile> {
+    return this.listSessionAuditionsAsExcelQuery.handle(query);
   }
 
   listMissingEvaluationsAsExcel(query: { sessionId: string }): Promise<StreamableFile> {

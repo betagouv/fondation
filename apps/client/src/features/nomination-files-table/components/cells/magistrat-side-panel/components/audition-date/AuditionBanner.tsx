@@ -24,6 +24,10 @@ export function AuditionBanner(props: {
   };
 
   if (auditionMissing) {
+    // members only hear about an audition once its date is set; a missing audition can always be scheduled,
+    // so only the secretariat edits it
+    if (!editable) return null;
+
     return (
       <AlertBanner
         className={BANNER_LAYOUT}
@@ -31,11 +35,9 @@ export function AuditionBanner(props: {
         message={<FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />}
         tone="warning"
       >
-        {editable && (
-          <AlertBannerAction onClick={goToDateField}>
-            <FormattedMessage defaultMessage="Planifier" />
-          </AlertBannerAction>
-        )}
+        <AlertBannerAction onClick={goToDateField}>
+          <FormattedMessage defaultMessage="Planifier" />
+        </AlertBannerAction>
       </AlertBanner>
     );
   }

@@ -38,6 +38,11 @@ import {
   UpdateMissingEvaluationDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
+  CountedSessionAuditionsDto,
+  ListedSessionAuditionsDto,
+  ListSessionAuditionsQueryDto,
+} from './infrastructure/dtos/session-audition.dto';
+import {
   CountUnaffectedFilesQueryDto,
   CreatedNominationSessionDto,
   DefineNominationFileOutcomeDto,
@@ -226,6 +231,40 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Header('Content-Type', FILE_MIME_TYPES.xlsx)
+  @Get('/:sessionId/auditions.xlsx')
+  listSessionAuditionsAsExcel(@Param('sessionId', ParseUUIDPipe) sessionId: string): Promise<StreamableFile> {
+    return this.sessions.listSessionAuditionsAsExcel({ sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/auditions/counts')
+  @ZodResponse({ status: HttpStatus.OK, type: CountedSessionAuditionsDto })
+  countSessionAuditions(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<CountedSessionAuditionsDto> {
+    return this.sessions.countSessionAuditions({ sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/auditions')
+  @ApiPaginated()
+  @ZodResponse({ status: HttpStatus.OK, type: ListedSessionAuditionsDto })
+  listSessionAuditions(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @QueryPagination() pagination: Pagination,
+    @Query(ZodValidationPipe) query: ListSessionAuditionsQueryDto,
+  ): Promise<ListedSessionAuditionsDto> {
+    return this.sessions.listSessionAuditions({
+      filters: { reporterIds: query.reporterIds ?? [], search: query.search ?? null },
+      pagination,
+      sessionId,
+      sortBy: query.sortBy ?? null,
+      sortDesc: query.sortDesc,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Header('Content-Type', FILE_MIME_TYPES.xlsx)
   @Get('/:sessionId/files/missing-evaluations.xlsx')
   listMissingEvaluationsAsExcel(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -400,6 +439,7 @@ export class SessionController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateNominationFileAuditionDate(
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: UpdateAuditionDateDto,
@@ -410,9 +450,11 @@ export class SessionController {
         : { date: DateOnly.fromJson(body.auditionDate), time: body.auditionTime };
 
     await this.sessions.updateNominationFileAuditionDate({
-      sessionId,
-      nominationFileId,
       auditionDateTime,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
+      sessionId,
+      userId: user.id,
     });
   }
 

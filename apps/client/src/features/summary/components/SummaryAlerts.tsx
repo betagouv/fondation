@@ -5,20 +5,20 @@ import { useSummary } from '@/features/summary/context/SummaryContext';
 import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { AlertBanner } from '@/shared/ui/alert-banner';
-
-const BANNER_LAYOUT = 'rounded px-4 py-3';
+import { isAuditionMissing } from '@/utils/audition-expectation.util';
 
 export function SummaryAlerts() {
   const isSg = useIsSg();
   const { summary } = useSummary();
   // a summary stays relevant for a file on which the decision is suspended
   const outcome = summary.outcome?.value === NominationFileOutcomeEnum.SUSPENDED ? null : summary.outcome;
+  const auditionMissing = isAuditionMissing(summary);
 
   return (
-    <div className="flex flex-col gap-2 empty:hidden">
+    <div className="flex flex-col empty:hidden">
       {outcome && (
         <AlertBanner
-          className={BANNER_LAYOUT}
+          fullWidth
           icon="fr-icon-warning-fill"
           message={
             isSg ? (
@@ -36,21 +36,23 @@ export function SummaryAlerts() {
           tone="warning"
         />
       )}
-      <AuditionScheduledBanner
-        className={BANNER_LAYOUT}
-        date={summary.auditionDate}
-        time={summary.auditionTime}
-      />
-      {summary.missingEvaluation && (
+      {isSg && (auditionMissing || summary.reportersMissing) && (
         <AlertBanner
-          className={BANNER_LAYOUT}
-          icon="fr-icon-draft-line"
+          fullWidth
+          icon="fr-icon-warning-fill"
           message={
-            <FormattedMessage defaultMessage="Évaluation manquante dans le dossier administratif LOLFI" />
+            auditionMissing && summary.reportersMissing ? (
+              <FormattedMessage defaultMessage="Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste" />
+            ) : auditionMissing ? (
+              <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
+            ) : (
+              <FormattedMessage defaultMessage="2 rapporteurs sont attendus pour ce poste" />
+            )
           }
           tone="warning"
         />
       )}
+      <AuditionScheduledBanner date={summary.auditionDate} fullWidth time={summary.auditionTime} />
     </div>
   );
 }

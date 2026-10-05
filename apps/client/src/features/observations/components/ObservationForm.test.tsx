@@ -3,6 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import type { MagistratSearchResult, Observation } from '@queries/observations.queries';
 
 import { ObservationForm } from './ObservationForm';
@@ -45,6 +46,7 @@ const DUPONT: MagistratSearchResult = {
 };
 
 const OBSERVATION: Observation = {
+  audition: null,
   createdAt: '2026-07-13',
   createdBy: { firstName: 'Anne', id: 'user-1', lastName: 'Roy' },
   dateReception: '2026-07-02T00:00:00.000Z',
@@ -62,21 +64,24 @@ const OBSERVATION: Observation = {
     lastName: 'Martin',
     usedName: null,
   },
+  observantObservationsCount: 1,
 };
 
 function renderForm(observation?: Observation, onFormStateChange?: (state: FormState) => void) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <ObservationForm
-        nominationFileId="nomination-file"
-        observation={observation}
-        onFormStateChange={onFormStateChange}
-        onPending={vi.fn()}
-        sessionId="session-1"
-      />
-      <button form="observation-form" type="submit">
-        Envoyer
-      </button>
+      <ConfirmModalProvider>
+        <ObservationForm
+          nominationFileId="nomination-file"
+          observation={observation}
+          onFormStateChange={onFormStateChange}
+          onPending={vi.fn()}
+          sessionId="session-1"
+        />
+        <button form="observation-form" type="submit">
+          Envoyer
+        </button>
+      </ConfirmModalProvider>
     </IntlProvider>,
   );
 }
@@ -242,6 +247,30 @@ describe('ObservationForm', () => {
       expect.anything(),
     );
   });
+
+  it.each([
+    { observantObservationsCount: 1, warns: true },
+    { observantObservationsCount: 2, warns: false },
+  ])(
+    'warns before replacing an observant who would lose their audition: $warns',
+    async ({ observantObservationsCount, warns }) => {
+      const user = userEvent.setup();
+      searchResults = [DUPONT];
+      renderForm({
+        ...OBSERVATION,
+        audition: { date: { day: 12, month: 3, year: 2028 }, time: { hours: 10, minutes: 30, seconds: 0 } },
+        observantObservationsCount,
+      });
+
+      await user.clear(searchInput());
+      await search(user);
+      await user.keyboard('{ArrowDown}{Enter}');
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }));
+
+      expect(screen.queryByRole('dialog', { name: "Changer l'observant" }) !== null).toBe(warns);
+      expect(updateObservation).toHaveBeenCalledTimes(warns ? 0 : 1);
+    },
+  );
 
   it('detaches nothing when the user removes no file', async () => {
     const user = userEvent.setup();

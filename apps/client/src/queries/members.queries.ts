@@ -12,6 +12,7 @@ import type {
 } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
+import { auditionKeys } from './auditions.queries';
 import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 import { summaryKeys } from './summary.queries';
 
@@ -239,6 +240,8 @@ export function useUpdateNominationFileAuditionDateMutation() {
         summaryKeys.detailsSummary({ sessionId, nominationFileId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
+
+      return queryClient.invalidateQueries({ queryKey: auditionKeys.all() });
     },
   });
 }

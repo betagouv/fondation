@@ -7,6 +7,7 @@ import { generatePath, NavLink } from 'react-router';
 import { ROUTE_PATHS, SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import type { DetailedNominationSessionDto } from '@api/types';
 import { useFindSessionDocsQuery } from '@queries/agenda.queries';
+import { useSessionAuditionsCountsQuery } from '@queries/auditions.queries';
 import {
   useListNominationSessionAttachmentsQuery,
   useNominationFilesStatusCountsQuery,
@@ -134,11 +135,13 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
   const { data: fileCounts } = useNominationFilesStatusCountsQuery({
     sessionId: transparence.id,
   });
+  const { data: auditionCounts } = useSessionAuditionsCountsQuery({ sessionId: transparence.id });
 
   const params = { sessionId: transparence.id };
 
   const propositionsCount = fileCounts?.total ?? 0;
   const missingEvaluationsCount = fileCounts?.missingEvaluation ?? 0;
+  const auditionsCount = (auditionCounts?.scheduled ?? 0) + (auditionCounts?.toSchedule ?? 0);
   const docsCount = docs?.items.length ?? 0;
   const attachmentsCount = attachments?.items.length ?? 0;
   const isSidePanelOpen = openedDossier !== null;
@@ -160,6 +163,13 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
           { count: propositionsCount },
         )}
         to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
+      />
+      <SessionTab
+        count={auditionsCount}
+        disabled={isSidePanelOpen}
+        icon="fr-icon-speak-line"
+        label={formatMessage({ defaultMessage: 'Auditions' })}
+        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_AUDITIONS, params)}
       />
       <SessionTab
         count={missingEvaluationsCount}

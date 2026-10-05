@@ -36,6 +36,8 @@ model Magistrat {
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
 
   observations              Observation[]
+  observantAuditions        ObservantAudition[]
+  observantAuditionVersions ObservantAuditionVersion[]
   candidacies               Candidate[]
   nominations               Nomination[]
   detectedInNominationFiles DossierDeNomination[]

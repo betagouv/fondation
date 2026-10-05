@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
@@ -13,6 +13,7 @@ import { MagistratNominationFileSchema } from './list-magistrat-nomination-files
 export class ListMagistratObservationsQuery {
   constructor(
     private readonly db: Db,
+    @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
   ) {}
 

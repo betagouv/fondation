@@ -57,12 +57,12 @@ describe('useAuditionExpectation', () => {
     });
   });
 
-  it('announces the audition only, to a member who never affects reporters', () => {
+  it('announces nothing to a member, who neither schedules auditions nor affects reporters', () => {
     expect(
       renderExpectation({ ...AUDITIONED, reporters: REPORTERS.slice(0, 1) }, { route: MEMBER_ROUTE }),
     ).toEqual({
       auditionMissing: true,
-      labels: ['Une audition est à prévoir pour ce poste'],
+      labels: [],
       reportersMissing: true,
     });
   });

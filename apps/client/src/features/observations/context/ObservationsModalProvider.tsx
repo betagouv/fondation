@@ -88,17 +88,27 @@ export function ObservationsModalProvider({ children }: PropsWithChildren) {
 
   const requestDelete = useCallback(
     async (observation: Observation, file: ActiveFile) => {
+      // the audition of the observant goes away with their last observation of the transparence
+      const removesAudition = !!observation.audition && observation.observantObservationsCount === 1;
+
       const { isConfirmed } = await waitForConfirmation({
         content: (
-          <p>
-            <FormattedMessage
-              defaultMessage="Êtes-vous sûr de vouloir supprimer cette observation du <b>{date}</b> ?"
-              values={{
-                b: (chunks) => <strong>{chunks}</strong>,
-                date: formatDateOnly(dateOnlyFromIso(observation.dateReception)),
-              }}
-            />
-          </p>
+          <>
+            <p>
+              <FormattedMessage
+                defaultMessage="Êtes-vous sûr de vouloir supprimer cette observation du <b>{date}</b> ?"
+                values={{
+                  b: (chunks) => <strong>{chunks}</strong>,
+                  date: formatDateOnly(dateOnlyFromIso(observation.dateReception)),
+                }}
+              />
+            </p>
+            {removesAudition && (
+              <p className="fr-mt-4v font-bold">
+                <FormattedMessage defaultMessage="Attention, une date d'audition a été saisie pour cet observant. C'est sa dernière observation dans cette transparence : la suppression entraîne celle de sa date d'audition. Cette action est irréversible." />
+              </p>
+            )}
+          </>
         ),
         i18n: { confirm: intl.formatMessage({ defaultMessage: 'Supprimer' }) },
         title: intl.formatMessage({ defaultMessage: "Supprimer l'observation" }),

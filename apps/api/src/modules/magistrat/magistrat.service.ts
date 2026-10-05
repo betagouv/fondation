@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { Pagination } from 'src/modules/framework/pagination';
 
+import {
+  MagistratProfilesFinder,
+  type MagistratProfile,
+} from './infrastructure/finders/magistrat-profiles.finder';
 import { DetailedMagistratDto, DetailMagistratQuery } from './infrastructure/queries/detail-magistrat.query';
 import {
   ListedMagistratNominationFilesDto,
@@ -22,8 +26,16 @@ export class MagistratService {
     private readonly detailMagistratQuery: DetailMagistratQuery,
     private readonly listMagistratNominationFilesQuery: ListMagistratNominationFilesQuery,
     private readonly listMagistratObservationsQuery: ListMagistratObservationsQuery,
+    private readonly magistratProfiles: MagistratProfilesFinder,
     private readonly searchMagistratsQuery: SearchMagistratsQuery,
   ) {}
+
+  /** @internal */
+  internalFindMagistratProfiles(query: {
+    magistratIds: readonly string[];
+  }): Promise<Map<string, MagistratProfile>> {
+    return this.magistratProfiles.findByMagistratId(query);
+  }
 
   detailMagistrat(query: { magistratId: string }): Promise<DetailedMagistratDto> {
     return this.detailMagistratQuery.handle(query);

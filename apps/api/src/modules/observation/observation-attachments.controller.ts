@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, ParseUUIDPipe, Query, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
@@ -21,7 +21,7 @@ export class ObservationAttachmentsController {
     type: ListedObservationsAttachmentsDto,
   })
   listObservationsAttachments(
-    @Param('sessionId') sessionId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Query() query: ListObservationsAttachmentsQueryDto,
   ): Promise<ListedObservationsAttachmentsDto> {
     return this.observations.listObservationsAttachments({

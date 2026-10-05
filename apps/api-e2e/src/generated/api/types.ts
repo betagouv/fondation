@@ -302,6 +302,57 @@ export type AffectReportersDto = {
     }>;
 };
 
+export type CountedSessionAuditionsDto = {
+    scheduled: number;
+    toSchedule: number;
+};
+
+export type ListedSessionAuditionsDto = {
+    items: Array<{
+        audition: {
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+        } | null;
+        contact: {
+            email: string | null;
+            phone: string | null;
+        } | null;
+        id: string;
+        magistrat: {
+            currentPosition: string | null;
+            id: string | null;
+            name: string;
+        };
+        propositions: Array<{
+            label: string;
+            nominationFileId: string;
+            observationId: string | null;
+        }>;
+        reporters: Array<{
+            firstName: string;
+            id: string;
+            lastName: string;
+        }>;
+        role: 'OBSERVANT' | 'PROPOSED';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type PaginatedNominationFiles = {
     items: Array<{
         id: string;
@@ -391,6 +442,18 @@ export type PaginatedNominationFiles = {
         }>;
         observations: Array<{
             id: string;
+            audition: {
+                date: {
+                    year: number;
+                    month: number;
+                    day: number;
+                };
+                time: {
+                    hours: number;
+                    minutes: number;
+                    seconds: number;
+                };
+            } | null;
             date: {
                 year: number;
                 month: number;
@@ -665,6 +728,18 @@ export type DetailedNominationFileDto = {
     }>;
     observations: Array<{
         id: string;
+        audition: {
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+        } | null;
         date: {
             year: number;
             month: number;
@@ -790,11 +865,14 @@ export type DetailedSummaryDto = {
         month: number;
         day: number;
     } | null;
+    auditionExpected: boolean;
     auditionTime: {
         hours: number;
         minutes: number;
         seconds: number;
     } | null;
+    canScheduleAudition: boolean;
+    reportersMissing: boolean;
     missingEvaluation: boolean;
     grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
     position: string | null;
@@ -1776,34 +1854,6 @@ export type PresentPlanDto = {
     };
 };
 
-export type ListedArchivedNominationSessionsDto = {
-    items: Array<{
-        id: string;
-        name: string;
-        formation: 'SIEGE' | 'PARQUET';
-        date: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
 export type SearchMagistratsResponseDto = {
     items: Array<{
         id: string;
@@ -1995,9 +2045,22 @@ export type CreateObservationResponseDto = {
 export type ListObservationsResponseDto = {
     observations: Array<{
         id: string;
+        audition: {
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
+        } | null;
         dateReception: string;
         description: string;
         followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
+        observantObservationsCount: number;
         magistrat: {
             id: string;
             firstName: string;
@@ -2038,11 +2101,19 @@ export type GetObservationDetailsResponseDto = {
         lastName: string;
         usedName: string | null;
         biography: string | null;
-        candidacy: {
-            nominationFileId: string;
-            desiredPosition: string | null;
-            rank: string | null;
+        audition: {
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            time: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            };
         } | null;
+        auditionScheduling: 'SCHEDULABLE' | 'FINAL_OUTCOME' | 'LOCKED' | 'NOT_IN_PROGRESS';
         externalUrl: string;
     };
     observedMagistrat: {
@@ -2122,6 +2193,19 @@ export type WriteMemberCommentDto = {
     comment: string;
 };
 
+export type ScheduleObservantAuditionDto = {
+    auditionDate: {
+        year: number;
+        month: number;
+        day: number;
+    } | null;
+    auditionTime: {
+        hours: number;
+        minutes?: number;
+        seconds?: number;
+    } | null;
+};
+
 export type FollowUpOnObservationDto = {
     followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     comment: string | null;
@@ -2133,6 +2217,34 @@ export type ListedObservationsAttachmentsDto = {
         fileId: string;
         name: string;
     }>;
+};
+
+export type ListedArchivedNominationSessionsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        formation: 'SIEGE' | 'PARQUET';
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        dueDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+        status: 'TO_VALIDATE' | 'READY';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
 };
 
 export type PaginatedAdminUserListItemDto = {
@@ -2607,6 +2719,59 @@ export type ListNominationFilesAsExcelData = {
 export type ListNominationFilesAsExcelResponses = {
     200: unknown;
 };
+
+export type ListSessionAuditionsAsExcelData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/auditions.xlsx';
+};
+
+export type ListSessionAuditionsAsExcelResponses = {
+    200: unknown;
+};
+
+export type CountSessionAuditionsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/auditions/counts';
+};
+
+export type CountSessionAuditionsResponses = {
+    200: CountedSessionAuditionsDto;
+};
+
+export type CountSessionAuditionsResponse = CountSessionAuditionsResponses[keyof CountSessionAuditionsResponses];
+
+export type ListSessionAuditionsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        reporterIds?: Array<string | null>;
+        search?: string;
+        sortBy?: 'auditionDate';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/sessions/v2/{sessionId}/auditions';
+};
+
+export type ListSessionAuditionsResponses = {
+    200: ListedSessionAuditionsDto;
+};
+
+export type ListSessionAuditionsResponse = ListSessionAuditionsResponses[keyof ListSessionAuditionsResponses];
 
 export type ListMissingEvaluationsAsExcelData = {
     body?: never;
@@ -4243,29 +4408,6 @@ export type PresentPlanResponses = {
 
 export type PresentPlanResponse = PresentPlanResponses[keyof PresentPlanResponses];
 
-export type ListArchivedSessionsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        sortBy?: 'date' | 'dueDate';
-        formations?: Array<'SIEGE' | 'PARQUET'>;
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/archived-sessions/v1';
-};
-
-export type ListArchivedSessionsResponses = {
-    200: ListedArchivedNominationSessionsDto;
-};
-
-export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
-
 export type SearchMagistratsData = {
     body?: never;
     path?: never;
@@ -4338,8 +4480,8 @@ export type ListMagistratObservationsResponse = ListMagistratObservationsRespons
 export type ListObservationsData = {
     body?: never;
     path: {
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations';
@@ -4470,6 +4612,23 @@ export type WriteMemberCommentResponses = {
 
 export type WriteMemberCommentResponse = WriteMemberCommentResponses[keyof WriteMemberCommentResponses];
 
+export type ScheduleObservantAuditionData = {
+    body: ScheduleObservantAuditionDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/audition/schedule';
+};
+
+export type ScheduleObservantAuditionResponses = {
+    204: void;
+};
+
+export type ScheduleObservantAuditionResponse = ScheduleObservantAuditionResponses[keyof ScheduleObservantAuditionResponses];
+
 export type FollowUpOnObservationData = {
     body: FollowUpOnObservationDto;
     path: {
@@ -4504,6 +4663,29 @@ export type ListObservationsAttachmentsResponses = {
 };
 
 export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
+
+export type ListArchivedSessionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        sortBy?: 'date' | 'dueDate';
+        formations?: Array<'SIEGE' | 'PARQUET'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/archived-sessions/v1';
+};
+
+export type ListArchivedSessionsResponses = {
+    200: ListedArchivedNominationSessionsDto;
+};
+
+export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
 
 export type ListUsersData = {
     body?: never;

@@ -16,16 +16,17 @@ export function AlertBanner(props: {
   align?: 'center' | 'start';
   children?: ReactNode;
   className?: string;
+  fullWidth?: boolean;
   icon?: string;
   message: ReactNode;
   tone: keyof typeof TONES;
 }) {
-  return (
+  const content = (
     <div
       className={clsx(
         'flex min-h-6 gap-2',
-        props.align === 'center' ? 'items-center' : 'items-start',
-        TONES[props.tone],
+        props.align === 'center' || props.fullWidth ? 'items-center' : 'items-start',
+        props.fullWidth ? 'fr-container justify-center py-3 text-center' : TONES[props.tone],
         props.className,
       )}
     >
@@ -34,6 +35,8 @@ export function AlertBanner(props: {
       {props.children}
     </div>
   );
+
+  return props.fullWidth ? <div className={TONES[props.tone]}>{content}</div> : content;
 }
 
 const ACTION_CLASS =
@@ -42,7 +45,7 @@ const ACTION_CLASS =
 export function AlertBannerAction(props: { children: ReactNode; disabled?: boolean; onClick: () => void }) {
   return (
     <Button
-      className={ACTION_CLASS}
+      className={clsx(ACTION_CLASS, 'ml-auto shrink-0')}
       disabled={props.disabled}
       onClick={props.onClick}
       priority="tertiary no outline"

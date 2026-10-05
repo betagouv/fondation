@@ -1,6 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -8,56 +9,81 @@ import { z } from 'zod';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import type { PlainDateOnly } from '@/utils/date-only.util';
-import { isPastSchedule, toScheduledDate, type PlainTimeOnly } from '@/utils/time-only.util';
+import { dateOnlyFromIso, dateOnlyToIso, type PlainDateOnly } from '@/utils/date-only.util';
+import {
+  isPastSchedule,
+  formTimeOnlyCodec,
+  timeOnlyToString,
+  toScheduledDate,
+  type PlainTimeOnly,
+} from '@/utils/time-only.util';
 import { useUpdateNominationFileAuditionDateMutation } from '@queries/members.queries';
+import { useScheduleObservantAuditionMutation } from '@queries/observations.queries';
 
 export const AUDITION_DATE_INPUT_ID = 'magistrat-audition-date-input';
 
 type AuditionDate = PlainDateOnly | null;
 type AuditionTime = PlainTimeOnly | null;
 
-function dateToInput(date: AuditionDate): string {
-  if (!date) return '';
-  return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-}
+export type AuditionTarget =
+  | { nominationFileId: string; type: 'NOMINATION_FILE' }
+  | { nominationFileId: string; observationId: string; type: 'OBSERVANT' };
 
-function timeToInput(time: AuditionTime): string {
-  if (!time) return '';
-  return `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`;
-}
+function useAuditionMutation(target: AuditionTarget, sessionId: string) {
+  const nominationFileAudition = useUpdateNominationFileAuditionDateMutation();
+  const observantAudition = useScheduleObservantAuditionMutation();
+  const mutation = target.type === 'OBSERVANT' ? observantAudition : nominationFileAudition;
 
-function inputToDate(value: string): AuditionDate {
-  if (!value) return null;
-  const [year, month, day] = value.split('-').map(Number);
-  return { year, month, day };
-}
+  const mutate = (
+    audition: { auditionDate: AuditionDate; auditionTime: AuditionTime },
+    options: { onSuccess: () => void },
+  ) =>
+    target.type === 'OBSERVANT'
+      ? observantAudition.mutate(
+          {
+            ...audition,
+            nominationFileId: target.nominationFileId,
+            observationId: target.observationId,
+            sessionId,
+          },
+          options,
+        )
+      : nominationFileAudition.mutate(
+          { ...audition, nominationFileId: target.nominationFileId, sessionId },
+          options,
+        );
 
-function inputToTime(value: string): AuditionTime {
-  if (!value) return null;
-  const [hours, minutes] = value.split(':').map(Number);
-  return { hours, minutes, seconds: 0 };
+  return {
+    isError: mutation.isError,
+    isSuccess: mutation.isSuccess,
+    mutate,
+    reset: mutation.reset,
+    savedDate: mutation.variables?.auditionDate,
+  };
 }
 
 export function AuditionDateForm(props: {
   editable: boolean;
+  headingLevel?: 'h2' | 'h3';
   initialAuditionDate: AuditionDate;
   initialAuditionTime: AuditionTime;
-  nominationFileId: string;
+  // an observant is heard once for all their observations: changing the date changes it on every one
+  isShared?: boolean;
   sessionId: string;
+  target: AuditionTarget;
 }) {
-  const { editable, initialAuditionDate, initialAuditionTime, nominationFileId, sessionId } = props;
+  const { editable, initialAuditionDate, initialAuditionTime } = props;
   const { formatMessage, formatDate, formatTime } = useIntl();
   const {
-    mutate,
     isError: saveFailed,
     isSuccess: saveSucceeded,
-    variables: savedValues,
+    mutate,
     reset: resetSaveState,
-  } = useUpdateNominationFileAuditionDateMutation();
+    savedDate,
+  } = useAuditionMutation(props.target, props.sessionId);
 
-  const initialDate = dateToInput(initialAuditionDate);
-  const initialTime = timeToInput(initialAuditionTime);
+  const initialDate = initialAuditionDate ? dateOnlyToIso(initialAuditionDate) : '';
+  const initialTime = initialAuditionTime ? (timeOnlyToString(initialAuditionTime, 'HH:mm') ?? '') : '';
 
   const schema = useMemo(
     () =>
@@ -102,17 +128,40 @@ export function AuditionDateForm(props: {
   const [editingPastAudition, setEditingPastAudition] = useState(false);
   const { waitForConfirmation } = useConfirmModal();
 
-  const save = handleSubmit(({ date, time }) => {
-    if (!isDirty) return;
+  const isConfirmed = async () => {
+    if (!props.isShared) return true;
+
+    const { isConfirmed } = await waitForConfirmation({
+      content: (
+        <p>
+          <FormattedMessage defaultMessage="Cette audition porte sur plusieurs propositions : la modification s'appliquera à toutes. Confirmez-vous votre action de modification ?" />
+        </p>
+      ),
+      i18n: {
+        cancel: formatMessage({ defaultMessage: 'Annuler' }),
+        confirm: formatMessage({ defaultMessage: 'Confirmer' }),
+      },
+      title: formatMessage({ defaultMessage: "Modifier l'audition" }),
+    });
+    if (!isConfirmed) resetForm({ date: initialDate, time: initialTime });
+    return isConfirmed;
+  };
+
+  const save = handleSubmit(async ({ date, time }) => {
+    if (!isDirty || !(await isConfirmed())) return;
     mutate(
-      { auditionDate: inputToDate(date), auditionTime: inputToTime(time), nominationFileId, sessionId },
+      {
+        auditionDate: date ? dateOnlyFromIso(date) : null,
+        auditionTime: time ? formTimeOnlyCodec.decode(time) : null,
+      },
       { onSuccess: () => resetForm({ date, time }) },
     );
   });
 
-  const clear = () => {
+  const clear = async () => {
+    if (!(await isConfirmed())) return;
     mutate(
-      { auditionDate: null, auditionTime: null, nominationFileId, sessionId },
+      { auditionDate: null, auditionTime: null },
       { onSuccess: () => resetForm({ date: '', time: '' }) },
     );
   };
@@ -147,9 +196,7 @@ export function AuditionDateForm(props: {
   if (!editable) {
     return (
       <div>
-        <h3 className="fr-mb-4v text-xl font-semibold">
-          <FormattedMessage defaultMessage="Audition" />
-        </h3>
+        <AuditionHeading className="fr-mb-4v" level={props.headingLevel} />
         <p className="fr-mb-0">
           {scheduledAt ? (
             isPast ? (
@@ -190,9 +237,7 @@ export function AuditionDateForm(props: {
   return (
     <div>
       <div className="fr-mb-4v flex items-center justify-between gap-2">
-        <h3 className="fr-mb-0 text-xl font-semibold">
-          <FormattedMessage defaultMessage="Audition" />
-        </h3>
+        <AuditionHeading className="fr-mb-0" level={props.headingLevel} />
         {isLocked ? (
           <Button className="btn-compact" onClick={editPastAudition} priority="secondary" size="small">
             <FormattedMessage defaultMessage="Modifier la date passée" />
@@ -201,7 +246,7 @@ export function AuditionDateForm(props: {
           (date || time) && (
             <Button
               className="btn-compact"
-              onClick={clear}
+              onClick={() => void clear()}
               priority="secondary"
               size="small"
               title={formatMessage({ defaultMessage: "Réinitialiser la date et l'heure d'audition" })}
@@ -256,7 +301,7 @@ export function AuditionDateForm(props: {
       </div>
       {saveSucceeded && !validationError && (
         <p className="fr-valid-text fr-mt-2v" role="status">
-          {savedValues?.auditionDate
+          {savedDate
             ? formatMessage({ defaultMessage: "Date d'audition enregistrée" })
             : formatMessage({ defaultMessage: "Date d'audition réinitialisée" })}
         </p>
@@ -272,5 +317,15 @@ export function AuditionDateForm(props: {
         </p>
       )}
     </div>
+  );
+}
+
+function AuditionHeading(props: { className: string; level: 'h2' | 'h3' | undefined }) {
+  const title = <FormattedMessage defaultMessage="Audition" />;
+
+  return props.level === 'h2' ? (
+    <h2 className={clsx('fr-h4', props.className)}>{title}</h2>
+  ) : (
+    <h3 className={clsx('text-xl font-semibold', props.className)}>{title}</h3>
   );
 }

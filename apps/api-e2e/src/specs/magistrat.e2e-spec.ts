@@ -101,7 +101,7 @@ test.describe('Magistrat E2E', () => {
     expect(nominationFiles.data).toMatchObject({ currentPageIndex: 1, totalCount: 1 });
     expect(nominationFiles.data!.items[0]).toMatchObject({
       auditionDate: { year: 2026, month: 9, day: 15 },
-      auditionExpected: false,
+      auditionExpected: true,
       auditionTime: { hours: 14, minutes: 30 },
       canScheduleAudition: true,
       id: valrose.nominationFile.id,
@@ -175,7 +175,7 @@ test.describe('Magistrat E2E', () => {
     expect(observations.data!.items[0]).toMatchObject({
       dateReception: { year: 2026, month: 5, day: 2 },
       nominationFile: {
-        auditionExpected: false,
+        auditionExpected: true,
         id: valrose.nominationFile.id,
         name: expect.stringMatching(/valrose/i),
         session: { id: valrose.session.id, status: 'ONGOING' },
@@ -216,5 +216,102 @@ test.describe('Magistrat E2E', () => {
     });
     expect(observations.response?.status).toBe(200);
     expect(observations.data!.items.map((item) => item.nominationFile.id)).toEqual([lowerFile!.id, higherFile!.id]);
+  });
+
+  test('should share the audition of an observant between their observations only', async ({
+    agent,
+    expect,
+    member,
+    valrose,
+  }) => {
+    const [scheduled, other] = await Promise.all(
+      [valrose.nominationFile, valrose.otherNominationFile].map((file) =>
+        agent.observations
+          .createObservation({
+            body: { form: observationForm({ dateReception: '2026-05-02', magistratId: valrose.magistratId }) },
+            path: { nominationFileId: file.id, sessionId: valrose.session.id },
+            throwOnError: true,
+          })
+          .then(({ data }) => ({ nominationFileId: file.id, observationId: data!.id, sessionId: valrose.session.id })),
+      ),
+    );
+
+    const response = await agent.observations.scheduleObservantAudition({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 12, minutes: 30 } },
+      path: scheduled!,
+    });
+    expect(response.response?.status).toBe(204);
+
+    const details = await member.observations.getObservationDetails({ path: other!, throwOnError: true });
+    expect(details.data!.observant.audition).toMatchObject({
+      date: { day: 12, month: 12, year: 2028 },
+      time: { hours: 12, minutes: 30 },
+    });
+
+    const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
+      throwOnError: true,
+    });
+    expect(nominationFiles.data!.items[0]).toMatchObject({ auditionDate: null, auditionTime: null });
+  });
+
+  test('should unschedule the audition of an observant', async ({ agent, expect, member, valrose }) => {
+    const path = await agent.observations
+      .createObservation({
+        body: { form: observationForm({ dateReception: '2026-05-02', magistratId: valrose.magistratId }) },
+        path: { nominationFileId: valrose.otherNominationFile.id, sessionId: valrose.session.id },
+        throwOnError: true,
+      })
+      .then(({ data }) => ({
+        nominationFileId: valrose.otherNominationFile.id,
+        observationId: data!.id,
+        sessionId: valrose.session.id,
+      }));
+    await agent.observations.scheduleObservantAudition({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 12, minutes: 30 } },
+      path,
+      throwOnError: true,
+    });
+
+    const response = await agent.observations.scheduleObservantAudition({
+      body: { auditionDate: null, auditionTime: null },
+      path,
+    });
+    expect(response.response?.status).toBe(204);
+
+    const details = await member.observations.getObservationDetails({ path, throwOnError: true });
+    expect(details.data!.observant.audition).toBeNull();
+  });
+
+  test('should drop the audition of an observant with their last observation of the session', async ({
+    agent,
+    expect,
+    member,
+    valrose,
+  }) => {
+    const createObservation = (nominationFileId: string) =>
+      agent.observations
+        .createObservation({
+          body: { form: observationForm({ dateReception: '2026-05-02', magistratId: valrose.magistratId }) },
+          path: { nominationFileId, sessionId: valrose.session.id },
+          throwOnError: true,
+        })
+        .then(({ data }) => ({ nominationFileId, observationId: data!.id, sessionId: valrose.session.id }));
+    const first = await createObservation(valrose.nominationFile.id);
+    const second = await createObservation(valrose.otherNominationFile.id);
+    await agent.observations.scheduleObservantAudition({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 12, minutes: 30 } },
+      path: first,
+      throwOnError: true,
+    });
+
+    await agent.observations.deleteObservation({ path: first, throwOnError: true });
+    const kept = await member.observations.getObservationDetails({ path: second, throwOnError: true });
+    expect(kept.data!.observant.audition).not.toBeNull();
+
+    await agent.observations.deleteObservation({ path: second, throwOnError: true });
+    const recreated = await createObservation(valrose.otherNominationFile.id);
+    const details = await member.observations.getObservationDetails({ path: recreated, throwOnError: true });
+    expect(details.data!.observant.audition).toBeNull();
   });
 });

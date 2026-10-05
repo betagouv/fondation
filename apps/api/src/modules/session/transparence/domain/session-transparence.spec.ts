@@ -614,15 +614,20 @@ describe('SessionTransparence', () => {
     const auditionTime = { hours: 14, minutes: 30, seconds: 0 };
 
     session.scheduleAudition({
-      nominationFileId: 'nomination-file-id-1',
       auditionDateTime: { date: auditionDate, time: auditionTime },
+      impersonatorId: null,
+      nominationFileId: 'nomination-file-id-1',
+      userId: 'user-id',
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceAuditionScheduled('session-id', 'nomination-file-id-1', {
-        date: auditionDate,
-        time: auditionTime,
-      }),
+      new SessionTransparenceAuditionScheduled(
+        'session-id',
+        'nomination-file-id-1',
+        { date: auditionDate, time: auditionTime },
+        'user-id',
+        null,
+      ),
     ]);
   });
 
@@ -642,11 +647,13 @@ describe('SessionTransparence', () => {
 
     expect(() =>
       session.scheduleAudition({
-        nominationFileId: 'nomination-file-id-1',
         auditionDateTime: {
           date: new DateOnly(2026, 7, 10),
           time: { hours: 14, minutes: 30, seconds: 0 },
         },
+        impersonatorId: null,
+        nominationFileId: 'nomination-file-id-1',
+        userId: 'user-id',
       }),
     ).toThrow(CannotScheduleAuditionOnNominationFile);
   });
@@ -666,11 +673,13 @@ describe('SessionTransparence', () => {
     });
 
     session.unscheduleAudition({
+      impersonatorId: null,
       nominationFileId: 'nomination-file-id-1',
+      userId: 'user-id',
     });
 
     expect(session.messages).toEqual([
-      new SessionTransparenceAuditionUnScheduled('session-id', 'nomination-file-id-1'),
+      new SessionTransparenceAuditionUnScheduled('session-id', 'nomination-file-id-1', 'user-id', null),
     ]);
   });
 

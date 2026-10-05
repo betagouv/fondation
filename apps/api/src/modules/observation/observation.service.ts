@@ -1,3 +1,4 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import {
   BadRequestException,
   ConflictException,
@@ -14,7 +15,10 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import type { AuditionSchedule } from 'src/utils/audition-schedule';
+import type { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import type { TimeOnly } from 'src/utils/time-only';
 
 import {
   Observation,
@@ -22,6 +26,10 @@ import {
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
+import {
+  ObservantAuditionsFinder,
+  type ObservantAuditionWithObservations,
+} from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import {
   GetObservationDetailsQuery,
@@ -39,6 +47,7 @@ import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
+import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
@@ -54,6 +63,8 @@ export class ObservationService {
     private readonly files: Files,
     private readonly listObservationsAttachmentsQuery: ListObservationsAttachmentsQuery,
     private readonly observationFinder: ObservationFinder,
+    private readonly observantAuditionRepository: ObservantAuditionRepository,
+    private readonly observantAuditions: ObservantAuditionsFinder,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -106,6 +117,7 @@ export class ObservationService {
       files: command.files,
       createdByUserId: command.userId,
       description: command.description,
+      sessionId: command.sessionId,
       magistratId: command.magistratId,
       dateReception: command.dateReception,
     });
@@ -115,21 +127,32 @@ export class ObservationService {
     return { id: observation.id };
   }
 
-  async deleteObservation(command: { userId: string; observationId: string }): Promise<void> {
+  @Transactional()
+  async deleteObservation(command: {
+    impersonatorId: string | null;
+    observationId: string;
+    userId: string;
+  }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
 
-    observation.delete();
+    observation.delete({
+      ...command,
+      isLastOfObservant: await this.observationRepository.isLastOfObservant(observation),
+    });
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
   async updateObservation(command: {
-    observationId: string;
     dateReception: Date;
-    magistratId: string;
     description: string | null | undefined;
-    linkedFiles: readonly { observationId: string; fileId: string }[];
-    filesToAttach: readonly { id: string }[];
     fileIdsToDetach: readonly string[];
+    filesToAttach: readonly { id: string }[];
+    impersonatorId: string | null;
+    linkedFiles: readonly { fileId: string; observationId: string }[];
+    magistratId: string;
+    observationId: string;
+    userId: string;
   }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
 
@@ -153,8 +176,11 @@ export class ObservationService {
 
     observation.update({
       dateReception: command.dateReception,
-      magistratId: command.magistratId,
       description: command.description,
+      impersonatorId: command.impersonatorId,
+      isLastOfObservant: await this.observationRepository.isLastOfObservant(observation),
+      magistratId: command.magistratId,
+      userId: command.userId,
     });
     observation.attachFiles({ files: command.filesToAttach });
     observation.detachFiles({ fileIds: command.fileIdsToDetach });
@@ -163,7 +189,40 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
-  listObservations(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
+  /** @internal */
+  internalListObservantAuditions(query: { sessionId: string }): Promise<ObservantAuditionWithObservations[]> {
+    return this.observantAuditions.findWithObservations(query);
+  }
+
+  /** @internal */
+  internalFindObservantAuditions(predicate: {
+    magistratIds: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, AuditionSchedule>> {
+    return this.observantAuditions.findByMagistratId(predicate);
+  }
+
+  @Transactional()
+  async scheduleObservantAudition(command: {
+    auditionDateTime: { date: DateOnly; time: TimeOnly } | null;
+    impersonatorId: string | null;
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const audition = await this.observantAuditionRepository.findByObservation(command);
+    if (command.auditionDateTime)
+      audition.schedule({ ...command, auditionDateTime: command.auditionDateTime });
+    else audition.unschedule(command);
+    await this.observantAuditionRepository.persist(audition);
+  }
+
+  @Transactional()
+  listObservations(query: {
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<ListObservationsResponseDto> {
     return this.listObservationsQuery.handle(query);
   }
 

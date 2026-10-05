@@ -77,9 +77,11 @@ function makeSummaryDetail(props: {
 }): DetailedSummaryDto {
   return {
     auditionDate: null,
+    auditionExpected: false,
     auditionTime: null,
     biography: '',
     birthDate: null,
+    canScheduleAudition: true,
     detectedMagistratId: null,
     grade: 'I',
     isArchived: props.isArchived,
@@ -91,6 +93,7 @@ function makeSummaryDetail(props: {
     position: 'Juge au tribunal judiciaire de Lyon',
     priorities: [],
     rank: null,
+    reportersMissing: false,
     summary: {
       attachments: [],
       author: null,

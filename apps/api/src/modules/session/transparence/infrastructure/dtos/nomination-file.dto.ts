@@ -4,8 +4,7 @@ import z from 'zod';
 import { createSortableDto } from 'src/modules/framework/sorting';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { timeOnlySchema } from 'src/utils/time-only';
+import { scheduleAuditionSchema } from 'src/utils/audition-schedule';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
@@ -116,18 +115,4 @@ export class UpdateMissingEvaluationCommentDto extends createZodDto(
   }),
 ) {}
 
-export class UpdateAuditionDateDto extends createZodDto(
-  z
-    .object({
-      auditionDate: dateOnlyJsonSchema.nullable(),
-      auditionTime: timeOnlySchema.nullable(),
-    })
-    .refine(
-      ({ auditionDate, auditionTime }) => {
-        const bothSet = auditionDate !== null && auditionTime !== null;
-        const bothCleared = auditionDate === null && auditionTime === null;
-        return bothSet || bothCleared;
-      },
-      { error: "La date et l'heure d'audition doivent être renseignées ensemble" },
-    ),
-) {}
+export class UpdateAuditionDateDto extends createZodDto(scheduleAuditionSchema) {}

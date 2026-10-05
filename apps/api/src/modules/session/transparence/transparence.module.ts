@@ -3,7 +3,9 @@ import { Module, forwardRef } from '@nestjs/common';
 import { SummaryModule } from '../summaries/summary.module';
 import { DocsModule } from 'src/modules/docs/docs.module';
 import { IngestModule } from 'src/modules/ingest/ingest.module';
+import { MagistratModule } from 'src/modules/magistrat/magistrat.module';
 import { MembersModule } from 'src/modules/members';
+import { ObservationModule } from 'src/modules/observation/observation.module';
 
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
@@ -12,11 +14,14 @@ import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nom
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
 import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
+import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
+import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
 import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
 import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
 import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountSessionAuditionsQuery } from './infrastructure/queries/count-session-auditions.query';
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-affectation-history.query';
@@ -36,6 +41,8 @@ import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-n
 import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
 import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
 import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
+import { ListSessionAuditionsAsExcelQuery } from './infrastructure/queries/list-session-auditions-as-excel.query';
+import { ListSessionAuditionsQuery } from './infrastructure/queries/list-session-auditions.query';
 import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
@@ -48,11 +55,14 @@ import { SessionController } from './transparence.controller';
     forwardRef(() => MembersModule),
     forwardRef(() => IngestModule),
     forwardRef(() => DocsModule),
+    forwardRef(() => MagistratModule),
+    forwardRef(() => ObservationModule),
   ],
   providers: [
     AffectationVersionFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
+    CountSessionAuditionsQuery,
     CountUnaffectedFilesQuery,
     CountUsersNewSessionsQuery,
     DetailNominationFileAttachmentQuery,
@@ -69,6 +79,8 @@ import { SessionController } from './transparence.controller';
     ListCurrentlyAffectedReportersQuery,
     ListNominationFileAttachmentsQuery,
     ListMissingEvaluationsAsExcelQuery,
+    ListSessionAuditionsAsExcelQuery,
+    ListSessionAuditionsQuery,
     ListNominationFilesAsExcelQuery,
     ListNominationFilesQuery,
     ListNominationSessionAttachmentsQuery,
@@ -78,6 +90,8 @@ import { SessionController } from './transparence.controller';
     NominationFileJurisdictionsFinder,
     NominationSessionFinder,
     ReportedSessionsFinder,
+    ReportersAffectationFinder,
+    SessionAuditionsFinder,
     SessionTransparenceRepository,
     SynchronisedLolfiSessionsFinder,
     TransparenceFilesFinder,

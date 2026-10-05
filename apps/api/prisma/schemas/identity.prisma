@@ -81,6 +81,10 @@ model User {
   creatorOfFiles                       File[]                                 @relation("file_creator")
   authorOfSessionCommentVersions       SessionCommentVersion[]                @relation("session_comment_version_author")
   impersonatorOfSessionCommentVersions SessionCommentVersion[]                @relation("session_comment_version_impersonator")
+  authorOfObservantAuditionVersions       ObservantAuditionVersion[]       @relation("observant_audition_version_author")
+  impersonatorOfObservantAuditionVersions ObservantAuditionVersion[]       @relation("observant_audition_version_impersonator")
+  authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[] @relation("nomination_file_audition_version_author")
+  impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[] @relation("nomination_file_audition_version_impersonator")
 
   @@map("users")
   @@schema("identity_and_access_context")

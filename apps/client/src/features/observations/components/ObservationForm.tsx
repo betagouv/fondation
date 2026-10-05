@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
 import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
@@ -49,6 +50,7 @@ export function ObservationForm({
   sessionId: string;
 }) {
   const intl = useIntl();
+  const { waitForConfirmation } = useConfirmModal();
   const [uploadKey, setUploadKey] = useState(0);
   const isEditing = !!observation;
 
@@ -137,7 +139,29 @@ export function ObservationForm({
     setUploadKey((current) => current + 1);
   };
 
-  const onSubmit = (data: FormSchema) => {
+  // the audition of the observant goes away with their last observation of the transparence
+  const confirmAuditionRemoval = async (magistratId: string) => {
+    const removesAudition =
+      !!observation?.audition &&
+      observation.observantObservationsCount === 1 &&
+      observation.magistrat?.id !== magistratId;
+    if (!removesAudition) return true;
+
+    const { isConfirmed } = await waitForConfirmation({
+      content: (
+        <p className="font-bold">
+          <FormattedMessage defaultMessage="Attention, une date d'audition a été saisie pour cet observant. C'est sa dernière observation dans cette transparence : changer d'observant entraîne la suppression de sa date d'audition. Cette action est irréversible." />
+        </p>
+      ),
+      i18n: { confirm: intl.formatMessage({ defaultMessage: "Changer d'observant" }) },
+      title: intl.formatMessage({ defaultMessage: "Changer l'observant" }),
+    });
+    return isConfirmed;
+  };
+
+  const onSubmit = async (data: FormSchema) => {
+    if (isEditing && !(await confirmAuditionRemoval(data.magistratId))) return;
+
     onPending(true);
     if (isEditing) {
       updateObservation(

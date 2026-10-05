@@ -163,7 +163,7 @@ function MissingEvaluationsTableInner(props: {
           </div>
 
           <NominationFilesExportButton
-            disabled={exportAsExcel.isPending}
+            disabled={exportAsExcel.isPending || !counts?.missingEvaluation}
             onExport={() =>
               exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
             }

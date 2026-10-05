@@ -40,6 +40,8 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember> & {
     auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
+    // the secretariat also reads the summaries it writes
+    summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
   },
   'administration' | 'ingest'
 >;

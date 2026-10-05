@@ -87,6 +87,7 @@ export const SUMMARY_ATTACHMENTS: DetailedSummaryDto['summary']['attachments'] =
 
 export const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] = [
   {
+    audition: null,
     createdAt: '2026-03-11',
     createdBy: { firstName: 'Anne', id: 'user-3', lastName: 'Roy' },
     dateReception: '2026-03-10',
@@ -116,8 +117,10 @@ export const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] =
       lastName: 'Martin',
       usedName: null,
     },
+    observantObservationsCount: 1,
   },
   {
+    audition: null,
     createdAt: '2026-03-12',
     createdBy: { firstName: 'Anne', id: 'user-3', lastName: 'Roy' },
     dateReception: '2026-03-12',
@@ -126,6 +129,7 @@ export const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] =
     followUp: null,
     id: 'observation-2',
     magistrat: null,
+    observantObservationsCount: 1,
   },
 ];
 
@@ -146,10 +150,12 @@ export function makeSummary(
 
   return {
     auditionDate: null,
+    auditionExpected: false,
     auditionTime: null,
     biography:
       '- Juge au tribunal judiciaire de Lyon (2018)\n- Vice-présidente au tribunal judiciaire de Lyon (2021)\n- Conseillère référendaire à la Cour de cassation (2023)',
     birthDate: { day: 12, month: 4, year: 1978 },
+    canScheduleAudition: true,
     detectedMagistratId: 'magistrat-1',
     grade: 'I',
     isArchived: false,
@@ -161,6 +167,7 @@ export function makeSummary(
     position: 'Juge au tribunal judiciaire de Lyon',
     priorities: [],
     rank: '12 sur 45',
+    reportersMissing: false,
     targetedGrade: 'HH',
     targetedPosition: 'Conseillère à la cour d’appel de Paris',
     ...rest,

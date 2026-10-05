@@ -2,11 +2,14 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
+import { ObservantAuditionsFinder } from '../finders/observant-auditions.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -17,6 +20,7 @@ export class GetObservationDetailsQuery {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
+    private readonly observantAuditions: ObservantAuditionsFinder,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -124,12 +128,17 @@ export class GetObservationDetailsQuery {
       });
       const isUserReporter = reporters.some(({ id }) => id === query.userId);
 
-      const candidacy = await this.findRelatedNominationFiles(
-        query.sessionId,
-        observation.magistrat.firstName,
-        observation.magistrat.lastName,
-        observation.magistrat.usedName,
-      );
+      const observedNominationFiles = await this.transparences.internalFindAuditionStates({
+        nominationFileIds: [
+          query.nominationFileId,
+          ...observation.magistrat.observations.map(({ nominationFile }) => nominationFile.id),
+        ],
+        sessionId: query.sessionId,
+      });
+      const auditions = await this.observantAuditions.findByMagistratId({
+        magistratIds: [observation.magistrat.id],
+        sessionId: query.sessionId,
+      });
 
       return {
         id: observation.id,
@@ -145,7 +154,8 @@ export class GetObservationDetailsQuery {
           usedName: observation.magistrat.usedName,
           biography: observation.magistrat.careerHistory,
           externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
-          candidacy,
+          audition: auditions.get(observation.magistrat.id) ?? null,
+          auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
         },
         observedMagistrat: {
           name: observation.nominationFile.name,
@@ -195,54 +205,6 @@ export class GetObservationDetailsQuery {
       })
       .filter(isDefined);
   }
-
-  private async findRelatedNominationFiles(
-    sessionId: string,
-    firstName: string,
-    lastName: string,
-    usedName: string | null,
-  ): Promise<{
-    nominationFileId: string;
-    desiredPosition: string | null;
-    rank: string | null;
-  } | null> {
-    const searchPatterns = [
-      {
-        contains: `${lastName.toUpperCase()} ${firstName}`,
-        mode: 'insensitive' as const,
-      },
-    ];
-
-    if (usedName && usedName !== lastName) {
-      searchPatterns.push(
-        {
-          contains: `${usedName.toUpperCase()} ${firstName}`,
-          mode: 'insensitive' as const,
-        },
-        { contains: usedName, mode: 'insensitive' as const },
-      );
-    }
-
-    const dossier = await this.db.tx.dossierDeNomination.findFirst({
-      select: {
-        id: true,
-        rank: true,
-        targetedPosition: true,
-      } satisfies Prisma.DossierDeNominationSelect,
-      where: {
-        OR: searchPatterns.map((pattern) => ({ name: pattern })),
-        sessionId,
-      },
-    });
-
-    if (!dossier) return null;
-
-    return {
-      nominationFileId: dossier.id,
-      desiredPosition: dossier.targetedPosition,
-      rank: dossier.rank,
-    };
-  }
 }
 
 const ObservationAttachmentSchema = z.object({
@@ -256,12 +218,6 @@ const ObservationAttachmentSchema = z.object({
 const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
-});
-
-const CandidacySchema = z.object({
-  nominationFileId: z.string(),
-  desiredPosition: z.string().nullable(),
-  rank: z.string().nullable(),
 });
 
 const RelatedPropositionSchema = z.object({
@@ -284,7 +240,8 @@ export class GetObservationDetailsResponseDto extends createZodDto(
       lastName: z.string(),
       usedName: z.string().nullable(),
       biography: z.string().nullable(),
-      candidacy: CandidacySchema.nullable(),
+      audition: auditionScheduleSchema.nullable(),
+      auditionScheduling: z.enum(['SCHEDULABLE', ...UNSCHEDULABLE_REASONS]),
       externalUrl: z.url(),
     }),
     observedMagistrat: z.object({

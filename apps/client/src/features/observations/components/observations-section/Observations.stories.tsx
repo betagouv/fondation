@@ -77,6 +77,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
 
 function makeObservation(overrides: Partial<Observation> & { id: string }): Observation {
   return {
+    audition: null,
     createdAt: '2026-03-11',
     createdBy: { firstName: 'Anne', id: 'user-1', lastName: 'Roy' },
     dateReception: '2026-03-10',
@@ -84,6 +85,7 @@ function makeObservation(overrides: Partial<Observation> & { id: string }): Obse
     files: [],
     followUp: null,
     magistrat: MAGISTRATS[0]!,
+    observantObservationsCount: 1,
     ...overrides,
   };
 }

@@ -116,23 +116,21 @@ export function ObservationDetailsPage() {
 
   return (
     <ArchiveBannerPortal isArchived={observation.isArchived}>
-      <PageContentLayout fullBackgroundGreen={true}>
-        <ObservationFollowUpCommentProvider>
-          <ObservationDetailsContent
-            backTo={backTo}
-            context={context}
-            isArchived={observation.isArchived}
-            nominationFileId={nominationFileId}
-            observation={observation}
-            observationId={observationId}
-            onDownloadFile={handleDownloadFile}
-            onOpenFile={handleOpenFile}
-            onUpdateMemberComment={handleUpdateMemberComment}
-            sessionId={sessionId}
-            uploadFiles={uploadFiles}
-          />
-        </ObservationFollowUpCommentProvider>
-      </PageContentLayout>
+      <ObservationFollowUpCommentProvider>
+        <ObservationDetailsContent
+          backTo={backTo}
+          context={context}
+          isArchived={observation.isArchived}
+          nominationFileId={nominationFileId}
+          observation={observation}
+          observationId={observationId}
+          onDownloadFile={handleDownloadFile}
+          onOpenFile={handleOpenFile}
+          onUpdateMemberComment={handleUpdateMemberComment}
+          sessionId={sessionId}
+          uploadFiles={uploadFiles}
+        />
+      </ObservationFollowUpCommentProvider>
     </ArchiveBannerPortal>
   );
 }

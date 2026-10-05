@@ -19,6 +19,7 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
+import { ObservationService } from 'src/modules/observation/observation.service';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
@@ -36,6 +37,7 @@ import {
 import * as nominationFilesPolicies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
@@ -50,6 +52,9 @@ export class ListNominationFilesQuery {
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
+
+    @Inject(forwardRef(() => ObservationService))
+    private readonly observations: ObservationService,
   ) {}
 
   async handle(query: {
@@ -189,6 +194,12 @@ export class ListNominationFilesQuery {
     const nominationFileIds = new Set(txFiles.map(({ id }) => id));
     const linkedDocs = await this.docs.internalFindNominationFilesLinkedDocs({ nominationFileIds });
     const reportedFileIds = await this.docs.internalFindReportedNominationFiles({ nominationFileIds });
+    const observantAuditions = await this.observations.internalFindObservantAuditions({
+      magistratIds: [
+        ...new Set(txFiles.flatMap((file) => file.observations.map(({ magistrat }) => magistrat.id))),
+      ],
+      sessionId: query.sessionId,
+    });
 
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
@@ -213,6 +224,7 @@ export class ListNominationFilesQuery {
     return files.map((x): NominationFileAffectationItem => {
       const auditionedPosition = {
         detectedJurisdictionId: x.detectedJurisdictionId ?? null,
+        detectedJurisdictionType: x.detectedJurisdictionType ?? null,
         detectedTargetedFunctionId: x.detectedTargetedFunctionId ?? null,
         targetedPosition: x.targetedPosition,
       };
@@ -270,6 +282,7 @@ export class ListNominationFilesQuery {
         observations: x.observations.map((obs) => {
           return {
             id: obs.id,
+            audition: observantAuditions.get(obs.magistrat.id) ?? null,
             followUp: obs.followUp,
             followUpComment: obs.followUp ? obs.followUpComment : null,
             date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
@@ -411,6 +424,7 @@ const RawListedNominationFiles = z.array(
     missingEvaluation: z.boolean(),
     missingEvaluationComment: z.string().nullable(),
     detectedJurisdictionId: z.string().nullable(),
+    detectedJurisdictionType: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
     hasAttachment: z.boolean(),
@@ -491,6 +505,7 @@ const NominationFileAffectationItemSchema = z.object({
   observations: z.array(
     z.object({
       id: z.string(),
+      audition: auditionScheduleSchema.nullable(),
       date: dateOnlyJsonSchema,
       followUp: z.enum(ObservationFollowUp.enum).nullable(),
       followUpComment: z.string().nullable(),

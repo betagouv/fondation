@@ -36,6 +36,7 @@ function renderAuditionDate(props: {
   editable: boolean;
   initialAuditionDate: DetailedSummaryDto['auditionDate'];
   initialAuditionTime: DetailedSummaryDto['auditionTime'];
+  isShared?: boolean;
 }) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
@@ -48,8 +49,9 @@ function renderAuditionDate(props: {
           editable={props.editable}
           initialAuditionDate={props.initialAuditionDate}
           initialAuditionTime={props.initialAuditionTime}
-          nominationFileId="nomination-file"
+          isShared={props.isShared}
           sessionId="session-1"
+          target={{ nominationFileId: 'nomination-file', type: 'NOMINATION_FILE' }}
         />
       </QueryClientProvider>
     </IntlProvider>,
@@ -87,6 +89,24 @@ describe('AuditionDateForm read-only', () => {
 });
 
 describe('AuditionDateForm edition', () => {
+  it('keeps a shared audition unchanged when the change is not confirmed', async () => {
+    const update = spyOnSave();
+    mocks.waitForConfirmation.mockResolvedValueOnce({ isConfirmed: false });
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: null,
+      initialAuditionTime: null,
+      isShared: true,
+    });
+
+    fillAuditionDate('2099-09-15', '14:30');
+    fireEvent.blur(screen.getByLabelText('Heure'));
+
+    await waitFor(() => expect(screen.getByLabelText('Heure')).toHaveValue(''));
+    expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
+    expect(update).not.toHaveBeenCalled();
+  });
+
   it('saves the audition as a date-only and time-only pair', async () => {
     const update = spyOnSave();
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
@@ -97,11 +117,11 @@ describe('AuditionDateForm edition', () => {
     await waitFor(() =>
       expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: { sessionId: 'session-1', nominationFileId: 'nomination-file' },
           body: {
             auditionDate: { year: 2099, month: 9, day: 15 },
             auditionTime: { hours: 14, minutes: 30, seconds: 0 },
           },
+          path: { nominationFileId: 'nomination-file', sessionId: 'session-1' },
         }),
       ),
     );
@@ -275,8 +295,8 @@ describe('AuditionDateForm close guard', () => {
                 editable
                 initialAuditionDate={null}
                 initialAuditionTime={null}
-                nominationFileId="nomination-file"
                 sessionId="session-1"
+                target={{ nominationFileId: 'nomination-file', type: 'NOMINATION_FILE' }}
               />
             </SidePanelProvider>
           </NuqsTestingAdapter>

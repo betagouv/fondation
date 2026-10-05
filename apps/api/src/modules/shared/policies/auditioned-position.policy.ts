@@ -1,11 +1,31 @@
 import { unaccent } from 'src/utils/unaccent';
 
-const AUDITIONED_FUNCTIONS = new Set(['PG', 'PR F', 'PRAT', '1PC']);
+// LOLFI codes of the positions the CSM hears before deciding, whatever the jurisdiction:
+// the deputies of the national prosecutor's offices have their own function code (PRA F, PRATA, PRACOADJ)
+const AUDITIONED_FUNCTIONS = new Set([
+  '1PC',
+  'IG-CIGJ',
+  'IGJ',
+  'IGSJ',
+  'PG',
+  'PR',
+  'PR F',
+  'PRA F',
+  'PRACO',
+  'PRACOADJ',
+  'PRAT',
+  'PRATA',
+]);
+// beware the padding of LOLFI jurisdiction codes: two spaces in "CC  PARIS" and "TJ  PARIS"
 const AUDITIONED_POSITIONS = [
   { functionId: '1AG', jurisdictionId: 'CC  PARIS' },
+  { functionId: '1VP', jurisdictionId: 'TJ  PARIS' },
   { functionId: 'AG', jurisdictionId: 'CC  PARIS' },
-  { functionId: 'PR', jurisdictionId: 'TJ  PARIS' },
+  { functionId: 'AG SE', jurisdictionId: 'CC  PARIS' },
+  { functionId: 'AGR', jurisdictionId: 'CC  PARIS' },
+  { functionId: 'PRA', jurisdictionId: 'TJ  PARIS' },
 ];
+const AUDITIONED_JURISDICTION_TYPES = [{ functionId: '1AG', jurisdictionType: 'CA' }];
 const AUDITIONED_LEGACY_LABELS = [
   'procureur general',
   'premier avocat general pres la cour de cassation',
@@ -20,6 +40,7 @@ const AUDITIONED_LEGACY_LABELS = [
 
 type AuditionedPosition = {
   detectedJurisdictionId: string | null;
+  detectedJurisdictionType: string | null;
   detectedTargetedFunctionId: string | null;
   targetedPosition: string | null;
 };
@@ -35,6 +56,13 @@ export function isAuditionExpected(file: AuditionedPosition): boolean {
       position.jurisdictionId === file.detectedJurisdictionId,
   );
   if (matchesAuditionedPosition) return true;
+
+  const matchesAuditionedJurisdictionType = AUDITIONED_JURISDICTION_TYPES.some(
+    (position) =>
+      position.functionId === file.detectedTargetedFunctionId &&
+      position.jurisdictionType === file.detectedJurisdictionType,
+  );
+  if (matchesAuditionedJurisdictionType) return true;
 
   const label = unaccent(file.targetedPosition ?? '').toLowerCase();
   return !!label && AUDITIONED_LEGACY_LABELS.some((legacyLabel) => label.startsWith(legacyLabel));

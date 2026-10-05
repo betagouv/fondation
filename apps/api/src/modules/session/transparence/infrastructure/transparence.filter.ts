@@ -9,7 +9,6 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
-  AuditionRequiresDateAndTime,
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
@@ -110,12 +109,6 @@ export class TransparenceExceptionFilter implements NestInterceptor {
               validationErrors: [
                 `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
               ],
-            });
-          }
-
-          if (err instanceof AuditionRequiresDateAndTime) {
-            return new BadRequestException({
-              validationErrors: [`la date et l'heure d'audition doivent être renseignées ensemble`],
             });
           }
 
