@@ -16,7 +16,7 @@ export function DocActionOfficialReportMetadata(props: {
     officialReportId: props.officialReport.id,
   });
   const label = formatMessage(
-    { defaultMessage: `Modifier les données de {name}` },
+    { defaultMessage: `Éditer les métadonnées de {name}` },
     { name: props.officialReport.name },
   );
 

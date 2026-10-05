@@ -73,46 +73,8 @@ export function AccessibilityPage() {
           <FormattedMessage defaultMessage="Non conformité" />
         </h3>
         <p>
-          <FormattedMessage
-            defaultMessage={
-              `En l'absence d'audit, la liste des non-conformités ne peut pas être établie de façon exhaustive. ` +
-              `Les points suivants concernent des composants hors du champ du DSFR : en effet, le DSFR est plus ` +
-              `adapté aux sites vitrines de l'État qu'à une application métier comme Fondation.`
-            }
-          />
+          <FormattedMessage defaultMessage="En l'absence d'audit, la liste des non-conformités ne peut pas être établie." />
         </p>
-        <p>
-          <FormattedMessage defaultMessage="Voici les points principaux identifiés à ce stade :" />
-        </p>
-        <ul className={LIST_CLASS}>
-          <li>
-            <FormattedMessage defaultMessage="Tableaux complexes et toasts." />
-          </li>
-          <li>
-            <FormattedMessage
-              defaultMessage={
-                `Éditeur de rapports : les membres, non spécialistes, doivent produire des contenus accessibles ` +
-                `(structure, alternatives) relus par d'autres ; l'éditeur doit les y guider.`
-              }
-            />
-          </li>
-          <li>
-            <FormattedMessage
-              defaultMessage={
-                `Outils tiers intégrés (en particulier module d'aide sur Notion) : accessibilité non ` +
-                `maîtrisable en l'état, à réinternaliser.`
-              }
-            />
-          </li>
-          <li>
-            <FormattedMessage
-              defaultMessage={`Socle "muet" (titres de page, états non annoncés) et PDF générés à baliser.`}
-            />
-          </li>
-          <li>
-            <FormattedMessage defaultMessage="Module de plaintes des justiciables à venir, à construire accessible dès l'origine." />
-          </li>
-        </ul>
         <p>
           <FormattedMessage
             defaultMessage={
@@ -130,20 +92,11 @@ export function AccessibilityPage() {
           <FormattedMessage defaultMessage="Aucune dérogation n'est invoquée à ce jour." />
         </p>
 
-        <h3 className="fr-h5">
-          <FormattedMessage defaultMessage="Contenus non soumis à l'obligation d'accessibilité" />
-        </h3>
-        <ul className={LIST_CLASS}>
-          <li>
-            <FormattedMessage defaultMessage="Les pièces jointes aux dossiers déposées par des tiers et intégrées à Fondation" />
-          </li>
-        </ul>
-
         <h2>
           <FormattedMessage defaultMessage="Établissement de cette déclaration d'accessibilité" />
         </h2>
         <p>
-          <FormattedMessage defaultMessage="Cette déclaration a été mise à jour le 8 septembre 2026." />
+          <FormattedMessage defaultMessage="Cette déclaration a été mise à jour le 5 octobre 2026." />
         </p>
 
         <h3 className="fr-h5">
@@ -182,22 +135,8 @@ export function AccessibilityPage() {
           <FormattedMessage defaultMessage="Pages du service ayant fait l'objet de la vérification de conformité" />
         </h3>
         <p>
-          <FormattedMessage defaultMessage="Sans objet à ce stade. Le périmètre du futur audit portera au minimum sur :" />
+          <FormattedMessage defaultMessage="Sans objet à ce stade." />
         </p>
-        <ul className={LIST_CLASS}>
-          <li>
-            <FormattedMessage defaultMessage="Page d'accueil et connexion" />
-          </li>
-          <li>
-            <FormattedMessage defaultMessage="Parcours de gestion d'une session, secrétariat général" />
-          </li>
-          <li>
-            <FormattedMessage defaultMessage="Parcours de rédaction d'un rapport, membre rapporteur" />
-          </li>
-          <li>
-            <FormattedMessage defaultMessage="Écrans de suivi de séance et exports" />
-          </li>
-        </ul>
 
         <h2>
           <FormattedMessage defaultMessage="Retour d'information et contact" />
@@ -206,7 +145,7 @@ export function AccessibilityPage() {
           <FormattedMessage
             defaultMessage={
               `Si vous n'arrivez pas à accéder à un contenu ou à un service, vous pouvez contacter le ` +
-              `responsable de Fondation pour être orienté vers une alternative accessible ou obtenir le ` +
+              `service informatique du Conseil supérieur de la magistrature pour être orienté vers une alternative accessible ou obtenir le ` +
               `contenu sous une autre forme.`
             }
           />
@@ -214,18 +153,10 @@ export function AccessibilityPage() {
         <ul className={LIST_CLASS}>
           <li>
             <FormattedMessage
-              defaultMessage={
-                `Envoyer un message à Alice Maintigneux, <alice>alice.maintigneux@justice.fr</alice> ` +
-                `ou Rémi Boureau-Lienard, <remi>remi.boureau-lienard@justice.fr</remi>`
-              }
+              defaultMessage="Envoyer un message à <email>informatique.csm@justice.fr</email>"
               values={{
-                alice: (chunks) => (
-                  <a className="fr-link" href="mailto:alice.maintigneux@justice.fr">
-                    {chunks}
-                  </a>
-                ),
-                remi: (chunks) => (
-                  <a className="fr-link" href="mailto:remi.boureau-lienard@justice.fr">
+                email: (chunks) => (
+                  <a className="fr-link" href="mailto:informatique.csm@justice.fr">
                     {chunks}
                   </a>
                 ),

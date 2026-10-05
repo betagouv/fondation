@@ -36,11 +36,18 @@ describe('SummaryAlerts', () => {
     expect(screen.getByText(/une synthèse n'est probablement plus nécessaire/)).toBeInTheDocument();
   });
 
-  it('does not warn for a suspended decision, where a summary stays relevant', () => {
-    renderAlerts({ outcome: { comment: null, label: 'sursis à statuer', value: 'SUSPENDED' } });
+  it.each([
+    { label: 'en attente évaluation', value: 'ASSESSING' },
+    { label: 'sursis à statuer', value: 'SUSPENDED' },
+    { label: 'en attente complément DSJ', value: 'WAITING_DSJ' },
+  ] as const)(
+    'does not warn while the decision is pending ($label), where a summary stays relevant',
+    (outcome) => {
+      renderAlerts({ outcome: { ...outcome, comment: null } });
 
-    expect(screen.queryByText(/une synthèse n'est probablement plus nécessaire/)).not.toBeInTheDocument();
-  });
+      expect(screen.queryByText(/une synthèse n'est probablement plus nécessaire/)).not.toBeInTheDocument();
+    },
+  );
 
   it('reminds the secretariat of the audition and the reporters expected on the position', () => {
     mocks.isSg = true;

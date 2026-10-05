@@ -47,7 +47,7 @@ export function PresentationPreviewPage() {
               }}
               priority="secondary"
             >
-              <FormattedMessage defaultMessage="Modifier les données" />
+              <FormattedMessage defaultMessage="Éditer les métadonnées" />
             </Button>
             <Button
               linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}

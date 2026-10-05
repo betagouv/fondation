@@ -7,11 +7,16 @@ import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcom
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
 
+const PENDING_OUTCOMES = new Set<NominationFileOutcomeEnum>([
+  NominationFileOutcomeEnum.ASSESSING,
+  NominationFileOutcomeEnum.SUSPENDED,
+  NominationFileOutcomeEnum.WAITING_DSJ,
+]);
+
 export function SummaryAlerts() {
   const isSg = useIsSg();
   const { summary } = useSummary();
-  // a summary stays relevant for a file on which the decision is suspended
-  const outcome = summary.outcome?.value === NominationFileOutcomeEnum.SUSPENDED ? null : summary.outcome;
+  const outcome = summary.outcome && !PENDING_OUTCOMES.has(summary.outcome.value) ? summary.outcome : null;
   const auditionMissing = isAuditionMissing(summary);
 
   return (
