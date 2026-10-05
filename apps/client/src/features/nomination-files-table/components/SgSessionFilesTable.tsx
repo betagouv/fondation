@@ -17,6 +17,7 @@ import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import {
   isUpdatable,
   useListNominationFilesAsExcelMutation,
+  useNominationFilesStatusCountsQuery,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
@@ -157,6 +158,7 @@ function SgSessionFilesTableInner(
   const fileColumns = useSgSessionFilesColumns();
   const exportAsExcel = useListNominationFilesAsExcelMutation();
   const onExportFailure = useExportFailure();
+  const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId });
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const clearSelection = useCallback(() => setRowSelection({}), []);
@@ -237,7 +239,7 @@ function SgSessionFilesTableInner(
 
           <div className="flex flex-wrap items-center gap-2">
             <NominationFilesExportButton
-              disabled={exportAsExcel.isPending}
+              disabled={exportAsExcel.isPending || !counts?.total}
               onExport={() => exportAsExcel.mutate({ sessionId }, { onError: onExportFailure })}
             />
             <NominationFilesAutoAffectationButton />
