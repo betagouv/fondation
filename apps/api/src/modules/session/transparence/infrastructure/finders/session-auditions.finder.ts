@@ -23,7 +23,7 @@ type Reporter = { firstName: string; id: string; lastName: string };
 
 export type SessionAudition = {
   audition: AuditionSchedule | null;
-  contact: { email: string | null; phone: string | null } | null;
+  contact: { email: string | null; phoneNumber: { label: string | null; number: string } | null } | null;
   id: string;
   magistrat: { currentPosition: string | null; id: string | null; name: string };
   propositions: { label: string; nominationFileId: string; observationId: string | null }[];
@@ -107,8 +107,14 @@ export class SessionAuditionsFinder {
 
     const reporters = await this.findReporters(query);
     // only the secretariat reaches the magistrats to schedule their audition
-    const contactOf = (profile: { email: string | null; phone: string | null } | undefined) =>
-      profile && isSecretariat(query.role) ? { email: profile.email, phone: profile.phone } : null;
+    const contactOf = (
+      profile:
+        | { email: string | null; phoneNumber: { label: string | null; number: string } | null }
+        | undefined,
+    ) =>
+      profile && isSecretariat(query.role)
+        ? { email: profile.email, phoneNumber: profile.phoneNumber }
+        : null;
     const profiles = await this.magistrats.internalFindMagistratProfiles({
       magistratIds: [
         ...proposedFiles.flatMap(({ detectedMagistratId }) => detectedMagistratId ?? []),

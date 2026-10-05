@@ -7,7 +7,7 @@ export type MagistratProfile = {
   currentPosition: string | null;
   email: string | null;
   name: string;
-  phone: string | null;
+  phoneNumber: { label: string | null; number: string } | null;
 };
 
 @Injectable()
@@ -38,7 +38,7 @@ export class MagistratProfilesFinder {
             name: [magistrat.lastName.toUpperCase(), magistrat.firstName.toUpperCase(), marriedName]
               .filter(Boolean)
               .join(' '),
-            phone: magistrat.phone,
+            phoneNumber: magistrat.phone ? { label: magistrat.phoneLabel, number: magistrat.phone } : null,
           },
         ];
       }),
