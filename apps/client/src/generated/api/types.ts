@@ -268,7 +268,10 @@ export type ListedSessionAuditionsDto = {
         } | null;
         contact: {
             email: string | null;
-            phone: string | null;
+            phoneNumber: {
+                label: string | null;
+                number: string;
+            } | null;
         } | null;
         id: string;
         magistrat: {
@@ -2062,6 +2065,38 @@ export type ListedMagistratObservationsDto = {
         next?: string;
         previous?: string;
     };
+};
+
+export type ListedMagistratPhoneNumbersDto = {
+    items: Array<{
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        id: string;
+        label: string | null;
+        number: string;
+        source: 'FONDATION';
+    } | {
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        number: string;
+        source: 'LOLFI';
+    }>;
+};
+
+export type AddMagistratPhoneNumberDto = {
+    label: string | null;
+    number: string;
+};
+
+export type UpdateMagistratPhoneNumberDto = {
+    label: string | null;
+    number: string;
 };
 
 export type CreateObservationDto = {
@@ -4607,6 +4642,68 @@ export type ListMagistratObservationsResponses = {
 };
 
 export type ListMagistratObservationsResponse = ListMagistratObservationsResponses[keyof ListMagistratObservationsResponses];
+
+export type ListMagistratPhoneNumbersData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/phone-numbers';
+};
+
+export type ListMagistratPhoneNumbersResponses = {
+    200: ListedMagistratPhoneNumbersDto;
+};
+
+export type ListMagistratPhoneNumbersResponse = ListMagistratPhoneNumbersResponses[keyof ListMagistratPhoneNumbersResponses];
+
+export type AddMagistratPhoneNumberData = {
+    body: AddMagistratPhoneNumberDto;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/phone-numbers';
+};
+
+export type AddMagistratPhoneNumberResponses = {
+    204: void;
+};
+
+export type AddMagistratPhoneNumberResponse = AddMagistratPhoneNumberResponses[keyof AddMagistratPhoneNumberResponses];
+
+export type DeleteMagistratPhoneNumberData = {
+    body?: never;
+    path: {
+        magistratId: string;
+        phoneNumberId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/phone-numbers/{phoneNumberId}';
+};
+
+export type DeleteMagistratPhoneNumberResponses = {
+    204: void;
+};
+
+export type DeleteMagistratPhoneNumberResponse = DeleteMagistratPhoneNumberResponses[keyof DeleteMagistratPhoneNumberResponses];
+
+export type UpdateMagistratPhoneNumberData = {
+    body: UpdateMagistratPhoneNumberDto;
+    path: {
+        magistratId: string;
+        phoneNumberId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/phone-numbers/{phoneNumberId}';
+};
+
+export type UpdateMagistratPhoneNumberResponses = {
+    204: void;
+};
+
+export type UpdateMagistratPhoneNumberResponse = UpdateMagistratPhoneNumberResponses[keyof UpdateMagistratPhoneNumberResponses];
 
 export type ListObservationsData = {
     body?: never;

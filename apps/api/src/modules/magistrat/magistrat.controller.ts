@@ -1,4 +1,18 @@
-import { Controller, Get, HttpStatus, Param, Query, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseInterceptors,
+  UsePipes,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
@@ -6,15 +20,22 @@ import { ApiPaginated, Pagination, QueryPagination } from '../framework/paginati
 import type { RoleEnum } from '../shared/role.enum';
 import { AuthedUser, HasRole } from '../simple-auth';
 
-import { SearchMagistratsQueryDto } from './infrastructure/dtos/magistrat.dto';
+import {
+  AddMagistratPhoneNumberDto,
+  SearchMagistratsQueryDto,
+  UpdateMagistratPhoneNumberDto,
+} from './infrastructure/dtos/magistrat.dto';
+import { MagistratFilter } from './infrastructure/magistrat.filter';
 import { DetailedMagistratDto } from './infrastructure/queries/detail-magistrat.query';
 import { ListedMagistratNominationFilesDto } from './infrastructure/queries/list-magistrat-nomination-files.query';
 import { ListedMagistratObservationsDto } from './infrastructure/queries/list-magistrat-observations.query';
+import { ListedMagistratPhoneNumbersDto } from './infrastructure/queries/list-magistrat-phone-numbers.query';
 import { SearchMagistratsResponseDto } from './infrastructure/queries/search-magistrats.query';
 import { MagistratService } from './magistrat.service';
 
 @ApiTags('Magistrats')
 @Controller('/api/magistrats/v1')
+@UseInterceptors(MagistratFilter)
 export class MagistratController {
   constructor(private readonly magistrats: MagistratService) {}
 
@@ -75,5 +96,50 @@ export class MagistratController {
     @QueryPagination({ defaultLimit: 5 }) pagination: Pagination,
   ): Promise<ListedMagistratObservationsDto> {
     return this.magistrats.listObservations({ magistratId, pagination, role: user.role });
+  }
+
+  @Get('/:magistratId/phone-numbers')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @ZodResponse({
+    type: ListedMagistratPhoneNumbersDto,
+    status: HttpStatus.OK,
+  })
+  listMagistratPhoneNumbers(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+  ): Promise<ListedMagistratPhoneNumbersDto> {
+    return this.magistrats.listPhoneNumbers({ magistratId });
+  }
+
+  @Post('/:magistratId/phone-numbers')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async addMagistratPhoneNumber(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+    @Body() body: AddMagistratPhoneNumberDto,
+  ): Promise<void> {
+    await this.magistrats.addPhoneNumber({ ...body, magistratId });
+  }
+
+  @Patch('/:magistratId/phone-numbers/:phoneNumberId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateMagistratPhoneNumber(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+    @Param('phoneNumberId', ParseUUIDPipe) phoneNumberId: string,
+    @Body() body: UpdateMagistratPhoneNumberDto,
+  ): Promise<void> {
+    await this.magistrats.updatePhoneNumber({ ...body, magistratId, phoneNumberId });
+  }
+
+  @Delete('/:magistratId/phone-numbers/:phoneNumberId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteMagistratPhoneNumber(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+    @Param('phoneNumberId', ParseUUIDPipe) phoneNumberId: string,
+  ): Promise<void> {
+    await this.magistrats.deletePhoneNumber({ magistratId, phoneNumberId });
   }
 }
