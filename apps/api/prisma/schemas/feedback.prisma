@@ -1,0 +1,91 @@
+// who has already answered the questionnaire of a session, never what they answered
+model SessionFeedbackParticipation {
+  sessionId String @map("session_id") @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([sessionId, userId], name: "primaryKey")
+  @@map("session_feedback_participation")
+  @@schema("nominations_context")
+}
+
+// anonymous in the application: no author and only the day, an exact time would tell who answered; the shared transaction id (xmin) still links it to its participation in the database
+model SessionFeedback {
+  id                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId          String  @map("session_id") @db.Uuid
+  easeRating         Int     @map("ease_rating") @db.SmallInt
+  satisfactionRating Int     @map("satisfaction_rating") @db.SmallInt
+  hindrance          String? @db.Text
+  answeredOn         DateTime @map("answered_on") @db.Date
+
+  session     Session                     @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  member      MemberSessionFeedback?
+  secretariat SecretariatSessionFeedback?
+
+  @@map("session_feedback")
+  @@schema("nominations_context")
+}
+
+model MemberSessionFeedback {
+  feedbackId         String                       @id @map("feedback_id") @db.Uuid
+  manualWorkShare    PrismaManualWorkShareEnum    @map("manual_work_share")
+  debateContribution PrismaDebateContributionEnum @map("debate_contribution")
+  reviewThoroughness PrismaReviewThoroughnessEnum @map("review_thoroughness")
+
+  feedback SessionFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("member_session_feedback")
+  @@schema("nominations_context")
+}
+
+model SecretariatSessionFeedback {
+  feedbackId       String                    @id @map("feedback_id") @db.Uuid
+  manualWorkShare  PrismaManualWorkShareEnum @map("manual_work_share")
+  otherToolUsage   PrismaOtherToolUsageEnum  @map("other_tool_usage")
+  otherToolPurpose String?                   @map("other_tool_purpose") @db.Text
+
+  feedback SessionFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("secretariat_session_feedback")
+  @@schema("nominations_context")
+}
+
+enum PrismaManualWorkShareEnum {
+  LESS_THAN_10
+  FROM_10_TO_25
+  FROM_25_TO_40
+  FROM_40_TO_60
+  MORE_THAN_60
+
+  @@map("manual_work_share_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaDebateContributionEnum {
+  NEVER
+  AT_LEAST_ONCE
+
+  @@map("debate_contribution_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaReviewThoroughnessEnum {
+  YES
+  PARTIALLY
+  NO_LACK_OF_TIME
+  NO_LACK_OF_INFORMATION
+
+  @@map("review_thoroughness_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaOtherToolUsageEnum {
+  NONE
+  OCCASIONALLY
+  SIGNIFICANTLY
+
+  @@map("other_tool_usage_enum")
+  @@schema("nominations_context")
+}

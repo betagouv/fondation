@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AdministrationModule } from './administration/administration.module';
 import { ArchivedSessionsModule } from './archived-sessions/archived-sessions.module';
 import { DocsModule } from './docs/docs.module';
+import { FeedbackModule } from './feedback/feedback.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
 import { MagistratModule } from './magistrat/magistrat.module';
@@ -26,6 +27,7 @@ import { SimpleAuthModule } from './simple-auth';
     ObservationModule,
     AdministrationModule,
     DocsModule,
+    FeedbackModule,
   ],
 })
 class FondationModule {}
