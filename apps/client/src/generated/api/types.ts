@@ -2296,6 +2296,38 @@ export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
 };
 
+export type FoundSessionFeedbackDto = {
+    feedback: {
+        questionnaire: 'MEMBER' | 'SECRETARIAT';
+        session: {
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            id: string;
+            name: string;
+        };
+        status: 'ANSWERED' | 'NOT_ANSWERED' | 'PREVIEW';
+    } | null;
+};
+
+export type AnswerSessionFeedbackDto = {
+    easeRating: number;
+    hindrance: string | null;
+    member: {
+        debateContribution: 'NEVER' | 'AT_LEAST_ONCE';
+        manualWorkShare: 'LESS_THAN_10' | 'FROM_10_TO_25' | 'FROM_25_TO_40' | 'FROM_40_TO_60' | 'MORE_THAN_60';
+        reviewThoroughness: 'YES' | 'PARTIALLY' | 'NO_LACK_OF_TIME' | 'NO_LACK_OF_INFORMATION';
+    } | null;
+    satisfactionRating: number;
+    secretariat: {
+        manualWorkShare: 'LESS_THAN_10' | 'FROM_10_TO_25' | 'FROM_25_TO_40' | 'FROM_40_TO_60' | 'MORE_THAN_60';
+        otherToolPurpose: string | null;
+        otherToolUsage: 'NONE' | 'OCCASIONALLY' | 'SIGNIFICANTLY';
+    } | null;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     path: {
@@ -4817,3 +4849,44 @@ export type PromoteToAdminResponses = {
 };
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
+
+export type ListSessionFeedbacksAsExcelData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/session-feedbacks/v1/answers.xlsx';
+};
+
+export type ListSessionFeedbacksAsExcelResponses = {
+    200: unknown;
+};
+
+export type FindSessionFeedbackData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/session-feedbacks/v1/{sessionId}';
+};
+
+export type FindSessionFeedbackResponses = {
+    200: FoundSessionFeedbackDto;
+};
+
+export type FindSessionFeedbackResponse = FindSessionFeedbackResponses[keyof FindSessionFeedbackResponses];
+
+export type AnswerSessionFeedbackData = {
+    body: AnswerSessionFeedbackDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/session-feedbacks/v1/{sessionId}/answer';
+};
+
+export type AnswerSessionFeedbackResponses = {
+    204: void;
+};
+
+export type AnswerSessionFeedbackResponse = AnswerSessionFeedbackResponses[keyof AnswerSessionFeedbackResponses];

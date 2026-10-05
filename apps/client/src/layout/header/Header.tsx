@@ -83,6 +83,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
+        ROUTE_PATHS.ADMIN.SESSION_FEEDBACKS,
       ]),
       menuLinks: [
         {
@@ -111,6 +112,15 @@ export const AppHeader = () => {
             </span>
           ),
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
+        },
+        {
+          linkProps: { to: ROUTE_PATHS.ADMIN.SESSION_FEEDBACKS },
+          text: (
+            <span className="fr-icon-feedback-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+              Avis des utilisateurs
+            </span>
+          ),
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.SESSION_FEEDBACKS]),
         },
       ],
     });

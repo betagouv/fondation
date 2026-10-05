@@ -10,6 +10,7 @@ export function DetailsHeader(props: {
   backLabel?: React.ReactNode;
   backTo: LinkProps['to'];
   breadcrumb?: React.ReactNode;
+  description?: React.ReactNode;
   onBackClick?: React.MouseEventHandler<HTMLAnchorElement>;
   overline?: React.ReactNode;
   title: React.ReactNode;
@@ -39,6 +40,11 @@ export function DetailsHeader(props: {
             </p>
           )}
           <h1 className="fr-h2 fr-mb-0">{props.title}</h1>
+          {props.description && (
+            <p className="fr-mt-3v fr-mb-0 max-w-3xl leading-7 text-(--text-mention-grey)">
+              {props.description}
+            </p>
+          )}
         </div>
 
         {props.action && <div className="ml-auto">{props.action}</div>}

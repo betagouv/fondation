@@ -11,6 +11,7 @@ export const ROUTE_PATHS = {
     DASHBOARD: '/transparences',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
     DETAIL_SESSION_GDS_ATTACHMENTS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`,
+    DETAIL_SESSION_GDS_FEEDBACK: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/avis`,
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',
@@ -26,6 +27,7 @@ export const ROUTE_PATHS = {
     SESSION_ID_ATTACHMENTS: '/secretariat-general/session/:sessionId/pieces-jointes',
     SESSION_ID_AUDITIONS: '/secretariat-general/session/:sessionId/auditions',
     SESSION_ID_COMMENT: '/secretariat-general/session/:sessionId/commentaire',
+    SESSION_ID_FEEDBACK: '/secretariat-general/session/:sessionId/avis',
     SESSION_ID_DOCUMENTS: '/secretariat-general/session/:sessionId/documents',
     SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/session/:sessionId/evaluations-manquantes',
     OBSERVATION_DETAILS:
@@ -63,6 +65,7 @@ export const ROUTE_PATHS = {
     INGEST_LOLFI: '/admin/lolfi',
     USERS: '/admin/users',
     USER_DETAIL: '/admin/users/:userId',
+    SESSION_FEEDBACKS: '/admin/avis',
   },
 
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
