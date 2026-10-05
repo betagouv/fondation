@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { MagistratProfilesFinder } from './infrastructure/finders/magistrat-profiles.finder';
 import { DetailMagistratQuery } from './infrastructure/queries/detail-magistrat.query';
 import { ListMagistratNominationFilesQuery } from './infrastructure/queries/list-magistrat-nomination-files.query';
 import { ListMagistratObservationsQuery } from './infrastructure/queries/list-magistrat-observations.query';
@@ -10,13 +11,14 @@ import { MagistratController } from './magistrat.controller';
 import { MagistratService } from './magistrat.service';
 
 @Module({
-  imports: [TransparenceModule],
+  imports: [forwardRef(() => TransparenceModule)],
   controllers: [MagistratController],
   exports: [MagistratService],
   providers: [
     DetailMagistratQuery,
     ListMagistratNominationFilesQuery,
     ListMagistratObservationsQuery,
+    MagistratProfilesFinder,
     MagistratService,
     SearchMagistratsQuery,
   ],

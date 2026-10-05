@@ -120,6 +120,7 @@ export class SummaryService {
     await this.summaryRepository.persist(summary);
   }
 
+  @Transactional()
   detailSummary(query: {
     userId: string;
     sessionId: string;

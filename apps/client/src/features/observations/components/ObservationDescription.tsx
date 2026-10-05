@@ -1,100 +1,49 @@
-import Button from '@codegouvfr/react-dsfr/Button';
-import Input from '@codegouvfr/react-dsfr/Input';
-import React from 'react';
-import { useDebounce } from 'use-debounce';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { CommentEditor } from '@/shared/ui/comment-editor';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
 
-function ObservationDescriptionReadOnly(props: { observation: GetObservationDetailsResponseDto }) {
-  return (
-    <div className="fr-p-4v rounded-sm bg-(--background-contrast-grey)">{props.observation.description}</div>
-  );
-}
-
-function ObservationDescriptionEditor(props: {
-  sessionId: string;
-  nominationFileId: string;
-  observation: GetObservationDetailsResponseDto;
-}) {
-  const [description, setDescription] = React.useState(props.observation.description);
-  const [debouncedDescription] = useDebounce(description, 400);
-  const { mutate } = useUpdateObservationMutation();
-
-  React.useEffect(() => {
-    mutate({
-      description: debouncedDescription,
-      dateReception: dateOnlyToIso(props.observation.receptionDate),
-      magistratId: props.observation.observant.id,
-      observationId: props.observation.id,
-      nominationFileId: props.nominationFileId,
-      sessionId: props.sessionId,
-      linkedObservationsAttachments: [],
-    });
-  }, [props, mutate, debouncedDescription]);
-
-  const onChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const value = e.target.value || '';
-      setDescription(value);
-    },
-    [setDescription],
-  );
-
-  return <Input textArea label="" nativeTextAreaProps={{ value: description, onChange, autoFocus: true }} />;
-}
-
 export function ObservationDescription(props: {
-  sessionId: string;
+  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
-  isArchived: boolean;
+  sessionId: string;
 }) {
+  const { formatMessage } = useIntl();
   const isSg = useIsSg();
-  const [isEditing, setEditing] = React.useState<boolean>(false);
-
-  const toggleEditing = React.useCallback(() => {
-    setEditing((editing) => !editing);
-  }, [setEditing]);
+  const { mutateAsync } = useUpdateObservationMutation();
 
   return (
     <>
-      <h2 className="fr-h4 flex justify-between">
-        <span>Historique observant</span>
-        {!props.isArchived && isSg ? (
-          isEditing ? (
-            <Button
-              size="small"
-              onClick={toggleEditing}
-              priority="primary"
-              iconId={'ri-check-line'}
-              title={'Sauvegarder les changements'}
-            >
-              Ok
-            </Button>
-          ) : (
-            <Button
-              size="small"
-              onClick={toggleEditing}
-              priority="tertiary no outline"
-              iconId={'fr-icon-edit-fill'}
-              title={'Éditer le commentaire'}
-            />
-          )
-        ) : null}
+      <h2 className="fr-h4">
+        <FormattedMessage defaultMessage="Complément SG" />
       </h2>
-
-      {isEditing ? (
-        <ObservationDescriptionEditor
-          sessionId={props.sessionId}
-          nominationFileId={props.nominationFileId}
-          observation={props.observation}
-        />
-      ) : (
-        <ObservationDescriptionReadOnly observation={props.observation} />
+      {isSg && (
+        <p className="fr-mb-4v text-sm text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Ce commentaire est visible par les membres" />
+        </p>
       )}
+      <CommentEditor
+        ariaLabel={formatMessage({ defaultMessage: 'Complément SG' })}
+        emptyLabel={<FormattedMessage defaultMessage="Aucun commentaire" />}
+        initialValue={props.observation.description || null}
+        onSave={(description) =>
+          mutateAsync({
+            dateReception: dateOnlyToIso(props.observation.receptionDate),
+            description,
+            linkedObservationsAttachments: [],
+            magistratId: props.observation.observant.id,
+            nominationFileId: props.nominationFileId,
+            observationId: props.observation.id,
+            sessionId: props.sessionId,
+          })
+        }
+        placeholder={formatMessage({ defaultMessage: 'Saisissez un commentaire…' })}
+        readOnly={!isSg || props.isArchived}
+      />
     </>
   );
 }

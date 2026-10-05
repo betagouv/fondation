@@ -1,4 +1,10 @@
-import { Observation, ObservationFollowedUp } from './observation';
+import {
+  ObservantAuditionDropped,
+  Observation,
+  ObservationDeleted,
+  ObservationFollowedUp,
+  ObservationUpdated,
+} from './observation';
 import { ObservationFollowUp } from './observation-follow-up';
 
 describe('Observation', () => {
@@ -8,6 +14,7 @@ describe('Observation', () => {
       dateReception: new Date(),
       magistratId: 'magistrat-1',
       nominationFileId: 'file-1',
+      sessionId: 'session-1',
     });
 
     observation.followUpWith({
@@ -35,6 +42,7 @@ describe('Observation', () => {
       dateReception: new Date(),
       magistratId: 'magistrat-1',
       nominationFileId: 'file-1',
+      sessionId: 'session-1',
     });
 
     observation.followUpWith({
@@ -45,5 +53,66 @@ describe('Observation', () => {
 
     const [message] = observation.messages;
     expect(message).toEqual(new ObservationFollowedUp('obs-1', null, null));
+  });
+
+  describe('the audition of the observant', () => {
+    const AUTHOR = { impersonatorId: null, userId: 'user-1' };
+    const observation = () =>
+      Observation.from({
+        dateReception: new Date(2026, 4, 2),
+        id: 'obs-1',
+        magistratId: 'magistrat-1',
+        nominationFileId: 'file-1',
+        sessionId: 'session-1',
+      });
+
+    it('drops the audition with the last observation of the observant', () => {
+      const deleted = observation();
+
+      deleted.delete({ ...AUTHOR, isLastOfObservant: true });
+
+      expect(deleted.messages).toEqual([
+        new ObservationDeleted('obs-1'),
+        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+      ]);
+    });
+
+    it('keeps the audition while the observant has other observations', () => {
+      const deleted = observation();
+
+      deleted.delete({ ...AUTHOR, isLastOfObservant: false });
+
+      expect(deleted.messages).toEqual([new ObservationDeleted('obs-1')]);
+    });
+
+    it('drops the audition of the replaced observant when it was their last observation', () => {
+      const updated = observation();
+
+      updated.update({
+        ...AUTHOR,
+        dateReception: new Date(2026, 4, 2),
+        description: '',
+        isLastOfObservant: true,
+        magistratId: 'magistrat-2',
+      });
+
+      expect(updated.messages).toContainEqual(
+        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+      );
+    });
+
+    it('keeps the audition when the observant stays the same', () => {
+      const updated = observation();
+
+      updated.update({
+        ...AUTHOR,
+        dateReception: new Date(2026, 4, 2),
+        description: '',
+        isLastOfObservant: true,
+        magistratId: 'magistrat-1',
+      });
+
+      expect(updated.messages).toEqual([expect.any(ObservationUpdated)]);
+    });
   });
 });

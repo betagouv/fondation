@@ -64,6 +64,7 @@ export class DetailReportQuery {
             biography: true,
             birthDate: true,
             currentPosition: true,
+            detectedJurisdiction: { select: { typeJur: true } },
             detectedJurisdictionId: true,
             detectedMagistrat: {
               select: { firstName: true, lastName: true, usedName: true },
@@ -147,7 +148,10 @@ export class DetailReportQuery {
       })),
 
       auditionDate: DateOnly.fromOptionalUtcDate(report.nominationFile.auditionDate)?.toJson() ?? null,
-      auditionExpected: isAuditionExpected(report.nominationFile),
+      auditionExpected: isAuditionExpected({
+        ...report.nominationFile,
+        detectedJurisdictionType: report.nominationFile.detectedJurisdiction?.typeJur ?? null,
+      }),
       auditionTime: report.nominationFile.auditionTime
         ? dateToTimeOnly(report.nominationFile.auditionTime)
         : null,

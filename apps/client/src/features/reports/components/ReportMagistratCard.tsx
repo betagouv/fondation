@@ -3,6 +3,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { FormattedBirthDate } from '@/i18n/components';
 import { BiographyList } from '@/shared/components/biography-list';
+import { MissingEvaluationNotice } from '@/shared/components/missing-evaluation-notice';
 import { DetailsCard } from '@/shared/ui/details';
 import { gradeAndPositionLabel } from '@/utils/position.utils';
 import type { DetailedReportDto } from '@api/types';
@@ -14,6 +15,7 @@ export type ReportMagistrat = Pick<
   | 'currentPosition'
   | 'dureeDuPoste'
   | 'grade'
+  | 'missingEvaluation'
   | 'rank'
   | 'targetedGrade'
   | 'targettedPosition'
@@ -25,6 +27,7 @@ export function ReportMagistratCard({ report }: { report: ReportMagistrat }) {
 
   return (
     <DetailsCard>
+      {report.missingEvaluation && <MissingEvaluationNotice />}
       <h2 className="fr-h6">
         <FormattedMessage defaultMessage="Informations professionnelles" />
       </h2>

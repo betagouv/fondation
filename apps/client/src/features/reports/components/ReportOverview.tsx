@@ -2,6 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
+import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -19,7 +20,6 @@ import {
 
 import { AttachedFilesList } from './AttachedFilesList';
 import { AutoSaveNotice } from './AutoSaveNotice';
-import { ReportAlerts } from './ReportAlerts';
 import { ReportAttachmentsCard } from './ReportAttachmentsCard';
 import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
@@ -88,6 +88,13 @@ export function ReportOverview({ id }: { id: string }) {
   return (
     <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
       <DetailsPageLayout
+        alerts={
+          <AuditionScheduledBanner
+            date={retrievedReport.auditionDate}
+            fullWidth
+            time={retrievedReport.auditionTime}
+          />
+        }
         background="cafeCreme"
         header={
           <ReportDetailsHeader
@@ -115,7 +122,6 @@ export function ReportOverview({ id }: { id: string }) {
         wideIdentity
       >
         <AutoSaveNotice />
-        <ReportAlerts report={retrievedReport} />
         <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
         <ReportAttachmentsCard isReadOnly={retrievedReport.isArchived} onFilesAttached={onFilesAttached}>
           {retrievedReport.attachments.length > 0 && (

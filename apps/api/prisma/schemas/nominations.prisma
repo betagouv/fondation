@@ -103,6 +103,7 @@ model DossierDeNomination {
   session                    Session                                 @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   commentAccess              CommentAccess[]                         @ignore
   observations               Observation[]
+  auditionVersions           NominationFileAuditionVersion[]
   memberMemos                MemberMemo[]
   summary                    Summary?
   attachments                NominationFileAttachment[]
@@ -207,6 +208,8 @@ model Session {
   transparenceGds SessionTransparenceGds?
 
   dossierDeNominations DossierDeNomination[]
+  observantAuditions   ObservantAudition[]
+  observantAuditionVersions ObservantAuditionVersion[]
 
   @@index([deletedAt])
   @@index([archivedAt])
@@ -359,4 +362,24 @@ enum PrismaFormationEnum {
 
   @@map("formation")
   @@schema("public")
+}
+
+// one row per change of the audition, never updated: who scheduled, moved or removed it and when
+model NominationFileAuditionVersion {
+  nominationFileId String    @map("nomination_file_id") @db.Uuid
+  writtenAt        DateTime  @map("written_at")
+  writtenBy        String?   @map("written_by") @db.Uuid
+  /// the admin who actually wrote it while impersonating `writtenBy`
+  impersonatorId   String?   @map("impersonator_id") @db.Uuid
+  /// both empty once the audition is removed
+  date             DateTime? @db.Date
+  time             DateTime? @db.Time(0)
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  author         User?               @relation(fields: [writtenBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "nomination_file_audition_version_author")
+  impersonator   User?               @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "nomination_file_audition_version_impersonator")
+
+  @@id([nominationFileId, writtenAt])
+  @@map("nomination_file_audition_version")
+  @@schema("nominations_context")
 }

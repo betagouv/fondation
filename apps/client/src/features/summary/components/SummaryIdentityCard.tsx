@@ -4,6 +4,7 @@ import { useSummary } from '@/features/summary/context/SummaryContext';
 import { FormattedPositionDuration } from '@/i18n/components';
 import { BiographyList } from '@/shared/components/biography-list';
 import { IdentityList } from '@/shared/components/identity-list';
+import { MissingEvaluationNotice } from '@/shared/components/missing-evaluation-notice';
 import { DetailsCard } from '@/shared/ui/details';
 
 export function SummaryIdentityCard() {
@@ -11,6 +12,7 @@ export function SummaryIdentityCard() {
 
   return (
     <DetailsCard>
+      {summary.missingEvaluation && <MissingEvaluationNotice />}
       <h2 className="fr-h6">
         <FormattedMessage defaultMessage="Informations professionnelles" />
       </h2>

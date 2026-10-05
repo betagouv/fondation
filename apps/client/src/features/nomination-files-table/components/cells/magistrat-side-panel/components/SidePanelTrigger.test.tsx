@@ -17,7 +17,7 @@ function renderTrigger(overrides: NominationFileOverrides) {
   const nominationFile = makeSessionNominationFile(overrides);
 
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/secretariat-general/session/session-1']}>
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
         <IntlProvider defaultLocale="fr" locale="fr">
           <NuqsTestingAdapter hasMemory>

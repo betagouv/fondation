@@ -18,6 +18,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from 'src/modules/framework/files';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { DateOnly } from 'src/utils/date-only';
 
 import {
   AttachMemberCommentScreenshotsDto,
@@ -28,6 +29,7 @@ import {
   CreateObservationDto,
   CreateObservationResponseDto,
   FollowUpOnObservationDto,
+  ScheduleObservantAuditionDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
 import { ObservationsFilter } from './infrastructure/observation.filter';
@@ -58,8 +60,8 @@ export class ObservationController {
   })
   async createObservation(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { files, form }: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
@@ -81,10 +83,12 @@ export class ObservationController {
     status: HttpStatus.OK,
   })
   async listObservations(
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<ListObservationsResponseDto> {
     return this.observations.listObservations({
       nominationFileId,
+      sessionId,
     });
   }
 
@@ -96,9 +100,9 @@ export class ObservationController {
   })
   async getObservationDetails(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
       userId,
@@ -115,8 +119,8 @@ export class ObservationController {
     status: HttpStatus.OK,
   })
   async getObservationFileUrl(
-    @Param('observationId') observationId: string,
-    @Param('fileId') fileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GetObservationFileUrlResponseDto> {
     return this.observations.getObservationFileUrl({
       observationId,
@@ -128,12 +132,13 @@ export class ObservationController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteObservation(
-    @Param('observationId') observationId: string,
-    @AuthedUserId() userId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.observations.deleteObservation({
-      userId,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       observationId,
+      userId: user.id,
     });
   }
 
@@ -147,17 +152,20 @@ export class ObservationController {
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
-    @Param('observationId') observationId: string,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { form, files }: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
     await this.observations.updateObservation({
-      observationId,
       dateReception: new Date(form.dateReception),
-      magistratId: form.magistratId,
       description: form.description,
-      filesToAttach: files ?? [],
       fileIdsToDetach: form.detachFileIds ?? [],
+      filesToAttach: files ?? [],
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       linkedFiles: form.linkedObservationsAttachments,
+      magistratId: form.magistratId,
+      observationId,
+      userId: user.id,
     });
   }
 
@@ -175,9 +183,9 @@ export class ObservationController {
   })
   async attachMemberCommentScreenshots(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { files }: Multipart<typeof AttachMemberCommentScreenshotsDto>,
   ): Promise<AttachedMemberCommentScreenshotsDto> {
     return this.observations.attachMemberCommentScreenshots({
@@ -195,9 +203,9 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { comment }: WriteMemberCommentDto,
   ): Promise<void> {
     await this.observations.writeMemberComment({
@@ -206,6 +214,28 @@ export class ObservationController {
       nominationFileId,
       observationId,
       comment,
+    });
+  }
+
+  @Put('/:observationId/audition/schedule')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async scheduleObservantAudition(
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Body() { auditionDate, auditionTime }: ScheduleObservantAuditionDto,
+  ): Promise<void> {
+    await this.observations.scheduleObservantAudition({
+      auditionDateTime:
+        auditionDate && auditionTime ? { date: DateOnly.fromJson(auditionDate), time: auditionTime } : null,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
+      observationId,
+      sessionId,
+      userId: user.id,
     });
   }
 

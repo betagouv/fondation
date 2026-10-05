@@ -52,6 +52,16 @@ export class ObservationDeleted {
   constructor(readonly id: string) {}
 }
 
+// an observant is heard once per session for all their observations: without any left, the audition has no subject
+export class ObservantAuditionDropped {
+  constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
 export class ObservationUpdated {
   constructor(
     readonly id: string,
@@ -103,12 +113,14 @@ type ObservationEvent =
   | ObservationMemberCommentWritten
   | ObservationMemberCommentScreenshotsAttached
   | ObservationFollowedUp
-  | ObservationFileLinked;
+  | ObservationFileLinked
+  | ObservantAuditionDropped;
 
 export class Observation {
   private constructor(
     readonly id: Id<'ObservationId'>,
     readonly nominationFileId: string,
+    readonly sessionId: string,
     readonly magistratId: string,
     readonly dateReception: Date,
   ) {}
@@ -122,6 +134,7 @@ export class Observation {
     dateReception: Date;
     createdByUserId: string;
     description: string | null | undefined;
+    sessionId: string;
     linkedFiles: readonly { observationId: string; fileId: string }[];
     files: readonly { id: string }[];
   }): Observation {
@@ -131,6 +144,7 @@ export class Observation {
     const observation = new Observation(
       id,
       command.nominationFile.id,
+      command.sessionId,
       command.magistratId,
       command.dateReception,
     );
@@ -155,12 +169,14 @@ export class Observation {
   static from(props: {
     id: string;
     nominationFileId: string;
+    sessionId: string;
     magistratId: string;
     dateReception: Date;
   }): Observation {
     return new Observation(
       makeId('ObservationId', props.id),
       props.nominationFileId,
+      props.sessionId,
       props.magistratId,
       props.dateReception,
     );
@@ -180,21 +196,35 @@ export class Observation {
     }
   }
 
-  delete(): void {
+  delete(command: { impersonatorId: string | null; isLastOfObservant: boolean; userId: string }): void {
     this.#messages.push(new ObservationDeleted(this.id));
+    if (command.isLastOfObservant) this.dropObservantAudition(command);
+  }
+
+  private dropObservantAudition(command: { impersonatorId: string | null; userId: string }): void {
+    this.#messages.push(
+      new ObservantAuditionDropped(this.sessionId, this.magistratId, command.userId, command.impersonatorId),
+    );
   }
 
   update(command: {
     dateReception: Date;
-    magistratId: string;
     description: string | undefined | null;
+    impersonatorId: string | null;
+    // whether the observant being replaced has no other observation in the session
+    isLastOfObservant: boolean;
+    magistratId: string;
+    userId: string;
   }): void {
     this.#messages.push(
       new ObservationUpdated(this.id, {
-        ...command,
+        dateReception: command.dateReception,
         description: command.description?.trim() ?? '',
+        magistratId: command.magistratId,
       }),
     );
+    if (command.magistratId !== this.magistratId && command.isLastOfObservant)
+      this.dropObservantAudition(command);
   }
 
   detachFiles(command: { fileIds: readonly string[] }): void {

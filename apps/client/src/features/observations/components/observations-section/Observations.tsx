@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
+import { ObservantAuditionIcon } from '../ObservantAuditionIcon';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import {
   useObservationsModal,
@@ -125,6 +126,7 @@ function ObservationCard({
               >
                 {magistratName}
               </Link>
+              <ObservantAuditionIcon audition={observation.audition} />
               {observation.followUp && (
                 <Tag
                   className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}

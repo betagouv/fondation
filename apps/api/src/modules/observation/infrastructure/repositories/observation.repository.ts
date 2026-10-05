@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 
 import {
+  ObservantAuditionDropped,
   Observation,
   ObservationCreated,
   ObservationDeleted,
@@ -20,6 +21,7 @@ import {
   ObservationUpdated,
 } from '../../domain/observation';
 import { Prisma } from 'src/generated/prisma/client';
+import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files/files';
 import { assertNever } from 'src/utils/assert-never';
@@ -30,6 +32,7 @@ export class ObservationRepository {
   private readonly logger = new Logger(ObservationRepository.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
   ) {}
@@ -48,6 +51,7 @@ export class ObservationRepository {
                 deletedAt: true,
               },
             },
+            sessionId: true,
           },
         },
         nominationFileId: true,
@@ -67,7 +71,19 @@ export class ObservationRepository {
       id: result.id,
       magistratId: result.magistratId,
       nominationFileId: result.nominationFileId,
+      sessionId: result.nominationFile.sessionId,
     });
+  }
+
+  async isLastOfObservant(observation: Observation): Promise<boolean> {
+    const others = await this.db.tx.observation.count({
+      where: {
+        id: { not: observation.id },
+        magistratId: observation.magistratId,
+        nominationFile: { sessionId: observation.sessionId },
+      },
+    });
+    return others === 0;
   }
 
   @Transactional()
@@ -91,6 +107,8 @@ export class ObservationRepository {
         await this.persistObservationFollowedUp(message);
       } else if (message instanceof ObservationFileLinked) {
         await this.persistObservationFileLinked(message);
+      } else if (message instanceof ObservantAuditionDropped) {
+        await this.persistObservantAuditionDropped(message);
       } else {
         assertNever(message);
       }
@@ -127,6 +145,25 @@ export class ObservationRepository {
 
     await this.db.tx.observation.delete({ where: { id: message.id } });
     this.files.delete(files.map(({ file }) => file));
+  }
+
+  private async persistObservantAuditionDropped(message: ObservantAuditionDropped) {
+    const { count } = await this.db.tx.observantAudition.deleteMany({
+      where: { magistratId: message.magistratId, sessionId: message.sessionId },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.observantAuditionVersion.create({
+      data: {
+        date: null,
+        impersonatorId: message.impersonatorId,
+        magistratId: message.magistratId,
+        sessionId: message.sessionId,
+        time: null,
+        writtenAt: this.clock.now(),
+        writtenBy: message.userId,
+      },
+    });
   }
 
   private persistObservationUpdated(message: ObservationUpdated) {

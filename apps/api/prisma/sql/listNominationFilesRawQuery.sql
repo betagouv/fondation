@@ -42,6 +42,7 @@ SELECT
   ddn.missing_evaluation AS "missingEvaluation",
   ddn.missing_evaluation_comment AS "missingEvaluationComment",
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
+  detected_jurisdiction.type_jur AS "detectedJurisdictionType",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
   ddn.detected_magistrat_id AS "detectedMagistratId",
 
@@ -67,6 +68,8 @@ SELECT
 
 FROM
   nominations_context.dossier_de_nomination AS ddn
+  LEFT JOIN data_administration_context.jurisdictions AS detected_jurisdiction
+    ON detected_jurisdiction.codejur = ddn.detected_jurisdiction_id
 
   LEFT JOIN LATERAL (
     SELECT

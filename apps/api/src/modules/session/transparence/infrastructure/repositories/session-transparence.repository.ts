@@ -616,21 +616,42 @@ export class SessionTransparenceRepository {
   }
 
   private async persistSessionTransparenceAuditionScheduled(message: SessionTransparenceAuditionScheduled) {
+    const audition = {
+      date: message.auditionDateTime.date.toDate(),
+      time: timeOnlyToDate(message.auditionDateTime.time),
+    };
+
     await this.db.tx.dossierDeNomination.update({
+      data: { auditionDate: audition.date, auditionTime: audition.time },
       where: { id: message.nominationFileId, sessionId: message.sessionId },
-      data: {
-        auditionDate: message.auditionDateTime.date.toDate(),
-        auditionTime: timeOnlyToDate(message.auditionDateTime.time),
-      },
     });
+    await this.persistNominationFileAuditionVersion(message, audition);
   }
 
   private async persistSessionTransparenceAuditionUnScheduled(
     message: SessionTransparenceAuditionUnScheduled,
   ) {
-    await this.db.tx.dossierDeNomination.update({
-      where: { id: message.nominationFileId, sessionId: message.sessionId },
+    const { count } = await this.db.tx.dossierDeNomination.updateMany({
       data: { auditionDate: null, auditionTime: null },
+      where: { auditionDate: { not: null }, id: message.nominationFileId, sessionId: message.sessionId },
+    });
+    if (count === 0) return;
+
+    await this.persistNominationFileAuditionVersion(message, { date: null, time: null });
+  }
+
+  private persistNominationFileAuditionVersion(
+    message: { impersonatorId: string | null; nominationFileId: string; userId: string },
+    audition: { date: Date | null; time: Date | null },
+  ) {
+    return this.db.tx.nominationFileAuditionVersion.create({
+      data: {
+        ...audition,
+        impersonatorId: message.impersonatorId,
+        nominationFileId: message.nominationFileId,
+        writtenAt: this.clock.now(),
+        writtenBy: message.userId,
+      },
     });
   }
 

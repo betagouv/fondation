@@ -8,18 +8,22 @@ import type {
   CreateObservationDto,
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
+  ScheduleObservantAuditionDto,
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
 
+import { auditionKeys } from './auditions.queries';
 import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
 
-const observationKeys = {
+export const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
+  allObservationDetails: () => ['observationDetails'] as const,
+  allObservations: () => ['observations'] as const,
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
@@ -175,6 +179,7 @@ export function useDeleteObservationMutation() {
     },
     onSuccess: (_, { sessionId, nominationFileId }) =>
       Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
@@ -241,6 +246,7 @@ export function useUpdateObservationMutation() {
     },
     onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observationDetails({
             sessionId,
@@ -375,3 +381,31 @@ export const useListObservationsAttachments = (query: {
         })
         .then(({ data = null }) => data),
   });
+
+// the audition belongs to the observant: every observation they made in the session shows it
+export function useScheduleObservantAuditionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: ScheduleObservantAuditionDto & {
+        nominationFileId: string;
+        observationId: string;
+        sessionId: string;
+      },
+    ) => {
+      const { nominationFileId, observationId, sessionId, ...body } = mutation;
+      await $api.observations.scheduleObservantAudition({
+        body,
+        path: { nominationFileId, observationId, sessionId },
+      });
+    },
+    onSuccess: (_, { sessionId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservationDetails() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservations() }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
+      ]),
+  });
+}

@@ -43,6 +43,43 @@ model ObservationFile {
   @@schema("nominations_context")
 }
 
+// an observant is heard once per session, whatever the number of observations they made in it
+model ObservantAudition {
+  sessionId   String   @map("session_id") @db.Uuid
+  magistratId String   @map("magistrat_id") @db.Uuid
+  date        DateTime @db.Date
+  time        DateTime @db.Time(0)
+
+  session   Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  magistrat Magistrat @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([sessionId, magistratId], name: "primaryKey")
+  @@map("observant_audition")
+  @@schema("nominations_context")
+}
+
+// one row per change of the audition, never updated: who scheduled, moved or removed it and when
+model ObservantAuditionVersion {
+  sessionId      String    @map("session_id") @db.Uuid
+  magistratId    String    @map("magistrat_id") @db.Uuid
+  writtenAt      DateTime  @map("written_at")
+  writtenBy      String?   @map("written_by") @db.Uuid
+  /// the admin who actually wrote it while impersonating `writtenBy`
+  impersonatorId String?   @map("impersonator_id") @db.Uuid
+  /// both empty once the audition is removed
+  date           DateTime? @db.Date
+  time           DateTime? @db.Time(0)
+
+  session      Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  magistrat    Magistrat @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  author       User?     @relation(fields: [writtenBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "observant_audition_version_author")
+  impersonator User?     @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "observant_audition_version_impersonator")
+
+  @@id([sessionId, magistratId, writtenAt])
+  @@map("observant_audition_version")
+  @@schema("nominations_context")
+}
+
 model ObservationMemberComment {
   userId        String    @map("user_id") @db.Uuid
   observationId String    @map("observation_id") @db.Uuid

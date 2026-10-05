@@ -10,6 +10,7 @@ import { SummaryObservationsCard } from './SummaryObservationsCard';
 export function SummaryDetailsContent() {
   return (
     <DetailsPageLayout
+      alerts={<SummaryAlerts />}
       background="blueFrance"
       header={<SummaryDetailsHeader />}
       identity={
@@ -20,7 +21,6 @@ export function SummaryDetailsContent() {
       }
       wideIdentity
     >
-      <SummaryAlerts />
       <SummaryContentCard />
       <SummaryAttachmentsCard />
     </DetailsPageLayout>

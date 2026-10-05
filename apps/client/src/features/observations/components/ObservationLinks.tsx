@@ -3,8 +3,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
 import { Tooltip } from '@/shared/ui/tooltip';
+import type { PlainDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import type { PlainTimeOnly } from '@/utils/time-only.util';
 import { fullNameUpperCase } from '@/utils/user.utils';
+
+import { ObservantAuditionIcon } from './ObservantAuditionIcon';
 
 function ObservationAnnotationsIcon(props: { hasDescription: boolean; hasUserComment: boolean }) {
   const intl = useIntl();
@@ -62,6 +66,7 @@ export function ObservationLinks(props: {
     name: string;
     legacyObservers: readonly string[];
     observations: {
+      audition: { date: PlainDateOnly; time: PlainTimeOnly } | null;
       id: string;
       hasDescription: boolean;
       hasUserComment: boolean;
@@ -98,6 +103,7 @@ export function ObservationLinks(props: {
                     hasDescription={obs.hasDescription}
                     hasUserComment={obs.hasUserComment}
                   />
+                  <ObservantAuditionIcon audition={obs.audition} />
                 </ObservantName>
               </Link>
             </li>

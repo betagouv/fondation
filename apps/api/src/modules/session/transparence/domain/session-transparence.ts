@@ -159,6 +159,8 @@ export class SessionTransparenceAuditionScheduled {
     readonly sessionId: string,
     readonly nominationFileId: string,
     readonly auditionDateTime: { date: DateOnly; time: TimeOnly },
+    readonly userId: string,
+    readonly impersonatorId: string | null,
   ) {}
 }
 
@@ -166,13 +168,9 @@ export class SessionTransparenceAuditionUnScheduled {
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
   ) {}
-}
-
-export class AuditionRequiresDateAndTime extends Error {
-  constructor() {
-    super("La date et l'heure d'audition doivent être renseignées ensemble");
-  }
 }
 
 export class SessionTransparenceFileMemberMemoWritten {
@@ -587,13 +585,22 @@ export class SessionTransparence {
     );
   }
 
-  unscheduleAudition(command: { nominationFileId: string }) {
-    this.#messages.push(new SessionTransparenceAuditionUnScheduled(this.id, command.nominationFileId));
+  unscheduleAudition(command: { impersonatorId: string | null; nominationFileId: string; userId: string }) {
+    this.#messages.push(
+      new SessionTransparenceAuditionUnScheduled(
+        this.id,
+        command.nominationFileId,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
   }
 
   scheduleAudition(command: {
-    nominationFileId: string;
     auditionDateTime: { date: DateOnly; time: TimeOnly };
+    impersonatorId: string | null;
+    nominationFileId: string;
+    userId: string;
   }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
@@ -603,7 +610,13 @@ export class SessionTransparence {
     }
 
     this.#messages.push(
-      new SessionTransparenceAuditionScheduled(this.id, command.nominationFileId, command.auditionDateTime),
+      new SessionTransparenceAuditionScheduled(
+        this.id,
+        command.nominationFileId,
+        command.auditionDateTime,
+        command.userId,
+        command.impersonatorId,
+      ),
     );
   }
 

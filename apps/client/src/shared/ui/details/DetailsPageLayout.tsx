@@ -3,12 +3,13 @@ import type React from 'react';
 const BACKGROUNDS = {
   blueFrance: 'bg-(--blue-france-925-125)',
   cafeCreme: 'bg-(--brown-cafe-creme-950-100)',
-  greenEmeraude: 'bg-(--background-contrast-green-emeraude)',
+  greenEmeraude: 'bg-(--background-alt-green-emeraude)',
   info: 'bg-(--background-contrast-info)',
   terreBattue: 'bg-(--orange-terre-battue-950-100)',
 } as const;
 
 export function DetailsPageLayout(props: {
+  alerts?: React.ReactNode;
   background: keyof typeof BACKGROUNDS;
   children: React.ReactNode;
   header?: React.ReactNode;
@@ -22,6 +23,7 @@ export function DetailsPageLayout(props: {
   return (
     <div className="flex grow flex-col">
       {props.header && <div className="fr-container fr-py-6v">{props.header}</div>}
+      {props.alerts}
       {props.navigation}
       <div className={`grow ${BACKGROUNDS[props.background]}`}>
         <div className="fr-container fr-py-10v">

@@ -3,9 +3,11 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
+import { ObservantAuditionsFinder } from '../finders/observant-auditions.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { fullname } from 'src/utils/user.util';
 
 const ObservationFileSchema = z.object({
@@ -18,9 +20,11 @@ const ObservationFileSchema = z.object({
 
 const ObservationSchema = z.object({
   id: z.string(),
+  audition: auditionScheduleSchema.nullable(),
   dateReception: z.string(),
   description: z.string(),
   followUp: z.enum(ObservationFollowUp.enum).nullable(),
+  observantObservationsCount: z.number().int(),
   magistrat: z
     .object({
       id: z.string(),
@@ -51,9 +55,12 @@ export class ListObservationsResponseDto extends createZodDto(
 
 @Injectable()
 export class ListObservationsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly observantAuditions: ObservantAuditionsFinder,
+  ) {}
 
-  async handle(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
+  async handle(query: { nominationFileId: string; sessionId: string }): Promise<ListObservationsResponseDto> {
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
@@ -91,7 +98,7 @@ export class ListObservationsQuery {
           },
         },
       } satisfies Prisma.ObservationSelect,
-      where: { nominationFileId: query.nominationFileId },
+      where: { nominationFile: { sessionId: query.sessionId }, nominationFileId: query.nominationFileId },
     });
 
     const magistratIds = [
@@ -101,32 +108,49 @@ export class ListObservationsQuery {
       ? await this.db.tx.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
       : [];
     const positionByMagistratId = new Map(positions.map((p) => [p.magistratId, p.currentPosition]));
+    const auditions = await this.observantAuditions.findByMagistratId({
+      magistratIds: magistratIds,
+      sessionId: query.sessionId,
+    });
+    const observationCounts = await this.db.tx.observation.groupBy({
+      _count: { _all: true },
+      by: ['magistratId'],
+      where: { magistratId: { in: magistratIds }, nominationFile: { sessionId: query.sessionId } },
+    });
+    const observationCountByMagistratId = new Map(
+      observationCounts.map(({ _count, magistratId }) => [magistratId, _count._all]),
+    );
 
     return {
-      observations: observations.map((obs) => ({
-        id: obs.id,
-        dateReception: obs.dateReception.toISOString(),
-        createdAt: obs.createdAt.toISOString(),
-        description: obs.description,
-        followUp: obs.followUp,
-        magistrat: obs.magistrat
-          ? {
-              id: obs.magistrat.id,
-              firstName: obs.magistrat.firstName,
-              lastName: obs.magistrat.lastName,
-              usedName: obs.magistrat.usedName,
-              currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
-            }
-          : null,
-        createdBy: obs.createdByUser,
-        files: obs.files.map(({ file }) => ({
-          id: file.id,
-          name: file.name,
-          size: file.sizeInBytes,
-          addedAt: file.createdAt.toISOString(),
-          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
-        })),
-      })),
+      observations: observations.map((obs) => {
+        return {
+          id: obs.id,
+          audition: (obs.magistrat && auditions.get(obs.magistrat.id)) ?? null,
+          dateReception: obs.dateReception.toISOString(),
+          createdAt: obs.createdAt.toISOString(),
+          description: obs.description,
+          followUp: obs.followUp,
+          observantObservationsCount:
+            (obs.magistrat && observationCountByMagistratId.get(obs.magistrat.id)) ?? 1,
+          magistrat: obs.magistrat
+            ? {
+                id: obs.magistrat.id,
+                firstName: obs.magistrat.firstName,
+                lastName: obs.magistrat.lastName,
+                usedName: obs.magistrat.usedName,
+                currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
+              }
+            : null,
+          createdBy: obs.createdByUser,
+          files: obs.files.map(({ file }) => ({
+            id: file.id,
+            name: file.name,
+            size: file.sizeInBytes,
+            addedAt: file.createdAt.toISOString(),
+            addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+          })),
+        };
+      }),
     };
   }
 }

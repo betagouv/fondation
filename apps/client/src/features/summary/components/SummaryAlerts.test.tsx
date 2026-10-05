@@ -4,12 +4,15 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { makeSummary } from '@/shared/storybook/summary.fixtures';
+import type { DetailedSummaryDto } from '@api/types';
 
 import { SummaryAlerts } from './SummaryAlerts';
 
-vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSg: () => true }));
+const mocks = vi.hoisted(() => ({ isSg: true }));
 
-function renderAlerts(outcome: { label: string; value: 'SUSPENDED' | 'VALIDATED' }) {
+vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSg: () => mocks.isSg }));
+
+function renderAlerts(summary: Partial<Omit<DetailedSummaryDto, 'summary'>>) {
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <SummaryContext
@@ -17,7 +20,7 @@ function renderAlerts(outcome: { label: string; value: 'SUSPENDED' | 'VALIDATED'
           canWriteSummary: true,
           nominationFileId: 'nomination-file-1',
           sessionId: 'session-1',
-          summary: makeSummary({ outcome: { comment: null, ...outcome } }),
+          summary: makeSummary(summary),
         }}
       >
         <SummaryAlerts />
@@ -28,14 +31,42 @@ function renderAlerts(outcome: { label: string; value: 'SUSPENDED' | 'VALIDATED'
 
 describe('SummaryAlerts', () => {
   it('warns that a summary is probably no longer needed once an outcome is set', () => {
-    renderAlerts({ label: 'avis conforme', value: 'VALIDATED' });
+    renderAlerts({ outcome: { comment: null, label: 'avis conforme', value: 'VALIDATED' } });
 
     expect(screen.getByText(/une synthèse n'est probablement plus nécessaire/)).toBeInTheDocument();
   });
 
   it('does not warn for a suspended decision, where a summary stays relevant', () => {
-    renderAlerts({ label: 'sursis à statuer', value: 'SUSPENDED' });
+    renderAlerts({ outcome: { comment: null, label: 'sursis à statuer', value: 'SUSPENDED' } });
 
     expect(screen.queryByText(/une synthèse n'est probablement plus nécessaire/)).not.toBeInTheDocument();
+  });
+
+  it('reminds the secretariat of the audition and the reporters expected on the position', () => {
+    mocks.isSg = true;
+    renderAlerts({ auditionExpected: true, reportersMissing: true });
+
+    expect(
+      screen.getByText('Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps these reminders from members, who neither schedule auditions nor affect reporters', () => {
+    mocks.isSg = false;
+    renderAlerts({ auditionExpected: true, reportersMissing: true });
+
+    expect(screen.queryByText(/à prévoir|rapporteurs sont attendus/)).not.toBeInTheDocument();
+  });
+
+  it('reminds the secretariat of the reporters alone once the audition is scheduled', () => {
+    mocks.isSg = true;
+    renderAlerts({
+      auditionDate: { day: 12, month: 12, year: 2099 },
+      auditionExpected: true,
+      auditionTime: { hours: 12, minutes: 30, seconds: 0 },
+      reportersMissing: true,
+    });
+
+    expect(screen.getByText('2 rapporteurs sont attendus pour ce poste')).toBeInTheDocument();
   });
 });

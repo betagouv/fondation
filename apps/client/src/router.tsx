@@ -161,6 +161,15 @@ export const router = sentryCreateBrowserRouter([
                   ),
               },
               {
+                path: ROUTE_PATHS.SG.SESSION_ID_AUDITIONS,
+                lazy: () =>
+                  import('@/pages/transparence/TransparenceAuditionsTab').then(
+                    ({ TransparenceAuditionsTab }) => ({
+                      Component: TransparenceAuditionsTab,
+                    }),
+                  ),
+              },
+              {
                 path: ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS,
                 lazy: () =>
                   import('@/pages/transparence/TransparenceMissingEvaluationsTab').then(

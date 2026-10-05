@@ -9,6 +9,7 @@ export function AuditionScheduledBanner(props: {
   children?: ReactNode;
   className?: string;
   date: PlainDateOnly | null;
+  fullWidth?: boolean;
   time: PlainTimeOnly | null;
 }) {
   const { formatDate, formatTime } = useIntl();
@@ -24,6 +25,7 @@ export function AuditionScheduledBanner(props: {
   return (
     <AlertBanner
       className={props.className}
+      fullWidth={props.fullWidth}
       icon="fr-icon-speak-fill"
       message={
         isPastSchedule(props.date, props.time) ? (

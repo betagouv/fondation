@@ -1,79 +1,114 @@
 import { expectedReportersCount, isAuditionExpected } from './auditioned-position.policy';
 
+function file(props: {
+  detectedJurisdictionId?: string | null;
+  detectedJurisdictionType?: string | null;
+  detectedTargetedFunctionId?: string | null;
+  targetedPosition?: string | null;
+}) {
+  return {
+    detectedJurisdictionId: props.detectedJurisdictionId ?? null,
+    detectedJurisdictionType: props.detectedJurisdictionType ?? null,
+    detectedTargetedFunctionId: props.detectedTargetedFunctionId ?? null,
+    targetedPosition: props.targetedPosition ?? null,
+  };
+}
+
 describe('isAuditionExpected', () => {
-  it.each(['PG', 'PR F', 'PRAT', '1PC'])('expects an audition for the targeted function %s', (functionId) => {
+  it.each([
+    '1PC',
+    'IG-CIGJ',
+    'IGJ',
+    'IGSJ',
+    'PG',
+    'PR',
+    'PR F',
+    'PRA F',
+    'PRACO',
+    'PRACOADJ',
+    'PRAT',
+    'PRATA',
+  ])('expects an audition for the targeted function %s whatever the jurisdiction', (functionId) => {
     expect(
-      isAuditionExpected({
-        detectedJurisdictionId: 'CA  LYON',
-        detectedTargetedFunctionId: functionId,
-        targetedPosition: null,
-      }),
+      isAuditionExpected(
+        file({
+          detectedJurisdictionId: 'CA  LYON',
+          detectedJurisdictionType: 'CA',
+          detectedTargetedFunctionId: functionId,
+        }),
+      ),
     ).toBe(true);
   });
 
   it.each([
     ['1AG', 'CC  PARIS'],
+    ['1VP', 'TJ  PARIS'],
     ['AG', 'CC  PARIS'],
-    ['PR', 'TJ  PARIS'],
+    ['AG SE', 'CC  PARIS'],
+    ['AGR', 'CC  PARIS'],
+    ['PRA', 'TJ  PARIS'],
   ])('expects an audition for the function %s at %s', (functionId, jurisdictionId) => {
     expect(
-      isAuditionExpected({
-        detectedJurisdictionId: jurisdictionId,
-        detectedTargetedFunctionId: functionId,
-        targetedPosition: null,
-      }),
+      isAuditionExpected(
+        file({ detectedJurisdictionId: jurisdictionId, detectedTargetedFunctionId: functionId }),
+      ),
     ).toBe(true);
   });
 
-  it('does not expect an audition for the same function outside the targeted jurisdiction', () => {
+  it.each([
+    ['1VP', 'TJ  LYON'],
+    ['AG', 'CA  LYON'],
+    ['PRA', 'TJ  LYON'],
+  ])(
+    'does not expect an audition for the function %s outside the targeted jurisdiction (%s)',
+    (functionId, jurisdictionId) => {
+      expect(
+        isAuditionExpected(
+          file({
+            detectedJurisdictionId: jurisdictionId,
+            detectedJurisdictionType: jurisdictionId.slice(0, 2),
+            detectedTargetedFunctionId: functionId,
+          }),
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it('expects an audition for the first advocate general of any court of appeal', () => {
     expect(
-      isAuditionExpected({
-        detectedJurisdictionId: 'CA  GRENOBLE',
-        detectedTargetedFunctionId: 'PR',
-        targetedPosition: null,
-      }),
-    ).toBe(false);
+      isAuditionExpected(
+        file({
+          detectedJurisdictionId: 'CA  LYON',
+          detectedJurisdictionType: 'CA',
+          detectedTargetedFunctionId: '1AG',
+        }),
+      ),
+    ).toBe(true);
   });
 
   it('falls back on the position label when the file predates LOLFI detection', () => {
     expect(
-      isAuditionExpected({
-        detectedJurisdictionId: null,
-        detectedTargetedFunctionId: null,
-        targetedPosition: "Procureur Général près la cour d'appel de Lyon",
-      }),
+      isAuditionExpected(file({ targetedPosition: "Procureur Général près la cour d'appel de Lyon" })),
     ).toBe(true);
   });
 
   it('does not expect an audition for a regular position', () => {
-    expect(
-      isAuditionExpected({
-        detectedJurisdictionId: null,
-        detectedTargetedFunctionId: null,
-        targetedPosition: 'Président de chambre CA AIX EN PROVENCE',
-      }),
-    ).toBe(false);
+    expect(isAuditionExpected(file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' }))).toBe(
+      false,
+    );
   });
 });
 
 describe('expectedReportersCount', () => {
   it('expects two reporters on an auditioned position', () => {
     expect(
-      expectedReportersCount({
-        detectedJurisdictionId: 'CA  LYON',
-        detectedTargetedFunctionId: 'PG',
-        targetedPosition: null,
-      }),
+      expectedReportersCount(file({ detectedJurisdictionId: 'CA  LYON', detectedTargetedFunctionId: 'PG' })),
     ).toBe(2);
   });
 
   it('expects nothing in particular on a regular position', () => {
     expect(
-      expectedReportersCount({
-        detectedJurisdictionId: null,
-        detectedTargetedFunctionId: null,
-        targetedPosition: 'Président de chambre CA AIX EN PROVENCE',
-      }),
+      expectedReportersCount(file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' })),
     ).toBeNull();
   });
 });

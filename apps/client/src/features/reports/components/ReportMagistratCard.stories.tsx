@@ -12,6 +12,7 @@ const report: ReportMagistrat = {
   currentPosition: 'Conseiller CA BASTIA',
   dureeDuPoste: '4 ans et 11 mois',
   grade: 'G2',
+  missingEvaluation: false,
   rank: '(12 sur une liste de 24)',
   targetedGrade: 'G3',
   targettedPosition: "Président de la chambre de l'instruction CA BORDEAUX",
