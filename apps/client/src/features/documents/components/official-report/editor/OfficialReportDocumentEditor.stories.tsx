@@ -83,7 +83,7 @@ function OfficialReportScreen(props: { blocks: readonly OfficialReportBlock[] })
     <DocumentScreen
       actions={
         <>
-          <Button priority="secondary">Modifier les données</Button>
+          <Button priority="secondary">Éditer les métadonnées</Button>
           <Button disabled={pendingRevalidations.propositions > 0}>Valider le document</Button>
         </>
       }

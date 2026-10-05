@@ -83,7 +83,7 @@ export function OfficialReportPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Modifier les données" />
+            <FormattedMessage defaultMessage="Éditer les métadonnées" />
           </Button>
           <Button
             linkProps={{

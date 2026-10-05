@@ -87,7 +87,7 @@ export function AgendaPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Modifier les données" />
+            <FormattedMessage defaultMessage="Éditer les métadonnées" />
           </Button>
           <Button
             linkProps={{
@@ -98,7 +98,7 @@ export function AgendaPreviewPage() {
             }}
             priority="secondary"
           >
-            <FormattedMessage defaultMessage="Modifier les propositions" />
+            <FormattedMessage defaultMessage="Sélectionner les propositions" />
           </Button>
           <Button
             linkProps={{

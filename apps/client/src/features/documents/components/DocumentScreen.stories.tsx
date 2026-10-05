@@ -31,8 +31,8 @@ export const Agenda: Story = {
   args: {
     actions: (
       <>
-        <Button priority="secondary">Modifier les données</Button>
-        <Button priority="secondary">Modifier les propositions</Button>
+        <Button priority="secondary">Éditer les métadonnées</Button>
+        <Button priority="secondary">Sélectionner les propositions</Button>
         <Button priority="secondary">Éditer le texte</Button>
         <Button priority="secondary">Revenir à la version validée</Button>
         {validate('Valider le document')}
@@ -48,7 +48,7 @@ export const OfficialReport: Story = {
   args: {
     actions: (
       <>
-        <Button priority="secondary">Modifier les données</Button>
+        <Button priority="secondary">Éditer les métadonnées</Button>
         <Button priority="secondary">Éditer le texte</Button>
         {validate('Valider le document')}
       </>
@@ -63,7 +63,7 @@ export const PresentationNotice: Story = {
   args: {
     actions: (
       <>
-        <Button priority="secondary">Modifier les données</Button>
+        <Button priority="secondary">Éditer les métadonnées</Button>
         <Button priority="secondary">Éditer le texte</Button>
         {validate('Valider le document')}
       </>
