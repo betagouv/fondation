@@ -1,3 +1,5 @@
+import * as crypto from 'node:crypto';
+
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test as base } from '../fixtures.ts';
@@ -150,6 +152,36 @@ test.describe('Magistrat E2E', () => {
     const remaining = await agent.magistrats.listMagistratPhoneNumbers({ path, throwOnError: true });
     expect(remaining.data.items).toEqual([
       { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' },
+    ]);
+  });
+
+  test('should keep the saved phone numbers when LOLFI is ingested again', async ({ agent, expect, sessions }) => {
+    // the same LOLFI ids make the second ingestion update the magistrat instead of creating another one
+    const candidate = { ...VALROSE_SESSION.candidates[0]!, id: crypto.randomInt(1_000, 900_000) };
+    const lolfiSession = { ...VALROSE_SESSION, candidates: [candidate], id: crypto.randomInt(1_000, 900_000) };
+    const session = await sessions.createOne(lolfiSession);
+    const [nominationFile] = await agent.sessions
+      .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
+      .then(({ data }) => data!.items);
+    const path = { magistratId: nominationFile!.content.detectedMagistratId! };
+
+    await agent.magistrats.addMagistratPhoneNumber({
+      body: { label: 'Conjointe', number: '07 00 00 00 00' },
+      path,
+      throwOnError: true,
+    });
+    await sessions.createOne({ ...lolfiSession, candidates: [{ ...candidate, phone: '06 98 76 54 32' }] });
+
+    const phoneNumbers = await agent.magistrats.listMagistratPhoneNumbers({ path, throwOnError: true });
+    expect(phoneNumbers.data.items).toEqual([
+      {
+        date: expect.any(Object),
+        id: expect.any(String),
+        label: 'Conjointe',
+        number: '0700000000',
+        source: 'FONDATION',
+      },
+      { date: { year: 2026, month: 4, day: 22 }, number: '06 98 76 54 32', source: 'LOLFI' },
     ]);
   });
 
