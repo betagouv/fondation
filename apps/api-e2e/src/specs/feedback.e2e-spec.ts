@@ -1,8 +1,5 @@
-import { randomUUID } from 'node:crypto';
-
 import { test } from '../fixtures.ts';
-import type { AnswerSessionFeedbackDto } from '../generated/api/types.ts';
-import * as seed from '../utils/seed.ts';
+import type { AnswerFeedbackDto } from '../generated/api/types.ts';
 
 const MEMBER_ANSWERS = {
   easeRating: 4,
@@ -10,60 +7,32 @@ const MEMBER_ANSWERS = {
   member: { debateContribution: 'AT_LEAST_ONCE', manualWorkShare: 'FROM_10_TO_25', reviewThoroughness: 'YES' },
   satisfactionRating: 8,
   secretariat: null,
-} satisfies AnswerSessionFeedbackDto;
+} satisfies AnswerFeedbackDto;
 
 test.describe('Feedback E2E', () => {
-  let sessionId: string;
+  test('a member gives their feedback, then gives it again', async ({ member, expect }) => {
+    const found = await member.feedback.findFeedback();
+    expect(found.data?.feedback).toEqual({ last: null, questionnaire: 'MEMBER', status: 'NOT_ANSWERED' });
 
-  test.beforeEach(async ({ sessions }) => {
-    const session = await sessions.createOne({
-      candidates: [
-        {
-          civilite: 'M.',
-          firstName: 'ANTONIO',
-          lastName: 'GRAMSCI',
-          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  AMIENS'] },
-          targetPosition: {
-            function: seed.functions.PR,
-            grade: 'G3',
-            jurisdiction: seed.jurisdictions['CA  REIMS'],
-          },
-        },
-      ],
-      createdAt: '05/10/2026',
-      name: randomUUID(),
-    });
-    sessionId = session.id;
-  });
-
-  test('a member gives their feedback on a session', async ({ member, expect }) => {
-    const found = await member.feedback.findSessionFeedback({ path: { sessionId } });
-    expect(found.data?.feedback).toEqual({
-      questionnaire: 'MEMBER',
-      session: expect.objectContaining({ id: sessionId }),
-      status: 'NOT_ANSWERED',
-    });
-
-    const answered = await member.feedback.answerSessionFeedback({ body: MEMBER_ANSWERS, path: { sessionId } });
+    const answered = await member.feedback.answerFeedback({ body: MEMBER_ANSWERS });
     expect(answered.response?.status).toBe(204);
 
-    const foundAgain = await member.feedback.findSessionFeedback({ path: { sessionId } });
-    expect(foundAgain.data?.feedback?.status).toBe('ANSWERED');
+    const answeredAgain = await member.feedback.answerFeedback({ body: MEMBER_ANSWERS });
+    expect(answeredAgain.response?.status).toBe(204);
+
+    const foundAgain = await member.feedback.findFeedback();
+    expect(foundAgain.data?.feedback).toEqual({
+      last: { answeredOn: expect.any(Object) },
+      questionnaire: 'MEMBER',
+      status: 'ANSWERED',
+    });
   });
 
-  test('keeps a single answer when a member submits twice at once', async ({ member, expect }) => {
-    const answers = await Promise.all(
-      [1, 2].map(() => member.feedback.answerSessionFeedback({ body: MEMBER_ANSWERS, path: { sessionId } })),
-    );
-
-    expect(answers.map(({ response }) => response?.status)).toEqual(expect.arrayContaining([204, 409]));
-  });
-
-  test('the secretariat gives its feedback on a session', async ({ agent, expect }) => {
-    const found = await agent.feedback.findSessionFeedback({ path: { sessionId } });
+  test('the secretariat gives its feedback', async ({ agent, expect }) => {
+    const found = await agent.feedback.findFeedback();
     expect(found.data?.feedback?.questionnaire).toBe('SECRETARIAT');
 
-    const answered = await agent.feedback.answerSessionFeedback({
+    const answered = await agent.feedback.answerFeedback({
       body: {
         easeRating: 3,
         hindrance: null,
@@ -75,17 +44,15 @@ test.describe('Feedback E2E', () => {
           otherToolUsage: 'OCCASIONALLY',
         },
       },
-      path: { sessionId },
     });
     expect(answered.response?.status).toBe(204);
   });
 
-  test('an admin goes through the questionnaire without answering it', async ({ admin, expect }) => {
-    const found = await admin.feedback.findSessionFeedback({ path: { sessionId } });
-    expect(found.data?.feedback).toEqual({
-      questionnaire: 'SECRETARIAT',
-      session: expect.objectContaining({ id: sessionId }),
-      status: 'PREVIEW',
-    });
+  test('an admin answers outside production, to test the answers and their export', async ({ admin, expect }) => {
+    const found = await admin.feedback.findFeedback();
+    expect(found.data?.feedback).toEqual({ last: null, questionnaire: 'SECRETARIAT', status: 'TEST' });
+
+    const answered = await admin.feedback.answerFeedback({ body: MEMBER_ANSWERS });
+    expect(answered.response?.status).toBe(204);
   });
 });

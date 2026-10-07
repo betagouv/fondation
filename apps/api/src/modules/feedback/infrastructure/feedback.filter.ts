@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   CallHandler,
-  ConflictException,
   ExecutionContext,
   ForbiddenException,
   Injectable,
@@ -9,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { CannotGiveSessionFeedback, type RefusalReason } from '../domain/session-feedback';
+import { CannotGiveFeedback, type RefusalReason } from '../domain/feedback';
 import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
@@ -19,7 +18,7 @@ export class FeedbackFilter implements NestInterceptor {
       .handle()
       .pipe(
         catchError((err) =>
-          throwError(() => (err instanceof CannotGiveSessionFeedback ? refusalException(err.reason) : err)),
+          throwError(() => (err instanceof CannotGiveFeedback ? refusalException(err.reason) : err)),
         ),
       );
   }
@@ -27,8 +26,6 @@ export class FeedbackFilter implements NestInterceptor {
 
 function refusalException(reason: RefusalReason) {
   switch (reason) {
-    case 'ALREADY_ANSWERED':
-      return new ConflictException({ validationError: 'Vous avez déjà donné votre avis sur cette session' });
     case 'IMPERSONATED':
     case 'NOT_CONCERNED':
       return new ForbiddenException();

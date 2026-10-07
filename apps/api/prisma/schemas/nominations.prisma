@@ -210,8 +210,6 @@ model Session {
   dossierDeNominations DossierDeNomination[]
   observantAuditions   ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
-  feedbacks                 SessionFeedback[]
-  feedbackParticipations    SessionFeedbackParticipation[]
 
   @@index([deletedAt])
   @@index([archivedAt])

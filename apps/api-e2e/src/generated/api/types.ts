@@ -2293,23 +2293,21 @@ export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
 };
 
-export type FoundSessionFeedbackDto = {
+export type FoundFeedbackDto = {
     feedback: {
-        questionnaire: 'MEMBER' | 'SECRETARIAT';
-        session: {
-            date: {
+        last: {
+            answeredOn: {
                 year: number;
                 month: number;
                 day: number;
             };
-            id: string;
-            name: string;
-        };
-        status: 'ANSWERED' | 'NOT_ANSWERED' | 'PREVIEW';
+        } | null;
+        questionnaire: 'MEMBER' | 'SECRETARIAT';
+        status: 'ANSWERED' | 'NOT_ANSWERED' | 'PREVIEW' | 'TEST';
     } | null;
 };
 
-export type AnswerSessionFeedbackDto = {
+export type AnswerFeedbackDto = {
     easeRating: number;
     hindrance: string | null;
     member: {
@@ -4847,43 +4845,39 @@ export type PromoteToAdminResponses = {
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
 
-export type ListSessionFeedbacksAsExcelData = {
+export type ListFeedbacksAsExcelData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/session-feedbacks/v1/answers.xlsx';
+    url: '/api/feedbacks/v1/answers.xlsx';
 };
 
-export type ListSessionFeedbacksAsExcelResponses = {
+export type ListFeedbacksAsExcelResponses = {
     200: unknown;
 };
 
-export type FindSessionFeedbackData = {
+export type FindFeedbackData = {
     body?: never;
-    path: {
-        sessionId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/api/session-feedbacks/v1/{sessionId}';
+    url: '/api/feedbacks/v1/mine';
 };
 
-export type FindSessionFeedbackResponses = {
-    200: FoundSessionFeedbackDto;
+export type FindFeedbackResponses = {
+    200: FoundFeedbackDto;
 };
 
-export type FindSessionFeedbackResponse = FindSessionFeedbackResponses[keyof FindSessionFeedbackResponses];
+export type FindFeedbackResponse = FindFeedbackResponses[keyof FindFeedbackResponses];
 
-export type AnswerSessionFeedbackData = {
-    body: AnswerSessionFeedbackDto;
-    path: {
-        sessionId: string;
-    };
+export type AnswerFeedbackData = {
+    body: AnswerFeedbackDto;
+    path?: never;
     query?: never;
-    url: '/api/session-feedbacks/v1/{sessionId}/answer';
+    url: '/api/feedbacks/v1/answer';
 };
 
-export type AnswerSessionFeedbackResponses = {
+export type AnswerFeedbackResponses = {
     204: void;
 };
 
-export type AnswerSessionFeedbackResponse = AnswerSessionFeedbackResponses[keyof AnswerSessionFeedbackResponses];
+export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
