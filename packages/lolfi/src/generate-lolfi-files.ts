@@ -307,7 +307,10 @@ export async function* generateLolfiFiles(
           prenom: candidate.firstName,
           nom_marital: candidate.marriedName ?? null,
           nom_usage: candidate.usedName ?? null,
-          sit_fam: faker.helpers.arrayElement(['C', 'M', 'P']),
+          sit_fam:
+            candidate.maritalStatus === undefined
+              ? faker.helpers.arrayElement(['C', 'M', 'P'])
+              : candidate.maritalStatus,
           email_pro:
             candidate.email ??
             faker.internet.email({

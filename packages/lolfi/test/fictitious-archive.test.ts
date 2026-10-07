@@ -111,6 +111,24 @@ describe('fictitious archive', () => {
     assert.ok(Math.abs(share((c) => !!c.phone) - 0.67) < 0.04);
   });
 
+  it('should mostly declare married the women who bear a married name', () => {
+    const women = candidates.filter((c) => c.civilite === 'MME');
+    const married = (c: (typeof candidates)[number]) => c.maritalStatus === 'M';
+
+    assert.ok(
+      share(
+        married,
+        women.filter((c) => c.marriedName),
+      ) > 0.75,
+    );
+    assert.ok(
+      share(
+        married,
+        women.filter((c) => !c.marriedName),
+      ) < 0.2,
+    );
+  });
+
   it('should give a first name that matches the civilité', () => {
     const female = new Set<string>(FEMALE_FIRST_NAMES);
     const male = new Set<string>(MALE_FIRST_NAMES);
