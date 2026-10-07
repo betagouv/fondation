@@ -5,8 +5,6 @@ import {
   Header,
   HttpCode,
   HttpStatus,
-  Param,
-  ParseUUIDPipe,
   Post,
   StreamableFile,
   UseInterceptors,
@@ -20,11 +18,15 @@ import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
+import { AnswerFeedbackDto } from './feedback.dto';
 import { FeedbackFilter } from './feedback.filter';
-import { FoundSessionFeedbackDto } from './queries/find-session-feedback.query';
-import { AnswerSessionFeedbackDto } from './session-feedback.dto';
+import { FoundFeedbackDto } from './queries/find-feedback.query';
 
-type AuthedRespondent = { id: string; impersonation?: { impersonatorId: string }; role: RoleEnum };
+type AuthedRespondent = {
+  id: string;
+  impersonation?: { impersonatorId: string };
+  role: RoleEnum;
+};
 
 function toRespondent(user: AuthedRespondent) {
   return { id: user.id, isImpersonated: !!user.impersonation, role: user.role };
@@ -32,36 +34,32 @@ function toRespondent(user: AuthedRespondent) {
 
 @ApiTags('Feedback')
 @UseInterceptors(FeedbackFilter)
-@Controller('/api/session-feedbacks/v1')
+@Controller('/api/feedbacks/v1')
 export class FeedbackController {
   constructor(private readonly feedback: FeedbackService) {}
 
   @Get('/answers.xlsx')
   @HasRole('ADMIN')
   @Header('Content-Type', FILE_MIME_TYPES.xlsx)
-  listSessionFeedbacksAsExcel(): Promise<StreamableFile> {
-    return this.feedback.listSessionFeedbacksAsExcel();
+  listFeedbacksAsExcel(): Promise<StreamableFile> {
+    return this.feedback.listFeedbacksAsExcel();
   }
 
-  @Get('/:sessionId')
+  @Get('/mine')
   @HasRole()
-  @ZodResponse({ status: HttpStatus.OK, type: FoundSessionFeedbackDto })
-  findSessionFeedback(
-    @AuthedUser() user: AuthedRespondent,
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
-  ): Promise<FoundSessionFeedbackDto> {
-    return this.feedback.findSessionFeedback({ respondent: toRespondent(user), sessionId });
+  @ZodResponse({ status: HttpStatus.OK, type: FoundFeedbackDto })
+  findFeedback(@AuthedUser() user: AuthedRespondent): Promise<FoundFeedbackDto> {
+    return this.feedback.findFeedback({ respondent: toRespondent(user) });
   }
 
-  @Post('/:sessionId/answer')
+  @Post('/answer')
   @HasRole()
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  answerSessionFeedback(
-    @AuthedUser() user: AuthedRespondent,
-    @Param('sessionId', ParseUUIDPipe) sessionId: string,
-    @Body() answers: AnswerSessionFeedbackDto,
-  ): Promise<void> {
-    return this.feedback.answerSessionFeedback({ answers, respondent: toRespondent(user), sessionId });
+  answerFeedback(@AuthedUser() user: AuthedRespondent, @Body() answers: AnswerFeedbackDto): Promise<void> {
+    return this.feedback.answerFeedback({
+      answers,
+      respondent: toRespondent(user),
+    });
   }
 }

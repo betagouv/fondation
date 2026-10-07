@@ -2,41 +2,36 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { fileNameFromResponse, saveBlob } from '@/utils/file.utils';
 import * as $api from '@api/sdk';
-import type { AnswerSessionFeedbackDto, FoundSessionFeedbackDto } from '@api/types';
+import type { AnswerFeedbackDto, FoundFeedbackDto } from '@api/types';
 
-export type SessionFeedback = NonNullable<FoundSessionFeedbackDto['feedback']>;
+export type Feedback = NonNullable<FoundFeedbackDto['feedback']>;
 
 export const feedbackKeys = {
-  session: (props: { sessionId: string }) => ['feedback', 'session', props] as const,
+  mine: ['feedback', 'mine'] as const,
 };
 
-export const useSessionFeedbackQuery = (props: { sessionId: string }) =>
+export const useFeedbackQuery = () =>
   useQuery({
     queryFn: async () => {
-      const { data } = await $api.feedback.findSessionFeedback({ path: props, throwOnError: true });
+      const { data } = await $api.feedback.findFeedback({ throwOnError: true });
       return data.feedback;
     },
-    queryKey: feedbackKeys.session(props),
+    queryKey: feedbackKeys.mine,
   });
 
-export function useAnswerSessionFeedbackMutation() {
+export function useAnswerFeedbackMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (props: { answers: AnswerSessionFeedbackDto; sessionId: string }) =>
-      $api.feedback.answerSessionFeedback({
-        body: props.answers,
-        path: { sessionId: props.sessionId },
-        throwOnError: true,
-      }),
-    onSettled: (_data, _error, props) =>
-      queryClient.invalidateQueries({ queryKey: feedbackKeys.session({ sessionId: props.sessionId }) }),
+    mutationFn: (answers: AnswerFeedbackDto) =>
+      $api.feedback.answerFeedback({ body: answers, throwOnError: true }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: feedbackKeys.mine }),
   });
 }
 
-export const useListSessionFeedbacksAsExcelMutation = () =>
+export const useListFeedbacksAsExcelMutation = () =>
   useMutation({
     mutationFn: async (): Promise<void> => {
-      const { data, response } = await $api.feedback.listSessionFeedbacksAsExcel({ parseAs: 'blob' });
+      const { data, response } = await $api.feedback.listFeedbacksAsExcel({ parseAs: 'blob' });
       saveBlob(data as Blob, fileNameFromResponse(response, 'fondation-avis-utilisateurs.xlsx'));
     },
   });

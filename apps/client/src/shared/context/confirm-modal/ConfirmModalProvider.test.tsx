@@ -151,6 +151,34 @@ describe('ConfirmModalProvider', () => {
     await waitFor(() => expect(answers).toEqual(['première:false', 'seconde:true']));
   });
 
+  it('keeps the same function from one render to the next, so an effect relying on it does not run again', async () => {
+    const user = userEvent.setup();
+    const functions = new Set<unknown>();
+
+    function Asker() {
+      const { waitForConfirmation } = useConfirmModal();
+      functions.add(waitForConfirmation);
+
+      return (
+        <button onClick={() => void waitForConfirmation({ title: 'Question' })} type="button">
+          Demander
+        </button>
+      );
+    }
+
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <ConfirmModalProvider>
+          <Asker />
+        </ConfirmModalProvider>
+      </IntlProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Demander' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmer' }));
+
+    expect(functions.size).toBe(1);
+  });
+
   it('overrides the default labels', async () => {
     const user = userEvent.setup();
     renderSubject({ i18n: { cancel: 'Garder le dossier', confirm: 'Supprimer définitivement' } });

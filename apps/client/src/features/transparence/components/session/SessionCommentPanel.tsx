@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath } from 'react-router';
 
@@ -10,11 +10,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { SessionCommentField } from './SessionCommentField';
 
-export function SessionCommentPanel(props: {
-  isArchived: boolean;
-  sessionId: string;
-  toolbarEnd?: ReactNode;
-}) {
+export function SessionCommentPanel(props: { isArchived: boolean; sessionId: string }) {
   const { formatMessage } = useIntl();
   const panelId = useId();
   const titleId = useId();
@@ -146,25 +142,22 @@ export function SessionCommentPanel(props: {
         )}
       </section>
 
-      <div className="flex items-end gap-2">
-        <div
-          className="fr-p-1v pointer-events-auto border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-          ref={toolbarRef}
+      <div
+        className="fr-p-1v pointer-events-auto border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+        ref={toolbarRef}
+      >
+        <Button
+          aria-controls={panelId}
+          aria-expanded={isOpen}
+          className={clsx({ 'bg-(--background-action-low-blue-france)': isOpen })}
+          iconId="fr-icon-chat-3-line"
+          onClick={() => (isOpen ? tryClose() : setOpen(true))}
+          priority="tertiary no outline"
+          ref={toggleRef}
+          size="small"
         >
-          <Button
-            aria-controls={panelId}
-            aria-expanded={isOpen}
-            className={clsx({ 'bg-(--background-action-low-blue-france)': isOpen })}
-            iconId="fr-icon-chat-3-line"
-            onClick={() => (isOpen ? tryClose() : setOpen(true))}
-            priority="tertiary no outline"
-            ref={toggleRef}
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Commentaire" />
-          </Button>
-        </div>
-        {props.toolbarEnd}
+          <FormattedMessage defaultMessage="Commentaire" />
+        </Button>
       </div>
     </div>
   );

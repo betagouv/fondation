@@ -1,53 +1,41 @@
-model SessionFeedbackParticipation {
-  sessionId String @map("session_id") @db.Uuid
-  userId    String @map("user_id") @db.Uuid
+// pseudonymous: the export numbers the respondents and only shows the day
+model Feedback {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  easeRating         Int      @map("ease_rating") @db.SmallInt
+  satisfactionRating Int      @map("satisfaction_rating") @db.SmallInt
+  hindrance          String?  @db.Text
+  answeredAt         DateTime @map("answered_at") @db.Timestamp(6)
 
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  member      MemberFeedback?
+  secretariat SecretariatFeedback?
 
-  @@id([sessionId, userId], name: "primaryKey")
-  @@map("session_feedback_participation")
+  @@map("feedback")
   @@schema("nominations_context")
 }
 
-// anonymous in the application: no author and only the day, an exact time would tell who answered; the shared transaction id (xmin) still links it to its participation in the database
-model SessionFeedback {
-  id                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sessionId          String  @map("session_id") @db.Uuid
-  easeRating         Int     @map("ease_rating") @db.SmallInt
-  satisfactionRating Int     @map("satisfaction_rating") @db.SmallInt
-  hindrance          String? @db.Text
-  answeredOn         DateTime @map("answered_on") @db.Date
-
-  session     Session                     @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  member      MemberSessionFeedback?
-  secretariat SecretariatSessionFeedback?
-
-  @@map("session_feedback")
-  @@schema("nominations_context")
-}
-
-model MemberSessionFeedback {
+model MemberFeedback {
   feedbackId         String                       @id @map("feedback_id") @db.Uuid
   manualWorkShare    PrismaManualWorkShareEnum    @map("manual_work_share")
   debateContribution PrismaDebateContributionEnum @map("debate_contribution")
   reviewThoroughness PrismaReviewThoroughnessEnum @map("review_thoroughness")
 
-  feedback SessionFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@map("member_session_feedback")
+  @@map("member_feedback")
   @@schema("nominations_context")
 }
 
-model SecretariatSessionFeedback {
+model SecretariatFeedback {
   feedbackId       String                    @id @map("feedback_id") @db.Uuid
   manualWorkShare  PrismaManualWorkShareEnum @map("manual_work_share")
   otherToolUsage   PrismaOtherToolUsageEnum  @map("other_tool_usage")
   otherToolPurpose String?                   @map("other_tool_purpose") @db.Text
 
-  feedback SessionFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@map("secretariat_session_feedback")
+  @@map("secretariat_feedback")
   @@schema("nominations_context")
 }
 

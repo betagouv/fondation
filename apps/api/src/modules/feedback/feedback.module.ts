@@ -2,17 +2,12 @@ import { Module } from '@nestjs/common';
 
 import { FeedbackService } from './feedback.service';
 import { FeedbackController } from './infrastructure/feedback.controller';
-import { FindSessionFeedbackQuery } from './infrastructure/queries/find-session-feedback.query';
-import { ListSessionFeedbacksAsExcelQuery } from './infrastructure/queries/list-session-feedbacks-as-excel.query';
-import { SessionFeedbackRepository } from './infrastructure/session-feedback.repository';
+import { FeedbackRepository } from './infrastructure/feedback.repository';
+import { FindFeedbackQuery } from './infrastructure/queries/find-feedback.query';
+import { ListFeedbacksAsExcelQuery } from './infrastructure/queries/list-feedbacks-as-excel.query';
 
 @Module({
   controllers: [FeedbackController],
-  providers: [
-    FeedbackService,
-    FindSessionFeedbackQuery,
-    ListSessionFeedbacksAsExcelQuery,
-    SessionFeedbackRepository,
-  ],
+  providers: [FeedbackRepository, FeedbackService, FindFeedbackQuery, ListFeedbacksAsExcelQuery],
 })
 export class FeedbackModule {}

@@ -1,44 +1,34 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Inject, Injectable, StreamableFile } from '@nestjs/common';
 
-import type { Respondent, SessionFeedbackAnswers } from './domain/session-feedback';
-import {
-  FindSessionFeedbackQuery,
-  FoundSessionFeedbackDto,
-} from './infrastructure/queries/find-session-feedback.query';
-import { ListSessionFeedbacksAsExcelQuery } from './infrastructure/queries/list-session-feedbacks-as-excel.query';
-import { SessionFeedbackRepository } from './infrastructure/session-feedback.repository';
+import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+
+import { Feedback, type FeedbackAnswers, type Respondent } from './domain/feedback';
+import { FeedbackRepository } from './infrastructure/feedback.repository';
+import { FindFeedbackQuery, FoundFeedbackDto } from './infrastructure/queries/find-feedback.query';
+import { ListFeedbacksAsExcelQuery } from './infrastructure/queries/list-feedbacks-as-excel.query';
 
 @Injectable()
 export class FeedbackService {
   constructor(
-    private readonly findSessionFeedbackQuery: FindSessionFeedbackQuery,
-    private readonly listSessionFeedbacksAsExcelQuery: ListSessionFeedbacksAsExcelQuery,
-    private readonly sessionFeedbackRepository: SessionFeedbackRepository,
+    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
+    private readonly feedbackRepository: FeedbackRepository,
+    private readonly findFeedbackQuery: FindFeedbackQuery,
+    private readonly listFeedbacksAsExcelQuery: ListFeedbacksAsExcelQuery,
   ) {}
 
-  findSessionFeedback(query: {
-    respondent: Respondent;
-    sessionId: string;
-  }): Promise<FoundSessionFeedbackDto> {
-    return this.findSessionFeedbackQuery.handle(query);
+  findFeedback(query: { respondent: Respondent }): Promise<FoundFeedbackDto> {
+    return this.findFeedbackQuery.handle(query);
   }
 
-  listSessionFeedbacksAsExcel(): Promise<StreamableFile> {
-    return this.listSessionFeedbacksAsExcelQuery.handle();
+  listFeedbacksAsExcel(): Promise<StreamableFile> {
+    return this.listFeedbacksAsExcelQuery.handle();
   }
 
   @Transactional()
-  async answerSessionFeedback(command: {
-    answers: SessionFeedbackAnswers;
-    respondent: Respondent;
-    sessionId: string;
-  }): Promise<void> {
-    const feedback = await this.sessionFeedbackRepository.findBySession({
-      sessionId: command.sessionId,
-      userId: command.respondent.id,
-    });
-    feedback.answer({ answers: command.answers, respondent: command.respondent });
-    await this.sessionFeedbackRepository.persist(feedback);
+  async answerFeedback(command: { answers: FeedbackAnswers; respondent: Respondent }): Promise<void> {
+    const feedback = new Feedback();
+    feedback.answer({ ...command, environment: { isTest: this.config.isTestEnvironment } });
+    await this.feedbackRepository.persist(feedback);
   }
 }

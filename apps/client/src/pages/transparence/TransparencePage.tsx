@@ -4,7 +4,6 @@ import { useState, type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Outlet, useLocation, useParams } from 'react-router';
 
-import { SessionFeedbackButton } from '@/features/feedback/components/SessionFeedbackFloatingButton';
 import { SessionCommentPanel } from '@/features/transparence/components/session/SessionCommentPanel';
 import { SessionTabsBar } from '@/features/transparence/components/session/SessionTabs';
 import { SessionValidationBanner } from '@/features/transparence/components/session/SessionValidationBanner';
@@ -121,11 +120,7 @@ export function TransparencePage() {
           />
         </div>
       </div>
-      <SessionCommentPanel
-        isArchived={transparence.isArchived}
-        sessionId={transparence.id}
-        toolbarEnd={<SessionFeedbackButton sessionId={transparence.id} />}
-      />
+      <SessionCommentPanel isArchived={transparence.isArchived} sessionId={transparence.id} />
     </ArchiveBannerPortal>
   );
 }

@@ -85,7 +85,7 @@ model User {
   impersonatorOfObservantAuditionVersions ObservantAuditionVersion[]       @relation("observant_audition_version_impersonator")
   authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[] @relation("nomination_file_audition_version_author")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[] @relation("nomination_file_audition_version_impersonator")
-  sessionFeedbackParticipations SessionFeedbackParticipation[]
+  feedbacks Feedback[]
 
   @@map("users")
   @@schema("identity_and_access_context")

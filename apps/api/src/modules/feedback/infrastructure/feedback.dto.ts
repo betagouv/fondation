@@ -6,7 +6,7 @@ import {
   MANUAL_WORK_SHARES,
   OTHER_TOOL_USAGES,
   REVIEW_THOROUGHNESSES,
-} from '../domain/session-feedback';
+} from '../domain/feedback';
 
 const freeText = z
   .string()
@@ -15,7 +15,7 @@ const freeText = z
   .transform((text) => text || null)
   .nullable();
 
-export class AnswerSessionFeedbackDto extends createZodDto(
+export class AnswerFeedbackDto extends createZodDto(
   z.object({
     easeRating: z.int().min(1).max(5),
     hindrance: freeText,

@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 export const ConfigSchema = z.object({
   isProduction: z.prefault(z.boolean(), process.env.NODE_ENV === 'production'),
+  // staging runs as production: only DEPLOY_ENV tells them apart, and a production lacking it stays production
+  isTestEnvironment: z.prefault(
+    z.boolean(),
+    process.env.NODE_ENV !== 'production' || process.env.DEPLOY_ENV === 'staging',
+  ),
 
   appName: z.string().default('fondation-api'),
   appVersion: z.prefault(z.string().optional(), process.env.APP_VERSION),
