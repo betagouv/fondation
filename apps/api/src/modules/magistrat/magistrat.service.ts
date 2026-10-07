@@ -48,24 +48,36 @@ export class MagistratService {
 
   @Transactional()
   async addPhoneNumber(command: {
+    authorId: string;
     label: string | null;
     magistratId: string;
     number: string;
   }): Promise<void> {
     const phoneNumbers = await this.magistratPhoneNumbersRepository.findByMagistratId(command);
-    phoneNumbers.add({ id: crypto.randomUUID(), label: command.label, number: command.number });
+    phoneNumbers.add({
+      authorId: command.authorId,
+      id: crypto.randomUUID(),
+      label: command.label,
+      number: command.number,
+    });
     await this.magistratPhoneNumbersRepository.persist(phoneNumbers);
   }
 
   @Transactional()
   async updatePhoneNumber(command: {
+    authorId: string;
     label: string | null;
     magistratId: string;
     number: string;
     phoneNumberId: string;
   }): Promise<void> {
     const phoneNumbers = await this.magistratPhoneNumbersRepository.findByMagistratId(command);
-    phoneNumbers.update({ id: command.phoneNumberId, label: command.label, number: command.number });
+    phoneNumbers.update({
+      authorId: command.authorId,
+      id: command.phoneNumberId,
+      label: command.label,
+      number: command.number,
+    });
     await this.magistratPhoneNumbersRepository.persist(phoneNumbers);
   }
 

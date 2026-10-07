@@ -142,7 +142,12 @@ function MagistratPhoneNumberItem(props: {
   const date = phoneNumber.date ? formatDateOnly(phoneNumber.date) : null;
   const origin =
     phoneNumber.source === 'FONDATION'
-      ? formatMessage({ defaultMessage: 'Saisi dans Fondation le {date}' }, { date })
+      ? phoneNumber.savedBy
+        ? formatMessage(
+            { defaultMessage: 'Saisi dans Fondation par {name} le {date}' },
+            { date, name: phoneNumber.savedBy.name },
+          )
+        : formatMessage({ defaultMessage: 'Saisi dans Fondation le {date}' }, { date })
       : date
         ? formatMessage({ defaultMessage: 'Issu de LOLFI, candidature du {date}' }, { date })
         : formatMessage({ defaultMessage: 'Issu de LOLFI' });

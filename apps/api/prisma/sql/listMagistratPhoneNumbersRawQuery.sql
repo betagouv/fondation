@@ -7,8 +7,12 @@ SELECT
   saved.number,
   saved."label",
   saved.updated_at AS "updatedAt",
-  NULL::DATE AS "candidacyDate"
+  NULL::DATE AS "candidacyDate",
+  author.id AS "authorId",
+  author.first_name AS "authorFirstName",
+  author.last_name AS "authorLastName"
 FROM nominations_context.magistrat_phone_number AS saved
+  LEFT JOIN identity_and_access_context."users" AS author ON author.id = saved.author_id
 WHERE saved.magistrat_id = $1::UUID
 
 UNION ALL
@@ -19,7 +23,10 @@ UNION ALL
     lolfi.phone AS number,
     NULL::TEXT AS "label",
     NULL::TIMESTAMP AS "updatedAt",
-    lolfi.updated_at AS "candidacyDate"
+    lolfi.updated_at AS "candidacyDate",
+    NULL::UUID AS "authorId",
+    NULL::VARCHAR AS "authorFirstName",
+    NULL::VARCHAR AS "authorLastName"
   FROM (
     SELECT DISTINCT ON (comparable.phone)
       c.phone,

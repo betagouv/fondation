@@ -57,6 +57,7 @@ export class MagistratPhoneNumbersRepository {
     return this.db.tx.magistratPhoneNumber
       .create({
         data: {
+          authorId: message.authorId,
           createdAt: now,
           id: message.id,
           label: message.label,
@@ -71,7 +72,12 @@ export class MagistratPhoneNumbersRepository {
   private persistMagistratPhoneNumberUpdated(message: MagistratPhoneNumberUpdated) {
     return this.db.tx.magistratPhoneNumber
       .update({
-        data: { label: message.label, number: message.number, updatedAt: this.clock.now() },
+        data: {
+          authorId: message.authorId,
+          label: message.label,
+          number: message.number,
+          updatedAt: this.clock.now(),
+        },
         where: { id: message.id },
       })
       .catch(rejectSavedTwice);

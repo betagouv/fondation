@@ -115,10 +115,11 @@ export class MagistratController {
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async addMagistratPhoneNumber(
+    @AuthedUser() authUser: { id: string },
     @Param('magistratId', ParseUUIDPipe) magistratId: string,
     @Body() body: AddMagistratPhoneNumberDto,
   ): Promise<void> {
-    await this.magistrats.addPhoneNumber({ ...body, magistratId });
+    await this.magistrats.addPhoneNumber({ ...body, authorId: authUser.id, magistratId });
   }
 
   @Patch('/:magistratId/phone-numbers/:phoneNumberId')
@@ -126,11 +127,12 @@ export class MagistratController {
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateMagistratPhoneNumber(
+    @AuthedUser() authUser: { id: string },
     @Param('magistratId', ParseUUIDPipe) magistratId: string,
     @Param('phoneNumberId', ParseUUIDPipe) phoneNumberId: string,
     @Body() body: UpdateMagistratPhoneNumberDto,
   ): Promise<void> {
-    await this.magistrats.updatePhoneNumber({ ...body, magistratId, phoneNumberId });
+    await this.magistrats.updatePhoneNumber({ ...body, authorId: authUser.id, magistratId, phoneNumberId });
   }
 
   @Delete('/:magistratId/phone-numbers/:phoneNumberId')

@@ -5,6 +5,7 @@ import z from 'zod';
 import { listMagistratPhoneNumbersRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class ListMagistratPhoneNumbersQuery {
@@ -16,11 +17,23 @@ export class ListMagistratPhoneNumbersQuery {
     );
 
     return {
-      items: phoneNumbers.flatMap(({ candidacyDate, id, label, number, updatedAt }): PhoneNumber[] => {
+      items: phoneNumbers.flatMap((phoneNumber): PhoneNumber[] => {
+        const { authorFirstName, authorId, authorLastName, candidacyDate, id, label, number, updatedAt } =
+          phoneNumber;
         if (!number) return [];
         if (id && updatedAt)
           return [
-            { date: DateOnly.fromInstantInParis(updatedAt).toJson(), id, label, number, source: 'FONDATION' },
+            {
+              date: DateOnly.fromInstantInParis(updatedAt).toJson(),
+              id,
+              label,
+              number,
+              savedBy:
+                authorId && authorFirstName && authorLastName
+                  ? { id: authorId, name: fullname({ firstName: authorFirstName, lastName: authorLastName }) }
+                  : null,
+              source: 'FONDATION',
+            },
           ];
 
         return [
@@ -41,6 +54,7 @@ const phoneNumberSchema = z.discriminatedUnion('source', [
     id: z.string(),
     label: z.string().nullable(),
     number: z.string(),
+    savedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
     source: z.literal('FONDATION'),
   }),
   z.object({

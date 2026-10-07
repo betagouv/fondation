@@ -101,6 +101,8 @@ test.describe('Magistrat E2E', () => {
   test('should list the saved phone numbers before the LOLFI ones', async ({ agent, expect, valrose }) => {
     const today = { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) };
     const lolfi = { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' };
+    const { data: me } = await agent.auth.introspectSession();
+    const savedBy = { id: me!.userId, name: expect.any(String) };
 
     await agent.magistrats.addMagistratPhoneNumber({
       body: { label: 'Domicile', number: '01 23 45 67 89' },
@@ -111,7 +113,7 @@ test.describe('Magistrat E2E', () => {
       path: { magistratId: valrose.magistratId },
     });
     expect(withHome.data!.items).toEqual([
-      { date: today, id: expect.any(String), label: 'Domicile', number: '0123456789', source: 'FONDATION' },
+      { date: today, id: expect.any(String), label: 'Domicile', number: '0123456789', savedBy, source: 'FONDATION' },
       lolfi,
     ]);
 
@@ -124,8 +126,8 @@ test.describe('Magistrat E2E', () => {
       path: { magistratId: valrose.magistratId },
     });
     expect(withMobile.data!.items).toEqual([
-      { date: today, id: expect.any(String), label: null, number: '0612345678', source: 'FONDATION' },
-      { date: today, id: expect.any(String), label: 'Domicile', number: '0123456789', source: 'FONDATION' },
+      { date: today, id: expect.any(String), label: null, number: '0612345678', savedBy, source: 'FONDATION' },
+      { date: today, id: expect.any(String), label: 'Domicile', number: '0123456789', savedBy, source: 'FONDATION' },
     ]);
   });
 
@@ -179,6 +181,7 @@ test.describe('Magistrat E2E', () => {
         id: expect.any(String),
         label: 'Conjointe',
         number: '0700000000',
+        savedBy: expect.any(Object),
         source: 'FONDATION',
       },
       { date: { year: 2026, month: 4, day: 22 }, number: '06 98 76 54 32', source: 'LOLFI' },

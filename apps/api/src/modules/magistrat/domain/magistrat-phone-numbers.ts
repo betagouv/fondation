@@ -4,6 +4,7 @@ export class MagistratPhoneNumberAdded {
     readonly magistratId: string,
     readonly number: string,
     readonly label: string | null,
+    readonly authorId: string,
   ) {}
 }
 
@@ -12,6 +13,7 @@ export class MagistratPhoneNumberUpdated {
     readonly id: string,
     readonly number: string,
     readonly label: string | null,
+    readonly authorId: string,
   ) {}
 }
 
@@ -70,7 +72,7 @@ export class MagistratPhoneNumbers {
     return new MagistratPhoneNumbers(props.magistratId, [...props.phoneNumbers]);
   }
 
-  add(command: { id: string; label: string | null; number: string }): void {
+  add(command: { authorId: string; id: string; label: string | null; number: string }): void {
     const number = normalizedPhoneNumber(command.number);
     checkLabel(command.label);
     if (this.phoneNumbers.some((phoneNumber) => phoneNumber.number === number))
@@ -78,10 +80,12 @@ export class MagistratPhoneNumbers {
     if (this.phoneNumbers.length >= MAX_PHONE_NUMBERS) throw new TooManyPhoneNumbers();
 
     this.phoneNumbers.push({ id: command.id, number });
-    this.#messages.push(new MagistratPhoneNumberAdded(command.id, this.magistratId, number, command.label));
+    this.#messages.push(
+      new MagistratPhoneNumberAdded(command.id, this.magistratId, number, command.label, command.authorId),
+    );
   }
 
-  update(command: { id: string; label: string | null; number: string }): void {
+  update(command: { authorId: string; id: string; label: string | null; number: string }): void {
     const phoneNumber = this.find(command.id);
     const number = normalizedPhoneNumber(command.number);
     checkLabel(command.label);
@@ -89,7 +93,7 @@ export class MagistratPhoneNumbers {
       throw new PhoneNumberAlreadySaved();
 
     phoneNumber.number = number;
-    this.#messages.push(new MagistratPhoneNumberUpdated(command.id, number, command.label));
+    this.#messages.push(new MagistratPhoneNumberUpdated(command.id, number, command.label, command.authorId));
   }
 
   delete(command: { id: string }): void {

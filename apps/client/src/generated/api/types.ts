@@ -2077,6 +2077,10 @@ export type ListedMagistratPhoneNumbersDto = {
         id: string;
         label: string | null;
         number: string;
+        savedBy: {
+            id: string;
+            name: string;
+        } | null;
         source: 'FONDATION';
     } | {
         date: {
