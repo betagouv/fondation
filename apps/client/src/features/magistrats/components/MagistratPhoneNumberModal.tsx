@@ -7,9 +7,10 @@ import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 
 export function MagistratPhoneNumberModal(props: {
-  error: string | null;
+  hasFailed: boolean;
   initialPhoneNumber?: { label: string | null; number: string };
   isSaving: boolean;
+  numberError: string | null;
   onClose: () => void;
   onClosed: () => void;
   onSave: (phoneNumber: { label: string | null; number: string }) => void;
@@ -30,9 +31,9 @@ export function MagistratPhoneNumberModal(props: {
     <Modal
       actions={
         <>
-          {props.error ? (
+          {props.hasFailed ? (
             <p className="fr-error-text fr-mt-0 mr-auto" role="alert">
-              {props.error}
+              <FormattedMessage defaultMessage="L'enregistrement a échoué" />
             </p>
           ) : null}
           <Button onClick={props.onClose} priority="secondary" type="button">
@@ -67,6 +68,8 @@ export function MagistratPhoneNumberModal(props: {
             type: 'tel',
             value: number,
           }}
+          state={props.numberError ? 'error' : 'default'}
+          stateRelatedMessage={props.numberError}
         />
         <Input
           hintText={formatMessage({ defaultMessage: 'Par exemple : Portable, Conjointe, Domicile' })}

@@ -29,7 +29,7 @@ type Editing = { open: boolean } & (
 
 export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
   const { formatMessage } = useIntl();
-  const { data: phoneNumbers, isLoading } = useMagistratPhoneNumbersQuery(props);
+  const { data: phoneNumbers, isError, isLoading } = useMagistratPhoneNumbersQuery(props);
   const addPhoneNumber = useAddMagistratPhoneNumberMutation(props);
   const updatePhoneNumber = useUpdateMagistratPhoneNumberMutation(props);
   const deletePhoneNumber = useDeleteMagistratPhoneNumberMutation(props);
@@ -43,6 +43,14 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
     );
   }
 
+  if (isError) {
+    return (
+      <p className="fr-error-text fr-mt-0" role="alert">
+        <FormattedMessage defaultMessage="Les numéros n'ont pas pu être chargés" />
+      </p>
+    );
+  }
+
   const close = () => {
     setEditing((current) => current && { ...current, open: false });
     addPhoneNumber.reset();
@@ -50,12 +58,8 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
     deletePhoneNumber.reset();
   };
   const closed = () => setEditing(null);
-  const failure = (error: Error | null) =>
-    error
-      ? error instanceof ValidationError
-        ? error.message
-        : formatMessage({ defaultMessage: "L'enregistrement a échoué" })
-      : null;
+  const numberError = (error: Error | null) => (error instanceof ValidationError ? error.message : null);
+  const hasFailed = (error: Error | null) => !!error && !(error instanceof ValidationError);
 
   return (
     <>
@@ -87,9 +91,10 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
 
       {editing?.action === 'ADD' ? (
         <MagistratPhoneNumberModal
-          error={failure(addPhoneNumber.error)}
+          hasFailed={hasFailed(addPhoneNumber.error)}
           isSaving={addPhoneNumber.isPending}
           onClose={close}
+          numberError={numberError(addPhoneNumber.error)}
           onClosed={closed}
           onSave={(phoneNumber) => addPhoneNumber.mutate(phoneNumber, { onSuccess: close })}
           open={editing.open}
@@ -99,10 +104,11 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
 
       {editing?.action === 'UPDATE' ? (
         <MagistratPhoneNumberModal
-          error={failure(updatePhoneNumber.error)}
+          hasFailed={hasFailed(updatePhoneNumber.error)}
           initialPhoneNumber={editing.phoneNumber}
           isSaving={updatePhoneNumber.isPending}
           key={editing.phoneNumber.id}
+          numberError={numberError(updatePhoneNumber.error)}
           onClose={close}
           onClosed={closed}
           onSave={(phoneNumber) =>
@@ -154,38 +160,37 @@ function MagistratPhoneNumberItem(props: {
   const label = phoneNumber.source === 'FONDATION' ? phoneNumber.label : null;
 
   return (
-    // a LOLFI number has no action to reach its tooltip with the keyboard
-    <Tooltip focusable={phoneNumber.source === 'LOLFI'} label={origin}>
-      <MagistratInfoItem
-        label={
-          label ? (
-            <FormattedMessage defaultMessage="Tél {label}" values={{ label }} />
-          ) : (
-            <FormattedMessage defaultMessage="Tél" />
-          )
-        }
-      >
+    <MagistratInfoItem
+      label={
+        label ? (
+          <FormattedMessage defaultMessage="Tél {label}" values={{ label }} />
+        ) : (
+          <FormattedMessage defaultMessage="Tél" />
+        )
+      }
+    >
+      <Tooltip focusable label={origin}>
         {number}
-        {phoneNumber.source === 'FONDATION' ? (
-          <>
-            <Button
-              className="fr-ml-1v"
-              iconId="fr-icon-edit-line"
-              onClick={() => props.onUpdate(phoneNumber)}
-              priority="tertiary no outline"
-              size="small"
-              title={formatMessage({ defaultMessage: 'Modifier le numéro {number}' }, { number })}
-            />
-            <Button
-              iconId="fr-icon-delete-line"
-              onClick={() => props.onDelete(phoneNumber)}
-              priority="tertiary no outline"
-              size="small"
-              title={formatMessage({ defaultMessage: 'Supprimer le numéro {number}' }, { number })}
-            />
-          </>
-        ) : null}
-      </MagistratInfoItem>
-    </Tooltip>
+      </Tooltip>
+      {phoneNumber.source === 'FONDATION' ? (
+        <>
+          <Button
+            className="fr-ml-1v"
+            iconId="fr-icon-edit-line"
+            onClick={() => props.onUpdate(phoneNumber)}
+            priority="tertiary no outline"
+            size="small"
+            title={formatMessage({ defaultMessage: 'Modifier le numéro {number}' }, { number })}
+          />
+          <Button
+            iconId="fr-icon-delete-line"
+            onClick={() => props.onDelete(phoneNumber)}
+            priority="tertiary no outline"
+            size="small"
+            title={formatMessage({ defaultMessage: 'Supprimer le numéro {number}' }, { number })}
+          />
+        </>
+      ) : null}
+    </MagistratInfoItem>
   );
 }

@@ -1,8 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { MAX_LABEL_LENGTH } from '../../domain/magistrat-phone-numbers';
-
 export class SearchMagistratsQueryDto extends createZodDto(
   z.object({
     search: z.string().min(2).optional(),
@@ -19,7 +17,6 @@ export class AddMagistratPhoneNumberDto extends createZodDto(
     label: z
       .string()
       .trim()
-      .max(MAX_LABEL_LENGTH)
       .nullable()
       .transform((label) => label || null),
     number: z.string(),
@@ -31,7 +28,6 @@ export class UpdateMagistratPhoneNumberDto extends createZodDto(
     label: z
       .string()
       .trim()
-      .max(MAX_LABEL_LENGTH)
       .nullable()
       .transform((label) => label || null),
     number: z.string(),
