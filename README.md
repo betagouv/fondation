@@ -160,7 +160,8 @@ outre-mer) y sont garantis.
 pnpm --filter lolfi generate:fictitious-archive   # => packages/lolfi/LOLFI_CSM_fictitious.zip
 ```
 
-L'archive s'envoie par la page d'administration "Nouvelle ingestion", avec un compte `ADMIN`.
+L'archive s'envoie avec un compte `ADMIN` : menu "Administration", puis "Import LOLFI manuel"
+([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/jobs`.
 
 ### Remettre à zéro
 
@@ -207,7 +208,7 @@ node apps/api/scripts/empty-local-or-staging-except-accounts.mjs
 node apps/api/scripts/empty-local-or-staging-except-accounts.mjs --confirm fondation_a_3234
 ```
 
-Enfin, envoyer l'archive par la page d'administration de staging. Supprimer
+Enfin, envoyer l'archive par la page "Import LOLFI manuel" de staging. Supprimer
 `~/comptes-staging.sql`, qui contient les empreintes des mots de passe, puis fermer les deux terminaux.
 
 ## Mesure d'audience
