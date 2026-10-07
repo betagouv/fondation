@@ -1,5 +1,5 @@
 import { Editor } from '@tiptap/core';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 
@@ -7,6 +7,12 @@ import { agendaInlineExtensions, buildAgendaExtensions } from './agenda-tiptap-e
 import type { AgendaBlocksModel } from './blocks/agenda-blocks.model';
 import type { AgendaBlock } from './blocks/agenda-blocks.type';
 import { AgendaFileBlock } from './blocks/AgendaFileBlock';
+
+// ProseMirror flushes the DOM after a timeout: an editor left alive fires it once jsdom is torn down
+const editors: Editor[] = [];
+afterEach(() => {
+  for (const editor of editors.splice(0)) editor.destroy();
+});
 
 function editorWith(html: string): Editor {
   const block: AgendaBlock = {
@@ -24,11 +30,13 @@ function editorWith(html: string): Editor {
   };
   const model = { onEditorUpdate: () => {} } as unknown as AgendaBlocksModel;
 
-  return new Editor({
+  const editor = new Editor({
     content: { content: AgendaFileBlock.map('agenda', block, agendaInlineExtensions), type: 'doc' },
     element: document.createElement('div'),
     extensions: buildAgendaExtensions(model),
   });
+  editors.push(editor);
+  return editor;
 }
 
 function blockHtml(editor: Editor): string {

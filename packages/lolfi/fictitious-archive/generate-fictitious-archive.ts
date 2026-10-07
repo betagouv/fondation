@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
 import { faker } from '@faker-js/faker';
 
@@ -10,7 +11,7 @@ async function main(output = 'LOLFI_CSM_fictitious.zip'): Promise<void> {
   faker.seed(FICTITIOUS_ARCHIVE_SEED);
   const archive = await generateLolfiArchive(new FictitiousArchive(faker).content());
   await writeFile(output, Buffer.from(archive));
-  process.stdout.write(`${output} written\n`);
+  process.stdout.write(`${resolve(output)} written\n`);
 }
 
 void main(process.argv[2]);
