@@ -1,0 +1,863 @@
+[
+  {
+    "id": "ASARS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé anti-radicalisation S"
+  },
+  {
+    "id": "ASATP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé anti-terrorisme P"
+  },
+  {
+    "id": "ASATS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé anti-terrorisme S"
+  },
+  {
+    "id": "ASCHP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé crimes contre l'humanité P"
+  },
+  {
+    "id": "ASCHS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé crimes contre l'humanité S"
+  },
+  {
+    "id": "ASCYP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé cybercriminalité P"
+  },
+  {
+    "id": "ASCYS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé cybercriminalité S"
+  },
+  {
+    "id": "ASECP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé ECOFI P"
+  },
+  {
+    "id": "ASECS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé ECOFI S"
+  },
+  {
+    "id": "ASFMP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé flux migratoires P"
+  },
+  {
+    "id": "ASFMS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé flux migratoires S"
+  },
+  {
+    "id": "ASPATP",
+    "formation": "PARQUET",
+    "label": "Assistant Specialise Prevention des Actes de Terrorisme P"
+  },
+  {
+    "id": "ASPEP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé P"
+  },
+  {
+    "id": "ASPES",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé S"
+  },
+  {
+    "id": "ASPHLP",
+    "formation": "PARQUET",
+    "label": "Assistant Specialise Pole Haine en Ligne P"
+  },
+  {
+    "id": "ASPHLS",
+    "formation": "SIEGE",
+    "label": "Assistant Specialise Pole Haine en Ligne S"
+  },
+  {
+    "id": "ASPREP",
+    "formation": "PARQUET",
+    "label": "Assistant Specialise Poles Regionaux Environnement P"
+  },
+  {
+    "id": "ASPRES",
+    "formation": "SIEGE",
+    "label": "Assistant Specialise Poles Regionaux Environnement S"
+  },
+  {
+    "id": "ASSPP",
+    "formation": "PARQUET",
+    "label": "Assistant Spécialisé santé publique P"
+  },
+  {
+    "id": "ASSPS",
+    "formation": "SIEGE",
+    "label": "Assistant Spécialisé santé publique S"
+  },
+  {
+    "id": "ASVIFP",
+    "formation": "PARQUET",
+    "label": "Assistant Specialise Traitement Violences Intrafamilliales"
+  },
+  {
+    "id": "MHFJP",
+    "formation": "PARQUET",
+    "label": "Magistrat Honoraire à fonction juriditionnelle P",
+    "labelOneMale": "substitut du procureur général",
+    "labelOneFemale": "substitute du procureur général",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "MHFJS",
+    "formation": "SIEGE",
+    "label": "Magistrat Honoraire à fonction juriditionnelle S",
+    "labelOneMale": "assesseur dans une formation collégiale",
+    "labelOneFemale": "assesseuse dans une formation collégiale",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "P",
+    "formation": "SIEGE",
+    "label": "Président",
+    "labelOneMale": "président",
+    "labelOneFemale": "présidente",
+    "addition": "du :codejur"
+  },
+  {
+    "id": "PR",
+    "formation": "PARQUET",
+    "label": "Procureur de la République",
+    "labelOneMale": "procureur de la République",
+    "labelOneFemale": "procureure de la République"
+  },
+  {
+    "id": "PG",
+    "formation": "PARQUET",
+    "label": "Procureur Général",
+    "labelOneMale": "procureur général",
+    "labelOneFemale": "procureure générale"
+  },
+  {
+    "id": "PP",
+    "formation": "SIEGE",
+    "label": "Premier Président",
+    "labelOneMale": "premier président",
+    "labelOneFemale": "première présidente",
+    "addition": "de la :codejur"
+  },
+  {
+    "id": "1PC",
+    "formation": "SIEGE",
+    "label": "Premier Président de Chambre",
+    "labelOneMale": "premier président de chambre",
+    "labelOneFemale": "première présidente de chambre",
+    "addition": "à la :codejur"
+  },
+  {
+    "id": "PC",
+    "formation": "SIEGE",
+    "label": "Président de Chambre",
+    "labelOneMale": "président de chambre",
+    "labelOneFemale": "présidente de chambre",
+    "addition": "à la :codejur"
+  },
+  {
+    "id": "PCACC",
+    "formation": "SIEGE",
+    "label": "Président de la Chambre d'Accusation"
+  },
+  {
+    "id": "PCINS",
+    "formation": "SIEGE",
+    "label": "Président de la Chambre de l'Instruction",
+    "labelOneMale": "président de la chambre de l'instruction",
+    "labelOneFemale": "présidente de la chambre de l'instruction",
+    "addition": "à la :codejur"
+  },
+  {
+    "id": "CSG",
+    "formation": "SIEGE",
+    "label": "Conseiller chargé d'un Secrétariat Général",
+    "labelOneMale": "conseiller chargé du secrétariat général",
+    "labelOneFemale": "conseillère chargée du secrétariat général",
+    "addition": "de la :codejur"
+  },
+  {
+    "id": "MSGPP",
+    "formation": "SIEGE",
+    "label": "Magistrat chargé d'un Secrétariat Général (siège)",
+    "labelOneMale": "magistrat chargé du secrétariat général de la première présidence",
+    "labelOneFemale": "magistrate chargée du secrétariat général de la première présidence",
+    "addition": "à la Cour de cassation"
+  },
+  {
+    "id": "SGP",
+    "formation": "SIEGE",
+    "label": "Substitut chargé du secrétariat général de la Présidence"
+  },
+  {
+    "id": "SGPP",
+    "formation": "SIEGE",
+    "label": "Substitut chargé du secrétariat général de la Première Présidence"
+  },
+  {
+    "id": "VPSG",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé d'un Secrétariat Général",
+    "labelOneMale": "vice-président chargé du secrétariat général",
+    "labelOneFemale": "vice-présidente chargée du secrétariat général",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VP",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président",
+    "labelOneMale": "premier vice-président",
+    "labelOneFemale": "première vice-présidente",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPCP",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé des fonctions de juge des contentieux de la protection",
+    "labelOneMale": "premier vice-président chargé des fonctions de juge des contentieux de la protection",
+    "labelOneFemale": "première vice-présidente chargée des fonctions de juge des contentieux de la protection",
+    "addition": "affecté au :codejur"
+  },
+  {
+    "id": "1VPTI",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé du service du Tribunal d'Instance",
+    "labelOneMale": "premier vice-président chargé du service",
+    "labelOneFemale": "première vice-présidente chargée du service",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPE",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé des fonctions de Juge des Enfants",
+    "labelOneMale": "premier vice-président chargé des fonctions de juge des enfants",
+    "labelOneFemale": "première vice-présidente chargée des fonctions de juge des enfants",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPI",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé des fonctions de Juge d'Instruction",
+    "labelOneMale": "premier vice-président chargé de l'instruction",
+    "labelOneFemale": "première vice-présidente chargée de l'instruction",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPAP",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé des fonctions de Juge de l' Application des Peines",
+    "labelOneMale": "premier vice-président chargé des fonctions de l'application des peines",
+    "labelOneFemale": "première vice-présidente chargée des fonctions de l'application des peines",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPLD",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président chargé des fonctions de Juge des Libertés et de la Détention",
+    "labelOneMale": "premier vice-président chargé des fonctions de juge des libertés et de la détention",
+    "labelOneFemale": "première vice-présidente chargée des fonctions de juge des libertés et de la détention",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1VPA",
+    "formation": "SIEGE",
+    "label": "Premier Vice-Président Adjoint",
+    "labelOneMale": "premier vice-président adjoint",
+    "labelOneFemale": "première vice-présidente adjointe",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "CR",
+    "formation": "SIEGE",
+    "label": "Conseiller Référendaire",
+    "labelOneMale": "conseiller référendaire",
+    "labelOneFemale": "conseillère référendaire",
+    "addition": "à la Cour de cassation"
+  },
+  {
+    "id": "C",
+    "formation": "SIEGE",
+    "label": "Conseiller",
+    "labelOneMale": "conseiller",
+    "labelOneFemale": "conseillère",
+    "addition": "à la :codejur"
+  },
+  {
+    "id": "C SE",
+    "formation": "SIEGE",
+    "label": "Conseiller - Service extraordinaire",
+    "labelOneMale": "conseiller - service extraordinaire",
+    "labelOneFemale": "conseillère - service extraordinaire",
+    "addition": "à la :codejur"
+  },
+  {
+    "id": "VP",
+    "formation": "SIEGE",
+    "label": "Vice-Président",
+    "labelOneMale": "vice-président",
+    "labelOneFemale": "vice-présidente",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "VPTI",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé du service du Tribunal d'Instance",
+    "labelOneMale": "vice-président:arrdt chargé du service",
+    "labelOneFemale": "vice-présidente:arrdt chargée du service",
+    "addition": "du :codejur"
+  },
+  {
+    "id": "VPSEC",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé du service de la section"
+  },
+  {
+    "id": "1JTI",
+    "formation": "SIEGE",
+    "label": "Premier Juge chargé du service du Tribunal d'Instance"
+  },
+  {
+    "id": "VPCP",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé des fonctions de juge des contentieux de la protection",
+    "labelOneMale": "vice-président chargé des fonctions de juge des contentieux de la protection",
+    "labelOneFemale": "vice-présidente chargée des fonctions de juge des contentieux de la protection",
+    "addition": "affecté au :codejur"
+  },
+  {
+    "id": "VPTP",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé du service du Tribunal de Police"
+  },
+  {
+    "id": "VPE",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé des fonctions de Juge des Enfants",
+    "labelOneMale": "vice-président chargé des fonctions de juge des enfants",
+    "labelOneFemale": "vice-présidente chargée des fonctions de juge des enfants",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "VPI",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé des fonctions de Juge d'Instruction",
+    "labelOneMale": "vice-président chargé de l'instruction",
+    "labelOneFemale": "vice-présidente chargée de l'instruction",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "VPAP",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé des fonctions de Juge de l'Application des Peines",
+    "labelOneMale": "vice-président chargé de l'application des peines",
+    "labelOneFemale": "vice-présidente chargée de l'application des peines",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "VPLD",
+    "formation": "SIEGE",
+    "label": "Vice-Président chargé des fonctions de Juge des Libertés et de la Détention",
+    "labelOneMale": "vice-président chargé des fonctions de juge des libertés et de la détention",
+    "labelOneFemale": "vice-présidente chargée des fonctions de juge des libertés et de la détention",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1J",
+    "formation": "SIEGE",
+    "label": "Premier Juge",
+    "labelOneMale": "premier juge",
+    "labelOneFemale": "première juge",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1JE",
+    "formation": "SIEGE",
+    "label": "Premier Juge des Enfants",
+    "labelOneMale": "premier juge des enfants",
+    "labelOneFemale": "première juge des enfants",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1JI",
+    "formation": "SIEGE",
+    "label": "Premier Juge d'Instruction",
+    "labelOneMale": "premier juge d'instruction",
+    "labelOneFemale": "première juge d'instruction",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "1JAP",
+    "formation": "SIEGE",
+    "label": "Premier Juge de l'Application des Peines"
+  },
+  {
+    "id": "1JP",
+    "formation": "SIEGE",
+    "label": "Premier Juge placé"
+  },
+  {
+    "id": "VPP",
+    "formation": "SIEGE",
+    "label": "Vice-Président placé",
+    "labelOneMale": "vice-président placé auprès du premier président",
+    "labelOneFemale": "vice-présidente placée auprès du premier président",
+    "addition": "de la :codejur"
+  },
+  {
+    "id": "J",
+    "formation": "SIEGE",
+    "label": "Juge",
+    "labelOneMale": "juge",
+    "labelOneFemale": "juge",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "JTI",
+    "formation": "SIEGE",
+    "label": "Juge chargé du service du Tribunal d'Instance",
+    "labelOneMale": "juge:arrdt chargé du service",
+    "labelOneFemale": "juge:arrdt chargée du service",
+    "addition": "du :codejur"
+  },
+  {
+    "id": "JCP",
+    "formation": "SIEGE",
+    "label": "Juge des contentieux de la protection",
+    "labelOneMale": "juge des contentieux de la protection",
+    "labelOneFemale": "juge des contentieux de la protection",
+    "addition": "affecté au :codejur"
+  },
+  {
+    "id": "JSEC",
+    "formation": "SIEGE",
+    "label": "Juge chargé de la section"
+  },
+  {
+    "id": "JTP",
+    "formation": "SIEGE",
+    "label": "Juge chargé du service du Tribunal de Police"
+  },
+  {
+    "id": "JE",
+    "formation": "SIEGE",
+    "label": "Juge des Enfants",
+    "labelOneMale": "juge des enfants",
+    "labelOneFemale": "juge des enfants",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "JI",
+    "formation": "SIEGE",
+    "label": "Juge d'Instruction",
+    "labelOneMale": "juge d'instruction",
+    "labelOneFemale": "juge d'instruction",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "JAP",
+    "formation": "SIEGE",
+    "label": "Juge d'Application des Peines",
+    "labelOneMale": "juge de l'application des peines",
+    "labelOneFemale": "juge de l'application des peines",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "JLF",
+    "formation": "SIEGE",
+    "label": "Juge du Livre Foncier",
+    "labelOneMale": "juge du livre foncier",
+    "labelOneFemale": "juge du livre foncier",
+    "addition": "au :codejur"
+  },
+  {
+    "id": "JP",
+    "formation": "SIEGE",
+    "label": "Juge Placé auprès du Premier Président de la Cour d'Appel",
+    "labelOneMale": "juge placé auprès du premier président",
+    "labelOneFemale": "juge placée auprès du premier président",
+    "addition": "de la :codejur"
+  },
+  {
+    "id": "JPROX",
+    "formation": "SIEGE",
+    "label": "Juge de proximité"
+  },
+  {
+    "id": "1AG",
+    "formation": "PARQUET",
+    "label": "Premier Avocat Général",
+    "labelOneMale": "premier avocat général",
+    "labelOneFemale": "première avocate générale",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "AG",
+    "formation": "PARQUET",
+    "label": "Avocat Général",
+    "labelOneMale": "avocat général",
+    "labelOneFemale": "avocate générale",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "AG SE",
+    "formation": "PARQUET",
+    "label": "Avocat Général - Service extraordinaire",
+    "labelOneMale": "avocat général - service extraordinaire",
+    "labelOneFemale": "avocate générale - service extraordinaire",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "AGR",
+    "formation": "PARQUET",
+    "label": "Avocat Général Référendaire",
+    "labelOneMale": "avocat général référendaire",
+    "labelOneFemale": "avocate générale référendaire",
+    "addition": "à la Cour de cassation"
+  },
+  {
+    "id": "SGPG",
+    "formation": "PARQUET",
+    "label": "Substitut Général chargé du secrétariat général du Parquet Général"
+  },
+  {
+    "id": "SGSG",
+    "formation": "PARQUET",
+    "label": "Substitut Général chargé d'un Secrétariat Général",
+    "labelOneMale": "substitut général chargé du secrétariat général",
+    "labelOneFemale": "substitute générale chargée du secrétariat général",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "MSGPG",
+    "formation": "PARQUET",
+    "label": "Magistrat chargé d'un Secrétariat Général (parquet)",
+    "labelOneMale": "magistrat chargé du secrétariat général du parquet général",
+    "labelOneFemale": "magistrate chargée du secrétariat général du parquet général",
+    "addition": "à la Cour de cassation"
+  },
+  {
+    "id": "SGPR",
+    "formation": "PARQUET",
+    "label": "Substitut chargé du secrétariat général du Parquet"
+  },
+  {
+    "id": "VPRSG",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur chargé d'un Secrétariat Général",
+    "labelOneMale": "vice-procureur de la République chargé du secrétariat général",
+    "labelOneFemale": "vice-procureure de la République chargée du secrétariat général",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PRACO",
+    "formation": "PARQUET",
+    "label": "Procureur de la République anti-criminalité organisée",
+    "labelOneMale": "procureur de la République anti-criminalité organisée",
+    "labelOneFemale": "procureure de la République anti-criminalité organisée",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PRACOADJ",
+    "formation": "PARQUET",
+    "label": "Procureur de la République anti-criminalité organisée adjoint"
+  },
+  {
+    "id": "PRAT",
+    "formation": "PARQUET",
+    "label": "Procureur de la République antiterroriste",
+    "labelOneMale": "procureur de la République antiterroriste",
+    "labelOneFemale": "procureure de la République antiterroriste",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PR F",
+    "formation": "PARQUET",
+    "label": "Procureur de la République Financier",
+    "labelOneMale": "procureur de la République financier",
+    "labelOneFemale": "procureure de la République financier",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1PRA",
+    "formation": "PARQUET",
+    "label": "Premier Procureur de la République adjoint",
+    "labelOneMale": "premier procureur de la République adjoint",
+    "labelOneFemale": "première procureure de la République adjointe",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PRA",
+    "formation": "PARQUET",
+    "label": "Procureur de la République adjoint",
+    "labelOneMale": "procureur de la République adjoint",
+    "labelOneFemale": "procureure de la République adjointe",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PRATA",
+    "formation": "PARQUET",
+    "label": "Procureur de la République antiterroriste adjoint",
+    "labelOneMale": "procureur de la République antiterroriste adjoint",
+    "labelOneFemale": "procureure de la République antiterroriste adjointe",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "PRA F",
+    "formation": "PARQUET",
+    "label": "Procureur de la République Financier adjoint",
+    "labelOneMale": "procureur de la République financier adjoint",
+    "labelOneFemale": "procureure de la République financier adjointe",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1VPR",
+    "formation": "PARQUET",
+    "label": "Premier Vice-Procureur",
+    "labelOneMale": "premier vice-procureur de la République",
+    "labelOneFemale": "première vice-procureure de la République",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1VPRACO",
+    "formation": "PARQUET",
+    "label": "Premier Vice-Procureur de la République anti-criminalité organisée",
+    "labelOneMale": "premier vice-procureur de la République anti-criminalité organisée",
+    "labelOneFemale": "première vice-procureure de la République anti-criminalité organisée",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1VPRAT",
+    "formation": "PARQUET",
+    "label": "Premier Vice-Procureur de la République antiterroriste",
+    "labelOneMale": "premier vice-procureur de la République antiterroriste",
+    "labelOneFemale": "première vice-procureure de la République antiterroriste",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1VPR F",
+    "formation": "PARQUET",
+    "label": "Premier Vice-Procureur Financier",
+    "labelOneMale": "premier vice-procureur de la République financier",
+    "labelOneFemale": "première vice-procureure de la République financier",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPRSGACO",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur chargé du secrétariat général anti-criminalité organisée",
+    "labelOneMale": "vice-procureur de la République chargé du secrétariat général anti-criminalité organisée",
+    "labelOneFemale": "vice-procureure de la République chargée du secrétariat général anti-criminalité organisée",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPRSG AT",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur chargé du secrétariat général antiterroriste",
+    "labelOneMale": "vice-procureur de la République chargé du secrétariat général antiterroriste",
+    "labelOneFemale": "vice-procureure de la République chargée du secrétariat général antiterroriste",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPRSG F",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur chargé d'un Secrétariat Général Financier",
+    "labelOneMale": "vice-procureur de la République chargé du secrétariat général financier",
+    "labelOneFemale": "vice-procureure de la République chargée du secrétariat général financier",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPR",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur",
+    "labelOneMale": "vice-procureur de la République",
+    "labelOneFemale": "vice-procureure de la République",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPRACO",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur de la République anti-criminalité organisée",
+    "labelOneMale": "vice-procureur de la République anti-criminalité organisée",
+    "labelOneFemale": "vice-procureure de la République anti-criminalité organisée",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPRAT",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur de la République antiterroriste",
+    "labelOneMale": "vice-procureur de la République antiterroriste",
+    "labelOneFemale": "vice-procureure de la République antiterroriste",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "VPR F",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur Financier",
+    "labelOneMale": "vice-procureur de la République financier",
+    "labelOneFemale": "vice-procureure de la République financier",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1S",
+    "formation": "PARQUET",
+    "label": "Premier Substitut",
+    "labelOneMale": "premier substitut",
+    "labelOneFemale": "première substitute",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "1SP",
+    "formation": "PARQUET",
+    "label": "Premier Substitut placé"
+  },
+  {
+    "id": "VPRP",
+    "formation": "PARQUET",
+    "label": "Vice-Procureur placé",
+    "labelOneMale": "vice-procureur de la République placé auprès du procureur général",
+    "labelOneFemale": "vice-procureure de la République placée auprès du procureur général",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "S",
+    "formation": "PARQUET",
+    "label": "Substitut",
+    "labelOneMale": "substitut du procureur de la République",
+    "labelOneFemale": "substitute du procureur de la République",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "SACO",
+    "formation": "PARQUET",
+    "label": "Substitut anti-criminalité organisée",
+    "labelOneMale": "substitut du procureur de la République anti-criminalité organisée",
+    "labelOneFemale": "substitute du procureur de la République anti-criminalité organisée",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "SAT",
+    "formation": "PARQUET",
+    "label": "Substitut antiterroriste",
+    "labelOneMale": "substitut du procureur de la République antiterroriste",
+    "labelOneFemale": "substitute du procureur de la République antiterroriste",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "S F",
+    "formation": "PARQUET",
+    "label": "Substitut Financier",
+    "labelOneMale": "substitut du procureur de la République financier",
+    "labelOneFemale": "substitute du procureur de la République financier",
+    "addition": "près le :codejur"
+  },
+  {
+    "id": "SP",
+    "formation": "PARQUET",
+    "label": "Substitut placé auprès du Procureur Général de la Cour d'Appel",
+    "labelOneMale": "substitut placé auprès du procureur général",
+    "labelOneFemale": "substitute placée auprès du procureur général",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "SG",
+    "formation": "PARQUET",
+    "label": "Substitut du Procureur Général",
+    "labelOneMale": "substitut du procureur général",
+    "labelOneFemale": "substitute du procureur général",
+    "addition": "près la :codejur"
+  },
+  {
+    "id": "IGSJ",
+    "formation": "PARQUET",
+    "label": "Inspecteur Général des services judiciaires",
+    "labelOneMale": "Inspecteur général des services judiciaires",
+    "labelOneFemale": "Inspectrice générale des services judiciaires"
+  },
+  {
+    "id": "IG-CIGJ",
+    "formation": "PARQUET",
+    "label": "Inspecteur général, chef de l'inspection générale de la justice",
+    "labelOneMale": "inspecteur général, chef de l'inspection générale de la justice",
+    "labelOneFemale": "inspectrice générale, chèfe de l'inspection générale de la justice"
+  },
+  {
+    "id": "IGA",
+    "formation": "PARQUET",
+    "label": "Inspecteur Général adjoint des services judiciaires",
+    "labelOneMale": "inspecteur général adjoint des services judiciaires",
+    "labelOneFemale": "inspectrice générale adjointe des services judiciaires"
+  },
+  {
+    "id": "IGJ",
+    "formation": "PARQUET",
+    "label": "Inspecteur général de la justice",
+    "labelOneMale": "inspecteur général de la justice",
+    "labelOneFemale": "inspectrice générale de la justice"
+  },
+  {
+    "id": "ISJ",
+    "formation": "PARQUET",
+    "label": "Inspecteur des Services Judiciaires",
+    "labelOneMale": "inspecteur des services judiciaires",
+    "labelOneFemale": "inspectrice des services judiciaires"
+  },
+  {
+    "id": "IJ",
+    "formation": "PARQUET",
+    "label": "Inspecteur de la justice",
+    "labelOneMale": "inspecteur de la justice",
+    "labelOneFemale": "inspectrice de la justice"
+  },
+  {
+    "id": "1SMACJ",
+    "formation": "PARQUET",
+    "label": "Premier Substitut à l'Administration Centrale de la Justice",
+    "labelOneMale": "premier substitut à l'administration centrale du ministère de la justice",
+    "labelOneFemale": "première substitute à l'administration centrale du ministère de la justice"
+  },
+  {
+    "id": "MACJ",
+    "formation": "PARQUET",
+    "label": "Substitut à l'Administration Centrale de la Justice",
+    "labelOneMale": "substitut à l'administration centrale du ministère de la justice",
+    "labelOneFemale": "substitute à l'administration centrale du ministère de la justice"
+  },
+  {
+    "id": "DENG",
+    "formation": "PARQUET",
+    "label": "Directeur de l'Ecole Nationale des Greffes",
+    "labelOneMale": "directeur de l'école nationale des greffes",
+    "labelOneFemale": "directrice de l'école nationale des greffes"
+  },
+  {
+    "id": "AENG",
+    "formation": "PARQUET",
+    "label": "Directeur-adjoint de l'E.N.G., Directeur de la formation initiale et de la recherche",
+    "labelOneMale": "directeur-adjoint de l'école nationale des greffes",
+    "labelOneFemale": "directrice-adjointe de l'école nationale des greffes"
+  },
+  {
+    "id": "ACC",
+    "formation": "SIEGE",
+    "label": "Auditeur à la Cour de Cassation",
+    "labelOneMale": "auditeur",
+    "labelOneFemale": "auditeur",
+    "addition": "à la Cour de cassation"
+  },
+  {
+    "id": "SDD",
+    "formation": "PARQUET",
+    "label": "Substitut - Service de documentation et d'études"
+  }
+]

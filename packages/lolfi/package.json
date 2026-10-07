@@ -11,6 +11,7 @@
   "scripts": {
     "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
+    "generate:fictitious-archive": "node --require @swc-node/register fictitious-archive/generate-fictitious-archive.ts",
     "lint:check": "oxlint",
     "lint": "oxlint --fix",
     "test": "node --test --require @swc-node/register test/*.test.ts"

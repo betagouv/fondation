@@ -1,0 +1,980 @@
+[
+  {
+    "functionId": "VPR",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 168
+  },
+  {
+    "functionId": "VPLD",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 166
+  },
+  {
+    "functionId": "VP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 165
+  },
+  {
+    "functionId": "S",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 165
+  },
+  {
+    "functionId": "J",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 164
+  },
+  {
+    "functionId": "JAP",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 163
+  },
+  {
+    "functionId": "VPCP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 160
+  },
+  {
+    "functionId": "JI",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 159
+  },
+  {
+    "functionId": "JCP",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 156
+  },
+  {
+    "functionId": "VPAP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 155
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 155
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 153
+  },
+  {
+    "functionId": "JE",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 151
+  },
+  {
+    "functionId": "VPE",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 146
+  },
+  {
+    "functionId": "VPI",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 133
+  },
+  {
+    "functionId": "VPCP",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 110
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 108
+  },
+  {
+    "functionId": "JCP",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 108
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 106
+  },
+  {
+    "functionId": "PRA",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 67
+  },
+  {
+    "functionId": "1VP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 65
+  },
+  {
+    "functionId": "PC",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 53
+  },
+  {
+    "functionId": "C",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 48
+  },
+  {
+    "functionId": "AG",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 41
+  },
+  {
+    "functionId": "PCINS",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 39
+  },
+  {
+    "functionId": "SG",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 37
+  },
+  {
+    "functionId": "SGSG",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 36
+  },
+  {
+    "functionId": "VPP",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 36
+  },
+  {
+    "functionId": "PG",
+    "jurisdictionType": "CA",
+    "grade": "G3sup",
+    "count": 36
+  },
+  {
+    "functionId": "PP",
+    "jurisdictionType": "CA",
+    "grade": "G3sup",
+    "count": 36
+  },
+  {
+    "functionId": "VPRP",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 36
+  },
+  {
+    "functionId": "C",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 36
+  },
+  {
+    "functionId": "SP",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 36
+  },
+  {
+    "functionId": "CSG",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 36
+  },
+  {
+    "functionId": "JP",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 35
+  },
+  {
+    "functionId": "SG",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 32
+  },
+  {
+    "functionId": "1VPCP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 18
+  },
+  {
+    "functionId": "1SMACJ",
+    "jurisdictionType": "AC",
+    "grade": "G2",
+    "count": 18
+  },
+  {
+    "functionId": "1VP",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 17
+  },
+  {
+    "functionId": "1VPAP",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 16
+  },
+  {
+    "functionId": "1VPE",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 14
+  },
+  {
+    "functionId": "MACJ",
+    "jurisdictionType": "AC",
+    "grade": "G1",
+    "count": 14
+  },
+  {
+    "functionId": "1VPAP",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 14
+  },
+  {
+    "functionId": "PRA",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 14
+  },
+  {
+    "functionId": "1VPI",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 13
+  },
+  {
+    "functionId": "1VPI",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 13
+  },
+  {
+    "functionId": "1VPR",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 12
+  },
+  {
+    "functionId": "1PC",
+    "jurisdictionType": "CA",
+    "grade": "G3sup",
+    "count": 12
+  },
+  {
+    "functionId": "VPRSG",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 12
+  },
+  {
+    "functionId": "1VPA",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 12
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TJ",
+    "grade": "G3sup",
+    "count": 12
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TJ",
+    "grade": "G3sup",
+    "count": 12
+  },
+  {
+    "functionId": "1VPE",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 12
+  },
+  {
+    "functionId": "VPSG",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 12
+  },
+  {
+    "functionId": "1VPCP",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 10
+  },
+  {
+    "functionId": "CSG",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 10
+  },
+  {
+    "functionId": "1VPLD",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 7
+  },
+  {
+    "functionId": "JLF",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 7
+  },
+  {
+    "functionId": "C",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 6
+  },
+  {
+    "functionId": "J",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 6
+  },
+  {
+    "functionId": "PG",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 6
+  },
+  {
+    "functionId": "VP",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 6
+  },
+  {
+    "functionId": "SGSG",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 5
+  },
+  {
+    "functionId": "VPSEC",
+    "jurisdictionType": "SEC",
+    "grade": "G2",
+    "count": 5
+  },
+  {
+    "functionId": "JLF",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 4
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 4
+  },
+  {
+    "functionId": "1AG",
+    "jurisdictionType": "CA",
+    "grade": "G3sup",
+    "count": 4
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TPI",
+    "grade": "G3",
+    "count": 4
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TPI",
+    "grade": "G3",
+    "count": 3
+  },
+  {
+    "functionId": "JI",
+    "jurisdictionType": "TPI",
+    "grade": "G1",
+    "count": 3
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 3
+  },
+  {
+    "functionId": "SG",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 3
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 3
+  },
+  {
+    "functionId": "1VPCP",
+    "jurisdictionType": "TPR",
+    "grade": "G3",
+    "count": 3
+  },
+  {
+    "functionId": "VPI",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 3
+  },
+  {
+    "functionId": "SAT",
+    "jurisdictionType": "PNA",
+    "grade": "G1",
+    "count": 3
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 3
+  },
+  {
+    "functionId": "JAP",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "VPR",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "JAP",
+    "jurisdictionType": "TPI",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "PG",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "CSG",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 2
+  },
+  {
+    "functionId": "1VP",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "S",
+    "jurisdictionType": "TPI",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "VPE",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "VPR",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "PRA F",
+    "jurisdictionType": "PNF",
+    "grade": "G3",
+    "count": 2
+  },
+  {
+    "functionId": "VPRACO",
+    "jurisdictionType": "PNAC",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "J",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 2
+  },
+  {
+    "functionId": "PRACOADJ",
+    "jurisdictionType": "PNAC",
+    "grade": "G3",
+    "count": 2
+  },
+  {
+    "functionId": "PRA",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "VPR F",
+    "jurisdictionType": "PNF",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "JE",
+    "jurisdictionType": "TPI",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "VPAP",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "VP",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "S",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "1VPRACO",
+    "jurisdictionType": "PNAC",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "VPLD",
+    "jurisdictionType": "TPI",
+    "grade": "G2",
+    "count": 2
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 2
+  },
+  {
+    "functionId": "JSEC",
+    "jurisdictionType": "SEC",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "J",
+    "jurisdictionType": "TPI",
+    "grade": "G1",
+    "count": 2
+  },
+  {
+    "functionId": "JCP",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "SGSG",
+    "jurisdictionType": "CA",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "1VPRAT",
+    "jurisdictionType": "PNA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPRAT",
+    "jurisdictionType": "PNA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "IJ",
+    "jurisdictionType": "IGSJ",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPAP",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "AGR",
+    "jurisdictionType": "CC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "SGPR",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "IG-CIGJ",
+    "jurisdictionType": "IGSJ",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "PRAT",
+    "jurisdictionType": "PNA",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "1SMACJ",
+    "jurisdictionType": "AC",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "ACC",
+    "jurisdictionType": "CC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "IGJ",
+    "jurisdictionType": "IGSJ",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "VPAP",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPI",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TSA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "TSA",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "CA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "1VPR F",
+    "jurisdictionType": "PNF",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "ACC",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "MSGPP",
+    "jurisdictionType": "CC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TSA",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "VPRSG F",
+    "jurisdictionType": "PNF",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "SACO",
+    "jurisdictionType": "PNAC",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "1AG",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "ACC",
+    "jurisdictionType": "CC",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "VPI",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPRSG AT",
+    "jurisdictionType": "PNA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "JI",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "MACJ",
+    "jurisdictionType": "AC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PC",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "PRATA",
+    "jurisdictionType": "PNA",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "C",
+    "jurisdictionType": "CHA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "C",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "PRACO",
+    "jurisdictionType": "PNAC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "S F",
+    "jurisdictionType": "PNF",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "PR",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "AG",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "1VPCP",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "P",
+    "jurisdictionType": "TSA",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PP",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "SGPG",
+    "jurisdictionType": "CA",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "AG",
+    "jurisdictionType": "CHA",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "J",
+    "jurisdictionType": "SEC",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "AG SE",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "JE",
+    "jurisdictionType": "TPR",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "1VP",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VP",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "CR",
+    "jurisdictionType": "CC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPE",
+    "jurisdictionType": "TPR",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "MHFJS",
+    "jurisdictionType": "TJ",
+    "grade": "G1",
+    "count": 1
+  },
+  {
+    "functionId": "MSGPG",
+    "jurisdictionType": "CC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "VPR",
+    "jurisdictionType": "SEC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PG",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "C SE",
+    "jurisdictionType": "CC",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "VPRSGACO",
+    "jurisdictionType": "PNAC",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PR F",
+    "jurisdictionType": "PNF",
+    "grade": "G3sup",
+    "count": 1
+  },
+  {
+    "functionId": "1VPA",
+    "jurisdictionType": "TJ",
+    "grade": "G3",
+    "count": 1
+  },
+  {
+    "functionId": "1VPLD",
+    "jurisdictionType": "TJ",
+    "grade": "G2",
+    "count": 1
+  },
+  {
+    "functionId": "PC",
+    "jurisdictionType": "CHA",
+    "grade": "G3",
+    "count": 1
+  }
+]
