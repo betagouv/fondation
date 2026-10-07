@@ -1,5 +1,3 @@
-import { inspect } from 'node:util';
-
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
@@ -19,6 +17,7 @@ import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
 import { Mattermost } from 'src/modules/framework/mattermost';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
@@ -190,7 +189,7 @@ export class LolfiFilesIngestor {
     if (!error) return;
 
     await this.db.tx.ingestionJobError
-      .create({ data: { jobId, error: inspect(error) } })
+      .create({ data: { jobId, error: describeErrorWithoutSecrets(error) } })
       .catch((createError) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, createError);
       });

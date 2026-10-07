@@ -24,8 +24,10 @@ function recordToXml(record: Record<string, string | number | null | undefined>)
 }
 
 /* LOLFI pads the jurisdiction type to 4 characters: "TJ  LYON" but "TPR ABBEVILLE" */
-function cityOf(jurisdictionId: string): string | undefined {
-  return jurisdictionId.match(/^\S+\s+(.+)$/)?.[1];
+export function cityOf(jurisdictionId: string): string | undefined {
+  const typeEnd = jurisdictionId.indexOf(' ');
+  if (typeEnd === -1) return undefined;
+  return jurisdictionId.slice(typeEnd).trim() || undefined;
 }
 
 function escapeXml(text: string): string {

@@ -6,6 +6,7 @@ import {
   type LolfiGradeEnum,
   type LolfiPosition,
 } from '../src';
+import { cityOf } from '../src/generate-lolfi-files';
 
 import { type LolfiReferential } from './lolfi-referential';
 import { type Civilite } from './magistrat-identity';
@@ -140,7 +141,7 @@ export function drawMagistratCareer(
     );
     const jurisdictionType = COURT_OF_APPEAL_FUNCTIONS.includes(code) ? 'CA' : 'TJ';
     const jurisdiction = random.pick(referential.jurisdictionsOf(jurisdictionType));
-    const title = `${code} ${cityOf(jurisdiction.id)}`;
+    const title = `${code} ${cityOf(jurisdiction.id) ?? jurisdiction.id}`;
     steps.push(biographyStep(title, gradeMention(date), subDays(date, random.int(20, 60)), date));
   }
 
@@ -153,7 +154,7 @@ export function drawMagistratCareer(
   } else if (position.jurisdiction.id === referential.noAssignment.id) {
     steps.push(`- ${magistrat.administrativePosition.label} ${toLolfiDate(installation)}.`);
   } else {
-    const title = `${position.function!.id} ${cityOf(position.jurisdiction.id)}`;
+    const title = `${position.function!.id} ${cityOf(position.jurisdiction.id) ?? position.jurisdiction.id}`;
     steps.push(biographyStep(title, gradeMention(installation), nomination, installation));
   }
 
@@ -188,10 +189,6 @@ function biographyStep(
 ): string {
   const grade = gradeMention ? ` (${gradeMention}),` : '';
   return `- ${title}${grade} ${toLolfiDate(nomination)} (ins.${toLolfiDate(installation)}).`;
-}
-
-function cityOf(jurisdictionId: string): string {
-  return jurisdictionId.match(/^\S+\s+(.+)$/)?.[1] ?? jurisdictionId;
 }
 
 function otherFormation(formation: LolfiFormationEnum): LolfiFormationEnum {

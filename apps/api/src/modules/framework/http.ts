@@ -8,6 +8,11 @@ import { catchError, tap, throwError, type Observable } from 'rxjs';
 
 const INTERNAL_HTTP_SERVICE = Symbol();
 
+// Logs and Sentry spans never get the query, nor the secret a Mattermost webhook carries in its path
+export function loggableUrl(url: string | undefined): string | undefined {
+  return url?.split('?')[0]?.replace(/\/hooks\/[^/]+/, '/hooks/***');
+}
+
 /** for some reason, Sentry instrumentation doesn't trace the http.client stack */
 @Injectable()
 class InstrumentedHttpService implements Required<HttpService> {
@@ -87,7 +92,7 @@ class InstrumentedHttpService implements Required<HttpService> {
 
   request<T = any>(config: AxiosRequestConfig): Observable<AxiosResponse<T>> {
     const { method, url } = config;
-    const safeUrl = url?.split('?')[0] ?? url;
+    const safeUrl = loggableUrl(url);
     this.logger.debug(`${method} ${safeUrl}`);
 
     return Sentry.startSpan(

@@ -1,5 +1,4 @@
 import { pipeline } from 'node:stream/promises';
-import { inspect } from 'node:util';
 
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
@@ -11,6 +10,7 @@ import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 import { ResultBuilder } from 'src/utils/result';
 
 @Injectable()
@@ -101,7 +101,7 @@ export class JobFileIngestor {
       return this.failJobFile({
         file,
         jobId: job.id,
-        errors: [{ error: `Erreur technique: ${inspect(e)}` }],
+        errors: [{ error: `Erreur technique: ${describeErrorWithoutSecrets(e)}` }],
       });
     } finally {
       const duration = start! ? (performance.now() - start).toFixed(2) : null;
