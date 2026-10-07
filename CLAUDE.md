@@ -184,7 +184,7 @@ export class UsersModule {}
 - Un finder prend des identifiants, pas des données déjà chargées : les jointures se font en SQL, pas en TypeScript après coup
 - Préférer TypedSQL à un `$queryRaw` écrit dans le code, sauf quand la structure de la requête varie à l'exécution
 - Ne jamais rapprocher des données par leur texte (`ILIKE`) avec une table de référence : passer par les clés étrangères
-- Un module lit les données d'un autre module par une méthode `internal…` du service de ce module. Seuls le module `users` et les tables de référence Lolfi (`data_administration_context`) peuvent être lus directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
+- Un module lit les données d'un autre module par une méthode `internal…` du service de ce module. Seuls le module `users` et les tables de référence LOLFI (`data_administration_context`) peuvent être lus directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
 - Un endpoint sans `@HasRole` est public : le middleware d'authentification ne fait qu'attacher l'utilisateur à la requête. L'autorisation se fait par rôle, jamais par l'URL
 
 ### DTO

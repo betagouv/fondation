@@ -1,5 +1,5 @@
 ---
-title: Les tables Lolfi se lisent directement depuis tous les modules, comme `users`
+title: Les tables LOLFI se lisent directement depuis tous les modules, comme `users`
 author:
   - github.com/kornifex
 date: 2026-10-07
@@ -7,7 +7,7 @@ date: 2026-10-07
 
 ## En une phrase
 
-Les tables de `data_administration_context` remplies par l'ingestion Lolfi se lisent
+Les tables de `data_administration_context` remplies par l'ingestion LOLFI se lisent
 directement en SQL depuis n'importe quel module, sans passer par une API.
 
 ## Contexte
@@ -16,19 +16,19 @@ L'ADR du 20/07/2026 pose qu'un module lit les données d'un autre module par son
 une seule exception : la table `users`.
 
 Les tables de `data_administration_context` (`candidate`, `position`, `function`,
-`jurisdictions`…) sont écrites par le seul module ingest, à chaque import Lolfi. Ce module n'a
+`jurisdictions`…) sont écrites par le seul module ingest, à chaque import LOLFI. Ce module n'a
 pas d'API de lecture, et ces tables n'appartiennent à aucun module métier : elles décrivent
-les postes, les juridictions et les candidatures telles que Lolfi les transmet.
+les postes, les juridictions et les candidatures telles que LOLFI les transmet.
 
 Plusieurs modules les lisaient déjà directement, et FON-550 en ajoute une : la fiche magistrat
-affiche le numéro de téléphone que Lolfi recopie sur chaque candidature.
+affiche le numéro de téléphone que LOLFI recopie sur chaque candidature.
 
 ## Décision
 
 - **Tous les modules peuvent lire directement les tables de `data_administration_context`**,
   comme la table `users`. La jointure reste en SQL.
 - **Seul le module ingest les écrit.** Une donnée saisie dans Fondation vit dans les tables du
-  module qui la possède, jamais dans celles de Lolfi, que chaque réingestion met à jour. Les
+  module qui la possède, jamais dans celles de LOLFI, que chaque réingestion met à jour. Les
   numéros saisis par le Secrétariat général vivent ainsi dans
   `nominations_context.magistrat_phone_number`.
 
