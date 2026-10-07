@@ -29,7 +29,7 @@ export class MagistratFilter implements NestInterceptor {
         throwError(() => {
           if (err instanceof InvalidPhoneNumber)
             return new BadRequestException({
-              validationError: `Le numéro doit compter de ${MIN_PHONE_NUMBER_DIGITS} à ${MAX_PHONE_NUMBER_DIGITS} chiffres, séparés au besoin par des espaces, des points ou des tirets`,
+              validationError: `Saisissez un numéro de ${MIN_PHONE_NUMBER_DIGITS} à ${MAX_PHONE_NUMBER_DIGITS} chiffres. Les espaces, points et tirets sont acceptés.`,
             });
           if (err instanceof InvalidPhoneNumberLabel)
             return new BadRequestException({
@@ -39,7 +39,7 @@ export class MagistratFilter implements NestInterceptor {
             return new ConflictException({ validationError: 'Ce numéro est déjà enregistré' });
           if (err instanceof TooManyPhoneNumbers)
             return new ConflictException({
-              validationError: `Ce magistrat a déjà ${MAX_PHONE_NUMBERS} numéros enregistrés`,
+              validationError: `${MAX_PHONE_NUMBERS} numéros au maximum par magistrat`,
             });
 
           if (err instanceof UnknownPhoneNumber) return new NotFoundException();

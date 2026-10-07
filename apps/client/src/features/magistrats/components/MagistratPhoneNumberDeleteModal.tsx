@@ -7,11 +7,12 @@ import { formatPhoneNumber } from '@/utils/string.utils';
 export function MagistratPhoneNumberDeleteModal(props: {
   hasFailed: boolean;
   isDeleting: boolean;
-  number: string;
+  magistratName: string;
   onClose: () => void;
   onClosed: () => void;
   onDelete: () => void;
   open: boolean;
+  phoneNumber: { label: string | null; number: string };
 }) {
   const { formatMessage } = useIntl();
 
@@ -35,12 +36,16 @@ export function MagistratPhoneNumberDeleteModal(props: {
       onClose={props.onClose}
       onClosed={props.onClosed}
       open={props.open}
-      title={formatMessage({ defaultMessage: 'Supprimer un numéro' })}
+      title={formatMessage({ defaultMessage: 'Supprimer le numéro' })}
     >
       <p className="fr-mb-0">
         <FormattedMessage
-          defaultMessage="Le numéro {number} sera définitivement supprimé."
-          values={{ number: formatPhoneNumber(props.number) }}
+          defaultMessage="Le numéro {number}{label, select, none {} other { ({label})}} de {name} sera définitivement supprimé."
+          values={{
+            label: props.phoneNumber.label ?? 'none',
+            name: props.magistratName,
+            number: formatPhoneNumber(props.phoneNumber.number),
+          }}
         />
       </p>
     </Modal>

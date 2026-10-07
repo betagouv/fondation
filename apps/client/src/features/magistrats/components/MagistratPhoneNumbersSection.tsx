@@ -5,6 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { formatPhoneNumber } from '@/utils/string.utils';
+import { useUser } from '@queries/auth.queries';
 import {
   type MagistratPhoneNumber,
   useAddMagistratPhoneNumberMutation,
@@ -27,7 +28,7 @@ type Editing = { open: boolean } & (
   | { action: 'UPDATE'; phoneNumber: SavedPhoneNumber }
 );
 
-export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
+export function MagistratPhoneNumbersSection(props: { magistratId: string; magistratName: string }) {
   const { formatMessage } = useIntl();
   const { data: phoneNumbers, isError, isLoading } = useMagistratPhoneNumbersQuery(props);
   const addPhoneNumber = useAddMagistratPhoneNumberMutation(props);
@@ -74,9 +75,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
             />
           ))
         ) : (
-          <MagistratInfoItem label={<FormattedMessage defaultMessage="Tél" />}>
-            <FormattedMessage defaultMessage="Aucun numéro connu" />
-          </MagistratInfoItem>
+          <MagistratInfoItem label={<FormattedMessage defaultMessage="Téléphone" />}>-</MagistratInfoItem>
         )}
       </MagistratInfoList>
 
@@ -86,7 +85,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
         priority="tertiary"
         size="small"
       >
-        <FormattedMessage defaultMessage="Ajouter un n° de téléphone" />
+        <FormattedMessage defaultMessage="Ajouter un numéro" />
       </Button>
 
       {editing?.action === 'ADD' ? (
@@ -98,7 +97,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
           onClosed={closed}
           onSave={(phoneNumber) => addPhoneNumber.mutate(phoneNumber, { onSuccess: close })}
           open={editing.open}
-          title={formatMessage({ defaultMessage: 'Ajouter un numéro' })}
+          title={formatMessage({ defaultMessage: 'Ajouter un numéro de téléphone' })}
         />
       ) : null}
 
@@ -118,7 +117,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
             )
           }
           open={editing.open}
-          title={formatMessage({ defaultMessage: 'Modifier un numéro' })}
+          title={formatMessage({ defaultMessage: 'Modifier le numéro' })}
         />
       ) : null}
 
@@ -126,11 +125,12 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
         <MagistratPhoneNumberDeleteModal
           hasFailed={deletePhoneNumber.isError}
           isDeleting={deletePhoneNumber.isPending}
-          number={editing.phoneNumber.number}
+          magistratName={props.magistratName}
           onClose={close}
           onClosed={closed}
           onDelete={() => deletePhoneNumber.mutate(editing.phoneNumber.id, { onSuccess: close })}
           open={editing.open}
+          phoneNumber={editing.phoneNumber}
         />
       ) : null}
     </>
@@ -143,19 +143,25 @@ function MagistratPhoneNumberItem(props: {
   phoneNumber: MagistratPhoneNumber;
 }) {
   const { formatMessage } = useIntl();
+  const { user } = useUser();
   const { phoneNumber } = props;
   const number = formatPhoneNumber(phoneNumber.number);
   const date = phoneNumber.date ? formatDateOnly(phoneNumber.date) : null;
   const origin =
     phoneNumber.source === 'FONDATION'
-      ? phoneNumber.savedBy
-        ? formatMessage(
-            { defaultMessage: 'Saisi dans Fondation par {name} le {date}' },
-            { date, name: phoneNumber.savedBy.name },
-          )
-        : formatMessage({ defaultMessage: 'Saisi dans Fondation le {date}' }, { date })
+      ? formatMessage(
+          {
+            defaultMessage:
+              'Saisi dans Fondation le {date}{who, select, self { par vous} someone { par {name}} other {}}',
+          },
+          {
+            date,
+            name: phoneNumber.savedBy?.name,
+            who: !phoneNumber.savedBy ? 'nobody' : phoneNumber.savedBy.id === user?.id ? 'self' : 'someone',
+          },
+        )
       : date
-        ? formatMessage({ defaultMessage: 'Issu de LOLFI, candidature du {date}' }, { date })
+        ? formatMessage({ defaultMessage: 'Issu de LOLFI, candidature modifiée le {date}' }, { date })
         : formatMessage({ defaultMessage: 'Issu de LOLFI' });
   const label = phoneNumber.source === 'FONDATION' ? phoneNumber.label : null;
 
@@ -163,9 +169,9 @@ function MagistratPhoneNumberItem(props: {
     <MagistratInfoItem
       label={
         label ? (
-          <FormattedMessage defaultMessage="Tél {label}" values={{ label }} />
+          <FormattedMessage defaultMessage="Téléphone ({label})" values={{ label }} />
         ) : (
-          <FormattedMessage defaultMessage="Tél" />
+          <FormattedMessage defaultMessage="Téléphone" />
         )
       }
     >
