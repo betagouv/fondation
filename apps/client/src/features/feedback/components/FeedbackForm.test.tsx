@@ -5,18 +5,18 @@ import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
-import type { SessionFeedback } from '@queries/feedback.queries';
+import type { Feedback } from '@queries/feedback.queries';
 
-import { SessionFeedbackForm } from './SessionFeedbackForm';
+import { FeedbackForm } from './FeedbackForm';
 
-function renderForm(questionnaire: SessionFeedback['questionnaire']) {
+function renderForm(questionnaire: Feedback['questionnaire']) {
   const onSubmit = vi.fn();
   const router = createMemoryRouter([
     {
       element: (
         <>
           <Link to="/ailleurs">Ailleurs</Link>
-          <SessionFeedbackForm isSubmitting={false} onSubmit={onSubmit} questionnaire={questionnaire} />
+          <FeedbackForm isSubmitting={false} onSubmit={onSubmit} questionnaire={questionnaire} />
         </>
       ),
       path: '/',
@@ -37,7 +37,7 @@ async function next(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: /Étape suivante|Envoyer mon avis/ }));
 }
 
-describe('SessionFeedbackForm', () => {
+describe('FeedbackForm', () => {
   it('asks a member one question per step, then sends the answers', async () => {
     const { onSubmit, user } = renderForm('MEMBER');
 
@@ -122,6 +122,16 @@ describe('SessionFeedbackForm', () => {
 
     expect(screen.queryByText('Page ailleurs')).not.toBeInTheDocument();
     expect(screen.getByLabelText('4')).toBeChecked();
+  });
+
+  it('leaves a questionnaire already started once the leaving is confirmed', async () => {
+    const { user } = renderForm('MEMBER');
+
+    await user.click(screen.getByLabelText('4'));
+    await user.click(screen.getByRole('link', { name: 'Ailleurs' }));
+    await user.click(await screen.findByRole('button', { name: 'Quitter' }));
+
+    expect(await screen.findByText('Page ailleurs')).toBeInTheDocument();
   });
 
   it('leaves freely a questionnaire not started', async () => {

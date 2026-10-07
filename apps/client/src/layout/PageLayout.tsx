@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
+import { FeedbackInvitation } from '@/features/feedback/components/FeedbackInvitation';
 import { BanneredLayout } from '@/shared/components/banners';
 import { ArchivedSessionProvider } from '@/shared/context/archived-session';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
@@ -12,6 +13,7 @@ export function PageLayout({ children }: PropsWithChildren) {
   return (
     <ToastProvider>
       <ConfirmModalProvider>
+        <FeedbackInvitation />
         <ArchivedSessionProvider>
           <BanneredLayout>
             <div className={`flex min-h-screen flex-col`}>

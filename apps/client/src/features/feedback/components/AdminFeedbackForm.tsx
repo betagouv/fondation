@@ -1,21 +1,21 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { markPreviewSeen } from '@/features/feedback/utils/preview-seen.utils';
-import type { SessionFeedback } from '@queries/feedback.queries';
+import type { AnswerFeedbackDto } from '@api/types';
+import type { Feedback } from '@queries/feedback.queries';
 
-import { SessionFeedbackForm } from './SessionFeedbackForm';
+import { FeedbackForm } from './FeedbackForm';
 
-export function SessionFeedbackPreview(props: {
-  questionnaire: SessionFeedback['questionnaire'];
-  sessionId: string;
-  sessionPath: string;
+/** outside production, `onSubmit` sends the answers for real, to test them and their export */
+export function AdminFeedbackForm(props: {
+  isSubmitting?: boolean;
+  onSubmit?: (answers: AnswerFeedbackDto) => void;
+  questionnaire: Feedback['questionnaire'];
 }) {
   const { formatMessage } = useIntl();
-  useEffect(() => markPreviewSeen(props.sessionId), [props.sessionId]);
   const [questionnaire, setQuestionnaire] = useState(props.questionnaire);
   const [isDone, setDone] = useState(false);
 
@@ -32,8 +32,8 @@ export function SessionFeedbackPreview(props: {
           <Button onClick={() => setDone(false)} priority="secondary">
             <FormattedMessage defaultMessage="Recommencer l'aperçu" />
           </Button>
-          <Button linkProps={{ to: props.sessionPath }}>
-            <FormattedMessage defaultMessage="Retour à la session" />
+          <Button linkProps={{ to: '/' }}>
+            <FormattedMessage defaultMessage="Retour à l'accueil" />
           </Button>
         </div>
       </>
@@ -44,10 +44,17 @@ export function SessionFeedbackPreview(props: {
     <>
       <Alert
         className="fr-mb-6v"
-        description={formatMessage({
-          defaultMessage:
-            "En tant qu'administrateur, vous pouvez parcourir le questionnaire. Vos réponses ne seront ni enregistrées ni comptabilisées.",
-        })}
+        description={
+          props.onSubmit
+            ? formatMessage({
+                defaultMessage:
+                  "Environnement de test : en tant qu'administrateur, vos réponses sont enregistrées afin de tester leur envoi et l'export Excel. En production, vous pourrez seulement parcourir le questionnaire.",
+              })
+            : formatMessage({
+                defaultMessage:
+                  "En tant qu'administrateur, vous pouvez parcourir le questionnaire. Vos réponses ne seront ni enregistrées ni comptabilisées.",
+              })
+        }
         severity="info"
         small
       />
@@ -72,11 +79,11 @@ export function SessionFeedbackPreview(props: {
         ]}
         small
       />
-      <SessionFeedbackForm
-        isPreview
-        isSubmitting={false}
+      <FeedbackForm
+        isPreview={!props.onSubmit}
+        isSubmitting={props.isSubmitting ?? false}
         key={questionnaire}
-        onSubmit={() => setDone(true)}
+        onSubmit={props.onSubmit ?? (() => setDone(true))}
         questionnaire={questionnaire}
       />
     </>

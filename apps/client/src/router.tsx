@@ -36,6 +36,13 @@ export const router = sentryCreateBrowserRouter([
         loader: roleGuard(AUTHORIZED_ROLES.ALL),
         children: [
           {
+            path: ROUTE_PATHS.FEEDBACK,
+            lazy: () =>
+              import('@/pages/feedback/FeedbackPage').then(({ FeedbackPage }) => ({
+                Component: FeedbackPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.HELP,
             lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
           },
@@ -100,13 +107,6 @@ export const router = sentryCreateBrowserRouter([
                 ],
               },
             ],
-          },
-          {
-            path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_FEEDBACK,
-            lazy: () =>
-              import('@/pages/feedback/SessionFeedbackPage').then(({ SessionFeedbackPage }) => ({
-                Component: SessionFeedbackPage,
-              })),
           },
           {
             path: ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS,
@@ -200,13 +200,6 @@ export const router = sentryCreateBrowserRouter([
                   ),
               },
             ],
-          },
-          {
-            path: ROUTE_PATHS.SG.SESSION_ID_FEEDBACK,
-            lazy: () =>
-              import('@/pages/feedback/SessionFeedbackPage').then(({ SessionFeedbackPage }) => ({
-                Component: SessionFeedbackPage,
-              })),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID_COMMENT,
@@ -423,13 +416,11 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
           {
-            path: ROUTE_PATHS.ADMIN.SESSION_FEEDBACKS,
+            path: ROUTE_PATHS.ADMIN.FEEDBACKS,
             lazy: () =>
-              import('@/pages/spaces/admin/AdminSessionFeedbacksPage').then(
-                ({ AdminSessionFeedbacksPage }) => ({
-                  Component: AdminSessionFeedbacksPage,
-                }),
-              ),
+              import('@/pages/spaces/admin/AdminFeedbacksPage').then(({ AdminFeedbacksPage }) => ({
+                Component: AdminFeedbacksPage,
+              })),
           },
           {
             path: ROUTE_PATHS.ADMIN.USERS,

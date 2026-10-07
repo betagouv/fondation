@@ -2,10 +2,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage } from 'react-intl';
 
 import { useExportFailure } from '@/features/nomination-files-table/hooks/useExportFailure';
-import { useListSessionFeedbacksAsExcelMutation } from '@queries/feedback.queries';
+import { useListFeedbacksAsExcelMutation } from '@queries/feedback.queries';
 
-export function AdminSessionFeedbacksPage() {
-  const exportAsExcel = useListSessionFeedbacksAsExcelMutation();
+export function AdminFeedbacksPage() {
+  const exportAsExcel = useListFeedbacksAsExcelMutation();
   const onExportFailure = useExportFailure();
 
   return (
@@ -14,7 +14,7 @@ export function AdminSessionFeedbacksPage() {
         <FormattedMessage defaultMessage="Avis des utilisateurs" />
       </h1>
       <p className="fr-mb-6v max-w-3xl leading-7 text-(--text-mention-grey)">
-        <FormattedMessage defaultMessage="Les membres et le secrétariat général donnent leur avis depuis la page de chaque session." />
+        <FormattedMessage defaultMessage="Les membres et le secrétariat général donnent leur avis depuis l'en-tête du site et peuvent le donner à nouveau à tout moment." />
       </p>
 
       <section className="fr-p-6v max-w-3xl border border-solid border-(--border-default-grey)">
@@ -24,7 +24,7 @@ export function AdminSessionFeedbacksPage() {
             <FormattedMessage defaultMessage="Export Excel" />
           </h2>
           <p className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Le fichier rassemble les réponses de toutes les sessions, à raison d'une ligne par réponse. Il précise la session, la date de réponse, les notes et les commentaires, sans jamais mentionner le nom de la personne." />
+            <FormattedMessage defaultMessage="Le fichier contient une ligne par envoi, rangée avec les autres envois du même répondant. Chaque répondant y apparaît sous un numéro, jamais sous son nom. Pour chaque nouvel envoi, la dernière colonne indique les réponses modifiées, avec l'ancienne et la nouvelle valeur." />
           </p>
         </div>
         <Button

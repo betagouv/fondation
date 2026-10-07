@@ -3,7 +3,6 @@ import { useState, type CSSProperties } from 'react';
 import { useIntl } from 'react-intl';
 import { Outlet, useLocation, useParams } from 'react-router';
 
-import { SessionFeedbackFloatingButton } from '@/features/feedback/components/SessionFeedbackFloatingButton';
 import { HeaderReportList } from '@/features/reports/components/HeaderReportList';
 import { MemberSessionTabsBar } from '@/features/transparence/components/session/SessionTabs';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
@@ -34,7 +33,6 @@ export function MemberSessionLayout() {
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
-      <SessionFeedbackFloatingButton sessionId={session.id} />
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane des rapports" })}
         breadcrumb={breadCrumbOf({

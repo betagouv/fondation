@@ -6,11 +6,11 @@ import { useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useLeaveFeedbackGuard } from '@/features/feedback/hooks/useLeaveFeedbackGuard';
-import type { AnswerSessionFeedbackDto } from '@api/types';
-import type { SessionFeedback } from '@queries/feedback.queries';
+import type { AnswerFeedbackDto } from '@api/types';
+import type { Feedback } from '@queries/feedback.queries';
 
-type MemberAnswers = NonNullable<AnswerSessionFeedbackDto['member']>;
-type SecretariatAnswers = NonNullable<AnswerSessionFeedbackDto['secretariat']>;
+type MemberAnswers = NonNullable<AnswerFeedbackDto['member']>;
+type SecretariatAnswers = NonNullable<AnswerFeedbackDto['secretariat']>;
 type Answers = Partial<Record<string, string>>;
 type Step = { name: string; question: ReactNode; title: ReactNode };
 
@@ -78,7 +78,7 @@ function OtherTools(props: { answers: Answers }) {
       <Choices
         answers={props.answers}
         legend={
-          <FormattedMessage defaultMessage="Lors de cette session, avez-vous dû utiliser un autre outil que Fondation (tableur, messagerie, document Word, application interne…) pour faire une partie de votre travail ?" />
+          <FormattedMessage defaultMessage="Lors des dernières sessions, avez-vous dû utiliser un autre outil que Fondation (tableur, messagerie, document Word, application interne…) pour faire une partie de votre travail ?" />
         }
         name="otherToolUsage"
         onChange={setUsage}
@@ -106,10 +106,7 @@ function textOf(answers: Answers, name: string): string | null {
   return answers[name]?.trim() || null;
 }
 
-function answersOf(
-  answers: Answers,
-  questionnaire: SessionFeedback['questionnaire'],
-): AnswerSessionFeedbackDto {
+function answersOf(answers: Answers, questionnaire: Feedback['questionnaire']): AnswerFeedbackDto {
   return {
     easeRating: Number(answers.easeRating),
     hindrance: textOf(answers, 'hindrance'),
@@ -133,7 +130,7 @@ function answersOf(
   };
 }
 
-function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answers): Step[] {
+function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): Step[] {
   const { formatMessage } = useIntl();
 
   const manualWorkShares: { label: string; value: MemberAnswers['manualWorkShare'] }[] = [
@@ -181,7 +178,7 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
       <FreeText
         answers={answers}
         label={
-          <FormattedMessage defaultMessage="Qu'est-ce qui vous a le plus ralenti ou gêné lors de cette session ?" />
+          <FormattedMessage defaultMessage="Qu'est-ce qui vous a le plus ralenti ou gêné lors des dernières sessions ?" />
         }
         name="hindrance"
       />
@@ -198,7 +195,7 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Lors de cette session, quelle part de votre temps avez-vous passée sur des tâches de manipulation (rechercher une information, la recopier, mettre en forme un document) plutôt que sur l'analyse des dossiers ?" />
+              <FormattedMessage defaultMessage="Lors des dernières sessions, quelle part de votre temps avez-vous passée sur des tâches de manipulation (rechercher une information, la recopier, mettre en forme un document) plutôt que sur l'analyse des dossiers ?" />
             }
             name="manualWorkShare"
             options={manualWorkShares}
@@ -212,7 +209,7 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Lors de cette session, avez-vous pu contribuer au débat sur des dossiers dont vous n'étiez pas rapporteur ?" />
+              <FormattedMessage defaultMessage="Lors des dernières sessions, avez-vous pu contribuer au débat sur des dossiers dont vous n'étiez pas rapporteur ?" />
             }
             name="debateContribution"
             options={[
@@ -229,7 +226,7 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Avez-vous pu instruire l'ensemble des dossiers de la session avec le même niveau d'exigence ?" />
+              <FormattedMessage defaultMessage="Avez-vous pu instruire l'ensemble des dossiers des dernières sessions avec le même niveau d'exigence ?" />
             }
             name="reviewThoroughness"
             options={[
@@ -257,7 +254,7 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
         <Choices
           answers={answers}
           legend={
-            <FormattedMessage defaultMessage="Lors de cette session, quelle part de votre temps avez-vous passée à ressaisir, recopier ou remettre en forme à la main des informations déjà disponibles ailleurs ?" />
+            <FormattedMessage defaultMessage="Lors des dernières sessions, quelle part de votre temps avez-vous passée à ressaisir, recopier ou remettre en forme à la main des informations déjà disponibles ailleurs ?" />
           }
           name="manualWorkShare"
           options={manualWorkShares}
@@ -274,11 +271,11 @@ function useSteps(questionnaire: SessionFeedback['questionnaire'], answers: Answ
   ];
 }
 
-export function SessionFeedbackForm(props: {
+export function FeedbackForm(props: {
   isPreview?: boolean;
   isSubmitting: boolean;
-  onSubmit: (answers: AnswerSessionFeedbackDto) => void;
-  questionnaire: SessionFeedback['questionnaire'];
+  onSubmit: (answers: AnswerFeedbackDto) => void;
+  questionnaire: Feedback['questionnaire'];
 }) {
   const [answers, setAnswers] = useState<Answers>({});
   const [stepIndex, setStepIndex] = useState(0);

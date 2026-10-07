@@ -3,10 +3,10 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ToastProvider } from '@/shared/ui/toast';
 
-import { AdminSessionFeedbacksPage } from './AdminSessionFeedbacksPage';
+import { AdminFeedbacksPage } from './AdminFeedbacksPage';
 
 const meta = {
-  component: AdminSessionFeedbacksPage,
+  component: AdminFeedbacksPage,
   decorators: [
     (Story) => (
       <StoryQueryClient>
@@ -17,8 +17,9 @@ const meta = {
     ),
   ],
   parameters: { layout: 'fullscreen' },
-  title: 'Pages/Admin/AdminSessionFeedbacksPage',
-} satisfies Meta<typeof AdminSessionFeedbacksPage>;
+  tags: ['autodocs'],
+  title: 'Features/Feedback/AdminPage',
+} satisfies Meta<typeof AdminFeedbacksPage>;
 
 export default meta;
 
