@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { useBlocker } from 'react-router';
 
@@ -12,12 +12,8 @@ export function useLeaveFeedbackGuard(isStarted: boolean) {
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) => isStarted && currentLocation.pathname !== nextLocation.pathname,
   );
-  // every render while the question is open runs the effect again: without this, it is asked twice
-  const isAsking = useRef(false);
-
   useEffect(() => {
-    if (blocker.state !== 'blocked' || isAsking.current) return;
-    isAsking.current = true;
+    if (blocker.state !== 'blocked') return;
 
     void waitForConfirmation({
       content: formatMessage({
@@ -30,7 +26,6 @@ export function useLeaveFeedbackGuard(isStarted: boolean) {
       },
       title: formatMessage({ defaultMessage: 'Quitter le questionnaire ?' }),
     }).then(({ isConfirmed }) => {
-      isAsking.current = false;
       if (isConfirmed) blocker.proceed?.();
       else blocker.reset?.();
     });

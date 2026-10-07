@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, type ReactNode } from 'react';
 
 export type ConfirmModalOptions = {
   content?: ReactNode;
@@ -15,10 +15,13 @@ export const ConfirmModalContext = createContext<{
 export function useConfirmModal() {
   const context = useContext(ConfirmModalContext);
   if (!context) throw new Error('useConfirmModal must be used within a ConfirmModalProvider');
+  const { ask } = context;
 
-  return {
-    cancel: context.cancel,
-    waitForConfirmation: (options: ConfirmModalOptions): Promise<{ isConfirmed: boolean }> =>
-      context.ask(options).then((isConfirmed) => ({ isConfirmed })),
-  };
+  const waitForConfirmation = useCallback(
+    (options: ConfirmModalOptions): Promise<{ isConfirmed: boolean }> =>
+      ask(options).then((isConfirmed) => ({ isConfirmed })),
+    [ask],
+  );
+
+  return { cancel: context.cancel, waitForConfirmation };
 }
