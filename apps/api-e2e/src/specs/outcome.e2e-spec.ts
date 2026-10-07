@@ -1,10 +1,10 @@
-import type { LolfiData } from 'lolfi';
+import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
 import type { TestStepsAgent } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
-function candidate(firstName: string, lastName: string): LolfiData['sessions'][number]['candidates'][number] {
+function candidate(firstName: string, lastName: string): LolfiArchiveContent['sessions'][number]['candidates'][number] {
   return {
     firstName,
     lastName,

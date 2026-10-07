@@ -1,10 +1,10 @@
-import type { LolfiData } from 'lolfi';
+import type { LolfiArchiveContent } from 'lolfi';
 
 import { test as base } from '../fixtures.ts';
 import type { CreateObservationDto } from '../generated/api/types.ts';
 import * as seed from '../utils/seed.ts';
 
-const SESSION: LolfiData['sessions'][number] = {
+const SESSION: LolfiArchiveContent['sessions'][number] = {
   candidates: [
     {
       firstName: 'HONORINE',

@@ -1,4 +1,4 @@
-import { generateLolfiArchive, type LolfiData } from 'lolfi';
+import { generateLolfiArchive, type LolfiArchiveContent } from 'lolfi';
 
 import type { TestApp } from './test-app';
 
@@ -13,7 +13,7 @@ class LolfiIngestPage {
     return this;
   }
 
-  async upload(data: LolfiData): Promise<void> {
+  async upload(data: LolfiArchiveContent): Promise<void> {
     const archive = await generateLolfiArchive(data);
     await this.app.page.getByLabel('Archive LOLFI').setInputFiles([
       {
