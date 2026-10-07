@@ -1,5 +1,3 @@
-import { inspect } from 'node:util';
-
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 
 import { isExpired } from '../domain/expired-job';
@@ -15,6 +13,7 @@ import {
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 
 import {
   DetailedLolfiSession,
@@ -89,7 +88,7 @@ export class IngestService {
           where: { id: jobId },
           data: {
             status: 'FAILED',
-            errors: { create: { error: inspect(e) } },
+            errors: { create: { error: describeErrorWithoutSecrets(e) } },
           },
         })
         .catch((prismaError) => {

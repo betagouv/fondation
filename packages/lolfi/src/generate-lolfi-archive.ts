@@ -3,11 +3,11 @@ import { createHash } from 'node:crypto';
 import JSZip from 'jszip';
 
 import { generateLolfiFiles } from './generate-lolfi-files';
-import { type LolfiData } from './types';
+import { type LolfiArchiveContent } from './types';
 
 const ZIP_MIME = 'application/zip';
 
-export async function generateLolfiArchive(data: LolfiData): Promise<ArrayBuffer> {
+export async function generateLolfiArchive(data: LolfiArchiveContent): Promise<ArrayBuffer> {
   const archive = new JSZip();
 
   for await (const file of generateLolfiFiles(data)) {

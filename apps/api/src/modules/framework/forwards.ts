@@ -8,6 +8,7 @@ import type { Readable } from 'node:stream';
 import { lastValueFrom } from 'rxjs';
 
 import { HasRole } from '../simple-auth';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
@@ -57,7 +58,7 @@ export class ForwardsController {
 
       await pipeline(data as Readable, res);
     } catch (err) {
-      console.error('ERROR', err);
+      console.error('ERROR', describeErrorWithoutSecrets(err));
       throw err;
     }
   }

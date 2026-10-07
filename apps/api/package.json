@@ -23,7 +23,8 @@
     "test:coverage": "vitest run --coverage",
     "prisma": "dotenvx run -- prisma",
     "prisma:generate": "dotenvx run -- prisma generate --sql",
-    "sentry": "sentry-cli"
+    "sentry": "sentry-cli",
+    "local:empty-except-accounts": "dotenvx run -f .env -- node scripts/empty-local-or-staging-except-accounts.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",

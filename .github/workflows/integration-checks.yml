@@ -102,6 +102,9 @@ jobs:
       - name: Test Front UNIT
         run: pnpm --filter client test
 
+      - name: Test LOLFI generator
+        run: pnpm --filter lolfi test
+
       - name: Test API E2E
         run: pnpm --filter api-e2e test
 

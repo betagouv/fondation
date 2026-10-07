@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import type { LolfiData } from 'lolfi';
+import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
 import type {
@@ -43,7 +43,7 @@ function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): Uploa
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
 
-const TREVOUX_SESSION: LolfiData['sessions'][number] = {
+const TREVOUX_SESSION: LolfiArchiveContent['sessions'][number] = {
   name: 'Transparence annuelle',
   createdAt: '22/04/2026',
   candidates: [

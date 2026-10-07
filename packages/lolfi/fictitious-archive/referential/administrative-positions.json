@@ -1,0 +1,612 @@
+[
+  {
+    "id": "702",
+    "label": "MàD Loi L70-2",
+    "rate": 1
+  },
+  {
+    "id": "ADIR",
+    "label": "Autres Directions",
+    "rate": 0
+  },
+  {
+    "id": "ARM",
+    "label": "Sous les drapeaux",
+    "rate": 0
+  },
+  {
+    "id": "AUD",
+    "label": "Auditeur",
+    "rate": 0
+  },
+  {
+    "id": "CA5",
+    "label": "Cessation prog. d'activité - 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "CA6",
+    "label": "Cessation prog. d'activité - 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "CA8",
+    "label": "Cessation prog. d'activité - 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "CADP",
+    "label": "Congé d'adoption",
+    "rate": 1
+  },
+  {
+    "id": "CB",
+    "label": "Congé Bonifié",
+    "rate": 0
+  },
+  {
+    "id": "CE5",
+    "label": "Temps partiel pour création entreprise 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "CE6",
+    "label": "Temps partiel pour création entreprise 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "CE7",
+    "label": "Temps partiel pour création entreprise 70%",
+    "rate": 0.7
+  },
+  {
+    "id": "CE8",
+    "label": "Temps partiel pour création entreprise 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "CE9",
+    "label": "Temps partiel pour creation entreprise 90%",
+    "rate": 0.9
+  },
+  {
+    "id": "CES",
+    "label": "Cessation de Fonction",
+    "rate": 0
+  },
+  {
+    "id": "CFA",
+    "label": "Congé de Fin d'Activité",
+    "rate": 0
+  },
+  {
+    "id": "CFN",
+    "label": "Congé de restructuration",
+    "rate": 0
+  },
+  {
+    "id": "CFP",
+    "label": "Congé de Formation Professionnelle",
+    "rate": 1
+  },
+  {
+    "id": "CFV",
+    "label": "Congé accompagne. fin de vie",
+    "rate": 1
+  },
+  {
+    "id": "CGM",
+    "label": "Congé de Grave Maladie",
+    "rate": 0
+  },
+  {
+    "id": "CITIS",
+    "label": "CongÃ© Imputable au Service",
+    "rate": 1
+  },
+  {
+    "id": "CITIS-V",
+    "label": "Congé Imputable au Service - Vacant",
+    "rate": 0
+  },
+  {
+    "id": "CLD",
+    "label": "Congé de Longue Durée",
+    "rate": 0
+  },
+  {
+    "id": "CLM",
+    "label": "Congé de Longue Maladie",
+    "rate": 1
+  },
+  {
+    "id": "CPA",
+    "label": "Cessation progressive d'activité",
+    "rate": 0.5
+  },
+  {
+    "id": "CPAID",
+    "label": "Conge proche aidant",
+    "rate": 1
+  },
+  {
+    "id": "CPAID5",
+    "label": "Conge proche aidant partiel (50%)",
+    "rate": 0.5
+  },
+  {
+    "id": "CPAID6",
+    "label": "Conge proche aidant partiel (60%)",
+    "rate": 0.6
+  },
+  {
+    "id": "CPAID7",
+    "label": "Conge proche aidant partiel (70%)",
+    "rate": 0.7
+  },
+  {
+    "id": "CPAID8",
+    "label": "Conge proche aidant partiel (80%)",
+    "rate": 0.8
+  },
+  {
+    "id": "CPF",
+    "label": "Congé partiel de formation professionnelle",
+    "rate": 1
+  },
+  {
+    "id": "CPN",
+    "label": "Congé Post-Natal",
+    "rate": 0
+  },
+  {
+    "id": "CPP",
+    "label": "Congé de Présence Parental",
+    "rate": 1
+  },
+  {
+    "id": "CPR",
+    "label": "Congé parental",
+    "rate": 0
+  },
+  {
+    "id": "CSF",
+    "label": "Congé de solidarité familiale",
+    "rate": 1
+  },
+  {
+    "id": "CSF5",
+    "label": "Congé de solidarité familiale partiel (50%)",
+    "rate": 0.5
+  },
+  {
+    "id": "CSF6",
+    "label": "Congé de solidarité familiale partiel (60%)",
+    "rate": 0.6
+  },
+  {
+    "id": "CSF7",
+    "label": "Congé de solidarité familiale partiel (70%)",
+    "rate": 0.7
+  },
+  {
+    "id": "CSF8",
+    "label": "Congé de solidarité familiale partiel (80%)",
+    "rate": 0.8
+  },
+  {
+    "id": "CST",
+    "label": "Congé Sans Traitement",
+    "rate": 0
+  },
+  {
+    "id": "D47-1",
+    "label": "Dispo enfant - de 12 ans",
+    "rate": 0
+  },
+  {
+    "id": "D47-1B",
+    "label": "Dispo. pour donner des soins",
+    "rate": 0
+  },
+  {
+    "id": "D47-2",
+    "label": "Dispo. conjoint ou PACS",
+    "rate": 0
+  },
+  {
+    "id": "D4A",
+    "label": "Dispo. etudes/recherches",
+    "rate": 0
+  },
+  {
+    "id": "D4B",
+    "label": "Dispo. convenances perso",
+    "rate": 0
+  },
+  {
+    "id": "D7A",
+    "label": "Dispo. art.47a ex24a",
+    "rate": 0
+  },
+  {
+    "id": "D7B",
+    "label": "Dispo. art.47b ex26-1er",
+    "rate": 0
+  },
+  {
+    "id": "D7C",
+    "label": "Dispo. art.47c ex26-2ème",
+    "rate": 0
+  },
+  {
+    "id": "D7D",
+    "label": "Dispo. pour mandat électoral",
+    "rate": 0
+  },
+  {
+    "id": "D7E",
+    "label": "Dispo. agrement adoption",
+    "rate": 0
+  },
+  {
+    "id": "DCD",
+    "label": "Détachement externe Courte Durée",
+    "rate": 0
+  },
+  {
+    "id": "DCO",
+    "label": "Détachement - Coopération",
+    "rate": 0
+  },
+  {
+    "id": "DDE",
+    "label": "Détachement Défense",
+    "rate": 0
+  },
+  {
+    "id": "DEC",
+    "label": "Décédé(e)",
+    "rate": 0
+  },
+  {
+    "id": "DED",
+    "label": "Détachement Externe de Droit",
+    "rate": 0
+  },
+  {
+    "id": "DEJ",
+    "label": "Détachement judiciaire",
+    "rate": 0
+  },
+  {
+    "id": "DEM",
+    "label": "Demission",
+    "rate": 0
+  },
+  {
+    "id": "DET",
+    "label": "Détachement",
+    "rate": 0
+  },
+  {
+    "id": "DETJUD",
+    "label": "Détachement judiciaire",
+    "rate": 0
+  },
+  {
+    "id": "DI3",
+    "label": "Dispo. office raison de sant¿",
+    "rate": 0
+  },
+  {
+    "id": "DI5",
+    "label": "Dispo. de droit art.45 ex25",
+    "rate": 0
+  },
+  {
+    "id": "DI6",
+    "label": "Dispo. creation/reprise entrep.",
+    "rate": 0
+  },
+  {
+    "id": "DIS",
+    "label": "Disponibilité",
+    "rate": 0
+  },
+  {
+    "id": "DLD",
+    "label": "Détachement externe Longue Durée",
+    "rate": 0
+  },
+  {
+    "id": "DOI",
+    "label": "Détachement Organisation Internationale",
+    "rate": 0
+  },
+  {
+    "id": "EX1",
+    "label": "Exclusion tempo. <à 15 jours",
+    "rate": 0
+  },
+  {
+    "id": "EX2",
+    "label": "Exclusion tempo. jusqu'à 2 ans",
+    "rate": 0
+  },
+  {
+    "id": "EXD",
+    "label": "Exclusion Définitive",
+    "rate": 0
+  },
+  {
+    "id": "FC",
+    "label": "Fin de contrat",
+    "rate": 0
+  },
+  {
+    "id": "FDE",
+    "label": "Fin détachement entrant",
+    "rate": 0
+  },
+  {
+    "id": "FMADPS",
+    "label": "Fin MAD Pole social",
+    "rate": 0
+  },
+  {
+    "id": "FPR",
+    "label": "Formation préalable",
+    "rate": 1
+  },
+  {
+    "id": "GEC",
+    "label": "Greffier en chef",
+    "rate": 0
+  },
+  {
+    "id": "H-C",
+    "label": "Hors Cadre",
+    "rate": 0
+  },
+  {
+    "id": "IEC",
+    "label": "Intégration",
+    "rate": 0
+  },
+  {
+    "id": "LIC",
+    "label": "Licenciement",
+    "rate": 0
+  },
+  {
+    "id": "MAD",
+    "label": "Mise à disposition avec convention",
+    "rate": 0
+  },
+  {
+    "id": "MAS",
+    "label": "Maintien en surnombre",
+    "rate": 1
+  },
+  {
+    "id": "MFO",
+    "label": "Maintien en fonctions",
+    "rate": 1
+  },
+  {
+    "id": "MIT",
+    "label": "Mi-temps thérapeutique",
+    "rate": 1
+  },
+  {
+    "id": "MPO",
+    "label": "Maintien par ordre",
+    "rate": 1
+  },
+  {
+    "id": "MTP",
+    "label": "Mi temps parental",
+    "rate": 0.5
+  },
+  {
+    "id": "MTS",
+    "label": "Mi-temps pour soins à famille",
+    "rate": 0.5
+  },
+  {
+    "id": "MTT",
+    "label": "Magistrat à titre temporaire",
+    "rate": 0.3
+  },
+  {
+    "id": "NEC",
+    "label": "Nomination en cours",
+    "rate": 0
+  },
+  {
+    "id": "_NR",
+    "label": null,
+    "rate": 0
+  },
+  {
+    "id": "P50",
+    "label": "Temps partiel 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "P60",
+    "label": "Temps partiel 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "P70",
+    "label": "Temps partiel 70%",
+    "rate": 0.7
+  },
+  {
+    "id": "P80",
+    "label": "Temps partiel 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "P90",
+    "label": "Temps partiel 90%",
+    "rate": 0.9
+  },
+  {
+    "id": "PF5",
+    "label": "Partiel famille 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "PF6",
+    "label": "Partiel famille 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "PF7",
+    "label": "Partiel famille 70%",
+    "rate": 0.7
+  },
+  {
+    "id": "PF8",
+    "label": "Partiel famille 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "PH5",
+    "label": "Partiel Handicap 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "PH6",
+    "label": "Partiel Handicap 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "PH7",
+    "label": "Partiel Handicap 70%",
+    "rate": 0.7
+  },
+  {
+    "id": "PH8",
+    "label": "Partiel Handicap 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "PNA",
+    "label": "Position normale d'activité",
+    "rate": 0
+  },
+  {
+    "id": "PRO",
+    "label": "Prolongation d'activité",
+    "rate": 1
+  },
+  {
+    "id": "PRO-80",
+    "label": "Prolongation d'activité - 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "PS5",
+    "label": "Temps Partiel pour soins à famille 50%",
+    "rate": 0.5
+  },
+  {
+    "id": "PS6",
+    "label": "Temps Partiel pour soins à famille 60%",
+    "rate": 0.6
+  },
+  {
+    "id": "PS7",
+    "label": "Temps Partiel pour soins à famille 70%",
+    "rate": 0.7
+  },
+  {
+    "id": "PS8",
+    "label": "Temps Partiel pour soins à famille 80%",
+    "rate": 0.8
+  },
+  {
+    "id": "PT",
+    "label": "Plein temps",
+    "rate": 1
+  },
+  {
+    "id": "PT5",
+    "label": "Temps Partiel Thérapeutique 50%",
+    "rate": 1
+  },
+  {
+    "id": "PT6",
+    "label": "Temps Partiel Thérapeutique 60%",
+    "rate": 1
+  },
+  {
+    "id": "PT7",
+    "label": "Temps Partiel Thérapeutique 70%",
+    "rate": 1
+  },
+  {
+    "id": "PT8",
+    "label": "Temps Partiel Thérapeutique 80%",
+    "rate": 1
+  },
+  {
+    "id": "PT9",
+    "label": "Temps Partiel Thérapeutique 90%",
+    "rate": 1
+  },
+  {
+    "id": "RAD",
+    "label": "Radiation des cadres",
+    "rate": 0
+  },
+  {
+    "id": "RAD_ENM",
+    "label": "Radiation des cadres (E.N.M)",
+    "rate": 0
+  },
+  {
+    "id": "RAD_INT",
+    "label": "Radiation des cadres (Intégration Magistrature)",
+    "rate": 0
+  },
+  {
+    "id": "RAO",
+    "label": "Réintégration administration d'origine",
+    "rate": 0
+  },
+  {
+    "id": "RCO",
+    "label": "Réintégration dans le corps d'origine",
+    "rate": 0
+  },
+  {
+    "id": "REC",
+    "label": "Réintégration en cours",
+    "rate": 0
+  },
+  {
+    "id": "RET",
+    "label": "Retraite",
+    "rate": 0
+  },
+  {
+    "id": "REV",
+    "label": "Révocation",
+    "rate": 0
+  },
+  {
+    "id": "RLIM_AGE",
+    "label": "Recul limite d'âge",
+    "rate": 1
+  },
+  {
+    "id": "SUS",
+    "label": "Suspendu",
+    "rate": 1
+  }
+]

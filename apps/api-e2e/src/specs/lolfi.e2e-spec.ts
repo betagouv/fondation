@@ -2,7 +2,7 @@ import * as assert from 'node:assert/strict';
 import { File } from 'node:buffer';
 import * as crypto from 'node:crypto';
 
-import { generateLolfiArchive, type LolfiData } from 'lolfi';
+import { generateLolfiArchive, type LolfiArchiveContent } from 'lolfi';
 import postgres from 'postgres';
 import { inject } from 'vitest';
 
@@ -72,7 +72,7 @@ test.describe('lolfi', () => {
   });
 
   test('should update an existing session', async ({ sessions, agent, expect }) => {
-    const initialSession: LolfiData['sessions'][number] = {
+    const initialSession: LolfiArchiveContent['sessions'][number] = {
       id: crypto.randomInt(1_000, 900_000),
       name: crypto.randomUUID(),
       createdAt: '22/04/2026',
@@ -95,7 +95,7 @@ test.describe('lolfi', () => {
       ],
     };
 
-    const nextSession: LolfiData['sessions'][number] = {
+    const nextSession: LolfiArchiveContent['sessions'][number] = {
       id: crypto.randomInt(1_000, 900_000),
       name: crypto.randomUUID(),
       createdAt: '23/04/2026',
@@ -109,7 +109,7 @@ test.describe('lolfi', () => {
           },
           targetPosition: {
             function: seed.functions.P,
-            jurisdiction: seed.jurisdictions['TPR  CANNES'],
+            jurisdiction: seed.jurisdictions['TPR CANNES'],
           },
         },
       ],
@@ -147,7 +147,7 @@ test.describe('lolfi', () => {
         jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
         function: seed.functions.P,
       },
-    } as const satisfies LolfiData['sessions'][number]['candidates'][number];
+    } as const satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 
     const parquetCandidate = {
       id: crypto.randomInt(1_000, 9_999),
@@ -163,7 +163,7 @@ test.describe('lolfi', () => {
         jurisdiction: seed.jurisdictions['CA  MONTPELLIER'],
         function: seed.functions.PR,
       },
-    } as const satisfies LolfiData['sessions'][number]['candidates'][number];
+    } as const satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 
     const lateParquetCandidate = {
       ...parquetCandidate,
@@ -233,7 +233,7 @@ test.describe('lolfi', () => {
         jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
         function: seed.functions.PR,
       },
-    } satisfies LolfiData['sessions'][number]['candidates'][number];
+    } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 
     const candidateWithoutLastName = { ...candidate, lastName: '' };
 
@@ -261,13 +261,13 @@ test.describe('lolfi', () => {
       grade: 'G3',
       jurisdiction: seed.jurisdictions['CA  LYON'],
       function: seed.functions.PR,
-    } satisfies LolfiData['sessions'][number]['candidates'][number]['position'];
+    } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number]['position'];
 
     const targetPosition = {
       grade: 'G3',
       jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
       function: seed.functions.PR,
-    } satisfies LolfiData['sessions'][number]['candidates'][number]['targetPosition'];
+    } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number]['targetPosition'];
 
     const etienne = {
       id: crypto.randomInt(1_000, 9_999),
@@ -485,7 +485,7 @@ test.describe('lolfi', () => {
   );
 });
 
-async function ingestArchiveAsMachine(baseUrl: string, ...sessions: LolfiData['sessions']): Promise<number> {
+async function ingestArchiveAsMachine(baseUrl: string, ...sessions: LolfiArchiveContent['sessions']): Promise<number> {
   const archive = await generateLolfiArchive({ sessions });
   const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, {
     type: 'application/zip',
@@ -497,7 +497,10 @@ async function ingestArchiveAsMachine(baseUrl: string, ...sessions: LolfiData['s
   return data!.id;
 }
 
-async function ingestUntilEnded(admin: TestStepsAdmin, session: LolfiData['sessions'][number]): Promise<number> {
+async function ingestUntilEnded(
+  admin: TestStepsAdmin,
+  session: LolfiArchiveContent['sessions'][number],
+): Promise<number> {
   const jobId = await ingestArchive(admin, session);
   assert.equal(await waitForEndedJob(admin, jobId), 'SUCCEEDED', `job #${jobId} did not succeed`);
 
@@ -542,7 +545,7 @@ function trevoux() {
       jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
       function: seed.functions.PR,
     },
-  } satisfies LolfiData['sessions'][number]['candidates'][number];
+  } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 }
 
 function berger() {
@@ -560,7 +563,7 @@ function berger() {
       jurisdiction: seed.jurisdictions['CA  AMIENS'],
       function: seed.functions.PR,
     },
-  } satisfies LolfiData['sessions'][number]['candidates'][number];
+  } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 }
 
 async function jobErrors(admin: TestStepsAdmin, jobId: number): Promise<string[]> {
@@ -584,7 +587,7 @@ function mentioning(transparenceId: number): (message: string) => boolean {
   return (message) => message.includes(`(${transparenceId})`);
 }
 
-async function ingestArchive(admin: TestStepsAdmin, ...sessions: LolfiData['sessions']): Promise<number> {
+async function ingestArchive(admin: TestStepsAdmin, ...sessions: LolfiArchiveContent['sessions']): Promise<number> {
   const archive = await generateLolfiArchive({ sessions });
   const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, {
     type: 'application/zip',
