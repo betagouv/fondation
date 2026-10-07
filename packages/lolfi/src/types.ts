@@ -59,6 +59,7 @@ export type LolfiArchiveContent = {
       id?: number;
       installationDate?: string;
       lastName: string;
+      maritalStatus?: string | null;
       marriedName?: string;
       nominationDate?: string;
       phone?: string;

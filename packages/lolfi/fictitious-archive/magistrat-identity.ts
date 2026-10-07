@@ -8,6 +8,7 @@ export type MagistratIdentity = {
   email: string;
   firstName: string;
   lastName: string;
+  maritalStatus: string | null;
   marriedName: string | undefined;
   phone: string | undefined;
   usedName: string | undefined;
@@ -19,6 +20,53 @@ const MARRIED_NAME_SHARE: Record<Civilite, number> = { 'M.': 0.007, MME: 0.247 }
 const NO_USED_NAME_SHARE: Record<Civilite, number> = { 'M.': 0.016, MME: 0.011 };
 const MARRIED_NAME_AS_USED_NAME_SHARE: Record<Civilite, number> = { 'M.': 0.1, MME: 0.446 };
 const COMPOUND_USED_NAME_SHARE: Record<Civilite, number> = { 'M.': 0.009, MME: 0.061 };
+/* Measured on 10 720 magistrats held by production on 2026-10-07: a married name does not imply a married status */
+const MARITAL_STATUSES: Record<
+  Civilite,
+  Record<'withMarriedName' | 'withoutMarriedName', Map<string | null, number>>
+> = {
+  'M.': {
+    withMarriedName: new Map<string | null, number>([
+      ['C', 8],
+      ['M', 10],
+      ['P', 1],
+    ]),
+    withoutMarriedName: new Map<string | null, number>([
+      ['C', 1373],
+      ['D', 62],
+      ['I', 127],
+      ['M', 1112],
+      ['P', 178],
+      ['S', 6],
+      ['U', 133],
+      ['V', 5],
+      [null, 7],
+    ]),
+  },
+  MME: {
+    withMarriedName: new Map<string | null, number>([
+      ['C', 112],
+      ['D', 63],
+      ['I', 33],
+      ['M', 1729],
+      ['P', 8],
+      ['S', 6],
+      ['U', 13],
+      ['V', 11],
+    ]),
+    withoutMarriedName: new Map<string | null, number>([
+      ['C', 3774],
+      ['D', 330],
+      ['I', 204],
+      ['M', 550],
+      ['P', 465],
+      ['S', 24],
+      ['U', 363],
+      ['V', 2],
+      [null, 11],
+    ]),
+  },
+};
 const PHONE_SHARE = 0.67;
 const PHONE_FORMATS = new Map<(digits: string) => string, number>([
   [(d) => d, 6701],
@@ -46,6 +94,9 @@ export function drawMagistratIdentity(random: Random): MagistratIdentity {
     email: `${toEmailPart(firstName)}.${toEmailPart(usedName ?? lastName)}@JUSTICE.EXAMPLE`,
     firstName,
     lastName,
+    maritalStatus: random.pickWeighted(
+      MARITAL_STATUSES[civilite][marriedName ? 'withMarriedName' : 'withoutMarriedName'],
+    ),
     marriedName,
     phone: random.chance(PHONE_SHARE) ? random.pickWeighted(PHONE_FORMATS)(phoneDigits) : undefined,
     usedName,
