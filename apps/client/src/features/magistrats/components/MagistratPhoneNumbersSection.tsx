@@ -37,7 +37,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
 
   if (isLoading) {
     return (
-      <p className="fr-mt-2v fr-mb-0">
+      <p className="fr-mb-0">
         <FormattedMessage defaultMessage="Chargement..." />
       </p>
     );
@@ -59,24 +59,22 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string }) {
 
   return (
     <>
-      <div className="fr-mt-2v">
-        <MagistratInfoList>
-          {phoneNumbers?.length ? (
-            phoneNumbers.map((phoneNumber) => (
-              <MagistratPhoneNumberItem
-                key={phoneNumber.source === 'FONDATION' ? phoneNumber.id : phoneNumber.number}
-                onDelete={(phoneNumber) => setEditing({ action: 'DELETE', open: true, phoneNumber })}
-                onUpdate={(phoneNumber) => setEditing({ action: 'UPDATE', open: true, phoneNumber })}
-                phoneNumber={phoneNumber}
-              />
-            ))
-          ) : (
-            <MagistratInfoItem label={<FormattedMessage defaultMessage="Tél" />}>
-              <FormattedMessage defaultMessage="Aucun numéro connu" />
-            </MagistratInfoItem>
-          )}
-        </MagistratInfoList>
-      </div>
+      <MagistratInfoList>
+        {phoneNumbers?.length ? (
+          phoneNumbers.map((phoneNumber) => (
+            <MagistratPhoneNumberItem
+              key={phoneNumber.source === 'FONDATION' ? phoneNumber.id : phoneNumber.number}
+              onDelete={(phoneNumber) => setEditing({ action: 'DELETE', open: true, phoneNumber })}
+              onUpdate={(phoneNumber) => setEditing({ action: 'UPDATE', open: true, phoneNumber })}
+              phoneNumber={phoneNumber}
+            />
+          ))
+        ) : (
+          <MagistratInfoItem label={<FormattedMessage defaultMessage="Tél" />}>
+            <FormattedMessage defaultMessage="Aucun numéro connu" />
+          </MagistratInfoItem>
+        )}
+      </MagistratInfoList>
 
       <Button
         className="fr-mt-4v"

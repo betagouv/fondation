@@ -67,11 +67,17 @@ export function MagistratIdentityCard({
         <MagistratInfoItem label={<FormattedMessage defaultMessage="Date du grade" />}>
           <InfoDate date={magistrat.gradeDate} />
         </MagistratInfoItem>
+      </MagistratInfoList>
+
+      <h2 className="fr-h4 fr-mt-8v">
+        <FormattedMessage defaultMessage="Informations de contact" />
+      </h2>
+      <MagistratInfoList>
         <MagistratInfoItem label={<FormattedMessage defaultMessage="Email" />}>
           {magistrat.professionalEmail?.toLowerCase() ?? '-'}
         </MagistratInfoItem>
       </MagistratInfoList>
-      {phoneNumbers}
+      {phoneNumbers ? <div className="fr-mt-2v">{phoneNumbers}</div> : null}
     </DetailsCard>
   );
 }
