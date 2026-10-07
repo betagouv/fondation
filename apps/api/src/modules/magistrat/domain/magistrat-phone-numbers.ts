@@ -42,7 +42,7 @@ export const MIN_PHONE_NUMBER_DIGITS = 10;
 function normalizedPhoneNumber(input: string): string {
   if (!/^\+?[\d\s.-]+$/.test(input.trim())) throw new InvalidPhoneNumber();
 
-  const number = input.replace(/[\s.-]/g, '').replace(/^\+33/, '0');
+  const number = input.replace(/[\s.-]/g, '').replace(/^\+330?/, '0');
   const digits = number.replace('+', '').length;
   if (digits < MIN_PHONE_NUMBER_DIGITS || digits > MAX_PHONE_NUMBER_DIGITS) throw new InvalidPhoneNumber();
 

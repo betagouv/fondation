@@ -23,6 +23,7 @@ describe('MagistratPhoneNumbers', () => {
     { input: '06.12.34.56.78', saved: '0612345678' },
     { input: '06-12-34-56-78', saved: '0612345678' },
     { input: '+33 6 12 34 56 78', saved: '0612345678' },
+    { input: '+33 06 12 34 56 78', saved: '0612345678' },
     { input: '+262 262 12 34 56', saved: '+262262123456' },
   ])('adds $input as $saved', ({ input, saved }) => {
     const magistrat = phoneNumbers();

@@ -34,9 +34,9 @@ UNION ALL
       comparable.phone AS comparable_phone
     FROM nominations_context.magistrat AS m
       INNER JOIN data_administration_context.candidate AS c ON c.magistrat_id = m.external_id
-      -- same rule as the saved numbers: only digits and a leading +, +33 standing for 0
+      -- compared like the saved numbers: only digits and a leading + kept, +33 standing for 0
       CROSS JOIN LATERAL (
-        SELECT REGEXP_REPLACE(REGEXP_REPLACE(c.phone, '[^0-9+]', '', 'g'), '^\+33', '0') AS phone
+        SELECT REGEXP_REPLACE(REGEXP_REPLACE(c.phone, '[^0-9+]', '', 'g'), '^\+330?', '0') AS phone
       ) AS comparable
     WHERE m.id = $1::UUID AND c.phone IS NOT NULL
     ORDER BY comparable.phone ASC, c.updated_at DESC NULLS LAST, c.id DESC
