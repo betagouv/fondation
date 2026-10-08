@@ -15,7 +15,10 @@ import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
 } from 'src/modules/shared/nomination-file-outcome.enum';
-import { expectedReportersCount } from 'src/modules/shared/policies/auditioned-position.policy';
+import {
+  AUDITION_REQUIREMENTS,
+  expectedReportersCount,
+} from 'src/modules/shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
@@ -240,6 +243,7 @@ export class DetailedSummaryDto extends createZodDto(
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),
     auditionRequired: z.boolean(),
+    auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
     auditionTime: timeOnlySchema.nullable(),
     canScheduleAudition: z.boolean(),
     reportersMissing: z.boolean(),

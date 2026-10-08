@@ -3,7 +3,10 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { ObservationService } from 'src/modules/observation/observation.service';
-import { isAuditionRequired } from 'src/modules/shared/policies/auditioned-position.policy';
+import {
+  type AuditionRequirement,
+  auditionRequirementOf,
+} from 'src/modules/shared/policies/auditioned-position.policy';
 import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 import { type AuditionSchedule, toOptionalAuditionSchedule } from 'src/utils/audition-schedule';
 import type { DateOnlyJson } from 'src/utils/date-only';
@@ -14,6 +17,7 @@ import { AuditionPublicationFinder } from './audition-publication.finder';
 export type SeenAudition = {
   auditionDate: DateOnlyJson | null;
   auditionRequired: boolean;
+  auditionRequirement: AuditionRequirement | null;
   auditionTime: TimeOnly | null;
 };
 
@@ -74,15 +78,19 @@ export class AuditionsSeenFinder {
               requested: file.auditionRequested,
             };
 
+        const position = {
+          ...file,
+          detectedJurisdictionType: file.detectedJurisdiction?.typeJur ?? null,
+        };
+        const requirement = auditionRequirementOf({ ...position, auditionRequested: requested });
+
         return [
           file.id,
           {
             auditionDate: audition?.date ?? null,
-            auditionRequired: isAuditionRequired({
-              ...file,
-              auditionRequested: requested,
-              detectedJurisdictionType: file.detectedJurisdiction?.typeJur ?? null,
-            }),
+            auditionRequired: requirement !== null,
+            // the members are not told who wanted the audition
+            auditionRequirement: publications ? null : requirement,
             auditionTime: audition?.time ?? null,
           },
         ];

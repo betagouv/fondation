@@ -35,8 +35,11 @@ export function MagistratSidePanelContent(props: {
         <AuditionBanner
           auditionDate={nominationFile.auditionDate}
           auditionMissing={auditionMissing}
+          auditionRequirement={nominationFile.auditionRequirement}
           auditionTime={nominationFile.auditionTime}
           editable={auditionEditable}
+          nominationFileId={nominationFile.id}
+          sessionId={sessionId}
         />
         <MissingEvaluation
           editable={isSgContext}

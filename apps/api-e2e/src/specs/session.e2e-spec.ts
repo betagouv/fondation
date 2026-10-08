@@ -117,6 +117,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         auditionDate: null,
         auditionRequired: true,
+        auditionRequirement: 'POSITION',
         auditionTime: null,
         canScheduleAudition: true,
         comment: null,
@@ -170,6 +171,7 @@ test.describe('Session E2E', () => {
       expect(nominationFiles.data!.items).toContainEqual({
         auditionDate: null,
         auditionRequired: true,
+        auditionRequirement: 'POSITION',
         auditionTime: null,
         canScheduleAudition: true,
         comment: null,

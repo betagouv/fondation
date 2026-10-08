@@ -68,11 +68,22 @@ export function isAuditionExpected(file: AuditionedPosition): boolean {
   return !!label && AUDITIONED_LEGACY_LABELS.some((legacyLabel) => label.startsWith(legacyLabel));
 }
 
-// the secretariat may request an audition the position does not expect, or dismiss one it does
+export const AUDITION_REQUIREMENTS = ['POSITION', 'SECRETARIAT'] as const;
+export type AuditionRequirement = (typeof AUDITION_REQUIREMENTS)[number];
+
+// the secretariat may add an audition the position does not require
+export function auditionRequirementOf(
+  file: AuditionedPosition & { auditionRequested: boolean | null },
+): AuditionRequirement | null {
+  if (isAuditionExpected(file)) return 'POSITION';
+
+  return file.auditionRequested ? 'SECRETARIAT' : null;
+}
+
 export function isAuditionRequired(
   file: AuditionedPosition & { auditionRequested: boolean | null },
 ): boolean {
-  return file.auditionRequested ?? isAuditionExpected(file);
+  return auditionRequirementOf(file) !== null;
 }
 
 const AUDITIONED_REPORTERS = 2;

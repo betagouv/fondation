@@ -68,6 +68,7 @@ import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-n
 import { DetailedAffectationHistoryDto } from './infrastructure/queries/detail-affectation-history.query';
 import { DetailedAuditionsPublicationDto } from './infrastructure/queries/detail-auditions-publication.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
+import { DetailedNominationFileAuditionHistoryDto } from './infrastructure/queries/detail-nomination-file-audition-history.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { DetailedSessionCommentDto } from './infrastructure/queries/detail-session-comment.query';
@@ -462,6 +463,16 @@ export class SessionController {
       nominationFileId,
       sessionId,
     });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/files/:nominationFileId/audition/history')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedNominationFileAuditionHistoryDto })
+  detailNominationFileAuditionHistory(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+  ): Promise<DetailedNominationFileAuditionHistoryDto> {
+    return this.sessions.detailNominationFileAuditionHistory({ nominationFileId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

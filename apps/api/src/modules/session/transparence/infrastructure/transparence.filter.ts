@@ -12,12 +12,13 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
-  ScheduledAuditionCannotBeDismissed,
+  PositionAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
   SessionTransparenceIsNotDeletable,
   UnknownNominationFiles,
+  UnrequestedAuditionCannotBeScheduled,
 } from 'src/modules/session/transparence/domain/session-transparence';
 import {
   NominationFileOutcomeRequiresComment,
@@ -113,11 +114,15 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             });
           }
 
-          if (err instanceof ScheduledAuditionCannotBeDismissed) {
+          if (err instanceof UnrequestedAuditionCannotBeScheduled) {
             return new BadRequestException({
-              validationErrors: [
-                `impossible de retirer une audition dont la date est fixée : effacez d'abord la date`,
-              ],
+              validationErrors: [`impossible de programmer une audition qui n'est pas prévue`],
+            });
+          }
+
+          if (err instanceof PositionAuditionCannotBeDismissed) {
+            return new BadRequestException({
+              validationErrors: [`impossible de retirer une audition imposée par le poste`],
             });
           }
 

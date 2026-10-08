@@ -15,7 +15,11 @@ const SG_ROUTE = '/secretariat-general/session/session-1';
 const MEMBER_ROUTE = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
 const SCHEDULED = { day: 15, month: 6, year: 2029 };
-const AUDITIONED = { auditionRequired: true, expectedReportersCount: 2 };
+const AUDITIONED = {
+  auditionRequired: true,
+  auditionRequirement: 'POSITION',
+  expectedReportersCount: 2,
+} as const;
 
 const REPORTERS: SessionNominationFile['reporters'] = [
   { firstName: 'Rachel', id: 'user-1', lastName: 'Bernard' },
@@ -88,6 +92,12 @@ describe('useAuditionExpectation', () => {
         reporters: REPORTERS.slice(0, 1),
       }),
     ).toEqual({ auditionAnnounced: false, auditionMissing: false, labels: [], reportersMissing: false });
+  });
+
+  it('does not credit the position with an audition the secretariat added', () => {
+    expect(renderExpectation({ auditionRequired: true, auditionRequirement: 'SECRETARIAT' }).labels).toEqual([
+      'Une audition a été demandée',
+    ]);
   });
 
   it('follows the reporters being selected rather than the affected ones', () => {

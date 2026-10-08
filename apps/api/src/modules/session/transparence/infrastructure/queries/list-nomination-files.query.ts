@@ -32,7 +32,10 @@ import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from 'src/modules/shared/nomination-file-outcome.enum';
-import { expectedReportersCount } from 'src/modules/shared/policies/auditioned-position.policy';
+import {
+  AUDITION_REQUIREMENTS,
+  expectedReportersCount,
+} from 'src/modules/shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
@@ -490,6 +493,7 @@ const NominationFileAffectationItemSchema = z.object({
   canScheduleAudition: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
+  auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
   auditionTime: timeOnlySchema.nullable(),
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),

@@ -78,6 +78,7 @@ function makeSummaryDetail(props: {
   return {
     auditionDate: null,
     auditionRequired: false,
+    auditionRequirement: null,
     auditionTime: null,
     biography: '',
     birthDate: null,

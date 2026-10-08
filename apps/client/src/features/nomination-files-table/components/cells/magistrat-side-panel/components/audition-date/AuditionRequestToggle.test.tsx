@@ -12,6 +12,13 @@ import * as $api from '@api/sdk';
 
 import { AuditionRequestToggle } from './AuditionRequestToggle';
 
+const mocks = vi.hoisted(() => ({ waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })) }));
+
+vi.mock('@/shared/context/confirm-modal', () => ({
+  useConfirmModal: () => ({ waitForConfirmation: mocks.waitForConfirmation }),
+}));
+
+type HistoryResponse = Awaited<ReturnType<typeof $api.sessions.detailNominationFileAuditionHistory>>;
 type RequestResponse = Awaited<ReturnType<typeof $api.sessions.updateNominationFileAuditionRequest>>;
 
 function renderCheckbox(overrides: NominationFileOverrides) {
@@ -37,7 +44,7 @@ describe('AuditionRequestToggle', () => {
       .mockResolvedValue({} as RequestResponse);
     renderCheckbox({ auditionDate: null, auditionRequired: false, id: 'nomination-file' });
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Audition à prévoir' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Prévoir une audition' }));
 
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith({
@@ -47,10 +54,41 @@ describe('AuditionRequestToggle', () => {
     );
   });
 
-  it('keeps a scheduled audition requested until its date is removed', () => {
-    renderCheckbox({ auditionDate: { day: 12, month: 12, year: 2028 }, auditionRequired: true });
+  it('asks before dismissing a scheduled audition, whose date goes with it', async () => {
+    const save = vi
+      .spyOn($api.sessions, 'updateNominationFileAuditionRequest')
+      .mockResolvedValue({} as RequestResponse);
+    renderCheckbox({
+      auditionDate: { day: 12, month: 12, year: 2028 },
+      auditionRequired: true,
+      auditionTime: { hours: 9, minutes: 30, seconds: 0 },
+      id: 'nomination-file',
+    });
 
-    expect(screen.getByRole('checkbox', { name: 'Audition à prévoir' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Audition à prévoir' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Prévoir une audition' }));
+
+    expect(mocks.waitForConfirmation).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith({
+        body: { requested: false },
+        path: { nominationFileId: 'nomination-file', sessionId: 'session-1' },
+      }),
+    );
+  });
+
+  it('tells who added an audition the position does not ask for', async () => {
+    vi.spyOn($api.sessions, 'detailNominationFileAuditionHistory').mockResolvedValue({
+      data: {
+        requested: { at: '2026-10-08T09:30:00.000Z', by: { id: 'user-1', name: 'Rachel BERNARD' } },
+        scheduled: null,
+      },
+    } as HistoryResponse);
+    renderCheckbox({ auditionRequired: true });
+
+    await waitFor(() =>
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+        'Une audition a été demandée par Rachel BERNARD',
+      ),
+    );
   });
 });

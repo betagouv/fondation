@@ -12,7 +12,7 @@ import {
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   NonFormationMemberDefinedAsReporter,
-  ScheduledAuditionCannotBeDismissed,
+  PositionAuditionCannotBeDismissed,
   SessionTransparence,
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceAffectationVersionCreated,
@@ -32,6 +32,7 @@ import {
   SessionTransparenceOutcomeDefined,
   SessionTransparenceValidated,
   UnknownNominationFiles,
+  UnrequestedAuditionCannotBeScheduled,
 } from './session-transparence';
 import { LodamTransparenceFile } from './transparence-file';
 
@@ -42,10 +43,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -79,10 +81,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -108,10 +111,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: false, version: 3 },
@@ -150,10 +154,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -179,10 +184,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -205,10 +211,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -228,10 +235,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: { id: 'version-id', isDraft: true, version: 3 },
@@ -467,10 +475,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nf-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -511,10 +520,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -534,10 +544,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -563,10 +574,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -592,10 +604,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -616,10 +629,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: true,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -646,16 +660,43 @@ describe('SessionTransparence', () => {
     ]);
   });
 
+  it('should throw when scheduling an audition nobody planned', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: false,
+          outcome: null,
+          positionRequiresAudition: false,
+        },
+      ],
+      version: null,
+    });
+
+    expect(() =>
+      session.scheduleAudition({
+        auditionDateTime: { date: new DateOnly(2026, 7, 10), time: { hours: 14, minutes: 30, seconds: 0 } },
+        impersonatorId: null,
+        nominationFileId: 'nomination-file-id-1',
+        userId: 'user-id',
+      }),
+    ).toThrow(UnrequestedAuditionCannotBeScheduled);
+  });
+
   it('should throw when scheduling an audition on a file whose decision is final', () => {
     const session = SessionTransparence.from({
       formation: 'SIEGE',
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -679,7 +720,13 @@ describe('SessionTransparence', () => {
       formation: 'SIEGE',
       id: 'session-id',
       nominationFiles: [
-        { auditionScheduled: false, id: 'nomination-file-id-1', isReported: false, outcome: null },
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: false,
+          outcome: null,
+          positionRequiresAudition: false,
+        },
       ],
       version: null,
     });
@@ -707,7 +754,13 @@ describe('SessionTransparence', () => {
       formation: 'SIEGE',
       id: 'session-id',
       nominationFiles: [
-        { auditionScheduled: false, id: 'nomination-file-id-1', isReported: false, outcome: 'VALIDATED' },
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: false,
+          outcome: 'VALIDATED',
+          positionRequiresAudition: false,
+        },
       ],
       version: null,
     });
@@ -722,12 +775,18 @@ describe('SessionTransparence', () => {
     ).toThrow(CannotScheduleAuditionOnNominationFile);
   });
 
-  it('should throw when dismissing an audition whose date is set', () => {
+  it('should not dismiss the audition a position requires', () => {
     const session = SessionTransparence.from({
       formation: 'SIEGE',
       id: 'session-id',
       nominationFiles: [
-        { auditionScheduled: true, id: 'nomination-file-id-1', isReported: false, outcome: null },
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: false,
+          outcome: null,
+          positionRequiresAudition: true,
+        },
       ],
       version: null,
     });
@@ -739,7 +798,7 @@ describe('SessionTransparence', () => {
         requested: false,
         userId: 'user-id',
       }),
-    ).toThrow(ScheduledAuditionCannotBeDismissed);
+    ).toThrow(PositionAuditionCannotBeDismissed);
   });
 
   it('should clear the audition without checking the outcome when no date is provided', () => {
@@ -748,10 +807,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -808,10 +868,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -833,10 +894,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -859,10 +921,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -888,10 +951,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -911,10 +975,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -934,10 +999,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -969,10 +1035,11 @@ describe('SessionTransparence', () => {
       id: makeId('NominationSessionId'),
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: false,
           outcome: null,
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -994,10 +1061,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,
@@ -1018,10 +1086,11 @@ describe('SessionTransparence', () => {
       id: 'session-id',
       nominationFiles: [
         {
-          auditionScheduled: false,
+          auditionRequired: false,
           id: 'nomination-file-id-1',
           isReported: true,
           outcome: 'VALIDATED',
+          positionRequiresAudition: false,
         },
       ],
       version: null,

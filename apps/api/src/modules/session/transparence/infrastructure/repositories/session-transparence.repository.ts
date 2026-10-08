@@ -624,22 +624,22 @@ export class SessionTransparenceRepository {
       time: timeOnlyToDate(message.auditionDateTime.time),
     };
 
-    await this.db.tx.dossierDeNomination.update({
-      data: {
-        auditionDate: audition.date,
-        auditionRequested: message.requested,
-        auditionTime: audition.time,
-      },
+    const { auditionRequested } = await this.db.tx.dossierDeNomination.update({
+      data: { auditionDate: audition.date, auditionTime: audition.time },
+      select: { auditionRequested: true } satisfies Prisma.DossierDeNominationSelect,
       where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
-    await this.persistNominationFileAuditionVersion(message, { ...audition, requested: message.requested });
+    await this.persistNominationFileAuditionVersion(message, { ...audition, requested: auditionRequested });
   }
 
   private async persistSessionTransparenceAuditionRequestDefined(
     message: SessionTransparenceAuditionRequestDefined,
   ) {
+    // no audition is left to hold once dismissed: its date goes with it, in a single version
     const [file] = await this.db.tx.dossierDeNomination.updateManyAndReturn({
-      data: { auditionRequested: message.requested },
+      data: message.requested
+        ? { auditionRequested: true }
+        : { auditionDate: null, auditionRequested: false, auditionTime: null },
       select: { auditionDate: true, auditionTime: true } satisfies Prisma.DossierDeNominationSelect,
       where: {
         OR: [{ auditionRequested: null }, { auditionRequested: !message.requested }],

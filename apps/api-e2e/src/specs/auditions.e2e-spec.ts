@@ -28,6 +28,23 @@ const SESSION: LolfiArchiveContent['sessions'][number] = {
   name: 'Transparence annuelle',
 };
 
+const SIEGE_SESSION: LolfiArchiveContent['sessions'][number] = {
+  candidates: [
+    {
+      firstName: 'ALIX',
+      lastName: 'FOURNERAY',
+      position: { function: seed.functions.P, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+      targetPosition: {
+        function: seed.functions.P,
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+      },
+    },
+  ],
+  createdAt: '22/04/2026',
+  name: 'Transparence du siège',
+};
+
 function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as unknown as CreateObservationDto['form'];
 }
@@ -62,22 +79,7 @@ test.describe('Auditions E2E', () => {
   });
 
   test('should list a proposition once the secretariat requests its audition', async ({ agent, expect, sessions }) => {
-    const siege = await sessions.createOne({
-      candidates: [
-        {
-          firstName: 'ALIX',
-          lastName: 'FOURNERAY',
-          position: { function: seed.functions.P, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
-          targetPosition: {
-            function: seed.functions.P,
-            grade: 'G3',
-            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-          },
-        },
-      ],
-      createdAt: '22/04/2026',
-      name: 'Transparence du siège',
-    });
+    const siege = await sessions.createOne(SIEGE_SESSION);
     const [file] = await agent.sessions
       .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
       .then(({ data }) => data!.items);
@@ -96,25 +98,30 @@ test.describe('Auditions E2E', () => {
     expect(auditions.data!.items).toMatchObject([{ audition: null, propositions: [{ nominationFileId: file!.id }] }]);
   });
 
-  test('should no longer list a proposition whose audition the secretariat dismisses', async ({
+  test('should no longer list a proposition whose scheduled audition the secretariat dismisses', async ({
     agent,
     expect,
-    session,
+    sessions,
   }) => {
-    await agent.sessions.updateNominationFileAuditionRequest({
-      body: { requested: false },
-      path: { nominationFileId: session.montferrand.id, sessionId: session.id },
+    const siege = await sessions.createOne(SIEGE_SESSION);
+    const [file] = await agent.sessions
+      .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
+      .then(({ data }) => data!.items);
+    const path = { nominationFileId: file!.id, sessionId: siege.id };
+    await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: true }, path, throwOnError: true });
+    await agent.sessions.updateNominationFileAuditionDate({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+      path,
       throwOnError: true,
     });
 
+    await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: false }, path, throwOnError: true });
     const auditions = await agent.sessions.listSessionAuditions({
-      path: { sessionId: session.id },
+      path: { sessionId: siege.id },
       throwOnError: true,
     });
 
-    expect(auditions.data!.items.flatMap(({ propositions }) => propositions)).not.toContainEqual(
-      expect.objectContaining({ nominationFileId: session.montferrand.id }),
-    );
+    expect(auditions.data!.items).toEqual([]);
   });
 
   test('should list a proposed magistrat and an observant heard in the session', async ({ agent, expect, session }) => {

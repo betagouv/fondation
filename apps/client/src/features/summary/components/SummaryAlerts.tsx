@@ -2,7 +2,11 @@ import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import {
+  AuditionAnnouncedBanner,
+  AuditionRequesterMessage,
+  AuditionScheduledBanner,
+} from '@/shared/components/audition-banner';
 import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
@@ -15,7 +19,7 @@ const PENDING_OUTCOMES = new Set<NominationFileOutcomeEnum>([
 
 export function SummaryAlerts() {
   const isSg = useIsSg();
-  const { summary } = useSummary();
+  const { nominationFileId, sessionId, summary } = useSummary();
   const outcome = summary.outcome && !PENDING_OUTCOMES.has(summary.outcome.value) ? summary.outcome : null;
   const auditionMissing = isAuditionMissing(summary);
 
@@ -48,8 +52,10 @@ export function SummaryAlerts() {
           message={
             auditionMissing && summary.reportersMissing ? (
               <FormattedMessage defaultMessage="Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste" />
-            ) : auditionMissing ? (
+            ) : auditionMissing && summary.auditionRequirement === 'POSITION' ? (
               <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
+            ) : auditionMissing ? (
+              <AuditionRequesterMessage nominationFileId={nominationFileId} sessionId={sessionId} />
             ) : (
               <FormattedMessage defaultMessage="2 rapporteurs sont attendus pour ce poste" />
             )

@@ -225,7 +225,6 @@ export function useUpdateNominationFileAuditionDateMutation() {
             ? {
                 ...file,
                 auditionDate,
-                auditionRequired: !!auditionDate || file.auditionRequired,
                 auditionTime: auditionTime
                   ? {
                       hours: auditionTime.hours,
@@ -240,10 +239,7 @@ export function useUpdateNominationFileAuditionDateMutation() {
 
       queryClient.setQueryData(
         summaryKeys.detailsSummary({ nominationFileId, sessionId }),
-        (old: DetailedSummaryDto | undefined) =>
-          old
-            ? { ...old, auditionDate, auditionRequired: !!auditionDate || old.auditionRequired, auditionTime }
-            : old,
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
 
       return queryClient.invalidateQueries({ queryKey: auditionKeys.all() });
@@ -267,16 +263,25 @@ export function useUpdateNominationFileAuditionRequestMutation() {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
-          file.id === nominationFileId ? { ...file, auditionRequired: requested } : file,
+          file.id === nominationFileId
+            ? {
+                ...file,
+                auditionDate: requested ? file.auditionDate : null,
+                auditionRequired: requested,
+                // the toggle is locked where the position sets the audition: only the secretariat adds one
+                auditionRequirement: requested ? 'SECRETARIAT' : null,
+                auditionTime: requested ? file.auditionTime : null,
+              }
+            : file,
         ),
       );
 
-      queryClient.setQueryData(
-        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
-        (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionRequired: requested } : old),
-      );
-
-      return queryClient.invalidateQueries({ queryKey: auditionKeys.all() });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        }),
+      ]);
     },
   });
 }

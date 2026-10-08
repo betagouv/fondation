@@ -369,6 +369,7 @@ export type PaginatedNominationFiles = {
             day: number;
         } | null;
         auditionRequired: boolean;
+        auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -504,6 +505,23 @@ export type UpdateMissingEvaluationDto = {
 
 export type UpdateMissingEvaluationCommentDto = {
     comment: string | null;
+};
+
+export type DetailedNominationFileAuditionHistoryDto = {
+    requested: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    scheduled: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
 };
 
 export type UpdateAuditionRequestDto = {
@@ -659,6 +677,7 @@ export type DetailedNominationFileDto = {
         day: number;
     } | null;
     auditionRequired: boolean;
+    auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
     auditionTime: {
         hours: number;
         minutes: number;
@@ -812,6 +831,7 @@ export type DetailedSummaryDto = {
         day: number;
     } | null;
     auditionRequired: boolean;
+    auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
     auditionTime: {
         hours: number;
         minutes: number;
@@ -2998,6 +3018,22 @@ export type UpdateNominationFileMissingEvaluationCommentResponses = {
 };
 
 export type UpdateNominationFileMissingEvaluationCommentResponse = UpdateNominationFileMissingEvaluationCommentResponses[keyof UpdateNominationFileMissingEvaluationCommentResponses];
+
+export type DetailNominationFileAuditionHistoryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition/history';
+};
+
+export type DetailNominationFileAuditionHistoryResponses = {
+    200: DetailedNominationFileAuditionHistoryDto;
+};
+
+export type DetailNominationFileAuditionHistoryResponse = DetailNominationFileAuditionHistoryResponses[keyof DetailNominationFileAuditionHistoryResponses];
 
 export type UpdateNominationFileAuditionRequestData = {
     body: UpdateAuditionRequestDto;

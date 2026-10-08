@@ -5,6 +5,10 @@ import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
 import { Prisma } from 'src/generated/prisma/client';
 import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
+import {
+  isAuditionExpected,
+  isAuditionRequired,
+} from 'src/modules/shared/policies/auditioned-position.policy';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -46,9 +50,13 @@ export class TransparenceFilesFinder {
       (query.nominationFileIds?.size ?? 0) > 0 ? { in: [...(query.nominationFileIds ?? [])] } : undefined;
     const snapshots = await this.db.tx.dossierDeNomination.findMany({
       select: {
-        auditionDate: true,
+        auditionRequested: true,
+        detectedJurisdiction: { select: { typeJur: true } },
+        detectedJurisdictionId: true,
+        detectedTargetedFunctionId: true,
         id: true,
         outcome: true,
+        targetedPosition: true,
       } satisfies Prisma.DossierDeNominationSelect,
       where: { id: inIds, sessionId: query.sessionId },
     });
@@ -57,11 +65,15 @@ export class TransparenceFilesFinder {
       nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 
-    return snapshots.map(({ auditionDate, id, outcome }) => ({
-      auditionScheduled: auditionDate !== null,
-      id,
-      isReported: reportedFileIds.has(id),
-      outcome,
-    }));
+    return snapshots.map((file) => {
+      const position = { ...file, detectedJurisdictionType: file.detectedJurisdiction?.typeJur ?? null };
+      return {
+        auditionRequired: isAuditionRequired(position),
+        id: file.id,
+        isReported: reportedFileIds.has(file.id),
+        outcome: file.outcome,
+        positionRequiresAudition: isAuditionExpected(position),
+      };
+    });
   }
 }

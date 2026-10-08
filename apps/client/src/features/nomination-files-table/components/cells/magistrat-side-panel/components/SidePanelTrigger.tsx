@@ -51,10 +51,10 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
     );
 
   const auditionLabel = !props.nominationFile.auditionDate
-    ? intl.formatMessage({ defaultMessage: 'Une audition va être programmée pour ce magistrat' })
+    ? intl.formatMessage({ defaultMessage: 'Une audition va être programmée' })
     : isPastSchedule(props.nominationFile.auditionDate, props.nominationFile.auditionTime ?? END_OF_DAY)
-      ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu pour ce magistrat' })
-      : intl.formatMessage({ defaultMessage: 'Une audition est prévue pour ce magistrat' });
+      ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu' })
+      : intl.formatMessage({ defaultMessage: 'Une audition est prévue' });
 
   const words = props.nominationFile.content.nomMagistrat.split(' ');
   const lastWord = words.pop();

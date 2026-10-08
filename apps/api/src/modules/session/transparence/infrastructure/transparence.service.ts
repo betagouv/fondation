@@ -66,6 +66,10 @@ import {
   type DetailedNominationFileAttachmentDto,
   DetailNominationFileAttachmentQuery,
 } from './queries/detail-nomination-file-attachment.query';
+import {
+  DetailedNominationFileAuditionHistoryDto,
+  DetailNominationFileAuditionHistoryQuery,
+} from './queries/detail-nomination-file-audition-history.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -126,6 +130,7 @@ export class TransparenceService {
     private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
     private readonly detailAuditionsPublicationQuery: DetailAuditionsPublicationQuery,
+    private readonly detailNominationFileAuditionHistoryQuery: DetailNominationFileAuditionHistoryQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailAffectationHistoryQuery: DetailAffectationHistoryQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
@@ -408,6 +413,13 @@ export class TransparenceService {
       lastPublished: (await this.auditionPublications.last(command))?.auditions ?? null,
     });
     await this.nominationSessionRepository.persist(session);
+  }
+
+  detailNominationFileAuditionHistory(query: {
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<DetailedNominationFileAuditionHistoryDto> {
+    return this.detailNominationFileAuditionHistoryQuery.handle(query);
   }
 
   detailAuditionsPublication(query: { sessionId: string }): Promise<DetailedAuditionsPublicationDto> {

@@ -18,6 +18,8 @@ const SESSION_AUDITIONS_PAGE_SIZE = 50;
 export const auditionKeys = {
   all: () => ['auditions'] as const,
   counts: (props: { sessionId: string }) => ['auditions', 'counts', props] as const,
+  history: (props: { nominationFileId: string; sessionId: string }) =>
+    ['auditions', 'history', props] as const,
   lastPublication: (props: { sessionId: string }) => ['auditions', 'publications', 'last', props] as const,
   list: (props: { filters: SessionAuditionsFilters; sessionId: string }) =>
     ['auditions', 'list', props] as const,
@@ -95,3 +97,18 @@ export const usePublishAuditionsMutation = () => {
     onSuccess: (_, props) => queryClient.invalidateQueries({ queryKey: auditionKeys.lastPublication(props) }),
   });
 };
+
+export const useNominationFileAuditionHistoryQuery = (props: {
+  nominationFileId: string;
+  sessionId: string;
+}) =>
+  useQuery({
+    queryFn: async () => {
+      const { data } = await $api.sessions.detailNominationFileAuditionHistory({
+        path: props,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: auditionKeys.history(props),
+  });

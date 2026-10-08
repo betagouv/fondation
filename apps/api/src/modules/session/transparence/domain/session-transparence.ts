@@ -156,9 +156,6 @@ export class SessionTransparenceOutcomeDefined {
 }
 
 export class SessionTransparenceAuditionScheduled {
-  // a scheduled audition is requested, and stays so once its date is removed
-  readonly requested = true;
-
   constructor(
     readonly sessionId: string,
     readonly nominationFileId: string,
@@ -336,7 +333,13 @@ export class CannotScheduleAuditionOnNominationFile extends Error {
   }
 }
 
-export class ScheduledAuditionCannotBeDismissed extends Error {
+export class UnrequestedAuditionCannotBeScheduled extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
+export class PositionAuditionCannotBeDismissed extends Error {
   constructor(readonly nominationFileId: string) {
     super();
   }
@@ -349,7 +352,12 @@ export class SessionTransparence {
     readonly version: SessionTransparenceAffectationVersion | null,
     private files: Map<
       string,
-      { auditionScheduled: boolean; canScheduleAudition: boolean; canUpdate: boolean }
+      {
+        auditionRequired: boolean;
+        canScheduleAudition: boolean;
+        canUpdate: boolean;
+        positionRequiresAudition: boolean;
+      }
     >,
   ) {}
 
@@ -365,9 +373,10 @@ export class SessionTransparence {
           [
             file.id,
             {
-              auditionScheduled: file.auditionScheduled,
+              auditionRequired: file.auditionRequired,
               canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
               canUpdate: !policies.nominationFileLock(file, { archivedAt: null }),
+              positionRequiresAudition: file.positionRequiresAudition,
             },
           ] as const,
       ),
@@ -463,7 +472,16 @@ export class SessionTransparence {
 
     session.files = new Map(
       nominationFileEntities.map(
-        (x) => [x.id, { auditionScheduled: false, canScheduleAudition: true, canUpdate: true }] as const,
+        (x) =>
+          [
+            x.id,
+            {
+              auditionRequired: false,
+              canScheduleAudition: true,
+              canUpdate: true,
+              positionRequiresAudition: false,
+            },
+          ] as const,
       ),
     );
 
@@ -640,8 +658,8 @@ export class SessionTransparence {
     userId: string;
   }) {
     this.assertsCanScheduleAudition(command.nominationFileId);
-    if (!command.requested && this.files.get(command.nominationFileId)?.auditionScheduled) {
-      throw new ScheduledAuditionCannotBeDismissed(command.nominationFileId);
+    if (!command.requested && this.files.get(command.nominationFileId)?.positionRequiresAudition) {
+      throw new PositionAuditionCannotBeDismissed(command.nominationFileId);
     }
 
     this.#messages.push(
@@ -680,6 +698,10 @@ export class SessionTransparence {
     userId: string;
   }) {
     this.assertsCanScheduleAudition(command.nominationFileId);
+    // a date only comes once the audition is planned, by the position or the secretariat
+    if (!this.files.get(command.nominationFileId)?.auditionRequired) {
+      throw new UnrequestedAuditionCannotBeScheduled(command.nominationFileId);
+    }
 
     this.#messages.push(
       new SessionTransparenceAuditionScheduled(
