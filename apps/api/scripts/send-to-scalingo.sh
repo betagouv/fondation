@@ -51,31 +51,19 @@ function script_digest {
   fi
 }
 
-function notify_mattermost {
+function notify_tchap {
   text=$1
-  log "Notifying mattermost with '$text'" 'DEBUG'
-
-  attachment="{
-    \"text\": \"$text\",
-    \"color\": \"#dc2626\",
-    \"title\": \":alert: Import LOLFI en échec ($ENV_LABEL)\",
-    \"fields\": [
-      {
-        \"title\": \"CC\",
-        \"value\": \"- @jessica.kossibale\n- @remi.boureau.lienard\"
-      }
-    ]
-  }";
+  log "Notifying Tchap with '$text'" 'DEBUG'
 
   if curl --retry 3 --retry-max-time 30 --silent --show-error --fail \
-    --data "{ \"attachments\": [$attachment] }" \
+    --data "{ \"text\": \"$text\", \"title\": \"🚨 Import LOLFI en échec ($ENV_LABEL)\" }" \
     --header 'Content-type: application/json' \
     --header "Authorization: Bearer $SCALINGO_TOKEN" \
-    -X POST "$SCALINGO_URL/api/f/m";
+    -X POST "$SCALINGO_URL/api/tchap/alerts";
   then
-    log "Notified mattermost successfully" 'DEBUG'
+    log "Notified Tchap successfully" 'DEBUG'
   else
-    log "Failed to notify mattermost" 'ERROR'
+    log "Failed to notify Tchap" 'ERROR'
   fi
 }
 
@@ -132,7 +120,7 @@ function run {
 
   if [[ $ATTEMPT_COUNT -eq 3 ]]; then
     log "Plus de 3 échecs" 'ERROR'
-    notify_mattermost "Plus de 3 échecs à l'import"
+    notify_tchap "Plus de 3 échecs à l'import"
     return 1
   fi
 

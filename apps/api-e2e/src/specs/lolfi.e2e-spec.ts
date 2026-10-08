@@ -356,7 +356,7 @@ test.describe('lolfi', () => {
       return alerts;
     });
 
-    expect(alerts[0]!.title).toBe(':alert: Transparence LOLFI incomplète');
+    expect(alerts[0]!.title).toBe('🚨 Transparence LOLFI incomplète');
     expect(alerts[0]!.text).toContain('aucune proposition');
   });
 
@@ -572,14 +572,17 @@ async function jobErrors(admin: TestStepsAdmin, jobId: number): Promise<string[]
   return data!.errors.map(({ error }) => error);
 }
 
-async function findAlerts(transparenceId: number): Promise<{ title: string; text: string }[]> {
-  const alerts = (await fetch(inject('mattermostUrl')).then((response) => response.json())) as {
-    attachments: { title: string; text: string }[];
-  }[];
-
+async function findAlerts(transparenceId: number): Promise<{ text: string; title: string }[]> {
+  const messages = (await fetch(inject('tchapUrl')).then((response) => response.json())) as { body: string }[];
   const mentionsIt = mentioning(transparenceId);
 
-  return alerts.flatMap(({ attachments }) => attachments).filter(({ text }) => mentionsIt(text));
+  return messages
+    .map(({ body }) => {
+      const [title = '', ...text] = body.split('\n\n');
+
+      return { text: text.join('\n\n'), title };
+    })
+    .filter(({ text }) => mentionsIt(text));
 }
 
 // The identifier alone would match another transparence that merely contains its digits

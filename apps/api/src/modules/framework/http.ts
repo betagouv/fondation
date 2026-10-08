@@ -8,9 +8,9 @@ import { catchError, tap, throwError, type Observable } from 'rxjs';
 
 const INTERNAL_HTTP_SERVICE = Symbol();
 
-// Logs and Sentry spans never get the query, nor the secret a Mattermost webhook carries in its path
+// Logs and Sentry spans never get the query, which may carry a token
 export function loggableUrl(url: string | undefined): string | undefined {
-  return url?.split('?')[0]?.replace(/\/hooks\/[^/]+/, '/hooks/***');
+  return url?.split('?')[0];
 }
 
 /** for some reason, Sentry instrumentation doesn't trace the http.client stack */
