@@ -258,6 +258,9 @@ importers:
       lolfi:
         specifier: workspace:*
         version: link:../../packages/lolfi
+      node-xlsx:
+        specifier: 0.24.0
+        version: 0.24.0
       postgres:
         specifier: 3.4.9
         version: 3.4.9

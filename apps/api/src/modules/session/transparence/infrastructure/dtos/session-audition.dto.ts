@@ -29,7 +29,12 @@ export class ListSessionAuditionsQueryDto extends createSortableDto(
 
 const ListedSessionAuditionSchema = z.object({
   audition: auditionScheduleSchema.nullable(),
-  contact: z.object({ email: z.string().nullable(), phone: z.string().nullable() }).nullable(),
+  contact: z
+    .object({
+      email: z.string().nullable(),
+      phoneNumber: z.object({ label: z.string().nullable(), number: z.string() }).nullable(),
+    })
+    .nullable(),
   id: z.string(),
   magistrat: z.object({
     currentPosition: z.string().nullable(),

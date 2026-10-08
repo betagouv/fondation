@@ -11,3 +11,25 @@ export class SearchMagistratsQueryDto extends createZodDto(
       .pipe(z.array(z.uuid())),
   }),
 ) {}
+
+export class AddMagistratPhoneNumberDto extends createZodDto(
+  z.object({
+    label: z
+      .string()
+      .trim()
+      .nullable()
+      .transform((label) => label || null),
+    number: z.string(),
+  }),
+) {}
+
+export class UpdateMagistratPhoneNumberDto extends createZodDto(
+  z.object({
+    label: z
+      .string()
+      .trim()
+      .nullable()
+      .transform((label) => label || null),
+    number: z.string(),
+  }),
+) {}

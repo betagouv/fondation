@@ -43,7 +43,8 @@ exemples qui font l'inverse. Impossible de deviner la bonne direction en lisant 
   (`Search...Dto` en entrée, `Found...Dto` en sortie).
 - **La table `users` est la seule lecture cross-module autorisée.** Afficher un nom oblige à
   lire la table des utilisateurs : sans cette lecture, pas de nom. Tous les modules peuvent
-  la lire directement.
+  la lire directement. Complétée par l'ADR du 07/10/2026 : les tables Lolfi de
+  `data_administration_context` suivent la même règle.
 - Côté client, cette donnée a sa propre query Tanstack, avec sa clé dans le registre et un
   `enabled` pour ne charger qu'à l'usage. Elle ne passe pas par le cache du tableau.
 

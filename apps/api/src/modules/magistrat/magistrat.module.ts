@@ -6,7 +6,9 @@ import { MagistratProfilesFinder } from './infrastructure/finders/magistrat-prof
 import { DetailMagistratQuery } from './infrastructure/queries/detail-magistrat.query';
 import { ListMagistratNominationFilesQuery } from './infrastructure/queries/list-magistrat-nomination-files.query';
 import { ListMagistratObservationsQuery } from './infrastructure/queries/list-magistrat-observations.query';
+import { ListMagistratPhoneNumbersQuery } from './infrastructure/queries/list-magistrat-phone-numbers.query';
 import { SearchMagistratsQuery } from './infrastructure/queries/search-magistrats.query';
+import { MagistratPhoneNumbersRepository } from './infrastructure/repositories/magistrat-phone-numbers.repository';
 import { MagistratController } from './magistrat.controller';
 import { MagistratService } from './magistrat.service';
 
@@ -18,6 +20,8 @@ import { MagistratService } from './magistrat.service';
     DetailMagistratQuery,
     ListMagistratNominationFilesQuery,
     ListMagistratObservationsQuery,
+    ListMagistratPhoneNumbersQuery,
+    MagistratPhoneNumbersRepository,
     MagistratProfilesFinder,
     MagistratService,
     SearchMagistratsQuery,

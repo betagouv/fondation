@@ -9,7 +9,9 @@ SELECT
   m.professional_email AS email,
   func."label" AS "functionLabel",
   pos.jurisdiction_id AS "jurisdictionId",
-  latest_candidacy.phone
+  latest_saved."label" AS "phoneLabel",
+  -- the latest number saved by the secretariat, else the one of the latest candidacy
+  COALESCE(latest_saved.number, latest_candidacy.phone) AS phone
 FROM nominations_context.magistrat AS m
   LEFT JOIN
     data_administration_context."position" AS pos
@@ -17,6 +19,15 @@ FROM nominations_context.magistrat AS m
   LEFT JOIN
     data_administration_context."function" AS func
     ON func.id = pos.function_id
+  LEFT JOIN LATERAL (
+    SELECT
+      saved.number,
+      saved."label"
+    FROM nominations_context.magistrat_phone_number AS saved
+    WHERE saved.magistrat_id = m.id
+    ORDER BY saved.updated_at DESC
+    LIMIT 1
+  ) AS latest_saved ON TRUE
   LEFT JOIN LATERAL (
     SELECT c.phone
     FROM data_administration_context.candidate AS c

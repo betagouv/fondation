@@ -7,6 +7,7 @@ import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { capitalize } from 'src/utils/capitalize';
 import type { DateOnlyJson } from 'src/utils/date-only';
+import { formatPhoneNumber } from 'src/utils/format-phone-number';
 import { timeOnlyToString } from 'src/utils/time-only';
 
 import { sortByName } from './list-session-auditions.query';
@@ -20,6 +21,7 @@ const COLUMNS = [
   { label: 'Heure', width: 8 },
   { label: 'Rapporteur(s)', width: 30 },
   { label: 'Téléphone', width: 16 },
+  { label: 'Étiquette', width: 16 },
   { label: 'Courriel', width: 35 },
 ];
 
@@ -54,7 +56,8 @@ export class ListSessionAuditionsAsExcelQuery {
         audition.reporters
           .map(({ firstName, lastName }) => `${lastName.toUpperCase()} ${capitalize(firstName)}`)
           .join(', '),
-        audition.contact?.phone ?? '',
+        audition.contact?.phoneNumber ? formatPhoneNumber(audition.contact.phoneNumber.number) : '',
+        audition.contact?.phoneNumber?.label ?? '',
         audition.contact?.email ?? '',
       ]);
 

@@ -1,4 +1,5 @@
 import type { LolfiArchiveContent } from 'lolfi';
+import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
@@ -10,12 +11,14 @@ const SESSION: LolfiArchiveContent['sessions'][number] = {
     {
       firstName: 'HONORINE',
       lastName: 'VALROSE',
+      phone: '06.12.34.56.78',
       position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
       targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  GRENOBLE'] },
     },
     {
       firstName: 'GERTRUDE',
       lastName: 'MONTFERRAND',
+      phone: '01 02 03 04 05',
       position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  AMIENS'] },
       targetPosition: {
         function: seed.functions.PG,
@@ -215,5 +218,46 @@ test.describe('Auditions E2E', () => {
         }),
       ]),
     );
+  });
+
+  test('should give the latest saved phone number of a magistrat, else the LOLFI one', async ({
+    agent,
+    expect,
+    session,
+  }) => {
+    await agent.magistrats.addMagistratPhoneNumber({
+      body: { label: 'Conjointe', number: '07 00 00 00 00' },
+      path: { magistratId: session.valrose.content.detectedMagistratId! },
+      throwOnError: true,
+    });
+
+    const auditions = await agent.sessions.listSessionAuditions({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const phoneNumberOf = (magistratId: string | null) =>
+      auditions.data!.items.find(({ magistrat }) => magistrat.id === magistratId)?.contact?.phoneNumber;
+    expect(phoneNumberOf(session.valrose.content.detectedMagistratId)).toEqual({
+      label: 'Conjointe',
+      number: '0700000000',
+    });
+    expect(phoneNumberOf(session.montferrand.content.detectedMagistratId)).toEqual({
+      label: null,
+      number: '01 02 03 04 05',
+    });
+
+    const exported = await agent.sessions.listSessionAuditionsAsExcel({
+      parseAs: 'arrayBuffer',
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const [header, ...rows] = parse(Buffer.from(exported.data as ArrayBuffer))[0]!.data as string[][];
+    const phone = header!.indexOf('Téléphone');
+    expect(rows.map((row) => [row[0], row[phone], row[phone + 1] ?? ''])).toEqual([
+      [expect.stringContaining('MONTFERRAND'), '01 02 03 04 05', ''],
+      [expect.stringContaining('VALROSE'), '07 00 00 00 00', 'Conjointe'],
+    ]);
   });
 });

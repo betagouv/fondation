@@ -88,6 +88,7 @@ model User {
   feedbacks Feedback[]
   publisherOfAuditionPublications    AuditionPublication[] @relation("audition_publication_publisher")
   impersonatorOfAuditionPublications AuditionPublication[] @relation("audition_publication_impersonator")
+  authorOfMagistratPhoneNumbers MagistratPhoneNumber[]
 
   @@map("users")
   @@schema("identity_and_access_context")

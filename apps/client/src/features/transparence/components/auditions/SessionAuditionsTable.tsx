@@ -390,8 +390,11 @@ const contactCell = rowCell<SessionAudition>(({ contact }) =>
     <div className="flex flex-col gap-1 leading-6">
       <span className="flex items-center gap-2">
         <span aria-hidden className="fr-icon-phone-line fr-icon--sm" />
-        {contact.phone ? formatPhoneNumber(contact.phone) : '-'}
+        {contact.phoneNumber ? formatPhoneNumber(contact.phoneNumber.number) : '-'}
       </span>
+      {contact.phoneNumber?.label ? (
+        <span className="fr-text--sm fr-mb-0 pl-6">{contact.phoneNumber.label}</span>
+      ) : null}
       <span className="flex items-center gap-2">
         <span aria-hidden className="fr-icon-mail-line fr-icon--sm" />
         <span className="min-w-0 wrap-break-word">
