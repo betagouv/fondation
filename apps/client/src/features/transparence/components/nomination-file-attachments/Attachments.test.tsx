@@ -124,6 +124,15 @@ describe('Attachments listing', () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('tells the secretariat that no attachment has been added yet', () => {
+    mocks.isSg.mockReturnValue(true);
+    mocks.attachments = [];
+    renderAttachments();
+
+    expect(screen.getByText('Pièces jointes du dossier')).toBeInTheDocument();
+    expect(screen.getByText("Aucune pièce jointe n'a été ajoutée au dossier.")).toBeInTheDocument();
+  });
 });
 
 describe('Attachments actions', () => {

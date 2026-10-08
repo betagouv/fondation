@@ -45,7 +45,7 @@ export function Attachments(props: {
       <div className="fr-mb-4v flex items-center justify-between gap-4">
         <Heading className={headingClass} id={labelId}>
           <FormattedMessage
-            defaultMessage="{count, plural, one {Pièce du dossier} other {Pièces du dossier ({count})}}"
+            defaultMessage="{count, plural, =0 {Pièces jointes du dossier} one {Pièce jointe du dossier} other {Pièces jointes du dossier ({count})}}"
             values={{ count: attachments.length }}
           />
         </Heading>
@@ -83,11 +83,9 @@ export function Attachments(props: {
           ))}
         </FileList>
       ) : (
-        !canManage && (
-          <div aria-labelledby={labelId} className="w-full leading-7">
-            <FormattedMessage defaultMessage="Aucune pièce jointe" />
-          </div>
-        )
+        <p className="fr-mb-0 text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Aucune pièce jointe n'a été ajoutée au dossier." />
+        </p>
       )}
     </div>
   );
