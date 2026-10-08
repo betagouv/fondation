@@ -15,11 +15,15 @@ const SG_ROUTE = '/secretariat-general/session/session-1';
 const MEMBER_ROUTE = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
 const SCHEDULED = { day: 15, month: 6, year: 2029 };
-const AUDITIONED = { auditionExpected: true, expectedReportersCount: 2 };
+const AUDITIONED = {
+  auditionRequired: true,
+  auditionRequirement: 'POSITION',
+  expectedReportersCount: 2,
+} as const;
 
 const REPORTERS: SessionNominationFile['reporters'] = [
-  { id: 'user-1', firstName: 'Rachel', lastName: 'Bernard' },
-  { id: 'user-2', firstName: 'Antoine', lastName: 'Roche' },
+  { firstName: 'Rachel', id: 'user-1', lastName: 'Bernard' },
+  { firstName: 'Antoine', id: 'user-2', lastName: 'Roche' },
 ];
 
 function renderExpectation(
@@ -43,6 +47,7 @@ function renderExpectation(
 describe('useAuditionExpectation', () => {
   it('announces both the audition and the missing reporters to the secretariat', () => {
     expect(renderExpectation({ ...AUDITIONED, reporters: REPORTERS.slice(0, 1) })).toEqual({
+      auditionAnnounced: false,
       auditionMissing: true,
       labels: ['Une audition est à prévoir pour ce poste', '2 rapporteurs sont attendus pour ce poste'],
       reportersMissing: true,
@@ -51,16 +56,18 @@ describe('useAuditionExpectation', () => {
 
   it('announces the missing reporters once the audition is scheduled', () => {
     expect(renderExpectation({ ...AUDITIONED, auditionDate: SCHEDULED, reporters: [] })).toEqual({
+      auditionAnnounced: false,
       auditionMissing: false,
       labels: ['2 rapporteurs sont attendus pour ce poste'],
       reportersMissing: true,
     });
   });
 
-  it('announces nothing to a member, who neither schedules auditions nor affects reporters', () => {
+  it('tells a member an audition will be scheduled, without asking them to schedule it', () => {
     expect(
       renderExpectation({ ...AUDITIONED, reporters: REPORTERS.slice(0, 1) }, { route: MEMBER_ROUTE }),
     ).toEqual({
+      auditionAnnounced: true,
       auditionMissing: true,
       labels: [],
       reportersMissing: true,
@@ -69,6 +76,7 @@ describe('useAuditionExpectation', () => {
 
   it('announces nothing once the audition is scheduled and both reporters are affected', () => {
     expect(renderExpectation({ ...AUDITIONED, auditionDate: SCHEDULED, reporters: REPORTERS })).toEqual({
+      auditionAnnounced: false,
       auditionMissing: false,
       labels: [],
       reportersMissing: false,
@@ -83,11 +91,18 @@ describe('useAuditionExpectation', () => {
         content: { lockedReason: 'REPORTED' },
         reporters: REPORTERS.slice(0, 1),
       }),
-    ).toEqual({ auditionMissing: false, labels: [], reportersMissing: false });
+    ).toEqual({ auditionAnnounced: false, auditionMissing: false, labels: [], reportersMissing: false });
+  });
+
+  it('does not credit the position with an audition the secretariat added', () => {
+    expect(renderExpectation({ auditionRequired: true, auditionRequirement: 'SECRETARIAT' }).labels).toEqual([
+      'Une audition a été demandée',
+    ]);
   });
 
   it('follows the reporters being selected rather than the affected ones', () => {
     expect(renderExpectation({ ...AUDITIONED, reporters: [] }, { selectedReportersCount: 2 })).toEqual({
+      auditionAnnounced: false,
       auditionMissing: true,
       labels: ['Une audition est à prévoir pour ce poste'],
       reportersMissing: false,

@@ -2,7 +2,6 @@ import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { AuditionDateForm } from '@/features/nomination-files-table/components/cells/magistrat-side-panel/components/audition-date/AuditionDateForm';
-import { AuditionRoleBadge } from '@/shared/components/audition-role-badge';
 import { DetailsCard } from '@/shared/ui/details';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
@@ -14,19 +13,10 @@ export function ObservationAuditionCard(props: {
   sessionId: string;
 }) {
   const isSg = useIsSg();
-  const { observant, observedMagistrat, relatedPropositions } = props.observation;
+  const { observant, relatedPropositions } = props.observation;
   const { audition } = observant;
   const editable = !props.isArchived && observant.auditionScheduling === 'SCHEDULABLE';
-
-  const observations = [
-    { id: props.observation.id, name: observedMagistrat.name, position: observedMagistrat.proposedPosition },
-    ...relatedPropositions.map(({ magistratName, observationId, proposedPosition }) => ({
-      id: observationId,
-      name: magistratName,
-      position: proposedPosition,
-    })),
-  ];
-  const isShared = observations.length > 1;
+  const isShared = relatedPropositions.length > 0;
 
   if (!isSg) return null;
 
@@ -61,15 +51,6 @@ export function ObservationAuditionCard(props: {
           )}
         </>
       )}
-
-      <ul className="fr-mt-6v fr-mb-0 fr-p-0 grid list-none grid-cols-[max-content_1fr] gap-x-3 gap-y-2">
-        {observations.map((observation) => (
-          <li className="fr-p-0 col-span-2 grid grid-cols-subgrid items-start" key={observation.id}>
-            <AuditionRoleBadge className="mt-0.5" role="OBSERVANT" />
-            <span>{[observation.name, observation.position].filter(Boolean).join(' - ') || '-'}</span>
-          </li>
-        ))}
-      </ul>
     </DetailsCard>
   );
 }

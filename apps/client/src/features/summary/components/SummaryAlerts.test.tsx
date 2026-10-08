@@ -51,7 +51,7 @@ describe('SummaryAlerts', () => {
 
   it('reminds the secretariat of the audition and the reporters expected on the position', () => {
     mocks.isSg = true;
-    renderAlerts({ auditionExpected: true, reportersMissing: true });
+    renderAlerts({ auditionRequired: true, reportersMissing: true });
 
     expect(
       screen.getByText('Une audition est à prévoir et 2 rapporteurs sont attendus pour ce poste'),
@@ -60,16 +60,23 @@ describe('SummaryAlerts', () => {
 
   it('keeps these reminders from members, who neither schedule auditions nor affect reporters', () => {
     mocks.isSg = false;
-    renderAlerts({ auditionExpected: true, reportersMissing: true });
+    renderAlerts({ auditionRequired: true, reportersMissing: true });
 
     expect(screen.queryByText(/à prévoir|rapporteurs sont attendus/)).not.toBeInTheDocument();
+  });
+
+  it('tells a member an audition will be scheduled', () => {
+    mocks.isSg = false;
+    renderAlerts({ auditionRequired: true });
+
+    expect(screen.getByText('Une audition va être programmée pour ce magistrat')).toBeInTheDocument();
   });
 
   it('reminds the secretariat of the reporters alone once the audition is scheduled', () => {
     mocks.isSg = true;
     renderAlerts({
       auditionDate: { day: 12, month: 12, year: 2099 },
-      auditionExpected: true,
+      auditionRequired: true,
       auditionTime: { hours: 12, minutes: 30, seconds: 0 },
       reportersMissing: true,
     });

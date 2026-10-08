@@ -42,10 +42,16 @@ import {
   useSessionAuditionsCountsQuery,
 } from '@queries/auditions.queries';
 
+import { AuditionsPublicationBadge } from './AuditionsPublicationBadge';
+import { AuditionsPublishButton } from './AuditionsPublishButton';
+
 const SEARCH_DEBOUNCE_MS = 600;
+
+type AuditionsContext = 'sg' | 'membre';
 
 export function SessionAuditionsTable(props: {
   canManage: boolean;
+  context: AuditionsContext;
   filtersSlot: Element | null;
   formation: FormationEnum;
   outcomes: readonly SessionOutcome[];
@@ -60,6 +66,7 @@ export function SessionAuditionsTable(props: {
       sessionId={props.sessionId}
     >
       <SessionAuditionsContent
+        context={props.context}
         filtersSlot={props.filtersSlot}
         sessionId={props.sessionId}
         toolbarSlot={props.toolbarSlot}
@@ -69,6 +76,7 @@ export function SessionAuditionsTable(props: {
 }
 
 function SessionAuditionsContent(props: {
+  context: AuditionsContext;
   filtersSlot: Element | null;
   sessionId: string;
   toolbarSlot: Element | null;
@@ -102,15 +110,15 @@ function SessionAuditionsContent(props: {
 
   const columns = useMemo(() => {
     const h = createColumnHelper<SessionAudition>();
-    return [
+    const columns = [
       h.display({
-        cell: magistratCell,
+        cell: magistratCell(props.context),
         header: intl.formatMessage({ defaultMessage: 'Magistrat' }),
         id: 'magistrat',
         size: 240,
       }),
       h.display({
-        cell: propositionsCell,
+        cell: propositionsCell(props.context),
         header: intl.formatMessage({ defaultMessage: 'Proposition' }),
         id: 'propositions',
         size: 260,
@@ -129,6 +137,12 @@ function SessionAuditionsContent(props: {
         meta: { filters: filters.reporters },
         size: 170,
       }),
+    ];
+    // the members never reach the magistrats: their contact stays with the secretariat
+    if (props.context === 'membre') return columns;
+
+    return [
+      ...columns,
       h.display({
         cell: contactCell,
         header: intl.formatMessage({ defaultMessage: 'Coordonnées' }),
@@ -136,7 +150,7 @@ function SessionAuditionsContent(props: {
         size: 260,
       }),
     ];
-  }, [filters.reporters, intl]);
+  }, [filters.reporters, intl, props.context]);
 
   const onSortingChange = useCallback(
     (updater: SortingState | ((old: SortingState) => SortingState)) =>
@@ -186,30 +200,34 @@ function SessionAuditionsContent(props: {
   );
 
   const toolbar = (
-    <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="flex min-h-10 flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-6">
+        {props.context === 'sg' && <AuditionsPublicationBadge sessionId={props.sessionId} />}
         <TotalBadge value={(counts?.scheduled ?? 0) + (counts?.toSchedule ?? 0)}>
           <FormattedMessage defaultMessage="Total" />
         </TotalBadge>
         <TotalBadge value={counts?.scheduled ?? 0}>
-          <FormattedMessage defaultMessage="Planifiées" />
+          <FormattedMessage defaultMessage="Programmées" />
         </TotalBadge>
         <TotalBadge value={counts?.toSchedule ?? 0}>
           <FormattedMessage defaultMessage="À programmer" />
         </TotalBadge>
       </div>
-      {canManage && (
-        <Button
-          className="min-h-9! py-1.5!"
-          disabled={exportAsExcel.isPending || !(counts?.scheduled || counts?.toSchedule)}
-          iconId="fr-icon-download-line"
-          onClick={() => exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })}
-          priority="tertiary"
-          size="small"
-        >
-          <FormattedMessage defaultMessage="Exporter le fichier Excel" />
-        </Button>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {canManage && (
+          <Button
+            className="min-h-9! py-1.5!"
+            disabled={exportAsExcel.isPending || !(counts?.scheduled || counts?.toSchedule)}
+            iconId="fr-icon-download-line"
+            onClick={() => exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })}
+            priority="tertiary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Exporter le fichier Excel" />
+          </Button>
+        )}
+        {canManage && <AuditionsPublishButton sessionId={props.sessionId} />}
+      </div>
     </div>
   );
 
@@ -219,9 +237,11 @@ function SessionAuditionsContent(props: {
       {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
       <NewTable
         ariaLabel={intl.formatMessage({ defaultMessage: 'Auditions de la session' })}
-        emptyLabel={intl.formatMessage({
-          defaultMessage: 'Aucune audition ne correspond aux valeurs filtrées',
-        })}
+        emptyLabel={
+          props.context === 'membre' && !tableState.globalFilter && tableState.columnFilters.length === 0
+            ? intl.formatMessage({ defaultMessage: "Aucune audition à venir n'a été publiée" })
+            : intl.formatMessage({ defaultMessage: 'Aucune audition ne correspond aux valeurs filtrées' })
+        }
         fluid
         isLoading={isLoading}
         scrollsWithPage
@@ -265,25 +285,27 @@ function useSearch(value: string, onCommit: (value: string) => void) {
   };
 }
 
-const magistratCell = rowCell<SessionAudition>(({ magistrat }) => (
-  <div className="flex flex-col items-start gap-1 leading-6">
-    {magistrat.id ? (
-      <Link
-        className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left"
-        to={getMagistratDetailsPath({ context: 'sg', magistratId: magistrat.id })}
-      >
-        {magistrat.name}
-      </Link>
-    ) : (
-      <span className="font-medium text-(--text-default-grey)">{magistrat.name}</span>
-    )}
-    {magistrat.currentPosition && <span className="text-xs leading-6">{magistrat.currentPosition}</span>}
-  </div>
-));
+const magistratCell = (context: AuditionsContext) =>
+  rowCell<SessionAudition>(({ magistrat }) => (
+    <div className="flex flex-col items-start gap-1 leading-6">
+      {magistrat.id ? (
+        <Link
+          className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left"
+          to={getMagistratDetailsPath({ context, magistratId: magistrat.id })}
+        >
+          {magistrat.name}
+        </Link>
+      ) : (
+        <span className="font-medium text-(--text-default-grey)">{magistrat.name}</span>
+      )}
+      {magistrat.currentPosition && <span className="text-xs leading-6">{magistrat.currentPosition}</span>}
+    </div>
+  ));
 
-const propositionsCell = rowCell<SessionAudition>((audition) => <AuditionPropositions audition={audition} />);
+const propositionsCell = (context: AuditionsContext) =>
+  rowCell<SessionAudition>((audition) => <AuditionPropositions audition={audition} context={context} />);
 
-function AuditionPropositions(props: { audition: SessionAudition }) {
+function AuditionPropositions(props: { audition: SessionAudition; context: AuditionsContext }) {
   return (
     <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-3">
       {props.audition.propositions.map((proposition) => (
@@ -292,22 +314,24 @@ function AuditionPropositions(props: { audition: SessionAudition }) {
           key={proposition.observationId ?? proposition.nominationFileId}
         >
           <AuditionRoleBadge role={props.audition.role} />
-          <PropositionLink proposition={proposition} />
+          <PropositionLink context={props.context} proposition={proposition} />
         </li>
       ))}
     </ul>
   );
 }
 
-function PropositionLink(props: { proposition: SessionAudition['propositions'][number] }) {
+function PropositionLink(props: {
+  context: AuditionsContext;
+  proposition: SessionAudition['propositions'][number];
+}) {
   const { nominationFileId, observationId } = props.proposition;
   const { sessionId } = useNominationFilesTable();
+  const filesPath =
+    props.context === 'membre' ? ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS : ROUTE_PATHS.SG.SESSION_ID;
   const to = observationId
-    ? getObservationDetailsPath({ context: 'sg', nominationFileId, observationId, sessionId })
-    : {
-        pathname: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
-        search: openedDossierSearch(nominationFileId),
-      };
+    ? getObservationDetailsPath({ context: props.context, nominationFileId, observationId, sessionId })
+    : { pathname: generatePath(filesPath, { sessionId }), search: openedDossierSearch(nominationFileId) };
 
   return (
     <Link

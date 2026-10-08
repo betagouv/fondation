@@ -32,7 +32,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
     { annotations: intl.formatList(annotations, { type: 'conjunction' }) },
   );
 
-  const { labels: auditionExpectations } = useAuditionExpectation(props.nominationFile);
+  const { auditionAnnounced, labels: auditionExpectations } = useAuditionExpectation(props.nominationFile);
   const warnings = [...auditionExpectations];
   if (props.nominationFile.missingEvaluation)
     warnings.push(
@@ -50,12 +50,11 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       warningLabel
     );
 
-  const auditionLabel = isPastSchedule(
-    props.nominationFile.auditionDate,
-    props.nominationFile.auditionTime ?? END_OF_DAY,
-  )
-    ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu pour ce magistrat' })
-    : intl.formatMessage({ defaultMessage: 'Une audition est prévue pour ce magistrat' });
+  const auditionLabel = !props.nominationFile.auditionDate
+    ? intl.formatMessage({ defaultMessage: 'Une audition va être programmée' })
+    : isPastSchedule(props.nominationFile.auditionDate, props.nominationFile.auditionTime ?? END_OF_DAY)
+      ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu' })
+      : intl.formatMessage({ defaultMessage: 'Une audition est prévue' });
 
   const words = props.nominationFile.content.nomMagistrat.split(' ');
   const lastWord = words.pop();
@@ -95,7 +94,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
         <span className="whitespace-nowrap">
           <span className={clsx('uppercase!', nameUnderline)}>{lastWord}</span>
           <span className="inline-flex items-center align-middle">
-            {props.nominationFile.auditionDate && (
+            {(props.nominationFile.auditionDate || auditionAnnounced) && (
               <Tooltip label={auditionLabel}>
                 <i
                   aria-label={auditionLabel}

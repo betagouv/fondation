@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
@@ -63,6 +63,7 @@ function useAuditionMutation(target: AuditionTarget, sessionId: string) {
 }
 
 export function AuditionDateForm(props: {
+  children?: ReactNode;
   editable: boolean;
   headingLevel?: 'h2' | 'h3';
   initialAuditionDate: AuditionDate;
@@ -71,6 +72,7 @@ export function AuditionDateForm(props: {
   isShared?: boolean;
   sessionId: string;
   target: AuditionTarget;
+  withSchedule?: boolean;
 }) {
   const { editable, initialAuditionDate, initialAuditionTime } = props;
   const { formatMessage, formatDate, formatTime } = useIntl();
@@ -115,8 +117,8 @@ export function AuditionDateForm(props: {
     reset: resetForm,
     formState: { errors, isDirty },
   } = useForm({
-    resolver: zodResolver(schema),
     defaultValues: { date: initialDate, time: initialTime },
+    resolver: zodResolver(schema),
   });
 
   const date = useWatch({ control, name: 'date' });
@@ -173,7 +175,6 @@ export function AuditionDateForm(props: {
     if (!scheduledAt) return;
 
     const { isConfirmed } = await waitForConfirmation({
-      title: formatMessage({ defaultMessage: 'Modifier une audition passée' }),
       content: (
         <p>
           <FormattedMessage
@@ -189,6 +190,7 @@ export function AuditionDateForm(props: {
         cancel: formatMessage({ defaultMessage: 'Annuler' }),
         confirm: formatMessage({ defaultMessage: 'Modifier la date' }),
       },
+      title: formatMessage({ defaultMessage: 'Modifier une audition passée' }),
     });
     if (isConfirmed) setEditingPastAudition(true);
   };
@@ -256,49 +258,52 @@ export function AuditionDateForm(props: {
           )
         )}
       </div>
-      <div className="flex flex-row items-end gap-2">
-        <Controller
-          control={control}
-          name="date"
-          render={({ field }) => (
-            <Input
-              className="fr-mb-0"
-              disabled={isLocked}
-              label={formatMessage({ defaultMessage: 'Date' })}
-              nativeInputProps={{
-                id: AUDITION_DATE_INPUT_ID,
-                onBlur: () => void save(),
-                onChange: (event) => {
-                  field.onChange(event);
-                  resetSaveState();
-                },
-                type: 'date',
-                value: field.value,
-              }}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="time"
-          render={({ field }) => (
-            <Input
-              className="fr-mb-0"
-              disabled={isLocked}
-              label={formatMessage({ defaultMessage: 'Heure' })}
-              nativeInputProps={{
-                onBlur: () => void save(),
-                onChange: (event) => {
-                  field.onChange(event);
-                  resetSaveState();
-                },
-                type: 'time',
-                value: field.value,
-              }}
-            />
-          )}
-        />
-      </div>
+      {props.children}
+      {(props.withSchedule ?? true) && (
+        <div className="flex flex-row items-end gap-2">
+          <Controller
+            control={control}
+            name="date"
+            render={({ field }) => (
+              <Input
+                className="fr-mb-0"
+                disabled={isLocked}
+                label={formatMessage({ defaultMessage: 'Date' })}
+                nativeInputProps={{
+                  id: AUDITION_DATE_INPUT_ID,
+                  onBlur: () => void save(),
+                  onChange: (event) => {
+                    field.onChange(event);
+                    resetSaveState();
+                  },
+                  type: 'date',
+                  value: field.value,
+                }}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="time"
+            render={({ field }) => (
+              <Input
+                className="fr-mb-0"
+                disabled={isLocked}
+                label={formatMessage({ defaultMessage: 'Heure' })}
+                nativeInputProps={{
+                  onBlur: () => void save(),
+                  onChange: (event) => {
+                    field.onChange(event);
+                    resetSaveState();
+                  },
+                  type: 'time',
+                  value: field.value,
+                }}
+              />
+            )}
+          />
+        </div>
+      )}
       {saveSucceeded && !validationError && (
         <p className="fr-valid-text fr-mt-2v" role="status">
           {savedDate

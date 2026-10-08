@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+
+import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
 
 import { DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import { GetReportFileUrlsQuery } from './infrastructure/queries/get-report-file-urls.query';
@@ -11,6 +13,7 @@ import { ReportService } from './report.service';
 @Module({
   controllers: [ReportController],
   exports: [ReportService],
+  imports: [forwardRef(() => TransparenceModule)],
   providers: [
     ReportRepository,
     ReportService,

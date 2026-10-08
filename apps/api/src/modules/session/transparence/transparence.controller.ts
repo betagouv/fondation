@@ -33,6 +33,7 @@ import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
   UpdateAuditionDateDto,
+  UpdateAuditionRequestDto,
   UpdateCommentDto,
   UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
@@ -65,7 +66,9 @@ import { NominationFilesStatusCountDto } from './infrastructure/queries/count-no
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsDto } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailedAffectationHistoryDto } from './infrastructure/queries/detail-affectation-history.query';
+import { DetailedAuditionsPublicationDto } from './infrastructure/queries/detail-auditions-publication.query';
 import { DetailedNominationFileAttachmentDto } from './infrastructure/queries/detail-nomination-file-attachment.query';
+import { DetailedNominationFileAuditionHistoryDto } from './infrastructure/queries/detail-nomination-file-audition-history.query';
 import { DetailedNominationSessionAttachmentDto } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailedNominationSessionDto } from './infrastructure/queries/detail-nomination-session.query';
 import { DetailedSessionCommentDto } from './infrastructure/queries/detail-session-comment.query';
@@ -91,15 +94,15 @@ export class SessionController {
   @Get('/garde-des-sceaux')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
-  @ZodResponse({ type: ListedNominationSessionsDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: ListedNominationSessionsDto })
   listSessionsOfTypeGardeDesSceaux(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListGdsNominationSessionsQueryDto,
   ): Promise<ListedNominationSessionsDto> {
     return this.sessions.listNominationSessions({
+      formations: query.formations,
       pagination,
       search: query.search || null,
-      formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       typeDeSaisine: 'TRANSPARENCE_GDS',
     });
@@ -107,7 +110,7 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/new/count')
-  @ZodResponse({ type: CountUsersNewSessionsDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: CountUsersNewSessionsDto })
   countUsersNewSessions(): Promise<CountUsersNewSessionsDto> {
     return this.sessions.countUsersNewSessions();
   }
@@ -161,14 +164,14 @@ export class SessionController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam')
   @UseMultipartBody({
-    overrideFiles: false,
     deleteOnFail: false,
-    schema: ImportNominationSessionFromLodamXlsxDto,
     destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    overrideFiles: false,
+    schema: ImportNominationSessionFromLodamXlsxDto,
   })
   @ZodResponse({
-    type: CreatedNominationSessionDto,
     status: HttpStatus.CREATED,
+    type: CreatedNominationSessionDto,
   })
   async createSessionFromLodam(
     @AuthedUser() user: { id: string },
@@ -179,20 +182,20 @@ export class SessionController {
   ): Promise<CreatedNominationSessionDto> {
     return this.sessions.createNominationSessionFromLodam({
       ...form,
-      files,
-      userId: user.id,
       dueDate: form.dueDate ?? null,
+      files,
       positionStartDate: form.positionStartDate ?? null,
+      userId: user.id,
     });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam/:sessionId/observers')
   @UseMultipartBody({
-    overrideFiles: false,
     deleteOnFail: false,
-    schema: UpdateNominationSessionFilesObserversDto,
     destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    overrideFiles: false,
+    schema: UpdateNominationSessionFilesObserversDto,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateSessionObservers(
@@ -201,8 +204,8 @@ export class SessionController {
     files: LodamTransparenceFile[],
   ) {
     await this.sessions.updateSessionNominationFileObservers({
-      sessionId,
       files,
+      sessionId,
     });
   }
 
@@ -216,9 +219,9 @@ export class SessionController {
     @Body() body: AffectReportersDto,
   ): Promise<void> {
     await this.sessions.affectReportersAndPriorities({
+      affectations: body.items,
       authorId: userId,
       sessionId,
-      affectations: body.items,
     });
   }
 
@@ -232,24 +235,52 @@ export class SessionController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Header('Content-Type', FILE_MIME_TYPES.xlsx)
   @Get('/:sessionId/auditions.xlsx')
-  listSessionAuditionsAsExcel(@Param('sessionId', ParseUUIDPipe) sessionId: string): Promise<StreamableFile> {
-    return this.sessions.listSessionAuditionsAsExcel({ sessionId });
+  listSessionAuditionsAsExcel(
+    @AuthedUser() user: { role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<StreamableFile> {
+    return this.sessions.listSessionAuditionsAsExcel({ role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Post('/:sessionId/auditions/publications')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async publishSessionAuditions(
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<void> {
+    await this.sessions.publishAuditions({
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      sessionId,
+      userId: user.id,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/auditions/publications/last')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAuditionsPublicationDto })
+  detailLastSessionAuditionsPublication(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<DetailedAuditionsPublicationDto> {
+    return this.sessions.detailAuditionsPublication({ sessionId });
+  }
+
+  @HasRole()
   @Get('/:sessionId/auditions/counts')
   @ZodResponse({ status: HttpStatus.OK, type: CountedSessionAuditionsDto })
   countSessionAuditions(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
   ): Promise<CountedSessionAuditionsDto> {
-    return this.sessions.countSessionAuditions({ sessionId });
+    return this.sessions.countSessionAuditions({ role: user.role, sessionId });
   }
 
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HasRole()
   @Get('/:sessionId/auditions')
   @ApiPaginated()
   @ZodResponse({ status: HttpStatus.OK, type: ListedSessionAuditionsDto })
   listSessionAuditions(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @QueryPagination() pagination: Pagination,
     @Query(ZodValidationPipe) query: ListSessionAuditionsQueryDto,
@@ -257,6 +288,7 @@ export class SessionController {
     return this.sessions.listSessionAuditions({
       filters: { reporterIds: query.reporterIds ?? [], search: query.search ?? null },
       pagination,
+      role: user.role,
       sessionId,
       sortBy: query.sortBy ?? null,
       sortDesc: query.sortDesc,
@@ -276,8 +308,8 @@ export class SessionController {
   @Get('/:sessionId/files')
   @ApiPaginated()
   @ZodResponse({
-    type: PaginatedNominationFiles,
     status: HttpStatus.OK,
+    type: PaginatedNominationFiles,
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
@@ -286,10 +318,6 @@ export class SessionController {
     @Query(ZodValidationPipe) query: ListNominationFilesQueryDto,
   ) {
     return this.sessions.listNominationFiles({
-      user,
-      sessionId,
-      pagination,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       filters: {
         missingEvaluation: query.missingEvaluation,
         nominationFileIds: query.nominationFileIds,
@@ -298,6 +326,10 @@ export class SessionController {
         reporterIds: query.reporterIds ?? [],
         search: query.search || null,
       },
+      pagination,
+      sessionId,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      user,
     });
   }
 
@@ -314,7 +346,7 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/history')
-  @ZodResponse({ type: DetailedAffectationHistoryDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAffectationHistoryDto })
   detailAffectationHistory(@Param('sessionId') sessionId: string): Promise<DetailedAffectationHistoryDto> {
     return this.sessions.detailAffectationHistory({ sessionId });
   }
@@ -322,20 +354,20 @@ export class SessionController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/reporters/versions/last/unaffected-count')
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: CountedUnaffectedFilesDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: CountedUnaffectedFilesDto })
   countUnaffectedNominationFiles(
     @Param('sessionId') sessionId: string,
     @Query() { nominationFileIds }: CountUnaffectedFilesQueryDto,
   ): Promise<CountedUnaffectedFilesDto> {
     return this.sessions.countUnaffectedFiles({
-      sessionId,
       nominationFileIds,
+      sessionId,
     });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:sessionId/files/status-counts')
-  @ZodResponse({ type: NominationFilesStatusCountDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: NominationFilesStatusCountDto })
   countNominationFilesByStatus(
     @Param('sessionId') sessionId: string,
   ): Promise<NominationFilesStatusCountDto> {
@@ -345,15 +377,14 @@ export class SessionController {
   @HasRole()
   @Get('/:sessionId/files/reporters/versions/last/members')
   @ZodResponse({
-    type: ListedCurrentlyAffectedReportersDto,
     status: HttpStatus.OK,
+    type: ListedCurrentlyAffectedReportersDto,
   })
   listCurrentlyAffectedReporters(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
   ): Promise<ListedCurrentlyAffectedReportersDto> {
-    return this.sessions.listCurrentlyAffectedReporters({
-      sessionId,
-    });
+    return this.sessions.listCurrentlyAffectedReporters({ role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -380,9 +411,9 @@ export class SessionController {
   ): Promise<void> {
     await this.sessions.autoAffectation({
       authorId: userId,
-      sessionId,
-      nominationFileIds: body.nominationFileIds,
       excludedMemberIds: body.excludedMemberIds,
+      nominationFileIds: body.nominationFileIds,
+      sessionId,
     });
   }
 
@@ -396,9 +427,9 @@ export class SessionController {
     @Body() body: UpdateCommentDto,
   ): Promise<void> {
     await this.sessions.updateNominationFileComment({
-      sessionId,
-      nominationFileId,
       comment: body.comment,
+      nominationFileId,
+      sessionId,
     });
   }
 
@@ -412,9 +443,9 @@ export class SessionController {
     @Body() body: UpdateMissingEvaluationDto,
   ): Promise<void> {
     await this.sessions.updateNominationFileMissingEvaluation({
-      sessionId,
-      nominationFileId,
       missingEvaluation: body.missingEvaluation,
+      nominationFileId,
+      sessionId,
     });
   }
 
@@ -428,9 +459,38 @@ export class SessionController {
     @Body() body: UpdateMissingEvaluationCommentDto,
   ): Promise<void> {
     await this.sessions.updateNominationFileMissingEvaluationComment({
-      sessionId,
-      nominationFileId,
       comment: body.comment,
+      nominationFileId,
+      sessionId,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/:sessionId/files/:nominationFileId/audition/history')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedNominationFileAuditionHistoryDto })
+  detailNominationFileAuditionHistory(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+  ): Promise<DetailedNominationFileAuditionHistoryDto> {
+    return this.sessions.detailNominationFileAuditionHistory({ nominationFileId, sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/:nominationFileId/audition/request')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFileAuditionRequest(
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Body() body: UpdateAuditionRequestDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFileAuditionRequest({
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
+      requested: body.requested,
+      sessionId,
+      userId: user.id,
     });
   }
 
@@ -483,10 +543,10 @@ export class SessionController {
     @Body() body: DefineNominationFileOutcomeDto,
   ): Promise<void> {
     await this.sessions.defineNominationFileOutcome({
-      sessionId,
-      nominationFileId,
       comment: body.comment,
+      nominationFileId,
       outcome: body.outcome,
+      sessionId,
     });
   }
 
@@ -497,24 +557,24 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<void> {
-    await this.sessions.hideAlert({ sessionId, nominationFileId });
+    await this.sessions.hideAlert({ nominationFileId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/multiattachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    schema: UploadSessionAttachmentsDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: UploadSessionAttachmentsDto,
   })
   async uploadSessionAttachments(
     @Param('sessionId') sessionId: string,
     @Body() { files }: Multipart<typeof UploadSessionAttachmentsDto>,
   ) {
     await this.sessions.addNominationSessionAttachments({
-      sessionId,
       files,
+      sessionId,
     });
   }
 
@@ -523,16 +583,16 @@ export class SessionController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeSessionAttachment(@Param('sessionId') sessionId: string, @Param('fileId') fileId: string) {
     await this.sessions.removeNominationSessionAttachment({
-      sessionId,
       fileId,
+      sessionId,
     });
   }
 
   @HasRole()
   @Get('/:sessionId/attachments')
   @ZodResponse({
-    type: ListedNominationSessionAttachmentDto,
     status: HttpStatus.OK,
+    type: ListedNominationSessionAttachmentDto,
   })
   async listNominationSessionAttachments(
     @Param('sessionId') sessionId: string,
@@ -544,23 +604,23 @@ export class SessionController {
   @HasRole()
   @Get('/:sessionId/attachments/:fileId')
   @ZodResponse({
-    type: DetailedNominationSessionAttachmentDto,
     status: HttpStatus.OK,
+    type: DetailedNominationSessionAttachmentDto,
   })
   async createNominationSessionAttachmentUrl(
     @Param('sessionId') sessionId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationSessionAttachmentDto> {
-    return this.sessions.detailAttachment({ sessionId, fileId });
+    return this.sessions.detailAttachment({ fileId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/files/:nominationFileId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    schema: UploadNominationFileAttachmentsDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: UploadNominationFileAttachmentsDto,
   })
   async uploadNominationFileAttachments(
     @Param('sessionId') sessionId: string,
@@ -568,9 +628,9 @@ export class SessionController {
     @Body() { files, form }: Multipart<typeof UploadNominationFileAttachmentsDto>,
   ) {
     await this.sessions.addNominationFileAttachments({
-      sessionId,
-      nominationFileId,
       files,
+      nominationFileId,
+      sessionId,
       type: form.type,
     });
   }
@@ -583,40 +643,40 @@ export class SessionController {
     @Param('nominationFileId') nominationFileId: string,
     @Param('fileId') fileId: string,
   ) {
-    await this.sessions.removeNominationFileAttachment({ sessionId, nominationFileId, fileId });
+    await this.sessions.removeNominationFileAttachment({ fileId, nominationFileId, sessionId });
   }
 
   @HasRole()
   @Get('/:sessionId/files/:nominationFileId/attachments')
   @ZodResponse({
-    type: ListedNominationFileAttachmentDto,
     status: HttpStatus.OK,
+    type: ListedNominationFileAttachmentDto,
   })
   async listNominationFileAttachments(
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<ListedNominationFileAttachmentDto> {
-    return this.sessions.listNominationFileAttachments({ sessionId, nominationFileId });
+    return this.sessions.listNominationFileAttachments({ nominationFileId, sessionId });
   }
 
   /** @warning this is a mutation */
   @HasRole()
   @Get('/:sessionId/files/:nominationFileId/attachments/:fileId')
   @ZodResponse({
-    type: DetailedNominationFileAttachmentDto,
     status: HttpStatus.OK,
+    type: DetailedNominationFileAttachmentDto,
   })
   async createNominationFileAttachmentUrl(
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationFileAttachmentDto> {
-    return this.sessions.detailNominationFileAttachment({ sessionId, nominationFileId, fileId });
+    return this.sessions.detailNominationFileAttachment({ fileId, nominationFileId, sessionId });
   }
 
   @HasRole()
   @Get('/:sessionId/files/:nominationFileId')
-  @ZodResponse({ type: DetailedNominationFileDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedNominationFileDto })
   detailNominationFile(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
@@ -627,7 +687,7 @@ export class SessionController {
 
   @HasRole()
   @Get('/:sessionId')
-  @ZodResponse({ type: DetailedNominationSessionDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedNominationSessionDto })
   async detailsNominationSession(
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { role: RoleEnum },
@@ -644,17 +704,17 @@ export class SessionController {
     @Body() data: UpdateNominationSessionDto,
   ): Promise<void> {
     return this.sessions.update({
-      sessionId,
       data: {
         ...data,
 
         date: DateOnly.fromString(data.date, 'yyyy-MM-dd'),
-        observationsClosingDate: DateOnly.fromString(data.observationsClosingDate, 'yyyy-MM-dd'),
         dueDate: data.dueDate ? DateOnly.fromString(data.dueDate, 'yyyy-MM-dd') : null,
+        observationsClosingDate: DateOnly.fromString(data.observationsClosingDate, 'yyyy-MM-dd'),
         positionStartDate: data.positionStartDate
           ? DateOnly.fromString(data.positionStartDate, 'yyyy-MM-dd')
           : null,
       },
+      sessionId,
     });
   }
 
@@ -665,7 +725,7 @@ export class SessionController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<LolfiMagistratUrlDto> {
-    return this.sessions.getLolfiMagistratUrl({ sessionId, nominationFileId });
+    return this.sessions.getLolfiMagistratUrl({ nominationFileId, sessionId });
   }
 
   @Delete('/:sessionId')

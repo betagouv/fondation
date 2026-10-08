@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { Pagination } from 'src/modules/framework/pagination';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 import {
   MagistratProfilesFinder,
@@ -44,6 +45,7 @@ export class MagistratService {
   listNominationFiles(query: {
     magistratId: string;
     pagination: Pagination;
+    role: RoleEnum;
   }): Promise<ListedMagistratNominationFilesDto> {
     return this.listMagistratNominationFilesQuery.handle(query);
   }
@@ -51,14 +53,15 @@ export class MagistratService {
   listObservations(query: {
     magistratId: string;
     pagination: Pagination;
+    role: RoleEnum;
   }): Promise<ListedMagistratObservationsDto> {
     return this.listMagistratObservationsQuery.handle(query);
   }
 
   searchMagistrats(query: {
-    search: string | undefined;
     ignoreIds: readonly string[] | undefined;
     pagination: Pagination;
+    search: string | undefined;
   }): Promise<SearchMagistratsResponseDto> {
     return this.searchMagistratsQuery.handle(query);
   }

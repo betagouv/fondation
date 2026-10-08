@@ -12,11 +12,13 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
+  PositionAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
   SessionTransparenceIsNotDeletable,
   UnknownNominationFiles,
+  UnrequestedAuditionCannotBeScheduled,
 } from 'src/modules/session/transparence/domain/session-transparence';
 import {
   NominationFileOutcomeRequiresComment,
@@ -109,6 +111,18 @@ export class TransparenceExceptionFilter implements NestInterceptor {
               validationErrors: [
                 `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
               ],
+            });
+          }
+
+          if (err instanceof UnrequestedAuditionCannotBeScheduled) {
+            return new BadRequestException({
+              validationErrors: [`impossible de programmer une audition qui n'est pas prévue`],
+            });
+          }
+
+          if (err instanceof PositionAuditionCannotBeDismissed) {
+            return new BadRequestException({
+              validationErrors: [`impossible de retirer une audition imposée par le poste`],
             });
           }
 

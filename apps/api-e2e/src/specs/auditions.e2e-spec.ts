@@ -1,6 +1,7 @@
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test as base } from '../fixtures.ts';
+import * as api from '../generated/api/sdk.ts';
 import type { CreateObservationDto } from '../generated/api/types.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -25,6 +26,23 @@ const SESSION: LolfiArchiveContent['sessions'][number] = {
   ],
   createdAt: '22/04/2026',
   name: 'Transparence annuelle',
+};
+
+const SIEGE_SESSION: LolfiArchiveContent['sessions'][number] = {
+  candidates: [
+    {
+      firstName: 'ALIX',
+      lastName: 'FOURNERAY',
+      position: { function: seed.functions.P, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+      targetPosition: {
+        function: seed.functions.P,
+        grade: 'G3',
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+      },
+    },
+  ],
+  createdAt: '22/04/2026',
+  name: 'Transparence du siège',
 };
 
 function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
@@ -58,6 +76,52 @@ test.describe('Auditions E2E', () => {
         }),
       ]),
     );
+  });
+
+  test('should list a proposition once the secretariat requests its audition', async ({ agent, expect, sessions }) => {
+    const siege = await sessions.createOne(SIEGE_SESSION);
+    const [file] = await agent.sessions
+      .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
+      .then(({ data }) => data!.items);
+
+    await agent.sessions.updateNominationFileAuditionRequest({
+      body: { requested: true },
+      path: { nominationFileId: file!.id, sessionId: siege.id },
+      throwOnError: true,
+    });
+
+    const auditions = await agent.sessions.listSessionAuditions({
+      path: { sessionId: siege.id },
+      throwOnError: true,
+    });
+
+    expect(auditions.data!.items).toMatchObject([{ audition: null, propositions: [{ nominationFileId: file!.id }] }]);
+  });
+
+  test('should no longer list a proposition whose scheduled audition the secretariat dismisses', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const siege = await sessions.createOne(SIEGE_SESSION);
+    const [file] = await agent.sessions
+      .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
+      .then(({ data }) => data!.items);
+    const path = { nominationFileId: file!.id, sessionId: siege.id };
+    await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: true }, path, throwOnError: true });
+    await agent.sessions.updateNominationFileAuditionDate({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+      path,
+      throwOnError: true,
+    });
+
+    await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: false }, path, throwOnError: true });
+    const auditions = await agent.sessions.listSessionAuditions({
+      path: { sessionId: siege.id },
+      throwOnError: true,
+    });
+
+    expect(auditions.data!.items).toEqual([]);
   });
 
   test('should list a proposed magistrat and an observant heard in the session', async ({ agent, expect, session }) => {
@@ -102,5 +166,54 @@ test.describe('Auditions E2E', () => {
         role: 'OBSERVANT',
       },
     ]);
+  });
+  test('should publish the auditions to the members', async ({ agent, expect, session }) => {
+    await agent.sessions.publishSessionAuditions({ path: { sessionId: session.id }, throwOnError: true });
+
+    const publication = await agent.sessions.detailLastSessionAuditionsPublication({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(publication.data).toMatchObject({ lastPublished: { by: expect.any(Object) }, status: 'PUBLISHED' });
+  });
+
+  test('should tell the auditions changed since their publication', async ({ agent, expect, session }) => {
+    await agent.sessions.publishSessionAuditions({ path: { sessionId: session.id }, throwOnError: true });
+    await agent.sessions.updateNominationFileAuditionDate({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+      path: { nominationFileId: session.montferrand.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const publication = await agent.sessions.detailLastSessionAuditionsPublication({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(publication.data!.status).toBe('UNPUBLISHED_CHANGES');
+  });
+  test('should show the members the published auditions without their contact', async ({
+    agent,
+    expect,
+    member,
+    session,
+  }) => {
+    await agent.sessions.publishSessionAuditions({ path: { sessionId: session.id }, throwOnError: true });
+
+    const auditions = await api.sessions.listSessionAuditions({
+      client: member['@client'],
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(auditions.data!.items.map(({ contact }) => contact)).toEqual([null, null]);
+    expect(auditions.data!.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          propositions: [expect.objectContaining({ nominationFileId: session.montferrand.id })],
+        }),
+      ]),
+    );
   });
 });

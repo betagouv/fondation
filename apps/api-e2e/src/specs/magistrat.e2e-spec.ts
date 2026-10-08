@@ -87,7 +87,7 @@ test.describe('Magistrat E2E', () => {
   test('should list the nomination files of a magistrat', async ({ agent, expect, member, valrose }) => {
     await agent.sessions.updateNominationFileAuditionDate({
       body: {
-        auditionDate: { year: 2026, month: 9, day: 15 },
+        auditionDate: { day: 15, month: 9, year: 2026 },
         auditionTime: { hours: 14, minutes: 30 },
       },
       path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
@@ -100,8 +100,8 @@ test.describe('Magistrat E2E', () => {
     expect(nominationFiles.response?.status).toBe(200);
     expect(nominationFiles.data).toMatchObject({ currentPageIndex: 1, totalCount: 1 });
     expect(nominationFiles.data!.items[0]).toMatchObject({
-      auditionDate: { year: 2026, month: 9, day: 15 },
-      auditionExpected: true,
+      auditionDate: { day: 15, month: 9, year: 2026 },
+      auditionRequired: true,
       auditionTime: { hours: 14, minutes: 30 },
       canScheduleAudition: true,
       id: valrose.nominationFile.id,
@@ -125,7 +125,7 @@ test.describe('Magistrat E2E', () => {
 
     expect(nominationFiles.response?.status).toBe(200);
     expect(nominationFiles.data!.items[0]).toMatchObject({
-      auditionExpected: true,
+      auditionRequired: true,
       canScheduleAudition: true,
     });
   });
@@ -143,7 +143,7 @@ test.describe('Magistrat E2E', () => {
 
     expect(nominationFiles.response?.status).toBe(200);
     expect(nominationFiles.data!.items[0]).toMatchObject({
-      auditionExpected: true,
+      auditionRequired: true,
       canScheduleAudition: false,
     });
   });
@@ -173,9 +173,9 @@ test.describe('Magistrat E2E', () => {
     expect(observations.response?.status).toBe(200);
     expect(observations.data).toMatchObject({ totalCount: 1 });
     expect(observations.data!.items[0]).toMatchObject({
-      dateReception: { year: 2026, month: 5, day: 2 },
+      dateReception: { day: 2, month: 5, year: 2026 },
       nominationFile: {
-        auditionExpected: true,
+        auditionRequired: true,
         id: valrose.nominationFile.id,
         name: expect.stringMatching(/valrose/i),
         session: { id: valrose.session.id, status: 'ONGOING' },
@@ -221,7 +221,6 @@ test.describe('Magistrat E2E', () => {
   test('should share the audition of an observant between their observations only', async ({
     agent,
     expect,
-    member,
     valrose,
   }) => {
     const [scheduled, other] = await Promise.all(
@@ -242,7 +241,7 @@ test.describe('Magistrat E2E', () => {
     });
     expect(response.response?.status).toBe(204);
 
-    const details = await member.observations.getObservationDetails({ path: other!, throwOnError: true });
+    const details = await agent.observations.getObservationDetails({ path: other!, throwOnError: true });
     expect(details.data!.observant.audition).toMatchObject({
       date: { day: 12, month: 12, year: 2028 },
       time: { hours: 12, minutes: 30 },
@@ -255,7 +254,7 @@ test.describe('Magistrat E2E', () => {
     expect(nominationFiles.data!.items[0]).toMatchObject({ auditionDate: null, auditionTime: null });
   });
 
-  test('should unschedule the audition of an observant', async ({ agent, expect, member, valrose }) => {
+  test('should unschedule the audition of an observant', async ({ agent, expect, valrose }) => {
     const path = await agent.observations
       .createObservation({
         body: { form: observationForm({ dateReception: '2026-05-02', magistratId: valrose.magistratId }) },
@@ -279,14 +278,13 @@ test.describe('Magistrat E2E', () => {
     });
     expect(response.response?.status).toBe(204);
 
-    const details = await member.observations.getObservationDetails({ path, throwOnError: true });
+    const details = await agent.observations.getObservationDetails({ path, throwOnError: true });
     expect(details.data!.observant.audition).toBeNull();
   });
 
   test('should drop the audition of an observant with their last observation of the session', async ({
     agent,
     expect,
-    member,
     valrose,
   }) => {
     const createObservation = (nominationFileId: string) =>
@@ -306,12 +304,12 @@ test.describe('Magistrat E2E', () => {
     });
 
     await agent.observations.deleteObservation({ path: first, throwOnError: true });
-    const kept = await member.observations.getObservationDetails({ path: second, throwOnError: true });
+    const kept = await agent.observations.getObservationDetails({ path: second, throwOnError: true });
     expect(kept.data!.observant.audition).not.toBeNull();
 
     await agent.observations.deleteObservation({ path: second, throwOnError: true });
     const recreated = await createObservation(valrose.otherNominationFile.id);
-    const details = await member.observations.getObservationDetails({ path: recreated, throwOnError: true });
+    const details = await agent.observations.getObservationDetails({ path: recreated, throwOnError: true });
     expect(details.data!.observant.audition).toBeNull();
   });
 });

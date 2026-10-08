@@ -38,6 +38,7 @@ model Magistrat {
   observations              Observation[]
   observantAuditions        ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
+  publishedObservantAuditions PublishedObservantAudition[]
   candidacies               Candidate[]
   nominations               Nomination[]
   detectedInNominationFiles DossierDeNomination[]

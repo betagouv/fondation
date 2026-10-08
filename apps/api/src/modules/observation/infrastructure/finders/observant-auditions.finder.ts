@@ -58,4 +58,23 @@ export class ObservantAuditionsFinder {
       })),
     }));
   }
+
+  async findObservations(query: {
+    magistratIds: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, { nominationFileId: string; observationId: string }[]>> {
+    const observations = await this.db.tx.observation.findMany({
+      select: { id: true, magistratId: true, nominationFileId: true } satisfies Prisma.ObservationSelect,
+      where: { magistratId: { in: [...query.magistratIds] }, nominationFile: { sessionId: query.sessionId } },
+    });
+
+    const byMagistrat = new Map<string, { nominationFileId: string; observationId: string }[]>();
+    for (const { id, magistratId, nominationFileId } of observations) {
+      byMagistrat.set(magistratId, [
+        ...(byMagistrat.get(magistratId) ?? []),
+        { nominationFileId, observationId: id },
+      ]);
+    }
+    return byMagistrat;
+  }
 }

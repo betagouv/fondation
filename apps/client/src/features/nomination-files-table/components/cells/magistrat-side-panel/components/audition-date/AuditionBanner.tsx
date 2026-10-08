@@ -1,9 +1,14 @@
 import { FormattedMessage } from 'react-intl';
 
-import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import {
+  AuditionAnnouncedBanner,
+  AuditionRequesterMessage,
+  AuditionScheduledBanner,
+} from '@/shared/components/audition-banner';
 import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { AUDITION_SECTION_ID } from './AuditionDate';
 import { AUDITION_DATE_INPUT_ID } from './AuditionDateForm';
@@ -13,8 +18,11 @@ const BANNER_LAYOUT = '-mx-8 px-8 py-4';
 export function AuditionBanner(props: {
   auditionDate: PlainDateOnly | null;
   auditionMissing: boolean;
+  auditionRequirement: SessionNominationFile['auditionRequirement'];
   auditionTime: PlainTimeOnly | null;
   editable: boolean;
+  nominationFileId: string;
+  sessionId: string;
 }) {
   const { auditionDate, auditionMissing, auditionTime, editable } = props;
 
@@ -24,19 +32,24 @@ export function AuditionBanner(props: {
   };
 
   if (auditionMissing) {
-    // members only hear about an audition once its date is set; a missing audition can always be scheduled,
-    // so only the secretariat edits it
-    if (!editable) return null;
+    // a missing audition can always be scheduled, so only the secretariat cannot edit it
+    if (!editable) return <AuditionAnnouncedBanner className={BANNER_LAYOUT} />;
 
     return (
       <AlertBanner
         className={BANNER_LAYOUT}
         icon="fr-icon-warning-fill"
-        message={<FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />}
+        message={
+          props.auditionRequirement === 'POSITION' ? (
+            <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
+          ) : (
+            <AuditionRequesterMessage nominationFileId={props.nominationFileId} sessionId={props.sessionId} />
+          )
+        }
         tone="warning"
       >
         <AlertBannerAction onClick={goToDateField}>
-          <FormattedMessage defaultMessage="Planifier" />
+          <FormattedMessage defaultMessage="Programmer" />
         </AlertBannerAction>
       </AlertBanner>
     );

@@ -5,7 +5,7 @@ import { type MagistratNominationFile, MagistratNominationFilesTable } from './M
 function makeNominationFile(overrides: Partial<MagistratNominationFile>): MagistratNominationFile {
   return {
     auditionDate: null,
-    auditionExpected: false,
+    auditionRequired: false,
     auditionTime: null,
     canScheduleAudition: false,
     id: 'dossier-1',
@@ -13,14 +13,14 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
     number: 12,
     outcome: null,
     reporters: [
-      { id: 'user-1', firstName: 'Rachel', lastName: 'Bernard' },
-      { id: 'user-2', firstName: 'Antoine', lastName: 'Roche' },
+      { firstName: 'Rachel', id: 'user-1', lastName: 'Bernard' },
+      { firstName: 'Antoine', id: 'user-2', lastName: 'Roche' },
     ],
     session: {
+      date: { day: 20, month: 2, year: 2026 },
+      formation: 'SIEGE',
       id: 'session-1',
       name: 'Transparence Annuelle 2026',
-      formation: 'SIEGE',
-      date: { year: 2026, month: 2, day: 20 },
       status: 'REPORTED',
     },
     targetedGrade: 'G3',
@@ -30,14 +30,14 @@ function makeNominationFile(overrides: Partial<MagistratNominationFile>): Magist
 }
 
 const meta = {
-  title: 'Features/MagistratDetails/NominationFilesTable',
-  component: MagistratNominationFilesTable,
-  parameters: { layout: 'padded' },
-  tags: ['autodocs'],
   argTypes: {
     context: { table: { disable: true } },
     nominationFiles: { table: { disable: true } },
   },
+  component: MagistratNominationFilesTable,
+  parameters: { layout: 'padded' },
+  tags: ['autodocs'],
+  title: 'Features/MagistratDetails/NominationFilesTable',
 } satisfies Meta<typeof MagistratNominationFilesTable>;
 
 export default meta;
@@ -55,9 +55,9 @@ const OUTCOMES = [
 ] as const;
 
 const REPORTERS = [
-  { id: 'user-1', firstName: 'Rachel', lastName: 'Bernard' },
-  { id: 'user-2', firstName: 'Antoine', lastName: 'Roche' },
-  { id: 'user-3', firstName: 'Marie', lastName: 'Lefevre' },
+  { firstName: 'Rachel', id: 'user-1', lastName: 'Bernard' },
+  { firstName: 'Antoine', id: 'user-2', lastName: 'Roche' },
+  { firstName: 'Marie', id: 'user-3', lastName: 'Lefevre' },
 ];
 
 type PlaygroundArgs = {
@@ -73,7 +73,11 @@ type PlaygroundArgs = {
 };
 
 export const Playground: StoryObj<PlaygroundArgs> = {
-  parameters: { controls: { exclude: ['nominationFiles'] } },
+  argTypes: {
+    audition: { control: 'inline-radio', options: ['none', 'expected', 'scheduled', 'past'] },
+    outcome: { control: 'select', options: ['none', ...OUTCOMES] },
+    reportersCount: { control: { max: REPORTERS.length, min: 0, step: 1, type: 'range' } },
+  },
   args: {
     audition: 'none',
     canScheduleAudition: true,
@@ -85,11 +89,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     reportersCount: 2,
     sessionName: 'Transparence Annuelle',
   },
-  argTypes: {
-    audition: { control: 'inline-radio', options: ['none', 'expected', 'scheduled', 'past'] },
-    outcome: { control: 'select', options: ['none', ...OUTCOMES] },
-    reportersCount: { control: { type: 'range', min: 0, max: REPORTERS.length, step: 1 } },
-  },
+  parameters: { controls: { exclude: ['nominationFiles'] } },
   render: (args) => (
     <MagistratNominationFilesTable
       context="sg"
@@ -97,11 +97,11 @@ export const Playground: StoryObj<PlaygroundArgs> = {
         makeNominationFile({
           auditionDate:
             args.audition === 'scheduled'
-              ? { year: 2030, month: 9, day: 15 }
+              ? { day: 15, month: 9, year: 2030 }
               : args.audition === 'past'
-                ? { year: 2021, month: 3, day: 18 }
+                ? { day: 18, month: 3, year: 2021 }
                 : null,
-          auditionExpected: args.audition === 'expected',
+          auditionRequired: args.audition === 'expected',
           auditionTime:
             args.audition === 'scheduled' || args.audition === 'past'
               ? { hours: 14, minutes: 30, seconds: 0 }
@@ -111,10 +111,10 @@ export const Playground: StoryObj<PlaygroundArgs> = {
           outcome: args.outcome === 'none' ? null : { comment: null, value: args.outcome },
           reporters: REPORTERS.slice(0, args.reportersCount),
           session: {
+            date: { day: 20, month: 2, year: 2026 },
+            formation: 'SIEGE',
             id: 'session-1',
             name: args.sessionName,
-            formation: 'SIEGE',
-            date: { year: 2026, month: 2, day: 20 },
             status: args.ongoingSession ? 'ONGOING' : 'REPORTED',
           },
           targetedGrade: args.grade,
@@ -135,10 +135,10 @@ export const ManyRows: Story = {
         number: index + 3,
         outcome: index === 0 ? null : { comment: null, value: 'VALIDATED' },
         session: {
+          date: { day: 20, month: 2, year: 2026 - index },
+          formation: 'SIEGE',
           id: `session-${index}`,
           name: `Transparence Annuelle ${2026 - index}`,
-          formation: 'SIEGE',
-          date: { year: 2026 - index, month: 2, day: 20 },
           status: index === 0 ? 'ONGOING' : 'REPORTED',
         },
       }),

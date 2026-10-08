@@ -1,6 +1,7 @@
 import Select from '@codegouvfr/react-dsfr/Select';
 import type { ChangeEvent, ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { useLocation } from 'react-router';
 
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
@@ -12,7 +13,7 @@ import {
   ReportStatusEnumMessages,
 } from '@/shared/enums/report-status.enum';
 import { DetailsHeader } from '@/shared/ui/details';
-import { getDetailSessionGdsPath, openedDossierSearch } from '@/utils/route-path.utils';
+import { backToFilesListSearch, getDetailSessionGdsPath } from '@/utils/route-path.utils';
 import { fullNameCapitalized } from '@/utils/user.utils';
 import type { DetailedReportDto } from '@api/types';
 
@@ -30,6 +31,7 @@ export function ReportDetailsHeader(props: {
 }) {
   const { formatMessage } = useIntl();
 
+  const location = useLocation();
   const title = props.detectedMagistrat ? fullNameCapitalized(props.detectedMagistrat) : props.name;
 
   const onChange = (event: ChangeEvent<HTMLSelectElement>) =>
@@ -53,7 +55,7 @@ export function ReportDetailsHeader(props: {
       }
       backTo={{
         pathname: getDetailSessionGdsPath({ sessionId: props.sessionId }),
-        search: openedDossierSearch(props.nominationFileId),
+        search: backToFilesListSearch(location.state, props.nominationFileId),
       }}
       breadcrumb={props.breadcrumb}
       overline={<FormattedMessage defaultMessage="Rapport" />}

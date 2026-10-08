@@ -77,7 +77,8 @@ function makeSummaryDetail(props: {
 }): DetailedSummaryDto {
   return {
     auditionDate: null,
-    auditionExpected: false,
+    auditionRequired: false,
+    auditionRequirement: null,
     auditionTime: null,
     biography: '',
     birthDate: null,
@@ -158,14 +159,6 @@ function SummaryStory(props: {
 }
 
 const meta = {
-  args: {
-    attachments: false,
-    hasSummary: true,
-    isArchived: false,
-    longText: false,
-    readers: false,
-    view: 'sg',
-  },
   argTypes: {
     attachments: { control: 'boolean' },
     hasSummary: { control: 'boolean' },
@@ -173,6 +166,14 @@ const meta = {
     longText: { control: 'boolean' },
     readers: { control: 'boolean' },
     view: { control: 'inline-radio', options: VIEWS },
+  },
+  args: {
+    attachments: false,
+    hasSummary: true,
+    isArchived: false,
+    longText: false,
+    readers: false,
+    view: 'sg',
   },
   component: SummaryStory,
   parameters: { layout: 'padded' },

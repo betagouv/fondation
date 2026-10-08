@@ -21,7 +21,7 @@ import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { DropdownHandle } from '@/shared/ui/dropdown';
-import { getGdsReportPath } from '@/utils/route-path.utils';
+import { type FromFilesListState, getGdsReportPath } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -178,7 +178,11 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           {myReportId && (
             <Button
               className="btn-compact"
-              linkProps={{ to: getGdsReportPath(myReportId) }}
+              linkProps={{
+                // nuqs writes the filters to the URL without telling React Router: its location lags behind
+                state: { filesListSearch: window.location.search } satisfies FromFilesListState,
+                to: getGdsReportPath(myReportId),
+              }}
               priority="secondary"
               size="small"
             >

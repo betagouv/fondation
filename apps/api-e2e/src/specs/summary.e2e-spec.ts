@@ -30,6 +30,6 @@ test.describe('Summary E2E', () => {
     const summary = await agent.summaries.detailSummary({ path });
 
     expect(summary.response?.status).toBe(200);
-    expect(summary.data).toMatchObject({ auditionExpected: true, canScheduleAudition: true, reportersMissing: true });
+    expect(summary.data).toMatchObject({ auditionRequired: true, canScheduleAudition: true, reportersMissing: true });
   });
 });

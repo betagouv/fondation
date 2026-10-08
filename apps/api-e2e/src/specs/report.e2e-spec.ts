@@ -10,24 +10,24 @@ test.describe('Report E2E', () => {
   test.beforeEach(async ({ sessions, agent, member, expect }) => {
     // Create a session and assign the member so a report is created automatically
     const session = await sessions.createOne({
-      name: 'Transparence rapport',
-      createdAt: '22/04/2026',
       candidates: [
         {
           firstName: 'ETIENNE',
           lastName: 'TREVOUX',
           position: {
+            function: seed.functions.PR,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  LYON'],
-            function: seed.functions.PR,
           },
           targetPosition: {
+            function: seed.functions.PR,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-            function: seed.functions.PR,
           },
         },
       ],
+      createdAt: '22/04/2026',
+      name: 'Transparence rapport',
     });
 
     const filesResponse = await agent.sessions.listNominationFiles({
@@ -39,8 +39,8 @@ test.describe('Report E2E', () => {
     sessionId = session.id;
 
     const affectResponse = await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [member['@user']!.id] }] },
       path: { sessionId: session.id },
-      body: { items: [{ nominationFileId, reporterIds: [member['@user']!.id], priorities: [] }] },
     });
     expect(affectResponse.response?.status).toBe(204);
 
@@ -51,7 +51,7 @@ test.describe('Report E2E', () => {
 
     const memberId = member['@user']!.id;
     const reportsRes = await member.members.listMemberSessionReports({
-      path: { userId: memberId, sessionId: session.id },
+      path: { sessionId: session.id, userId: memberId },
     });
 
     reportId = reportsRes.data!.items[0]!.report.id;
@@ -108,21 +108,21 @@ test.describe('Report E2E', () => {
       firstName,
       lastName,
       position: {
+        function: seed.functions.PR,
         grade: 'G3' as const,
         jurisdiction: seed.jurisdictions['CA  LYON'],
-        function: seed.functions.PR,
       },
       targetPosition: {
+        function: seed.functions.PR,
         grade: 'G3' as const,
         jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-        function: seed.functions.PR,
       },
     });
 
     const session = await sessions.createOne({
-      name: 'Transparence ordre des rapports',
-      createdAt: '22/04/2026',
       candidates: [parquetCandidate('EMILE', 'ZOLA'), parquetCandidate('MARIE', 'ABEL')],
+      createdAt: '22/04/2026',
+      name: 'Transparence ordre des rapports',
     });
 
     const filesRes = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
@@ -131,14 +131,14 @@ test.describe('Report E2E', () => {
 
     const filesInReverseOrder = [...filesByNumber].reverse();
     const affectRes = await agent.sessions.affectReporters({
-      path: { sessionId: session.id },
       body: {
         items: filesInReverseOrder.map((file) => ({
           nominationFileId: file.id,
-          reporterIds: [member['@user']!.id],
           priorities: [],
+          reporterIds: [member['@user']!.id],
         })),
       },
+      path: { sessionId: session.id },
     });
     expect(affectRes.response?.status).toBe(204);
 
@@ -178,12 +178,27 @@ test.describe('Report E2E', () => {
     expect(closedReport.data).toMatchObject({ canScheduleAudition: false });
   });
 
+  test('should show the member an audition once the secretariat publishes it', async ({ agent, member, expect }) => {
+    await agent.sessions.updateNominationFileAuditionDate({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+    const beforePublication = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+
+    await agent.sessions.publishSessionAuditions({ path: { sessionId }, throwOnError: true });
+    const afterPublication = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+
+    expect(beforePublication.data).toMatchObject({ auditionDate: null, auditionRequired: true });
+    expect(afterPublication.data).toMatchObject({ auditionDate: { day: 12, month: 12, year: 2028 } });
+  });
+
   test('should attach files to a report', async ({ member, expect }) => {
-    const file = makeFile({ type: 'image/png', name: `image_${crypto.randomUUID()}.png` });
+    const file = makeFile({ name: `image_${crypto.randomUUID()}.png`, type: 'image/png' });
 
     const attachmentRes = await member.reports.attachFiles({
-      path: { reportId },
       body: { files: [file] },
+      path: { reportId },
       query: { usage: 'ATTACHMENT' },
     });
     expect(attachmentRes.response?.status).toBe(204);
@@ -199,8 +214,8 @@ test.describe('Report E2E', () => {
     ) as [File, File];
 
     const attachmentRes = await member.reports.attachFiles({
-      path: { reportId },
       body: { files: [file1, file2] },
+      path: { reportId },
       query: { usage: 'ATTACHMENT' },
     });
     expect(attachmentRes.response?.status).toBe(204);

@@ -59,6 +59,8 @@ model DossierDeNomination {
   comment           String?                          @map("comment") @db.Text
   auditionDate      DateTime?                        @map("audition_date") @db.Date
   auditionTime      DateTime?                        @map("audition_time") @db.Time(0)
+  /// the secretariat's choice, null to follow the position: see isAuditionRequired
+  auditionRequested Boolean?                         @map("audition_requested")
   outcome           PrismaNominationFileOutcomeEnum?
   outcomeComment    String?                          @map("outcome_comment")
   missingEvaluation Boolean                          @default(false) @map("missing_evaluation")
@@ -104,6 +106,7 @@ model DossierDeNomination {
   commentAccess              CommentAccess[]                         @ignore
   observations               Observation[]
   auditionVersions           NominationFileAuditionVersion[]
+  publishedAuditions         PublishedNominationFileAudition[]
   memberMemos                MemberMemo[]
   summary                    Summary?
   attachments                NominationFileAttachment[]
@@ -198,8 +201,9 @@ model Session {
   archivedAt DateTime? @map("archived_at")
   archivedBy String?   @map("archived_by") @db.Uuid
 
-  affectationVersions AffectationVersion[]
-  attachments         SessionAttachment[]
+  affectationVersions  AffectationVersion[]
+  attachments          SessionAttachment[]
+  auditionPublications AuditionPublication[]
   commentVersions     SessionCommentVersion[]
   validator           User?                   @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletionAuthor      User?                   @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
@@ -374,6 +378,7 @@ model NominationFileAuditionVersion {
   /// both empty once the audition is removed
   date             DateTime? @db.Date
   time             DateTime? @db.Time(0)
+  requested        Boolean?
 
   nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   author         User?               @relation(fields: [writtenBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "nomination_file_audition_version_author")
@@ -381,5 +386,56 @@ model NominationFileAuditionVersion {
 
   @@id([nominationFileId, writtenAt])
   @@map("nomination_file_audition_version")
+  @@schema("nominations_context")
+}
+
+// one row per publication of the auditions table to the members, never updated: the members only see
+// the auditions of the last one, the secretariat keeps working on the current state
+model AuditionPublication {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  publishedAt    DateTime @map("published_at")
+  publishedBy    String?  @map("published_by") @db.Uuid
+  /// the admin who actually published while impersonating `publishedBy`
+  impersonatorId String?  @map("impersonator_id") @db.Uuid
+
+  impersonator            User?                             @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "audition_publication_impersonator")
+  nominationFileAuditions PublishedNominationFileAudition[]
+  observantAuditions      PublishedObservantAudition[]
+  publisher               User?                             @relation(fields: [publishedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "audition_publication_publisher")
+  session                 Session                           @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("audition_publication")
+  @@schema("nominations_context")
+}
+
+// the audition of a proposed magistrat as published, only for the files the secretariat acted on
+model PublishedNominationFileAudition {
+  publicationId    String    @map("publication_id") @db.Uuid
+  nominationFileId String    @map("nomination_file_id") @db.Uuid
+  date             DateTime? @db.Date
+  requested        Boolean?
+  time             DateTime? @db.Time(0)
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  publication    AuditionPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([publicationId, nominationFileId])
+  @@map("published_nomination_file_audition")
+  @@schema("nominations_context")
+}
+
+// the audition of an observant as published
+model PublishedObservantAudition {
+  publicationId String   @map("publication_id") @db.Uuid
+  magistratId   String   @map("magistrat_id") @db.Uuid
+  date          DateTime @db.Date
+  time          DateTime @db.Time(0)
+
+  magistrat   Magistrat           @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  publication AuditionPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([publicationId, magistratId])
+  @@map("published_observant_audition")
   @@schema("nominations_context")
 }

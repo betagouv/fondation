@@ -7,6 +7,7 @@ import type {
   ListedMemberSessionsDto,
   ListMembersData,
   UpdateAuditionDateDto,
+  UpdateAuditionRequestDto,
   UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
 } from '@api/types';
@@ -24,7 +25,7 @@ export type ListMembersOptions = {
 };
 
 export const memberKeys = {
-  listMembers: (props: ListMembersOptions) => ['listMembers', props] as const,
+  allListMemberSessionReports: () => ['listMemberSessionReports'] as const,
 
   allListedMembers: () => ['listMembers'] as const,
 
@@ -36,7 +37,7 @@ export const memberKeys = {
   listMemberSessionReports: (props: { sessionId: string | undefined; userId: string | undefined }) =>
     ['listMemberSessionReports', props.userId, props.sessionId] as const,
 
-  allListMemberSessionReports: () => ['listMemberSessionReports'] as const,
+  listMembers: (props: ListMembersOptions) => ['listMembers', props] as const,
 };
 
 export const useMemberListQuery = ({
@@ -45,9 +46,7 @@ export const useMemberListQuery = ({
 }: ListMembersOptions & { enabled?: boolean } = {}) =>
   useQuery({
     enabled,
-    staleTime: 1_000,
     placeholderData: (prev) => prev,
-    queryKey: memberKeys.listMembers(options),
     queryFn: () => {
       let page, limit;
       if (options.pagination) {
@@ -65,24 +64,26 @@ export const useMemberListQuery = ({
       return $api.members
         .listMembers({
           query: {
-            page,
+            formations: options.formations ?? [],
             limit,
+            page,
+            search: options.search?.trim() || undefined,
             sortBy,
             sortDirection,
-            formations: options.formations ?? [],
-            search: options.search?.trim() || undefined,
           },
         })
         .then(({ data }) => data ?? null);
     },
+    queryKey: memberKeys.listMembers(options),
+    staleTime: 1_000,
   });
 
 export const useDetailedMember = (options: { userId: string | undefined }) =>
   useQuery({
     enabled: !!options.userId,
-    queryKey: memberKeys.detailsMember({ userId: options.userId }),
     queryFn: () =>
       $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data),
+    queryKey: memberKeys.detailsMember({ userId: options.userId }),
   });
 
 export function useUpdateTitleMutation(options: { userId: string }) {
@@ -91,8 +92,8 @@ export function useUpdateTitleMutation(options: { userId: string }) {
   return useMutation({
     mutationFn: (title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null) =>
       $api.members.updateTitle({
-        path: { userId: options.userId },
         body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' },
+        path: { userId: options.userId },
       }),
 
     onSuccess: (_data, title) => {
@@ -117,8 +118,8 @@ export const useUpdateDisplayTitleMutation = (options: { userId: string }) => {
   return useMutation({
     mutationFn: (displayTitle: string | null) =>
       $api.members.updateDisplayTitle({
-        path: { userId: options.userId },
         body: { displayTitle },
+        path: { userId: options.userId },
       }),
 
     onSuccess: () => queryClient.invalidateQueries({ queryKey: docsKeys.members() }),
@@ -130,8 +131,8 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
   return useMutation({
     mutationFn: async (jurisdictionIds: readonly string[]) => {
       await $api.members.excludeJurisdictions({
-        path: { userId: options.userId },
         body: { jurisdictionIds: jurisdictionIds as string[] },
+        path: { userId: options.userId },
       });
     },
     onSuccess: async () => {
@@ -150,7 +151,6 @@ export type SessionOfTypeGardeDesSceaux = Omit<ListedMemberSessionsDto['items'][
 export function useListMemberGdsSessions(input: { userId: string | undefined }) {
   return useQuery({
     enabled: !!input.userId,
-    queryKey: memberKeys.listMemberGdsSessions(input),
     queryFn: async () => {
       if (!input.userId) return null;
 
@@ -165,6 +165,7 @@ export function useListMemberGdsSessions(input: { userId: string | undefined }) 
         })),
       };
     },
+    queryKey: memberKeys.listMemberGdsSessions(input),
   });
 }
 
@@ -174,7 +175,6 @@ export function useListMemberSessionReports(input: {
 }) {
   return useQuery({
     enabled: Boolean(input.sessionId && input.userId),
-    queryKey: memberKeys.listMemberSessionReports(input),
     queryFn: async () => {
       if (!input.sessionId || !input.userId) return null;
 
@@ -184,6 +184,7 @@ export function useListMemberSessionReports(input: {
 
       return data ?? null;
     },
+    queryKey: memberKeys.listMemberSessionReports(input),
   });
 }
 
@@ -193,8 +194,8 @@ export function useUpdateNominationFileCommentMutation() {
   return useMutation({
     mutationFn: async (mutation: { sessionId: string; nominationFileId: string; comment: string | null }) => {
       await $api.sessions.updateNominationFileComment({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: { comment: mutation.comment },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, comment }) => {
@@ -212,8 +213,8 @@ export function useUpdateNominationFileAuditionDateMutation() {
   return useMutation({
     mutationFn: async (mutation: UpdateAuditionDateDto & { sessionId: string; nominationFileId: string }) => {
       await $api.sessions.updateNominationFileAuditionDate({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: { auditionDate: mutation.auditionDate, auditionTime: mutation.auditionTime },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, auditionDate, auditionTime }) => {
@@ -237,11 +238,50 @@ export function useUpdateNominationFileAuditionDateMutation() {
       );
 
       queryClient.setQueryData(
-        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
 
       return queryClient.invalidateQueries({ queryKey: auditionKeys.all() });
+    },
+  });
+}
+
+export function useUpdateNominationFileAuditionRequestMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateAuditionRequestDto & { nominationFileId: string; sessionId: string },
+    ) => {
+      await $api.sessions.updateNominationFileAuditionRequest({
+        body: { requested: mutation.requested },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+      });
+    },
+    onSuccess: (_, { nominationFileId, requested, sessionId }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId
+            ? {
+                ...file,
+                auditionDate: requested ? file.auditionDate : null,
+                auditionRequired: requested,
+                // the toggle is locked where the position sets the audition: only the secretariat adds one
+                auditionRequirement: requested ? 'SECRETARIAT' : null,
+                auditionTime: requested ? file.auditionTime : null,
+              }
+            : file,
+        ),
+      );
+
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        }),
+      ]);
     },
   });
 }
@@ -254,8 +294,8 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
       mutation: UpdateMissingEvaluationDto & { sessionId: string; nominationFileId: string },
     ) => {
       await $api.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: { missingEvaluation: mutation.missingEvaluation },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
     onSuccess: async (_, { sessionId, nominationFileId, missingEvaluation }) => {
@@ -273,7 +313,7 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
       );
 
       queryClient.setQueryData(
-        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, missingEvaluation } : old),
       );
 
@@ -297,8 +337,8 @@ export function useUpdateNominationFileMissingEvaluationCommentMutation() {
       mutation: UpdateMissingEvaluationCommentDto & { sessionId: string; nominationFileId: string },
     ) => {
       await $api.sessions.updateNominationFileMissingEvaluationComment({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: { comment: mutation.comment },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, comment }) => {
@@ -321,12 +361,12 @@ export function useWriteNominationFileMemberMemoMutation() {
   return useMutation({
     mutationFn: (mutation: { userId: string; sessionId: string; nominationFileId: string; memo: string }) =>
       $api.members.writeNominationFileMemberMemo({
-        path: {
-          userId: mutation.userId,
-          sessionId: mutation.sessionId,
-          nominationFileId: mutation.nominationFileId,
-        },
         body: { memo: mutation.memo },
+        path: {
+          nominationFileId: mutation.nominationFileId,
+          sessionId: mutation.sessionId,
+          userId: mutation.userId,
+        },
       }),
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
       queryClient.setQueriesData(

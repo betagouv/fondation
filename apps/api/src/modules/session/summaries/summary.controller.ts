@@ -17,6 +17,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from 'src/modules/framework/files';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, HasRole, SimpleAuthService } from 'src/modules/simple-auth';
 
 import { DetailedSummaryDto } from './infrastructure/queries/detail-summary.query';
@@ -36,8 +37,8 @@ import { SummaryService } from './infrastructure/summary.service';
 import { SummaryFilter } from './summary.filter';
 
 @ApiTags('Summaries')
-@ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
-@ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
+@ApiParam({ format: 'uuid', name: 'sessionId', type: 'string' })
+@ApiParam({ format: 'uuid', name: 'nominationFileId', type: 'string' })
 @UseInterceptors(SummaryFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/summary')
 export class SummaryController {
@@ -53,16 +54,16 @@ export class SummaryController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<CreatedSummaryDto> {
-    return this.summaries.create({ sessionId, nominationFileId });
+    return this.summaries.create({ nominationFileId, sessionId });
   }
 
   @Post('/attachments')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    schema: AttachSummaryFilesDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/summary/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: AttachSummaryFilesDto,
   })
   async attachSummaryFiles(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
@@ -70,9 +71,9 @@ export class SummaryController {
     @Body() body: Multipart<typeof AttachSummaryFilesDto>,
   ): Promise<void> {
     await this.summaries.attachFiles({
-      sessionId,
-      nominationFileId,
       fileIds: body.files.map(({ id }) => id),
+      nominationFileId,
+      sessionId,
     });
   }
 
@@ -85,18 +86,18 @@ export class SummaryController {
     @Query(ZodValidationPipe) { fileIds }: DetachSummaryFilesQueryDto,
   ): Promise<void> {
     await this.summaries.detachFiles({
-      sessionId,
-      nominationFileId,
       fileIds,
+      nominationFileId,
+      sessionId,
     });
   }
 
   @Post('/screenshots')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
-    schema: IncludeFilesInSummaryContentDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/summary/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: IncludeFilesInSummaryContentDto,
   })
   @ZodResponse({
     status: HttpStatus.OK,
@@ -108,9 +109,9 @@ export class SummaryController {
     @Body() { files }: Multipart<typeof IncludeFilesInSummaryContentDto>,
   ): Promise<IncludedFilesInSummaryContentDto> {
     return this.summaries.includeFilesIntoContent({
-      sessionId,
-      nominationFileId,
       files,
+      nominationFileId,
+      sessionId,
     });
   }
 
@@ -125,10 +126,10 @@ export class SummaryController {
     @Body() body: WriteSummaryContentDto,
   ): Promise<void> {
     await this.summaries.writeContent({
-      userId: user.id,
-      sessionId,
-      nominationFileId,
       content: body.content,
+      nominationFileId,
+      sessionId,
+      userId: user.id,
     });
   }
 
@@ -143,10 +144,10 @@ export class SummaryController {
     @Body() { readerIds }: UpdateSummaryReadersListDto,
   ): Promise<void> {
     await this.summaries.updateReadersList({
-      userId: user.id,
-      sessionId,
       nominationFileId,
       readerIds,
+      sessionId,
+      userId: user.id,
     });
   }
 
@@ -163,10 +164,10 @@ export class SummaryController {
     @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.summaries.generateSummaryAttachmentPublicUrl({
-      userId: user.id,
-      sessionId,
-      nominationFileId,
       fileId,
+      nominationFileId,
+      sessionId,
+      userId: user.id,
     });
   }
 
@@ -174,14 +175,15 @@ export class SummaryController {
   @HasRole()
   @ZodResponse({ status: HttpStatus.OK, type: DetailedSummaryDto })
   detailSummary(
-    @AuthedUser() user: { id: string },
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<DetailedSummaryDto> {
     return this.summaries.detailSummary({
-      userId: user.id,
-      sessionId,
       nominationFileId,
+      role: user.role,
+      sessionId,
+      userId: user.id,
     });
   }
 
@@ -196,8 +198,8 @@ export class SummaryController {
     return this.users.listUsers({
       excludeIds: [user.id],
       includeIds: query.includeIds,
-      search: query.search,
       limit: 20,
+      search: query.search,
     });
   }
 }

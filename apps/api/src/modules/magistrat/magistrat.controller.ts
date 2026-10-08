@@ -3,7 +3,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
-import { HasRole } from '../simple-auth';
+import type { RoleEnum } from '../shared/role.enum';
+import { AuthedUser, HasRole } from '../simple-auth';
 
 import { SearchMagistratsQueryDto } from './infrastructure/dtos/magistrat.dto';
 import { DetailedMagistratDto } from './infrastructure/queries/detail-magistrat.query';
@@ -22,25 +23,25 @@ export class MagistratController {
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({
-    type: SearchMagistratsResponseDto,
     status: HttpStatus.OK,
+    type: SearchMagistratsResponseDto,
   })
   async searchMagistrats(
     @Query() query: SearchMagistratsQueryDto,
     @QueryPagination({ defaultLimit: 10 }) pagination: Pagination,
   ): Promise<SearchMagistratsResponseDto> {
     return this.magistrats.searchMagistrats({
+      ignoreIds: query.ignore,
       pagination,
       search: query.search,
-      ignoreIds: query.ignore,
     });
   }
 
   @Get('/:magistratId')
   @HasRole()
   @ZodResponse({
-    type: DetailedMagistratDto,
     status: HttpStatus.OK,
+    type: DetailedMagistratDto,
   })
   detailMagistrat(@Param('magistratId') magistratId: string): Promise<DetailedMagistratDto> {
     return this.magistrats.detailMagistrat({ magistratId });
@@ -50,27 +51,29 @@ export class MagistratController {
   @HasRole()
   @ApiPaginated()
   @ZodResponse({
-    type: ListedMagistratNominationFilesDto,
     status: HttpStatus.OK,
+    type: ListedMagistratNominationFilesDto,
   })
   listMagistratNominationFiles(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('magistratId') magistratId: string,
     @QueryPagination({ defaultLimit: 5 }) pagination: Pagination,
   ): Promise<ListedMagistratNominationFilesDto> {
-    return this.magistrats.listNominationFiles({ magistratId, pagination });
+    return this.magistrats.listNominationFiles({ magistratId, pagination, role: user.role });
   }
 
   @Get('/:magistratId/observations')
   @HasRole()
   @ApiPaginated()
   @ZodResponse({
-    type: ListedMagistratObservationsDto,
     status: HttpStatus.OK,
+    type: ListedMagistratObservationsDto,
   })
   listMagistratObservations(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('magistratId') magistratId: string,
     @QueryPagination({ defaultLimit: 5 }) pagination: Pagination,
   ): Promise<ListedMagistratObservationsDto> {
-    return this.magistrats.listObservations({ magistratId, pagination });
+    return this.magistrats.listObservations({ magistratId, pagination, role: user.role });
   }
 }

@@ -1,4 +1,9 @@
-import { expectedReportersCount, isAuditionExpected } from './auditioned-position.policy';
+import {
+  auditionRequirementOf,
+  expectedReportersCount,
+  isAuditionExpected,
+  isAuditionRequired,
+} from './auditioned-position.policy';
 
 function file(props: {
   detectedJurisdictionId?: string | null;
@@ -96,6 +101,33 @@ describe('isAuditionExpected', () => {
     expect(isAuditionExpected(file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' }))).toBe(
       false,
     );
+  });
+});
+
+describe('isAuditionRequired', () => {
+  const auditionedPosition = file({ detectedTargetedFunctionId: 'PG' });
+  const regularPosition = file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' });
+
+  it('follows the position until the secretariat decides', () => {
+    expect(isAuditionRequired({ ...auditionedPosition, auditionRequested: null })).toBe(true);
+    expect(isAuditionRequired({ ...regularPosition, auditionRequested: null })).toBe(false);
+  });
+
+  it('lets the secretariat request an audition on a regular position', () => {
+    expect(isAuditionRequired({ ...regularPosition, auditionRequested: true })).toBe(true);
+  });
+});
+
+describe('auditionRequirementOf', () => {
+  const auditionedPosition = file({ detectedTargetedFunctionId: 'PG' });
+  const regularPosition = file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' });
+
+  it('credits the position whenever it requires the audition', () => {
+    expect(auditionRequirementOf({ ...auditionedPosition, auditionRequested: true })).toBe('POSITION');
+  });
+
+  it('credits the secretariat with an audition added on a regular position', () => {
+    expect(auditionRequirementOf({ ...regularPosition, auditionRequested: true })).toBe('SECRETARIAT');
   });
 });
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { areReportersMissing, isAuditionMissing } from './audition-expectation.util';
 
 const SCHEDULED = { day: 15, month: 6, year: 2029 };
-const AUDITIONED = { auditionDate: null, auditionExpected: true, canScheduleAudition: true };
+const AUDITIONED = { auditionDate: null, auditionRequired: true, canScheduleAudition: true };
 const TWO_REPORTERS_EXPECTED = { canAffectReporters: true, expectedReportersCount: 2 };
 
 describe('isAuditionMissing', () => {
@@ -16,7 +16,7 @@ describe('isAuditionMissing', () => {
   });
 
   it('expects nothing on a position without audition', () => {
-    expect(isAuditionMissing({ ...AUDITIONED, auditionExpected: false })).toBe(false);
+    expect(isAuditionMissing({ ...AUDITIONED, auditionRequired: false })).toBe(false);
   });
 
   it('expects nothing on a file that no longer accepts an audition', () => {

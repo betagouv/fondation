@@ -87,7 +87,7 @@ export type DetailedReportDto = {
         month: number;
         day: number;
     } | null;
-    auditionExpected: boolean;
+    auditionRequired: boolean;
     auditionTime: {
         hours: number;
         minutes: number;
@@ -152,75 +152,6 @@ export type UpdateReportDto = {
 
 export type UpdateReportRuleValidationDto = {
     isValidated: boolean;
-};
-
-export type IngestedLolfiArchiveDto = {
-    id: number;
-    status: 'STARTED' | 'FAILED';
-    errors?: Array<{
-        type: 'LolfiHashError';
-        message: string;
-        expected?: string;
-        computed: string;
-        file: string;
-    } | {
-        type: 'LolfiMissingFileError';
-        message: string;
-        missingFile: string;
-    } | {
-        type: 'Unknown';
-        message: string;
-    }>;
-};
-
-export type JobStatusEnum = 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-
-export type PaginatedJobsDto = {
-    items: Array<{
-        id: number;
-        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-        createdAt: string;
-        startedAt: string | null;
-        endedAt: string | null;
-        errors: Array<{
-            error: string;
-        }>;
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
-export type DetailedJobDto = {
-    id: number;
-    createdAt: string;
-    startedAt: string | null;
-    endedAt: string | null;
-    status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-    errors: Array<{
-        error: string;
-    }>;
-    files: Array<{
-        id: string;
-        name: string;
-        fileSha256: string;
-        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-        startedAt: string | null;
-        endedAt: string | null;
-        requirements: Array<{
-            requiredFileId: string;
-        }>;
-        errors: Array<{
-            entityId: string | null;
-            entityNumber: number | null;
-            error: string;
-        }>;
-    }>;
 };
 
 export type ListedNominationSessionsDto = {
@@ -300,6 +231,17 @@ export type AffectReportersDto = {
         priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         reporterIds: Array<string>;
     }>;
+};
+
+export type DetailedAuditionsPublicationDto = {
+    lastPublished: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    status: 'NEVER_PUBLISHED' | 'PUBLISHED' | 'UNPUBLISHED_CHANGES';
 };
 
 export type CountedSessionAuditionsDto = {
@@ -426,7 +368,8 @@ export type PaginatedNominationFiles = {
             month: number;
             day: number;
         } | null;
-        auditionExpected: boolean;
+        auditionRequired: boolean;
+        auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -562,6 +505,27 @@ export type UpdateMissingEvaluationDto = {
 
 export type UpdateMissingEvaluationCommentDto = {
     comment: string | null;
+};
+
+export type DetailedNominationFileAuditionHistoryDto = {
+    requested: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    scheduled: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+};
+
+export type UpdateAuditionRequestDto = {
+    requested: boolean;
 };
 
 export type UpdateAuditionDateDto = {
@@ -712,7 +676,8 @@ export type DetailedNominationFileDto = {
         month: number;
         day: number;
     } | null;
-    auditionExpected: boolean;
+    auditionRequired: boolean;
+    auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
     auditionTime: {
         hours: number;
         minutes: number;
@@ -865,7 +830,8 @@ export type DetailedSummaryDto = {
         month: number;
         day: number;
     } | null;
-    auditionExpected: boolean;
+    auditionRequired: boolean;
+    auditionRequirement: 'POSITION' | 'SECRETARIAT' | null;
     auditionTime: {
         hours: number;
         minutes: number;
@@ -1063,6 +1029,75 @@ export type SearchMagistratAuthorizationUnauthorizedDto = {
     path: string;
     statusCode: 401;
     timestamp: string;
+};
+
+export type IngestedLolfiArchiveDto = {
+    id: number;
+    status: 'STARTED' | 'FAILED';
+    errors?: Array<{
+        type: 'LolfiHashError';
+        message: string;
+        expected?: string;
+        computed: string;
+        file: string;
+    } | {
+        type: 'LolfiMissingFileError';
+        message: string;
+        missingFile: string;
+    } | {
+        type: 'Unknown';
+        message: string;
+    }>;
+};
+
+export type JobStatusEnum = 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+
+export type PaginatedJobsDto = {
+    items: Array<{
+        id: number;
+        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+        createdAt: string;
+        startedAt: string | null;
+        endedAt: string | null;
+        errors: Array<{
+            error: string;
+        }>;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type DetailedJobDto = {
+    id: number;
+    createdAt: string;
+    startedAt: string | null;
+    endedAt: string | null;
+    status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+    errors: Array<{
+        error: string;
+    }>;
+    files: Array<{
+        id: string;
+        name: string;
+        fileSha256: string;
+        status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+        startedAt: string | null;
+        endedAt: string | null;
+        requirements: Array<{
+            requiredFileId: string;
+        }>;
+        errors: Array<{
+            entityId: string | null;
+            entityNumber: number | null;
+            error: string;
+        }>;
+    }>;
 };
 
 export type ListedSecretariesGeneralDto = {
@@ -1943,7 +1978,7 @@ export type ListedMagistratNominationFilesDto = {
             month: number;
             day: number;
         } | null;
-        auditionExpected: boolean;
+        auditionRequired: boolean;
         auditionTime: {
             hours: number;
             minutes: number;
@@ -2000,7 +2035,7 @@ export type ListedMagistratObservationsDto = {
                 month: number;
                 day: number;
             } | null;
-            auditionExpected: boolean;
+            auditionRequired: boolean;
             auditionTime: {
                 hours: number;
                 minutes: number;
@@ -2548,56 +2583,6 @@ export type UpdateReportRuleValidationResponses = {
 
 export type UpdateReportRuleValidationResponse = UpdateReportRuleValidationResponses[keyof UpdateReportRuleValidationResponses];
 
-export type IngestLolfiArchiveData = {
-    body: {
-        /**
-         * a .zip file
-         */
-        file: Blob | File;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/ingest/v1/lolfi';
-};
-
-export type IngestLolfiArchiveResponses = {
-    200: IngestedLolfiArchiveDto;
-};
-
-export type IngestLolfiArchiveResponse = IngestLolfiArchiveResponses[keyof IngestLolfiArchiveResponses];
-
-export type ListJobsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        statuses?: Array<JobStatusEnum>;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/jobs/v1';
-};
-
-export type ListJobsResponses = {
-    200: PaginatedJobsDto;
-};
-
-export type ListJobsResponse = ListJobsResponses[keyof ListJobsResponses];
-
-export type DetailsJobData = {
-    body?: never;
-    path: {
-        jobId: number;
-    };
-    query?: never;
-    url: '/api/jobs/v1/{jobId}';
-};
-
-export type DetailsJobResponses = {
-    200: DetailedJobDto;
-};
-
-export type DetailsJobResponse = DetailsJobResponses[keyof DetailsJobResponses];
-
 export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
     path?: never;
@@ -2762,6 +2747,36 @@ export type ListSessionAuditionsAsExcelData = {
 export type ListSessionAuditionsAsExcelResponses = {
     200: unknown;
 };
+
+export type PublishSessionAuditionsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/auditions/publications';
+};
+
+export type PublishSessionAuditionsResponses = {
+    204: void;
+};
+
+export type PublishSessionAuditionsResponse = PublishSessionAuditionsResponses[keyof PublishSessionAuditionsResponses];
+
+export type DetailLastSessionAuditionsPublicationData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/auditions/publications/last';
+};
+
+export type DetailLastSessionAuditionsPublicationResponses = {
+    200: DetailedAuditionsPublicationDto;
+};
+
+export type DetailLastSessionAuditionsPublicationResponse = DetailLastSessionAuditionsPublicationResponses[keyof DetailLastSessionAuditionsPublicationResponses];
 
 export type CountSessionAuditionsData = {
     body?: never;
@@ -3003,6 +3018,38 @@ export type UpdateNominationFileMissingEvaluationCommentResponses = {
 };
 
 export type UpdateNominationFileMissingEvaluationCommentResponse = UpdateNominationFileMissingEvaluationCommentResponses[keyof UpdateNominationFileMissingEvaluationCommentResponses];
+
+export type DetailNominationFileAuditionHistoryData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition/history';
+};
+
+export type DetailNominationFileAuditionHistoryResponses = {
+    200: DetailedNominationFileAuditionHistoryDto;
+};
+
+export type DetailNominationFileAuditionHistoryResponse = DetailNominationFileAuditionHistoryResponses[keyof DetailNominationFileAuditionHistoryResponses];
+
+export type UpdateNominationFileAuditionRequestData = {
+    body: UpdateAuditionRequestDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/audition/request';
+};
+
+export type UpdateNominationFileAuditionRequestResponses = {
+    204: void;
+};
+
+export type UpdateNominationFileAuditionRequestResponse = UpdateNominationFileAuditionRequestResponses[keyof UpdateNominationFileAuditionRequestResponses];
 
 export type UpdateNominationFileAuditionDateData = {
     body: UpdateAuditionDateDto;
@@ -3602,6 +3649,56 @@ export type SearchMagistratAuthorizationResponses = {
 };
 
 export type SearchMagistratAuthorizationResponse = SearchMagistratAuthorizationResponses[keyof SearchMagistratAuthorizationResponses];
+
+export type IngestLolfiArchiveData = {
+    body: {
+        /**
+         * a .zip file
+         */
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/ingest/v1/lolfi';
+};
+
+export type IngestLolfiArchiveResponses = {
+    200: IngestedLolfiArchiveDto;
+};
+
+export type IngestLolfiArchiveResponse = IngestLolfiArchiveResponses[keyof IngestLolfiArchiveResponses];
+
+export type ListJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        statuses?: Array<JobStatusEnum>;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/jobs/v1';
+};
+
+export type ListJobsResponses = {
+    200: PaginatedJobsDto;
+};
+
+export type ListJobsResponse = ListJobsResponses[keyof ListJobsResponses];
+
+export type DetailsJobData = {
+    body?: never;
+    path: {
+        jobId: number;
+    };
+    query?: never;
+    url: '/api/jobs/v1/{jobId}';
+};
+
+export type DetailsJobResponses = {
+    200: DetailedJobDto;
+};
+
+export type DetailsJobResponse = DetailsJobResponses[keyof DetailsJobResponses];
 
 export type ListSecretariesGeneralData = {
     body?: never;

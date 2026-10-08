@@ -20,6 +20,10 @@ export function toAuditionSchedule(date: Date, time: Date): AuditionSchedule {
   return { date: DateOnly.fromUtcDate(date).toJson(), time: dateToTimeOnly(time) };
 }
 
+export function toOptionalAuditionSchedule(date: Date | null, time: Date | null): AuditionSchedule | null {
+  return date && time ? toAuditionSchedule(date, time) : null;
+}
+
 const parisClock = new Intl.DateTimeFormat('fr', {
   day: '2-digit',
   hour: '2-digit',

@@ -8,6 +8,7 @@ import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructur
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { timeOnlySchema } from 'src/utils/time-only';
 
@@ -22,18 +23,16 @@ export class ListMagistratNominationFilesQuery {
   async handle(query: {
     magistratId: string;
     pagination: Pagination;
+    role: RoleEnum;
   }): Promise<ListedMagistratNominationFilesDto> {
     return this.db.withTransaction(async () => {
       const magistrat = await this.db.tx.magistrat.findUnique({
-        where: { id: query.magistratId },
         select: { id: true } satisfies Prisma.MagistratSelect,
+        where: { id: query.magistratId },
       });
       if (!magistrat) throw new NotFoundException();
 
-      return this.sessions.internalListMagistratNominationFiles({
-        magistratId: query.magistratId,
-        pagination: query.pagination,
-      });
+      return this.sessions.internalListMagistratNominationFiles(query);
     });
   }
 }
@@ -51,7 +50,7 @@ export const MagistratNominationFileSchema = z.object({
     status: z.enum(SESSION_STATUSES),
   }),
   auditionDate: dateOnlyJsonSchema.nullable(),
-  auditionExpected: z.boolean(),
+  auditionRequired: z.boolean(),
   auditionTime: timeOnlySchema.nullable(),
   canScheduleAudition: z.boolean(),
   targetedGrade: z.string().nullable(),

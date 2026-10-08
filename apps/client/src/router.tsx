@@ -11,29 +11,24 @@ import { redirectToMemberMagistratDetails, ROUTE_PATHS } from '@/utils/route-pat
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
 export const router = sentryCreateBrowserRouter([
   {
-    path: '/',
-    element: <RootLayout />,
-    errorElement: <ErrorPage />,
-    hydrateFallbackElement: null,
     children: [
       {
-        path: '/',
         element: <LoginPage />,
         index: true,
+        path: '/',
       },
       {
-        path: ROUTE_PATHS.LOGIN,
         element: <LoginPage />,
+        path: ROUTE_PATHS.LOGIN,
       },
       {
-        path: ROUTE_PATHS.ACCESSIBILITY,
         lazy: () =>
           import('@/pages/accessibility/AccessibilityPage').then(({ AccessibilityPage }) => ({
             Component: AccessibilityPage,
           })),
+        path: ROUTE_PATHS.ACCESSIBILITY,
       },
       {
-        loader: roleGuard(AUTHORIZED_ROLES.ALL),
         children: [
           {
             path: ROUTE_PATHS.FEEDBACK,
@@ -66,9 +61,9 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
         ],
+        loader: roleGuard(AUTHORIZED_ROLES.ALL),
       },
       {
-        loader: roleGuard(AUTHORIZED_ROLES.MEMBER),
         children: [
           {
             lazy: () =>
@@ -95,6 +90,13 @@ export const router = sentryCreateBrowserRouter([
                     lazy: () =>
                       import('@/pages/reports/ReportListPage').then(({ default: ReportListPage }) => ({
                         Component: ReportListPage,
+                      })),
+                  },
+                  {
+                    path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_AUDITIONS,
+                    lazy: () =>
+                      import('@/pages/reports/MemberAuditionsTab').then(({ MemberAuditionsTab }) => ({
+                        Component: MemberAuditionsTab,
                       })),
                   },
                   {
@@ -134,10 +136,9 @@ export const router = sentryCreateBrowserRouter([
             loader: redirectToMemberMagistratDetails,
           },
         ],
+        loader: roleGuard(AUTHORIZED_ROLES.MEMBER),
       },
       {
-        path: ROUTE_PATHS.SG.DASHBOARD,
-        loader: roleGuard(AUTHORIZED_ROLES.SG),
         children: [
           {
             index: true,
@@ -387,10 +388,10 @@ export const router = sentryCreateBrowserRouter([
             ],
           },
         ],
+        loader: roleGuard(AUTHORIZED_ROLES.SG),
+        path: ROUTE_PATHS.SG.DASHBOARD,
       },
       {
-        path: ROUTE_PATHS.ADMIN.ROOT,
-        loader: roleGuard(AUTHORIZED_ROLES.NONE),
         children: [
           {
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
@@ -437,7 +438,13 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
         ],
+        loader: roleGuard(AUTHORIZED_ROLES.NONE),
+        path: ROUTE_PATHS.ADMIN.ROOT,
       },
     ],
+    element: <RootLayout />,
+    errorElement: <ErrorPage />,
+    hydrateFallbackElement: null,
+    path: '/',
   },
 ]);

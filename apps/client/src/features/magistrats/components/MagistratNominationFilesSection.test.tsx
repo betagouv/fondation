@@ -33,7 +33,7 @@ vi.mock('@queries/magistrats.queries', () => ({
 function makeNominationFile(overrides?: Partial<MagistratNominationFile>): MagistratNominationFile {
   return {
     auditionDate: null,
-    auditionExpected: false,
+    auditionRequired: false,
     auditionTime: null,
     canScheduleAudition: true,
     id: 'dossier-1',
@@ -42,10 +42,10 @@ function makeNominationFile(overrides?: Partial<MagistratNominationFile>): Magis
     outcome: null,
     reporters: [],
     session: {
+      date: { day: 20, month: 2, year: 2026 },
+      formation: 'SIEGE',
       id: 'session-1',
       name: 'Transparence Annuelle 2026',
-      formation: 'SIEGE',
-      date: { year: 2026, month: 2, day: 20 },
       status: 'ONGOING',
     },
     targetedGrade: 'G3',
@@ -86,22 +86,22 @@ describe('MagistratNominationFilesSection', () => {
   });
 
   it('announces the audition to schedule while the file still accepts one', () => {
-    query = { ...query, data: { pages: [{ items: [makeNominationFile({ auditionExpected: true })] }] } };
+    query = { ...query, data: { pages: [{ items: [makeNominationFile({ auditionRequired: true })] }] } };
     renderSection();
 
-    expect(screen.getByText('À prévoir')).toBeInTheDocument();
+    expect(screen.getByText('À programmer')).toBeInTheDocument();
   });
 
   it('announces no audition to schedule once the file no longer accepts one', () => {
     query = {
       ...query,
       data: {
-        pages: [{ items: [makeNominationFile({ auditionExpected: true, canScheduleAudition: false })] }],
+        pages: [{ items: [makeNominationFile({ auditionRequired: true, canScheduleAudition: false })] }],
       },
     };
     renderSection();
 
-    expect(screen.queryByText('À prévoir')).not.toBeInTheDocument();
+    expect(screen.queryByText('À programmer')).not.toBeInTheDocument();
   });
 
   it('loads the next page from the "Voir plus" button', async () => {

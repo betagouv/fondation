@@ -37,6 +37,7 @@ function renderAuditionDate(props: {
   initialAuditionDate: DetailedSummaryDto['auditionDate'];
   initialAuditionTime: DetailedSummaryDto['auditionTime'];
   isShared?: boolean;
+  withSchedule?: boolean;
 }) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
@@ -52,6 +53,7 @@ function renderAuditionDate(props: {
           isShared={props.isShared}
           sessionId="session-1"
           target={{ nominationFileId: 'nomination-file', type: 'NOMINATION_FILE' }}
+          withSchedule={props.withSchedule}
         />
       </QueryClientProvider>
     </IntlProvider>,
@@ -74,11 +76,22 @@ describe('AuditionDateForm read-only', () => {
   it('renders the scheduled date and time', () => {
     renderAuditionDate({
       editable: false,
-      initialAuditionDate: { year: 2099, month: 9, day: 15 },
+      initialAuditionDate: { day: 15, month: 9, year: 2099 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
     expect(screen.getByText(/15\/09\/2099 à 14:30/)).toBeInTheDocument();
+  });
+
+  it('offers no date to schedule an audition that is not to plan', () => {
+    renderAuditionDate({
+      editable: true,
+      initialAuditionDate: null,
+      initialAuditionTime: null,
+      withSchedule: false,
+    });
+
+    expect(screen.queryByLabelText('Date')).not.toBeInTheDocument();
   });
 
   it('shows an empty state when no audition is scheduled', () => {
@@ -118,7 +131,7 @@ describe('AuditionDateForm edition', () => {
       expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
           body: {
-            auditionDate: { year: 2099, month: 9, day: 15 },
+            auditionDate: { day: 15, month: 9, year: 2099 },
             auditionTime: { hours: 14, minutes: 30, seconds: 0 },
           },
           path: { nominationFileId: 'nomination-file', sessionId: 'session-1' },
@@ -128,8 +141,8 @@ describe('AuditionDateForm edition', () => {
   });
 
   it.each([
-    { field: 'Date', value: '2099-09-15', message: "L'heure est à renseigner" },
-    { field: 'Heure', value: '14:30', message: 'La date est à renseigner' },
+    { field: 'Date', message: "L'heure est à renseigner", value: '2099-09-15' },
+    { field: 'Heure', message: 'La date est à renseigner', value: '14:30' },
   ])('asks for the missing pair when only $field is filled', async ({ field, value, message }) => {
     const update = spyOnSave();
     renderAuditionDate({ editable: true, initialAuditionDate: null, initialAuditionTime: null });
@@ -145,7 +158,7 @@ describe('AuditionDateForm edition', () => {
     const update = spyOnSave();
     renderAuditionDate({
       editable: true,
-      initialAuditionDate: { year: 2099, month: 9, day: 15 },
+      initialAuditionDate: { day: 15, month: 9, year: 2099 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
@@ -162,7 +175,7 @@ describe('AuditionDateForm edition', () => {
   it('locks the fields once the audition has occurred', () => {
     renderAuditionDate({
       editable: true,
-      initialAuditionDate: { year: 2020, month: 1, day: 15 },
+      initialAuditionDate: { day: 15, month: 1, year: 2020 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
@@ -176,7 +189,7 @@ describe('AuditionDateForm edition', () => {
     const update = spyOnSave();
     renderAuditionDate({
       editable: true,
-      initialAuditionDate: { year: 2020, month: 1, day: 15 },
+      initialAuditionDate: { day: 15, month: 1, year: 2020 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
@@ -193,7 +206,7 @@ describe('AuditionDateForm edition', () => {
       expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
           body: {
-            auditionDate: { year: 2020, month: 1, day: 16 },
+            auditionDate: { day: 16, month: 1, year: 2020 },
             auditionTime: { hours: 14, minutes: 30, seconds: 0 },
           },
         }),
@@ -205,7 +218,7 @@ describe('AuditionDateForm edition', () => {
     mocks.waitForConfirmation.mockResolvedValueOnce({ isConfirmed: false });
     renderAuditionDate({
       editable: true,
-      initialAuditionDate: { year: 2020, month: 1, day: 15 },
+      initialAuditionDate: { day: 15, month: 1, year: 2020 },
       initialAuditionTime: { hours: 14, minutes: 30, seconds: 0 },
     });
 
@@ -321,8 +334,8 @@ describe('AuditionDateForm close guard', () => {
   });
 
   it.each([
-    { state: 'both date and time are filled', fill: () => fillAuditionDate('2099-09-15', '14:30') },
-    { state: 'both fields are left empty', fill: () => {} },
+    { fill: () => fillAuditionDate('2099-09-15', '14:30'), state: 'both date and time are filled' },
+    { fill: () => {}, state: 'both fields are left empty' },
   ])('allows closing when $state', ({ fill }) => {
     spyOnSave();
     const t = renderInPanel();

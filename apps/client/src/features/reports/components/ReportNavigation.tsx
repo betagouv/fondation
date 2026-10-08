@@ -1,5 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import { getGdsReportPath } from '@/utils/route-path.utils';
 import type { ListedMemberSessionReportsDto } from '@api/types';
@@ -10,6 +10,7 @@ type MemberSessionReport = ListedMemberSessionReportsDto['items'][number];
 
 export function ReportNavigation(props: { reportId: string; sessionId: string }) {
   const { formatMessage } = useIntl();
+  const location = useLocation();
   const { user } = useUser();
   const { data } = useListMemberSessionReports({ sessionId: props.sessionId, userId: user?.id });
 
@@ -35,6 +36,7 @@ export function ReportNavigation(props: { reportId: string; sessionId: string })
         {previous ? (
           <Link
             className="fr-link fr-link--sm fr-link--icon-left fr-icon-arrow-left-s-line bg-none! font-medium no-underline!"
+            state={location.state}
             to={getGdsReportPath(previous.report.id)}
           >
             <FormattedMessage defaultMessage="Précédent : {report}" values={{ report: describe(previous) }} />
@@ -46,6 +48,7 @@ export function ReportNavigation(props: { reportId: string; sessionId: string })
         {next && (
           <Link
             className="fr-link fr-link--sm fr-link--icon-right fr-icon-arrow-right-s-line bg-none! font-medium no-underline!"
+            state={location.state}
             to={getGdsReportPath(next.report.id)}
           >
             <FormattedMessage defaultMessage="Suivant : {report}" values={{ report: describe(next) }} />

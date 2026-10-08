@@ -22,6 +22,7 @@ import * as policies from 'src/modules/shared/policies/nomination-file.policies'
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import type { AuditionSchedule } from 'src/utils/audition-schedule';
 import { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
@@ -30,6 +31,8 @@ import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
 import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
+import { AuditionPublicationFinder } from './finders/audition-publication.finder';
+import { AuditionsSeenFinder, type SeenAudition } from './finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import {
   type HydratedNominationFile,
@@ -56,9 +59,17 @@ import {
   DetailedAffectationHistoryDto,
 } from './queries/detail-affectation-history.query';
 import {
+  DetailAuditionsPublicationQuery,
+  DetailedAuditionsPublicationDto,
+} from './queries/detail-auditions-publication.query';
+import {
   type DetailedNominationFileAttachmentDto,
   DetailNominationFileAttachmentQuery,
 } from './queries/detail-nomination-file-attachment.query';
+import {
+  DetailedNominationFileAuditionHistoryDto,
+  DetailNominationFileAuditionHistoryQuery,
+} from './queries/detail-nomination-file-audition-history.query';
 import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
@@ -115,7 +126,11 @@ export class TransparenceService {
   constructor(
     @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
+    private readonly auditionPublications: AuditionPublicationFinder,
+    private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly autoAffectationsFinder: AutoAffectationsFinder,
+    private readonly detailAuditionsPublicationQuery: DetailAuditionsPublicationQuery,
+    private readonly detailNominationFileAuditionHistoryQuery: DetailNominationFileAuditionHistoryQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailAffectationHistoryQuery: DetailAffectationHistoryQuery,
     private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
@@ -154,6 +169,23 @@ export class TransparenceService {
   ) {}
 
   /** @internal */
+  internalFindSeenNominationFileAudition(query: {
+    nominationFileId: string;
+    role: RoleEnum;
+  }): Promise<SeenAudition> {
+    return this.auditionsSeen.findNominationFile(query);
+  }
+
+  /** @internal */
+  internalFindSeenObservantAuditions(query: {
+    magistratIds: readonly string[];
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<Map<string, AuditionSchedule>> {
+    return this.auditionsSeen.findObservants(query);
+  }
+
+  /** @internal */
   internalFindAuditionStates(query: {
     nominationFileIds: readonly string[];
     sessionId: string;
@@ -181,8 +213,8 @@ export class TransparenceService {
 
   /** @internal */
   listMemberSessions(query: {
-    user: { id: string; role: RoleEnum };
     typeDeSaisine: TypeDeSaisineEnum;
+    user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionsDto> {
     return this.internalListMemberSessionsQuery.handle(query);
   }
@@ -224,7 +256,7 @@ export class TransparenceService {
     );
 
     const formationMemberIds = await this.members
-      .findMembers({ ids: memberIds, formation: session.formation })
+      .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
     session.affectNominationFileReporters({ ...command, formationMemberIds });
@@ -241,8 +273,8 @@ export class TransparenceService {
 
   async listNominationFiles(query: {
     pagination: Pagination;
-    sorting: Sortable<ListNominationFilesQueryDto>;
     sessionId: string;
+    sorting: Sortable<ListNominationFilesQueryDto>;
     user: { role: RoleEnum; id: string };
     filters: {
       missingEvaluation: boolean | undefined;
@@ -296,18 +328,18 @@ export class TransparenceService {
   @Transactional()
   async autoAffectation(command: {
     authorId: string;
-    sessionId: string;
-    nominationFileIds: readonly string[] | undefined;
     excludedMemberIds: readonly string[] | undefined;
+    nominationFileIds: readonly string[] | undefined;
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.nominationFileIds),
     });
 
     const autoAffectations = await this.autoAffectationsFinder.find({
-      sessionId: command.sessionId,
-      nominationFileIds: command.nominationFileIds,
       excludedMemberIds: command.excludedMemberIds,
+      nominationFileIds: command.nominationFileIds,
+      sessionId: command.sessionId,
     });
 
     const formationMemberIds = await this.members
@@ -323,32 +355,32 @@ export class TransparenceService {
   }
 
   async updateNominationFileComment(command: {
-    sessionId: string;
-    nominationFileId: string;
     comment: string | null;
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     await this.db.tx.dossierDeNomination.update({
+      data: { comment: command.comment },
       where: {
         id: command.nominationFileId,
         sessionId: command.sessionId,
       },
-      data: { comment: command.comment },
     });
   }
 
   @Transactional()
   async updateNominationFileMissingEvaluation(command: {
-    sessionId: string;
-    nominationFileId: string;
     missingEvaluation: boolean;
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set([command.nominationFileId]),
     });
 
     session.updateMissingEvaluation({
-      nominationFileId: command.nominationFileId,
       missingEvaluation: command.missingEvaluation,
+      nominationFileId: command.nominationFileId,
     });
 
     await this.nominationSessionRepository.persist(session);
@@ -356,19 +388,56 @@ export class TransparenceService {
 
   @Transactional()
   async updateNominationFileMissingEvaluationComment(command: {
-    sessionId: string;
-    nominationFileId: string;
     comment: string | null;
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set([command.nominationFileId]),
     });
 
     session.updateMissingEvaluationComment({
-      nominationFileId: command.nominationFileId,
       comment: command.comment,
+      nominationFileId: command.nominationFileId,
     });
 
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async publishAuditions(command: { impersonatorId: string | null; sessionId: string; userId: string }) {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+    session.publishAuditions({
+      ...command,
+      auditions: await this.auditionPublications.current(command),
+      lastPublished: (await this.auditionPublications.last(command))?.auditions ?? null,
+    });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  detailNominationFileAuditionHistory(query: {
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<DetailedNominationFileAuditionHistoryDto> {
+    return this.detailNominationFileAuditionHistoryQuery.handle(query);
+  }
+
+  detailAuditionsPublication(query: { sessionId: string }): Promise<DetailedAuditionsPublicationDto> {
+    return this.detailAuditionsPublicationQuery.handle(query);
+  }
+
+  @Transactional()
+  async updateNominationFileAuditionRequest(command: {
+    impersonatorId: string | null;
+    nominationFileId: string;
+    requested: boolean;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+    session.defineAuditionRequest(command);
     await this.nominationSessionRepository.persist(session);
   }
 
@@ -395,19 +464,19 @@ export class TransparenceService {
 
   @Transactional()
   async createNominationSessionFromLodam(command: {
-    files: readonly LodamTransparenceFile[];
-    name: string;
     date: DateOnly;
-    observationClosingDate: DateOnly;
     dueDate: DateOnly | null;
-    positionStartDate: DateOnly | null;
+    files: readonly LodamTransparenceFile[];
     formation: FormationEnum;
+    name: string;
+    observationClosingDate: DateOnly;
+    positionStartDate: DateOnly | null;
     userId: string;
   }): Promise<{ id: string }> {
     const fullNames = command.files.flatMap(({ reporters }) => reporters);
     const members = await this.members.findMembersByFullName({
-      fullNames,
       formation: command.formation,
+      fullNames,
     });
 
     const session = SessionTransparence.createLodamNominationTreeAndAffectMembers({
@@ -422,12 +491,12 @@ export class TransparenceService {
 
   @Transactional()
   async updateSessionNominationFileObservers(command: {
-    sessionId: string;
     files: readonly LodamTransparenceFile[];
+    sessionId: string;
   }): Promise<void> {
     const existingNominationFiles = await this.nominationSessionFileFinder.bySessionAndFileNumber({
-      sessionId: command.sessionId,
       fileNumbers: command.files.map(({ fileNumber }) => fileNumber),
+      sessionId: command.sessionId,
     });
 
     const session = await this.nominationSessionRepository.find(command.sessionId, {
@@ -443,8 +512,8 @@ export class TransparenceService {
 
   @Transactional()
   async addNominationSessionAttachments(command: {
-    sessionId: string;
     files: { id: string }[];
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
@@ -462,16 +531,16 @@ export class TransparenceService {
 
   @Transactional()
   async addNominationFileAttachments(command: {
-    sessionId: string;
-    nominationFileId: string;
     files: { id: string }[];
+    nominationFileId: string;
+    sessionId: string;
     type: NominationFileAttachmentTypeEnum;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
     session.addNominationFileAttachments({
-      nominationFileId: command.nominationFileId,
       files: command.files,
+      nominationFileId: command.nominationFileId,
       type: command.type,
     });
     await this.nominationSessionRepository.persist(session);
@@ -479,30 +548,30 @@ export class TransparenceService {
 
   @Transactional()
   async removeNominationFileAttachment(command: {
-    sessionId: string;
-    nominationFileId: string;
     fileId: string;
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
     session.removeNominationFileAttachment({
-      nominationFileId: command.nominationFileId,
       fileId: command.fileId,
+      nominationFileId: command.nominationFileId,
     });
     await this.nominationSessionRepository.persist(session);
   }
 
   listNominationFileAttachments(query: {
-    sessionId: string;
     nominationFileId: string;
+    sessionId: string;
   }): Promise<ListedNominationFileAttachmentDto> {
     return this.listNominationFileAttachmentsQuery.handle(query);
   }
 
   detailNominationFileAttachment(query: {
-    sessionId: string;
-    nominationFileId: string;
     fileId: string;
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<DetailedNominationFileAttachmentDto> {
     return this.detailNominationFileAttachmentQuery.handle(query);
   }
@@ -512,8 +581,8 @@ export class TransparenceService {
   }
 
   detailAttachment(query: {
-    sessionId: string;
     fileId: string;
+    sessionId: string;
   }): Promise<DetailedNominationSessionAttachmentDto> {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
@@ -529,10 +598,10 @@ export class TransparenceService {
   async update(command: {
     sessionId: string;
     data: {
-      name: string;
       date: DateOnly;
-      observationsClosingDate: DateOnly;
       dueDate: DateOnly | null;
+      name: string;
+      observationsClosingDate: DateOnly;
       positionStartDate: DateOnly | null;
     };
   }): Promise<void> {
@@ -572,20 +641,20 @@ export class TransparenceService {
   }
 
   listNominationSessions(query: {
-    search: string | null;
-    pagination: Pagination;
-    typeDeSaisine: TypeDeSaisineEnum;
     formations: readonly FormationEnum[] | undefined;
+    pagination: Pagination;
+    search: string | null;
     sorting: Sortable<ListGdsNominationSessionsQueryDto>;
+    typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedNominationSessionsDto> {
     return this.listNominationSessionsQuery.handle(query);
   }
 
   defineNominationFileOutcome(command: {
-    sessionId: string;
+    comment: string | null;
     nominationFileId: string;
     outcome: NominationFileOutcomeEnum | null;
-    comment: string | null;
+    sessionId: string;
   }): Promise<void> {
     return this.defineNominationFilesOutcome({
       items: [{ comment: command.comment, nominationFileId: command.nominationFileId }],
@@ -595,9 +664,9 @@ export class TransparenceService {
   }
 
   async defineNominationFilesOutcome(command: {
-    sessionId: string;
     items: readonly { nominationFileId: string; comment: string | null }[];
     outcome: NominationFileOutcomeEnum | null;
+    sessionId: string;
   }): Promise<void> {
     const invalidations = await this.db.withTransaction(async () => {
       const session = await this.nominationSessionRepository.find(command.sessionId, {
@@ -626,33 +695,36 @@ export class TransparenceService {
 
   @Transactional()
   async writeNominationFileMemberMemo(command: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
     memo: string;
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
   }) {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
     const { userId, nominationFileId, memo } = command;
-    session.writeNominationFileMemberMemo({ userId, nominationFileId, memo });
+    session.writeNominationFileMemberMemo({ memo, nominationFileId, userId });
 
     return this.nominationSessionRepository.persist(session);
   }
 
   getLolfiMagistratUrl(query: {
-    sessionId: string;
     nominationFileId: string;
+    sessionId: string;
   }): Promise<LolfiMagistratUrlDto> {
     return this.getLolfiMagistratUrlQuery.handle(query);
   }
 
-  listCurrentlyAffectedReporters(query: { sessionId: string }): Promise<ListedCurrentlyAffectedReportersDto> {
+  listCurrentlyAffectedReporters(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<ListedCurrentlyAffectedReportersDto> {
     return this.listCurrentlyAffectedReportersQuery.handle(query);
   }
 
   countUnaffectedFiles(query: {
-    sessionId: string;
     nominationFileIds: readonly string[] | undefined;
+    sessionId: string;
   }): Promise<CountedUnaffectedFilesDto> {
     return this.countUnaffectedFilesQuery.handle(query);
   }
@@ -661,7 +733,7 @@ export class TransparenceService {
     return this.listNominationFilesAsExcelQuery.handle(query);
   }
 
-  countSessionAuditions(query: { sessionId: string }): Promise<CountedSessionAuditionsDto> {
+  countSessionAuditions(query: { role: RoleEnum; sessionId: string }): Promise<CountedSessionAuditionsDto> {
     return this.countSessionAuditionsQuery.handle(query);
   }
 
@@ -671,6 +743,7 @@ export class TransparenceService {
       search: string | null;
     };
     pagination: Pagination;
+    role: RoleEnum;
     sessionId: string;
     sortBy: 'auditionDate' | null;
     sortDesc: boolean;
@@ -678,7 +751,7 @@ export class TransparenceService {
     return this.listSessionAuditionsQuery.handle(query);
   }
 
-  listSessionAuditionsAsExcel(query: { sessionId: string }): Promise<StreamableFile> {
+  listSessionAuditionsAsExcel(query: { role: RoleEnum; sessionId: string }): Promise<StreamableFile> {
     return this.listSessionAuditionsAsExcelQuery.handle(query);
   }
 
@@ -741,8 +814,8 @@ export class TransparenceService {
   }
 
   async internalFindNominationFiles(query: {
-    sessionId: string;
     ids?: readonly string[] | undefined;
+    sessionId: string;
   }): Promise<InternalFoundAgendaNominationFiles> {
     return Sentry.startSpan({ name: 'fr.csm.fondation:sessions:internalFindAgendaNominationFiles' }, () =>
       this.internalFindNominationFilesQuery.handle(query),
@@ -754,13 +827,18 @@ export class TransparenceService {
   }
 
   /** @internal */
-  internalListMagistratNominationFiles(query: { magistratId: string; pagination: Pagination }) {
+  internalListMagistratNominationFiles(query: {
+    magistratId: string;
+    pagination: Pagination;
+    role: RoleEnum;
+  }) {
     return this.internalListMagistratNominationFilesQuery.handle(query);
   }
 
   /** @internal */
   internalHydrateNominationFiles(query: {
     nominationFileIds: readonly string[];
+    role: RoleEnum;
   }): Promise<HydratedNominationFile[]> {
     return this.hydratedNominationFiles.hydrate(query);
   }
@@ -772,7 +850,7 @@ export class TransparenceService {
       sessionId: command.sessionId,
     });
 
-    session.archive({ userId: command.userId, unreportedFileCount });
+    session.archive({ unreportedFileCount, userId: command.userId });
     await this.nominationSessionRepository.persist(session);
   }
 
@@ -790,8 +868,8 @@ export class TransparenceService {
     });
 
     session.delete({
-      attachmentsCount,
       affectedReportersCount,
+      attachmentsCount,
       userId: command.userId,
     });
 
