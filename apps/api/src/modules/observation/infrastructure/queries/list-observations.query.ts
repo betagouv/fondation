@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { ObservantAuditionsFinder } from '../finders/observant-auditions.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { fullname } from 'src/utils/user.util';
 
@@ -57,10 +58,16 @@ export class ListObservationsResponseDto extends createZodDto(
 export class ListObservationsQuery {
   constructor(
     private readonly db: Db,
-    private readonly observantAuditions: ObservantAuditionsFinder,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
-  async handle(query: { nominationFileId: string; sessionId: string }): Promise<ListObservationsResponseDto> {
+  async handle(query: {
+    nominationFileId: string;
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<ListObservationsResponseDto> {
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
@@ -108,8 +115,9 @@ export class ListObservationsQuery {
       ? await this.db.tx.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
       : [];
     const positionByMagistratId = new Map(positions.map((p) => [p.magistratId, p.currentPosition]));
-    const auditions = await this.observantAuditions.findByMagistratId({
-      magistratIds: magistratIds,
+    const auditions = await this.transparences.internalFindSeenObservantAuditions({
+      magistratIds,
+      role: query.role,
       sessionId: query.sessionId,
     });
     const observationCounts = await this.db.tx.observation.groupBy({
@@ -124,31 +132,31 @@ export class ListObservationsQuery {
     return {
       observations: observations.map((obs) => {
         return {
-          id: obs.id,
           audition: (obs.magistrat && auditions.get(obs.magistrat.id)) ?? null,
-          dateReception: obs.dateReception.toISOString(),
           createdAt: obs.createdAt.toISOString(),
-          description: obs.description,
-          followUp: obs.followUp,
-          observantObservationsCount:
-            (obs.magistrat && observationCountByMagistratId.get(obs.magistrat.id)) ?? 1,
-          magistrat: obs.magistrat
-            ? {
-                id: obs.magistrat.id,
-                firstName: obs.magistrat.firstName,
-                lastName: obs.magistrat.lastName,
-                usedName: obs.magistrat.usedName,
-                currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
-              }
-            : null,
           createdBy: obs.createdByUser,
+          dateReception: obs.dateReception.toISOString(),
+          description: obs.description,
           files: obs.files.map(({ file }) => ({
+            addedAt: file.createdAt.toISOString(),
+            addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
             id: file.id,
             name: file.name,
             size: file.sizeInBytes,
-            addedAt: file.createdAt.toISOString(),
-            addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
           })),
+          followUp: obs.followUp,
+          id: obs.id,
+          magistrat: obs.magistrat
+            ? {
+                currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
+                firstName: obs.magistrat.firstName,
+                id: obs.magistrat.id,
+                lastName: obs.magistrat.lastName,
+                usedName: obs.magistrat.usedName,
+              }
+            : null,
+          observantObservationsCount:
+            (obs.magistrat && observationCountByMagistratId.get(obs.magistrat.id)) ?? 1,
         };
       }),
     };

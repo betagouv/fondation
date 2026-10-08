@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
@@ -63,6 +63,7 @@ function useAuditionMutation(target: AuditionTarget, sessionId: string) {
 }
 
 export function AuditionDateForm(props: {
+  children?: ReactNode;
   editable: boolean;
   headingLevel?: 'h2' | 'h3';
   initialAuditionDate: AuditionDate;
@@ -115,8 +116,8 @@ export function AuditionDateForm(props: {
     reset: resetForm,
     formState: { errors, isDirty },
   } = useForm({
-    resolver: zodResolver(schema),
     defaultValues: { date: initialDate, time: initialTime },
+    resolver: zodResolver(schema),
   });
 
   const date = useWatch({ control, name: 'date' });
@@ -173,7 +174,6 @@ export function AuditionDateForm(props: {
     if (!scheduledAt) return;
 
     const { isConfirmed } = await waitForConfirmation({
-      title: formatMessage({ defaultMessage: 'Modifier une audition passée' }),
       content: (
         <p>
           <FormattedMessage
@@ -189,6 +189,7 @@ export function AuditionDateForm(props: {
         cancel: formatMessage({ defaultMessage: 'Annuler' }),
         confirm: formatMessage({ defaultMessage: 'Modifier la date' }),
       },
+      title: formatMessage({ defaultMessage: 'Modifier une audition passée' }),
     });
     if (isConfirmed) setEditingPastAudition(true);
   };
@@ -256,6 +257,7 @@ export function AuditionDateForm(props: {
           )
         )}
       </div>
+      {props.children}
       <div className="flex flex-row items-end gap-2">
         <Controller
           control={control}

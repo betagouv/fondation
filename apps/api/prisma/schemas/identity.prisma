@@ -86,6 +86,8 @@ model User {
   authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[] @relation("nomination_file_audition_version_author")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[] @relation("nomination_file_audition_version_impersonator")
   feedbacks Feedback[]
+  publisherOfAuditionPublications    AuditionPublication[] @relation("audition_publication_publisher")
+  impersonatorOfAuditionPublications AuditionPublication[] @relation("audition_publication_impersonator")
 
   @@map("users")
   @@schema("identity_and_access_context")

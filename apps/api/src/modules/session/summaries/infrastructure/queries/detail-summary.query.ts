@@ -15,15 +15,13 @@ import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
 } from 'src/modules/shared/nomination-file-outcome.enum';
-import {
-  expectedReportersCount,
-  isAuditionExpected,
-} from 'src/modules/shared/policies/auditioned-position.policy';
+import { expectedReportersCount } from 'src/modules/shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { timeOnlySchema } from 'src/utils/time-only';
 import { fullname } from 'src/utils/user.util';
 
 @Injectable()
@@ -52,6 +50,7 @@ export class DetailSummaryQuery {
 
   async handle(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
     userId: string;
   }): Promise<DetailedSummaryDto> {
@@ -60,8 +59,6 @@ export class DetailSummaryQuery {
         archivedAt: true,
         dossierDeNominations: {
           select: {
-            auditionDate: true,
-            auditionTime: true,
             biography: true,
             birthDate: true,
             currentPosition: true,
@@ -147,64 +144,47 @@ export class DetailSummaryQuery {
       throw new NotFoundException();
     }
 
+    const audition = await this.transparences.internalFindSeenNominationFileAudition({
+      nominationFileId: query.nominationFileId,
+      role: query.role,
+    });
     const auditionedPosition = {
       ...nominationFile,
       detectedJurisdictionType: nominationFile.detectedJurisdiction?.typeJur ?? null,
     };
 
     return {
-      isArchived: !!session.archivedAt,
-      name: nominationFile.name,
-      detectedMagistratId: nominationFile.detectedMagistratId,
-      position: nominationFile.currentPosition,
-      rank: nominationFile.rank,
-      targetedPosition: nominationFile.targetedPosition,
+      ...audition,
       biography: nominationFile.biography ?? '',
-      grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
-      targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
       birthDate: DateOnly.fromOptionalUtcDate(nominationFile.birthDate)?.toJson() ?? null,
-      auditionDate: DateOnly.fromOptionalUtcDate(nominationFile.auditionDate)?.toJson() ?? null,
-      auditionExpected: isAuditionExpected(auditionedPosition),
-      auditionTime: nominationFile.auditionTime ? dateToTimeOnly(nominationFile.auditionTime) : null,
       canScheduleAudition: canScheduleAudition(nominationFile, session),
+      detectedMagistratId: nominationFile.detectedMagistratId,
+      grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
+      isArchived: !!session.archivedAt,
+      lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
+      missingEvaluation: nominationFile.missingEvaluation,
+      name: nominationFile.name,
+      observers: nominationFile.observers,
+      outcome: nominationFile.outcome
+        ? {
+            comment: nominationFile.outcomeComment,
+            label: nominationFileOutcomeLabel({
+              formation: prismaFormationEnumToFormationEnum(session.formation),
+              outcome: nominationFile.outcome,
+            }),
+            value: nominationFile.outcome,
+          }
+        : null,
+      position: nominationFile.currentPosition,
+      priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
+      rank: nominationFile.rank,
       reportersMissing: await this.areReportersMissing({
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         isArchived: !!session.archivedAt,
         nominationFileId: query.nominationFileId,
         sessionId: query.sessionId,
       }),
-      missingEvaluation: nominationFile.missingEvaluation,
-      lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
-      priorities: nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
-
-      observers: nominationFile.observers,
-
-      outcome: nominationFile.outcome
-        ? {
-            value: nominationFile.outcome,
-            label: nominationFileOutcomeLabel({
-              formation: prismaFormationEnumToFormationEnum(session.formation),
-              outcome: nominationFile.outcome,
-            }),
-            comment: nominationFile.outcomeComment,
-          }
-        : null,
-
       summary: {
-        content: summary.content,
-        author: summary.author
-          ? {
-              id: summary.author.id,
-              firstName: summary.author.firstName,
-              lastName: summary.author.lastName,
-            }
-          : null,
-        readers: summary.readers.map(({ user }) => ({
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        })),
-
         attachments: summary.attachments.map(({ file }) => ({
           addedAt: file.createdAt.toISOString(),
           addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
@@ -213,7 +193,19 @@ export class DetailSummaryQuery {
           size: file.sizeInBytes,
           type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
         })),
-
+        author: summary.author
+          ? {
+              firstName: summary.author.firstName,
+              id: summary.author.id,
+              lastName: summary.author.lastName,
+            }
+          : null,
+        content: summary.content,
+        readers: summary.readers.map(({ user }) => ({
+          firstName: user.firstName,
+          id: user.id,
+          lastName: user.lastName,
+        })),
         screenshots: await this.files
           .getPublicUrls(summary.screenshots.map(({ file }) => file.id))
           .then((urls) => {
@@ -233,6 +225,8 @@ export class DetailSummaryQuery {
               .filter(isDefined);
           }),
       },
+      targetedGrade: isGrade(nominationFile.targetedGrade) ? nominationFile.targetedGrade : null,
+      targetedPosition: nominationFile.targetedPosition,
     };
   }
 }
@@ -245,7 +239,7 @@ export class DetailedSummaryDto extends createZodDto(
     rank: z.string().nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
     auditionDate: dateOnlyJsonSchema.nullable(),
-    auditionExpected: z.boolean(),
+    auditionRequired: z.boolean(),
     auditionTime: timeOnlySchema.nullable(),
     canScheduleAudition: z.boolean(),
     reportersMissing: z.boolean(),

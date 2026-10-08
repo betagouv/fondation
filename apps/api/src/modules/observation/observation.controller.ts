@@ -17,6 +17,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from 'src/modules/framework/files';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
 import { DateOnly } from 'src/utils/date-only';
 
@@ -39,8 +40,8 @@ import { ListObservationsResponseDto } from './infrastructure/queries/list-obser
 import { ObservationService } from './observation.service';
 
 @ApiTags('Observations')
-@ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
-@ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
+@ApiParam({ format: 'uuid', name: 'sessionId', type: 'string' })
+@ApiParam({ format: 'uuid', name: 'nominationFileId', type: 'string' })
 @UseInterceptors(ObservationsFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/observations')
 export class ObservationController {
@@ -49,14 +50,14 @@ export class ObservationController {
   @Post()
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
-    schema: CreateObservationDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: CreateObservationDto,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
-    type: CreateObservationResponseDto,
     status: HttpStatus.CREATED,
+    type: CreateObservationResponseDto,
   })
   async createObservation(
     @AuthedUserId() userId: string,
@@ -65,29 +66,31 @@ export class ObservationController {
     @Body() { files, form }: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
-      userId,
-      sessionId,
-      files: files ?? [],
-      nominationFileId,
-      magistratId: form.magistratId,
       dateReception: new Date(form.dateReception),
       description: form.description,
+      files: files ?? [],
       linkedAttachments: form.linkedObservationsAttachments,
+      magistratId: form.magistratId,
+      nominationFileId,
+      sessionId,
+      userId,
     });
   }
 
   @Get()
   @HasRole()
   @ZodResponse({
-    type: ListObservationsResponseDto,
     status: HttpStatus.OK,
+    type: ListObservationsResponseDto,
   })
   async listObservations(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<ListObservationsResponseDto> {
     return this.observations.listObservations({
       nominationFileId,
+      role: user.role,
       sessionId,
     });
   }
@@ -95,36 +98,37 @@ export class ObservationController {
   @Get('/:observationId')
   @HasRole()
   @ZodResponse({
-    type: GetObservationDetailsResponseDto,
     status: HttpStatus.OK,
+    type: GetObservationDetailsResponseDto,
   })
   async getObservationDetails(
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
-      userId,
-      sessionId,
       nominationFileId,
       observationId,
+      role: user.role,
+      sessionId,
+      userId: user.id,
     });
   }
 
   @Get('/:observationId/files/:fileId/url')
   @HasRole()
   @ZodResponse({
-    type: GetObservationFileUrlResponseDto,
     status: HttpStatus.OK,
+    type: GetObservationFileUrlResponseDto,
   })
   async getObservationFileUrl(
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GetObservationFileUrlResponseDto> {
     return this.observations.getObservationFileUrl({
-      observationId,
       fileId,
+      observationId,
     });
   }
 
@@ -145,9 +149,9 @@ export class ObservationController {
   @Patch('/:observationId')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
-    schema: UpdateObservationDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: UpdateObservationDto,
   })
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -172,9 +176,9 @@ export class ObservationController {
   @Post('/:observationId/member-comments/screenshots')
   @HasRole()
   @UseMultipartBody({
-    schema: AttachMemberCommentScreenshotsDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: AttachMemberCommentScreenshotsDto,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
@@ -189,11 +193,11 @@ export class ObservationController {
     @Body() { files }: Multipart<typeof AttachMemberCommentScreenshotsDto>,
   ): Promise<AttachedMemberCommentScreenshotsDto> {
     return this.observations.attachMemberCommentScreenshots({
-      userId,
-      sessionId,
+      files,
       nominationFileId,
       observationId,
-      files,
+      sessionId,
+      userId,
     });
   }
 
@@ -209,11 +213,11 @@ export class ObservationController {
     @Body() { comment }: WriteMemberCommentDto,
   ): Promise<void> {
     await this.observations.writeMemberComment({
-      userId,
-      sessionId,
+      comment,
       nominationFileId,
       observationId,
-      comment,
+      sessionId,
+      userId,
     });
   }
 
@@ -249,10 +253,10 @@ export class ObservationController {
     @Body() { followUp, comment }: FollowUpOnObservationDto,
   ) {
     await this.observations.followUpWith({
-      userId: user.id,
-      observationId,
-      followUp,
       comment,
+      followUp,
+      observationId,
+      userId: user.id,
     });
   }
 }

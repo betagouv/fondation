@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 import { createZodDto } from 'nestjs-zod';
@@ -9,6 +11,7 @@ import {
 } from '../../domain/session-transparence-file-status';
 import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
+import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
@@ -19,7 +22,6 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
-import { ObservationService } from 'src/modules/observation/observation.service';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
@@ -30,38 +32,33 @@ import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
 } from 'src/modules/shared/nomination-file-outcome.enum';
-import {
-  expectedReportersCount,
-  isAuditionExpected,
-} from 'src/modules/shared/policies/auditioned-position.policy';
+import { expectedReportersCount } from 'src/modules/shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { toFullTextQuery } from 'src/utils/fulltext-search';
 import { partition } from 'src/utils/iterables';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class ListNominationFilesQuery {
   constructor(
+    private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
-
-    @Inject(forwardRef(() => ObservationService))
-    private readonly observations: ObservationService,
   ) {}
 
   async handle(query: {
-    sessionId: string;
-    user: { id: string; role: RoleEnum };
     pagination: Pagination;
+    sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
+    user: { id: string; role: RoleEnum };
     filters: {
       missingEvaluation: boolean | undefined;
       nominationFileIds: readonly string[] | undefined;
@@ -106,13 +103,13 @@ export class ListNominationFilesQuery {
           session,
           sessionId: query.sessionId,
           sorting: query.sorting,
-          userId: query.user.id,
+          user: query.user,
           where,
         }),
       ] as const;
     });
 
-    return paginate({ items, totalCount, pagination: query.pagination });
+    return paginate({ items, pagination: query.pagination, totalCount });
   }
 
   /** @internal */
@@ -127,11 +124,11 @@ export class ListNominationFilesQuery {
 
       return this.loadFiles({
         nominationFileIds: [query.nominationFileId],
-        pagination: { page: 1, limit: 1 },
+        pagination: { limit: 1, page: 1 },
         session,
         sessionId: query.sessionId,
         sorting: { sortBy: undefined, sortDesc: false },
-        userId: query.user.id,
+        user: query.user,
         where: ListNominationFilesQuery.filtersToPrismaWhere(
           { outcomes: [], priorities: [], reporterIds: [], search: null },
           await this.lastVersion(query),
@@ -150,9 +147,7 @@ export class ListNominationFilesQuery {
   }
 
   private lastVersion(query: { sessionId: string; user: { role: RoleEnum } }) {
-    const isSG = (['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as RoleEnum[]).includes(query.user.role);
-
-    return isSG
+    return isSecretariat(query.user.role)
       ? this.versionFinder.last({ sessionId: query.sessionId })
       : this.versionFinder.lastPublished({ sessionId: query.sessionId });
   }
@@ -163,7 +158,7 @@ export class ListNominationFilesQuery {
     session: { archivedAt: Date | null };
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    userId: string;
+    user: { id: string; role: RoleEnum };
     where: NominationFilesWhere;
   }): Promise<NominationFileAffectationItem[]> {
     const { where } = query;
@@ -172,7 +167,7 @@ export class ListNominationFilesQuery {
       .$queryRawTyped(
         listNominationFilesRawQuery(
           where.versionId ?? null,
-          query.userId,
+          query.user.id,
           query.pagination.limit,
           (query.pagination.page - 1) * query.pagination.limit,
           where.priorities,
@@ -194,10 +189,15 @@ export class ListNominationFilesQuery {
     const nominationFileIds = new Set(txFiles.map(({ id }) => id));
     const linkedDocs = await this.docs.internalFindNominationFilesLinkedDocs({ nominationFileIds });
     const reportedFileIds = await this.docs.internalFindReportedNominationFiles({ nominationFileIds });
-    const observantAuditions = await this.observations.internalFindObservantAuditions({
+    const auditions = await this.auditionsSeen.findNominationFiles({
+      nominationFileIds: [...nominationFileIds],
+      role: query.user.role,
+    });
+    const observantAuditions = await this.auditionsSeen.findObservants({
       magistratIds: [
         ...new Set(txFiles.flatMap((file) => file.observations.map(({ magistrat }) => magistrat.id))),
       ],
+      role: query.user.role,
       sessionId: query.sessionId,
     });
 
@@ -213,11 +213,11 @@ export class ListNominationFilesQuery {
       return {
         ...file,
         jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
-        status: transparenceFileStatus({ docs, outcome: file.outcome }),
         lockedReason: nominationFilesPolicies.nominationFileLock(
           { isReported: reportedFileIds.has(file.id) },
           { archivedAt: sessionArchivedAt },
         ),
+        status: transparenceFileStatus({ docs, outcome: file.outcome }),
       };
     });
 
@@ -229,63 +229,60 @@ export class ListNominationFilesQuery {
         targetedPosition: x.targetedPosition,
       };
 
+      const audition = auditions.get(x.id);
+      assert.ok(audition, `no audition seen for the nomination file ${x.id}`);
+
       return {
-        id: x.id,
-        isArchived,
+        ...audition,
+        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
+          archivedAt: sessionArchivedAt,
+        }),
+        comment: x.comment,
         content: {
-          version: 2,
-          numeroDeDossier: x.number,
-          nomMagistrat: x.name,
-          grade: x.grade as GradeEnum,
-          posteActuel: x.currentPosition,
-          posteCible: x.targetedPosition,
-          gradeCible: x.targetedGrade as GradeEnum,
-          rang: x.rank,
-          historique: x.biography,
-          observants: x.observers,
           dateDeNaissance: DateOnly.fromOptionalUtcDate(x.birthDate)?.toJson() ?? null,
           dateEchéance: DateOnly.fromOptionalUtcDate(x.dueDate)?.toJson() ?? null,
           datePassageAuGrade: DateOnly.fromOptionalUtcDate(x.lastRankingDate)?.toJson() ?? null,
           datePriseDeFonctionPosteActuel: DateOnly.fromOptionalUtcDate(x.lastPositionDate)?.toJson() ?? null,
-          informationCarrière: null,
-          jurisdictions: x.jurisdictions,
           detectedMagistratId: x.detectedMagistratId ?? null,
+          grade: x.grade as GradeEnum,
+          gradeCible: x.targetedGrade as GradeEnum,
+          historique: x.biography,
+          informationCarrière: null,
+          isAlertHidden: x.alertHidden,
+          jurisdictions: x.jurisdictions,
+          lockedReason: x.lockedReason,
+          nomMagistrat: x.name,
+          numeroDeDossier: x.number,
+          observants: x.observers,
           outcome: x.outcome
             ? {
                 comment: x.outcomeComment,
                 value: x.outcome as NominationFileOutcomeEnum,
               }
             : null,
-          isAlertHidden: x.alertHidden,
-          lockedReason: x.lockedReason,
+          posteActuel: x.currentPosition,
+          posteCible: x.targetedPosition,
+          rang: x.rank,
           status: {
-            value: x.status.value,
             dates: x.status.dates.map((date) => DateOnly.fromUtcDate(date).toJson()),
+            value: x.status.value,
           },
+          version: 2,
         },
-        priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
-        comment: x.comment,
-        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
-          archivedAt: sessionArchivedAt,
-        }),
-        auditionDate: DateOnly.fromOptionalUtcDate(x.auditionDate)?.toJson() ?? null,
-        auditionExpected: isAuditionExpected(auditionedPosition),
-        auditionTime: x.auditionTime ? dateToTimeOnly(x.auditionTime) : null,
         expectedReportersCount: expectedReportersCount(auditionedPosition),
+        hasAttachment: x.hasAttachment,
+        hasJurisdictionSheet: x.hasJurisdictionSheet,
+        id: x.id,
+        isArchived,
+        memo: x.memberMemo || null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
-        reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
-          id,
-          firstName,
-          lastName,
-        })),
         observations: x.observations.map((obs) => {
           return {
-            id: obs.id,
             audition: observantAuditions.get(obs.magistrat.id) ?? null,
+            date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
             followUp: obs.followUp,
             followUpComment: obs.followUp ? obs.followUpComment : null,
-            date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
             hasDescription: !!obs.description.trim(),
             hasUserComment: obs.memberComments.some(
               ({ comment }) =>
@@ -293,28 +290,32 @@ export class ListNominationFilesQuery {
                   ?.text()
                   ?.trim(),
             ),
+            id: obs.id,
             magistrat: obs.magistrat
               ? {
-                  id: obs.magistrat.id,
                   firstName: obs.magistrat.firstName,
+                  id: obs.magistrat.id,
                   lastName: obs.magistrat.lastName,
                   usedName: obs.magistrat.usedName,
                 }
               : null,
           };
         }),
-        memo: x.memberMemo || null,
+        priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
+        reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
+          firstName,
+          id,
+          lastName,
+        })),
         summary: x.summary
           ? {
-              id: x.id,
-              canWrite: x.summary.authorId === query.userId,
               canRead:
-                x.summary.authorId === query.userId ||
-                x.summary.readers.some((userId) => userId === query.userId),
+                x.summary.authorId === query.user.id ||
+                x.summary.readers.some((userId) => userId === query.user.id),
+              canWrite: x.summary.authorId === query.user.id,
+              id: x.id,
             }
           : null,
-        hasAttachment: x.hasAttachment,
-        hasJurisdictionSheet: x.hasJurisdictionSheet,
       };
     });
   }
@@ -334,29 +335,29 @@ export class ListNominationFilesQuery {
     const [hasNoOutcome, outcomes] = partition(filters.outcomes, (x) => x === null);
 
     return {
-      versionId: lastVersion.optionalId,
-      missingEvaluation: filters.missingEvaluation ?? null,
-      reporterIds: reporterIds.length > 0 ? reporterIds : null,
-      hasNoReporters: hasNoReporters.length > 0,
-      priorities: priorities.length > 0 ? priorities.map(priorityEnumToPrismaPrioriteEnum) : null,
-      hasNoPriorities: hasNoPriorities.length > 0,
-      outcomes: outcomes.length > 0 ? outcomes : null,
       hasNoOutcome: hasNoOutcome.length > 0,
+      hasNoPriorities: hasNoPriorities.length > 0,
+      hasNoReporters: hasNoReporters.length > 0,
+      missingEvaluation: filters.missingEvaluation ?? null,
+      outcomes: outcomes.length > 0 ? outcomes : null,
+      priorities: priorities.length > 0 ? priorities.map(priorityEnumToPrismaPrioriteEnum) : null,
+      reporterIds: reporterIds.length > 0 ? reporterIds : null,
       search: filters.search?.trim() ? toFullTextQuery(filters.search) : null,
+      versionId: lastVersion.optionalId,
     };
   }
 }
 
 type NominationFilesWhere = {
-  versionId: string | undefined;
-  missingEvaluation: boolean | null;
-  reporterIds: string[] | null;
-  hasNoReporters: boolean;
-  priorities: PrismaPrioriteEnum[] | null;
-  hasNoPriorities: boolean;
-  outcomes: NominationFileOutcomeEnum[] | null;
   hasNoOutcome: boolean;
+  hasNoPriorities: boolean;
+  hasNoReporters: boolean;
+  missingEvaluation: boolean | null;
+  outcomes: NominationFileOutcomeEnum[] | null;
+  priorities: PrismaPrioriteEnum[] | null;
+  reporterIds: string[] | null;
   search: string | null;
+  versionId: string | undefined;
 };
 
 const JurisdictionSchema = z.object({ id: z.string(), label: z.string().nullable() });
@@ -403,8 +404,6 @@ const RawListedNominationFiles = z.array(
     id: z.uuid(),
     priorities: z.array(z.enum(PrismaPrioriteEnum)).transform((x) => x.map(prismaPrioriteEnumToPriorityEnum)),
     comment: z.string().nullable(),
-    auditionDate: z.date().nullable(),
-    auditionTime: z.date().nullable(),
     biography: z.string().nullable(),
     birthDate: z.date().nullable(),
     currentPosition: z.string().nullable(),
@@ -490,7 +489,7 @@ const NominationFileAffectationItemSchema = z.object({
   comment: z.string().nullable(),
   canScheduleAudition: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),
-  auditionExpected: z.boolean(),
+  auditionRequired: z.boolean(),
   auditionTime: timeOnlySchema.nullable(),
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),

@@ -4,6 +4,7 @@ import { build } from 'node-xlsx';
 import { SessionAuditionsFinder } from '../finders/session-auditions.finder';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { capitalize } from 'src/utils/capitalize';
 import type { DateOnlyJson } from 'src/utils/date-only';
 import { timeOnlyToString } from 'src/utils/time-only';
@@ -38,7 +39,7 @@ export class ListSessionAuditionsAsExcelQuery {
     private readonly sessionAuditions: SessionAuditionsFinder,
   ) {}
 
-  async handle(query: { sessionId: string }): Promise<StreamableFile> {
+  async handle(query: { role: RoleEnum; sessionId: string }): Promise<StreamableFile> {
     const auditions = await this.db.withTransaction(() => this.sessionAuditions.find(query));
 
     const rows = auditions

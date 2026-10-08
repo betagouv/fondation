@@ -12,6 +12,7 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   NonFormationMemberDefinedAsReporter,
+  ScheduledAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
@@ -108,6 +109,14 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             return new BadRequestException({
               validationErrors: [
                 `impossible de programmer une audition sur un dossier avec une issue considérée comme étant définitive`,
+              ],
+            });
+          }
+
+          if (err instanceof ScheduledAuditionCannotBeDismissed) {
+            return new BadRequestException({
+              validationErrors: [
+                `impossible de retirer une audition dont la date est fixée : effacez d'abord la date`,
               ],
             });
           }

@@ -1,15 +1,20 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import assert from 'node:assert';
+
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { MagistratService } from 'src/modules/magistrat/magistrat.service';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationService } from 'src/modules/observation/observation.service';
-import { isAuditionExpected } from 'src/modules/shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
-import { type AuditionSchedule, isPastAudition, toAuditionSchedule } from 'src/utils/audition-schedule';
+import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
+import { type AuditionSchedule, isPastAudition } from 'src/utils/audition-schedule';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
+import { AuditionPublicationFinder } from './audition-publication.finder';
+import { AuditionsSeenFinder } from './auditions-seen.finder';
 
 const AUDITION_ROLES = ['OBSERVANT', 'PROPOSED'] as const;
 export type AuditionRole = (typeof AUDITION_ROLES)[number];
@@ -31,8 +36,10 @@ export type SessionAudition = {
 @Injectable()
 export class SessionAuditionsFinder {
   constructor(
+    private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly clock: Clock,
     private readonly db: Db,
+    private readonly publications: AuditionPublicationFinder,
     private readonly versions: AffectationVersionFinder,
 
     @Inject(forwardRef(() => MagistratService))
@@ -42,19 +49,14 @@ export class SessionAuditionsFinder {
     private readonly observations: ObservationService,
   ) {}
 
-  async find(query: { sessionId: string }): Promise<SessionAudition[]> {
-    const session = await this.db.tx.session.findUniqueOrThrow({
+  async find(query: { role: RoleEnum; sessionId: string }): Promise<SessionAudition[]> {
+    const session = await this.db.tx.session.findFirst({
       select: {
         archivedAt: true,
         dossierDeNominations: {
           select: {
-            auditionDate: true,
-            auditionTime: true,
             currentPosition: true,
-            detectedJurisdiction: { select: { typeJur: true } },
-            detectedJurisdictionId: true,
             detectedMagistratId: true,
-            detectedTargetedFunctionId: true,
             grade: true,
             id: true,
             name: true,
@@ -64,24 +66,49 @@ export class SessionAuditionsFinder {
           },
         },
       } satisfies Prisma.SessionSelect,
-      where: { id: query.sessionId },
+      where: { deletedAt: null, formation: roleToFormation(query.role), id: query.sessionId },
     });
+    if (!session) throw new NotFoundException();
+
+    // the members get the table from its first publication on
+    if (!isSecretariat(query.role) && !(await this.publications.last(query))) return [];
     const now = this.clock.now();
     const files = new Map(session.dossierDeNominations.map((file) => [file.id, file]));
 
-    const proposedFiles = session.dossierDeNominations.filter((file) =>
-      file.auditionDate && file.auditionTime
-        ? !isPastAudition(toAuditionSchedule(file.auditionDate, file.auditionTime), now)
-        : isAuditionExpected({
-            ...file,
-            detectedJurisdictionType: file.detectedJurisdiction?.typeJur ?? null,
-          }) && canScheduleAudition(file, session),
-    );
-    const observantAuditions = (await this.observations.internalListObservantAuditions(query)).filter(
-      ({ audition }) => !isPastAudition(audition, now),
-    );
+    const seen = await this.auditionsSeen.findNominationFiles({
+      nominationFileIds: [...files.keys()],
+      role: query.role,
+    });
+    const proposedFiles = session.dossierDeNominations.flatMap((file) => {
+      const seenAudition = seen.get(file.id);
+      assert.ok(seenAudition, `no audition seen for the nomination file ${file.id}`);
+      const { auditionDate, auditionRequired, auditionTime } = seenAudition;
+      const audition = auditionDate && auditionTime ? { date: auditionDate, time: auditionTime } : null;
+      const listed = audition
+        ? !isPastAudition(audition, now)
+        : auditionRequired && canScheduleAudition(file, session);
 
-    const reporters = await this.findReporters({ sessionId: query.sessionId });
+      return listed ? [{ ...file, audition }] : [];
+    });
+
+    const observantSchedules = await this.auditionsSeen.findObservants(query);
+    const upcomingObservants = [...observantSchedules].filter(
+      ([, audition]) => !isPastAudition(audition, now),
+    );
+    const observations = await this.observations.internalFindObservantObservations({
+      magistratIds: upcomingObservants.map(([magistratId]) => magistratId),
+      sessionId: query.sessionId,
+    });
+    const observantAuditions = upcomingObservants.map(([magistratId, audition]) => ({
+      audition,
+      magistratId,
+      observations: observations.get(magistratId) ?? [],
+    }));
+
+    const reporters = await this.findReporters(query);
+    // only the secretariat reaches the magistrats to schedule their audition
+    const contactOf = (profile: { email: string | null; phone: string | null } | undefined) =>
+      profile && isSecretariat(query.role) ? { email: profile.email, phone: profile.phone } : null;
     const profiles = await this.magistrats.internalFindMagistratProfiles({
       magistratIds: [
         ...proposedFiles.flatMap(({ detectedMagistratId }) => detectedMagistratId ?? []),
@@ -96,11 +123,8 @@ export class SessionAuditionsFinder {
     const proposed = proposedFiles.map((file): SessionAudition => {
       const profile = file.detectedMagistratId ? profiles.get(file.detectedMagistratId) : undefined;
       return {
-        audition:
-          file.auditionDate && file.auditionTime
-            ? toAuditionSchedule(file.auditionDate, file.auditionTime)
-            : null,
-        contact: profile ? { email: profile.email, phone: profile.phone } : null,
+        audition: file.audition,
+        contact: contactOf(profile),
         id: `PROPOSED-${file.id}`,
         magistrat: {
           currentPosition:
@@ -125,7 +149,7 @@ export class SessionAuditionsFinder {
       return [
         {
           audition: observant.audition,
-          contact: { email: profile.email, phone: profile.phone },
+          contact: contactOf(profile),
           id: `OBSERVANT-${observant.magistratId}`,
           magistrat: {
             currentPosition: profile.currentPosition,
@@ -147,8 +171,13 @@ export class SessionAuditionsFinder {
   }
 
   // the secretariat works on the last version of the affectations, published or not
-  private async findReporters(query: { sessionId: string }): Promise<Map<string, Reporter[]>> {
-    const version = await this.versions.last(query);
+  private async findReporters(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<Map<string, Reporter[]>> {
+    const version = isSecretariat(query.role)
+      ? await this.versions.last(query)
+      : await this.versions.lastPublished(query);
     if (version.isNone()) return new Map();
 
     const affectations = await this.db.tx.nominationFileToReporter.findMany({

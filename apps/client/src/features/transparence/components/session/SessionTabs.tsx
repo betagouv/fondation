@@ -94,9 +94,11 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
   const [openedDossier] = useQueryState(SIDE_PANEL_DOSSIER_PARAM);
 
   const { data: attachments } = useListNominationSessionAttachmentsQuery({ sessionId: props.sessionId });
+  const { data: auditionCounts } = useSessionAuditionsCountsQuery({ sessionId: props.sessionId });
 
   const params = { sessionId: props.sessionId };
   const attachmentsCount = attachments?.items.length ?? 0;
+  const auditionsCount = (auditionCounts?.scheduled ?? 0) + (auditionCounts?.toSchedule ?? 0);
   const isSidePanelOpen = openedDossier !== null;
 
   return (
@@ -106,6 +108,13 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
         icon="fr-icon-list-unordered"
         label={formatMessage({ defaultMessage: 'Propositions' })}
         to={generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, params)}
+      />
+      <SessionTab
+        count={auditionsCount}
+        disabled={isSidePanelOpen}
+        icon="fr-icon-speak-line"
+        label={formatMessage({ defaultMessage: 'Auditions' })}
+        to={generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_AUDITIONS, params)}
       />
       <SessionTab
         count={attachmentsCount}

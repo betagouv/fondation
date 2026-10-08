@@ -2,7 +2,7 @@ import type { PlainDateOnly } from '@/utils/date-only.util';
 
 type AuditionedPosition = {
   auditionDate: PlainDateOnly | null;
-  auditionExpected: boolean;
+  auditionRequired: boolean;
   canScheduleAudition: boolean;
 };
 
@@ -12,7 +12,7 @@ type ReportedPosition = {
 };
 
 export function isAuditionMissing(position: AuditionedPosition): boolean {
-  return position.auditionExpected && position.canScheduleAudition && !position.auditionDate;
+  return position.auditionRequired && position.canScheduleAudition && !position.auditionDate;
 }
 
 export function areReportersMissing(position: ReportedPosition, reportersCount: number): boolean {

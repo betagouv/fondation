@@ -10,6 +10,7 @@ export function TransparenceAuditionsTab() {
   return (
     <SessionAuditionsTable
       canManage={!transparence.isArchived}
+      context="sg"
       filtersSlot={filtersSlot}
       formation={transparence.formation}
       outcomes={transparence.outcomes}

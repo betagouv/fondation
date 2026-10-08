@@ -4,6 +4,7 @@ import { useNominationFilesTable } from '@/features/nomination-files-table/conte
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { AuditionDateForm } from './AuditionDateForm';
+import { AuditionRequestToggle } from './AuditionRequestToggle';
 
 export const AUDITION_SECTION_ID = 'magistrat-audition-section';
 
@@ -37,7 +38,9 @@ export function AuditionDate(props: { editable: boolean; nominationFile: Session
         initialAuditionTime={nominationFile.auditionTime}
         sessionId={sessionId}
         target={{ nominationFileId: nominationFile.id, type: 'NOMINATION_FILE' }}
-      />
+      >
+        <AuditionRequestToggle nominationFile={nominationFile} sessionId={sessionId} />
+      </AuditionDateForm>
     </div>
   );
 }

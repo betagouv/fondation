@@ -5,8 +5,8 @@ export type NominationFileOverrides = Partial<Omit<SessionNominationFile, 'conte
 };
 
 const baseContent: SessionNominationFile['content'] = {
-  dateDeNaissance: { year: 1978, month: 4, day: 12 },
-  dateEchéance: { year: 2026, month: 9, day: 1 },
+  dateDeNaissance: { day: 12, month: 4, year: 1978 },
+  dateEchéance: { day: 1, month: 9, year: 2026 },
   datePassageAuGrade: null,
   datePriseDeFonctionPosteActuel: null,
   detectedMagistratId: null,
@@ -24,7 +24,7 @@ const baseContent: SessionNominationFile['content'] = {
   posteActuel: 'Juge au tribunal judiciaire de Lyon',
   posteCible: 'Conseiller à la cour d’appel de Paris',
   rang: null,
-  status: { value: 'TO_REPORT', dates: [] },
+  status: { dates: [], value: 'TO_REPORT' },
   version: 2,
 };
 
@@ -32,7 +32,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
   const { content, ...rest } = overrides;
   return {
     auditionDate: null,
-    auditionExpected: false,
+    auditionRequired: false,
     auditionTime: null,
     canScheduleAudition: true,
     comment: null,

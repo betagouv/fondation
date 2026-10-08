@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { differenceInMonths, differenceInYears, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale/fr';
 import { createZodDto } from 'nestjs-zod';
@@ -8,20 +8,20 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
-import { isAuditionExpected } from 'src/modules/shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { timeOnlySchema } from 'src/utils/time-only';
 import { fullname } from 'src/utils/user.util';
 
 @Injectable()
@@ -30,6 +30,9 @@ export class DetailReportQuery {
     private readonly clock: Clock,
     private readonly files: Files,
     private readonly db: Db,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
   async handle(query: {
@@ -59,8 +62,6 @@ export class DetailReportQuery {
         id: true,
         nominationFile: {
           select: {
-            auditionDate: true,
-            auditionTime: true,
             biography: true,
             birthDate: true,
             currentPosition: true,
@@ -103,6 +104,11 @@ export class DetailReportQuery {
 
     if (!report) throw new NotFoundException();
 
+    const audition = await this.transparences.internalFindSeenNominationFileAudition({
+      nominationFileId: report.nominationFile.id,
+      role: query.user.role,
+    });
+
     const reportFiles = report.files.map(({ file, usage }) => ({
       addedAt: file.createdAt.toISOString(),
       addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
@@ -124,63 +130,51 @@ export class DetailReportQuery {
     );
 
     return {
-      id: report.id,
-      sessionId: report.sessionId,
-      nominationFileId: report.nominationFile.id,
-      comment: report.comment,
-      state: prismaReportStateEnumToReportState(report.state),
-      isArchived: !!report.nominationFile.session.archivedAt,
-
       attachments: attachments.map((f) => ({
+        addedAt: f.addedAt,
+        addedBy: f.addedBy,
         fileId: f.id,
         name: f.name,
         size: f.size,
-        addedAt: f.addedAt,
-        addedBy: f.addedBy,
         usage: f.usage,
       })),
-
+      ...audition,
+      biography: report.nominationFile.biography,
+      birthDate: DateOnly.fromOptionalUtcDate(report.nominationFile.birthDate)?.toJson() ?? null,
+      canScheduleAudition: canScheduleAudition(report.nominationFile, report.nominationFile.session),
+      comment: report.comment,
+      currentPosition: report.nominationFile.currentPosition,
+      dateTransparence: DateOnly.fromUtcDate(report.nominationFile.session.date).toJson(),
+      detectedMagistrat: report.nominationFile.detectedMagistrat,
+      detectedMagistratId: report.nominationFile.detectedMagistratId,
+      dueDate:
+        DateOnly.fromOptionalUtcDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ??
+        null,
+      dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
+      folderNumber: report.nominationFile.number,
+      formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
+      grade: z.enum(GradeEnum).parse(report.nominationFile.grade),
+      id: report.id,
+      isArchived: !!report.nominationFile.session.archivedAt,
+      missingEvaluation: report.nominationFile.missingEvaluation,
+      name: report.nominationFile.name,
+      nominationFileId: report.nominationFile.id,
+      priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
+      priority: report.nominationFile.priorities[0]
+        ? prismaPrioriteEnumToPriorityEnum(report.nominationFile.priorities[0])
+        : null,
+      rank: report.nominationFile.rank,
       screenshots: screenshots.map((f) => ({
         fileId: f.id,
         name: f.name,
         url: f.url,
         usage: f.usage,
       })),
-
-      auditionDate: DateOnly.fromOptionalUtcDate(report.nominationFile.auditionDate)?.toJson() ?? null,
-      auditionExpected: isAuditionExpected({
-        ...report.nominationFile,
-        detectedJurisdictionType: report.nominationFile.detectedJurisdiction?.typeJur ?? null,
-      }),
-      auditionTime: report.nominationFile.auditionTime
-        ? dateToTimeOnly(report.nominationFile.auditionTime)
-        : null,
-      canScheduleAudition: canScheduleAudition(report.nominationFile, report.nominationFile.session),
-      missingEvaluation: report.nominationFile.missingEvaluation,
-
-      biography: report.nominationFile.biography,
-      birthDate: DateOnly.fromOptionalUtcDate(report.nominationFile.birthDate)?.toJson() ?? null,
-      currentPosition: report.nominationFile.currentPosition,
-      dureeDuPoste: this.lastPositionDuration(report.nominationFile.lastPositionDate),
-      folderNumber: report.nominationFile.number,
-      grade: z.enum(GradeEnum).parse(report.nominationFile.grade),
-      rank: report.nominationFile.rank,
+      sessionId: report.sessionId,
+      state: prismaReportStateEnumToReportState(report.state),
       targetedGrade: z.enum(GradeEnum).nullable().parse(report.nominationFile.targetedGrade),
       targettedPosition: report.nominationFile.targetedPosition,
-      priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
-      priority: report.nominationFile.priorities[0]
-        ? prismaPrioriteEnumToPriorityEnum(report.nominationFile.priorities[0])
-        : null,
-
-      dateTransparence: DateOnly.fromUtcDate(report.nominationFile.session.date).toJson(),
-      dueDate:
-        DateOnly.fromOptionalUtcDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ??
-        null,
-      formation: prismaFormationEnumToFormationEnum(report.nominationFile.session.formation),
       transparency: report.nominationFile.session.name,
-      name: report.nominationFile.name,
-      detectedMagistratId: report.nominationFile.detectedMagistratId,
-      detectedMagistrat: report.nominationFile.detectedMagistrat,
     };
   }
 
@@ -232,7 +226,7 @@ export class DetailedReportDto extends createZodDto(
     state: z.enum(ReportStateEnum),
     isArchived: z.boolean(),
     auditionDate: dateOnlyJsonSchema.nullable(),
-    auditionExpected: z.boolean(),
+    auditionRequired: z.boolean(),
     auditionTime: timeOnlySchema.nullable(),
     canScheduleAudition: z.boolean(),
     missingEvaluation: z.boolean(),

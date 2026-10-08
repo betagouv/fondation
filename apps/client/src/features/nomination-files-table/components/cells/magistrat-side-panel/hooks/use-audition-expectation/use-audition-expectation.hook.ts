@@ -5,6 +5,8 @@ import { areReportersMissing, isAuditionMissing } from '@/utils/audition-expecta
 import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type AuditionExpectation = {
+  /** the members hear about an audition to schedule, the secretariat is asked to schedule it */
+  auditionAnnounced: boolean;
   auditionMissing: boolean;
   labels: string[];
   reportersMissing: boolean;
@@ -37,5 +39,5 @@ export function useAuditionExpectation(
     return announcements;
   }
 
-  return { auditionMissing, labels: labels(), reportersMissing };
+  return { auditionAnnounced: !isSg && auditionMissing, auditionMissing, labels: labels(), reportersMissing };
 }

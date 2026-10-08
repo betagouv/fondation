@@ -150,7 +150,7 @@ export function makeSummary(
 
   return {
     auditionDate: null,
-    auditionExpected: false,
+    auditionRequired: false,
     auditionTime: null,
     biography:
       '- Juge au tribunal judiciaire de Lyon (2018)\n- Vice-présidente au tribunal judiciaire de Lyon (2021)\n- Conseillère référendaire à la Cour de cassation (2023)',

@@ -8,6 +8,8 @@ import { MembersModule } from 'src/modules/members';
 import { ObservationModule } from 'src/modules/observation/observation.module';
 
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
+import { AuditionPublicationFinder } from './infrastructure/finders/audition-publication.finder';
+import { AuditionsSeenFinder } from './infrastructure/finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
 import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
@@ -25,6 +27,7 @@ import { CountSessionAuditionsQuery } from './infrastructure/queries/count-sessi
 import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
 import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
 import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-affectation-history.query';
+import { DetailAuditionsPublicationQuery } from './infrastructure/queries/detail-auditions-publication.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
@@ -48,8 +51,8 @@ import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
 
 @Module({
-  exports: [TransparenceService, SummaryModule],
   controllers: [SessionController],
+  exports: [TransparenceService, SummaryModule],
   imports: [
     SummaryModule,
     forwardRef(() => MembersModule),
@@ -60,6 +63,8 @@ import { SessionController } from './transparence.controller';
   ],
   providers: [
     AffectationVersionFinder,
+    AuditionPublicationFinder,
+    AuditionsSeenFinder,
     AutoAffectationsFinder,
     CountNominationFilesByStatusQuery,
     CountSessionAuditionsQuery,
@@ -67,6 +72,7 @@ import { SessionController } from './transparence.controller';
     CountUsersNewSessionsQuery,
     DetailNominationFileAttachmentQuery,
     DetailAffectationHistoryQuery,
+    DetailAuditionsPublicationQuery,
     DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,

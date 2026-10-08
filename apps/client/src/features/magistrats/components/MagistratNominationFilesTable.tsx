@@ -125,7 +125,7 @@ export function MagistratNominationFilesTable({
           const scheduledAt = toScheduledDate(auditionDate, auditionTime);
           if (!scheduledAt) {
             return isAuditionMissing(info.row.original)
-              ? formatMessage({ defaultMessage: 'À prévoir' })
+              ? formatMessage({ defaultMessage: 'À programmer' })
               : '-';
           }
 

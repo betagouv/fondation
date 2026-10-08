@@ -15,6 +15,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import type { AuditionSchedule } from 'src/utils/audition-schedule';
 import type { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
@@ -71,23 +72,23 @@ export class ObservationService {
   ) {}
 
   async createObservation(command: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
-    magistratId: string;
     dateReception: Date;
     description: string | undefined | null;
     files: readonly { id: string }[];
+    magistratId: string;
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
     linkedAttachments: readonly {
-      observationId: string;
       fileId: string;
+      observationId: string;
     }[];
   }): Promise<{ id: string }> {
     const [nominationFile, linkedFiles] = await this.db.withTransaction(async () => {
       const txNominationFile = await this.observationFinder.findExistingObservation({
-        sessionId: command.sessionId,
-        nominationFileId: command.nominationFileId,
         magistratId: command.magistratId,
+        nominationFileId: command.nominationFileId,
+        sessionId: command.sessionId,
       });
 
       const { items: txLinkedFiles } = await this.observationFinder.findExistingFiles({
@@ -112,14 +113,14 @@ export class ObservationService {
     }
 
     const observation = Observation.create({
-      linkedFiles,
-      nominationFile,
-      files: command.files,
       createdByUserId: command.userId,
-      description: command.description,
-      sessionId: command.sessionId,
-      magistratId: command.magistratId,
       dateReception: command.dateReception,
+      description: command.description,
+      files: command.files,
+      linkedFiles,
+      magistratId: command.magistratId,
+      nominationFile,
+      sessionId: command.sessionId,
     });
 
     await this.observationRepository.persist(observation);
@@ -158,13 +159,13 @@ export class ObservationService {
 
     if (command.magistratId !== observation.magistratId) {
       const existingObservation = await this.db.tx.observation.findUnique({
+        select: { id: true } satisfies Prisma.ObservationSelect,
         where: {
           nominationFileId_magistratId: {
-            nominationFileId: observation.nominationFileId,
             magistratId: command.magistratId,
+            nominationFileId: observation.nominationFileId,
           },
         },
-        select: { id: true } satisfies Prisma.ObservationSelect,
       });
 
       if (existingObservation) {
@@ -195,8 +196,16 @@ export class ObservationService {
   }
 
   /** @internal */
-  internalFindObservantAuditions(predicate: {
+  internalFindObservantObservations(query: {
     magistratIds: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, { nominationFileId: string; observationId: string }[]>> {
+    return this.observantAuditions.findObservations(query);
+  }
+
+  /** @internal */
+  internalFindObservantAuditions(predicate: {
+    magistratIds?: readonly string[];
     sessionId: string;
   }): Promise<Map<string, AuditionSchedule>> {
     return this.observantAuditions.findByMagistratId(predicate);
@@ -221,33 +230,35 @@ export class ObservationService {
   @Transactional()
   listObservations(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<ListObservationsResponseDto> {
     return this.listObservationsQuery.handle(query);
   }
 
   getObservationFileUrl(query: {
-    observationId: string;
     fileId: string;
+    observationId: string;
   }): Promise<GetObservationFileUrlResponseDto> {
     return this.getObservationFileUrlQuery.handle(query);
   }
 
   getObservationDetails(query: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
+    sessionId: string;
+    userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.getObservationDetailsQuery.handle(query);
   }
 
   async attachMemberCommentScreenshots(command: {
-    userId: string;
-    sessionId: string;
+    files: readonly StoredFile[];
     nominationFileId: string;
     observationId: string;
-    files: readonly StoredFile[];
+    sessionId: string;
+    userId: string;
   }): Promise<AttachedMemberCommentScreenshotsDto> {
     const reporters = await this.transparences.versions.findReporters({
       nominationFileId: command.nominationFileId,
@@ -259,9 +270,9 @@ export class ObservationService {
 
     try {
       observation.attachMemberCommentScreenshots({
-        userId: command.userId,
-        reporterIds,
         files: command.files.map((f) => ({ id: f.id })),
+        reporterIds,
+        userId: command.userId,
       });
     } catch (error) {
       if (error instanceof UserNotAllowedToAttachScreenshotsError) {
@@ -291,11 +302,11 @@ export class ObservationService {
   }
 
   async writeMemberComment(command: {
-    userId: string;
-    sessionId: string;
+    comment: string;
     nominationFileId: string;
     observationId: string;
-    comment: string;
+    sessionId: string;
+    userId: string;
   }): Promise<void> {
     const reporters = await this.transparences.versions.findReporters({
       nominationFileId: command.nominationFileId,
@@ -307,9 +318,9 @@ export class ObservationService {
 
     try {
       observation.writeMemberComment({
-        userId: command.userId,
-        reporterIds,
         comment: command.comment,
+        reporterIds,
+        userId: command.userId,
       });
     } catch (error) {
       if (error instanceof UserNotAllowedToWriteCommentError) {
@@ -322,10 +333,10 @@ export class ObservationService {
   }
 
   async followUpWith(command: {
+    comment: string | null;
+    followUp: string | null;
     observationId: string;
     userId: string | null;
-    followUp: string | null;
-    comment: string | null;
   }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
     observation.followUpWith(command);
@@ -333,9 +344,9 @@ export class ObservationService {
   }
 
   listObservationsAttachments(query: {
-    sessionId: string;
-    magistratId: string | undefined;
     excludeObservationId: string | undefined;
+    magistratId: string | undefined;
+    sessionId: string;
   }): Promise<ListedObservationsAttachmentsDto> {
     return this.listObservationsAttachmentsQuery.handle(query);
   }

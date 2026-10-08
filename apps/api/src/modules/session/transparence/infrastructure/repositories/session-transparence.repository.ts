@@ -26,7 +26,9 @@ import {
   SessionTransparenceArchived,
   SessionTransparenceAttachmentAdded,
   SessionTransparenceAttachmentRemoved,
+  SessionTransparenceAuditionRequestDefined,
   SessionTransparenceAuditionScheduled,
+  SessionTransparenceAuditionsPublished,
   SessionTransparenceAuditionUnScheduled,
   SessionTransparenceCommentWritten,
   SessionTransparenceCreated,
@@ -82,13 +84,13 @@ export class SessionTransparenceRepository {
     } = {},
   ): Promise<SessionTransparence> {
     const session = await this.db.tx.session.findUnique({
-      where: { id, deletedAt: null },
       select: {
-        id: true,
-        formation: true,
         archivedAt: true,
+        formation: true,
+        id: true,
         typeDeSaisine: true,
       } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id },
     });
 
     if (!session) throw new NotFoundException();
@@ -98,8 +100,8 @@ export class SessionTransparenceRepository {
     if (session.typeDeSaisine !== 'TRANSPARENCE_GDS') throw new NotFoundException();
 
     const nominationFiles = await this.transparenceFilesFinder.findSnapshots({
-      sessionId: session.id,
       nominationFileIds: options.nominationFileIds,
+      sessionId: session.id,
     });
 
     const optionalVersion = await this.affectationVersionFinder.last({
@@ -107,13 +109,13 @@ export class SessionTransparenceRepository {
     });
 
     return SessionTransparence.from({
+      formation: prismaFormationEnumToFormationEnum(session.formation),
       id,
       nominationFiles,
-      formation: prismaFormationEnumToFormationEnum(session.formation),
       version: optionalVersion.map(({ id, status, version }) => ({
         id,
-        version,
         isDraft: status === 'BROUILLON',
+        version,
       })),
     });
   }
@@ -124,7 +126,7 @@ export class SessionTransparenceRepository {
   }> {
     const sessions = await this.db.tx.sessionTransparenceGds.findMany({
       select: {
-        session: { select: { id: true, archivedAt: true, deletedAt: true, formation: true } },
+        session: { select: { archivedAt: true, deletedAt: true, formation: true, id: true } },
       } satisfies Prisma.SessionTransparenceGdsSelect,
       where: { lolfiSessionId },
     });
@@ -183,8 +185,12 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceCommentWritten(message);
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
         invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(message)));
+      } else if (message instanceof SessionTransparenceAuditionRequestDefined) {
+        await this.persistSessionTransparenceAuditionRequestDefined(message);
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
         await this.persistSessionTransparenceAuditionScheduled(message);
+      } else if (message instanceof SessionTransparenceAuditionsPublished) {
+        await this.persistSessionTransparenceAuditionsPublished(message);
       } else if (message instanceof SessionTransparenceAuditionUnScheduled) {
         await this.persistSessionTransparenceAuditionUnScheduled(message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
@@ -222,34 +228,34 @@ export class SessionTransparenceRepository {
 
       await this.db.tx.nominationFileToReporter.deleteMany({
         where: {
-          versionId,
           nominationFileId: { in: nominationFileIds },
+          versionId,
         },
       });
 
       await this.db.tx.nominationFileToReporter.createMany({
         data: message.affectations.flatMap(({ reporterIds, nominationFileId }) =>
           reporterIds.map((userId) => ({
+            nominationFileId,
             userId,
             versionId,
-            nominationFileId,
           })),
         ),
       });
     } else {
       await this.db.tx.affectationVersion.create({
         data: {
-          sessionId: message.sessionId,
           affectations: {
             createMany: {
               data: message.affectations.flatMap(({ reporterIds, nominationFileId }) =>
                 reporterIds.map((userId) => ({
-                  userId,
                   nominationFileId,
+                  userId,
                 })),
               ),
             },
           },
+          sessionId: message.sessionId,
         },
       });
     }
@@ -257,8 +263,8 @@ export class SessionTransparenceRepository {
 
   private persistSessionTransparenceFilePrioritiesUpdated(message: SessionTransparenceFilePrioritiesUpdated) {
     return this.db.tx.dossierDeNomination.update({
-      where: { id: message.nominationFileId, sessionId: message.sessionId },
       data: { priorities: message.priorities as PriorityEnum[] },
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
   }
 
@@ -266,21 +272,20 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceAffectationVersionPublished,
   ): Promise<DocInvalidation[]> {
     const session = await this.db.tx.session.findUnique({
-      where: { id: message.sessionId, deletedAt: null },
       select: {
-        // TODO: remove once report.formation is removed
-        formation: true,
-
-        id: true,
         affectationVersions: {
-          where: { id: message.versionId },
           select: {
             affectations: {
               select: { nominationFileId: true, userId: true },
             },
           },
+          where: { id: message.versionId },
         },
+        // TODO: remove once report.formation is removed
+        formation: true,
+        id: true,
       } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: message.sessionId },
     });
 
     if (!session) {
@@ -292,25 +297,25 @@ export class SessionTransparenceRepository {
     // We can't use upsert, since `message.versionId` is nullable. It doesn't appear in prisma TS error but at runtime
     if (message.versionId) {
       const affectationVersion = await this.db.tx.affectationVersion.update({
-        select: { id: true } satisfies Prisma.AffectationVersionSelect,
-        where: { id: message.versionId },
         data: {
-          statut: 'PUBLIEE',
           auteurPublicationId: message.userId,
           datePublication: this.clock.now(),
           sessionId: message.sessionId,
+          statut: 'PUBLIEE',
         },
+        select: { id: true } satisfies Prisma.AffectationVersionSelect,
+        where: { id: message.versionId },
       });
       versionId = affectationVersion.id;
     } else {
       const affectationVersion = await this.db.tx.affectationVersion.create({
-        select: { id: true } satisfies Prisma.AffectationVersionSelect,
         data: {
-          statut: 'PUBLIEE',
           auteurPublicationId: message.userId,
           datePublication: this.clock.now(),
           sessionId: message.sessionId,
+          statut: 'PUBLIEE',
         },
+        select: { id: true } satisfies Prisma.AffectationVersionSelect,
       });
       versionId = affectationVersion.id;
     }
@@ -319,24 +324,24 @@ export class SessionTransparenceRepository {
       affectations.map(
         ({ nominationFileId, userId }) =>
           ({
+            /** @deprecated */
+            formation: session.formation,
             id: makeId('ReportId'),
             nominationFileId,
             reporterId: userId,
             sessionId: session.id,
-            /** @deprecated */
-            formation: session.formation,
           }) satisfies Prisma.ReportCreateManyInput,
       ),
     );
 
     for (const reportToCreate of reportsToCreate) {
       const [existingReport] = await this.db.tx.report.updateManyAndReturn({
-        select: { id: true } satisfies Prisma.ReportSelect,
         data: { isDeleted: false },
+        select: { id: true } satisfies Prisma.ReportSelect,
         where: {
-          sessionId: reportToCreate.sessionId,
-          reporterId: reportToCreate.reporterId,
           nominationFileId: reportToCreate.nominationFileId,
+          reporterId: reportToCreate.reporterId,
+          sessionId: reportToCreate.sessionId,
         },
       });
 
@@ -359,8 +364,8 @@ export class SessionTransparenceRepository {
     );
     return [
       {
-        type: 'SessionAffectationVersionPublished',
         payload: { sessionId: message.sessionId, versionId },
+        type: 'SessionAffectationVersionPublished',
       } satisfies DocInvalidation,
     ];
   }
@@ -369,15 +374,15 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceAffectationVersionCreated,
   ) {
     let previousVersion: {
-      id: string;
       affectations: { nominationFileId: string; userId: string }[];
+      id: string;
     } | null = null;
 
     if (message.version.version > 1) {
       previousVersion = await this.db.tx.affectationVersion.findUnique({
         select: {
-          id: true,
           affectations: { select: { nominationFileId: true, userId: true } },
+          id: true,
         } satisfies Prisma.AffectationVersionSelect,
         where: {
           sessionId_version: {
@@ -389,25 +394,25 @@ export class SessionTransparenceRepository {
     }
 
     await this.db.tx.session.update({
-      where: { id: message.sessionId },
       data: {
         affectationVersions: {
           create: {
-            statut: 'BROUILLON',
-            id: message.version.id,
-            version: message.version.version,
             createdBy: message.authorId,
+            id: message.version.id,
+            statut: 'BROUILLON',
+            version: message.version.version,
           },
         },
       },
+      where: { id: message.sessionId },
     });
 
     if (previousVersion) {
       await this.db.tx.nominationFileToReporter.createMany({
         data: previousVersion.affectations.map(({ nominationFileId, userId }) => ({
-          versionId: message.version.id,
           nominationFileId,
           userId,
+          versionId: message.version.id,
         })),
       });
     }
@@ -416,9 +421,9 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceCreated(message: SessionTransparenceCreated) {
     const existingSession = await this.db.tx.session.findFirst({
       where: {
-        name: message.name,
-        formation: message.formation,
         date: message.date.toDate(),
+        formation: message.formation,
+        name: message.name,
       },
     });
 
@@ -433,28 +438,27 @@ export class SessionTransparenceRepository {
 
     await this.db.tx.session.create({
       data: {
+        date: message.date.toDate(),
+        formation: message.formation,
         id: message.sessionId,
         name: message.name,
-        typeDeSaisine: message.typeDeSaisine,
-        formation: message.formation,
-        date: message.date.toDate(),
-
         transparenceGds: {
           create: {
-            lolfiSessionId: message.lolfiSessionId,
             dueDate: message.dueDate?.toDate() ?? null,
-            positionStartDate: message.positionStartDate?.toDate() ?? null,
+            lolfiSessionId: message.lolfiSessionId,
             observationsClosingDate: message.observationClosingDate.toDate(),
+            positionStartDate: message.positionStartDate?.toDate() ?? null,
           },
         },
+        typeDeSaisine: message.typeDeSaisine,
       },
     });
   }
 
   private async persistLodamSessionTransparenceFilesCreated(message: LodamSessionTransparenceFilesCreated) {
     const session = await this.db.tx.sessionTransparenceGds.findUnique({
-      where: { sessionId: message.sessionId },
       select: { dueDate: true } satisfies Prisma.SessionTransparenceGdsSelect,
+      where: { sessionId: message.sessionId },
     });
 
     await this.db.tx.$queryRawTyped(
@@ -485,16 +489,16 @@ export class SessionTransparenceRepository {
 
   private async persistSessionTransparenceAttachmentAdded(message: SessionTransparenceAttachmentAdded) {
     await this.db.tx.sessionAttachment.create({
-      data: { sessionId: message.sessionId, fileId: message.file.id },
+      data: { fileId: message.file.id, sessionId: message.sessionId },
     });
   }
 
   private async persistSessionTransparenceAttachmentRemoved(message: SessionTransparenceAttachmentRemoved) {
     const attachment = await this.db.tx.sessionAttachment.findFirst({
-      where: { fileId: message.fileId, sessionId: message.sessionId },
       select: {
-        file: { select: { path: true, name: true, id: true } },
+        file: { select: { id: true, name: true, path: true } },
       } satisfies Prisma.SessionAttachmentSelect,
+      where: { fileId: message.fileId, sessionId: message.sessionId },
     });
 
     if (!attachment) return;
@@ -515,7 +519,7 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileAttachmentAdded,
   ) {
     await this.db.tx.nominationFileAttachment.create({
-      data: { nominationFileId: message.nominationFileId, fileId: message.file.id, type: message.type },
+      data: { fileId: message.file.id, nominationFileId: message.nominationFileId, type: message.type },
     });
   }
 
@@ -523,8 +527,8 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileAttachmentRemoved,
   ) {
     const attachment = await this.db.tx.nominationFileAttachment.findFirst({
+      select: { file: { select: { id: true, path: true } } } satisfies Prisma.NominationFileAttachmentSelect,
       where: { fileId: message.fileId, nominationFileId: message.nominationFileId },
-      select: { file: { select: { path: true, id: true } } } satisfies Prisma.NominationFileAttachmentSelect,
     });
 
     if (!attachment) return;
@@ -544,35 +548,34 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceUpdated(message: SessionTransparenceUpdated) {
     const invalidations: DocInvalidation[] = [];
     const old = await this.db.tx.session.findUnique({
-      where: { id: message.sessionId },
       select: { date: true } satisfies Prisma.SessionSelect,
+      where: { id: message.sessionId },
     });
 
     if (message.data.date.toDate().getTime() !== old?.date.getTime()) {
       invalidations.push({
-        type: 'SessionDateUpdated',
         payload: {
-          sessionId: message.sessionId,
           currentDate: message.data.date.toJson(),
           previousDate: old?.date ? DateOnly.fromUtcDate(old.date).toJson() : null,
+          sessionId: message.sessionId,
         },
+        type: 'SessionDateUpdated',
       });
     }
 
     await this.db.tx.session.update({
-      where: { id: message.sessionId },
       data: {
-        name: message.data.name,
         date: message.data.date.toDate(),
-
+        name: message.data.name,
         transparenceGds: {
           update: {
             dueDate: message.data.dueDate?.toDate() ?? null,
-            positionStartDate: message.data.positionStartDate?.toDate() ?? null,
             observationsClosingDate: message.data.observationsClosingDate.toDate(),
+            positionStartDate: message.data.positionStartDate?.toDate() ?? null,
           },
         },
       },
+      where: { id: message.sessionId },
     });
 
     return invalidations;
@@ -599,18 +602,18 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceOutcomeDefined,
   ): Promise<DocInvalidation[]> {
     await this.db.tx.dossierDeNomination.update({
-      where: { id: message.nominationFileId },
       data: { outcome: message.outcome, outcomeComment: message.comment },
+      where: { id: message.nominationFileId },
     });
 
     return [
       {
-        type: 'NominationFileOutcomeUpdated',
         payload: {
-          nominationFileId: message.nominationFileId,
           comment: message.comment,
+          nominationFileId: message.nominationFileId,
           outcome: message.outcome,
         },
+        type: 'NominationFileOutcomeUpdated',
       },
     ];
   }
@@ -622,27 +625,89 @@ export class SessionTransparenceRepository {
     };
 
     await this.db.tx.dossierDeNomination.update({
-      data: { auditionDate: audition.date, auditionTime: audition.time },
+      data: {
+        auditionDate: audition.date,
+        auditionRequested: message.requested,
+        auditionTime: audition.time,
+      },
       where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
-    await this.persistNominationFileAuditionVersion(message, audition);
+    await this.persistNominationFileAuditionVersion(message, { ...audition, requested: message.requested });
+  }
+
+  private async persistSessionTransparenceAuditionRequestDefined(
+    message: SessionTransparenceAuditionRequestDefined,
+  ) {
+    const [file] = await this.db.tx.dossierDeNomination.updateManyAndReturn({
+      data: { auditionRequested: message.requested },
+      select: { auditionDate: true, auditionTime: true } satisfies Prisma.DossierDeNominationSelect,
+      where: {
+        OR: [{ auditionRequested: null }, { auditionRequested: !message.requested }],
+        id: message.nominationFileId,
+        sessionId: message.sessionId,
+      },
+    });
+    if (!file) return;
+
+    await this.persistNominationFileAuditionVersion(message, {
+      date: file.auditionDate,
+      requested: message.requested,
+      time: file.auditionTime,
+    });
+  }
+
+  private async persistSessionTransparenceAuditionsPublished(message: SessionTransparenceAuditionsPublished) {
+    await this.db.tx.auditionPublication.create({
+      data: {
+        impersonatorId: message.impersonatorId,
+        nominationFileAuditions: {
+          createMany: {
+            data: [...message.auditions.nominationFiles].map(
+              ([nominationFileId, { audition, requested }]) => ({
+                date: audition ? DateOnly.fromJson(audition.date).toDate() : null,
+                nominationFileId,
+                requested,
+                time: audition ? timeOnlyToDate(audition.time) : null,
+              }),
+            ),
+          },
+        },
+        observantAuditions: {
+          createMany: {
+            data: [...message.auditions.observants].map(([magistratId, audition]) => ({
+              date: DateOnly.fromJson(audition.date).toDate(),
+              magistratId,
+              time: timeOnlyToDate(audition.time),
+            })),
+          },
+        },
+        publishedAt: this.clock.now(),
+        publishedBy: message.userId,
+        sessionId: message.sessionId,
+      },
+    });
   }
 
   private async persistSessionTransparenceAuditionUnScheduled(
     message: SessionTransparenceAuditionUnScheduled,
   ) {
-    const { count } = await this.db.tx.dossierDeNomination.updateMany({
+    const [file] = await this.db.tx.dossierDeNomination.updateManyAndReturn({
       data: { auditionDate: null, auditionTime: null },
+      select: { auditionRequested: true } satisfies Prisma.DossierDeNominationSelect,
       where: { auditionDate: { not: null }, id: message.nominationFileId, sessionId: message.sessionId },
     });
-    if (count === 0) return;
+    if (!file) return;
 
-    await this.persistNominationFileAuditionVersion(message, { date: null, time: null });
+    await this.persistNominationFileAuditionVersion(message, {
+      date: null,
+      requested: file.auditionRequested,
+      time: null,
+    });
   }
 
   private persistNominationFileAuditionVersion(
     message: { impersonatorId: string | null; nominationFileId: string; userId: string },
-    audition: { date: Date | null; time: Date | null },
+    audition: { date: Date | null; requested: boolean | null; time: Date | null },
   ) {
     return this.db.tx.nominationFileAuditionVersion.create({
       data: {
@@ -659,19 +724,19 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileMemberMemoWritten,
   ) {
     await this.db.tx.memberMemo.upsert({
-      where: {
-        primaryKey: {
-          userId: message.userId,
-          nominationFileId: message.nominationFileId,
-        },
+      create: {
+        memo: message.memo,
+        nominationFileId: message.nominationFileId,
+        userId: message.userId,
       },
 
       update: { memo: message.memo },
 
-      create: {
-        userId: message.userId,
-        nominationFileId: message.nominationFileId,
-        memo: message.memo,
+      where: {
+        primaryKey: {
+          nominationFileId: message.nominationFileId,
+          userId: message.userId,
+        },
       },
     });
   }
@@ -680,8 +745,8 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileMissingEvaluationUpdated,
   ) {
     await this.db.tx.dossierDeNomination.update({
-      where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { missingEvaluation: message.missingEvaluation },
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
   }
 
@@ -689,22 +754,22 @@ export class SessionTransparenceRepository {
     message: SessionTransparenceFileMissingEvaluationCommentUpdated,
   ) {
     await this.db.tx.dossierDeNomination.update({
-      where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { missingEvaluationComment: message.comment },
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
   }
 
   private async persistSessionTransparenceFileAlertHidden(message: SessionTransparenceFileAlertHidden) {
     await this.db.tx.dossierDeNomination.update({
-      where: { sessionId: message.sessionId, id: message.nominationFileId },
       data: { alertHidden: true },
+      where: { id: message.nominationFileId, sessionId: message.sessionId },
     });
   }
 
   private async persistSessionTransparenceFilesAssociated(message: SessionTransparenceLolfiFilesAssociated) {
     const session = await this.db.tx.sessionTransparenceGds.findFirst({
-      where: { sessionId: message.sessionId },
       select: { dueDate: true } satisfies Prisma.SessionTransparenceGdsSelect,
+      where: { sessionId: message.sessionId },
     });
 
     if (!session) {
@@ -730,18 +795,7 @@ export class SessionTransparenceRepository {
       }
 
       await this.db.tx.dossierDeNomination.upsert({
-        where: {
-          sessionExternalId: {
-            sessionId: message.sessionId,
-            externalId: file.externalId,
-          },
-        },
         create: {
-          id: makeId('LolfiNominationFileId'),
-          sessionId: message.sessionId,
-          externalId: file.externalId,
-          number: file.fileNumber,
-
           biography: file.biography,
           birthDate: file.birthDate?.toDate(),
           currentPosition: file.currentPosition,
@@ -750,18 +804,21 @@ export class SessionTransparenceRepository {
           detectedTargetedFunctionId: file.detectedTargetedFunctionId,
           detectedTargetedPositionId: file.detectedTargetedPositionId,
           dueDate: session.dueDate,
+          externalId: file.externalId,
           grade: file.grade,
+          id: makeId('LolfiNominationFileId'),
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
+          number: file.fileNumber,
           priorities: file.priorities,
           rank: file.rank,
+          sessionId: message.sessionId,
           sortableTargetedGrade: file.sortableTargetedGrade,
           targetedGrade: file.targetedGrade,
           targetedPosition: file.targetedPosition,
         },
         update: {
-          number: file.fileNumber,
           biography: file.biography,
           birthDate: file.birthDate?.toDate(),
           currentPosition: file.currentPosition,
@@ -774,11 +831,18 @@ export class SessionTransparenceRepository {
           lastPositionDate: file.lastPositionDate?.toDate(),
           lastRankingDate: file.lastRankingDate?.toDate(),
           name: file.name,
+          number: file.fileNumber,
           priorities: { push: file.priorities },
           rank: file.rank,
           sortableTargetedGrade: file.sortableTargetedGrade,
           targetedGrade: file.targetedGrade,
           targetedPosition: file.targetedPosition,
+        },
+        where: {
+          sessionExternalId: {
+            externalId: file.externalId,
+            sessionId: message.sessionId,
+          },
         },
       });
     }
@@ -786,25 +850,25 @@ export class SessionTransparenceRepository {
 
   private async persistSessionTransparenceValidated(message: SessionTransparenceValidated) {
     await this.db.tx.session.update({
-      where: { id: message.sessionId },
       data: {
-        validatedBy: message.userId,
         validatedAt: this.clock.now(),
+        validatedBy: message.userId,
       },
+      where: { id: message.sessionId },
     });
   }
 
   private async persistSessionTransparenceDeleted(message: SessionTransparenceDeleted) {
     await this.db.tx.session.update({
-      where: { id: message.id },
       data: { deletedAt: this.clock.now(), deletedBy: message.userId },
+      where: { id: message.id },
     });
   }
 
   private async persistSessionTransparenceArchived(message: SessionTransparenceArchived) {
     await this.db.tx.session.update({
-      where: { id: message.sessionId },
       data: { archivedAt: this.clock.now(), archivedBy: message.userId },
+      where: { id: message.sessionId },
     });
   }
 }

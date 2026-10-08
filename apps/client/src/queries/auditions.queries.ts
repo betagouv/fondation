@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { fileNameFromResponse, saveBlob } from '@/utils/file.utils';
 import * as $api from '@api/sdk';
@@ -18,6 +18,7 @@ const SESSION_AUDITIONS_PAGE_SIZE = 50;
 export const auditionKeys = {
   all: () => ['auditions'] as const,
   counts: (props: { sessionId: string }) => ['auditions', 'counts', props] as const,
+  lastPublication: (props: { sessionId: string }) => ['auditions', 'publications', 'last', props] as const,
   list: (props: { filters: SessionAuditionsFilters; sessionId: string }) =>
     ['auditions', 'list', props] as const,
 };
@@ -71,3 +72,26 @@ export const useListSessionAuditionsAsExcelMutation = () =>
       saveBlob(data as Blob, fileNameFromResponse(response, 'auditions.xlsx'));
     },
   });
+
+export const useLastAuditionsPublicationQuery = (props: { sessionId: string }) =>
+  useQuery({
+    queryFn: async () => {
+      const { data } = await $api.sessions.detailLastSessionAuditionsPublication({
+        path: props,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: auditionKeys.lastPublication(props),
+  });
+
+export const usePublishAuditionsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (props: { sessionId: string }) => {
+      await $api.sessions.publishSessionAuditions({ path: props, throwOnError: true });
+    },
+    onSuccess: (_, props) => queryClient.invalidateQueries({ queryKey: auditionKeys.lastPublication(props) }),
+  });
+};

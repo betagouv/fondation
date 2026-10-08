@@ -19,43 +19,49 @@ export class TransparenceFilesFinder {
 
   @Transactional()
   async bySessionAndFileNumber(query: {
-    sessionId: string;
     fileNumbers: readonly number[];
+    sessionId: string;
   }): Promise<{ id: string; fileNumber: number }[]> {
     const files = await this.db.tx.dossierDeNomination.findMany({
-      where: {
-        sessionId: query.sessionId,
-        number: { in: query.fileNumbers as number[] },
-      },
       select: { id: true, number: true } satisfies Prisma.DossierDeNominationSelect,
+      where: {
+        number: { in: query.fileNumbers as number[] },
+        sessionId: query.sessionId,
+      },
     });
 
     return files
       .filter((x): x is { id: string; number: number } => isDefined(x.number))
-      .map(({ id, number: fileNumber }) => ({ id, fileNumber }));
+      .map(({ id, number: fileNumber }) => ({ fileNumber, id }));
   }
 
   @Transactional()
   async findSnapshots(query: {
-    sessionId: string;
     nominationFileIds: Set<string> | undefined;
+    sessionId: string;
   }): Promise<NominationFileSnapshot[]> {
     assertPgParams(query.nominationFileIds || []);
 
     const inIds =
       (query.nominationFileIds?.size ?? 0) > 0 ? { in: [...(query.nominationFileIds ?? [])] } : undefined;
     const snapshots = await this.db.tx.dossierDeNomination.findMany({
-      where: { id: inIds, sessionId: query.sessionId },
       select: {
+        auditionDate: true,
         id: true,
         outcome: true,
       } satisfies Prisma.DossierDeNominationSelect,
+      where: { id: inIds, sessionId: query.sessionId },
     });
 
     const reportedFileIds = await this.docs.internalFindReportedNominationFiles({
       nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 
-    return snapshots.map((file) => ({ ...file, isReported: reportedFileIds.has(file.id) }));
+    return snapshots.map(({ auditionDate, id, outcome }) => ({
+      auditionScheduled: auditionDate !== null,
+      id,
+      isReported: reportedFileIds.has(id),
+      outcome,
+    }));
   }
 }

@@ -68,10 +68,17 @@ export function isAuditionExpected(file: AuditionedPosition): boolean {
   return !!label && AUDITIONED_LEGACY_LABELS.some((legacyLabel) => label.startsWith(legacyLabel));
 }
 
+// the secretariat may request an audition the position does not expect, or dismiss one it does
+export function isAuditionRequired(
+  file: AuditionedPosition & { auditionRequested: boolean | null },
+): boolean {
+  return file.auditionRequested ?? isAuditionExpected(file);
+}
+
 const AUDITIONED_REPORTERS = 2;
 
 /**
- * Auditioned positions expect two reporters, the other ones carry no specific expectation.
+ * Follows the position only: requesting or dismissing an audition leaves the expected reporters unchanged.
  * @see https://www.notion.so/2-Proposer-automatiquement-deux-rapporteurs-sur-certains-postes-26aa2ff25f1581848cc0eef5a4d77252
  */
 export function expectedReportersCount(file: AuditionedPosition): number | null {

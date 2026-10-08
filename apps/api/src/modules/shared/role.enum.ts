@@ -1,3 +1,4 @@
+// oxlint-disable-next-line sort-keys -- the user registration CLI offers the roles in this order
 export const RoleEnum = {
   MEMBRE_DU_SIEGE: 'MEMBRE_DU_SIEGE',
   MEMBRE_DU_PARQUET: 'MEMBRE_DU_PARQUET',
@@ -6,3 +7,7 @@ export const RoleEnum = {
   ADMIN: 'ADMIN',
 } as const;
 export type RoleEnum = (typeof RoleEnum)[keyof typeof RoleEnum];
+
+export function isSecretariat(role: RoleEnum): boolean {
+  return role === 'ADJOINT_SECRETAIRE_GENERAL' || role === 'ADMIN';
+}

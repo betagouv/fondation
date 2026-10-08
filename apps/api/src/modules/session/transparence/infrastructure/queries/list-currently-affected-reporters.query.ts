@@ -5,6 +5,7 @@ import z from 'zod';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListCurrentlyAffectedReportersQuery {
@@ -13,26 +14,29 @@ export class ListCurrentlyAffectedReportersQuery {
     private readonly versions: AffectationVersionFinder,
   ) {}
 
-  async handle(query: { sessionId: string }) {
+  // the members only know the published affectations
+  async handle(query: { role: RoleEnum; sessionId: string }) {
     const { sessionId } = query;
     const version = await this.db.withTransaction(async () => {
-      const txVersion = await this.versions.last({ sessionId });
+      const txVersion = isSecretariat(query.role)
+        ? await this.versions.last({ sessionId })
+        : await this.versions.lastPublished({ sessionId });
 
       if (txVersion.isNone()) return null;
       return this.db.tx.nominationFileToReporter.findMany({
         distinct: ['userId'],
         orderBy: [{ user: { lastName: 'asc' } }, { user: { firstName: 'asc' } }],
-        where: { versionId: txVersion.id },
         select: {
-          user: { select: { id: true, firstName: true, lastName: true } },
+          user: { select: { firstName: true, id: true, lastName: true } },
         } satisfies Prisma.NominationFileToReporterSelect,
+        where: { versionId: txVersion.id },
       });
     });
 
     return {
       items: (version ?? []).map(({ user }) => ({
-        id: user.id,
         firstName: user.firstName,
+        id: user.id,
         lastName: user.lastName,
       })),
     };

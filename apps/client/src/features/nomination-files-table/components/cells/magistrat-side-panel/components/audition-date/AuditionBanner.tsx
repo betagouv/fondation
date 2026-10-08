@@ -1,6 +1,6 @@
 import { FormattedMessage } from 'react-intl';
 
-import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
@@ -24,9 +24,8 @@ export function AuditionBanner(props: {
   };
 
   if (auditionMissing) {
-    // members only hear about an audition once its date is set; a missing audition can always be scheduled,
-    // so only the secretariat edits it
-    if (!editable) return null;
+    // a missing audition can always be scheduled, so only the secretariat cannot edit it
+    if (!editable) return <AuditionAnnouncedBanner className={BANNER_LAYOUT} />;
 
     return (
       <AlertBanner
@@ -36,7 +35,7 @@ export function AuditionBanner(props: {
         tone="warning"
       >
         <AlertBannerAction onClick={goToDateField}>
-          <FormattedMessage defaultMessage="Planifier" />
+          <FormattedMessage defaultMessage="Programmer" />
         </AlertBannerAction>
       </AlertBanner>
     );

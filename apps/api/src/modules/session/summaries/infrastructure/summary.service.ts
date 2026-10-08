@@ -5,6 +5,7 @@ import { Summary } from '../domain/summary';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { SimpleAuthService } from 'src/modules/simple-auth';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -36,9 +37,9 @@ export class SummaryService {
 
   @Transactional()
   async attachFiles(command: {
-    sessionId: string;
-    nominationFileId: string;
     fileIds: readonly string[];
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.attachFiles(command);
@@ -47,9 +48,9 @@ export class SummaryService {
 
   @Transactional()
   async detachFiles(command: {
-    sessionId: string;
-    nominationFileId: string;
     fileIds: readonly string[];
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.detachFiles(command);
@@ -57,9 +58,9 @@ export class SummaryService {
   }
 
   async includeFilesIntoContent(command: {
-    sessionId: string;
-    nominationFileId: string;
     files: readonly { id: string; name: string }[];
+    nominationFileId: string;
+    sessionId: string;
   }): Promise<IncludedFilesInSummaryContentDto> {
     await this.db.withTransaction(async () => {
       const summary = await this.summaryRepository.find(command);
@@ -77,9 +78,9 @@ export class SummaryService {
 
         return {
           id,
-          url: url.toString(),
           name: existingFile.name,
           type: filenameToMimeType(existingFile.name) ?? FILE_MIME_TYPES.bin,
+          url: url.toString(),
         };
       })
       .filter(isDefined);
@@ -89,10 +90,10 @@ export class SummaryService {
 
   @Transactional()
   async writeContent(command: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
     content: string;
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.writeContent(command);
@@ -101,10 +102,10 @@ export class SummaryService {
 
   @Transactional()
   async updateReadersList(command: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
     readerIds: readonly string[];
+    sessionId: string;
+    userId: string;
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     const { items: availableUsers } = await this.users.listUsers({
@@ -113,8 +114,8 @@ export class SummaryService {
       includeIdsOnly: true,
     });
     summary.updateReadersList({
-      readerIds: command.readerIds,
       availableUserIds: new Set(availableUsers.map(({ id }) => id)),
+      readerIds: command.readerIds,
     });
 
     await this.summaryRepository.persist(summary);
@@ -122,17 +123,18 @@ export class SummaryService {
 
   @Transactional()
   detailSummary(query: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
+    role: RoleEnum;
+    sessionId: string;
+    userId: string;
   }): Promise<DetailedSummaryDto> {
     return this.detailSummaryQuery.handle(query);
   }
 
   generateSummaryAttachmentPublicUrl(query: {
-    sessionId: string;
-    nominationFileId: string;
     fileId: string;
+    nominationFileId: string;
+    sessionId: string;
     userId: string;
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.generateAttachmentPublicUrlQuery.handle(query);

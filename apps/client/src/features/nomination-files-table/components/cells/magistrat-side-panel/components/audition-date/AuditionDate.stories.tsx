@@ -22,7 +22,8 @@ function AuditionDateStory(props: { auditionDateTime: number | null; view: View 
   const editable = props.view === 'sg';
 
   const nominationFile = makeSessionNominationFile({
-    auditionDate: at ? { year: at.getFullYear(), month: at.getMonth() + 1, day: at.getDate() } : null,
+    auditionDate: at ? { day: at.getDate(), month: at.getMonth() + 1, year: at.getFullYear() } : null,
+    auditionRequired: !!at,
     auditionTime: at ? { hours: at.getHours(), minutes: at.getMinutes(), seconds: 0 } : null,
   });
 
@@ -49,15 +50,15 @@ function AuditionDateStory(props: { auditionDateTime: number | null; view: View 
 }
 
 const meta = {
-  title: 'Features/SidePanel/AuditionDate',
-  component: AuditionDateStory,
-  parameters: { layout: 'padded', router: SG_ROUTE },
-  tags: ['autodocs'],
   argTypes: {
     auditionDateTime: { control: 'date' },
     view: { control: 'inline-radio', options: VIEWS },
   },
   args: { auditionDateTime: null, view: 'sg' },
+  component: AuditionDateStory,
+  parameters: { layout: 'padded', router: SG_ROUTE },
+  tags: ['autodocs'],
+  title: 'Features/SidePanel/AuditionDate',
 } satisfies Meta<typeof AuditionDateStory>;
 
 export default meta;

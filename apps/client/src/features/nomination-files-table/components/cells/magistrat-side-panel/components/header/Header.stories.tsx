@@ -33,23 +33,23 @@ type ReporterScenario = (typeof REPORTER_SCENARIOS)[number];
 const AUDITION_SCENARIOS = ['none', 'expected', 'scheduled', 'past'] as const;
 type AuditionScenario = (typeof AUDITION_SCENARIOS)[number];
 
-const AUDITIONED_POSITION = { auditionExpected: true, expectedReportersCount: 2 };
+const AUDITIONED_POSITION = { auditionRequired: true, expectedReportersCount: 2 };
 const SCHEDULED_AT = {
-  auditionDate: { year: 2026, month: 9, day: 15 },
+  auditionDate: { day: 15, month: 9, year: 2026 },
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
 };
 const HELD_AT = {
-  auditionDate: { year: 2020, month: 1, day: 10 },
+  auditionDate: { day: 10, month: 1, year: 2020 },
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
 };
-const REPORTED_ON = { year: 2026, month: 6, day: 8 };
+const REPORTED_ON = { day: 8, month: 6, year: 2026 };
 
 function auditionFor(scenario: AuditionScenario) {
   if (scenario === 'scheduled') return { ...AUDITIONED_POSITION, ...SCHEDULED_AT };
   if (scenario === 'past') return { ...AUDITIONED_POSITION, ...HELD_AT };
   if (scenario === 'expected') return { ...AUDITIONED_POSITION, auditionDate: null, auditionTime: null };
 
-  return { auditionDate: null, auditionExpected: false, auditionTime: null, expectedReportersCount: null };
+  return { auditionDate: null, auditionRequired: false, auditionTime: null, expectedReportersCount: null };
 }
 
 const OTHER_REPORTERS = [
@@ -179,10 +179,10 @@ function HeaderBanners(props: { editable: boolean; nominationFile: SessionNomina
 function HeaderStory(props: {
   audition: AuditionScenario;
   excludedJurisdiction?: ExclusionScenario;
+  isReported?: boolean;
   magistratName: string;
   missingEvaluation?: boolean;
   priorities: PrioriteEnum[];
-  isReported?: boolean;
   reporters: ReporterScenario;
   view: View;
 }) {
@@ -200,12 +200,12 @@ function HeaderStory(props: {
     ...auditionFor(props.audition),
     canScheduleAudition: !lockedReason,
     content: {
-      lockedReason,
       jurisdictions: jurisdictionsFor(props.excludedJurisdiction ?? 'none'),
+      lockedReason,
       nomMagistrat: props.magistratName,
       status: props.isReported
-        ? { value: 'DSJ_REPORTED', dates: [REPORTED_ON] }
-        : { value: 'TO_REPORT', dates: [] },
+        ? { dates: [REPORTED_ON], value: 'DSJ_REPORTED' }
+        : { dates: [], value: 'TO_REPORT' },
     },
     isArchived,
     missingEvaluation: !!props.missingEvaluation,
@@ -240,10 +240,6 @@ function HeaderStory(props: {
 }
 
 const meta = {
-  title: 'Features/SidePanel/Header',
-  component: HeaderStory,
-  parameters: { layout: 'padded' },
-  tags: ['autodocs'],
   argTypes: {
     audition: {
       control: 'inline-radio',
@@ -251,26 +247,30 @@ const meta = {
       options: AUDITION_SCENARIOS,
     },
     excludedJurisdiction: { control: 'inline-radio', options: EXCLUSION_SCENARIOS },
-    magistratName: { control: 'text' },
-    missingEvaluation: { control: 'boolean' },
-    priorities: { control: 'check', options: priorities },
     isReported: {
       control: 'boolean',
       description: 'the file was restituted with a final outcome, so it can no longer be updated',
     },
+    magistratName: { control: 'text' },
+    missingEvaluation: { control: 'boolean' },
+    priorities: { control: 'check', options: priorities },
     reporters: { control: 'inline-radio', options: REPORTER_SCENARIOS },
     view: { table: { disable: true } },
   },
   args: {
     audition: 'none',
     excludedJurisdiction: 'none',
+    isReported: false,
     magistratName: 'Camille DURAND',
     missingEvaluation: false,
     priorities: [PrioriteEnum.ETOILE],
-    isReported: false,
     reporters: 'others',
     view: 'sg',
   },
+  component: HeaderStory,
+  parameters: { layout: 'padded' },
+  tags: ['autodocs'],
+  title: 'Features/SidePanel/Header',
 } satisfies Meta<typeof HeaderStory>;
 
 export default meta;
@@ -278,6 +278,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {
+  argTypes: {
+    reporters: { control: 'inline-radio', options: ['none', 'others'] },
+    view: { control: 'inline-radio', options: ['sg', 'sgArchived'], table: { disable: false } },
+  },
   args: {
     audition: 'past',
     missingEvaluation: false,
@@ -285,15 +289,11 @@ export const Playground: Story = {
     reporters: 'others',
     view: 'sg',
   },
-  argTypes: {
-    reporters: { control: 'inline-radio', options: ['none', 'others'] },
-    view: { control: 'inline-radio', options: ['sg', 'sgArchived'], table: { disable: false } },
-  },
 };
 
 export const Membre: Story = {
-  args: { priorities: [], reporters: 'you', view: 'member' },
   argTypes: {
     excludedJurisdiction: { control: 'inline-radio', options: ['none', 'oneReporter'] },
   },
+  args: { priorities: [], reporters: 'you', view: 'member' },
 };

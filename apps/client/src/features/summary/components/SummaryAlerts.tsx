@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
@@ -57,6 +57,7 @@ export function SummaryAlerts() {
           tone="warning"
         />
       )}
+      {!isSg && auditionMissing && <AuditionAnnouncedBanner fullWidth />}
       <AuditionScheduledBanner date={summary.auditionDate} fullWidth time={summary.auditionTime} />
     </div>
   );

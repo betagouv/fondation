@@ -4,11 +4,11 @@ import z from 'zod';
 
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { ObservantAuditionsFinder } from '../finders/observant-auditions.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -20,7 +20,6 @@ export class GetObservationDetailsQuery {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
-    private readonly observantAuditions: ObservantAuditionsFinder,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -29,6 +28,7 @@ export class GetObservationDetailsQuery {
   async handle(query: {
     nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
     sessionId: string;
     userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
@@ -135,49 +135,25 @@ export class GetObservationDetailsQuery {
         ],
         sessionId: query.sessionId,
       });
-      const auditions = await this.observantAuditions.findByMagistratId({
+      const auditions = await this.transparences.internalFindSeenObservantAuditions({
         magistratIds: [observation.magistrat.id],
+        role: query.role,
         sessionId: query.sessionId,
       });
 
       return {
-        id: observation.id,
-        isArchived: !!session?.archivedAt,
-        receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
-        followUp: observation.followUp,
-        followUpComment: observation.followUpComment,
         description: observation.description,
-        observant: {
-          id: observation.magistrat.id,
-          firstName: observation.magistrat.firstName,
-          lastName: observation.magistrat.lastName,
-          usedName: observation.magistrat.usedName,
-          biography: observation.magistrat.careerHistory,
-          externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
-          audition: auditions.get(observation.magistrat.id) ?? null,
-          auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
-        },
-        observedMagistrat: {
-          name: observation.nominationFile.name,
-          proposedPosition: observation.nominationFile.targetedPosition,
-          detectedMagistratId: observation.nominationFile.detectedMagistratId,
-        },
         files: observation.files.map(({ file }) => ({
+          addedAt: file.createdAt.toISOString(),
+          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
           id: file.id,
           name: file.name,
           size: file.sizeInBytes,
-          addedAt: file.createdAt.toISOString(),
-          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
         })),
-        relatedPropositions: observation.magistrat.observations.map((obs) => ({
-          observationId: obs.id,
-          nominationFileId: obs.nominationFile.id,
-          number: obs.nominationFile.number,
-          magistratName: obs.nominationFile.name,
-          proposedPosition: obs.nominationFile.targetedPosition,
-          observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
-        })),
-
+        followUp: observation.followUp,
+        followUpComment: observation.followUpComment,
+        id: observation.id,
+        isArchived: !!session?.archivedAt,
         isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
@@ -187,6 +163,30 @@ export class GetObservationDetailsQuery {
               ),
             }
           : null,
+        observant: {
+          audition: auditions.get(observation.magistrat.id) ?? null,
+          auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
+          biography: observation.magistrat.careerHistory,
+          externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
+          firstName: observation.magistrat.firstName,
+          id: observation.magistrat.id,
+          lastName: observation.magistrat.lastName,
+          usedName: observation.magistrat.usedName,
+        },
+        observedMagistrat: {
+          detectedMagistratId: observation.nominationFile.detectedMagistratId,
+          name: observation.nominationFile.name,
+          proposedPosition: observation.nominationFile.targetedPosition,
+        },
+        receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
+        relatedPropositions: observation.magistrat.observations.map((obs) => ({
+          magistratName: obs.nominationFile.name,
+          nominationFileId: obs.nominationFile.id,
+          number: obs.nominationFile.number,
+          observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
+          observationId: obs.id,
+          proposedPosition: obs.nominationFile.targetedPosition,
+        })),
       };
     });
   }

@@ -2,12 +2,14 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
-import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsPageLayout } from '@/shared/ui/details';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
+import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
@@ -29,6 +31,7 @@ import { ReportNavigation } from './ReportNavigation';
 export function ReportOverview({ id }: { id: string }) {
   const { formatMessage } = useIntl();
   const breadCrumbOf = useTransparencesBreadCrumb();
+  const isSg = useIsSg();
 
   const { data: retrievedReport, error, isPending } = useReportQuery(id);
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
@@ -89,11 +92,14 @@ export function ReportOverview({ id }: { id: string }) {
     <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
       <DetailsPageLayout
         alerts={
-          <AuditionScheduledBanner
-            date={retrievedReport.auditionDate}
-            fullWidth
-            time={retrievedReport.auditionTime}
-          />
+          <>
+            {!isSg && isAuditionMissing(retrievedReport) && <AuditionAnnouncedBanner fullWidth />}
+            <AuditionScheduledBanner
+              date={retrievedReport.auditionDate}
+              fullWidth
+              time={retrievedReport.auditionTime}
+            />
+          </>
         }
         background="cafeCreme"
         header={

@@ -12,10 +12,12 @@ import {
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   NonFormationMemberDefinedAsReporter,
+  ScheduledAuditionCannotBeDismissed,
   SessionTransparence,
   SessionTransparenceAffectationHasUnknownReporter,
   SessionTransparenceAffectationVersionCreated,
   SessionTransparenceAffectationVersionPublished,
+  SessionTransparenceAuditionRequestDefined,
   SessionTransparenceAuditionScheduled,
   SessionTransparenceAuditionUnScheduled,
   SessionTransparenceCommentWritten,
@@ -36,27 +38,28 @@ import { LodamTransparenceFile } from './transparence-file';
 describe('SessionTransparence', () => {
   it('should affect reporters to nomination files', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     session.affectNominationFileReporters({
-      authorId: 'author-id',
-      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       affectations: [
         {
           nominationFileId: 'nomination-file-id-1',
           reporterIds: ['reporter-1', 'reporter-2'],
         },
       ],
+      authorId: 'author-id',
+      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
     });
 
     const { messages } = session;
@@ -72,55 +75,57 @@ describe('SessionTransparence', () => {
 
   it('should throw when trying to affect on files already presented', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     expect(() =>
       session.affectNominationFileReporters({
-        authorId: 'author-id',
-        formationMemberIds: new Set(['reporter-1', 'reporter-2']),
         affectations: [
           {
             nominationFileId: 'nomination-file-id-1',
             reporterIds: ['reporter-1', 'reporter-2'],
           },
         ],
+        authorId: 'author-id',
+        formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should create a new version when the version is already published', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: false },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: { id: 'version-id', isDraft: false, version: 3 },
     });
 
     session.affectNominationFileReporters({
-      authorId: 'author-id',
-      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
       affectations: [
         {
           nominationFileId: 'nomination-file-id-1',
           reporterIds: ['reporter-1', 'reporter-2'],
         },
       ],
+      authorId: 'author-id',
+      formationMemberIds: new Set(['reporter-1', 'reporter-2']),
     });
 
     const { messages } = session;
@@ -141,44 +146,46 @@ describe('SessionTransparence', () => {
 
   it('should throw when trying to affect a non formation member', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     expect(() =>
       session.affectNominationFileReporters({
-        authorId: 'author-id',
-        formationMemberIds: new Set(['reporter-1']),
         affectations: [
           {
             nominationFileId: 'nomination-file-id-1',
             reporterIds: ['reporter-1', 'reporter-2'],
           },
         ],
+        authorId: 'author-id',
+        formationMemberIds: new Set(['reporter-1']),
       }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
   });
 
   it('should define a nomination file priority', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     session.setNominationFilePriority({
@@ -194,16 +201,17 @@ describe('SessionTransparence', () => {
 
   it('should throw when defining a priority on a file already presented', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     expect(() =>
@@ -216,16 +224,17 @@ describe('SessionTransparence', () => {
 
   it('should unset a nomination file priority', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     session.setNominationFilePriority({
@@ -241,10 +250,10 @@ describe('SessionTransparence', () => {
 
   it('should publish a draft version', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: true },
+      id: 'session-id',
       nominationFiles: [],
+      version: { id: 'version-id', isDraft: true, version: 3 },
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -257,10 +266,10 @@ describe('SessionTransparence', () => {
 
   it('should NOT publish a published version', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: { id: 'version-id', version: 3, isDraft: false },
+      id: 'session-id',
       nominationFiles: [],
+      version: { id: 'version-id', isDraft: false, version: 3 },
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -271,10 +280,10 @@ describe('SessionTransparence', () => {
 
   it('should publish an unknown version', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [],
+      version: null,
     });
 
     session.publishAffectationVersion({ userId: 'user-id' });
@@ -307,36 +316,36 @@ describe('SessionTransparence', () => {
         // oxfmt-ignore
         files: [
             {
-              fileNumber: 1,
-              name: "ARENDT HANNAH",
-              reporters: ["BOURDIEU Pierre"],
-              grade: 'HH',
-              targetedGrade: 'HH',
-              targetedPosition: "Procureur de la République TJ GRASSE",
-              currentPosition: "Procureur de la République TJ NARBONNE",
-              lastPositionDate: new DateOnly(2020, 9, 1),
-              lastRankingDate: new DateOnly(2010, 12, 17),
-              rank: "(10 sur une liste de 12)",
               biography: null,
               birthDate: new DateOnly(1968, 4, 9),
               careerInformation: null,
+              currentPosition: "Procureur de la République TJ NARBONNE",
+              fileNumber: 1,
+              grade: 'HH',
+              lastPositionDate: new DateOnly(2020, 9, 1),
+              lastRankingDate: new DateOnly(2010, 12, 17),
+              name: "ARENDT HANNAH",
               observers: [],
+              rank: "(10 sur une liste de 12)",
+              reporters: ["BOURDIEU Pierre"],
+              targetedGrade: 'HH',
+              targetedPosition: "Procureur de la République TJ GRASSE",
             },
             {
-              fileNumber: 2,
-              name: "GRAMSCI ANTONIO",
-              reporters: ["BOURDIEU Pierre"],
-              grade: 'I',
-              targetedGrade: 'I',
-              targetedPosition: "Vice-président TJ  CAHORS",
-              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
-              lastPositionDate: new DateOnly(2019, 9, 1),
-              lastRankingDate: new DateOnly(2019, 12, 7),
-              rank: "(2 sur une liste de 2)",
               biography: null,
               birthDate: new DateOnly(1991, 12, 23),
               careerInformation: null,
+              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
+              fileNumber: 2,
+              grade: 'I',
+              lastPositionDate: new DateOnly(2019, 9, 1),
+              lastRankingDate: new DateOnly(2019, 12, 7),
+              name: "GRAMSCI ANTONIO",
               observers: [],
+              rank: "(2 sur une liste de 2)",
+              reporters: ["BOURDIEU Pierre"],
+              targetedGrade: 'I',
+              targetedPosition: "Vice-président TJ  CAHORS",
             },
           ],
       });
@@ -363,38 +372,38 @@ describe('SessionTransparence', () => {
           // oxfmt-ignore
           [
             {
-              id: expect.any(String),
-              fileNumber: 1,
-              name: "ARENDT HANNAH",
-              reporters: ["BOURDIEU Pierre"],
-              grade: 'HH',
-              targetedGrade: 'HH',
-              targetedPosition: "Procureur de la République TJ GRASSE",
-              currentPosition: "Procureur de la République TJ NARBONNE",
-              lastPositionDate: new DateOnly(2020, 9, 1),
-              lastRankingDate: new DateOnly(2010, 12, 17),
-              rank: "(10 sur une liste de 12)",
               biography: null,
               birthDate: new DateOnly(1968, 4, 9),
               careerInformation: null,
+              currentPosition: "Procureur de la République TJ NARBONNE",
+              fileNumber: 1,
+              grade: 'HH',
+              id: expect.any(String),
+              lastPositionDate: new DateOnly(2020, 9, 1),
+              lastRankingDate: new DateOnly(2010, 12, 17),
+              name: "ARENDT HANNAH",
               observers: [],
+              rank: "(10 sur une liste de 12)",
+              reporters: ["BOURDIEU Pierre"],
+              targetedGrade: 'HH',
+              targetedPosition: "Procureur de la République TJ GRASSE",
             },
             {
-              id: expect.any(String),
-              fileNumber: 2,
-              name: "GRAMSCI ANTONIO",
-              reporters: ["BOURDIEU Pierre"],
-              grade: 'I',
-              targetedGrade: 'I',
-              targetedPosition: "Vice-président TJ  CAHORS",
-              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
-              lastPositionDate: new DateOnly(2019, 9, 1),
-              lastRankingDate: new DateOnly(2019, 12, 7),
-              rank: "(2 sur une liste de 2)",
               biography: null,
               birthDate: new DateOnly(1991, 12, 23),
               careerInformation: null,
+              currentPosition: "Juge TJ  SAINT PIERRE DE LA REUNION",
+              fileNumber: 2,
+              grade: 'I',
+              id: expect.any(String),
+              lastPositionDate: new DateOnly(2019, 9, 1),
+              lastRankingDate: new DateOnly(2019, 12, 7),
+              name: "GRAMSCI ANTONIO",
               observers: [],
+              rank: "(2 sur une liste de 2)",
+              reporters: ["BOURDIEU Pierre"],
+              targetedGrade: 'I',
+              targetedPosition: "Vice-président TJ  CAHORS",
             },
           ],
         ),
@@ -454,20 +463,21 @@ describe('SessionTransparence', () => {
 
   it('should update observers', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nf-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.updateNominationFileObservers({
-      existingNominationFiles: [{ id: 'nf-1', fileNumber: 1 }],
+      existingNominationFiles: [{ fileNumber: 1, id: 'nf-1' }],
       nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
     });
 
@@ -481,10 +491,10 @@ describe('SessionTransparence', () => {
 
   it('should throw when updating observers, but file number is unknown', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [],
+      version: null,
     });
 
     expect(() =>
@@ -497,45 +507,47 @@ describe('SessionTransparence', () => {
 
   it('should throw when updating observers on files already presented', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
       session.updateNominationFileObservers({
+        existingNominationFiles: [{ fileNumber: 1, id: 'nomination-file-id-1' }],
         nominationFiles: [{ fileNumber: 1, observers: ['BOURDIEU Pierre'] }],
-        existingNominationFiles: [{ id: 'nomination-file-id-1', fileNumber: 1 }],
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should define the nomination file outcome', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.defineNominationFileOutcome({
       nominationFileId: 'nomination-file-id-1',
       outcome: NominationFileOutcome.from({
-        outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
         comment: null,
+        outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
       }),
     });
 
@@ -547,23 +559,24 @@ describe('SessionTransparence', () => {
 
   it('should define another nomination file outcome', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: false,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     session.defineNominationFileOutcome({
       nominationFileId: 'nomination-file-id-1',
       outcome: NominationFileOutcome.from({
-        outcome: 'WITHDRAWN' satisfies NominationFileOutcomeEnum,
         comment: null,
+        outcome: 'WITHDRAWN' satisfies NominationFileOutcomeEnum,
       }),
     });
 
@@ -575,16 +588,17 @@ describe('SessionTransparence', () => {
 
   it('should reset the nomination file outcome', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: false,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     session.defineNominationFileOutcome({
@@ -598,16 +612,17 @@ describe('SessionTransparence', () => {
 
   it('should schedule an audition on a pending nomination file', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     const auditionDate = new DateOnly(2026, 7, 10);
@@ -633,16 +648,17 @@ describe('SessionTransparence', () => {
 
   it('should throw when scheduling an audition on a file whose decision is final', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: false,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
@@ -658,18 +674,87 @@ describe('SessionTransparence', () => {
     ).toThrow(CannotScheduleAuditionOnNominationFile);
   });
 
+  it('should request an audition on a pending nomination file', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        { auditionScheduled: false, id: 'nomination-file-id-1', isReported: false, outcome: null },
+      ],
+      version: null,
+    });
+
+    session.defineAuditionRequest({
+      impersonatorId: null,
+      nominationFileId: 'nomination-file-id-1',
+      requested: true,
+      userId: 'user-id',
+    });
+
+    expect(session.messages).toEqual([
+      new SessionTransparenceAuditionRequestDefined(
+        'session-id',
+        'nomination-file-id-1',
+        true,
+        'user-id',
+        null,
+      ),
+    ]);
+  });
+
+  it('should throw when requesting an audition on a file whose decision is final', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        { auditionScheduled: false, id: 'nomination-file-id-1', isReported: false, outcome: 'VALIDATED' },
+      ],
+      version: null,
+    });
+
+    expect(() =>
+      session.defineAuditionRequest({
+        impersonatorId: null,
+        nominationFileId: 'nomination-file-id-1',
+        requested: true,
+        userId: 'user-id',
+      }),
+    ).toThrow(CannotScheduleAuditionOnNominationFile);
+  });
+
+  it('should throw when dismissing an audition whose date is set', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        { auditionScheduled: true, id: 'nomination-file-id-1', isReported: false, outcome: null },
+      ],
+      version: null,
+    });
+
+    expect(() =>
+      session.defineAuditionRequest({
+        impersonatorId: null,
+        nominationFileId: 'nomination-file-id-1',
+        requested: false,
+        userId: 'user-id',
+      }),
+    ).toThrow(ScheduledAuditionCannotBeDismissed);
+  });
+
   it('should clear the audition without checking the outcome when no date is provided', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: false,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     session.unscheduleAudition({
@@ -719,21 +804,22 @@ describe('SessionTransparence', () => {
 
   it('should flag a missing evaluation on a nomination file', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.updateMissingEvaluation({
-      nominationFileId: 'nomination-file-id-1',
       missingEvaluation: true,
+      nominationFileId: 'nomination-file-id-1',
     });
 
     expect(session.messages).toEqual([
@@ -743,21 +829,22 @@ describe('SessionTransparence', () => {
 
   it('should clear a missing evaluation on a nomination file', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.updateMissingEvaluation({
-      nominationFileId: 'nomination-file-id-1',
       missingEvaluation: false,
+      nominationFileId: 'nomination-file-id-1',
     });
 
     expect(session.messages).toEqual([
@@ -768,21 +855,22 @@ describe('SessionTransparence', () => {
 
   it('should comment a missing evaluation on a nomination file', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.updateMissingEvaluationComment({
-      nominationFileId: 'nomination-file-id-1',
       comment: 'Relancée le 12 août',
+      nominationFileId: 'nomination-file-id-1',
     });
 
     expect(session.messages).toEqual([
@@ -796,65 +884,68 @@ describe('SessionTransparence', () => {
 
   it('should throw when commenting a missing evaluation on a file whose decision is final', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
       session.updateMissingEvaluationComment({
-        nominationFileId: 'nomination-file-id-1',
         comment: 'Relancée le 12 août',
+        nominationFileId: 'nomination-file-id-1',
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should throw when flagging a missing evaluation on a file whose decision is final', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
       session.updateMissingEvaluation({
-        nominationFileId: 'nomination-file-id-1',
         missingEvaluation: true,
+        nominationFileId: 'nomination-file-id-1',
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should add attachments to a nomination file', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.addNominationFileAttachments({
-      nominationFileId: 'nomination-file-id-1',
       files: [{ id: 'file-1' }, { id: 'file-2' }],
+      nominationFileId: 'nomination-file-id-1',
       type: 'FICHE_DE_JURIDICTION',
     });
 
@@ -874,21 +965,22 @@ describe('SessionTransparence', () => {
 
   it('should remove an attachment from a nomination file', () => {
     const session = SessionTransparence.from({
-      id: makeId('NominationSessionId'),
       formation: 'SIEGE',
-      version: null,
+      id: makeId('NominationSessionId'),
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: null,
           isReported: false,
+          outcome: null,
         },
       ],
+      version: null,
     });
 
     session.removeNominationFileAttachment({
-      nominationFileId: 'nomination-file-id-1',
       fileId: 'file-1',
+      nominationFileId: 'nomination-file-id-1',
     });
 
     expect(session.messages).toEqual([
@@ -898,22 +990,23 @@ describe('SessionTransparence', () => {
 
   it('should throw when adding an attachment on a file already presented', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
       session.addNominationFileAttachments({
-        nominationFileId: 'nomination-file-id-1',
         files: [{ id: 'file-1' }],
+        nominationFileId: 'nomination-file-id-1',
         type: 'AUTRE',
       }),
     ).toThrow(CantUpdateNominationFiles);
@@ -921,38 +1014,39 @@ describe('SessionTransparence', () => {
 
   it('should throw when removing an attachment on a file already presented', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [
         {
+          auditionScheduled: false,
           id: 'nomination-file-id-1',
-          outcome: 'VALIDATED',
           isReported: true,
+          outcome: 'VALIDATED',
         },
       ],
+      version: null,
     });
 
     expect(() =>
       session.removeNominationFileAttachment({
-        nominationFileId: 'nomination-file-id-1',
         fileId: 'file-1',
+        nominationFileId: 'nomination-file-id-1',
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
 
   it('should throw when attaching to a nomination file that does not belong to the session', () => {
     const session = SessionTransparence.from({
-      id: 'session-id',
       formation: 'SIEGE',
-      version: null,
+      id: 'session-id',
       nominationFiles: [],
+      version: null,
     });
 
     expect(() =>
       session.addNominationFileAttachments({
-        nominationFileId: 'unknown-nomination-file',
         files: [{ id: 'file-1' }],
+        nominationFileId: 'unknown-nomination-file',
         type: 'AUTRE',
       }),
     ).toThrow(CantUpdateNominationFiles);

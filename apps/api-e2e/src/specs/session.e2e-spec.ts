@@ -30,9 +30,9 @@ function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
     [
       JSON.stringify({
         date: '2025-01-01',
-        observationClosingDate: '2025-03-01',
         formation: 'PARQUET',
         name: 'Transparence TEST ' + randomUUID(),
+        observationClosingDate: '2025-03-01',
       } as const),
     ],
     { type: 'application/json' },
@@ -44,24 +44,24 @@ function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): Uploa
 }
 
 const TREVOUX_SESSION: LolfiArchiveContent['sessions'][number] = {
-  name: 'Transparence annuelle',
-  createdAt: '22/04/2026',
   candidates: [
     {
       firstName: 'ETIENNE',
       lastName: 'TREVOUX',
       position: {
+        function: seed.functions.PR,
         grade: 'G3',
         jurisdiction: seed.jurisdictions['CA  LYON'],
-        function: seed.functions.PR,
       },
       targetPosition: {
+        function: seed.functions.PR,
         grade: 'G3',
         jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-        function: seed.functions.PR,
       },
     },
   ],
+  createdAt: '22/04/2026',
+  name: 'Transparence annuelle',
 };
 
 test.describe('Session E2E', () => {
@@ -69,21 +69,21 @@ test.describe('Session E2E', () => {
     // These members are matched by the LODAM file auto-affectation logic (firstName + lastName)
     test.beforeEach(async ({ registerUser }) => {
       await registerUser({
-        firstName: 'Charles',
-        lastName: 'ANDOCHE',
-        role: 'MEMBRE_COMMUN',
-        gender: 'MALE',
         email: `charles.andoche+${randomUUID()}@example.com`,
+        firstName: 'Charles',
+        gender: 'MALE',
+        lastName: 'ANDOCHE',
         password: randomUUID(),
+        role: 'MEMBRE_COMMUN',
       });
 
       await registerUser({
-        firstName: 'Côme',
-        lastName: 'DURAND',
-        role: 'MEMBRE_DU_PARQUET',
-        gender: 'MALE',
         email: `come.durand+${randomUUID()}@example.com`,
+        firstName: 'Côme',
+        gender: 'MALE',
+        lastName: 'DURAND',
         password: randomUUID(),
+        role: 'MEMBRE_DU_PARQUET',
       });
     });
 
@@ -115,47 +115,48 @@ test.describe('Session E2E', () => {
       const nominationFiles = await agent.sessions.listNominationFiles({ path: { sessionId } });
 
       expect(nominationFiles.data!.items).toContainEqual({
-        comment: null,
         auditionDate: null,
-        auditionExpected: true,
+        auditionRequired: true,
         auditionTime: null,
-        expectedReportersCount: 2,
-        missingEvaluation: false,
-        missingEvaluationComment: null,
         canScheduleAudition: true,
-        isArchived: false,
+        comment: null,
         content: {
-          numeroDeDossier: 1,
           dateDeNaissance: { day: 9, month: 4, year: 1968 },
           dateEchéance: null,
           datePassageAuGrade: { day: 17, month: 12, year: 2010 },
           datePriseDeFonctionPosteActuel: { day: 1, month: 9, year: 2020 },
+          detectedMagistratId: null,
           grade: 'I',
           gradeCible: 'G3',
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
-          nomMagistrat: 'ROSELIN PIORIER',
-          observants: [],
-          posteActuel: 'Procureur de la République TJ  NARBONNE',
-          posteCible: 'Procureur de la République TJ  GRASSE',
-          rang: '(10 sur une liste de 12)',
-          version: 2,
-          outcome: null,
           isAlertHidden: false,
-          detectedMagistratId: null,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
           },
           lockedReason: null,
-          status: { value: 'TO_REPORT', dates: [] },
+          nomMagistrat: 'ROSELIN PIORIER',
+          numeroDeDossier: 1,
+          observants: [],
+          outcome: null,
+          posteActuel: 'Procureur de la République TJ  NARBONNE',
+          posteCible: 'Procureur de la République TJ  GRASSE',
+          rang: '(10 sur une liste de 12)',
+          status: { dates: [], value: 'TO_REPORT' },
+          version: 2,
         },
+        expectedReportersCount: 2,
+        hasAttachment: false,
+        hasJurisdictionSheet: false,
         id: expect.any(String),
+        isArchived: false,
+        memo: null,
+        missingEvaluation: false,
+        missingEvaluationComment: null,
         observations: [],
         priorities: [],
-        memo: null,
-        summary: null,
         reporters: [
           expect.objectContaining({
             firstName: 'côme',
@@ -163,66 +164,65 @@ test.describe('Session E2E', () => {
             lastName: 'durand',
           }),
         ],
-        hasAttachment: false,
-        hasJurisdictionSheet: false,
+        summary: null,
       } satisfies NominationFile);
 
       expect(nominationFiles.data!.items).toContainEqual({
-        comment: null,
         auditionDate: null,
-        auditionExpected: true,
+        auditionRequired: true,
         auditionTime: null,
-        expectedReportersCount: 2,
-        missingEvaluation: false,
-        missingEvaluationComment: null,
         canScheduleAudition: true,
-        id: expect.any(String),
-        isArchived: false,
-        observations: [],
+        comment: null,
         content: {
-          numeroDeDossier: 2,
           dateDeNaissance: { day: 20, month: 5, year: 1972 },
           dateEchéance: null,
           datePassageAuGrade: { day: 27, month: 8, year: 2008 },
           datePriseDeFonctionPosteActuel: { day: 2, month: 9, year: 2019 },
+          detectedMagistratId: null,
           grade: 'I',
           gradeCible: 'G3',
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
-          nomMagistrat: 'AZELINE NOEL',
-          observants: [],
-          posteActuel: 'Procureur de la République TJ  BEZIERS',
-          posteCible: 'Procureur de la République TJ  TOULON',
-          rang: '(7 sur une liste de 14)',
-          version: 2,
-          outcome: null,
           isAlertHidden: false,
-          detectedMagistratId: null,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
           },
           lockedReason: null,
-          status: { value: 'TO_REPORT', dates: [] },
+          nomMagistrat: 'AZELINE NOEL',
+          numeroDeDossier: 2,
+          observants: [],
+          outcome: null,
+          posteActuel: 'Procureur de la République TJ  BEZIERS',
+          posteCible: 'Procureur de la République TJ  TOULON',
+          rang: '(7 sur une liste de 14)',
+          status: { dates: [], value: 'TO_REPORT' },
+          version: 2,
         },
-        priorities: [],
+        expectedReportersCount: 2,
+        hasAttachment: false,
+        hasJurisdictionSheet: false,
+        id: expect.any(String),
+        isArchived: false,
         memo: null,
-        summary: null,
+        missingEvaluation: false,
+        missingEvaluationComment: null,
+        observations: [],
+        priorities: [],
         reporters: expect.arrayContaining([
           expect.objectContaining({
-            id: expect.any(String),
             firstName: 'charles',
+            id: expect.any(String),
             lastName: 'andoche',
           }),
           expect.objectContaining({
-            id: expect.any(String),
             firstName: 'côme',
+            id: expect.any(String),
             lastName: 'durand',
           }),
         ]),
-        hasAttachment: false,
-        hasJurisdictionSheet: false,
+        summary: null,
       } satisfies NominationFile);
     });
 
@@ -235,15 +235,15 @@ test.describe('Session E2E', () => {
       const filesBefore = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const nominationFileId = filesBefore.data!.items[0]!.id;
 
-      const fileToAttach = makeFile({ type: 'application/pdf', name: 'note.pdf' });
+      const fileToAttach = makeFile({ name: 'note.pdf', type: 'application/pdf' });
       const uploadRes = await agent.sessions.uploadNominationFileAttachments({
-        path: { sessionId, nominationFileId },
         body: { files: [fileToAttach], form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }) },
+        path: { nominationFileId, sessionId },
       });
       expect(uploadRes.response?.status).toBe(204);
 
       const attachments = await agent.sessions.listNominationFileAttachments({
-        path: { sessionId, nominationFileId },
+        path: { nominationFileId, sessionId },
       });
       const { data: me } = await agent.auth.introspectSession();
       expect(attachments.response?.status).toBe(200);
@@ -274,11 +274,11 @@ test.describe('Session E2E', () => {
       const nominationFileId = filesBefore.data!.items[0]!.id;
 
       const uploadRes = await agent.sessions.uploadNominationFileAttachments({
-        path: { sessionId, nominationFileId },
         body: {
-          files: [makeFile({ type: 'application/pdf', name: 'intention.pdf' })],
+          files: [makeFile({ name: 'intention.pdf', type: 'application/pdf' })],
           form: attachmentForm({ type: 'NOTE_INTENTION' }),
         },
+        path: { nominationFileId, sessionId },
       });
       expect(uploadRes.response?.status).toBe(204);
 
@@ -294,7 +294,7 @@ test.describe('Session E2E', () => {
       const listed = files.data!.items[0]!;
 
       const detailed = await agent.sessions.detailNominationFile({
-        path: { sessionId: session.id, nominationFileId: listed.id },
+        path: { nominationFileId: listed.id, sessionId: session.id },
       });
 
       expect(detailed.response?.status).toBe(200);
@@ -329,12 +329,12 @@ test.describe('Session E2E', () => {
       const otherFiles = await agent.sessions.listNominationFiles({ path: { sessionId: otherSession.id } });
 
       const unknown = await agent.sessions.detailNominationFile({
-        path: { sessionId: session.id, nominationFileId: randomUUID() },
+        path: { nominationFileId: randomUUID(), sessionId: session.id },
       });
       expect(unknown.response?.status).toBe(404);
 
       const foreign = await agent.sessions.detailNominationFile({
-        path: { sessionId: session.id, nominationFileId: otherFiles.data!.items[0]!.id },
+        path: { nominationFileId: otherFiles.data!.items[0]!.id, sessionId: session.id },
       });
       expect(foreign.response?.status).toBe(404);
     }, 10_000);
@@ -373,7 +373,7 @@ test.describe('Session E2E', () => {
       expect(hidden.data!.totalCount).toBe(0);
 
       const forbidden = await outsider.sessions.detailNominationFile({
-        path: { sessionId: session.id, nominationFileId: files.data!.items[0]!.id },
+        path: { nominationFileId: files.data!.items[0]!.id, sessionId: session.id },
       });
       expect(forbidden.response?.status).toBe(404);
     }, 10_000);
@@ -413,15 +413,15 @@ test.describe('Session E2E', () => {
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
 
       const flagRes = await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: true },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(flagRes.response?.status).toBe(204);
       expect(await missingEvaluationOf(nominationFileId)).toBe(true);
 
       const clearRes = await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: false },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(clearRes.response?.status).toBe(204);
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
@@ -448,8 +448,8 @@ test.describe('Session E2E', () => {
       });
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: true },
+        path: { nominationFileId, sessionId: session.id },
       });
 
       expect(await listFlaggedAs(true)).toEqual({ ids: [nominationFileId], totalCount: 1 });
@@ -463,8 +463,8 @@ test.describe('Session E2E', () => {
       const nominationFileId = initial.data!.items[0]!.id;
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: true },
+        path: { nominationFileId, sessionId: session.id },
       });
 
       const exported = await agent.sessions.listMissingEvaluationsAsExcel({
@@ -492,20 +492,20 @@ test.describe('Session E2E', () => {
       expect(await commentOf(nominationFileId)).toBeNull();
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: true },
+        path: { nominationFileId, sessionId: session.id },
       });
 
       const commentRes = await agent.sessions.updateNominationFileMissingEvaluationComment({
-        path: { sessionId: session.id, nominationFileId },
         body: { comment: 'Relancée le 12 août' },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(commentRes.response?.status).toBe(204);
       expect(await commentOf(nominationFileId)).toBe('Relancée le 12 août');
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: false },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(await commentOf(nominationFileId)).toBeNull();
     });
@@ -527,20 +527,20 @@ test.describe('Session E2E', () => {
       expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: true },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 0, total });
 
       await agent.sessions.updateNominationFileMissingEvaluationComment({
-        path: { sessionId: session.id, nominationFileId },
         body: { comment: 'Relancée le 12 août' },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(await counts()).toMatchObject({ missingEvaluation: 1, missingEvaluationWithComment: 1, total });
 
       await agent.sessions.updateNominationFileMissingEvaluation({
-        path: { sessionId: session.id, nominationFileId },
         body: { missingEvaluation: false },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
     });
@@ -557,20 +557,20 @@ test.describe('Session E2E', () => {
       const nominationFileId = initial.data!.items[0]!.id;
 
       const createRes = await agent.summaries.createSummary({
-        path: { sessionId: session.id, nominationFileId },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(createRes.response?.status).toBe(201);
       expect(await summaryOf(nominationFileId)).toBeNull();
 
       const writeRes = await agent.summaries.writeSummary({
-        path: { sessionId: session.id, nominationFileId },
         body: { content: 'Une vraie synthèse' },
+        path: { nominationFileId, sessionId: session.id },
       });
       expect(writeRes.response?.status).toBe(204);
       expect(await summaryOf(nominationFileId)).toEqual({
-        id: nominationFileId,
         canRead: true,
         canWrite: true,
+        id: nominationFileId,
       });
     }, 10_000);
 
@@ -586,20 +586,20 @@ test.describe('Session E2E', () => {
 
       const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
       const nominationFileId = initial.data!.items[0]!.id;
-      const summaryPath = { sessionId: session.id, nominationFileId };
+      const summaryPath = { nominationFileId, sessionId: session.id };
 
       expect((await agent.summaries.createSummary({ path: summaryPath })).response?.status).toBe(201);
       expect((await other.summaries.createSummary({ path: summaryPath })).response?.status).toBe(201);
 
       const firstWrite = await other.summaries.writeSummary({
-        path: summaryPath,
         body: { content: 'Synthèse rédigée en premier' },
+        path: summaryPath,
       });
       expect(firstWrite.response?.status).toBe(204);
 
       const concurrentWrite = await agent.summaries.writeSummary({
-        path: summaryPath,
         body: { content: 'tentative concurrente' },
+        path: summaryPath,
       });
       expect(concurrentWrite.response?.status).toBe(403);
     }, 10_000);
