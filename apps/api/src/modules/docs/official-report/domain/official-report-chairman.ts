@@ -1,7 +1,7 @@
 import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { RoleEnum } from 'src/modules/shared/role.enum';
+import { isSecretariat, RoleEnum } from 'src/modules/shared/role.enum';
 
 export class OfficialReportChairman {
   constructor(
@@ -18,18 +18,18 @@ export class OfficialReportChairman {
   }
 
   static from(props: {
-    id: string | null;
-    firstName: string;
-    lastName: string;
-    gender: GenderEnum;
     displayTitle: string | null;
+    duty: UserDutyEnum | null;
+    expectedFormation: FormationEnum;
+    firstName: string;
+    gender: GenderEnum;
+    id: string | null;
+    lastName: string;
+    role: RoleEnum;
     sort: number;
     title: UserTitleEnum | null;
-    duty: UserDutyEnum | null;
-    role: RoleEnum;
-    expectedFormation: FormationEnum;
   }): OfficialReportChairman {
-    if (props.role === 'ADJOINT_SECRETAIRE_GENERAL' || props.role === 'ADMIN') {
+    if (isSecretariat(props.role)) {
       throw new InvalidChairmanRole();
     }
 
