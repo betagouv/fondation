@@ -5,27 +5,22 @@ import {
 } from 'src/modules/shared/nomination-file-outcome.enum';
 import { assertNever } from 'src/utils/assert-never';
 
-export const FinalDocNominationFileOutcomeEnum = {
-  VALIDATED: 'VALIDATED',
-  NON_VALIDATED: 'NON_VALIDATED',
-  WITHDRAWN: 'WITHDRAWN',
-} as const;
-export type FinalDocNominationFileOutcomeEnum =
-  (typeof FinalDocNominationFileOutcomeEnum)[keyof typeof FinalDocNominationFileOutcomeEnum];
+export const FINAL_DOC_NOMINATION_FILE_OUTCOMES = ['NON_VALIDATED', 'VALIDATED', 'WITHDRAWN'] as const;
+export type FinalDocNominationFileOutcomeEnum = (typeof FINAL_DOC_NOMINATION_FILE_OUTCOMES)[number];
 
-export const DocNominationFileOutcomeEnum = {
-  ...FinalDocNominationFileOutcomeEnum,
-  SUSPENDED: 'SUSPENDED',
-} as const;
+export const DOC_NOMINATION_FILE_OUTCOMES = [...FINAL_DOC_NOMINATION_FILE_OUTCOMES, 'SUSPENDED'] as const;
+export type DocNominationFileOutcomeEnum = (typeof DOC_NOMINATION_FILE_OUTCOMES)[number];
 
-export type DocNominationFileOutcomeEnum =
-  (typeof DocNominationFileOutcomeEnum)[keyof typeof DocNominationFileOutcomeEnum];
+export function isFinalDocNominationFileOutcome(
+  outcome: DocNominationFileOutcomeEnum,
+): outcome is FinalDocNominationFileOutcomeEnum {
+  return (FINAL_DOC_NOMINATION_FILE_OUTCOMES as readonly DocNominationFileOutcomeEnum[]).includes(outcome);
+}
 
 export function nominationFileOutcomeToDocNominationFileOutcome(
   value: NominationFileOutcomeEnum,
 ): DocNominationFileOutcomeEnum {
   switch (value) {
-    case 'ASSESSING':
     case 'WAITING_DSJ':
     case 'SUSPENDED':
       return 'SUSPENDED';
@@ -46,8 +41,8 @@ export function nominationFileOutcomeToDocNominationFileOutcome(
 }
 
 export function docNominationFileOutcomeLabel(props: {
-  outcome: DocNominationFileOutcomeEnum;
   formation: FormationEnum;
+  outcome: DocNominationFileOutcomeEnum;
 }): string {
   switch (props.outcome) {
     case 'VALIDATED':

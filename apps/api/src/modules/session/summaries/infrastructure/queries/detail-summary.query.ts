@@ -175,6 +175,7 @@ export class DetailSummaryQuery {
               formation: prismaFormationEnumToFormationEnum(session.formation),
               outcome: nominationFile.outcome,
             }),
+            status: NominationFileOutcome.statusOf(nominationFile.outcome),
             value: nominationFile.outcome,
           }
         : null,
@@ -263,6 +264,7 @@ export class DetailedSummaryDto extends createZodDto(
         value: z.enum(NominationFileOutcome.enum),
         label: z.string(),
         comment: z.string().nullable(),
+        status: z.enum(NominationFileOutcome.statuses),
       })
       .nullable(),
 

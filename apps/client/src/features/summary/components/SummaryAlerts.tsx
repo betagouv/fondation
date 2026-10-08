@@ -7,20 +7,13 @@ import {
   AuditionRequesterMessage,
   AuditionScheduledBanner,
 } from '@/shared/components/audition-banner';
-import { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
-
-const PENDING_OUTCOMES = new Set<NominationFileOutcomeEnum>([
-  NominationFileOutcomeEnum.ASSESSING,
-  NominationFileOutcomeEnum.SUSPENDED,
-  NominationFileOutcomeEnum.WAITING_DSJ,
-]);
 
 export function SummaryAlerts() {
   const isSg = useIsSg();
   const { nominationFileId, sessionId, summary } = useSummary();
-  const outcome = summary.outcome && !PENDING_OUTCOMES.has(summary.outcome.value) ? summary.outcome : null;
+  const outcome = summary.outcome?.status === 'FINAL' ? summary.outcome : null;
   const auditionMissing = isAuditionMissing(summary);
 
   return (

@@ -8,33 +8,31 @@ const NOMINATION_FILE_OUTCOMES = [
   'SUSPENDED',
   'REMOVED',
   'WITHDRAWN',
-  'ASSESSING',
   'WAITING_DSJ',
 ] as const;
 
 export type NominationFileOutcomeEnum = (typeof NOMINATION_FILE_OUTCOMES)[number];
 
-export type NonFinalNominationFileOutcomeEnum = Extract<
-  NominationFileOutcomeEnum,
-  'ASSESSING' | 'SUSPENDED' | 'WAITING_DSJ'
->;
+const NOMINATION_FILE_OUTCOME_STATUSES = ['FINAL', 'PENDING'] as const;
+
+export type NominationFileOutcomeStatus = (typeof NOMINATION_FILE_OUTCOME_STATUSES)[number];
+
+const NON_FINAL_OUTCOMES = [
+  'SUSPENDED',
+  'WAITING_DSJ',
+] as const satisfies readonly NominationFileOutcomeEnum[];
+
+export type NonFinalNominationFileOutcomeEnum = (typeof NON_FINAL_OUTCOMES)[number];
 
 export type FinalNominationFileOutcomeEnum = Exclude<
   NominationFileOutcomeEnum,
   NonFinalNominationFileOutcomeEnum
 >;
 
-const NON_FINAL_OUTCOMES = Object.freeze(
-  Object.values({
-    ASSESSING: 'ASSESSING',
-    SUSPENDED: 'SUSPENDED',
-    WAITING_DSJ: 'WAITING_DSJ',
-  } satisfies { [K in NonFinalNominationFileOutcomeEnum]: K }),
-);
-
 const FINAL_OUTCOMES = Object.freeze(
   NOMINATION_FILE_OUTCOMES.filter(
-    (x): x is FinalNominationFileOutcomeEnum => !(NON_FINAL_OUTCOMES as unknown[]).includes(x),
+    (x): x is FinalNominationFileOutcomeEnum =>
+      !(NON_FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(x),
   ),
 );
 
@@ -44,7 +42,6 @@ const OUTCOMES_IN_SELECTION_ORDER = Object.freeze(
     NON_VALIDATED: 'NON_VALIDATED',
     SUSPENDED: 'SUSPENDED',
     WAITING_DSJ: 'WAITING_DSJ',
-    ASSESSING: 'ASSESSING',
     WITHDRAWN: 'WITHDRAWN',
     REMOVED: 'REMOVED',
   } satisfies { [K in NominationFileOutcomeEnum]: K }),
@@ -60,6 +57,9 @@ export class NominationFileOutcome {
   /** @internal exposed for DTOs definitions  */
   static readonly enum = NOMINATION_FILE_OUTCOMES;
 
+  /** @internal exposed for DTOs definitions  */
+  static readonly statuses = NOMINATION_FILE_OUTCOME_STATUSES;
+
   static finalOutcomes(): FinalNominationFileOutcomeEnum[] {
     return [...FINAL_OUTCOMES];
   }
@@ -68,16 +68,18 @@ export class NominationFileOutcome {
     return [...NON_FINAL_OUTCOMES];
   }
 
-  static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
-    return outcome === null || (NON_FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome);
+  static statusOf(outcome: NominationFileOutcomeEnum): NominationFileOutcomeStatus {
+    return (FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome) ? 'FINAL' : 'PENDING';
   }
 
-  // TODO: move once {@link selectableOutcomes} move
+  static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
+    return outcome === null || NominationFileOutcome.statusOf(outcome) === 'PENDING';
+  }
+
   static commentRequired(outcome: NominationFileOutcomeEnum): boolean {
     return outcome === 'NON_VALIDATED';
   }
 
-  // FIXME: move somewhere else
   static selectableOutcomes(formation: FormationEnum): SelectableNominationFileOutcome[] {
     return OUTCOMES_IN_SELECTION_ORDER.map((value) => ({
       commentRequired: NominationFileOutcome.commentRequired(value),
@@ -169,9 +171,6 @@ export function nominationFileOutcomeLabel(props: {
 
     case 'WITHDRAWN':
       return 'retrait (désistement)';
-
-    case 'ASSESSING':
-      return 'en attente évaluation';
 
     case 'WAITING_DSJ':
       return 'en attente complément DSJ';

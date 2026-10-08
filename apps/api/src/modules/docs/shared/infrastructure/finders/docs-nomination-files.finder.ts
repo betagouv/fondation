@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import {
-  DocNominationFileOutcomeEnum,
+  DOC_NOMINATION_FILE_OUTCOMES,
   docNominationFileOutcomeLabel,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
@@ -144,7 +144,7 @@ export class FoundDocsNominationFiles extends createZodDto(
 
         outcome: z
           .object({
-            value: z.enum(DocNominationFileOutcomeEnum),
+            value: z.enum(DOC_NOMINATION_FILE_OUTCOMES),
             label: z.string(),
             comment: z.string().nullable(),
           })

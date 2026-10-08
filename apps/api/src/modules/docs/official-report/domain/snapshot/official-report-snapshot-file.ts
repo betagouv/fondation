@@ -1,6 +1,6 @@
 import {
   type DocNominationFileOutcomeEnum,
-  FinalDocNominationFileOutcomeEnum,
+  isFinalDocNominationFileOutcome,
 } from '../../../shared/domain/doc-nomination-file-outcome';
 import type { OfficialReportSnapshotDiff } from '../official-report-types';
 
@@ -71,7 +71,7 @@ export class OfficialReportSnapshotFile {
     if (!next.outcome) return false;
 
     // the meeting suspended the file: its later outcome is reported by another meeting, not this one
-    if (this.outcome.value === 'SUSPENDED' && next.outcome.value in FinalDocNominationFileOutcomeEnum) {
+    if (this.outcome.value === 'SUSPENDED' && isFinalDocNominationFileOutcome(next.outcome.value)) {
       return false;
     }
 

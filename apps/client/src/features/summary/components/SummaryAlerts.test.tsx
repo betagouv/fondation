@@ -30,24 +30,19 @@ function renderAlerts(summary: Partial<Omit<DetailedSummaryDto, 'summary'>>) {
 }
 
 describe('SummaryAlerts', () => {
-  it('warns that a summary is probably no longer needed once an outcome is set', () => {
-    renderAlerts({ outcome: { comment: null, label: 'avis conforme', value: 'VALIDATED' } });
+  it('warns that a summary is probably no longer needed once a final outcome is set', () => {
+    renderAlerts({ outcome: { comment: null, label: 'avis conforme', status: 'FINAL', value: 'VALIDATED' } });
 
     expect(screen.getByText(/une synthèse n'est probablement plus nécessaire/)).toBeInTheDocument();
   });
 
-  it.each([
-    { label: 'en attente évaluation', value: 'ASSESSING' },
-    { label: 'sursis à statuer', value: 'SUSPENDED' },
-    { label: 'en attente complément DSJ', value: 'WAITING_DSJ' },
-  ] as const)(
-    'does not warn while the decision is pending ($label), where a summary stays relevant',
-    (outcome) => {
-      renderAlerts({ outcome: { ...outcome, comment: null } });
+  it('does not warn while the decision is pending, where a summary stays relevant', () => {
+    renderAlerts({
+      outcome: { comment: null, label: 'sursis à statuer', status: 'PENDING', value: 'SUSPENDED' },
+    });
 
-      expect(screen.queryByText(/une synthèse n'est probablement plus nécessaire/)).not.toBeInTheDocument();
-    },
-  );
+    expect(screen.queryByText(/une synthèse n'est probablement plus nécessaire/)).not.toBeInTheDocument();
+  });
 
   it('reminds the secretariat of the audition and the reporters expected on the position', () => {
     mocks.isSg = true;

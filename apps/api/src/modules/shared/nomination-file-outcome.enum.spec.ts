@@ -9,8 +9,8 @@ describe('NominationFileOutcome', () => {
   it('should throw when no comment is provided, while requiring one', () => {
     expect(() =>
       NominationFileOutcome.from({
-        outcome: 'NON_VALIDATED' satisfies NominationFileOutcomeEnum,
         comment: null,
+        outcome: 'NON_VALIDATED' satisfies NominationFileOutcomeEnum,
       }),
     ).toThrow(NominationFileOutcomeRequiresComment);
   });
@@ -18,22 +18,22 @@ describe('NominationFileOutcome', () => {
   it('should consider an empty comment as null', () => {
     expect(() =>
       NominationFileOutcome.from({
-        outcome: 'NON_VALIDATED' satisfies NominationFileOutcomeEnum,
         comment: '  ',
+        outcome: 'NON_VALIDATED' satisfies NominationFileOutcomeEnum,
       }),
     ).toThrow(NominationFileOutcomeRequiresComment);
   });
 
   it('should throw, when the provided outcome is unknown', () => {
-    expect(() => NominationFileOutcome.from({ outcome: 'unknown', comment: null })).toThrow(
+    expect(() => NominationFileOutcome.from({ comment: null, outcome: 'unknown' })).toThrow(
       UnknownNominationFileOutcome,
     );
   });
 
   it('should parse a string and comment to an outcome', () => {
     const outcome = NominationFileOutcome.from({
-      outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
       comment: 'this is a comment',
+      outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
     });
 
     expect(outcome.outcome).toBe('VALIDATED');
@@ -42,11 +42,21 @@ describe('NominationFileOutcome', () => {
 
   it('should allow an empty comment', () => {
     const outcome = NominationFileOutcome.from({
-      outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
       comment: ' ',
+      outcome: 'VALIDATED' satisfies NominationFileOutcomeEnum,
     });
 
     expect(outcome.comment).toBeNull();
+  });
+
+  describe('statusOf', () => {
+    it.each(NominationFileOutcome.finalOutcomes())('considers %s as final', (outcome) => {
+      expect(NominationFileOutcome.statusOf(outcome)).toBe('FINAL');
+    });
+
+    it.each(NominationFileOutcome.nonFinalOutcomes())('considers %s as pending', (outcome) => {
+      expect(NominationFileOutcome.statusOf(outcome)).toBe('PENDING');
+    });
   });
 
   describe('commentRequired', () => {
@@ -59,7 +69,6 @@ describe('NominationFileOutcome', () => {
       'SUSPENDED',
       'REMOVED',
       'WITHDRAWN',
-      'ASSESSING',
       'WAITING_DSJ',
     ] satisfies NominationFileOutcomeEnum[])('leaves the comment optional for %s', (outcome) => {
       expect(NominationFileOutcome.commentRequired(outcome)).toBe(false);
@@ -71,24 +80,23 @@ describe('NominationFileOutcome', () => {
       const outcomes = NominationFileOutcome.selectableOutcomes('PARQUET');
 
       expect(outcomes).toEqual([
-        { value: 'VALIDATED', label: 'avis favorable', commentRequired: false },
-        { value: 'NON_VALIDATED', label: 'avis défavorable', commentRequired: true },
-        { value: 'SUSPENDED', label: 'sursis à statuer', commentRequired: false },
-        { value: 'WAITING_DSJ', label: 'en attente complément DSJ', commentRequired: false },
-        { value: 'ASSESSING', label: 'en attente évaluation', commentRequired: false },
-        { value: 'WITHDRAWN', label: 'retrait (désistement)', commentRequired: false },
-        { value: 'REMOVED', label: 'retrait', commentRequired: false },
+        { commentRequired: false, label: 'avis favorable', value: 'VALIDATED' },
+        { commentRequired: true, label: 'avis défavorable', value: 'NON_VALIDATED' },
+        { commentRequired: false, label: 'sursis à statuer', value: 'SUSPENDED' },
+        { commentRequired: false, label: 'en attente complément DSJ', value: 'WAITING_DSJ' },
+        { commentRequired: false, label: 'retrait (désistement)', value: 'WITHDRAWN' },
+        { commentRequired: false, label: 'retrait', value: 'REMOVED' },
       ]);
     });
 
     it('labels the decision outcomes according to the formation', () => {
       const outcomes = NominationFileOutcome.selectableOutcomes('SIEGE');
 
-      expect(outcomes[0]).toEqual({ value: 'VALIDATED', label: 'avis conforme', commentRequired: false });
+      expect(outcomes[0]).toEqual({ commentRequired: false, label: 'avis conforme', value: 'VALIDATED' });
       expect(outcomes[1]).toEqual({
-        value: 'NON_VALIDATED',
-        label: 'avis non conforme',
         commentRequired: true,
+        label: 'avis non conforme',
+        value: 'NON_VALIDATED',
       });
     });
   });

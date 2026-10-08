@@ -2,7 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { countUnreportedNominationFiles } from 'src/generated/prisma/sql';
-import { FinalDocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { Db } from 'src/modules/framework/database';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 
@@ -29,11 +29,9 @@ export class ReportedSessionsFinder {
 
   private countUnreported(query: { sessionIds: readonly string[] }) {
     return this.db.tx.$queryRawTyped(
-      countUnreportedNominationFiles(
-        [...query.sessionIds],
-        NominationFileOutcome.finalOutcomes(),
-        Object.values(FinalDocNominationFileOutcomeEnum),
-      ),
+      countUnreportedNominationFiles([...query.sessionIds], NominationFileOutcome.finalOutcomes(), [
+        ...FINAL_DOC_NOMINATION_FILE_OUTCOMES,
+      ]),
     );
   }
 }
