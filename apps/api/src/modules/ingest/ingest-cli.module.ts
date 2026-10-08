@@ -4,7 +4,7 @@ import { Command, CommandRunner, Option } from 'nest-commander';
 import z from 'zod';
 
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Mattermost } from 'src/modules/framework/mattermost';
+import { Tchap } from 'src/modules/framework/tchap';
 
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';
@@ -14,7 +14,7 @@ export class IngestLolfiCommand extends CommandRunner {
   private readonly logger = new Logger(IngestLolfiCommand.name);
   constructor(
     private readonly ingestor: IngestService,
-    private readonly mattermost: Mattermost,
+    private readonly tchap: Tchap,
     @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {
     super();
@@ -52,9 +52,9 @@ export class IngestLolfiCommand extends CommandRunner {
       if (!failure) return;
 
       this.logger.error(`#${jobId} failed`);
-      await this.mattermost.alert({
-        title: ':alert: Ingestion LOLFI en échec',
+      await this.tchap.alert({
         text: `${failure}\n\n${this.config.frontendOriginUrl}/admin/jobs/${jobId}`,
+        title: '🚨 Ingestion LOLFI en échec',
       });
 
       process.exitCode = 1;
@@ -88,7 +88,7 @@ export class LolfiFreshnessCommand extends CommandRunner {
 
   constructor(
     private readonly ingestor: IngestService,
-    private readonly mattermost: Mattermost,
+    private readonly tchap: Tchap,
   ) {
     super();
   }
@@ -105,7 +105,7 @@ export class LolfiFreshnessCommand extends CommandRunner {
     const message = `Aucune ingestion LOLFI réussie depuis le ${since}`;
     this.logger.error(message);
 
-    await this.mattermost.alert({ title: ":alert: Ingestion LOLFI à l'arrêt", text: message });
+    await this.tchap.alert({ text: message, title: "🚨 Ingestion LOLFI à l'arrêt" });
 
     process.exitCode = 1;
   }

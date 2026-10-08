@@ -149,9 +149,7 @@ async function seed(apiUrl: string) {
   ]);
 }
 
-async function startAlertCollector(
-  provide: TestProject['provide'],
-): Promise<[mattermostUrl: string, teardown: () => void]> {
+async function startAlertCollector(provide: TestProject['provide']): Promise<[tchapUrl: string, teardown: () => void]> {
   const alerts: unknown[] = [];
 
   const collector = http.createServer((request, response) => {
@@ -177,15 +175,15 @@ async function startAlertCollector(
   await new Promise<void>((resolve) => collector.listen(0, '127.0.0.1', resolve));
 
   const { port } = collector.address() as AddressInfo;
-  const mattermostUrl = `http://127.0.0.1:${port}/alerts`;
-  provide('mattermostUrl', mattermostUrl);
+  const tchapUrl = `http://127.0.0.1:${port}`;
+  provide('tchapUrl', tchapUrl);
 
-  return [mattermostUrl, () => collector.close()];
+  return [tchapUrl, () => collector.close()];
 }
 
 async function startServer(
   provide: TestProject['provide'],
-  mattermostUrl: string,
+  tchapUrl: string,
 ): Promise<[apiUrl: string, teardown: () => void | Promise<void>]> {
   if (process.env.API_URL) {
     provide('apiUrl', process.env.API_URL);
@@ -201,7 +199,9 @@ async function startServer(
     env: {
       ...process.env,
       PORT: '0',
-      MATTERMOST_WEBHOOK: mattermostUrl,
+      TCHAP_ACCESS_TOKEN: 'e2e',
+      TCHAP_HOMESERVER_URL: tchapUrl,
+      TCHAP_ROOM_ID: '!alerts:tchap.e2e',
       ...(process.env.COVERAGE ? { NODE_V8_COVERAGE: coverageDir } : {}),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -281,8 +281,8 @@ async function startServer(
 export default async function setup({ provide }: TestProject) {
   await truncate();
   provide('databaseUrl', databaseUrl);
-  const [mattermostUrl, stopCollector] = await startAlertCollector(provide);
-  const [apiUrl, teardown] = await startServer(provide, mattermostUrl);
+  const [tchapUrl, stopCollector] = await startAlertCollector(provide);
+  const [apiUrl, teardown] = await startServer(provide, tchapUrl);
   await seed(apiUrl);
 
   return async () => {

@@ -15,7 +15,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
-import { Mattermost } from 'src/modules/framework/mattermost';
+import { Tchap } from 'src/modules/framework/tchap';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 import { isDefined } from 'src/utils/is-defined';
@@ -40,7 +40,7 @@ export class LolfiFilesIngestor {
   constructor(
     private readonly clock: Clock,
     private readonly db: Db,
-    private readonly mattermost: Mattermost,
+    private readonly tchap: Tchap,
     @Inject(API_CONFIG_TOKEN) config: ApiConfig,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
@@ -141,9 +141,9 @@ export class LolfiFilesIngestor {
       // The job keeps reporting it every night, only the channel is spared the repetition
       if (alerted.get(transparence.id) === reason) continue;
 
-      const sent = await this.mattermost.alert({
-        title: ':alert: Transparence LOLFI incomplète',
+      const sent = await this.tchap.alert({
         text: `${message}\n\n${this.frontendOriginUrl}/admin/jobs/${jobId}`,
+        title: '🚨 Transparence LOLFI incomplète',
       });
 
       if (!sent) continue;

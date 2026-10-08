@@ -58,7 +58,18 @@ export const ConfigSchema = z.object({
     }),
   ),
 
-  mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
+  tchap: z.preprocess(
+    () => ({}),
+    z
+      .object({
+        accessToken: z.prefault(z.string().trim().nonempty().optional(), process.env.TCHAP_ACCESS_TOKEN),
+        homeserverUrl: z.prefault(z.url().regex(/[^/]$/).optional(), process.env.TCHAP_HOMESERVER_URL),
+        roomId: z.prefault(z.string().startsWith('!').optional(), process.env.TCHAP_ROOM_ID),
+      })
+      .transform(({ accessToken, homeserverUrl, roomId }) =>
+        accessToken && homeserverUrl && roomId ? { accessToken, homeserverUrl, roomId } : undefined,
+      ),
+  ),
 
   lolfiScriptDigest: z.prefault(z.string().nullish(), process.env.LOLFI_SCRIPT_DIGEST),
 

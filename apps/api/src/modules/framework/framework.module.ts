@@ -7,12 +7,11 @@ import { DatabaseModule } from './database';
 import { ExceptionModule } from './exception';
 import { FaviconModule } from './favicon';
 import { FilesModule } from './files';
-import { ForwardsModule } from './forwards';
 import { HealthModule } from './health';
 import { HttpModule } from './http';
-import { MattermostModule } from './mattermost';
 import { ObservabilityModule } from './observability';
 import { PdfModule } from './pdf';
+import { TchapModule } from './tchap';
 
 @Global()
 @Module({
@@ -22,12 +21,11 @@ import { PdfModule } from './pdf';
     DatabaseModule,
     ExceptionModule,
     FilesModule,
-    ForwardsModule,
     HealthModule.register(),
     HttpModule.register(),
-    MattermostModule,
     ObservabilityModule,
     PdfModule,
+    TchapModule,
     EventEmitterModule.forRoot(),
     FaviconModule,
   ],
@@ -37,9 +35,9 @@ import { PdfModule } from './pdf';
     DatabaseModule,
     FilesModule,
     HttpModule,
-    MattermostModule,
     ObservabilityModule,
     PdfModule,
+    TchapModule,
   ],
 })
 export class FrameworkModule {}
