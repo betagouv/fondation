@@ -3,7 +3,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { FinalDocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
+import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from '../../domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { AgendaFinder } from '../finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
@@ -74,7 +74,7 @@ export class IsSessionReadyForDocGenerationQuery {
           outcome: { in: NominationFileOutcome.finalOutcomes() },
           presentationPlanInclusions: {
             some: {
-              outcome: { in: Object.values(FinalDocNominationFileOutcomeEnum) },
+              outcome: { in: [...FINAL_DOC_NOMINATION_FILE_OUTCOMES] },
               plan: { isPresented: true },
             },
           },

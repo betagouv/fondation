@@ -350,7 +350,7 @@ export type PaginatedNominationFiles = {
             };
             detectedMagistratId: string | null;
             outcome: {
-                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
                 comment: string | null;
             } | null;
             isAlertHidden: boolean;
@@ -549,11 +549,11 @@ export type DefineNominationFilesOutcomeDto = {
         comment: string | null;
         nominationFileId: string;
     }>;
-    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ' | null;
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ' | null;
 };
 
 export type DefineNominationFileOutcomeDto = {
-    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ' | null;
+    outcome: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ' | null;
     comment: string | null;
 };
 
@@ -658,7 +658,7 @@ export type DetailedNominationFileDto = {
         };
         detectedMagistratId: string | null;
         outcome: {
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
             comment: string | null;
         } | null;
         isAlertHidden: boolean;
@@ -741,7 +741,7 @@ export type DetailedNominationSessionDto = {
     outcomes: Array<{
         commentRequired: boolean;
         label: string;
-        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
     }>;
     date: {
         year: number;
@@ -856,9 +856,10 @@ export type DetailedSummaryDto = {
     } | null;
     observers: Array<string>;
     outcome: {
-        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+        value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
         label: string;
         comment: string | null;
+        status: 'FINAL' | 'PENDING';
     } | null;
     summary: {
         content: string;
@@ -1276,7 +1277,7 @@ export type FoundAgendaNominationFiles = {
             fullTitledName: string;
         }>;
         outcome: {
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+            value: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
             label: string;
             comment: string | null;
         } | null;
@@ -1617,7 +1618,7 @@ export type DetailedOfficialReportDocumentDto = {
         outdated: boolean;
         generatedHtml?: string;
         kind: 'section-title';
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
         text: string;
     } | {
         weight: number;
@@ -1625,7 +1626,7 @@ export type DetailedOfficialReportDocumentDto = {
         outdated: boolean;
         generatedHtml?: string;
         html: string;
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
         kind: 'section-intro';
     } | {
         weight: number;
@@ -1991,7 +1992,7 @@ export type ListedMagistratNominationFilesDto = {
         targetedGrade: string | null;
         targetedPosition: string | null;
         outcome: {
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
             comment: string | null;
         } | null;
     }>;
@@ -2048,7 +2049,7 @@ export type ListedMagistratObservationsDto = {
             targetedGrade: string | null;
             targetedPosition: string | null;
             outcome: {
-                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'ASSESSING' | 'WAITING_DSJ';
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
                 comment: string | null;
             } | null;
         };
@@ -4253,7 +4254,7 @@ export type ResetOfficialReportSectionTitleData = {
     body?: never;
     path: {
         officialReportId: string;
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
     };
     query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/title';
@@ -4269,7 +4270,7 @@ export type EditOfficialReportSectionTitleData = {
     body: EditOfficialReportSectionTitleDto;
     path: {
         officialReportId: string;
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
     };
     query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/title';
@@ -4285,7 +4286,7 @@ export type ResetOfficialReportSectionIntroData = {
     body?: never;
     path: {
         officialReportId: string;
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
     };
     query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/intro';
@@ -4301,7 +4302,7 @@ export type EditOfficialReportSectionIntroData = {
     body: EditOfficialReportSectionIntroBlockDto;
     path: {
         officialReportId: string;
-        outcome: 'VALIDATED' | 'NON_VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
+        outcome: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
     };
     query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}/blocks/{outcome}/intro';

@@ -1,7 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { FinalDocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
+import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -23,7 +23,7 @@ export class ReportedNominationFilesFinder {
         nominationFile: { outcome: { in: NominationFileOutcome.finalOutcomes() } },
         nominationFileId: { in: [...query.fileIds] },
         version: { validatedAt: { not: null } },
-        outcome: { in: Object.values(FinalDocNominationFileOutcomeEnum) },
+        outcome: { in: [...FINAL_DOC_NOMINATION_FILE_OUTCOMES] },
       },
     });
 

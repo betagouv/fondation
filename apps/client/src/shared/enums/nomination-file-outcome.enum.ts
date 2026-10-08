@@ -5,7 +5,6 @@ export type NominationFileOutcomeEnum = NonNullable<
 >['value'];
 
 export const NominationFileOutcomeEnum = {
-  ASSESSING: 'ASSESSING',
   NON_VALIDATED: 'NON_VALIDATED',
   REMOVED: 'REMOVED',
   SUSPENDED: 'SUSPENDED',

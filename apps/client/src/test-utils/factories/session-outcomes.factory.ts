@@ -4,16 +4,15 @@ import type { FormationEnum } from '@/shared/enums/formation.enum';
 export function makeSessionOutcomes(formation: FormationEnum): SessionOutcome[] {
   const decisionLabels =
     formation === 'PARQUET'
-      ? { VALIDATED: 'avis favorable', NON_VALIDATED: 'avis défavorable' }
-      : { VALIDATED: 'avis conforme', NON_VALIDATED: 'avis non conforme' };
+      ? { NON_VALIDATED: 'avis défavorable', VALIDATED: 'avis favorable' }
+      : { NON_VALIDATED: 'avis non conforme', VALIDATED: 'avis conforme' };
 
   return [
-    { value: 'VALIDATED', label: decisionLabels.VALIDATED, commentRequired: false },
-    { value: 'NON_VALIDATED', label: decisionLabels.NON_VALIDATED, commentRequired: true },
-    { value: 'SUSPENDED', label: 'sursis à statuer', commentRequired: false },
-    { value: 'WAITING_DSJ', label: 'en attente complément DSJ', commentRequired: false },
-    { value: 'ASSESSING', label: 'en attente évaluation', commentRequired: false },
-    { value: 'WITHDRAWN', label: 'retrait (désistement)', commentRequired: false },
-    { value: 'REMOVED', label: 'retrait', commentRequired: false },
+    { commentRequired: false, label: decisionLabels.VALIDATED, value: 'VALIDATED' },
+    { commentRequired: true, label: decisionLabels.NON_VALIDATED, value: 'NON_VALIDATED' },
+    { commentRequired: false, label: 'sursis à statuer', value: 'SUSPENDED' },
+    { commentRequired: false, label: 'en attente complément DSJ', value: 'WAITING_DSJ' },
+    { commentRequired: false, label: 'retrait (désistement)', value: 'WITHDRAWN' },
+    { commentRequired: false, label: 'retrait', value: 'REMOVED' },
   ];
 }

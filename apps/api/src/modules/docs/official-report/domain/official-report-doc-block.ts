@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { DOC_NOMINATION_FILE_OUTCOMES } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 
 const AbstractDocBlock = z.object({
   weight: z.number().int().gte(0),
@@ -19,13 +19,13 @@ const BlockIntroSchema = z.object({
 const BlockSectionTitleSchema = z.object({
   ...AbstractDocBlock.shape,
   kind: z.literal('section-title'),
-  outcome: z.enum(DocNominationFileOutcomeEnum),
+  outcome: z.enum(DOC_NOMINATION_FILE_OUTCOMES),
   text: z.string(),
 });
 
 const BlockSectionIntroSchema = z.object({
   ...AbstractHtmlBlock.shape,
-  outcome: z.enum(DocNominationFileOutcomeEnum),
+  outcome: z.enum(DOC_NOMINATION_FILE_OUTCOMES),
   kind: z.literal('section-intro'),
 });
 

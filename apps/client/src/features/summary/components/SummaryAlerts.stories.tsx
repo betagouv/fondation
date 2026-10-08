@@ -13,19 +13,22 @@ import {
 
 import { SummaryAlerts } from './SummaryAlerts';
 
-const OUTCOME_LABELS = { SUSPENDED: 'sursis à statuer', VALIDATED: 'avis conforme' };
+const OUTCOMES = {
+  SUSPENDED: { label: 'sursis à statuer', status: 'PENDING' },
+  VALIDATED: { label: 'avis conforme', status: 'FINAL' },
+} as const;
 
 function SummaryAlertsStory(props: {
   auditionScheduled: boolean;
   missingEvaluation: boolean;
-  outcome: 'SUSPENDED' | 'VALIDATED' | null;
+  outcome: keyof typeof OUTCOMES | null;
   view: SummaryView;
 }) {
   const summary = makeSummary({
     auditionDate: props.auditionScheduled ? { day: 15, month: 10, year: 2026 } : null,
     auditionTime: props.auditionScheduled ? { hours: 14, minutes: 30, seconds: 0 } : null,
     missingEvaluation: props.missingEvaluation,
-    outcome: props.outcome && { comment: null, label: OUTCOME_LABELS[props.outcome], value: props.outcome },
+    outcome: props.outcome && { ...OUTCOMES[props.outcome], comment: null, value: props.outcome },
   });
 
   return (
@@ -47,7 +50,7 @@ function SummaryAlertsStory(props: {
 const meta = {
   args: { auditionScheduled: false, missingEvaluation: false, outcome: 'VALIDATED', view: 'sg' },
   argTypes: {
-    outcome: { control: 'inline-radio', options: [null, 'SUSPENDED', 'VALIDATED'] },
+    outcome: { control: 'inline-radio', options: [null, ...Object.keys(OUTCOMES)] },
     view: { control: 'inline-radio', options: SUMMARY_VIEWS },
   },
   component: SummaryAlertsStory,

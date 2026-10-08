@@ -4,7 +4,7 @@ import React from 'react';
 import { FormationEnum } from '@/shared/enums/formation.enum';
 import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 
-import { useOutcomeBadge } from './outcome-badge.utils';
+import { outcomeBadge } from './outcome-badge.utils';
 
 function InnerOutcomeBadge(props: {
   acronym?: boolean;
@@ -13,11 +13,10 @@ function InnerOutcomeBadge(props: {
   outcome: NominationFileOutcomeEnum | null;
   small?: boolean;
 }) {
-  const { badge, acronym, severity } = useOutcomeBadge(props);
-
-  const badgeLabel = props.acronym === true ? acronym : badge.toUpperCase();
-
   if (props.outcome === null) return '-';
+
+  const { acronym, badge, severity } = outcomeBadge({ formation: props.formation, outcome: props.outcome });
+  const badgeLabel = props.acronym === true ? acronym : badge.toUpperCase();
 
   // ts hack to add the title
   const badgeProps = { title: props.acronym ? (props.label ?? badge) : undefined };

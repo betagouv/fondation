@@ -44,15 +44,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const OUTCOMES = [
-  'VALIDATED',
-  'NON_VALIDATED',
-  'SUSPENDED',
-  'REMOVED',
-  'WITHDRAWN',
-  'ASSESSING',
-  'WAITING_DSJ',
-] as const;
+const OUTCOMES = ['VALIDATED', 'NON_VALIDATED', 'SUSPENDED', 'REMOVED', 'WITHDRAWN', 'WAITING_DSJ'] as const;
 
 const REPORTERS = [
   { firstName: 'Rachel', id: 'user-1', lastName: 'Bernard' },

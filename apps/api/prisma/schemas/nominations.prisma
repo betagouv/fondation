@@ -42,7 +42,6 @@ enum PrismaNominationFileOutcomeEnum {
   SUSPENDED
   REMOVED
   WITHDRAWN
-  ASSESSING
   WAITING_DSJ
 
   @@map("nomination_file_outcome_enum")

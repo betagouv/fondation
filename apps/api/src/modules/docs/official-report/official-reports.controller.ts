@@ -20,7 +20,10 @@ import {
 import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
+import {
+  DOC_NOMINATION_FILE_OUTCOMES,
+  DocNominationFileOutcomeEnum,
+} from '../shared/domain/doc-nomination-file-outcome';
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { AuthedUser, HasRole } from 'src/modules/simple-auth';
@@ -257,11 +260,11 @@ export class OfficialReportsController {
   @Patch('/official-reports/:officialReportId/blocks/:outcome/title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
-  @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
+  @ApiParam({ name: 'outcome', enum: DOC_NOMINATION_FILE_OUTCOMES })
   editOfficialReportSectionTitle(
     @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
-    @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
+    @Param('outcome', new ParseEnumPipe(DOC_NOMINATION_FILE_OUTCOMES))
     outcome: DocNominationFileOutcomeEnum,
     @Body() body: EditOfficialReportSectionTitleDto,
   ): Promise<void> {
@@ -276,11 +279,11 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/blocks/:outcome/title')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
+  @ApiParam({ name: 'outcome', enum: DOC_NOMINATION_FILE_OUTCOMES })
   resetOfficialReportSectionTitle(
     @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
-    @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
+    @Param('outcome', new ParseEnumPipe(DOC_NOMINATION_FILE_OUTCOMES))
     outcome: DocNominationFileOutcomeEnum,
   ): Promise<void> {
     return this.officialReports.resetOfficialReportSectionTitle({
@@ -294,11 +297,11 @@ export class OfficialReportsController {
   @Patch('/official-reports/:officialReportId/blocks/:outcome/intro')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
-  @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
+  @ApiParam({ name: 'outcome', enum: DOC_NOMINATION_FILE_OUTCOMES })
   editOfficialReportSectionIntro(
     @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
-    @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
+    @Param('outcome', new ParseEnumPipe(DOC_NOMINATION_FILE_OUTCOMES))
     outcome: DocNominationFileOutcomeEnum,
     @Body() body: EditOfficialReportSectionIntroBlockDto,
   ): Promise<void> {
@@ -313,11 +316,11 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId/blocks/:outcome/intro')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiParam({ name: 'outcome', enum: DocNominationFileOutcomeEnum })
+  @ApiParam({ name: 'outcome', enum: DOC_NOMINATION_FILE_OUTCOMES })
   resetOfficialReportSectionIntro(
     @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
-    @Param('outcome', new ParseEnumPipe(DocNominationFileOutcomeEnum))
+    @Param('outcome', new ParseEnumPipe(DOC_NOMINATION_FILE_OUTCOMES))
     outcome: DocNominationFileOutcomeEnum,
   ): Promise<void> {
     return this.officialReports.resetOfficialReportSectionIntro({
