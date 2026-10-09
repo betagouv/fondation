@@ -87,7 +87,8 @@ export function JusticeContactSelector(
       { name: trimmed },
       {
         onSuccess(created) {
-          if (created) select(created.id);
+          // select() still sees the list from before the creation: looking up the id would miss it
+          if (created) select({ id: String(created.id), isCreatable: false, name: created.name });
         },
       },
     );

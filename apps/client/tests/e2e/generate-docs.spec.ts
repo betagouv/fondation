@@ -172,10 +172,8 @@ test.describe('Générer un ordre du jour', () => {
     await justiceContact.button(contact).click();
     await justiceContact.confirm();
     await justiceContact.blur();
-    await justiceContact.fill(contact);
-    await justiceContact.option(contact).click({ force: true });
 
-    await test.expect(justiceContact.input.inputValue()).resolves.toBeDefined();
+    await test.expect(justiceContact.input).toHaveValue(contact);
 
     await officialReportPage.submit();
   });
