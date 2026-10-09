@@ -1,8 +1,9 @@
 #!/bin/bash
 # Usage: bin/deploy-staging.sh [tag]
-# Without a tag, increments the last staging tag pushed on origin (the one shown in the staging footer).
+# Without a tag, increments the highest staging tag pushed on origin.
 set -euo pipefail
 
+# Must match the tag triggers of .github/workflows/release-staging.yml
 TAG_FORMAT='^IT[0-9]+S[0-9]+(-[0-9]+)?$'
 
 if [[ -n $(git status --porcelain) ]]; then
@@ -13,7 +14,7 @@ fi
 git checkout --quiet develop
 git pull --quiet --ff-only origin develop
 
-last=$(git ls-remote --tags --refs origin 'IT*' | sed 's|.*refs/tags/||' | grep -E "$TAG_FORMAT" | sort -V | tail -n1)
+last=$(git ls-remote --tags --refs origin 'IT*' | sed 's|.*refs/tags/||' | grep -E "$TAG_FORMAT" | sort -V | tail -n1 || true)
 
 if [[ $# -gt 0 ]]; then
   next=$1
@@ -28,11 +29,11 @@ if [[ ! $next =~ $TAG_FORMAT ]]; then
   exit 1
 fi
 
-# The deployment must not start right after the merge on develop.
-elapsed=$(($(date +%s) - $(git log -1 --format=%ct)))
-if ((elapsed < 60)); then
-  echo "Last commit on develop is ${elapsed}s old, waiting $((60 - elapsed))s…"
-  sleep $((60 - elapsed))
+# The team's deployment procedure asks to wait a minute after the merge on develop.
+remaining=$((60 - $(date +%s) + $(git log -1 --format=%ct)))
+if ((remaining > 0)); then
+  echo "Develop was just updated, waiting ${remaining}s…"
+  sleep "$remaining"
 fi
 
 echo "Last staging tag: ${last:-none}"
@@ -41,6 +42,9 @@ read -rp "Push $next to deploy staging? [y/N] " answer
 [[ $answer == [yY] ]] || exit 0
 
 git tag -a "$next" -m "$next"
-git push origin "$next"
+git push origin "$next" || {
+  git tag -d "$next"
+  exit 1
+}
 
 echo "Follow the deployment on https://github.com/betagouv/fondation/actions/workflows/release-staging.yml"
