@@ -7,7 +7,6 @@ import { MagistratDetailsHeader } from './MagistratDetailsHeader';
 const magistrat: DetailedMagistratDto = {
   birthDate: { year: 1971, month: 3, day: 24 },
   careerHistory: null,
-  civilite: 'Mme',
   currentPosition: {
     id: 1,
     grade: 'G2',
@@ -22,6 +21,7 @@ const magistrat: DetailedMagistratDto = {
   installationDate: { year: 2021, month: 9, day: 1 },
   lastName: 'Schumann',
   marriedName: null,
+  name: 'Mme\u00A0SCHUMANN Clara',
   nominationDate: { year: 2021, month: 7, day: 12 },
   professionalEmail: 'clara.schumann@justice.gouv.fr',
   usedName: null,

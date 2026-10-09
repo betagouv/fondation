@@ -2,7 +2,6 @@ import { FormattedMessage } from 'react-intl';
 
 import { BiographyList } from '@/shared/components/biography-list';
 import { DetailsCard, DetailsPageLayout } from '@/shared/ui/details';
-import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 import { MagistratDetailsHeader } from './MagistratDetailsHeader';
@@ -28,10 +27,7 @@ export function MagistratDetailsContent({ context, magistrat }: MagistratDetails
           magistrat={magistrat}
           phoneNumbers={
             context === 'sg' ? (
-              <MagistratPhoneNumbersSection
-                magistratId={magistrat.id}
-                magistratName={`${capitalizedFirstName(magistrat)} ${magistrat.lastName.toUpperCase()}`}
-              />
+              <MagistratPhoneNumbersSection magistratId={magistrat.id} magistratName={magistrat.name} />
             ) : null
           }
         />

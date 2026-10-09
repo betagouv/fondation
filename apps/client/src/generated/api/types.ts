@@ -1917,7 +1917,7 @@ export type SearchMagistratsResponseDto = {
 
 export type DetailedMagistratDto = {
     id: string;
-    civilite: string;
+    name: string;
     firstName: string;
     lastName: string;
     usedName: string | null;

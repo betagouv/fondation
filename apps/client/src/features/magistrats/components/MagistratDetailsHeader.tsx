@@ -6,8 +6,6 @@ import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { capitalize } from '@/utils/string.utils';
-import { fullNameCapitalized } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 type MagistratDetailsHeaderProps = {
@@ -72,9 +70,7 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
       onBackClick={goBack}
       overline={<FormattedMessage defaultMessage="Fiche magistrat" />}
       title={
-        <TitleNameIcons
-          name={`${capitalize(magistrat.civilite.toLowerCase())} ${fullNameCapitalized(magistrat)}`}
-        >
+        <TitleNameIcons name={magistrat.name}>
           <LolfiLink href={magistrat.externalUrl} small />
         </TitleNameIcons>
       }

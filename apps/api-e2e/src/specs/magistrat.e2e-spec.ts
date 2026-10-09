@@ -10,8 +10,10 @@ import * as seed from '../utils/seed.ts';
 const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
   candidates: [
     {
+      civilite: 'MME',
       firstName: 'HONORINE',
       lastName: 'VALROSE',
+      marriedName: 'DUBOIS',
       phone: '06.12.34.56.78',
       position: {
         function: seed.functions.PR,
@@ -74,7 +76,6 @@ test.describe('Magistrat E2E', () => {
 
     expect(details.response?.status).toBe(200);
     expect(details.data).toMatchObject({
-      civilite: expect.any(String),
       currentPosition: {
         function: { label: expect.any(String) },
         id: expect.any(Number),
@@ -84,6 +85,7 @@ test.describe('Magistrat E2E', () => {
       firstName: expect.stringMatching(/^honorine$/i),
       id: valrose.magistratId,
       lastName: expect.stringMatching(/^valrose$/i),
+      name: 'Mme\u00A0VALROSE Honorine (ép. DUBOIS)',
     });
   });
 

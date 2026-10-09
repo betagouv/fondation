@@ -11,7 +11,7 @@ export function magistratFullName(magistrat: MagistratNames): string {
     : `${lastName} ${firstName}`;
 }
 
-export function magistratTitledFullName(magistrat: MagistratNames & { civility: 'M.' | 'MME' }): string {
+export function magistratTitledFullName(magistrat: MagistratNames & { civility: string }): string {
   return `${magistrat.civility === 'MME' ? 'Mme' : 'M.'} ${magistratFullName(magistrat)}`;
 }
 
