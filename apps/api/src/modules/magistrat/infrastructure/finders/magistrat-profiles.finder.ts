@@ -30,7 +30,7 @@ export class MagistratProfilesFinder {
           .filter(Boolean)
           .join(' ');
         const marriedName =
-          magistrat.marriedName?.trim() && `ép. ${magistrat.marriedName.trim().toUpperCase()}`;
+          magistrat.marriedName?.trim() && `(ép. ${magistrat.marriedName.trim().toUpperCase()})`;
         return [
           magistrat.magistratId,
           {
