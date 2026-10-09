@@ -24,7 +24,7 @@ describe('FrozenFileBanner', () => {
 
     expect(
       screen.getByText(
-        'Cette proposition est déjà actée dans un procès-verbal restitué et avec une issue définitive',
+        "Cette proposition figure avec une issue définitive dans un procès-verbal validé. Elle n'est plus modifiable",
       ),
     ).toBeVisible();
   });
