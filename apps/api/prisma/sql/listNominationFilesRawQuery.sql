@@ -108,6 +108,7 @@ FROM
             'id', m.id,
             'firstName', m.first_name,
             'lastName', m.last_name,
+            'marriedName', m.married_name,
             'usedName', m.used_name
           ),
           'memberComments', JSON_AGG(

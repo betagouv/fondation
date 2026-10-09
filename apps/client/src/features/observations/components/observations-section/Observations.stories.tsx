@@ -36,6 +36,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Léa',
     id: 'magistrat-martin',
     lastName: 'Martin',
+    name: 'MARTIN Léa',
     usedName: null,
   },
   {
@@ -43,6 +44,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Mariame',
     id: 'magistrat-konate',
     lastName: 'Konaté',
+    name: 'KONATÉ Mariame',
     usedName: null,
   },
   {
@@ -50,6 +52,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Amélie',
     id: 'magistrat-rousseau',
     lastName: 'Rousseau',
+    name: 'ROUSSEAU Amélie',
     usedName: null,
   },
   {
@@ -57,6 +60,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Karim',
     id: 'magistrat-benali',
     lastName: 'Benali',
+    name: 'BENALI Karim',
     usedName: null,
   },
   {
@@ -64,6 +68,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Sophie',
     id: 'magistrat-nguyen',
     lastName: 'Nguyen',
+    name: 'NGUYEN Sophie',
     usedName: null,
   },
   {
@@ -71,6 +76,7 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Étienne',
     id: 'magistrat-lefebvre',
     lastName: 'Lefebvre',
+    name: 'LEFEBVRE Étienne',
     usedName: null,
   },
 ];

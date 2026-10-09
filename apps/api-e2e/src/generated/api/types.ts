@@ -413,6 +413,7 @@ export type PaginatedNominationFiles = {
                 id: string;
                 firstName: string;
                 lastName: string;
+                name: string;
                 usedName: string | null;
             } | null;
         }>;
@@ -721,6 +722,7 @@ export type DetailedNominationFileDto = {
             id: string;
             firstName: string;
             lastName: string;
+            name: string;
             usedName: string | null;
         } | null;
     }>;
@@ -2141,6 +2143,7 @@ export type ListObservationsResponseDto = {
             id: string;
             firstName: string;
             lastName: string;
+            name: string;
             usedName: string | null;
             currentPosition: string | null;
         } | null;
@@ -2175,6 +2178,7 @@ export type GetObservationDetailsResponseDto = {
         id: string;
         firstName: string;
         lastName: string;
+        name: string;
         usedName: string | null;
         biography: string | null;
         audition: {

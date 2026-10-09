@@ -18,7 +18,6 @@ import {
 } from '@/shared/enums/observation-follow-up.enum';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { fullNameCapitalized } from '@/utils/user.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useGetObservationFileUrlMutation,
@@ -78,7 +77,7 @@ function ObservationCard({
           );
 
   const magistratName = observation.magistrat
-    ? fullNameCapitalized(observation.magistrat)
+    ? observation.magistrat.name
     : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const handleFileClick = (fileId: string) =>

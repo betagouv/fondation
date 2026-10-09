@@ -20,7 +20,7 @@ import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
+import { magistratFullName, proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -300,6 +300,7 @@ export class ListNominationFilesQuery {
                   firstName: obs.magistrat.firstName,
                   id: obs.magistrat.id,
                   lastName: obs.magistrat.lastName,
+                  name: magistratFullName(obs.magistrat),
                   usedName: obs.magistrat.usedName,
                 }
               : null,
@@ -468,6 +469,7 @@ const RawListedNominationFiles = z.array(
             id: z.string(),
             firstName: z.string(),
             lastName: z.string(),
+            marriedName: z.string().nullable(),
             usedName: z.string().nullable(),
           }),
           memberComments: z.array(z.object({ comment: z.string().nullable() })),
@@ -523,6 +525,7 @@ const NominationFileAffectationItemSchema = z.object({
           id: z.string(),
           firstName: z.string(),
           lastName: z.string(),
+          name: z.string(),
           usedName: z.string().nullable(),
         })
         .nullable(),

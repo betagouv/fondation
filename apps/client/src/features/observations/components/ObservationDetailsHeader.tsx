@@ -7,7 +7,6 @@ import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { fullNameCapitalized } from '@/utils/user.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
@@ -71,7 +70,7 @@ export function ObservationDetailsHeader(props: {
       onBackClick={goBack}
       overline={<FormattedMessage defaultMessage="Observation" />}
       title={
-        <TitleNameIcons name={fullNameCapitalized(observant)}>
+        <TitleNameIcons name={observant.name}>
           <DetailsLink context={props.context} magistratId={observant.id} small />
           <LolfiLink href={observant.externalUrl} small />
         </TitleNameIcons>

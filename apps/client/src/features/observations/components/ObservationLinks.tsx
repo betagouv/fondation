@@ -6,7 +6,6 @@ import { Tooltip } from '@/shared/ui/tooltip';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import type { PlainTimeOnly } from '@/utils/time-only.util';
-import { fullNameCapitalized } from '@/utils/user.utils';
 
 import { ObservantAuditionIcon } from './ObservantAuditionIcon';
 
@@ -38,13 +37,10 @@ function ObservationAnnotationsIcon(props: { hasDescription: boolean; hasUserCom
 const NAME_UNDERLINE =
   'bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat';
 
-function ObservantName(props: {
-  children: ReactNode;
-  magistrat: { firstName: string; lastName: string; usedName: string | null } | null;
-}) {
+function ObservantName(props: { children: ReactNode; magistrat: { name: string } | null }) {
   if (!props.magistrat) return null;
 
-  const words = fullNameCapitalized(props.magistrat).split(' ');
+  const words = props.magistrat.name.split(' ');
   const lastWord = words.pop();
 
   return (
@@ -70,7 +66,7 @@ export function ObservationLinks(props: {
       id: string;
       hasDescription: boolean;
       hasUserComment: boolean;
-      magistrat: { id: string; firstName: string; lastName: string; usedName: string | null } | null;
+      magistrat: { id: string; name: string } | null;
     }[];
   };
 }) {

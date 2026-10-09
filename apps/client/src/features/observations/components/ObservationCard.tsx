@@ -6,7 +6,6 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import type { SessionNominationFile } from '@/queries/nomination-sessions.queries';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { fullNameCapitalized } from '@/utils/user.utils';
 
 type ObservationCardProps = {
   context: 'sg' | 'membre';
@@ -26,7 +25,7 @@ export function ObservationCard({
   const { formatMessage } = useIntl();
   const shouldDisplayCommentIcon = observation.hasDescription || observation.hasUserComment;
   const magistratName = observation.magistrat
-    ? fullNameCapitalized(observation.magistrat)
+    ? observation.magistrat.name
     : formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const observationPath = getObservationDetailsPath({

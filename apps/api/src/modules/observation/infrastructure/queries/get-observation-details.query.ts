@@ -7,6 +7,7 @@ import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
@@ -65,6 +66,7 @@ export class GetObservationDetailsQuery {
               firstName: true,
               id: true,
               lastName: true,
+              marriedName: true,
               observations: {
                 orderBy: { dateReception: 'desc' },
                 select: {
@@ -171,6 +173,7 @@ export class GetObservationDetailsQuery {
           firstName: observation.magistrat.firstName,
           id: observation.magistrat.id,
           lastName: observation.magistrat.lastName,
+          name: magistratFullName(observation.magistrat),
           usedName: observation.magistrat.usedName,
         },
         observedMagistrat: {
@@ -238,6 +241,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
       id: z.string(),
       firstName: z.string(),
       lastName: z.string(),
+      name: z.string(),
       usedName: z.string().nullable(),
       biography: z.string().nullable(),
       audition: auditionScheduleSchema.nullable(),
