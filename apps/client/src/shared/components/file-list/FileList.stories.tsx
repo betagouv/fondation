@@ -1,7 +1,7 @@
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { NominationFileAttachmentTypeTag } from '@/features/transparence/components/nomination-file-attachments/NominationFileAttachmentTypeTag';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { authKeys } from '@queries/auth.queries';
 
@@ -103,7 +103,7 @@ export const UnknownSize: Story = {
 };
 
 export const WithHeader: Story = {
-  args: { header: <NominationFileAttachmentTypeTag type="NOTE_INTENTION" /> },
+  args: { header: <Tag small>Note d'intention</Tag> },
 };
 
 export const WithoutExtension: Story = {

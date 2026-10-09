@@ -5,9 +5,9 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
+import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
-import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationFileAttachmentUrlMutation,

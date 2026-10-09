@@ -11,11 +11,11 @@ import {
   type ActiveFile,
 } from '@/features/observations/context/ObservationsModalContext';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
+import { FileList, FileListItem } from '@/shared/components/file-list';
 import {
   ObservationFollowUpEnumMessages,
   type ObservationFollowUpEnum,
 } from '@/shared/enums/observation-follow-up.enum';
-import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { fullNameUpperCase } from '@/utils/user.utils';

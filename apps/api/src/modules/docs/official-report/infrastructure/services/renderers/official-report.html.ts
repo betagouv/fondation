@@ -17,7 +17,10 @@ import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/
 import { OfficialReportMembersList } from 'src/modules/docs/official-report/domain/official-report-member-list';
 import { OfficialReportSecretary } from 'src/modules/docs/official-report/domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/domain/official-report-session-meeting';
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import {
+  DocNominationFileOutcomeEnum,
+  docNominationFileOutcomeSectionTitle,
+} from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id } from 'src/utils/id';
@@ -234,7 +237,11 @@ function displaySectionTitle(ctx: {
 }): string {
   return (
     ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.title?.html ??
-    displayOutcome({ formation: ctx.root.agenda.formation, outcome: ctx.outcome, count: ctx.count })
+    docNominationFileOutcomeSectionTitle({
+      formation: ctx.root.agenda.formation,
+      outcome: ctx.outcome,
+      count: ctx.count,
+    })
   );
 }
 
@@ -249,7 +256,7 @@ function displaySectionIntro(ctx: {
   switch (ctx.outcome) {
     case 'VALIDATED':
     case 'NON_VALIDATED': {
-      const outcome = displayOutcome({
+      const outcome = docNominationFileOutcomeSectionTitle({
         formation: ctx.root.agenda.formation,
         outcome: ctx.outcome,
         count: 1,
@@ -443,36 +450,6 @@ export const officialReportTemplate: Template<OfficialReportRenderContext> = doc
   content,
   footer,
 } as any) as any;
-
-function displayOutcome(ctx: {
-  count: number;
-  formation: FormationEnum;
-  outcome: DocNominationFileOutcomeEnum;
-}): string {
-  switch (ctx.outcome) {
-    case 'NON_VALIDATED':
-      switch (ctx.formation) {
-        case 'PARQUET':
-          return ctx.count > 1 ? 'Avis défavorables' : 'Avis défavorable';
-        default:
-          return ctx.count > 1 ? 'Avis non conformes' : 'Avis non conforme';
-      }
-
-    case 'VALIDATED':
-      switch (ctx.formation) {
-        case 'PARQUET':
-          return ctx.count > 1 ? 'Avis favorables' : 'Avis favorable';
-        default:
-          return ctx.count > 1 ? 'Avis conformes' : 'Avis conforme';
-      }
-
-    case 'WITHDRAWN':
-      return ctx.count > 1 ? 'Retraits' : 'Retrait';
-
-    case 'SUSPENDED':
-      return 'Sursis';
-  }
-}
 
 export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterable<DocBlock> {
   // every block carries the text the document proposes, so the editor can mark what the reader

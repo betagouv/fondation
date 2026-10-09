@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
-import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { useToasts } from '@/shared/ui/toast';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import { useGenerateReportFilePublicUrlMutation } from '@queries/reports.queries';
