@@ -5,7 +5,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { magistratFullName, proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { nominationFileOutcomeLabel } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -73,7 +73,7 @@ export class ListNominationFilesAsExcelQuery {
 
     const rows = session.dossierDeNominations.map((nf) => [
       nf.number !== null ? String(nf.number) : '',
-      nf.detectedMagistrat ? magistratFullName(nf.detectedMagistrat) : nf.name || '',
+      proposedMagistratName(nf),
       nf.currentPosition || '',
       nf.grade || '',
       nf.targetedPosition || '',

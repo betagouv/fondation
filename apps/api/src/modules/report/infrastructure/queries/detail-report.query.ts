@@ -8,7 +8,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -157,9 +157,7 @@ export class DetailReportQuery {
       id: report.id,
       isArchived: !!report.nominationFile.session.archivedAt,
       missingEvaluation: report.nominationFile.missingEvaluation,
-      name: report.nominationFile.detectedMagistrat
-        ? magistratFullName(report.nominationFile.detectedMagistrat)
-        : report.nominationFile.name,
+      name: proposedMagistratName(report.nominationFile),
       nominationFileId: report.nominationFile.id,
       priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: report.nominationFile.priorities[0]

@@ -1,3 +1,4 @@
+import { type Civility } from 'src/modules/magistrat/domain/magistrat-name';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { capitalize } from 'src/utils/capitalize';
 
@@ -5,10 +6,8 @@ export function buildMemberName(member: { gender: GenderEnum; firstName: string;
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 
-type CivilityEnum = 'M.' | 'MME';
-
 export function buildPosition(options: {
-  civility: CivilityEnum;
+  civility: Civility;
   position: {
     jurisdiction: { id: string; label: string };
     arrondissement: { id: string; label: string } | null;

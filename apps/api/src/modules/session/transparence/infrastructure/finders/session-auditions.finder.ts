@@ -5,6 +5,7 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { MagistratService } from 'src/modules/magistrat/magistrat.service';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationService } from 'src/modules/observation/observation.service';
@@ -56,6 +57,7 @@ export class SessionAuditionsFinder {
         dossierDeNominations: {
           select: {
             currentPosition: true,
+            detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
             detectedMagistratId: true,
             grade: true,
             id: true,
@@ -137,7 +139,7 @@ export class SessionAuditionsFinder {
             profile?.currentPosition ??
             ([file.grade, file.currentPosition].filter(Boolean).join(' - ') || null),
           id: file.detectedMagistratId,
-          name: profile?.name ?? file.name,
+          name: proposedMagistratName(file),
         },
         propositions: [{ label: propositionLabel(file.id), nominationFileId: file.id, observationId: null }],
         reporters: reporters.get(file.id) ?? [],

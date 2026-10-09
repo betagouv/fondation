@@ -5,7 +5,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { capitalize } from 'src/utils/capitalize';
 
 const COLUMNS = [
@@ -62,7 +62,7 @@ export class ListMissingEvaluationsAsExcelQuery {
 
     const rows = session.dossierDeNominations.map((nf) => [
       nf.number !== null ? String(nf.number) : '',
-      nf.detectedMagistrat ? magistratFullName(nf.detectedMagistrat) : nf.name || '',
+      proposedMagistratName(nf),
       nf.grade || '',
       nf.currentPosition || '',
       nf.targetedGrade || '',

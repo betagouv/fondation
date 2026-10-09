@@ -1,18 +1,29 @@
 import { capitalize } from 'src/utils/capitalize';
 
+export const CIVILITIES = ['M.', 'MME'] as const;
+export type Civility = (typeof CIVILITIES)[number];
+
 type MagistratNames = { firstName: string; lastName: string; marriedName: string | null };
 
-export function magistratFullName(magistrat: MagistratNames): string {
-  const lastName = magistrat.lastName.trim().toUpperCase();
-  const firstName = capitalize(magistrat.firstName.trim().toLowerCase());
-  const marriedName = magistrat.marriedName?.trim().toUpperCase();
-  return marriedName && marriedName !== lastName
-    ? `${lastName} ${firstName} (ép. ${marriedName})`
-    : `${lastName} ${firstName}`;
+function upperName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ').toUpperCase();
 }
 
-export function magistratTitledFullName(magistrat: MagistratNames & { civility: string }): string {
-  return `${magistrat.civility === 'MME' ? 'Mme' : 'M.'} ${magistratFullName(magistrat)}`;
+function writeFullName(magistrat: MagistratNames, separator: string): string {
+  const lastName = upperName(magistrat.lastName);
+  const firstName = capitalize(magistrat.firstName.trim().toLowerCase());
+  const marriedName = magistrat.marriedName && upperName(magistrat.marriedName);
+  const fullName = `${lastName}${separator}${firstName}`;
+  return marriedName && marriedName !== lastName ? `${fullName} (ép. ${marriedName})` : fullName;
+}
+
+export function magistratFullName(magistrat: MagistratNames): string {
+  return writeFullName(magistrat, ' ');
+}
+
+// documents keep the civility, the last name and the first name on the same line
+export function magistratTitledFullName(magistrat: MagistratNames & { civility: Civility }): string {
+  return `${magistrat.civility === 'MME' ? 'Mme' : 'M.'}\u00A0${writeFullName(magistrat, '\u00A0')}`;
 }
 
 export function proposedMagistratName(nominationFile: {

@@ -22,9 +22,11 @@ l'écran et le document officiel.
   sur la fiche identité.
 - Le nom marital est omis lorsqu'il est égal au nom de naissance, sans tenir compte de la casse ni des
   espaces en trop. `ép.` vaut pour une épouse comme pour un époux.
-- **L'API construit le nom complet en un seul endroit**, une fonction du domaine magistrat, que les
-  documents appellent aussi en y ajoutant la civilité (`Mme`, `M.`). Les autres modules l'obtiennent par
-  le `MagistratService`. Le client l'affiche tel qu'il le reçoit, conformément à
+- **L'API construit le nom complet en un seul endroit** : les fonctions du domaine magistrat, dont une
+  variante précédée de la civilité (`Mme`, `M.`) pour les documents et la fiche magistrat. Une requête qui
+  joint déjà le magistrat appelle directement ces fonctions pures plutôt que d'ajouter une lecture par le
+  `MagistratService` : elles ne lisent aucune donnée, elles ne font qu'écrire le nom. Le client l'affiche
+  tel qu'il le reçoit, conformément à
   [l'ADR sur les libellés métier](../../apps/client/docs/adr/2026-07-13-libelles-metier-servis-par-l-api.md).
 
 ## Conséquences

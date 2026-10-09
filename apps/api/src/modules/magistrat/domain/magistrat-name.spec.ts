@@ -2,12 +2,13 @@ import { magistratFullName, magistratTitledFullName, proposedMagistratName } fro
 
 describe('magistratFullName', () => {
   it.each`
-    magistrat                                                               | expected
-    ${{ firstName: 'JEAN-CHARLES', lastName: 'Henri', marriedName: null }}  | ${'HENRI Jean-Charles'}
-    ${{ firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'Curie' }} | ${'SKŁODOWSKA Marie (ép. CURIE)'}
-    ${{ firstName: 'Marie', lastName: 'DUPONT', marriedName: ' Dupont ' }}  | ${'DUPONT Marie'}
-    ${{ firstName: 'Anne', lastName: 'LEFEVRE', marriedName: 'LEFÈVRE' }}   | ${'LEFEVRE Anne (ép. LEFÈVRE)'}
-    ${{ firstName: 'Anne', lastName: 'MARTIN', marriedName: '  ' }}         | ${'MARTIN Anne'}
+    magistrat                                                                     | expected
+    ${{ firstName: 'JEAN-CHARLES', lastName: 'Henri', marriedName: null }}        | ${'HENRI Jean-Charles'}
+    ${{ firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'Curie' }}       | ${'SKŁODOWSKA Marie (ép. CURIE)'}
+    ${{ firstName: 'Marie', lastName: 'DUPONT', marriedName: ' Dupont ' }}        | ${'DUPONT Marie'}
+    ${{ firstName: 'Marie', lastName: 'DE  LA ROSE', marriedName: 'de la rose' }} | ${'DE LA ROSE Marie'}
+    ${{ firstName: 'Anne', lastName: 'LEFEVRE', marriedName: 'LEFÈVRE' }}         | ${'LEFEVRE Anne (ép. LEFÈVRE)'}
+    ${{ firstName: 'Anne', lastName: 'MARTIN', marriedName: '  ' }}               | ${'MARTIN Anne'}
   `('should write $expected', ({ magistrat, expected }) => {
     expect(magistratFullName(magistrat)).toBe(expected);
   });
@@ -16,8 +17,8 @@ describe('magistratFullName', () => {
 describe('magistratTitledFullName', () => {
   it.each`
     magistrat                                                                                | expected
-    ${{ civility: 'M.', firstName: 'JEAN-CHARLES', lastName: 'HENRI', marriedName: null }}   | ${'M.\u00A0HENRI Jean-Charles'}
-    ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'CURIE' }} | ${'Mme\u00A0SKŁODOWSKA Marie (ép. CURIE)'}
+    ${{ civility: 'M.', firstName: 'JEAN-CHARLES', lastName: 'HENRI', marriedName: null }}   | ${'M.\u00A0HENRI\u00A0Jean-Charles'}
+    ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'CURIE' }} | ${'Mme\u00A0SKŁODOWSKA\u00A0Marie (ép. CURIE)'}
   `('should write $expected', ({ magistrat, expected }) => {
     expect(magistratTitledFullName(magistrat)).toBe(expected);
   });

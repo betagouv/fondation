@@ -8,7 +8,7 @@ import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
-import { magistratTitledFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { CIVILITIES, magistratTitledFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -75,7 +75,7 @@ const SqlNominationFilesSchema = z
   .object({
     id: z.uuid(),
     magistrat: z.object({
-      civility: z.enum(['M.', 'MME']),
+      civility: z.enum(CIVILITIES),
       externalId: z.number().int().gt(0),
       firstName: z.string().trim().nonempty(),
       id: z.string().nonempty(),

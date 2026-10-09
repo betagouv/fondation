@@ -6,7 +6,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
@@ -168,9 +168,7 @@ export class DetailSummaryQuery {
       isArchived: !!session.archivedAt,
       lastPositionDate: DateOnly.fromOptionalUtcDate(nominationFile.lastPositionDate)?.toJson() ?? null,
       missingEvaluation: nominationFile.missingEvaluation,
-      name: nominationFile.detectedMagistrat
-        ? magistratFullName(nominationFile.detectedMagistrat)
-        : nominationFile.name,
+      name: proposedMagistratName(nominationFile),
       observers: nominationFile.observers,
       outcome: nominationFile.outcome
         ? {

@@ -7,7 +7,7 @@ import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { magistratFullName, proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
@@ -176,16 +176,12 @@ export class GetObservationDetailsQuery {
         },
         observedMagistrat: {
           detectedMagistratId: observation.nominationFile.detectedMagistratId,
-          name: observation.nominationFile.detectedMagistrat
-            ? magistratFullName(observation.nominationFile.detectedMagistrat)
-            : observation.nominationFile.name,
+          name: proposedMagistratName(observation.nominationFile),
           proposedPosition: observation.nominationFile.targetedPosition,
         },
         receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
         relatedPropositions: observation.magistrat.observations.map((obs) => ({
-          magistratName: obs.nominationFile.detectedMagistrat
-            ? magistratFullName(obs.nominationFile.detectedMagistrat)
-            : obs.nominationFile.name,
+          magistratName: proposedMagistratName(obs.nominationFile),
           nominationFileId: obs.nominationFile.id,
           number: obs.nominationFile.number,
           observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),

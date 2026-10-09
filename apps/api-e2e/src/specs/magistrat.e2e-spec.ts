@@ -85,7 +85,7 @@ test.describe('Magistrat E2E', () => {
       firstName: expect.stringMatching(/^honorine$/i),
       id: valrose.magistratId,
       lastName: expect.stringMatching(/^valrose$/i),
-      name: 'Mme\u00A0VALROSE Honorine (ép. DUBOIS)',
+      name: 'Mme\u00A0VALROSE\u00A0Honorine (ép. DUBOIS)',
     });
   });
 
