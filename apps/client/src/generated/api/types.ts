@@ -74,61 +74,8 @@ export type DetailedReportDto = {
     id: string;
     sessionId: string;
     nominationFileId: string;
-    name: string;
-    detectedMagistratId: string | null;
-    detectedMagistrat: {
-        firstName: string;
-        lastName: string;
-        usedName: string | null;
-    } | null;
     comment: string | null;
-    formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
-    isArchived: boolean;
-    auditionDate: {
-        year: number;
-        month: number;
-        day: number;
-    } | null;
-    auditionRequired: boolean;
-    auditionTime: {
-        hours: number;
-        minutes: number;
-        seconds: number;
-    } | null;
-    canScheduleAudition: boolean;
-    missingEvaluation: boolean;
-    folderNumber: number | null;
-    biography: string | null;
-    dueDate: {
-        year: number;
-        month: number;
-        day: number;
-    } | null;
-    birthDate: {
-        year: number;
-        month: number;
-        day: number;
-    } | null;
-    transparency: string;
-    dateTransparence: {
-        year: number;
-        month: number;
-        day: number;
-    };
-    grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
-    currentPosition: string | null;
-    targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH' | null;
-    targettedPosition: string | null;
-    rank: string | null;
-    dureeDuPoste: string | null;
-    priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-    /**
-     * prefer priorities
-     *
-     * @deprecated
-     */
-    priority: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;

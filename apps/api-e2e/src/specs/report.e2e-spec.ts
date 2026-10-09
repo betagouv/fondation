@@ -162,37 +162,6 @@ test.describe('Report E2E', () => {
     expect(unknownSessionRes.response?.status).toBe(404);
   });
 
-  test('should no longer schedule an audition once the outcome is final', async ({ agent, member, expect }) => {
-    const openReport = await member.reports.detailReport({ path: { reportId } });
-    expect(openReport.response?.status).toBe(200);
-    expect(openReport.data).toMatchObject({ canScheduleAudition: true });
-
-    const outcomeRes = await agent.sessions.defineNominationFileOutcome({
-      body: { comment: null, outcome: 'VALIDATED' },
-      path: { nominationFileId, sessionId },
-    });
-    expect(outcomeRes.response?.status).toBe(204);
-
-    const closedReport = await member.reports.detailReport({ path: { reportId } });
-    expect(closedReport.response?.status).toBe(200);
-    expect(closedReport.data).toMatchObject({ canScheduleAudition: false });
-  });
-
-  test('should show the member an audition once the secretariat publishes it', async ({ agent, member, expect }) => {
-    await agent.sessions.updateNominationFileAuditionDate({
-      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
-      path: { nominationFileId, sessionId },
-      throwOnError: true,
-    });
-    const beforePublication = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
-
-    await agent.sessions.publishSessionAuditions({ path: { sessionId }, throwOnError: true });
-    const afterPublication = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
-
-    expect(beforePublication.data).toMatchObject({ auditionDate: null, auditionRequired: true });
-    expect(afterPublication.data).toMatchObject({ auditionDate: { day: 12, month: 12, year: 2028 } });
-  });
-
   test('should attach files to a report', async ({ member, expect }) => {
     const file = makeFile({ name: `image_${crypto.randomUUID()}.png`, type: 'image/png' });
 
