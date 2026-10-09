@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
-  previewFeatures = ["relationJoins", "typedSql"]
+  previewFeatures = ["partialIndexes", "relationJoins", "typedSql"]
 }
 
 generator rotateRoles {
