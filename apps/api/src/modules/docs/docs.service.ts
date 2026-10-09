@@ -52,7 +52,6 @@ export class DocsService {
     private readonly listSecretariesGeneralQuery: ListSecretariesGeneralQuery,
     private readonly db: Db,
 
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,

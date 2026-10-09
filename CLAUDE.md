@@ -185,7 +185,7 @@ export class UsersModule {}
 - Préférer TypedSQL à un `$queryRaw` écrit dans le code, sauf quand la structure de la requête varie à l'exécution
 - Ne jamais rapprocher des données par leur texte (`ILIKE`) avec une table de référence : passer par les clés étrangères
 - Une table appartient au module qui l'écrit, quel que soit le schéma où elle est rangée
-- Un module lit les données d'un autre module par une méthode `internal...` du service de ce module. Seules la table `users` (`identity_and_access_context`) et les tables de référence LOLFI (`data_administration_context`) peuvent être lues directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
+- Un module lit les données d'un autre module par une méthode `internal...` du service de ce module. Seules la table `users` (`identity_and_access_context`) et les copies LOLFI (les tables de `data_administration_context` et `nominations_context.magistrat`) peuvent être lues directement. Un endpoint garde le chemin REST et le tag OpenAPI de la ressource qu'il sert, même quand un autre module le traite
 - Un module écrit dans les données d'un autre module par une méthode `internal...` du service de ce module, dans la transaction de l'appelant (`@Transactional(Propagation.Mandatory)` côté propriétaire)
 - Un endpoint sans `@HasRole` est public : le middleware d'authentification ne fait qu'attacher l'utilisateur à la requête. L'autorisation se fait par rôle, jamais par l'URL
 

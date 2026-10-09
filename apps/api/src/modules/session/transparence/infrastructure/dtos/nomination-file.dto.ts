@@ -118,3 +118,5 @@ export class UpdateMissingEvaluationCommentDto extends createZodDto(
 export class UpdateAuditionDateDto extends createZodDto(scheduleAuditionSchema) {}
 
 export class UpdateAuditionRequestDto extends createZodDto(z.object({ requested: z.boolean() })) {}
+
+export class WriteNominationFileMemberMemoDto extends createZodDto(z.object({ memo: z.string() })) {}

@@ -1,5 +1,5 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
@@ -104,10 +104,6 @@ import {
 } from './queries/internal-find-docs-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './queries/internal-list-magistrat-nomination-files.query';
 import {
-  InternalListMemberSessionsQuery,
-  type ListedMemberSessionsDto,
-} from './queries/internal-list-member-sessions.query';
-import {
   ListArchivedNominationSessionsQuery,
   ListedArchivedNominationSessionsDto,
 } from './queries/list-archived-nomination-sessions.query';
@@ -115,6 +111,7 @@ import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
 } from './queries/list-currently-affected-reporters.query';
+import { ListMemberSessionsQuery, type ListedMemberSessionsDto } from './queries/list-member-sessions.query';
 import { ListMissingEvaluationsAsExcelQuery } from './queries/list-missing-evaluations-as-excel.query';
 import {
   type ListedNominationFileAttachmentDto,
@@ -142,7 +139,6 @@ import { SessionTransparenceRepository } from './repositories/session-transparen
 export class TransparenceService {
   private readonly logger = new Logger(TransparenceService.name);
   constructor(
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     private readonly auditionPublications: AuditionPublicationFinder,
     private readonly auditionsSeen: AuditionsSeenFinder,
@@ -158,7 +154,7 @@ export class TransparenceService {
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
     private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
-    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+    private readonly listMemberSessionsQuery: ListMemberSessionsQuery,
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
@@ -232,12 +228,11 @@ export class TransparenceService {
     return this.reportersAffectation.find(query);
   }
 
-  /** @internal */
   listMemberSessions(query: {
     typeDeSaisine: TypeDeSaisineEnum;
     user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionsDto> {
-    return this.internalListMemberSessionsQuery.handle(query);
+    return this.listMemberSessionsQuery.handle(query);
   }
 
   /** @internal */

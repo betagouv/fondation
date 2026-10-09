@@ -14,5 +14,3 @@ export class ListMembersQueryDto extends createZodDto(
     ),
   }),
 ) {}
-
-export class WriteNominationFileMemberMemoDto extends createZodDto(z.object({ memo: z.string() })) {}

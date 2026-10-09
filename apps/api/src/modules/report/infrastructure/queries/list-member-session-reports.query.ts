@@ -8,6 +8,7 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListMemberSessionReportsQuery {
@@ -18,10 +19,19 @@ export class ListMemberSessionReportsQuery {
   ) {}
 
   @Transactional()
-  async handle(query: { sessionId: string; userId: string }): Promise<ListedMemberSessionReportsDto> {
+  async handle(query: {
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<ListedMemberSessionReportsDto> {
+    await this.sessions.assertMemberSessionExists({
+      sessionId: query.sessionId,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
+      user: query.user,
+    });
+
     const reports = await this.db.tx.report.findMany({
       select: { id: true, nominationFileId: true, state: true } satisfies Prisma.ReportSelect,
-      where: { isDeleted: false, reporterId: query.userId, sessionId: query.sessionId },
+      where: { isDeleted: false, reporterId: query.user.id, sessionId: query.sessionId },
     });
     const files = await this.sessions.internalFindNominationFilesByIds({
       nominationFileIds: reports.map(({ nominationFileId }) => nominationFileId),
