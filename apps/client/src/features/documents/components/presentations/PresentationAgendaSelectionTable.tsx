@@ -1,4 +1,3 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import clsx from 'clsx';
 import { useCallback, useMemo, useState, type ChangeEvent, type MouseEvent } from 'react';
@@ -7,7 +6,7 @@ import { generatePath, Link } from 'react-router';
 
 import { AgendaValidation } from '@/features/documents/components/presentations/PresentationAuthoring';
 import { usePresentationPlan } from '@/features/documents/context/presentation-plan.context';
-import { FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { FormationBadge } from '@/shared/components/formation-badge';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useSelection } from '@/shared/hooks/useSelection';
 import { useTab } from '@/shared/hooks/useTab';
@@ -144,16 +143,13 @@ export function PresentationAgendaSelectionTable(props: { items: readonly Agenda
                 value={item.id}
               />
 
-              <Badge
-                as="span"
-                className={clsx('fr-mb-0 h-6 w-24 shrink-0 justify-center', {
+              <FormationBadge
+                className={clsx('fr-mb-0 w-24 shrink-0 justify-center', {
                   'text-(--text-disabled-grey)': isLockedOut,
                 })}
-                noIcon
+                formation={item.formation}
                 small
-              >
-                {formatMessage(FormationEnumMessages[item.formation])}
-              </Badge>
+              />
 
               <span className="fr-pr-2v fr-pl-10v">
                 {isLockedOut || !item.validatedAt ? (

@@ -1,7 +1,7 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
-import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { FormationBadge } from '@/shared/components/formation-badge';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { Collapse } from '@/shared/ui/collapse';
 import {
   dateOnlyToIso,
@@ -21,14 +21,10 @@ export function HeaderReportList({
   formation: FormationEnum;
   transparency: string;
 }) {
-  const intl = useIntl();
-
   return (
     <div>
       <h1 className="fr-h4 fr-mb-0 flex flex-wrap items-center gap-x-3">
-        <Badge as="span" className="shrink-0">
-          {intl.formatMessage(FormationEnumMessages[formation])}
-        </Badge>
+        <FormationBadge className="shrink-0" formation={formation} />
         <span className="text-(--text-title-blue-france)">{transparency}</span>
         <span aria-hidden className="text-(--text-title-blue-france)">
           -

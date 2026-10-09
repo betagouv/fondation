@@ -1,63 +1,75 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { defineMessage } from 'react-intl';
+import { useMemo } from 'react';
+import { defineMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
+import { FormationBadge } from '@/shared/components/formation-badge';
+import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
 import type { ListedArchivedNominationSessionsDto } from '@api/types';
 import { useListedArchivedGdsNominationSessionsQuery } from '@queries/archived-nomination-sessions.queries';
 
 const h = createColumnHelper<ListedArchivedNominationSessionsDto['items'][number]>();
-const columns = [
-  h.accessor('name', {
-    id: 'name',
-    enableSorting: false,
-    enableHiding: false,
-    header: 'Intitulé de la session',
-    cell: ({ row }) => (
-      <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
-        {row.original.name}
-      </Link>
-    ),
-  }),
+function useArchivedSessionColumns() {
+  const { formatMessage } = useIntl();
 
-  h.accessor('formation', {
-    id: 'formation',
-    enableSorting: false,
-    header: 'Formation',
-    meta: {
-      filters: {
-        type: 'enum',
-        filterId: 'formation',
-        label: 'Formation',
-        values: [
-          { id: 'PARQUET', label: 'Parquet' },
-          { id: 'SIEGE', label: 'Siège' },
-        ],
-      },
-    },
-  }),
+  return useMemo(
+    () => [
+      h.accessor('name', {
+        id: 'name',
+        enableSorting: false,
+        enableHiding: false,
+        header: 'Intitulé de la session',
+        cell: ({ row }) => (
+          <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
+            {row.original.name}
+          </Link>
+        ),
+      }),
 
-  h.accessor('date', {
-    id: 'date',
-    enableSorting: true,
-    sortDescFirst: false,
-    header: 'Date de publication',
-    cell: ({ cell }) => formatDateOnly(cell.getValue()),
-  }),
+      h.accessor('formation', {
+        id: 'formation',
+        enableSorting: false,
+        header: 'Formation',
+        cell: ({ getValue }) => <FormationBadge formation={getValue()} small />,
+        meta: {
+          filters: {
+            type: 'enum',
+            filterId: 'formation',
+            label: 'Formation',
+            values: Object.values(FormationEnum).map((id) => ({
+              id,
+              label: capitalize(formatMessage(FormationEnumMessages[id])),
+            })),
+          },
+        },
+      }),
 
-  h.accessor('dueDate', {
-    id: 'dueDate',
-    enableSorting: false,
-    header: "Date d'échéance",
-    cell: ({ cell }) => {
-      const val = cell.getValue();
-      return val ? formatDateOnly(val) : null;
-    },
-  }),
-];
+      h.accessor('date', {
+        id: 'date',
+        enableSorting: true,
+        sortDescFirst: false,
+        header: 'Date de publication',
+        cell: ({ cell }) => formatDateOnly(cell.getValue()),
+      }),
+
+      h.accessor('dueDate', {
+        id: 'dueDate',
+        enableSorting: false,
+        header: "Date d'échéance",
+        cell: ({ cell }) => {
+          const val = cell.getValue();
+          return val ? formatDateOnly(val) : null;
+        },
+      }),
+    ],
+    [formatMessage],
+  );
+}
 
 const breadcrumb: BreadcrumbVM = {
   currentPageLabel: 'Sessions archivées',
@@ -78,6 +90,8 @@ export function ManageArchivedSessions() {
     sorting: tableState.sorting,
     filters: { formations },
   });
+
+  const columns = useArchivedSessionColumns();
 
   const table = useDataTable({
     columns,

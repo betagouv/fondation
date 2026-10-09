@@ -1,10 +1,9 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { FormationBadge } from '@/shared/components/formation-badge';
 import { useArchivedSession } from '@/shared/context/archived-session';
-import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { Collapse } from '@/shared/ui/collapse';
 import { dateOnlyToIso, formatLongDateOnly } from '@/utils/date-only.util';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -20,9 +19,7 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
   return (
     <div className="flex w-full flex-col">
       <h1 className="fr-h4 fr-mb-0 flex flex-wrap items-center gap-x-3">
-        <Badge as="span">
-          <FormattedMessage {...FormationEnumMessages[transparence.formation]} />
-        </Badge>
+        <FormationBadge formation={transparence.formation} />
         <span className="hyphens-auto text-(--text-title-blue-france)">{transparence.name}</span>
         {transparence.date && (
           <>
