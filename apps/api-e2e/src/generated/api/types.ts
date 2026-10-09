@@ -73,11 +73,6 @@ export type DetailedReportDto = {
     nominationFileId: string;
     name: string;
     detectedMagistratId: string | null;
-    detectedMagistrat: {
-        firstName: string;
-        lastName: string;
-        usedName: string | null;
-    } | null;
     comment: string | null;
     formation: 'SIEGE' | 'PARQUET';
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';

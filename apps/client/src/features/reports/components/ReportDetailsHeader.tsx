@@ -14,12 +14,10 @@ import {
 } from '@/shared/enums/report-status.enum';
 import { DetailsHeader } from '@/shared/ui/details';
 import { backToFilesListSearch, getDetailSessionGdsPath } from '@/utils/route-path.utils';
-import { fullNameCapitalized } from '@/utils/user.utils';
 import type { DetailedReportDto } from '@api/types';
 
 export function ReportDetailsHeader(props: {
   breadcrumb?: ReactNode;
-  detectedMagistrat: DetailedReportDto['detectedMagistrat'];
   detectedMagistratId: string | null;
   isReadOnly?: boolean;
   name: string;
@@ -32,8 +30,6 @@ export function ReportDetailsHeader(props: {
   const { formatMessage } = useIntl();
 
   const location = useLocation();
-  const title = props.detectedMagistrat ? fullNameCapitalized(props.detectedMagistrat) : props.name;
-
   const onChange = (event: ChangeEvent<HTMLSelectElement>) =>
     props.onUpdateState(event.target.value as ReportStatusEnum);
 
@@ -60,7 +56,7 @@ export function ReportDetailsHeader(props: {
       breadcrumb={props.breadcrumb}
       overline={<FormattedMessage defaultMessage="Rapport" />}
       title={
-        <TitleNameIcons name={title}>
+        <TitleNameIcons name={props.name}>
           {props.priorities.length > 0 && (
             <span className="fr-ml-2v fr-mr-3v inline-flex items-center gap-2">
               {[...new Set(props.priorities)].sort().map((priority) => (

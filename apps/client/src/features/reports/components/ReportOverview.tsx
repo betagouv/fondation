@@ -112,7 +112,6 @@ export function ReportOverview({ id }: { id: string }) {
                 id="report-breadcrumb"
               />
             }
-            detectedMagistrat={retrievedReport.detectedMagistrat}
             detectedMagistratId={retrievedReport.detectedMagistratId}
             isReadOnly={retrievedReport.isArchived}
             name={retrievedReport.name}

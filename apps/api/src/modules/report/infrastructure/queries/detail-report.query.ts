@@ -8,6 +8,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -68,7 +69,7 @@ export class DetailReportQuery {
             detectedJurisdiction: { select: { typeJur: true } },
             detectedJurisdictionId: true,
             detectedMagistrat: {
-              select: { firstName: true, lastName: true, usedName: true },
+              select: { firstName: true, lastName: true, marriedName: true },
             },
             detectedMagistratId: true,
             detectedTargetedFunctionId: true,
@@ -145,7 +146,6 @@ export class DetailReportQuery {
       comment: report.comment,
       currentPosition: report.nominationFile.currentPosition,
       dateTransparence: DateOnly.fromUtcDate(report.nominationFile.session.date).toJson(),
-      detectedMagistrat: report.nominationFile.detectedMagistrat,
       detectedMagistratId: report.nominationFile.detectedMagistratId,
       dueDate:
         DateOnly.fromOptionalUtcDate(report.nominationFile.session.transparenceGds?.dueDate)?.toJson() ??
@@ -157,7 +157,9 @@ export class DetailReportQuery {
       id: report.id,
       isArchived: !!report.nominationFile.session.archivedAt,
       missingEvaluation: report.nominationFile.missingEvaluation,
-      name: report.nominationFile.name,
+      name: report.nominationFile.detectedMagistrat
+        ? magistratFullName(report.nominationFile.detectedMagistrat)
+        : report.nominationFile.name,
       nominationFileId: report.nominationFile.id,
       priorities: report.nominationFile.priorities.map(prismaPrioriteEnumToPriorityEnum),
       priority: report.nominationFile.priorities[0]
@@ -214,13 +216,6 @@ export class DetailedReportDto extends createZodDto(
     nominationFileId: z.string(),
     name: z.string(),
     detectedMagistratId: z.string().nullable(),
-    detectedMagistrat: z
-      .object({
-        firstName: z.string(),
-        lastName: z.string(),
-        usedName: z.string().nullable(),
-      })
-      .nullable(),
     comment: z.string().nullable(),
     formation: z.enum(FormationEnum),
     state: z.enum(ReportStateEnum),

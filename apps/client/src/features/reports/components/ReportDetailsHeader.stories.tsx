@@ -9,10 +9,9 @@ const meta = {
   parameters: { controls: { include: ['isReadOnly', 'state'] }, layout: 'padded' },
   tags: ['autodocs'],
   args: {
-    detectedMagistrat: { firstName: 'Maurice', lastName: 'Ravel', usedName: null },
     detectedMagistratId: 'magistrat-1',
     isReadOnly: false,
-    name: 'RAVEL MAURICE',
+    name: 'RAVEL Maurice',
     nominationFileId: 'dossier-1',
     onUpdateState: fn().mockName('onUpdateState'),
     priorities: ['ETOILE'],
@@ -28,7 +27,7 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 
 export const WithoutDetectedMagistrat: Story = {
-  args: { detectedMagistrat: null, detectedMagistratId: null },
+  args: { detectedMagistratId: null, name: 'RAVEL MAURICE' },
 };
 
 export const ArchivedSession: Story = {
