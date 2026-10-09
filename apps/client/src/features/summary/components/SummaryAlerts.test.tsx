@@ -64,7 +64,7 @@ describe('SummaryAlerts', () => {
     mocks.isSg = false;
     renderAlerts({ auditionRequired: true });
 
-    expect(screen.getByText('Une audition va être programmée pour ce magistrat')).toBeInTheDocument();
+    expect(screen.getByText('Magistrat à convoquer en audition')).toBeInTheDocument();
   });
 
   it('reminds the secretariat of the reporters alone once the audition is scheduled', () => {

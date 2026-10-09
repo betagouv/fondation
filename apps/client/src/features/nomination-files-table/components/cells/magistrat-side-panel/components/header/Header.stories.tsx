@@ -170,8 +170,6 @@ function HeaderBanners(props: { editable: boolean; nominationFile: SessionNomina
           auditionRequirement={nominationFile.auditionRequirement}
           auditionTime={nominationFile.auditionTime}
           editable={props.editable && nominationFile.canScheduleAudition}
-          nominationFileId={nominationFile.id}
-          sessionId={SESSION_ID}
         />
         <MissingEvaluation editable={props.editable} nominationFile={nominationFile} sessionId={SESSION_ID} />
       </div>

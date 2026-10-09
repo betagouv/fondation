@@ -8,7 +8,7 @@ export function AuditionAnnouncedBanner(props: { className?: string; fullWidth?:
       className={props.className}
       fullWidth={props.fullWidth}
       icon="fr-icon-speak-line"
-      message={<FormattedMessage defaultMessage="Une audition va être programmée pour ce magistrat" />}
+      message={<FormattedMessage defaultMessage="Magistrat à convoquer en audition" />}
       tone="info"
     />
   );

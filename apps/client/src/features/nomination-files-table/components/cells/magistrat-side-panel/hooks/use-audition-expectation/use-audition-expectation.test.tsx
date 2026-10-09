@@ -96,7 +96,7 @@ describe('useAuditionExpectation', () => {
 
   it('does not credit the position with an audition the secretariat added', () => {
     expect(renderExpectation({ auditionRequired: true, auditionRequirement: 'SECRETARIAT' }).labels).toEqual([
-      'Une audition a été demandée',
+      'Magistrat à convoquer en audition',
     ]);
   });
 

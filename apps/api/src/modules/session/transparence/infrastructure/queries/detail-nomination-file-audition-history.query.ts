@@ -10,7 +10,6 @@ import { fullname } from 'src/utils/user.util';
 type AuditionVersion = {
   author: { firstName: string; id: string; lastName: string } | null;
   date: Date | null;
-  requested: boolean | null;
   time: Date | null;
   writtenAt: Date;
 };
@@ -18,26 +17,19 @@ type AuditionVersion = {
 const scheduleKey = (version: AuditionVersion) =>
   `${version.date?.toISOString()}|${version.time?.toISOString()}`;
 
-// each version records the whole audition: the request and the date shown are the ones of the last change that set them
-export function currentAuditionChanges(versions: readonly AuditionVersion[]): {
-  requested: AuditionVersion | null;
-  scheduled: AuditionVersion | null;
-} {
-  let requested: AuditionVersion | null = null;
+// each version records the whole audition: the date shown is the one of the last change that set it
+export function currentSchedule(versions: readonly AuditionVersion[]): AuditionVersion | null {
   let scheduled: AuditionVersion | null = null;
   let previous: AuditionVersion | undefined;
 
   for (const version of versions) {
-    if (version.requested !== true) requested = null;
-    else if (previous?.requested !== true) requested = version;
-
     if (!version.date) scheduled = null;
     else if (!previous || scheduleKey(previous) !== scheduleKey(version)) scheduled = version;
 
     previous = version;
   }
 
-  return { requested, scheduled };
+  return scheduled;
 }
 
 @Injectable()
@@ -54,15 +46,13 @@ export class DetailNominationFileAuditionHistoryQuery {
       select: {
         author: { select: { firstName: true, id: true, lastName: true } },
         date: true,
-        requested: true,
         time: true,
         writtenAt: true,
       } satisfies Prisma.NominationFileAuditionVersionSelect,
       where: { nominationFile: { sessionId: query.sessionId }, nominationFileId: query.nominationFileId },
     });
-    const { requested, scheduled } = currentAuditionChanges(versions);
 
-    return { requested: changeOf(requested), scheduled: changeOf(scheduled) };
+    return { scheduled: changeOf(currentSchedule(versions)) };
   }
 }
 
@@ -80,5 +70,5 @@ const changeSchema = z
   .nullable();
 
 export class DetailedNominationFileAuditionHistoryDto extends createZodDto(
-  z.object({ requested: changeSchema, scheduled: changeSchema }),
+  z.object({ scheduled: changeSchema }),
 ) {}

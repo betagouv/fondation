@@ -38,8 +38,6 @@ export function MagistratSidePanelContent(props: {
           auditionRequirement={nominationFile.auditionRequirement}
           auditionTime={nominationFile.auditionTime}
           editable={auditionEditable}
-          nominationFileId={nominationFile.id}
-          sessionId={sessionId}
         />
         <MissingEvaluation
           editable={isSgContext}
