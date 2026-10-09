@@ -1,7 +1,6 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { AuditionRequesterMessage } from '@/shared/components/audition-banner';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { toScheduledDate } from '@/utils/time-only.util';
@@ -18,11 +17,11 @@ export function AuditionRequestToggle(props: { nominationFile: SessionNomination
   const scheduledAt = toScheduledDate(nominationFile.auditionDate, nominationFile.auditionTime);
   const imposed = nominationFile.auditionRequirement === 'POSITION';
 
-  const reason = imposed ? (
-    formatMessage({ defaultMessage: 'Une audition est à prévoir pour ce poste' })
-  ) : nominationFile.auditionRequired ? (
-    <AuditionRequesterMessage nominationFileId={nominationFile.id} sessionId={sessionId} />
-  ) : null;
+  const reason = imposed
+    ? formatMessage({ defaultMessage: 'Une audition est à prévoir pour ce poste' })
+    : nominationFile.auditionRequired
+      ? formatMessage({ defaultMessage: 'Magistrat à convoquer en audition' })
+      : null;
 
   // dismissing a scheduled audition removes its date, which deserves a second thought
   const onChange = async (requested: boolean) => {

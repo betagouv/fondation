@@ -1,10 +1,6 @@
 import { FormattedMessage } from 'react-intl';
 
-import {
-  AuditionAnnouncedBanner,
-  AuditionRequesterMessage,
-  AuditionScheduledBanner,
-} from '@/shared/components/audition-banner';
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
@@ -21,8 +17,6 @@ export function AuditionBanner(props: {
   auditionRequirement: SessionNominationFile['auditionRequirement'];
   auditionTime: PlainTimeOnly | null;
   editable: boolean;
-  nominationFileId: string;
-  sessionId: string;
 }) {
   const { auditionDate, auditionMissing, auditionTime, editable } = props;
 
@@ -43,7 +37,7 @@ export function AuditionBanner(props: {
           props.auditionRequirement === 'POSITION' ? (
             <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
           ) : (
-            <AuditionRequesterMessage nominationFileId={props.nominationFileId} sessionId={props.sessionId} />
+            <FormattedMessage defaultMessage="Magistrat à convoquer en audition" />
           )
         }
         tone="warning"

@@ -78,10 +78,10 @@ describe('SidePanelTrigger', () => {
     );
   });
 
-  it('should tell a member an audition will be scheduled without warning them', () => {
+  it('should tell a member the magistrat is to be summoned without warning them', () => {
     renderTrigger({ auditionRequired: true }, MEMBER_ROUTE);
 
-    expect(screen.getByRole('img', { name: 'Une audition va être programmée' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Magistrat à convoquer en audition' })).toBeInTheDocument();
     expect(screen.getByRole('button')).not.toHaveAccessibleDescription();
   });
 

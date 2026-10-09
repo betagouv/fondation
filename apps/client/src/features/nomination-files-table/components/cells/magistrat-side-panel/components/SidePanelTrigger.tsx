@@ -51,7 +51,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
     );
 
   const auditionLabel = !props.nominationFile.auditionDate
-    ? intl.formatMessage({ defaultMessage: 'Une audition va être programmée' })
+    ? intl.formatMessage({ defaultMessage: 'Magistrat à convoquer en audition' })
     : isPastSchedule(props.nominationFile.auditionDate, props.nominationFile.auditionTime ?? END_OF_DAY)
       ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu' })
       : intl.formatMessage({ defaultMessage: 'Une audition est prévue' });

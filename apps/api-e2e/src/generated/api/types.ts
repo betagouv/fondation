@@ -518,13 +518,6 @@ export type UpdateMissingEvaluationCommentDto = {
 };
 
 export type DetailedNominationFileAuditionHistoryDto = {
-    requested: {
-        at: string;
-        by: {
-            id: string;
-            name: string;
-        } | null;
-    } | null;
     scheduled: {
         at: string;
         by: {

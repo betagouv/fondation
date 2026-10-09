@@ -15,6 +15,6 @@ export const NominationFileLockEnumMessages = defineMessages({
   ARCHIVED_SESSION: { defaultMessage: "Session archivée : ce dossier n'est plus modifiable" },
   REPORTED: {
     defaultMessage:
-      'Cette proposition est déjà actée dans un procès-verbal restitué et avec une issue définitive',
+      "Cette proposition figure avec une issue définitive dans un procès-verbal validé. Elle n'est plus modifiable",
   },
 } satisfies Record<NominationFileLockEnum, { defaultMessage: string }>);
