@@ -146,3 +146,15 @@ enum PrismaUserDutyEnum {
   @@map("user_duty_enum")
   @@schema("nominations_context")
 }
+
+model ExcludedJurisdiction {
+  userId         String @map("user_id") @db.Uuid
+  jurisdictionId String @map("jurisdiction_id")
+
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [codejur], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_jurisdiction_id_jurisdictions_codejur_fk")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_user_id_users_id_fk")
+
+  @@id([userId, jurisdictionId], map: "excluded_jurisdictions_user_id_jurisdiction_id_pk")
+  @@map("excluded_jurisdictions")
+  @@schema("identity_and_access_context")
+}

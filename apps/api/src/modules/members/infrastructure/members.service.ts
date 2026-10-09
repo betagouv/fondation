@@ -5,6 +5,7 @@ import { MemberTitleEnum } from '../domain/member-enums';
 import { Pagination } from 'src/modules/framework/pagination';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 
+import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import {
@@ -26,6 +27,7 @@ export class MembersService {
     private readonly internalFindMembersByFullName: InternalFindMembersByFullNameQuery,
     private readonly internalGetMemberQuery: InternalGetMemberQuery,
     private readonly internalFindMembersByFormationQuery: InternalFindMembersByFormationQuery,
+    private readonly excludedJurisdictionsFinder: ExcludedJurisdictionsFinder,
   ) {}
 
   listMembers(query: {
@@ -80,6 +82,12 @@ export class MembersService {
   }
 
   /** @internal */
+  internalFindExcludedJurisdictions(query: {
+    memberIds: readonly string[];
+  }): Promise<Map<string, Set<string>>> {
+    return this.excludedJurisdictionsFinder.find(query);
+  }
+
   internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
     return this.internalGetMemberQuery.handle(query);
   }

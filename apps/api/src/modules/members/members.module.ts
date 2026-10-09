@@ -3,6 +3,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ReportModule } from '../report/report.module';
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { ExcludedJurisdictionsFinder } from './infrastructure/finders/excluded-jurisdictions.finder';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -24,6 +25,7 @@ import { MembersController } from './members.controller';
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,
+    ExcludedJurisdictionsFinder,
     InternalFindMembersByFormationQuery,
     InternalFindMembersByFullNameQuery,
     InternalFindMembersQuery,
