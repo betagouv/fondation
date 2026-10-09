@@ -1,26 +1,19 @@
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import type { NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
-
 import { transparenceFileStatus } from './session-transparence-file-status';
 
 const AGENDA_DATE = new Date('2026-06-01T09:00:00.000Z');
 const OFFICIAL_REPORT_DATE = new Date('2026-06-08T09:00:00.000Z');
+const LATER_AGENDA_DATE = new Date('2026-07-01T09:00:00.000Z');
+const LATER_OFFICIAL_REPORT_DATE = new Date('2026-07-08T09:00:00.000Z');
 
 function makeDoc(props: {
   agendaDate?: Date;
-  officialReport?: {
-    isValidated: boolean;
-    outcome: DocNominationFileOutcomeEnum;
-    sessionMeetingDate?: Date;
-  };
+  officialReport?: { isValidated: boolean; sessionMeetingDate?: Date };
 }) {
   return {
-    agenda: { id: 'agenda-id', outcome: null, sessionMeetingDate: props.agendaDate ?? AGENDA_DATE },
+    agenda: { sessionMeetingDate: props.agendaDate ?? AGENDA_DATE },
     officialReport: props.officialReport
       ? {
-          id: 'official-report-id',
           isValidated: props.officialReport.isValidated,
-          outcome: props.officialReport.outcome,
           sessionMeetingDate: props.officialReport.sessionMeetingDate ?? OFFICIAL_REPORT_DATE,
         }
       : null,
@@ -29,104 +22,73 @@ function makeDoc(props: {
 
 describe('transparenceFileStatus', () => {
   it('waits as long as the file belongs to no document', () => {
-    expect(transparenceFileStatus({ docs: [], outcome: null })).toEqual({
-      value: 'TO_REPORT',
-      dates: [],
-    });
+    expect(transparenceFileStatus({ docs: [] })).toEqual({ dates: [], value: 'TO_REPORT' });
   });
 
   it('is planned once listed in an agenda, dated after that agenda', () => {
-    expect(transparenceFileStatus({ docs: [makeDoc({})], outcome: 'VALIDATED' })).toEqual({
-      value: 'DSJ_PLANNED',
+    expect(transparenceFileStatus({ docs: [makeDoc({})] })).toEqual({
       dates: [AGENDA_DATE],
+      value: 'DSJ_PLANNED',
     });
   });
 
   it('stays planned while the official report is generated but not validated', () => {
-    const docs = [makeDoc({ officialReport: { isValidated: false, outcome: 'VALIDATED' } })];
+    const docs = [makeDoc({ officialReport: { isValidated: false } })];
 
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
-      value: 'DSJ_PLANNED',
-      dates: [AGENDA_DATE],
-    });
+    expect(transparenceFileStatus({ docs })).toEqual({ dates: [AGENDA_DATE], value: 'DSJ_PLANNED' });
   });
 
   it('is reported once the official report is validated, dated after that report', () => {
-    const docs = [makeDoc({ officialReport: { isValidated: true, outcome: 'VALIDATED' } })];
+    const docs = [makeDoc({ officialReport: { isValidated: true } })];
 
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
-      value: 'DSJ_REPORTED',
+    expect(transparenceFileStatus({ docs })).toEqual({
       dates: [OFFICIAL_REPORT_DATE],
+      value: 'DSJ_REPORTED',
     });
   });
 
-  it('stays reported while a suspended file keeps its suspended outcome', () => {
-    const docs = [makeDoc({ officialReport: { isValidated: true, outcome: 'SUSPENDED' } })];
-
-    expect(
-      transparenceFileStatus({ docs, outcome: 'SUSPENDED' satisfies NominationFileOutcomeEnum }),
-    ).toEqual({ value: 'DSJ_REPORTED', dates: [OFFICIAL_REPORT_DATE] });
-  });
-
-  it('waits again when a file reported as suspended gets a final outcome', () => {
-    const docs = [makeDoc({ officialReport: { isValidated: true, outcome: 'SUSPENDED' } })];
-
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
-      value: 'TO_REPORT',
-      dates: [],
-    });
-  });
-
-  it('lists every pending agenda, most recent first', () => {
-    const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
-    const docs = [makeDoc({}), makeDoc({ agendaDate: lastAgendaDate })];
-
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
-      value: 'DSJ_PLANNED',
-      dates: [lastAgendaDate, AGENDA_DATE],
-    });
-  });
-
-  it('is reported as soon as an official report is validated, whatever the other agendas', () => {
-    const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
-    const lastOfficialReportDate = new Date('2026-07-08T09:00:00.000Z');
+  it('is planned again when a later agenda lists a reported file', () => {
     const docs = [
-      makeDoc({}),
+      makeDoc({ officialReport: { isValidated: true } }),
+      makeDoc({ agendaDate: LATER_AGENDA_DATE }),
+    ];
+
+    expect(transparenceFileStatus({ docs })).toEqual({ dates: [LATER_AGENDA_DATE], value: 'DSJ_PLANNED' });
+  });
+
+  it('is reported again once the later agenda has its official report validated', () => {
+    const docs = [
+      makeDoc({ officialReport: { isValidated: true } }),
       makeDoc({
-        agendaDate: lastAgendaDate,
-        officialReport: {
-          isValidated: true,
-          outcome: 'VALIDATED',
-          sessionMeetingDate: lastOfficialReportDate,
-        },
+        agendaDate: LATER_AGENDA_DATE,
+        officialReport: { isValidated: true, sessionMeetingDate: LATER_OFFICIAL_REPORT_DATE },
       }),
     ];
 
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
+    expect(transparenceFileStatus({ docs })).toEqual({
+      dates: [LATER_OFFICIAL_REPORT_DATE],
       value: 'DSJ_REPORTED',
-      dates: [lastOfficialReportDate],
     });
   });
 
-  it('stays reported when a new agenda follows the last official report', () => {
-    const lastAgendaDate = new Date('2026-07-01T09:00:00.000Z');
+  it('ignores an earlier agenda left without official report', () => {
     const docs = [
-      makeDoc({ officialReport: { isValidated: true, outcome: 'VALIDATED' } }),
-      makeDoc({ agendaDate: lastAgendaDate }),
+      makeDoc({}),
+      makeDoc({
+        agendaDate: LATER_AGENDA_DATE,
+        officialReport: { isValidated: true, sessionMeetingDate: LATER_OFFICIAL_REPORT_DATE },
+      }),
     ];
 
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
+    expect(transparenceFileStatus({ docs })).toEqual({
+      dates: [LATER_OFFICIAL_REPORT_DATE],
       value: 'DSJ_REPORTED',
-      dates: [OFFICIAL_REPORT_DATE],
     });
   });
 
   it('keeps one date per meeting when two agendas share it', () => {
     const docs = [makeDoc({}), makeDoc({})];
 
-    expect(transparenceFileStatus({ docs, outcome: 'VALIDATED' })).toEqual({
-      value: 'DSJ_PLANNED',
-      dates: [AGENDA_DATE],
-    });
+    expect(transparenceFileStatus({ docs })).toEqual({ dates: [AGENDA_DATE], value: 'DSJ_PLANNED' });
   });
 });

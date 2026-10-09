@@ -192,6 +192,82 @@ test.describe('Docs Service', () => {
     });
   });
 
+  test('should plan again a suspended file listed in a later agenda, whatever its outcome becomes', async ({
+    agent,
+    expect,
+    member,
+  }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const [file] = foundFiles.data!.items;
+
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    await agent.sessions.defineNominationFileOutcome({
+      body: { comment: null, outcome: 'SUSPENDED' },
+      path: { nominationFileId: file!.id, sessionId },
+    });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const statusOfFile = async () => {
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      return statusOf(files.data!.items, file!.id);
+    };
+    const listInAgenda = async (sessionMeetingDate: { day: number; month: number; year: number }) => {
+      const agenda = await agent.docs.createAgenda({
+        body: { chairmanId, date: { day: 1, month: 2, year: 2026 }, nominationFileIds: [file!.id], sessionMeetingDate },
+        path: { sessionId },
+      });
+      expect(agenda.response?.status).toBe(201);
+      return agenda.data!.id;
+    };
+    const reportAgenda = async (agendaId: string, sessionMeetingDate: { day: number; month: number; year: number }) => {
+      const officialReport = await agent.docs.createOfficialReport({
+        body: {
+          absentMemberIds: [],
+          agendaId,
+          chairmanId,
+          hasRenunciation: true,
+          justiceDepartmentContactId: justiceContact.data!.id,
+          secretaryId: firstSecretaryId,
+          sessionMeetingDate,
+          sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+          sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+        },
+        path: { sessionId },
+      });
+      expect(officialReport.response?.status).toBe(201);
+
+      const validated = await agent.docs.validateOfficialReport({
+        path: { officialReportId: officialReport.data!.id },
+      });
+      expect(validated.response?.status).toBe(204);
+    };
+
+    const firstAgendaId = await listInAgenda(MEETING_DATE);
+    expect(await statusOfFile()).toEqual({ dates: [MEETING_DATE], value: 'DSJ_PLANNED' });
+
+    await reportAgenda(firstAgendaId, MEETING_DATE);
+    expect(await statusOfFile()).toEqual({ dates: [MEETING_DATE], value: 'DSJ_REPORTED' });
+
+    const laterMeetingDate = { day: 20, month: 2, year: 2026 };
+    const laterAgendaId = await listInAgenda(laterMeetingDate);
+    expect(await statusOfFile()).toEqual({ dates: [laterMeetingDate], value: 'DSJ_PLANNED' });
+
+    await agent.sessions.defineNominationFileOutcome({
+      body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId: file!.id, sessionId },
+    });
+    expect(await statusOfFile()).toEqual({ dates: [laterMeetingDate], value: 'DSJ_PLANNED' });
+
+    await reportAgenda(laterAgendaId, laterMeetingDate);
+    expect(await statusOfFile()).toEqual({ dates: [laterMeetingDate], value: 'DSJ_REPORTED' });
+  });
+
   test('should let an agenda be made from reporters not yet published, and say so', async ({
     agent,
     expect,
