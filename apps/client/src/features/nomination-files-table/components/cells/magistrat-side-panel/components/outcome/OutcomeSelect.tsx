@@ -37,7 +37,7 @@ export function OutcomeSelect(props: { nominationFile: SessionNominationFile }) 
       return;
     }
 
-    const event = await waitForOutcomeComment(next, currentComment);
+    const event = await waitForOutcomeComment(next, { comment: currentComment, outcome: current });
     if (event.type === 'drop') {
       reset();
       return;

@@ -9,9 +9,10 @@ import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 
 import { outcomeRequiresComment, sessionOutcomeLabel } from './nomination-file-outcome.utils';
+import type { CurrentOutcome } from './OutcomeCommentModalContext';
 
 export function NominationFileOutcomeCommentModal(props: {
-  initialComment: string | null;
+  current: CurrentOutcome;
   onClosed: () => void;
   onComment: (comment: string | null) => void;
   onDrop: () => void;
@@ -21,11 +22,12 @@ export function NominationFileOutcomeCommentModal(props: {
   const { formatMessage } = useIntl();
   const { outcomes } = useNominationFilesTable();
 
-  const [comment, setComment] = useState(props.initialComment);
+  const [comment, setComment] = useState(props.current.comment);
 
   const isCommentRequired = outcomeRequiresComment(outcomes, props.outcome);
   const isCommentValid = (comment?.trim().length ?? 0) > 0;
-  const isUnchanged = (comment?.trim() || null) === props.initialComment;
+  const isUnchanged =
+    props.outcome === props.current.outcome && (comment?.trim() || null) === props.current.comment;
   const hint = formatMessage(
     { defaultMessage: `L'issue "{label}" nécessite un commentaire` },
     { label: sessionOutcomeLabel(outcomes, props.outcome) ?? '' },
