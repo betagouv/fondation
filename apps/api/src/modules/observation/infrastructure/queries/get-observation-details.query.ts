@@ -74,6 +74,7 @@ export class GetObservationDetailsQuery {
                   id: true,
                   nominationFile: {
                     select: {
+                      detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
                       id: true,
                       name: true,
                       number: true,
@@ -107,6 +108,7 @@ export class GetObservationDetailsQuery {
           },
           nominationFile: {
             select: {
+              detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
               detectedMagistratId: true,
               name: true,
               targetedPosition: true,
@@ -174,12 +176,16 @@ export class GetObservationDetailsQuery {
         },
         observedMagistrat: {
           detectedMagistratId: observation.nominationFile.detectedMagistratId,
-          name: observation.nominationFile.name,
+          name: observation.nominationFile.detectedMagistrat
+            ? magistratFullName(observation.nominationFile.detectedMagistrat)
+            : observation.nominationFile.name,
           proposedPosition: observation.nominationFile.targetedPosition,
         },
         receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
         relatedPropositions: observation.magistrat.observations.map((obs) => ({
-          magistratName: obs.nominationFile.name,
+          magistratName: obs.nominationFile.detectedMagistrat
+            ? magistratFullName(obs.nominationFile.detectedMagistrat)
+            : obs.nominationFile.name,
           nominationFileId: obs.nominationFile.id,
           number: obs.nominationFile.number,
           observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
