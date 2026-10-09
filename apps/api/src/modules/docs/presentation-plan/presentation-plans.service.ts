@@ -1,12 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { Db } from '../../framework/database';
 import { Pagination } from '../../framework/pagination';
@@ -66,7 +59,6 @@ export class PresentationPlansService {
     private readonly auth: SimpleAuthService,
     private readonly db: Db,
 
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
   ) {}
 

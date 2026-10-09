@@ -46,7 +46,6 @@ export class AgendaRepository {
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly agendaVersionFinder: AgendaVersionFinder,
 
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,

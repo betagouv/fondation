@@ -5,6 +5,7 @@ import { DocsModule } from './docs/docs.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
+import { MagistratHistoryModule } from './magistrat-history/magistrat-history.module';
 import { MagistratModule } from './magistrat/magistrat.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { MembersModule } from './members';
@@ -21,6 +22,7 @@ import { SimpleAuthModule } from './simple-auth';
     TransparenceModule,
     MembersModule,
     MagistratModule,
+    MagistratHistoryModule,
     MaintenanceModule,
     ObservationModule,
     AdministrationModule,

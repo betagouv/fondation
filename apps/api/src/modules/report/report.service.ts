@@ -131,14 +131,14 @@ export class ReportService {
     await this.sessionReportsRepository.persist(sessionReports);
   }
 
-  internalListMemberSessionReports(query: {
+  listMemberSessionReports(query: {
     sessionId: string;
-    userId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionReportsDto> {
     return this.listMemberSessionReportsQuery.handle(query);
   }
 
-  internalSearchNominationFileMembersReport(query: {
+  searchNominationFileMembersReport(query: {
     nominationFileId: string;
     sessionId: string;
     userId: string;

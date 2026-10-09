@@ -56,7 +56,6 @@ export class OfficialReportsService {
 
     private readonly clock: Clock,
     private readonly auth: SimpleAuthService,
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,

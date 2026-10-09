@@ -46,6 +46,22 @@ export type PreparedOpenIdRequestDto = {
     url: string;
 };
 
+export type ListedMemberSessionReportsDto = {
+    items: Array<{
+        name: string;
+        nominationFileId: string;
+        number: number | null;
+        report: {
+            id: string;
+            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+        };
+    }>;
+};
+
+export type FoundNominationFileMembersReportDto = {
+    reportId: string | null;
+};
+
 export type AttachReportFileDto = {
     files: Array<Blob | File>;
 };
@@ -130,6 +146,22 @@ export type ListedArchivedNominationSessionsDto = {
         next?: string;
         previous?: string;
     };
+};
+
+export type ListedMemberSessionsDto = {
+    items: Array<{
+        id: string;
+        label: string;
+        createdAt: string;
+        isAffected: boolean;
+        fileCount: number;
+        formation: 'SIEGE' | 'PARQUET';
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+    }>;
+};
+
+export type WriteNominationFileMemberMemoDto = {
+    memo: string;
 };
 
 export type ListedNominationSessionsDto = {
@@ -936,38 +968,6 @@ export type UpdateMemberDisplayTitleDto = {
 
 export type UpdateMemberTitleDto = {
     title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null;
-};
-
-export type ListedMemberSessionsDto = {
-    items: Array<{
-        id: string;
-        label: string;
-        createdAt: string;
-        isAffected: boolean;
-        fileCount: number;
-        formation: 'SIEGE' | 'PARQUET';
-        typeDeSaisine: 'TRANSPARENCE_GDS';
-    }>;
-};
-
-export type ListedMemberSessionReportsDto = {
-    items: Array<{
-        name: string;
-        nominationFileId: string;
-        number: number | null;
-        report: {
-            id: string;
-            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
-        };
-    }>;
-};
-
-export type FoundNominationFileMembersReportDto = {
-    reportId: string | null;
-};
-
-export type WriteNominationFileMemberMemoDto = {
-    memo: string;
 };
 
 export type ListedJurisdictions = {
@@ -1934,114 +1934,6 @@ export type DetailedMagistratDto = {
     externalUrl: string;
 };
 
-export type ListedMagistratNominationFilesDto = {
-    items: Array<{
-        id: string;
-        name: string;
-        number: number | null;
-        reporters: Array<{
-            id: string;
-            firstName: string;
-            lastName: string;
-        }>;
-        session: {
-            id: string;
-            name: string;
-            formation: 'SIEGE' | 'PARQUET';
-            date: {
-                year: number;
-                month: number;
-                day: number;
-            };
-            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
-        };
-        auditionDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        auditionRequired: boolean;
-        auditionTime: {
-            hours: number;
-            minutes: number;
-            seconds: number;
-        } | null;
-        canScheduleAudition: boolean;
-        targetedGrade: string | null;
-        targetedPosition: string | null;
-        outcome: {
-            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
-            comment: string | null;
-        } | null;
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
-export type ListedMagistratObservationsDto = {
-    items: Array<{
-        id: string;
-        dateReception: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        nominationFile: {
-            id: string;
-            name: string;
-            number: number | null;
-            reporters: Array<{
-                id: string;
-                firstName: string;
-                lastName: string;
-            }>;
-            session: {
-                id: string;
-                name: string;
-                formation: 'SIEGE' | 'PARQUET';
-                date: {
-                    year: number;
-                    month: number;
-                    day: number;
-                };
-                status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
-            };
-            auditionDate: {
-                year: number;
-                month: number;
-                day: number;
-            } | null;
-            auditionRequired: boolean;
-            auditionTime: {
-                hours: number;
-                minutes: number;
-                seconds: number;
-            } | null;
-            canScheduleAudition: boolean;
-            targetedGrade: string | null;
-            targetedPosition: string | null;
-            outcome: {
-                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
-                comment: string | null;
-            } | null;
-        };
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
 export type ListedMagistratPhoneNumbersDto = {
     items: Array<{
         date: {
@@ -2272,6 +2164,114 @@ export type ListedObservationsAttachmentsDto = {
     }>;
 };
 
+export type ListedMagistratNominationFilesDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        number: number | null;
+        reporters: Array<{
+            id: string;
+            firstName: string;
+            lastName: string;
+        }>;
+        session: {
+            id: string;
+            name: string;
+            formation: 'SIEGE' | 'PARQUET';
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+        };
+        auditionDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        auditionRequired: boolean;
+        auditionTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
+        } | null;
+        canScheduleAudition: boolean;
+        targetedGrade: string | null;
+        targetedPosition: string | null;
+        outcome: {
+            value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
+            comment: string | null;
+        } | null;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type ListedMagistratObservationsDto = {
+    items: Array<{
+        id: string;
+        dateReception: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        nominationFile: {
+            id: string;
+            name: string;
+            number: number | null;
+            reporters: Array<{
+                id: string;
+                firstName: string;
+                lastName: string;
+            }>;
+            session: {
+                id: string;
+                name: string;
+                formation: 'SIEGE' | 'PARQUET';
+                date: {
+                    year: number;
+                    month: number;
+                    day: number;
+                };
+                status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            };
+            auditionDate: {
+                year: number;
+                month: number;
+                day: number;
+            } | null;
+            auditionRequired: boolean;
+            auditionTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+            canScheduleAudition: boolean;
+            targetedGrade: string | null;
+            targetedPosition: string | null;
+            outcome: {
+                value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
+                comment: string | null;
+            } | null;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type PaginatedAdminUserListItemDto = {
     items: Array<{
         id: string;
@@ -2461,6 +2461,39 @@ export type CallbackResponses = {
     200: unknown;
 };
 
+export type ListMemberSessionReportsData = {
+    body?: never;
+    path: {
+        userId: string;
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/reports';
+};
+
+export type ListMemberSessionReportsResponses = {
+    200: ListedMemberSessionReportsDto;
+};
+
+export type ListMemberSessionReportsResponse = ListMemberSessionReportsResponses[keyof ListMemberSessionReportsResponses];
+
+export type SearchNominationFileMembersReportData = {
+    body?: never;
+    path: {
+        userId: string;
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/reports';
+};
+
+export type SearchNominationFileMembersReportResponses = {
+    200: FoundNominationFileMembersReportDto;
+};
+
+export type SearchNominationFileMembersReportResponse = SearchNominationFileMembersReportResponses[keyof SearchNominationFileMembersReportResponses];
+
 export type DetachFilesData = {
     body?: never;
     path: {
@@ -2595,6 +2628,38 @@ export type ListArchivedSessionsResponses = {
 };
 
 export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
+
+export type ListMemberSessionsData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux';
+};
+
+export type ListMemberSessionsResponses = {
+    200: ListedMemberSessionsDto;
+};
+
+export type ListMemberSessionsResponse = ListMemberSessionsResponses[keyof ListMemberSessionsResponses];
+
+export type WriteNominationFileMemberMemoData = {
+    body: WriteNominationFileMemberMemoDto;
+    path: {
+        userId: string;
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/memo';
+};
+
+export type WriteNominationFileMemberMemoResponses = {
+    204: void;
+};
+
+export type WriteNominationFileMemberMemoResponse = WriteNominationFileMemberMemoResponses[keyof WriteNominationFileMemberMemoResponses];
 
 export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
@@ -3562,71 +3627,6 @@ export type UpdateTitleResponses = {
 
 export type UpdateTitleResponse = UpdateTitleResponses[keyof UpdateTitleResponses];
 
-export type ListMemberSessionsData = {
-    body?: never;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux';
-};
-
-export type ListMemberSessionsResponses = {
-    200: ListedMemberSessionsDto;
-};
-
-export type ListMemberSessionsResponse = ListMemberSessionsResponses[keyof ListMemberSessionsResponses];
-
-export type ListMemberSessionReportsData = {
-    body?: never;
-    path: {
-        userId: string;
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/reports';
-};
-
-export type ListMemberSessionReportsResponses = {
-    200: ListedMemberSessionReportsDto;
-};
-
-export type ListMemberSessionReportsResponse = ListMemberSessionReportsResponses[keyof ListMemberSessionReportsResponses];
-
-export type SearchNominationFileMembersReportData = {
-    body?: never;
-    path: {
-        userId: string;
-        sessionId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/reports';
-};
-
-export type SearchNominationFileMembersReportResponses = {
-    200: FoundNominationFileMembersReportDto;
-};
-
-export type SearchNominationFileMembersReportResponse = SearchNominationFileMembersReportResponses[keyof SearchNominationFileMembersReportResponses];
-
-export type WriteNominationFileMemberMemoData = {
-    body: WriteNominationFileMemberMemoDto;
-    path: {
-        userId: string;
-        sessionId: string;
-        nominationFileId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/sessions/transparence/garde-des-sceaux/{sessionId}/files/{nominationFileId}/memo';
-};
-
-export type WriteNominationFileMemberMemoResponses = {
-    204: void;
-};
-
-export type WriteNominationFileMemberMemoResponse = WriteNominationFileMemberMemoResponses[keyof WriteNominationFileMemberMemoResponses];
-
 export type SearchData = {
     body?: never;
     path?: never;
@@ -4581,42 +4581,6 @@ export type DetailMagistratResponses = {
 
 export type DetailMagistratResponse = DetailMagistratResponses[keyof DetailMagistratResponses];
 
-export type ListMagistratNominationFilesData = {
-    body?: never;
-    path: {
-        magistratId: string;
-    };
-    query?: {
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/magistrats/v1/{magistratId}/nomination-files';
-};
-
-export type ListMagistratNominationFilesResponses = {
-    200: ListedMagistratNominationFilesDto;
-};
-
-export type ListMagistratNominationFilesResponse = ListMagistratNominationFilesResponses[keyof ListMagistratNominationFilesResponses];
-
-export type ListMagistratObservationsData = {
-    body?: never;
-    path: {
-        magistratId: string;
-    };
-    query?: {
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/magistrats/v1/{magistratId}/observations';
-};
-
-export type ListMagistratObservationsResponses = {
-    200: ListedMagistratObservationsDto;
-};
-
-export type ListMagistratObservationsResponse = ListMagistratObservationsResponses[keyof ListMagistratObservationsResponses];
-
 export type ListMagistratPhoneNumbersData = {
     body?: never;
     path: {
@@ -4865,6 +4829,42 @@ export type ListObservationsAttachmentsResponses = {
 };
 
 export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
+
+export type ListMagistratNominationFilesData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1/{magistratId}/nomination-files';
+};
+
+export type ListMagistratNominationFilesResponses = {
+    200: ListedMagistratNominationFilesDto;
+};
+
+export type ListMagistratNominationFilesResponse = ListMagistratNominationFilesResponses[keyof ListMagistratNominationFilesResponses];
+
+export type ListMagistratObservationsData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1/{magistratId}/observations';
+};
+
+export type ListMagistratObservationsResponses = {
+    200: ListedMagistratObservationsDto;
+};
+
+export type ListMagistratObservationsResponse = ListMagistratObservationsResponses[keyof ListMagistratObservationsResponses];
 
 export type ListUsersData = {
     body?: never;

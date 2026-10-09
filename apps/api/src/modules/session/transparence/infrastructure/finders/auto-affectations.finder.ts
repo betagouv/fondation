@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
@@ -26,7 +26,6 @@ export class AutoAffectationsFinder {
 
   constructor(
     private readonly db: Db,
-    @Inject(forwardRef(() => MembersService))
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,

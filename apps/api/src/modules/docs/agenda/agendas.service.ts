@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Db } from '../../framework/database';
@@ -59,7 +59,6 @@ export class AgendasService {
 
     private readonly events: EventEmitter2,
 
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
   ) {}
 

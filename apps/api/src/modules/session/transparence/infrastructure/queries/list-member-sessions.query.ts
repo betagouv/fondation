@@ -12,7 +12,7 @@ import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 
 @Injectable()
-export class InternalListMemberSessionsQuery {
+export class ListMemberSessionsQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: {
@@ -25,15 +25,15 @@ export class InternalListMemberSessionsQuery {
     );
 
     const items = sessions.map((session) => {
-      const label = InternalListMemberSessionsQuery.labelizeSession(session);
+      const label = ListMemberSessionsQuery.labelizeSession(session);
 
       return {
-        label,
-        id: session.id,
-        isAffected: (session.reporterIds ?? []).length > 0,
         createdAt: session.createdAt.toISOString(),
         fileCount: Number(session.fileCount ?? 0),
         formation: prismaFormationEnumToFormationEnum(session.formation),
+        id: session.id,
+        isAffected: (session.reporterIds ?? []).length > 0,
+        label,
         typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
       };
     });
@@ -41,7 +41,6 @@ export class InternalListMemberSessionsQuery {
     return { items };
   }
 
-  // TODO: extract
   private static labelizeSession(session: { date: Date; name: string }): string {
     const { date: d } = session;
     const formattedDate = [d.getUTCDate(), d.getUTCMonth() + 1, d.getUTCFullYear()]

@@ -57,7 +57,7 @@ import { IsSessionReadyForDocGenerationQuery } from './shared/infrastructure/que
 import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/list-secretaries-general.query';
 
 @Module({
-  imports: [SimpleAuthModule, forwardRef(() => TransparenceModule), forwardRef(() => MembersModule)],
+  imports: [SimpleAuthModule, forwardRef(() => TransparenceModule), MembersModule],
   controllers: [DocsController, AgendasController, OfficialReportsController, PresentationPlansController],
   providers: [
     AgendaFinder,

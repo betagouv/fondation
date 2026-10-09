@@ -42,9 +42,9 @@ import { DetailSessionCommentQuery } from './infrastructure/queries/detail-sessi
 import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
 import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
-import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
 import { ListArchivedNominationSessionsQuery } from './infrastructure/queries/list-archived-nomination-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { ListMemberSessionsQuery } from './infrastructure/queries/list-member-sessions.query';
 import { ListMissingEvaluationsAsExcelQuery } from './infrastructure/queries/list-missing-evaluations-as-excel.query';
 import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
 import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
@@ -55,17 +55,18 @@ import { ListSessionAuditionsAsExcelQuery } from './infrastructure/queries/list-
 import { ListSessionAuditionsQuery } from './infrastructure/queries/list-session-auditions.query';
 import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
 import { TransparenceService } from './infrastructure/transparence.service';
+import { MemberSessionsController } from './member-sessions.controller';
 import { SessionController } from './transparence.controller';
 
 @Module({
-  controllers: [ArchivedSessionsController, SessionController],
+  controllers: [ArchivedSessionsController, MemberSessionsController, SessionController],
   exports: [TransparenceService, SummaryModule],
   imports: [
     SummaryModule,
-    forwardRef(() => MembersModule),
+    MembersModule,
     forwardRef(() => IngestModule),
     forwardRef(() => DocsModule),
-    forwardRef(() => MagistratModule),
+    MagistratModule,
     forwardRef(() => ObservationModule),
     forwardRef(() => ReportModule),
   ],
@@ -90,7 +91,7 @@ import { SessionController } from './transparence.controller';
     HydratedNominationFilesFinder,
     InternalFindDocsNominationFilesQuery,
     InternalListMagistratNominationFilesQuery,
-    InternalListMemberSessionsQuery,
+    ListMemberSessionsQuery,
     ListCurrentlyAffectedReportersQuery,
     ListNominationFileAttachmentsQuery,
     ListMissingEvaluationsAsExcelQuery,
