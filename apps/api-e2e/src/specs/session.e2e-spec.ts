@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
+import * as api from '../generated/api/sdk.ts';
 import type {
   ImportNominationSessionFromLodamXlsxDto,
   PaginatedNominationFiles,
@@ -641,5 +642,69 @@ test.describe('Session E2E', () => {
       });
       expect(concurrentWrite.response?.status).toBe(403);
     }, 10_000);
+  });
+
+  test.describe('Given a member affected to a nomination file', () => {
+    let nominationFileId: string;
+    let sessionId: string;
+
+    test.beforeEach(async ({ agent, member, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      nominationFileId = files.data!.items[0]!.id;
+      sessionId = session.id;
+
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId, priorities: [], reporterIds: [member['@user']!.id] }] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+      await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
+    });
+
+    test('should no longer schedule an audition once the outcome is final', async ({ agent, member, expect }) => {
+      const openFile = await api.sessions.detailNominationFile({
+        client: member['@client'],
+        path: { nominationFileId, sessionId },
+      });
+      expect(openFile.response?.status).toBe(200);
+      expect(openFile.data).toMatchObject({ canScheduleAudition: true });
+
+      const outcomeRes = await agent.sessions.defineNominationFileOutcome({
+        body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
+      });
+      expect(outcomeRes.response?.status).toBe(204);
+
+      const closedFile = await api.sessions.detailNominationFile({
+        client: member['@client'],
+        path: { nominationFileId, sessionId },
+      });
+      expect(closedFile.response?.status).toBe(200);
+      expect(closedFile.data).toMatchObject({ canScheduleAudition: false });
+    });
+
+    test('should show the member an audition once the secretariat publishes it', async ({ agent, member, expect }) => {
+      await agent.sessions.updateNominationFileAuditionDate({
+        body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+      const beforePublication = await api.sessions.detailNominationFile({
+        client: member['@client'],
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+
+      await agent.sessions.publishSessionAuditions({ path: { sessionId }, throwOnError: true });
+      const afterPublication = await api.sessions.detailNominationFile({
+        client: member['@client'],
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+
+      expect(beforePublication.data).toMatchObject({ auditionDate: null, auditionRequired: true });
+      expect(afterPublication.data).toMatchObject({ auditionDate: { day: 12, month: 12, year: 2028 } });
+    });
   });
 });

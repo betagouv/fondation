@@ -1,29 +1,29 @@
 import type React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { FormattedBirthDate } from '@/i18n/components';
+import { FormattedBirthDate, FormattedPositionDuration } from '@/i18n/components';
 import { BiographyList } from '@/shared/components/biography-list';
 import { MissingEvaluationNotice } from '@/shared/components/missing-evaluation-notice';
+import type { GradeEnum } from '@/shared/enums/grade.enum';
 import { DetailsCard } from '@/shared/ui/details';
+import type { PlainDateOnly } from '@/utils/date-only.util';
 import { gradeAndPositionLabel } from '@/utils/position.utils';
-import type { DetailedReportDto } from '@api/types';
 
-export type ReportMagistrat = Pick<
-  DetailedReportDto,
-  | 'biography'
-  | 'birthDate'
-  | 'currentPosition'
-  | 'dureeDuPoste'
-  | 'grade'
-  | 'missingEvaluation'
-  | 'rank'
-  | 'targetedGrade'
-  | 'targettedPosition'
->;
+export type ReportMagistrat = {
+  biography: string | null;
+  birthDate: PlainDateOnly | null;
+  currentPosition: string | null;
+  grade: GradeEnum | null;
+  missingEvaluation: boolean;
+  positionStartDate: PlainDateOnly | null;
+  rank: string | null;
+  targetedGrade: GradeEnum | null;
+  targetedPosition: string | null;
+};
 
 export function ReportMagistratCard({ report }: { report: ReportMagistrat }) {
   const currentPosition = gradeAndPositionLabel(report.grade, report.currentPosition);
-  const targetedPosition = gradeAndPositionLabel(report.targetedGrade, report.targettedPosition);
+  const targetedPosition = gradeAndPositionLabel(report.targetedGrade, report.targetedPosition);
 
   return (
     <DetailsCard>
@@ -39,7 +39,7 @@ export function ReportMagistratCard({ report }: { report: ReportMagistrat }) {
           {currentPosition || '-'}
         </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Durée sur le poste" />}>
-          {report.dureeDuPoste ?? '-'}
+          {report.positionStartDate ? <FormattedPositionDuration value={report.positionStartDate} /> : '-'}
         </InfoItem>
         <InfoItem label={<FormattedMessage defaultMessage="Poste cible" />}>
           {targetedPosition || '-'}

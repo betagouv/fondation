@@ -53,7 +53,6 @@ Lectures des tables LOLFI hors du module ingest, au 09/10/2026 :
 | magistrat   | `findMagistratProfilesRawQuery`, `listMagistratPhoneNumbersRawQuery`, `searchMagistratRawQuery`                                                     | `DetailMagistratQuery` (`position`)                                                             |
 | members     | `detailsMemberRawQuery`, `listMembersRawQuery`                                                                                                      | `MemberRepository`, `SearchJurisdictionsQuery` (`jurisdiction`)                                 |
 | observation | `findMagistratsCurrentPositionRawQuery`                                                                                                             |                                                                                                 |
-| report      |                                                                                                                                                     | `DetailReportQuery` (`detectedJurisdiction`)                                                    |
 | session     | `findAgendaNominationFilesRawQuery`, `findNominationFileJurisdictionsRawQuery`, `insertLodamNominationFilesRawQuery`, `listNominationFilesRawQuery` | `AuditionsSeenFinder`, `TransparenceFilesFinder`, `DetailSummaryQuery` (`detectedJurisdiction`) |
 
 ## Conséquences
