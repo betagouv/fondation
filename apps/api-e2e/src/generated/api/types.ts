@@ -1918,6 +1918,7 @@ export type DetailedMagistratDto = {
     firstName: string;
     lastName: string;
     usedName: string | null;
+    marriedName: string | null;
     birthDate: {
         year: number;
         month: number;

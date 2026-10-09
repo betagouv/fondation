@@ -21,6 +21,7 @@ const magistrat: DetailedMagistratDto = {
   id: 'magistrat-1',
   installationDate: { year: 2021, month: 9, day: 1 },
   lastName: 'Schumann',
+  marriedName: null,
   nominationDate: { year: 2021, month: 7, day: 12 },
   professionalEmail: 'clara.schumann@justice.gouv.fr',
   usedName: null,
