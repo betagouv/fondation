@@ -11,7 +11,7 @@ const meta = {
   args: {
     detectedMagistratId: 'magistrat-1',
     isReadOnly: false,
-    name: 'RAVEL MAURICE',
+    name: 'RAVEL Maurice',
     nominationFileId: 'dossier-1',
     onUpdateState: fn().mockName('onUpdateState'),
     priorities: ['ETOILE'],
@@ -27,7 +27,7 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 
 export const WithoutDetectedMagistrat: Story = {
-  args: { detectedMagistratId: null },
+  args: { detectedMagistratId: null, name: 'RAVEL MAURICE' },
 };
 
 export const ArchivedSession: Story = {

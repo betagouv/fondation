@@ -7,7 +7,6 @@ import { MagistratIdentityCard } from './MagistratIdentityCard';
 const magistrat: DetailedMagistratDto = {
   birthDate: { year: 1971, month: 3, day: 24 },
   careerHistory: null,
-  civilite: 'Mme',
   currentPosition: {
     id: 1,
     grade: 'G2',
@@ -21,6 +20,8 @@ const magistrat: DetailedMagistratDto = {
   id: 'magistrat-1',
   installationDate: { year: 2021, month: 9, day: 1 },
   lastName: 'Vasseur',
+  marriedName: 'Roussel',
+  name: 'Mme\u00A0VASSEUR\u00A0Nathalie (ép. ROUSSEL)',
   nominationDate: { year: 2021, month: 7, day: 12 },
   professionalEmail: 'nathalie.roussel@justice.gouv.fr',
   usedName: 'Roussel',
@@ -49,7 +50,6 @@ export const AppointedNotYetInstalled: Story = {
     magistrat: {
       ...magistrat,
       birthDate: { year: 1979, month: 11, day: 8 },
-      civilite: 'M.',
       currentPosition: {
         id: 2,
         grade: 'G3',
@@ -61,6 +61,8 @@ export const AppointedNotYetInstalled: Story = {
       gradeDate: null,
       installationDate: null,
       lastName: 'Delattre',
+      marriedName: null,
+      name: 'M.\u00A0DELATTRE\u00A0Julien',
       nominationDate: { year: 2026, month: 4, day: 20 },
       professionalEmail: 'julien.delattre@justice.gouv.fr',
       usedName: null,

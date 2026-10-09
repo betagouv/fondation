@@ -106,7 +106,7 @@ export function ObservationForm({
         id: observation.magistrat.id,
         firstName: observation.magistrat.firstName,
         lastName: observation.magistrat.lastName,
-        usedName: '',
+        name: observation.magistrat.name,
         grade: null,
         currentPosition: observation.magistrat.currentPosition ?? null,
       });

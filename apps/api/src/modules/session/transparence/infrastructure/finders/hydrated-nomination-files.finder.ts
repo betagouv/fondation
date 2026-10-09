@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { type NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -65,6 +66,7 @@ export class HydratedNominationFilesFinder {
 
     const files = await this.db.tx.dossierDeNomination.findMany({
       select: {
+        detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
         detectedMagistratId: true,
         id: true,
         name: true,
@@ -75,7 +77,12 @@ export class HydratedNominationFilesFinder {
       where: { id: { in: [...query.nominationFileIds] } },
     });
 
-    return new Map(files.map(({ id, ...label }) => [id, label] as const));
+    return new Map(
+      files.map(({ detectedMagistrat, id, ...file }) => [
+        id,
+        { ...file, name: proposedMagistratName({ detectedMagistrat, name: file.name }) },
+      ]),
+    );
   }
 
   /** files of deleted sessions are left out */

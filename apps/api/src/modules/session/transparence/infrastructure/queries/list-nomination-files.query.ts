@@ -20,6 +20,7 @@ import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
 import { ObservationService } from 'src/modules/observation/observation.service';
@@ -259,7 +260,7 @@ export class ListNominationFilesQuery {
           isAlertHidden: x.alertHidden,
           jurisdictions: x.jurisdictions,
           lockedReason: x.lockedReason,
-          nomMagistrat: x.name,
+          nomMagistrat: proposedMagistratName(x),
           numeroDeDossier: x.number,
           observants: x.observers,
           outcome: x.outcome
@@ -420,6 +421,9 @@ const RawListedNominationFiles = z.array(
     detectedJurisdictionType: z.string().nullable(),
     detectedTargetedFunctionId: z.string().nullable(),
     detectedMagistratId: z.string().nullable(),
+    detectedMagistrat: z
+      .object({ firstName: z.string(), lastName: z.string(), marriedName: z.string().nullable() })
+      .nullable(),
     hasAttachment: z.boolean(),
     hasJurisdictionSheet: z.boolean(),
     queryRank: z.number().nullable(),
@@ -481,14 +485,10 @@ const NominationFileAffectationItemSchema = z.object({
       followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
-      magistrat: z
-        .object({
-          id: z.string(),
-          firstName: z.string(),
-          lastName: z.string(),
-          usedName: z.string().nullable(),
-        })
-        .nullable(),
+      magistrat: z.object({
+        id: z.string(),
+        name: z.string(),
+      }),
     }),
   ),
   memo: z.string().nullable(),

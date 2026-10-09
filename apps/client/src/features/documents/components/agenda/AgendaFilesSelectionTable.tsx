@@ -42,7 +42,7 @@ const h = createColumnHelper<SessionNominationFile>();
 const fileNumberCell = rowCell<SessionNominationFile>((file) => file.content.numeroDeDossier);
 const magistratCell = rowCell<SessionNominationFile>((file) => (
   <div className="flex flex-col items-start gap-y-0.5">
-    <span className="text-left leading-4 uppercase">{file.content.nomMagistrat}</span>
+    <span className="text-left leading-4">{file.content.nomMagistrat}</span>
     {file.content.posteActuel ? (
       <span className="text-xs leading-5">
         <GradeAndPosition grade={file.content.grade} position={file.content.posteActuel} />

@@ -43,6 +43,11 @@ SELECT
   detected_jurisdiction.type_jur AS "detectedJurisdictionType",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
   ddn.detected_magistrat_id AS "detectedMagistratId",
+  CASE WHEN detected_magistrat.id IS NOT NULL THEN JSON_BUILD_OBJECT(
+    'firstName', detected_magistrat.first_name,
+    'lastName', detected_magistrat.last_name,
+    'marriedName', detected_magistrat.married_name
+  ) END AS "detectedMagistrat",
 
   EXISTS (
     SELECT 1
@@ -67,6 +72,8 @@ FROM
   nominations_context.dossier_de_nomination AS ddn
   LEFT JOIN data_administration_context.jurisdictions AS detected_jurisdiction
     ON detected_jurisdiction.codejur = ddn.detected_jurisdiction_id
+  LEFT JOIN nominations_context.magistrat AS detected_magistrat
+    ON detected_magistrat.id = ddn.detected_magistrat_id
 
   LEFT JOIN LATERAL (
     SELECT

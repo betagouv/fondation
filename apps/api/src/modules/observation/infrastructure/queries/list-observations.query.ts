@@ -6,6 +6,7 @@ import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
@@ -31,7 +32,7 @@ const ObservationSchema = z.object({
       id: z.string(),
       firstName: z.string(),
       lastName: z.string(),
-      usedName: z.string().nullable(),
+      name: z.string(),
       currentPosition: z.string().nullable(),
     })
     .nullable(),
@@ -101,7 +102,7 @@ export class ListObservationsQuery {
             firstName: true,
             id: true,
             lastName: true,
-            usedName: true,
+            marriedName: true,
           },
         },
       } satisfies Prisma.ObservationSelect,
@@ -152,7 +153,7 @@ export class ListObservationsQuery {
                 firstName: obs.magistrat.firstName,
                 id: obs.magistrat.id,
                 lastName: obs.magistrat.lastName,
-                usedName: obs.magistrat.usedName,
+                name: magistratFullName(obs.magistrat),
               }
             : null,
           observantObservationsCount:

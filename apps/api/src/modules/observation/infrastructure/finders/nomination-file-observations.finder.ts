@@ -4,9 +4,10 @@ import { load } from 'cheerio';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 
-type Observant = { firstName: string; id: string; lastName: string; usedName: string | null };
+type Observant = { id: string; name: string };
 
 export type NominationFileObservation = {
   dateReception: Date;
@@ -37,7 +38,7 @@ export class NominationFileObservationsFinder {
         followUp: true,
         followUpComment: true,
         id: true,
-        magistrat: { select: { firstName: true, id: true, lastName: true, usedName: true } },
+        magistrat: { select: { firstName: true, id: true, lastName: true, marriedName: true } },
         memberComments: { select: { comment: true }, where: { userId: query.userId } },
         nominationFileId: true,
       } satisfies Prisma.ObservationSelect,
@@ -45,12 +46,13 @@ export class NominationFileObservationsFinder {
     });
 
     const byNominationFileId = new Map<string, NominationFileObservation[]>();
-    for (const { memberComments, nominationFileId, ...observation } of observations) {
+    for (const { magistrat, memberComments, nominationFileId, ...observation } of observations) {
       const list = byNominationFileId.get(nominationFileId) ?? [];
       list.push({
         ...observation,
         // a comment emptied in the editor still holds its html tags
         hasUserComment: memberComments.some(({ comment }) => !!load(comment).text().trim()),
+        magistrat: { id: magistrat.id, name: magistratFullName(magistrat) },
       });
       byNominationFileId.set(nominationFileId, list);
     }
@@ -73,7 +75,7 @@ export class NominationFileObservationsFinder {
     const observations = await this.db.tx.observation.findMany({
       orderBy: [{ dateReception: 'asc' }, { id: 'asc' }],
       select: {
-        magistrat: { select: { firstName: true, id: true, lastName: true, usedName: true } },
+        magistrat: { select: { firstName: true, id: true, lastName: true, marriedName: true } },
         nominationFileId: true,
       } satisfies Prisma.ObservationSelect,
       where: { nominationFileId: { in: [...query.nominationFileIds] } },
@@ -82,7 +84,7 @@ export class NominationFileObservationsFinder {
     const byNominationFileId = new Map<string, Observant[]>();
     for (const { magistrat, nominationFileId } of observations) {
       const list = byNominationFileId.get(nominationFileId) ?? [];
-      list.push(magistrat);
+      list.push({ id: magistrat.id, name: magistratFullName(magistrat) });
       byNominationFileId.set(nominationFileId, list);
     }
 

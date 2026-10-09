@@ -209,7 +209,7 @@ export class ObservationService {
   /** @internal */
   internalFindNominationFilesObservants(query: {
     nominationFileIds: ReadonlySet<string>;
-  }): Promise<Map<string, { firstName: string; id: string; lastName: string; usedName: string | null }[]>> {
+  }): Promise<Map<string, { id: string; name: string }[]>> {
     return this.nominationFileObservationsFinder.observants(query);
   }
 

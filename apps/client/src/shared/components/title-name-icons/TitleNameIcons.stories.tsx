@@ -61,3 +61,8 @@ export const LolfiOnly: StoryObj = {
     </h2>
   ),
 };
+
+export const MarriedName: StoryObj<PlaygroundArgs> = {
+  ...Playground,
+  args: { ...Playground.args, name: 'SKŁODOWSKA Marie (ép. CURIE)' },
+};

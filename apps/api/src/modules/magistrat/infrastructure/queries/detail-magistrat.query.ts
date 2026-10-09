@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { magistratTitledFullName } from '../../domain/magistrat-name';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -23,6 +24,7 @@ export class DetailMagistratQuery {
           firstName: true,
           lastName: true,
           usedName: true,
+          marriedName: true,
           birthDate: true,
           grade: true,
           gradeDate: true,
@@ -41,10 +43,11 @@ export class DetailMagistratQuery {
 
       return {
         id: magistrat.id,
-        civilite: magistrat.civilite,
+        name: magistratTitledFullName({ ...magistrat, civility: magistrat.civilite }),
         firstName: magistrat.firstName,
         lastName: magistrat.lastName,
         usedName: magistrat.usedName,
+        marriedName: magistrat.marriedName,
         birthDate: magistrat.birthDate ? DateOnly.fromUtcDate(magistrat.birthDate).toJson() : null,
         grade: magistrat.grade,
         gradeDate: magistrat.gradeDate ? DateOnly.fromUtcDate(magistrat.gradeDate).toJson() : null,
@@ -97,10 +100,11 @@ const PositionSchema = z.object({
 export class DetailedMagistratDto extends createZodDto(
   z.object({
     id: z.string(),
-    civilite: z.string(),
+    name: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     usedName: z.string().nullable(),
+    marriedName: z.string().nullable(),
     birthDate: dateOnlyJsonSchema.nullable(),
     grade: z.string().nullable(),
     gradeDate: dateOnlyJsonSchema.nullable(),

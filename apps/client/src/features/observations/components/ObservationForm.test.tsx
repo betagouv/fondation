@@ -33,7 +33,7 @@ const MARTIN: MagistratSearchResult = {
   grade: null,
   id: 'magistrat-1',
   lastName: 'Martin',
-  usedName: '',
+  name: 'MARTIN Léa',
 };
 
 const DUPONT: MagistratSearchResult = {
@@ -42,7 +42,7 @@ const DUPONT: MagistratSearchResult = {
   grade: null,
   id: 'magistrat-2',
   lastName: 'Dupont',
-  usedName: '',
+  name: 'DUPONT Marc',
 };
 
 const OBSERVATION: Observation = {
@@ -62,7 +62,7 @@ const OBSERVATION: Observation = {
     firstName: 'Léa',
     id: 'magistrat-1',
     lastName: 'Martin',
-    usedName: null,
+    name: 'MARTIN Léa',
   },
   observantObservationsCount: 1,
 };

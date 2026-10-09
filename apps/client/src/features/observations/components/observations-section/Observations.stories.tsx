@@ -36,42 +36,42 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     firstName: 'Léa',
     id: 'magistrat-martin',
     lastName: 'Martin',
-    usedName: null,
+    name: 'MARTIN Léa',
   },
   {
     currentPosition: 'Conseillère à la cour d’appel de Lyon',
     firstName: 'Mariame',
     id: 'magistrat-konate',
     lastName: 'Konaté',
-    usedName: null,
+    name: 'KONATÉ Mariame',
   },
   {
     currentPosition: 'Substitute générale près la cour d’appel de Douai',
     firstName: 'Amélie',
     id: 'magistrat-rousseau',
     lastName: 'Rousseau',
-    usedName: null,
+    name: 'ROUSSEAU Amélie',
   },
   {
     currentPosition: 'Vice-procureur au tribunal judiciaire de Marseille',
     firstName: 'Karim',
     id: 'magistrat-benali',
     lastName: 'Benali',
-    usedName: null,
+    name: 'BENALI Karim',
   },
   {
     currentPosition: 'Première vice-présidente au tribunal judiciaire de Bordeaux',
     firstName: 'Sophie',
     id: 'magistrat-nguyen',
     lastName: 'Nguyen',
-    usedName: null,
+    name: 'NGUYEN Sophie',
   },
   {
     currentPosition: 'Conseiller référendaire à la Cour de cassation',
     firstName: 'Étienne',
     id: 'magistrat-lefebvre',
     lastName: 'Lefebvre',
-    usedName: null,
+    name: 'LEFEBVRE Étienne',
   },
 ];
 
@@ -163,9 +163,9 @@ const toObservationFile = (file: File) => ({
 const observationHandlers = [
   http.get('*/api/magistrats/v1', ({ request }) => {
     const search = new URL(request.url).searchParams.get('search')?.toLowerCase() ?? '';
-    const items = MAGISTRATS.filter(({ firstName, lastName, usedName }) =>
-      `${firstName} ${lastName} ${usedName ?? ''}`.toLowerCase().includes(search),
-    ).map((magistrat) => ({ ...magistrat, grade: null, usedName: magistrat.usedName ?? '' }));
+    const items = MAGISTRATS.filter(({ firstName, lastName }) =>
+      `${firstName} ${lastName}`.toLowerCase().includes(search),
+    ).map((magistrat) => ({ ...magistrat, grade: null }));
 
     return HttpResponse.json<SearchMagistratsResponseDto>({
       currentPageIndex: 0,

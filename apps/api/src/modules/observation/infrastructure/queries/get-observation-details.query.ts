@@ -7,6 +7,7 @@ import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { auditionScheduleSchema } from 'src/utils/audition-schedule';
@@ -62,6 +63,7 @@ export class GetObservationDetailsQuery {
               firstName: true,
               id: true,
               lastName: true,
+              marriedName: true,
               observations: {
                 orderBy: { dateReception: 'desc' },
                 select: { dateReception: true, id: true, nominationFileId: true },
@@ -70,7 +72,6 @@ export class GetObservationDetailsQuery {
                   sessionId: query.sessionId,
                 },
               },
-              usedName: true,
             },
           },
           memberComments: {
@@ -154,10 +155,8 @@ export class GetObservationDetailsQuery {
           auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
           biography: observation.magistrat.careerHistory,
           externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
-          firstName: observation.magistrat.firstName,
           id: observation.magistrat.id,
-          lastName: observation.magistrat.lastName,
-          usedName: observation.magistrat.usedName,
+          name: magistratFullName(observation.magistrat),
         },
         observedMagistrat: {
           detectedMagistratId: observedFile.detectedMagistratId,
@@ -229,9 +228,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     receptionDate: dateOnlyJsonSchema,
     observant: z.object({
       id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      usedName: z.string().nullable(),
+      name: z.string(),
       biography: z.string().nullable(),
       audition: auditionScheduleSchema.nullable(),
       auditionScheduling: z.enum(['SCHEDULABLE', ...UNSCHEDULABLE_REASONS]),

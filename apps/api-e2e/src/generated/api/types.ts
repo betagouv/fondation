@@ -418,10 +418,8 @@ export type PaginatedNominationFiles = {
             hasUserComment: boolean;
             magistrat: {
                 id: string;
-                firstName: string;
-                lastName: string;
-                usedName: string | null;
-            } | null;
+                name: string;
+            };
         }>;
         memo: string | null;
         summary: {
@@ -719,10 +717,8 @@ export type DetailedNominationFileDto = {
         hasUserComment: boolean;
         magistrat: {
             id: string;
-            firstName: string;
-            lastName: string;
-            usedName: string | null;
-        } | null;
+            name: string;
+        };
     }>;
     memo: string | null;
     summary: {
@@ -1866,7 +1862,7 @@ export type SearchMagistratsResponseDto = {
         id: string;
         firstName: string;
         lastName: string;
-        usedName: string;
+        name: string;
         grade: string | null;
         currentPosition: string | null;
     }>;
@@ -1882,10 +1878,11 @@ export type SearchMagistratsResponseDto = {
 
 export type DetailedMagistratDto = {
     id: string;
-    civilite: string;
+    name: string;
     firstName: string;
     lastName: string;
     usedName: string | null;
+    marriedName: string | null;
     birthDate: {
         year: number;
         month: number;
@@ -2000,7 +1997,7 @@ export type ListObservationsResponseDto = {
             id: string;
             firstName: string;
             lastName: string;
-            usedName: string | null;
+            name: string;
             currentPosition: string | null;
         } | null;
         createdBy: {
@@ -2032,9 +2029,7 @@ export type GetObservationDetailsResponseDto = {
     };
     observant: {
         id: string;
-        firstName: string;
-        lastName: string;
-        usedName: string | null;
+        name: string;
         biography: string | null;
         audition: {
             date: {

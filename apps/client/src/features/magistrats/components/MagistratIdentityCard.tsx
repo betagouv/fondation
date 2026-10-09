@@ -36,6 +36,9 @@ export function MagistratIdentityCard({
         <MagistratInfoItem label={<FormattedMessage defaultMessage="Nom d'usage" />}>
           {magistrat.usedName ? magistrat.usedName.toUpperCase() : '-'}
         </MagistratInfoItem>
+        <MagistratInfoItem label={<FormattedMessage defaultMessage="Nom marital" />}>
+          {magistrat.marriedName ? magistrat.marriedName.toUpperCase() : '-'}
+        </MagistratInfoItem>
         <MagistratInfoItem label={<FormattedMessage defaultMessage="Date de naissance" />}>
           <InfoDate date={magistrat.birthDate} />
         </MagistratInfoItem>

@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 
+import { splitNameEnd } from '@/utils/magistrat-name.utils';
+
 export function TitleNameIcons(props: { children: ReactNode; name: string | null }) {
-  const words = (props.name ?? '').split(' ');
-  const tail = words.pop();
-  const start = words.join(' ');
+  const { end, start } = splitNameEnd(props.name ?? '');
 
   return (
     <>
       {start && `${start} `}
       <span className="inline-flex items-center whitespace-nowrap">
-        {tail}
+        {end}
         <span className="ml-2 inline-flex items-center">{props.children}</span>
       </span>
     </>

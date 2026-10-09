@@ -64,6 +64,20 @@ describe('SidePanelTrigger', () => {
     );
   });
 
+  it('should keep the married name and the icons in an unbreakable group', () => {
+    renderTrigger({
+      auditionDate: { day: 12, month: 4, year: 2099 },
+      content: { nomMagistrat: 'SKŁODOWSKA Marie (ép. CURIE)' },
+    });
+
+    const nowrapGroup = screen
+      .getByRole('img', { name: 'Une audition est prévue' })
+      .closest('.whitespace-nowrap');
+
+    expect(nowrapGroup).toHaveTextContent('(ép. CURIE)');
+    expect(nowrapGroup).not.toHaveTextContent('Marie');
+  });
+
   it('should not display an attachment icon', () => {
     renderTrigger({ hasAttachment: true });
 

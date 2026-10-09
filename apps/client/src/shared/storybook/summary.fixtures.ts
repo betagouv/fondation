@@ -115,7 +115,7 @@ export const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] =
       firstName: 'Léa',
       id: 'magistrat-martin',
       lastName: 'Martin',
-      usedName: null,
+      name: 'MARTIN Léa',
     },
     observantObservationsCount: 1,
   },

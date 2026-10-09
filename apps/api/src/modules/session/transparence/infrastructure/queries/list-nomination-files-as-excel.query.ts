@@ -5,6 +5,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { ObservationService } from 'src/modules/observation/observation.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
@@ -33,6 +34,7 @@ export class ListNominationFilesAsExcelQuery {
           dossierDeNominations: {
             orderBy: { number: 'asc' },
             select: {
+              detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
               id: true,
               name: true,
               number: true,
@@ -72,7 +74,7 @@ export class ListNominationFilesAsExcelQuery {
 
     const rows = session.dossierDeNominations.map((nf) => [
       nf.number !== null ? String(nf.number) : '',
-      nf.name || '',
+      proposedMagistratName(nf),
       nf.currentPosition || '',
       nf.grade || '',
       nf.targetedPosition || '',
@@ -81,14 +83,7 @@ export class ListNominationFilesAsExcelQuery {
         .map(({ user }) => `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`)
         .join(', '),
       (observants.get(nf.id) ?? [])
-        .map((magistrat) =>
-          [
-            capitalize(magistrat.firstName),
-            magistrat.usedName && magistrat.usedName !== magistrat.lastName
-              ? magistrat.usedName.toUpperCase()
-              : magistrat.lastName.toUpperCase(),
-          ].join(' '),
-        )
+        .map(({ name }) => name)
         .concat(nf.observers || [])
         .join(','),
       nf.priorities.map((x) => PriorityEnumLabels[x]).join(', '),
