@@ -39,6 +39,10 @@ function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
   ) as any;
 }
 
+function isoDate(date: { day: number; month: number; year: number }): string {
+  return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+}
+
 function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
@@ -302,6 +306,38 @@ test.describe('Session E2E', () => {
       expect(detailed.response?.status).toBe(200);
       expect(detailed.data).toEqual(listed);
     }, 10_000);
+
+    test('should sort the sessions by due date', async ({ agent, sessions, expect }) => {
+      const [later, sooner] = await sessions.createMany([TREVOUX_SESSION, TREVOUX_SESSION]);
+      // the earliest due dates of the database, for both sessions to open the list whatever its size
+      for (const [session, dueDate] of [
+        [later!, '1991-01-01'],
+        [sooner!, '1990-01-01'],
+      ] as const) {
+        const details = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
+        const { date, name, observationsClosingDate, positionStartDate } = details.data!;
+        await agent.sessions.updateNominationSession({
+          body: {
+            date: isoDate(date),
+            dueDate,
+            name,
+            observationsClosingDate: isoDate(observationsClosingDate),
+            positionStartDate: positionStartDate && isoDate(positionStartDate),
+          },
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+      }
+
+      const listed = await agent.sessions.listSessionsOfTypeGardeDesSceaux({
+        query: { limit: 200, sortBy: 'dueDate' },
+      });
+
+      // earlier runs leave sessions with the same due dates: only the order of these two is checked
+      const ours = new Set([sooner!.id, later!.id]);
+      expect(listed.response?.status).toBe(200);
+      expect(listed.data!.items.filter(({ id }) => ours.has(id)).map(({ id }) => id)).toEqual([sooner!.id, later!.id]);
+    });
 
     test('should list the nomination files it is asked for', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
