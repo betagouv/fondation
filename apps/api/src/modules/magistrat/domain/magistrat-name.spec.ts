@@ -1,4 +1,4 @@
-import { magistratFullName, magistratTitledFullName } from './magistrat-name';
+import { magistratFullName, magistratTitledFullName, proposedMagistratName } from './magistrat-name';
 
 describe('magistratFullName', () => {
   it.each`
@@ -20,5 +20,22 @@ describe('magistratTitledFullName', () => {
     ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'CURIE' }} | ${'Mme\u00A0SKŁODOWSKA Marie (ép. CURIE)'}
   `('should write $expected', ({ magistrat, expected }) => {
     expect(magistratTitledFullName(magistrat)).toBe(expected);
+  });
+});
+
+describe('proposedMagistratName', () => {
+  it('should write the full name of the detected magistrat', () => {
+    const nominationFile = {
+      detectedMagistrat: { firstName: 'BRIGITTE', lastName: 'ROUSSEL', marriedName: 'HOFFMANN' },
+      name: 'ROUSSEL BRIGITTE ep. HOFFMANN',
+    };
+
+    expect(proposedMagistratName(nominationFile)).toBe('ROUSSEL Brigitte (ép. HOFFMANN)');
+  });
+
+  it('should keep the name sent by LODAM when no magistrat is detected', () => {
+    const nominationFile = { detectedMagistrat: null, name: 'ROUSSEL BRIGITTE ep. HOFFMANN' };
+
+    expect(proposedMagistratName(nominationFile)).toBe('ROUSSEL BRIGITTE ep. HOFFMANN');
   });
 });

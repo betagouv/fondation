@@ -14,3 +14,12 @@ export function magistratFullName(magistrat: MagistratNames): string {
 export function magistratTitledFullName(magistrat: MagistratNames & { civility: 'M.' | 'MME' }): string {
   return `${magistrat.civility === 'MME' ? 'Mme' : 'M.'} ${magistratFullName(magistrat)}`;
 }
+
+export function proposedMagistratName(nominationFile: {
+  detectedMagistrat: MagistratNames | null;
+  name: string;
+}): string {
+  return nominationFile.detectedMagistrat
+    ? magistratFullName(nominationFile.detectedMagistrat)
+    : nominationFile.name;
+}

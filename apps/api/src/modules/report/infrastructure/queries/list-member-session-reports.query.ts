@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 
@@ -26,13 +27,19 @@ export class ListMemberSessionReportsQuery {
         id: true,
         nominationFileId: true,
         state: true,
-        nominationFile: { select: { name: true, number: true } },
+        nominationFile: {
+          select: {
+            detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
+            name: true,
+            number: true,
+          },
+        },
       } satisfies Prisma.ReportSelect,
     });
 
     return {
       items: reports.map((report) => ({
-        name: report.nominationFile.name,
+        name: proposedMagistratName(report.nominationFile),
         nominationFileId: report.nominationFileId,
         number: report.nominationFile.number,
         report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) },
