@@ -242,7 +242,12 @@ export function useUpdateNominationFileAuditionDateMutation() {
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
 
-      return queryClient.invalidateQueries({ queryKey: auditionKeys.all() });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+        }),
+      ]);
     },
   });
 }
@@ -278,6 +283,9 @@ export function useUpdateNominationFileAuditionRequestMutation() {
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+        }),
         queryClient.invalidateQueries({
           queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         }),
