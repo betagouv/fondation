@@ -3,6 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { defineMessage } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
+import { FormationBadge } from '@/shared/components/formation-badge';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
 import { formatDateOnly } from '@/utils/date-only.util';
@@ -30,6 +31,7 @@ const columns = [
     id: 'formation',
     enableSorting: false,
     header: 'Formation',
+    cell: ({ getValue }) => <FormationBadge formation={getValue()} small />,
     meta: {
       filters: {
         type: 'enum',
