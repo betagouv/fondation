@@ -55,7 +55,9 @@ export function MagistratPhoneNumberModal(props: {
     >
       <form id={formId} onSubmit={submit}>
         <Input
-          hintText={formatMessage({ defaultMessage: 'Par exemple : 06 12 34 56 78 ou +262 262 12 34 56' })}
+          hintText={formatMessage({
+            defaultMessage: 'Avec ou sans espaces, par exemple : 06 12 34 56 78 ou +262 262 12 34 56',
+          })}
           label={
             <RequiredLabel>
               <FormattedMessage defaultMessage="Numéro" />
@@ -72,7 +74,7 @@ export function MagistratPhoneNumberModal(props: {
           stateRelatedMessage={props.numberError}
         />
         <Input
-          hintText={formatMessage({ defaultMessage: 'Par exemple : Portable, Conjointe, Domicile' })}
+          hintText={formatMessage({ defaultMessage: 'Par exemple : portable, domicile, bureau' })}
           label={<FormattedMessage defaultMessage="Étiquette" />}
           nativeInputProps={{
             maxLength: 50,

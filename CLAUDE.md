@@ -184,7 +184,7 @@ export class UsersModule {}
 - Un finder prend des identifiants, pas des données déjà chargées : les jointures se font en SQL, pas en TypeScript après coup
 - Préférer TypedSQL à un `$queryRaw` écrit dans le code, sauf quand la structure de la requête varie à l'exécution
 - Ne jamais rapprocher des données par leur texte (`ILIKE`) avec une table de référence : passer par les clés étrangères
-- Un module lit les données d'un autre module par une méthode `internal…` du service de ce module. Seuls le module `users` et les tables de référence LOLFI (`data_administration_context`) peuvent être lus directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
+- Un module lit les données d'un autre module par une méthode `internal…` du service de ce module. Seules la table `users` (`identity_and_access_context`) et les tables de référence LOLFI (`data_administration_context`) peuvent être lues directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
 - Un endpoint sans `@HasRole` est public : le middleware d'authentification ne fait qu'attacher l'utilisateur à la requête. L'autorisation se fait par rôle, jamais par l'URL
 
 ### DTO
@@ -222,13 +222,13 @@ await this.db.tx.agenda.findMany({
 });
 ```
 
-Deux défauts en sont la cause : une régression de TypeScript depuis la version 6.0 ([microsoft/TypeScript#64197](https://github.com/microsoft/TypeScript/issues/64197)) et le générateur `prisma-client` de Prisma 7 ([prisma/prisma#29519](https://github.com/prisma/prisma/issues/29519)). Quand les deux seront corrigés, les `satisfies` et ce test pourront être retirés.
+Deux défauts en sont la cause : un changement de TypeScript 6.0 que son équipe considère comme voulu ([microsoft/TypeScript#64006](https://github.com/microsoft/TypeScript/issues/64006), fermé sans correction) et le générateur `prisma-client` de Prisma 7 ([prisma/orm#29519](https://github.com/prisma/orm/issues/29519)). Les `satisfies` et ce test ne pourront être retirés que si Prisma corrige son générateur.
 
 Chaque table est décrite dans un fichier `.prisma`. Ils se trouvent tous dans le dossier [prisma/schemas](apps/api/prisma/schemas/) et la configuration de Prisma se trouve dans [prisma.config.ts](apps/api/prisma.config.ts).
 
 Par convention :
 
-- Chaque entité nommée utilise le snake case en base, alors que le mapping dans Prisma est en camelCase. Par exemple, la table `User` est définie ainsi :
+- Chaque entité nommée utilise le snake case en base, alors que le mapping dans Prisma est en camelCase. Par exemple, une table `User` serait définie ainsi :
 
 ```prisma
 model User {
@@ -274,7 +274,7 @@ enum PrismaStatusEnum {
 
 ```prisma
 model SessionAttachment {
-  sessionId String @id @db.Uuid
+  sessionId String @db.Uuid
   name String
 
   @@id([sessionId, name], name: "primaryKey")
@@ -314,7 +314,7 @@ export function MyAwesomeComponent(props: { foo: string }) {
 }
 ```
 
-- Préférer un `Context` au props drilling
+- Préférer un `Context` au prop drilling
 - Croiser deux sources de données passe par un modèle construit une fois et partagé par un `Context`, pas par un hook appelé à chaque ligne
 - Un nom de composant se suffit à lui-même, même dans un dossier déjà ciblé : `MagistratDetailsContent` plutôt que `DetailsContent`
 - Utiliser TanStack Query pour gérer l'état asynchrone de l'application (voir [État asynchrone](#état-asynchrone))
@@ -332,7 +332,8 @@ La synchronisation entre le client et le serveur utilise TanStack Query et le SD
 ## Tests
 
 - Le domaine est testé unitairement au maximum
-- Les e2e de l'API testent les cas nominaux, un scénario par test. Les 401 et les 403 ne se testent pas fonctionnalité par fonctionnalité : les gardes sont centrales et testées ailleurs. Pas d'assertion triviale
+- Les e2e de l'API vivent dans [apps/api-e2e](apps/api-e2e) et testent les cas nominaux, un scénario par test. Les 401 et les 403 ne se testent pas fonctionnalité par fonctionnalité : les gardes sont centrales et testées ailleurs. Pas d'assertion triviale
+- Avant de pousser : `pnpm run prepush` (lint, formatage, types). Après une modification d'un schéma Prisma ou d'une requête SQL : `pnpm --filter api prisma:generate`, puis `pnpm run openapi:generate` (API démarrée sur le port 3000) si un contrat change. Les dossiers `generated` du client et des e2e ne se modifient jamais à la main
 
 ## Façon de travailler
 

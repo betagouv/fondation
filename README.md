@@ -52,8 +52,9 @@ Internet, un serveur relais fourni par le prestataire SDV, raccordé aux deux r�
 transmet ces fichiers chiffrés à l'api.
 
 Gotenberg convertit en PDF le HTML des documents produits par l'api (ordre du jour, PV et
-notice de restitution). Il n'est pas déployé depuis ce dépôt : c'est l'image officielle,
-hébergée dans sa propre application Scalingo `fondation-gotenberg`.
+notice de restitution). Il n'est pas déployé depuis ce dépôt mais depuis
+[betagouv/fondation-gotenberg](https://github.com/betagouv/fondation-gotenberg) dans sa
+propre application Scalingo `fondation-gotenberg`.
 
 Le stockage objet, hébergé chez Scaleway et compatible S3, contient les pièces jointes ainsi
 que les PDF générés, qui y sont mis en cache pour éviter de les reconstruire à chaque

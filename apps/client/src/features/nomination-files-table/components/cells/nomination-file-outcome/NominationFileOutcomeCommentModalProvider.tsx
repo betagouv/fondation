@@ -4,9 +4,13 @@ import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-o
 import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
 
 import { NominationFileOutcomeCommentModal } from './NominationFileOutcomeCommentModal';
-import { OutcomeCommentModalContext, type OutcomeCommentEvent } from './OutcomeCommentModalContext';
+import {
+  OutcomeCommentModalContext,
+  type CurrentOutcome,
+  type OutcomeCommentEvent,
+} from './OutcomeCommentModalContext';
 
-type OutcomeCommentQuestion = { initialComment: string | null; outcome: NominationFileOutcomeEnum };
+type OutcomeCommentQuestion = { current: CurrentOutcome; outcome: NominationFileOutcomeEnum };
 
 export function NominationFileOutcomeCommentModalProvider(props: { children: ReactNode }) {
   const { answer, ask, forget, state } = useAwaitableModal<OutcomeCommentQuestion, OutcomeCommentEvent>({
@@ -14,8 +18,7 @@ export function NominationFileOutcomeCommentModalProvider(props: { children: Rea
   });
 
   const waitForOutcomeComment = useCallback(
-    (outcome: NominationFileOutcomeEnum, initialComment: string | null = null) =>
-      ask({ initialComment, outcome }),
+    (outcome: NominationFileOutcomeEnum, current: CurrentOutcome) => ask({ current, outcome }),
     [ask],
   );
 
@@ -25,7 +28,7 @@ export function NominationFileOutcomeCommentModalProvider(props: { children: Rea
     <OutcomeCommentModalContext value={value}>
       {state.status !== 'idle' && (
         <NominationFileOutcomeCommentModal
-          initialComment={state.question.initialComment}
+          current={state.question.current}
           key={state.id}
           onClosed={forget}
           onComment={(value) => answer({ type: 'comment', value })}

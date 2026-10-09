@@ -1475,4 +1475,71 @@ test.describe('Docs Service', () => {
     const reopened = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
     expect(reopened.data).toMatchObject({ changedSinceValidation: ['AGENDA_DATE'], status: 'DRAFT' });
   });
+
+  test('should render the official report draft again once its metadata change', async ({ agent, expect, member }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const firstContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const secondContact = await agent.docs.createJusticeContact({
+      body: { name: `Mme Claire Fontaine, adjointe ${crypto.randomUUID()}` },
+    });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId,
+      hasRenunciation: true,
+      justiceDepartmentContactId: firstContact.data!.id,
+      secretaryId: firstSecretaryId,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const created = await agent.docs.createOfficialReport({
+      body: { ...metadata, agendaId: agenda.data!.id },
+      path: { sessionId },
+    });
+    const officialReportId = created.data!.id;
+    await agent.docs.generateOfficialReportHtml({ path: { officialReportId }, parseAs: 'text' });
+
+    await agent.docs.updateOfficialReport({
+      body: { ...metadata, justiceDepartmentContactId: secondContact.data!.id },
+      path: { officialReportId },
+    });
+
+    const rendered = await agent.docs.generateOfficialReportHtml({
+      parseAs: 'text',
+      path: { officialReportId },
+    });
+    expect(rendered.data).toContain(secondContact.data!.name);
+    expect(rendered.data).not.toContain(firstContact.data!.name);
+  });
 });

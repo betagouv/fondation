@@ -58,7 +58,10 @@ function OutcomeComment(props: {
   });
 
   const edit = async () => {
-    const event = await waitForOutcomeComment(props.outcome, props.comment);
+    const event = await waitForOutcomeComment(props.outcome, {
+      comment: props.comment,
+      outcome: props.outcome,
+    });
     if (event.type === 'comment') mutate({ comment: event.value, outcome: props.outcome });
   };
 

@@ -3,9 +3,9 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
+import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { DetailsCard } from '@/shared/ui/details';
-import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';
 import type { DetailedSummaryDto } from '@api/types';

@@ -119,6 +119,26 @@
       "rules": {
         "typescript/no-redeclare": "off"
       }
+    },
+    {
+      "files": ["src/shared/ui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@codegouvfr/react-dsfr/Modal", "@codegouvfr/react-dsfr/Modal/*"],
+                "message": "Import Modal from @/shared/ui/modal: createModal builds a global instance driven outside of React."
+              },
+              {
+                "group": ["@/features/*", "@/queries/*", "@queries/*", "@/generated/*", "@api/*"],
+                "message": "shared/ui is the leaf layer: it depends on nothing internal. A component that needs business data belongs in shared/components."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
