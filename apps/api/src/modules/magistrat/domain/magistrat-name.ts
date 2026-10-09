@@ -21,9 +21,17 @@ export function magistratFullName(magistrat: MagistratNames): string {
   return writeFullName(magistrat, ' ');
 }
 
-// documents keep the civility, the last name and the first name on the same line
-export function magistratTitledFullName(magistrat: MagistratNames & { civility: Civility }): string {
-  return `${magistrat.civility === 'MME' ? 'Mme' : 'M.'}\u00A0${writeFullName(magistrat, '\u00A0')}`;
+const TITLES: Record<Civility, string> = { 'M.': 'M.', MME: 'Mme' };
+
+function isCivility(civility: string): civility is Civility {
+  return Object.hasOwn(TITLES, civility);
+}
+
+// the civility, the last name and the first name stay on the same line, in a heading as in a document
+// LOLFI sends the civility as free text: an unexpected one is left out rather than blocking the display
+export function magistratTitledFullName(magistrat: MagistratNames & { civility: string }): string {
+  const fullName = writeFullName(magistrat, '\u00A0');
+  return isCivility(magistrat.civility) ? `${TITLES[magistrat.civility]}\u00A0${fullName}` : fullName;
 }
 
 export function proposedMagistratName(nominationFile: {

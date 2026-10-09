@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { CIVILITIES, magistratTitledFullName } from '../../domain/magistrat-name';
+import { magistratTitledFullName } from '../../domain/magistrat-name';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
@@ -43,10 +43,7 @@ export class DetailMagistratQuery {
 
       return {
         id: magistrat.id,
-        name: magistratTitledFullName({
-          ...magistrat,
-          civility: z.enum(CIVILITIES).parse(magistrat.civilite),
-        }),
+        name: magistratTitledFullName({ ...magistrat, civility: magistrat.civilite }),
         firstName: magistrat.firstName,
         lastName: magistrat.lastName,
         usedName: magistrat.usedName,
