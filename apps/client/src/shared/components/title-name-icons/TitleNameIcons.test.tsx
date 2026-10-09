@@ -25,4 +25,12 @@ describe('TitleNameIcons', () => {
     expect(nowrapGroup).toHaveTextContent('Anne-Charlotte');
     expect(nowrapGroup).not.toHaveTextContent('BOISSIÈRE');
   });
+
+  it('should keep the married name and the icons in an unbreakable group', () => {
+    renderTitle('SKŁODOWSKA Marie (ép. CURIE)');
+
+    const nowrapGroup = screen.getByTestId('icons').closest('.whitespace-nowrap');
+    expect(nowrapGroup).toHaveTextContent('(ép. CURIE)');
+    expect(nowrapGroup).not.toHaveTextContent('Marie');
+  });
 });

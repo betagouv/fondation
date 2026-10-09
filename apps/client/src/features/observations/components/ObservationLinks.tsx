@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 
 import { Tooltip } from '@/shared/ui/tooltip';
 import type { PlainDateOnly } from '@/utils/date-only.util';
+import { splitNameEnd } from '@/utils/magistrat-name.utils';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import type { PlainTimeOnly } from '@/utils/time-only.util';
 
@@ -38,14 +39,13 @@ const NAME_UNDERLINE =
   'bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat';
 
 function ObservantName(props: { children: ReactNode; magistrat: { name: string } }) {
-  const words = props.magistrat.name.split(' ');
-  const lastWord = words.pop();
+  const { end, start } = splitNameEnd(props.magistrat.name);
 
   return (
     <>
-      {words.length > 0 && <span className={NAME_UNDERLINE}>{`${words.join(' ')} `}</span>}
+      {start && <span className={NAME_UNDERLINE}>{`${start} `}</span>}
       <span className="whitespace-nowrap">
-        <span className={NAME_UNDERLINE}>{lastWord}</span>
+        <span className={NAME_UNDERLINE}>{end}</span>
         <span className="inline-flex items-center align-middle">{props.children}</span>
       </span>
     </>

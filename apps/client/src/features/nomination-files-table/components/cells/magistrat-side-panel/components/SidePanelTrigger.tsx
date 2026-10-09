@@ -7,6 +7,7 @@ import { SIDE_PANEL_ID, useSidePanel } from '../context/side-panel.context';
 import { useAuditionExpectation } from '../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { splitNameEnd } from '@/utils/magistrat-name.utils';
 import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -56,9 +57,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       ? intl.formatMessage({ defaultMessage: 'Une audition a eu lieu' })
       : intl.formatMessage({ defaultMessage: 'Une audition est prévue' });
 
-  const words = props.nominationFile.content.nomMagistrat.split(' ');
-  const lastWord = words.pop();
-  const leadingWords = words.join(' ');
+  const { end: nameEnd, start: nameStart } = splitNameEnd(props.nominationFile.content.nomMagistrat);
 
   const nameUnderline = warningLabel
     ? 'bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat group-hover:bg-size-[100%_2px]'
@@ -80,7 +79,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
       size="small"
     >
       <span>
-        {(warningLabel || leadingWords) && (
+        {(warningLabel || nameStart) && (
           <span className={nameUnderline}>
             {warningLabel && (
               <i
@@ -88,11 +87,11 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
                 className="fr-icon-error-warning-line fr-mr-1v relative -top-0.5 inline-block align-middle before:block before:size-3.5! before:content-['']"
               />
             )}
-            {leadingWords && `${leadingWords} `}
+            {nameStart && `${nameStart} `}
           </span>
         )}
         <span className="whitespace-nowrap">
-          <span className={nameUnderline}>{lastWord}</span>
+          <span className={nameUnderline}>{nameEnd}</span>
           <span className="inline-flex items-center align-middle">
             {(props.nominationFile.auditionDate || auditionAnnounced) && (
               <Tooltip label={auditionLabel}>
