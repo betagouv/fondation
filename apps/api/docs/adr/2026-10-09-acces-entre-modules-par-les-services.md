@@ -36,9 +36,15 @@ session, observation et magistrat.
 
 ## Conséquences
 
-- Les modules qui s'appellent mutuellement le font par `forwardRef`. Trois chantiers permettraient
-  de s'en passer :
-  - déplacer les routes membres sur les sessions dans un contrôleur de session ;
-  - regrouper dans un module dédié les écrans qui agrègent plusieurs modules ;
-  - faire porter par docs le fait qu'un dossier est rapporté.
+- Les modules qui s'appellent mutuellement le font par `forwardRef`. FON-606 en retire une partie
+  et Members comme Magistrat ne dépendent plus d'aucun autre module :
+  - les routes membres sur les sessions et les rapports sont servies par les modules session et
+    report, sous le même chemin ;
+  - les dossiers et les observations d'un magistrat sont servis par un module dédié,
+    `magistrat-history`.
+- Le cycle entre session et observation reste. La publication des auditions enregistre aussi
+  celles des observants, et les auditions qu'une personne peut voir se calculent avec les deux
+  modules. Le casser demanderait de confier les auditions des observants au module session. À
+  rouvrir si les règles des auditions obligent souvent à modifier les deux modules ensemble.
+- Les cycles entre session et les modules docs, report et ingest ne sont pas traités.
 - Un cas reste ouvert : la charge d'un membre, dont la définition est à fixer avec le métier.
