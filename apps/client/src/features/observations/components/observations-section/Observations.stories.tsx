@@ -37,7 +37,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-martin',
     lastName: 'Martin',
     name: 'MARTIN Léa',
-    usedName: null,
   },
   {
     currentPosition: 'Conseillère à la cour d’appel de Lyon',
@@ -45,7 +44,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-konate',
     lastName: 'Konaté',
     name: 'KONATÉ Mariame',
-    usedName: null,
   },
   {
     currentPosition: 'Substitute générale près la cour d’appel de Douai',
@@ -53,7 +51,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-rousseau',
     lastName: 'Rousseau',
     name: 'ROUSSEAU Amélie',
-    usedName: null,
   },
   {
     currentPosition: 'Vice-procureur au tribunal judiciaire de Marseille',
@@ -61,7 +58,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-benali',
     lastName: 'Benali',
     name: 'BENALI Karim',
-    usedName: null,
   },
   {
     currentPosition: 'Première vice-présidente au tribunal judiciaire de Bordeaux',
@@ -69,7 +65,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-nguyen',
     lastName: 'Nguyen',
     name: 'NGUYEN Sophie',
-    usedName: null,
   },
   {
     currentPosition: 'Conseiller référendaire à la Cour de cassation',
@@ -77,7 +72,6 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     id: 'magistrat-lefebvre',
     lastName: 'Lefebvre',
     name: 'LEFEBVRE Étienne',
-    usedName: null,
   },
 ];
 
@@ -169,9 +163,9 @@ const toObservationFile = (file: File) => ({
 const observationHandlers = [
   http.get('*/api/magistrats/v1', ({ request }) => {
     const search = new URL(request.url).searchParams.get('search')?.toLowerCase() ?? '';
-    const items = MAGISTRATS.filter(({ firstName, lastName, usedName }) =>
-      `${firstName} ${lastName} ${usedName ?? ''}`.toLowerCase().includes(search),
-    ).map((magistrat) => ({ ...magistrat, grade: null, usedName: magistrat.usedName ?? '' }));
+    const items = MAGISTRATS.filter(({ firstName, lastName }) =>
+      `${firstName} ${lastName}`.toLowerCase().includes(search),
+    ).map((magistrat) => ({ ...magistrat, grade: null }));
 
     return HttpResponse.json<SearchMagistratsResponseDto>({
       currentPageIndex: 0,

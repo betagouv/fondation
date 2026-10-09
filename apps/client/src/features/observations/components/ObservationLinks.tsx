@@ -37,9 +37,7 @@ function ObservationAnnotationsIcon(props: { hasDescription: boolean; hasUserCom
 const NAME_UNDERLINE =
   'bg-[linear-gradient(currentColor,currentColor)] bg-size-[100%_1px] bg-position-[0_calc(100%-2px)] bg-no-repeat';
 
-function ObservantName(props: { children: ReactNode; magistrat: { name: string } | null }) {
-  if (!props.magistrat) return null;
-
+function ObservantName(props: { children: ReactNode; magistrat: { name: string } }) {
   const words = props.magistrat.name.split(' ');
   const lastWord = words.pop();
 
@@ -66,7 +64,7 @@ export function ObservationLinks(props: {
       id: string;
       hasDescription: boolean;
       hasUserComment: boolean;
-      magistrat: { id: string; name: string } | null;
+      magistrat: { id: string; name: string };
     }[];
   };
 }) {

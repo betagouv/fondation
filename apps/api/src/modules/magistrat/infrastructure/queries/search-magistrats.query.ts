@@ -35,13 +35,12 @@ export class SearchMagistratsQuery {
       ),
     );
 
-    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, usedName, ...item }) => ({
+    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, ...item }) => ({
       id,
       grade,
       firstName,
       lastName,
       name: magistratFullName({ firstName, lastName, marriedName }),
-      usedName,
       currentPosition:
         item.functionId && item.jurisdictionId
           ? `${item.functionId} ${item.jurisdictionId}`
@@ -62,7 +61,6 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     name: z.string(),
-    usedName: z.string(),
     grade: z.string().nullable(),
     currentPosition: z.string().nullable(),
   }),

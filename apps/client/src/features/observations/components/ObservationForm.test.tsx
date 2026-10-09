@@ -34,7 +34,6 @@ const MARTIN: MagistratSearchResult = {
   id: 'magistrat-1',
   lastName: 'Martin',
   name: 'MARTIN Léa',
-  usedName: '',
 };
 
 const DUPONT: MagistratSearchResult = {
@@ -44,7 +43,6 @@ const DUPONT: MagistratSearchResult = {
   id: 'magistrat-2',
   lastName: 'Dupont',
   name: 'DUPONT Marc',
-  usedName: '',
 };
 
 const OBSERVATION: Observation = {
@@ -65,7 +63,6 @@ const OBSERVATION: Observation = {
     id: 'magistrat-1',
     lastName: 'Martin',
     name: 'MARTIN Léa',
-    usedName: null,
   },
   observantObservationsCount: 1,
 };

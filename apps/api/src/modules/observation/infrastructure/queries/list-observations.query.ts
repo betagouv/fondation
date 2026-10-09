@@ -33,7 +33,6 @@ const ObservationSchema = z.object({
       firstName: z.string(),
       lastName: z.string(),
       name: z.string(),
-      usedName: z.string().nullable(),
       currentPosition: z.string().nullable(),
     })
     .nullable(),
@@ -104,7 +103,6 @@ export class ListObservationsQuery {
             id: true,
             lastName: true,
             marriedName: true,
-            usedName: true,
           },
         },
       } satisfies Prisma.ObservationSelect,
@@ -156,7 +154,6 @@ export class ListObservationsQuery {
                 id: obs.magistrat.id,
                 lastName: obs.magistrat.lastName,
                 name: magistratFullName(obs.magistrat),
-                usedName: obs.magistrat.usedName,
               }
             : null,
           observantObservationsCount:

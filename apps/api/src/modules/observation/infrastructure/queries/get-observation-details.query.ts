@@ -86,7 +86,6 @@ export class GetObservationDetailsQuery {
                   nominationFile: { sessionId: query.sessionId },
                 },
               },
-              usedName: true,
             },
           },
           memberComments: {
@@ -170,11 +169,8 @@ export class GetObservationDetailsQuery {
           auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
           biography: observation.magistrat.careerHistory,
           externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
-          firstName: observation.magistrat.firstName,
           id: observation.magistrat.id,
-          lastName: observation.magistrat.lastName,
           name: magistratFullName(observation.magistrat),
-          usedName: observation.magistrat.usedName,
         },
         observedMagistrat: {
           detectedMagistratId: observation.nominationFile.detectedMagistratId,
@@ -239,10 +235,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     receptionDate: dateOnlyJsonSchema,
     observant: z.object({
       id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
       name: z.string(),
-      usedName: z.string().nullable(),
       biography: z.string().nullable(),
       audition: auditionScheduleSchema.nullable(),
       auditionScheduling: z.enum(['SCHEDULABLE', ...UNSCHEDULABLE_REASONS]),

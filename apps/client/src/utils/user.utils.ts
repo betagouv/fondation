@@ -11,11 +11,6 @@ export function capitalizedFirstName(person: Person) {
   return capitalize(person.firstName.toLowerCase());
 }
 
-// VALROSE Honorine
-export function fullNameCapitalized(person: Person) {
-  return `${upperLastName(person)} ${capitalizedFirstName(person)}`;
-}
-
 // Honorine VALROSE
 export function memberFullName(person: Person) {
   return `${capitalizedFirstName(person)} ${upperLastName(person)}`;
