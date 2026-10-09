@@ -41,6 +41,4 @@ session, observation et magistrat.
   - déplacer les routes membres sur les sessions dans un contrôleur de session ;
   - regrouper dans un module dédié les écrans qui agrègent plusieurs modules ;
   - faire porter par docs le fait qu'un dossier est rapporté.
-- Deux cas restent ouverts :
-  - le détail d'un rapport, qui lit le dossier et la session ;
-  - la charge d'un membre, dont la définition est à fixer avec le métier.
+- Un cas reste ouvert : la charge d'un membre, dont la définition est à fixer avec le métier.
