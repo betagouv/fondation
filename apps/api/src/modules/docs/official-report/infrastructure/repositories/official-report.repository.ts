@@ -364,6 +364,8 @@ export class OfficialReportRepository {
         members: { createMany: { data: this.memberData(message.snapshot) } },
       },
     });
+
+    await this.recomputeState(versionId);
   }
 
   private async persistOfficialReportInvalidated(message: OfficialReportInvalidated) {
@@ -632,7 +634,7 @@ export class OfficialReportRepository {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportVersion.update({
       where: { id: versionId },
-      data: { html: null, introHtml: null, introOutdated: false, pdfId: null },
+      data: { introHtml: null, introOutdated: false },
     });
 
     await this.recomputeState(versionId);
@@ -655,7 +657,7 @@ export class OfficialReportRepository {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportVersion.update({
       where: { id: versionId },
-      data: { conclusionHtml: null, conclusionOutdated: false, html: null, pdfId: null },
+      data: { conclusionHtml: null, conclusionOutdated: false },
     });
 
     await this.recomputeState(versionId);
