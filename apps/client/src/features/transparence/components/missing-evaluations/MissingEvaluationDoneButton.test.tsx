@@ -62,7 +62,7 @@ describe('MissingEvaluationDoneButton', () => {
 
     expect(screen.getByRole('button', { name: /Marquer comme ajoutée/ })).toBeDisabled();
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-      'Proposition figée : son issue est actée dans un procès-verbal ou la session est archivée',
+      'Proposition figée : son issue figure dans un procès-verbal validé ou la session est archivée',
     );
   });
 

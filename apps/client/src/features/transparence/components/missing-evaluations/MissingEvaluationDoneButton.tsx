@@ -61,7 +61,7 @@ export function MissingEvaluationDoneButton(props: {
     <Tooltip
       label={formatMessage({
         defaultMessage:
-          'Proposition figée : son issue est actée dans un procès-verbal ou la session est archivée',
+          'Proposition figée : son issue figure dans un procès-verbal validé ou la session est archivée',
       })}
     >
       {button}

@@ -2,17 +2,13 @@ import { FormattedMessage } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import {
-  AuditionAnnouncedBanner,
-  AuditionRequesterMessage,
-  AuditionScheduledBanner,
-} from '@/shared/components/audition-banner';
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
 
 export function SummaryAlerts() {
   const isSg = useIsSg();
-  const { nominationFileId, sessionId, summary } = useSummary();
+  const { summary } = useSummary();
   const outcome = summary.outcome?.status === 'FINAL' ? summary.outcome : null;
   const auditionMissing = isAuditionMissing(summary);
 
@@ -48,7 +44,7 @@ export function SummaryAlerts() {
             ) : auditionMissing && summary.auditionRequirement === 'POSITION' ? (
               <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
             ) : auditionMissing ? (
-              <AuditionRequesterMessage nominationFileId={nominationFileId} sessionId={sessionId} />
+              <FormattedMessage defaultMessage="Magistrat à convoquer en audition" />
             ) : (
               <FormattedMessage defaultMessage="2 rapporteurs sont attendus pour ce poste" />
             )

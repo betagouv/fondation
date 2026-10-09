@@ -66,7 +66,6 @@ SELECT
   summaries."summary" AS summary,
   member_memo.memo AS "memberMemo",
 
-  COALESCE(observations.observations, ARRAY[]::JSON[]) AS observations,
   COALESCE(reporters.reporters, ARRAY[]::JSON[]) AS reporters
 
 FROM
@@ -92,40 +91,6 @@ FROM
       LEFT JOIN identity_and_access_context."users" AS "user" ON "user".id = nfr.user_id
     WHERE nfr.nomination_file_id = ddn.id AND nfr.version_id = /* versionId */$1::UUID
   ) AS reporters ON TRUE
-
-  LEFT JOIN LATERAL (
-    SELECT ARRAY_AGG(sub_obs.observation) AS observations
-    FROM (
-      SELECT
-        JSON_BUILD_OBJECT(
-          'id', obs.id,
-          'followUp', obs.follow_up,
-          'followUpComment', obs.follow_up_comment,
-          'description', obs.description,
-          'dateReception', obs.date_reception,
-
-          'magistrat', JSON_BUILD_OBJECT(
-            'id', m.id,
-            'firstName', m.first_name,
-            'lastName', m.last_name,
-            'marriedName', m.married_name
-          ),
-          'memberComments', JSON_AGG(
-            JSON_BUILD_OBJECT('comment', omc."comment")
-          )
-        ) AS observation
-
-      FROM nominations_context.observation AS obs
-        LEFT JOIN nominations_context.magistrat AS m ON m.id = obs.magistrat_id
-        LEFT JOIN nominations_context.observation_member_comment AS omc ON (
-          omc.observation_id = obs.id
-          AND omc.user_id = /* userId */$2::UUID
-        )
-
-      WHERE obs.nomination_file_id = ddn.id
-      GROUP BY obs.id, m.id
-    ) AS sub_obs
-  ) AS observations ON TRUE
 
   LEFT JOIN LATERAL (
     SELECT (ARRAY_AGG(member_memo))[1] AS "memo"

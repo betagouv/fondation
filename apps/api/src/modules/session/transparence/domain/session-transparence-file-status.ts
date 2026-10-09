@@ -1,57 +1,38 @@
-import {
-  DocNominationFileOutcomeEnum,
-  nominationFileOutcomeToDocNominationFileOutcome,
-} from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
-import { isDefined } from 'src/utils/is-defined';
-
 export const NOMINATION_SESSION_FILE_STATUSES = ['TO_REPORT', 'DSJ_PLANNED', 'DSJ_REPORTED'] as const;
 
 export type NominationSessionFileStatusEnum = (typeof NOMINATION_SESSION_FILE_STATUSES)[number];
 
 export type NominationSessionFileStatus = {
-  value: NominationSessionFileStatusEnum;
   dates: Date[];
+  value: NominationSessionFileStatusEnum;
 };
 
 type LinkedDoc = {
-  agenda: { id: string; outcome: DocNominationFileOutcomeEnum | null; sessionMeetingDate: Date };
-  officialReport: {
-    id: string;
-    isValidated: boolean;
-    outcome: DocNominationFileOutcomeEnum;
-    sessionMeetingDate: Date;
-  } | null;
+  agenda: { sessionMeetingDate: Date };
+  officialReport: { isValidated: boolean; sessionMeetingDate: Date } | null;
 };
 
-export function transparenceFileStatus(file: {
-  docs: readonly LinkedDoc[];
-  outcome: NominationFileOutcomeEnum | null;
-}): NominationSessionFileStatus {
-  const reported = file.docs.flatMap((doc) =>
-    isDefined(doc.officialReport) &&
-    doc.officialReport.isValidated &&
-    restitutes(doc.officialReport, file.outcome)
-      ? [doc.officialReport.sessionMeetingDate]
-      : [],
-  );
-  if (reported.length > 0) return { value: 'DSJ_REPORTED', dates: mostRecentFirst(reported) };
+/**
+ * the outcome is left out on purpose: changing it must not move the status, only a new document does.
+ * Whether a file is done (locked, counted as reported) is another rule, see SessionReportedFilesFinder
+ */
+export function transparenceFileStatus(file: { docs: readonly LinkedDoc[] }): NominationSessionFileStatus {
+  const latestDocs = ofLatestMeeting(file.docs);
 
-  const planned = file.docs.flatMap((doc) =>
-    doc.officialReport?.isValidated ? [] : [doc.agenda.sessionMeetingDate],
+  const reported = latestDocs.flatMap((doc) =>
+    doc.officialReport?.isValidated ? [doc.officialReport.sessionMeetingDate] : [],
   );
-  if (planned.length > 0) return { value: 'DSJ_PLANNED', dates: mostRecentFirst(planned) };
+  if (reported.length > 0) return { dates: mostRecentFirst(reported), value: 'DSJ_REPORTED' };
 
-  return { value: 'TO_REPORT', dates: [] };
+  const planned = latestDocs.map((doc) => doc.agenda.sessionMeetingDate);
+  if (planned.length > 0) return { dates: mostRecentFirst(planned), value: 'DSJ_PLANNED' };
+
+  return { dates: [], value: 'TO_REPORT' };
 }
 
-function restitutes(
-  officialReport: { outcome: DocNominationFileOutcomeEnum },
-  outcome: NominationFileOutcomeEnum | null,
-): boolean {
-  return (
-    isDefined(outcome) && officialReport.outcome === nominationFileOutcomeToDocNominationFileOutcome(outcome)
-  );
+function ofLatestMeeting(docs: readonly LinkedDoc[]): LinkedDoc[] {
+  const latestTime = Math.max(...docs.map((doc) => doc.agenda.sessionMeetingDate.getTime()));
+  return docs.filter((doc) => doc.agenda.sessionMeetingDate.getTime() === latestTime);
 }
 
 function mostRecentFirst(dates: readonly Date[]): Date[] {

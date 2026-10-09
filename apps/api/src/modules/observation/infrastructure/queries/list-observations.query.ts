@@ -106,7 +106,7 @@ export class ListObservationsQuery {
           },
         },
       } satisfies Prisma.ObservationSelect,
-      where: { nominationFile: { sessionId: query.sessionId }, nominationFileId: query.nominationFileId },
+      where: { nominationFileId: query.nominationFileId, sessionId: query.sessionId },
     });
 
     const magistratIds = [
@@ -124,7 +124,7 @@ export class ListObservationsQuery {
     const observationCounts = await this.db.tx.observation.groupBy({
       _count: { _all: true },
       by: ['magistratId'],
-      where: { magistratId: { in: magistratIds }, nominationFile: { sessionId: query.sessionId } },
+      where: { magistratId: { in: magistratIds }, sessionId: query.sessionId },
     });
     const observationCountByMagistratId = new Map(
       observationCounts.map(({ _count, magistratId }) => [magistratId, _count._all]),

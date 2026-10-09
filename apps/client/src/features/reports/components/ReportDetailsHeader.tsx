@@ -7,6 +7,7 @@ import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import {
   REPORT_STATUSES,
   type ReportStatusEnum,
@@ -14,7 +15,6 @@ import {
 } from '@/shared/enums/report-status.enum';
 import { DetailsHeader } from '@/shared/ui/details';
 import { backToFilesListSearch, getDetailSessionGdsPath } from '@/utils/route-path.utils';
-import type { DetailedReportDto } from '@api/types';
 
 export function ReportDetailsHeader(props: {
   breadcrumb?: ReactNode;
@@ -23,7 +23,7 @@ export function ReportDetailsHeader(props: {
   name: string;
   nominationFileId: string;
   onUpdateState: (state: ReportStatusEnum) => void;
-  priorities: DetailedReportDto['priorities'];
+  priorities: readonly PrioriteEnum[];
   sessionId: string;
   state: ReportStatusEnum;
 }) {

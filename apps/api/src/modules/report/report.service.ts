@@ -1,7 +1,9 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
@@ -22,11 +24,13 @@ import {
   SearchNominationFileMembersReportQuery,
 } from './infrastructure/queries/search-nomination-file-members-report.query';
 import { ReportRepository } from './infrastructure/report.repository';
+import { SessionReportsRepository } from './infrastructure/session-reports.repository';
 
 @Injectable()
 export class ReportService {
   constructor(
     private readonly reportRepository: ReportRepository,
+    private readonly sessionReportsRepository: SessionReportsRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
     private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
@@ -34,6 +38,7 @@ export class ReportService {
     private readonly files: Files,
   ) {}
 
+  @Transactional()
   async attachFiles(command: {
     userId: string;
     fileUsage: ReportFileUsageEnum | undefined;
@@ -52,6 +57,7 @@ export class ReportService {
     await this.reportRepository.persist(report);
   }
 
+  @Transactional()
   async detachFiles(command: {
     userId: string;
     reportId: string;
@@ -113,14 +119,26 @@ export class ReportService {
     return this.detailReportQuery.handle(query);
   }
 
-  internalListMemberSessionReports(query: {
+  /** called by session within the publication transaction, for both to succeed or fail together */
+  @Transactional(Propagation.Mandatory)
+  async internalSyncReportsWithAffectations(command: {
+    affectations: readonly { nominationFileId: string; reporterId: string }[];
+    formation: FormationEnum;
     sessionId: string;
-    userId: string;
+  }): Promise<void> {
+    const sessionReports = await this.sessionReportsRepository.find(command);
+    sessionReports.syncWith(command);
+    await this.sessionReportsRepository.persist(sessionReports);
+  }
+
+  listMemberSessionReports(query: {
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionReportsDto> {
     return this.listMemberSessionReportsQuery.handle(query);
   }
 
-  internalSearchNominationFileMembersReport(query: {
+  searchNominationFileMembersReport(query: {
     nominationFileId: string;
     sessionId: string;
     userId: string;
@@ -128,6 +146,7 @@ export class ReportService {
     return this.searchNominationFileMembersReportQuery.handle(query);
   }
 
+  @Transactional()
   async updateReport(command: {
     reportId: string;
     reporterId: string;
@@ -145,6 +164,7 @@ export class ReportService {
     await this.reportRepository.persist(report);
   }
 
+  @Transactional()
   async updateRuleValidation(command: {
     reportId: string;
     reporterId: string;

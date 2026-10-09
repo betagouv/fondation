@@ -1,9 +1,10 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { ObservationService } from 'src/modules/observation/observation.service';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
@@ -14,7 +15,7 @@ import { MagistratNominationFileSchema } from './list-magistrat-nomination-files
 export class ListMagistratObservationsQuery {
   constructor(
     private readonly db: Db,
-    @Inject(forwardRef(() => TransparenceService))
+    private readonly observations: ObservationService,
     private readonly sessions: TransparenceService,
   ) {}
 
@@ -30,29 +31,25 @@ export class ListMagistratObservationsQuery {
       });
       if (!magistrat) throw new NotFoundException();
 
-      const where = {
-        magistratId: query.magistratId,
-        nominationFile: { session: { deletedAt: null } },
-      };
-      const totalCount = await this.db.tx.observation.count({ where });
-      const observations = await this.db.tx.observation.findMany({
-        orderBy: [
-          { nominationFile: { session: { date: 'desc' } } },
-          { nominationFile: { number: { nulls: 'last', sort: 'asc' } } },
-        ],
-        select: { dateReception: true, id: true, nominationFileId: true } satisfies Prisma.ObservationSelect,
-        skip: (query.pagination.page - 1) * query.pagination.limit,
-        take: query.pagination.limit,
-        where,
+      // a magistrat receives a handful of observations: sorting and paging them here costs nothing
+      const observations = await this.observations.internalFindMagistratObservations(query);
+      const sortedFileIds = await this.sessions.internalSortNominationFiles({
+        nominationFileIds: [...new Set(observations.map(({ nominationFileId }) => nominationFileId))],
       });
+      const observationsByFileId = Map.groupBy(observations, ({ nominationFileId }) => nominationFileId);
+      const sorted = sortedFileIds.flatMap((id) => observationsByFileId.get(id) ?? []);
+      const page = sorted.slice(
+        (query.pagination.page - 1) * query.pagination.limit,
+        query.pagination.page * query.pagination.limit,
+      );
 
       const nominationFiles = await this.sessions.internalHydrateNominationFiles({
-        nominationFileIds: observations.map(({ nominationFileId }) => nominationFileId),
+        nominationFileIds: page.map(({ nominationFileId }) => nominationFileId),
         role: query.role,
       });
       const nominationFilesById = new Map(nominationFiles.map((file) => [file.id, file]));
 
-      const items = observations.flatMap((observation) => {
+      const items = page.flatMap((observation) => {
         const nominationFile = nominationFilesById.get(observation.nominationFileId);
         if (!nominationFile) return [];
 
@@ -65,7 +62,7 @@ export class ListMagistratObservationsQuery {
         ];
       });
 
-      return paginate({ items, pagination: query.pagination, totalCount });
+      return paginate({ items, pagination: query.pagination, totalCount: sorted.length });
     });
   }
 }

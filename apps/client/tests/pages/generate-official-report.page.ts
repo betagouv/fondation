@@ -20,10 +20,6 @@ class JusticeContactCombobox {
     return this.input.blur();
   }
 
-  option(name: string | RegExp): Locator {
-    return this.page.getByRole('option', { name }).first();
-  }
-
   button(name: string | RegExp): Locator {
     return this.page.locator(`[role="option"][type="button"]:has-text("${name}")`).first();
   }

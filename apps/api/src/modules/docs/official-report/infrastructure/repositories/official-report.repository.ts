@@ -142,10 +142,7 @@ export class OfficialReportRepository {
       `Official Report "${query.id}" has no agenda version`,
     );
 
-    const { date } = await this.sessions.details({
-      formation: undefined,
-      sessionId: rawAgenda.sessionId,
-    });
+    const { date } = await this.sessions.internalGetSession({ sessionId: rawAgenda.sessionId });
 
     const agenda = OfficialReportAgenda.from({
       agenda: {
@@ -153,7 +150,7 @@ export class OfficialReportRepository {
         formation: prismaFormationEnumToFormationEnum(rawAgenda.formation),
         id: rawAgenda.id,
         officialReportId: rawAgenda.officialReportId,
-        session: { date: DateOnly.fromJson(date), id: rawAgenda.sessionId },
+        session: { date, id: rawAgenda.sessionId },
       },
       ignoreOfficialReportId: officialReportId,
     });

@@ -1,10 +1,12 @@
 import * as crypto from 'node:crypto';
 
 import type { LolfiArchiveContent } from 'lolfi';
+import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
 import type { CreateObservationDto } from '../generated/api/types.ts';
+import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
 const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -254,6 +256,114 @@ test.describe('Magistrat E2E', () => {
     });
   });
 
+  test('should give each nomination file of a magistrat its published reporters', async ({
+    agent,
+    expect,
+    member,
+    valrose,
+  }) => {
+    await agent.sessions.affectReporters({
+      body: {
+        items: [{ nominationFileId: valrose.nominationFile.id, priorities: [], reporterIds: [member['@user']!.id] }],
+      },
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+    const unpublished = await agent.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
+    });
+    expect(unpublished.data!.items[0]!.reporters).toEqual([]);
+
+    await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+    const published = await agent.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
+    });
+    expect(published.data!.items[0]!.reporters).toEqual([expect.objectContaining({ id: member['@user']!.id })]);
+  });
+
+  test('should list the attachments of the observations of a session', async ({ agent, expect, valrose }) => {
+    const file = makeFile({ name: `courrier_${crypto.randomUUID()}.pdf`, type: 'application/pdf' });
+    const created = await agent.observations.createObservation({
+      body: {
+        files: [file],
+        form: observationForm({
+          dateReception: '2026-05-02',
+          description: 'Observation avec une pièce jointe',
+          magistratId: valrose.magistratId,
+        }),
+      },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const attachments = await agent.observations.listObservationsAttachments({
+      path: { sessionId: valrose.session.id },
+      query: { magistratId: valrose.magistratId },
+    });
+
+    expect(attachments.response?.status).toBe(200);
+    expect(attachments.data!.items).toEqual([
+      expect.objectContaining({ name: file.name, observationId: created.data!.id }),
+    ]);
+  });
+
+  test('should refuse an observation on a nomination file of another session', async ({
+    agent,
+    expect,
+    sessions,
+    valrose,
+  }) => {
+    const otherSession = await sessions.createOne({ ...VALROSE_SESSION, createdAt: '22/05/2026' });
+
+    const refused = await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          description: 'Observation déposée sur la mauvaise session',
+          magistratId: valrose.magistratId,
+        }),
+      },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: otherSession.id },
+    });
+
+    expect(refused.response?.status).toBe(404);
+  });
+
+  test('should follow up on an observation and show it in the list of the nomination files', async ({
+    agent,
+    expect,
+    valrose,
+  }) => {
+    const created = await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          description: 'Observation à suivre',
+          magistratId: valrose.magistratId,
+        }),
+      },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const followedUp = await agent.observations.followUpOnObservation({
+      body: { comment: null, followUp: 'ALERT' },
+      path: {
+        nominationFileId: valrose.nominationFile.id,
+        observationId: created.data!.id,
+        sessionId: valrose.session.id,
+      },
+    });
+    expect(followedUp.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId: valrose.session.id } });
+    const file = files.data!.items.find(({ id }) => id === valrose.nominationFile.id);
+    expect(file!.observations).toEqual([expect.objectContaining({ followUp: 'ALERT', id: created.data!.id })]);
+  });
+
   test('should list the observations received by a magistrat', async ({ agent, expect, valrose }) => {
     const withoutObservation = await agent.magistrats.listMagistratObservations({
       path: { magistratId: valrose.magistratId },
@@ -287,6 +397,106 @@ test.describe('Magistrat E2E', () => {
         session: { id: valrose.session.id, status: 'ONGOING' },
       },
     });
+  });
+
+  test('should list the observations of a nomination file with the nomination files', async ({
+    agent,
+    expect,
+    valrose,
+  }) => {
+    await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          description: 'Observation listée avec les dossiers',
+          magistratId: valrose.magistratId,
+        }),
+      },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId: valrose.session.id } });
+    const file = files.data!.items.find(({ id }) => id === valrose.nominationFile.id);
+
+    expect(file!.observations).toEqual([
+      expect.objectContaining({
+        date: { day: 2, month: 5, year: 2026 },
+        followUp: null,
+        followUpComment: null,
+        hasDescription: true,
+        hasUserComment: false,
+        magistrat: expect.objectContaining({ id: valrose.magistratId }),
+      }),
+    ]);
+  });
+
+  test('should name the observants in the export of the nomination files', async ({ agent, expect, valrose }) => {
+    await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          description: "Observation reprise dans l'export",
+          magistratId: valrose.magistratId,
+        }),
+      },
+      path: { nominationFileId: valrose.nominationFile.id, sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const exported = await agent.sessions.listNominationFilesAsExcel({
+      parseAs: 'arrayBuffer',
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const [header, ...rows] = parse(Buffer.from(exported.data as ArrayBuffer))[0]!.data as string[][];
+    const observants = header!.indexOf('Observants');
+    const row = rows.find((cells) => cells.some((cell) => /valrose/i.test(String(cell))));
+    expect(row![observants]).toBe('HONORINE VALROSE');
+  });
+
+  test('should list the observations of the most recent session first, without the deleted ones', async ({
+    agent,
+    expect,
+    sessions,
+    valrose,
+  }) => {
+    const laterSession = await sessions.createOne({ ...VALROSE_SESSION, createdAt: '22/05/2026' });
+    const laterFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId: laterSession.id },
+      throwOnError: true,
+    });
+    for (const [sessionId, nominationFileId] of [
+      [valrose.session.id, valrose.nominationFile.id],
+      [laterSession.id, laterFiles.data!.items[0]!.id],
+    ] as const) {
+      await agent.observations.createObservation({
+        body: {
+          form: observationForm({
+            dateReception: '2026-05-02',
+            description: 'Observation sur deux sessions',
+            magistratId: valrose.magistratId,
+          }),
+        },
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+    }
+
+    const listed = await agent.magistrats.listMagistratObservations({ path: { magistratId: valrose.magistratId } });
+    expect(listed.data!.items.map(({ nominationFile }) => nominationFile.session.id)).toEqual([
+      laterSession.id,
+      valrose.session.id,
+    ]);
+
+    await agent.sessions.deleteNominationSession({ path: { sessionId: laterSession.id }, throwOnError: true });
+
+    const remaining = await agent.magistrats.listMagistratObservations({
+      path: { magistratId: valrose.magistratId },
+    });
+    expect(remaining.data).toMatchObject({ totalCount: 1 });
+    expect(remaining.data!.items.map(({ nominationFile }) => nominationFile.session.id)).toEqual([valrose.session.id]);
   });
 
   test('should order the observations of a session by nomination file number', async ({ agent, expect, valrose }) => {

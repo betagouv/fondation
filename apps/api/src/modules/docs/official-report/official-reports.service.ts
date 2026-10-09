@@ -56,7 +56,6 @@ export class OfficialReportsService {
 
     private readonly clock: Clock,
     private readonly auth: SimpleAuthService,
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
@@ -89,10 +88,7 @@ export class OfficialReportsService {
     sessionId: string;
     absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
-    const session = await this.sessions.details({
-      formation: undefined,
-      sessionId: command.sessionId,
-    });
+    const session = await this.sessions.internalGetSession({ sessionId: command.sessionId });
 
     const secretary = await this.auth.detailsUser({
       userId: command.secretaryId,

@@ -43,7 +43,6 @@ export class SessionAuditionsFinder {
     private readonly publications: AuditionPublicationFinder,
     private readonly versions: AffectationVersionFinder,
 
-    @Inject(forwardRef(() => MagistratService))
     private readonly magistrats: MagistratService,
 
     @Inject(forwardRef(() => ObservationService))

@@ -10,12 +10,12 @@ const report: ReportMagistrat = {
   ].join('\n'),
   birthDate: { year: 1978, month: 5, day: 14 },
   currentPosition: 'Conseiller CA BASTIA',
-  dureeDuPoste: '4 ans et 11 mois',
   grade: 'G2',
   missingEvaluation: false,
+  positionStartDate: { year: 2023, month: 9, day: 1 },
   rank: '(12 sur une liste de 24)',
   targetedGrade: 'G3',
-  targettedPosition: "Président de la chambre de l'instruction CA BORDEAUX",
+  targetedPosition: "Président de la chambre de l'instruction CA BORDEAUX",
 };
 
 const meta = {
@@ -38,12 +38,12 @@ export const Playground: Story = {
 
 export const WithoutTargetedPosition: Story = {
   args: {
-    report: { ...report, rank: null, targetedGrade: null, targettedPosition: null },
+    report: { ...report, rank: null, targetedGrade: null, targetedPosition: null },
   },
 };
 
 export const WithoutBiography: Story = {
   args: {
-    report: { ...report, biography: null, birthDate: null, dureeDuPoste: null },
+    report: { ...report, biography: null, birthDate: null, positionStartDate: null },
   },
 };

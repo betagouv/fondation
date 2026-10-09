@@ -1,6 +1,6 @@
-import type { DetailedReportDto } from '@api/types';
+import type { PaginatedNominationFiles } from '@api/types';
 
-export type GradeEnum = NonNullable<DetailedReportDto['grade']>;
+export type GradeEnum = PaginatedNominationFiles['items'][number]['content']['gradeCible'];
 
 export const GradeEnum = {
   I: 'I',

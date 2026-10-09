@@ -1,8 +1,8 @@
 import { defineMessages } from 'react-intl';
 
-import type { DetailedReportDto } from '@api/types';
+import type { DetailedNominationSessionDto } from '@api/types';
 
-export type FormationEnum = NonNullable<DetailedReportDto['formation']>;
+export type FormationEnum = DetailedNominationSessionDto['formation'];
 
 export const FormationEnum = {
   PARQUET: 'PARQUET',

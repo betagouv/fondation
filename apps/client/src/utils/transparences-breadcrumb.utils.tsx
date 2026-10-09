@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router';
 import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
 import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import type { DetailedReportDto } from '@api/types';
 
+import type { PlainDateOnly } from './date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
 import { assertNever } from './types.util';
 
@@ -22,7 +22,8 @@ type TransparencesCurrentPageType =
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
-      report: DetailedReportDto;
+      nominationFileName: string;
+      session: { date: PlainDateOnly; id: string; name: string };
     };
 
 export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
@@ -61,17 +62,10 @@ export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrent
         }
 
         case TransparencesCurrentPage.gdsReport: {
-          const { report } = currentPage;
-          if (!report) {
-            return {
-              currentPageLabel: formatMessage({ defaultMessage: 'Rapport non trouvé' }),
-              segments: [transparenciesSegment, gdsTransparenciesSegment],
-            };
-          }
+          const { session } = currentPage;
+          const transparencyLabel = transparencyToLabel(session.name, session.date);
 
-          const transparencyLabel = transparencyToLabel(report.transparency, report.dateTransparence);
-
-          const path = getDetailSessionGdsPath({ sessionId: report.sessionId });
+          const path = getDetailSessionGdsPath({ sessionId: session.id });
           const transparencySegment = {
             label: transparencyLabel,
             to: path,
@@ -82,7 +76,7 @@ export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrent
           };
 
           return {
-            currentPageLabel: report.name,
+            currentPageLabel: currentPage.nominationFileName,
             segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment],
           };
         }

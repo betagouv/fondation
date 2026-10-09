@@ -63,7 +63,7 @@ export const sessionDocsHandlers = [
 
 export const sidePanelHandlers = [
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/audition/history', () =>
-    HttpResponse.json({ requested: null, scheduled: null }),
+    HttpResponse.json({ scheduled: null }),
   ),
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/audition/request', noContent),
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/audition/schedule', noContent),

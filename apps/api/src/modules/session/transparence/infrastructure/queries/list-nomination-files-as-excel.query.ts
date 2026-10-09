@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { magistratFullName, proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
+import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
+import { ObservationService } from 'src/modules/observation/observation.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { nominationFileOutcomeLabel } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -16,15 +17,17 @@ export class ListNominationFilesAsExcelQuery {
   constructor(
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
+    @Inject(forwardRef(() => ObservationService))
+    private readonly observations: ObservationService,
   ) {}
 
   async handle(query: { sessionId: string }): Promise<StreamableFile> {
-    const session = await this.db.withTransaction(async () => {
+    const [session, observants] = await this.db.withTransaction(async () => {
       const version = await this.versions.last({
         sessionId: query.sessionId,
       });
 
-      return this.db.tx.session.findUnique({
+      const txSession = await this.db.tx.session.findUnique({
         where: { id: query.sessionId, deletedAt: null },
         select: {
           formation: true,
@@ -45,13 +48,6 @@ export class ListNominationFilesAsExcelQuery {
               outcomeComment: true,
 
               observers: true,
-              observations: {
-                select: {
-                  magistrat: {
-                    select: { firstName: true, lastName: true, marriedName: true },
-                  },
-                },
-              },
 
               reporterIds: {
                 where: { versionId: version.optionalId },
@@ -65,6 +61,11 @@ export class ListNominationFilesAsExcelQuery {
           },
         } satisfies Prisma.SessionSelect,
       });
+      const txObservants = await this.observations.internalFindNominationFilesObservants({
+        nominationFileIds: new Set(txSession?.dossierDeNominations.map(({ id }) => id)),
+      });
+
+      return [txSession, txObservants] as const;
     });
 
     if (!session) {
@@ -81,8 +82,8 @@ export class ListNominationFilesAsExcelQuery {
       nf.reporterIds
         .map(({ user }) => `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`)
         .join(', '),
-      nf.observations
-        .map(({ magistrat }) => magistratFullName(magistrat))
+      (observants.get(nf.id) ?? [])
+        .map(({ name }) => name)
         .concat(nf.observers || [])
         .join(','),
       nf.priorities.map((x) => PriorityEnumLabels[x]).join(', '),

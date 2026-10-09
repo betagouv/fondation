@@ -1,15 +1,20 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 
 @Injectable()
 export class ObservationFinder {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
+  ) {}
 
   @Transactional()
-  findExistingObservation(query: {
+  async findExistingObservation(query: {
     sessionId: string;
     nominationFileId: string;
     magistratId: string;
@@ -17,16 +22,16 @@ export class ObservationFinder {
     id: string;
     observations: readonly { magistratId: string }[];
   } | null> {
-    return this.db.tx.dossierDeNomination.findUnique({
-      where: { sessionId: query.sessionId, id: query.nominationFileId },
-      select: {
-        id: true,
-        observations: {
-          select: { magistratId: true },
-          where: { magistratId: query.magistratId },
-        },
-      } satisfies Prisma.DossierDeNominationSelect,
+    const files = await this.sessions.internalFindNominationFilesByIds({
+      nominationFileIds: [query.nominationFileId],
     });
+    if (files.get(query.nominationFileId)?.sessionId !== query.sessionId) return null;
+
+    const observations = await this.db.tx.observation.findMany({
+      select: { magistratId: true } satisfies Prisma.ObservationSelect,
+      where: { magistratId: query.magistratId, nominationFileId: query.nominationFileId },
+    });
+    return { id: query.nominationFileId, observations };
   }
 
   @Transactional()

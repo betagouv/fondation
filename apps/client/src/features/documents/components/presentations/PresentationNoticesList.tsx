@@ -7,8 +7,8 @@ import { generatePath } from 'react-router';
 import { PresentationAuthoring } from '@/features/documents/components/presentations/PresentationAuthoring';
 import { usePresentPlanModal } from '@/features/documents/context/present-plan-modal.context';
 import { PresentPlanModalProvider } from '@/features/documents/context/PresentPlanModalProvider';
+import { FormationBadge } from '@/shared/components/formation-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { useSelection } from '@/shared/hooks/useSelection';
 import { SelectionCheckbox } from '@/shared/ui/checkbox';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -52,7 +52,7 @@ function InnerPresentationNoticesList() {
       updatedBy: item.updatedBy,
     },
     date: formatDateOnly(item.date),
-    formation: formatMessage(FormationEnumMessages[item.formation]),
+    formation: item.formation,
     hasRemovedAgendas: item.hasRemovedAgendas,
     id: item.id,
     initials: toInitials(item.chairman),
@@ -169,9 +169,11 @@ function InnerPresentationNoticesList() {
               />
 
               <span className="flex items-center gap-x-3">
-                <Badge as="span" className="fr-mb-0 h-6 w-24 shrink-0 justify-center" noIcon small>
-                  {item.formation}
-                </Badge>
+                <FormationBadge
+                  className="fr-mb-0 w-24 shrink-0 justify-center"
+                  formation={item.formation}
+                  small
+                />
 
                 <Badge
                   as="span"

@@ -1,5 +1,5 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/node';
 
@@ -30,20 +30,34 @@ import { TimeOnly } from 'src/utils/time-only';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
-import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
+import {
+  AffectationVersionFinder,
+  FoundAffectationVersion,
+  OptionalAffectationVersion,
+} from './finders/affectation-version.finder';
 import { AuditionPublicationFinder } from './finders/audition-publication.finder';
 import { AuditionsSeenFinder, type SeenAudition } from './finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import {
   type HydratedNominationFile,
+  type FoundNominationFile,
   HydratedNominationFilesFinder,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
+import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
+import {
+  type NominationFileProgress,
+  NominationFilesProgressFinder,
+} from './finders/nomination-files-progress.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
-import { NominationSessionFinder } from './finders/transparence-session.finder';
+import {
+  type FoundNominationSession,
+  NominationSessionFinder,
+  type NominationSessionState,
+} from './finders/transparence-session.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -90,13 +104,14 @@ import {
 } from './queries/internal-find-docs-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './queries/internal-list-magistrat-nomination-files.query';
 import {
-  InternalListMemberSessionsQuery,
-  type ListedMemberSessionsDto,
-} from './queries/internal-list-member-sessions.query';
+  ListArchivedNominationSessionsQuery,
+  ListedArchivedNominationSessionsDto,
+} from './queries/list-archived-nomination-sessions.query';
 import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
 } from './queries/list-currently-affected-reporters.query';
+import { ListMemberSessionsQuery, type ListedMemberSessionsDto } from './queries/list-member-sessions.query';
 import { ListMissingEvaluationsAsExcelQuery } from './queries/list-missing-evaluations-as-excel.query';
 import {
   type ListedNominationFileAttachmentDto,
@@ -124,7 +139,6 @@ import { SessionTransparenceRepository } from './repositories/session-transparen
 export class TransparenceService {
   private readonly logger = new Logger(TransparenceService.name);
   constructor(
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
     private readonly auditionPublications: AuditionPublicationFinder,
     private readonly auditionsSeen: AuditionsSeenFinder,
@@ -140,12 +154,13 @@ export class TransparenceService {
     private readonly getLolfiMagistratUrlQuery: GetLolfiMagistratUrlQuery,
     private readonly hydratedNominationFiles: HydratedNominationFilesFinder,
     private readonly internalListMagistratNominationFilesQuery: InternalListMagistratNominationFilesQuery,
-    private readonly internalListMemberSessionsQuery: InternalListMemberSessionsQuery,
+    private readonly listMemberSessionsQuery: ListMemberSessionsQuery,
     private readonly internalFindNominationFilesQuery: InternalFindDocsNominationFilesQuery,
     private readonly listNominationFileAttachmentsQuery: ListNominationFileAttachmentsQuery,
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
+    private readonly listArchivedNominationSessionsQuery: ListArchivedNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
@@ -159,8 +174,10 @@ export class TransparenceService {
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
-    readonly versions: AffectationVersionFinder,
+    private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly nominationFileOutcomesFinder: NominationFileOutcomesFinder,
+    private readonly nominationFilesProgressFinder: NominationFilesProgressFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
@@ -211,12 +228,11 @@ export class TransparenceService {
     return this.reportersAffectation.find(query);
   }
 
-  /** @internal */
   listMemberSessions(query: {
     typeDeSaisine: TypeDeSaisineEnum;
     user: { id: string; role: RoleEnum };
   }): Promise<ListedMemberSessionsDto> {
-    return this.internalListMemberSessionsQuery.handle(query);
+    return this.listMemberSessionsQuery.handle(query);
   }
 
   /** @internal */
@@ -640,6 +656,16 @@ export class TransparenceService {
     return this.sessionsFinder.comments(query);
   }
 
+  listArchivedSessions(query: {
+    formations: readonly FormationEnum[] | undefined;
+    pagination: Pagination;
+    search: string | null;
+    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
+    typeDeSaisine: TypeDeSaisineEnum;
+  }): Promise<ListedArchivedNominationSessionsDto> {
+    return this.listArchivedNominationSessionsQuery.handle(query);
+  }
+
   listNominationSessions(query: {
     formations: readonly FormationEnum[] | undefined;
     pagination: Pagination;
@@ -781,6 +807,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  /** @internal */
   async internalIngestLolfiSessions(
     sessions: readonly { id: number; creationDate: DateOnly; name: string | null }[],
   ): Promise<void> {
@@ -813,6 +840,7 @@ export class TransparenceService {
     return this.synchronisedLolfiSessionsFinder.find(query.lolfiSessionIds);
   }
 
+  /** @internal */
   async internalFindNominationFiles(query: {
     ids?: readonly string[] | undefined;
     sessionId: string;
@@ -822,8 +850,60 @@ export class TransparenceService {
     );
   }
 
+  /** @internal */
   internalGetSessionFormation(query: { sessionId: string }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
+  }
+
+  /** @internal */
+  internalFindNominationFilesProgress(query: {
+    affectationVersionId: string;
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, NominationFileProgress>> {
+    return this.nominationFilesProgressFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindSessionNominationFileOutcomes(query: {
+    sessionId: string;
+  }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
+    return this.nominationFileOutcomesFinder.bySession(query);
+  }
+
+  /** @internal */
+  internalCountAffectedReporters(query: {
+    sessionId: string;
+    versionId: string | undefined;
+  }): Promise<number> {
+    return this.sessionsFinder.affectedReportersCount(query);
+  }
+
+  /** @internal */
+  internalFindNominationFileOutcomes(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
+    return this.nominationFileOutcomesFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindSessions(query: {
+    sessionIds: readonly string[];
+  }): Promise<Map<string, FoundNominationSession>> {
+    return this.sessionsFinder.find(query);
+  }
+
+  /** @internal */
+  async internalGetSession(query: { sessionId: string }): Promise<FoundNominationSession> {
+    const sessions = await this.sessionsFinder.find({ sessionIds: [query.sessionId] });
+    const session = sessions.get(query.sessionId);
+    if (!session) throw new NotFoundException();
+
+    return session;
+  }
+
+  /** @internal */
+  internalFindSessionState(query: { sessionId: string }): Promise<NominationSessionState> {
+    return this.sessionsFinder.state(query);
   }
 
   /** @internal */
@@ -833,6 +913,38 @@ export class TransparenceService {
     role: RoleEnum;
   }) {
     return this.internalListMagistratNominationFilesQuery.handle(query);
+  }
+
+  /** @internal */
+  internalFindLastAffectationVersion(query: { sessionId: string }): Promise<OptionalAffectationVersion> {
+    return this.versions.last(query);
+  }
+
+  /** @internal */
+  internalFindLastPublishedAffectationVersion(query: {
+    sessionId: string;
+  }): Promise<OptionalAffectationVersion> {
+    return this.versions.lastPublished(query);
+  }
+
+  /** @internal */
+  internalFindPublishedReporters(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
+    return this.versions.findPublishedReporters(query);
+  }
+
+  /** @internal */
+  internalFindNominationFilesByIds(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, FoundNominationFile>> {
+    return this.hydratedNominationFiles.byIds(query);
+  }
+
+  /** @internal */
+  /** most recent session first, then by file number */
+  internalSortNominationFiles(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
+    return this.hydratedNominationFiles.sort(query);
   }
 
   /** @internal */

@@ -30,6 +30,7 @@ model Report {
 
   @@index([sessionId, isDeleted])
   @@index([nominationFileId, reporterId])
+  @@unique([sessionId, nominationFileId, reporterId], map: "reports_one_active_per_reporter_and_file_key", where: raw("is_deleted = false"))
   @@map("reports")
   @@schema("reports_context")
 }

@@ -1,6 +1,8 @@
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -24,6 +26,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files/files';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { assertNever } from 'src/utils/assert-never';
 import { makeId } from 'src/utils/id';
 
@@ -35,6 +38,8 @@ export class ObservationRepository {
     private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   async findById(id: string): Promise<Observation> {
@@ -43,26 +48,17 @@ export class ObservationRepository {
         dateReception: true,
         id: true,
         magistratId: true,
-        nominationFile: {
-          select: {
-            session: {
-              select: {
-                archivedAt: true,
-                deletedAt: true,
-              },
-            },
-            sessionId: true,
-          },
-        },
         nominationFileId: true,
+        sessionId: true,
       } satisfies Prisma.ObservationSelect,
       where: { id },
     });
 
     if (!result) throw new NotFoundException();
 
-    if (result.nominationFile.session.archivedAt || result.nominationFile.session.deletedAt) {
-      this.logger.warn(`tried updating an observation of an archived session`);
+    const state = await this.sessions.internalFindSessionState({ sessionId: result.sessionId });
+    if (state !== 'OPEN') {
+      this.logger.warn(`tried updating an observation of a ${state.toLowerCase()} session`);
       throw new ForbiddenException();
     }
 
@@ -71,7 +67,7 @@ export class ObservationRepository {
       id: result.id,
       magistratId: result.magistratId,
       nominationFileId: result.nominationFileId,
-      sessionId: result.nominationFile.sessionId,
+      sessionId: result.sessionId,
     });
   }
 
@@ -80,13 +76,13 @@ export class ObservationRepository {
       where: {
         id: { not: observation.id },
         magistratId: observation.magistratId,
-        nominationFile: { sessionId: observation.sessionId },
+        sessionId: observation.sessionId,
       },
     });
     return others === 0;
   }
 
-  @Transactional()
+  @Transactional(Propagation.Mandatory)
   async persist(observation: Observation): Promise<void> {
     for (const message of observation.messages) {
       if (message instanceof ObservationCreated) {
@@ -124,6 +120,7 @@ export class ObservationRepository {
         id: message.id,
         magistratId: message.magistratId,
         nominationFileId: message.nominationFileId,
+        sessionId: message.sessionId,
       },
     });
   }

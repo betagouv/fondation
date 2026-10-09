@@ -18,7 +18,6 @@ vi.mock('@/shared/context/confirm-modal', () => ({
   useConfirmModal: () => ({ waitForConfirmation: mocks.waitForConfirmation }),
 }));
 
-type HistoryResponse = Awaited<ReturnType<typeof $api.sessions.detailNominationFileAuditionHistory>>;
 type RequestResponse = Awaited<ReturnType<typeof $api.sessions.updateNominationFileAuditionRequest>>;
 
 function renderCheckbox(overrides: NominationFileOverrides) {
@@ -76,19 +75,11 @@ describe('AuditionRequestToggle', () => {
     );
   });
 
-  it('tells who added an audition the position does not ask for', async () => {
-    vi.spyOn($api.sessions, 'detailNominationFileAuditionHistory').mockResolvedValue({
-      data: {
-        requested: { at: '2026-10-08T09:30:00.000Z', by: { id: 'user-1', name: 'Rachel BERNARD' } },
-        scheduled: null,
-      },
-    } as HistoryResponse);
+  it('asks to summon the magistrat for an audition the position does not ask for', () => {
     renderCheckbox({ auditionRequired: true });
 
-    await waitFor(() =>
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-        'Une audition a été demandée par Rachel BERNARD',
-      ),
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+      'Magistrat à convoquer en audition',
     );
   });
 });

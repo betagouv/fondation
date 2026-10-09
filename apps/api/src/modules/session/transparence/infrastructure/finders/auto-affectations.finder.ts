@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
@@ -26,7 +26,6 @@ export class AutoAffectationsFinder {
 
   constructor(
     private readonly db: Db,
-    @Inject(forwardRef(() => MembersService))
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
@@ -135,15 +134,7 @@ export class AutoAffectationsFinder {
     if (memberIds.length === 0) return [];
 
     const [membersExcludedJurisdictions, memberYearlyWorkload] = [
-      await this.db.tx.user.findMany({
-        where: { id: { in: memberIds } },
-        select: {
-          id: true,
-          excludedJurisdictionIds: {
-            select: { jurisdictionId: true },
-          },
-        } satisfies Prisma.UserSelect,
-      }),
+      await this.membersService.internalFindExcludedJurisdictions({ memberIds }),
 
       await this.db.tx.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),
     ];
@@ -161,14 +152,8 @@ export class AutoAffectationsFinder {
       new Map<string, Map<GradeEnum, number>>(),
     );
 
-    const excludedJurisdictionIdByMemberId = new Map(
-      membersExcludedJurisdictions.map(
-        (x) => [x.id, x.excludedJurisdictionIds.map(({ jurisdictionId }) => jurisdictionId)] as const,
-      ),
-    );
-
     return memberIds.map((id) => {
-      const excludedJurisdictions = new Set<string>(excludedJurisdictionIdByMemberId.get(id) ?? []);
+      const excludedJurisdictions = membersExcludedJurisdictions.get(id) ?? new Set<string>();
       const affectationCountPerGrade =
         affectationCountByMemberIdAndGrade.get(id) ?? new Map<GradeEnum, number>();
 

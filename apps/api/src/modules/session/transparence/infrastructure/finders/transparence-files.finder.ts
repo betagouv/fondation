@@ -1,9 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
 import { Prisma } from 'src/generated/prisma/client';
-import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import {
   isAuditionExpected,
@@ -12,13 +11,14 @@ import {
 import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
 
+import { SessionReportedFilesFinder } from './session-reported-files.finder';
+
 @Injectable()
 export class TransparenceFilesFinder {
   constructor(
     private readonly db: Db,
 
-    @Inject(forwardRef(() => DocsService))
-    private readonly docs: DocsService,
+    private readonly reportedFiles: SessionReportedFilesFinder,
   ) {}
 
   @Transactional()
@@ -61,7 +61,7 @@ export class TransparenceFilesFinder {
       where: { id: inIds, sessionId: query.sessionId },
     });
 
-    const reportedFileIds = await this.docs.internalFindReportedNominationFiles({
+    const reportedFileIds = await this.reportedFiles.find({
       nominationFileIds: new Set(snapshots.map(({ id }) => id)),
     });
 

@@ -119,6 +119,8 @@ model DossierDeNomination {
   detectedTargetedPosition Position?     @relation(fields: [detectedTargetedPositionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@unique([sessionId, externalId], name: "sessionExternalId")
+  // the target of the observation key, which ties an observation to the session of its file
+  @@unique([id, sessionId], map: "dossier_de_nomination_id_session_id_key")
   @@index([sessionId, sortableTargetedGrade])
   @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")

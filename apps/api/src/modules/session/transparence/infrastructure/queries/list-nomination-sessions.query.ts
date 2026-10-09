@@ -42,9 +42,14 @@ export class ListNominationSessionsQuery {
       }),
     };
 
-    const orderBy: Prisma.SessionOrderByWithRelationInput[] = query.sorting.sortBy
-      ? [{ [query.sorting.sortBy]: query.sorting.sortDesc ? ('desc' as const) : ('asc' as const) }]
-      : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
+    const direction = query.sorting.sortDesc ? ('desc' as const) : ('asc' as const);
+    // the due date lives on the transparence, the session column of that name is deprecated and ignored by Prisma
+    const orderBy: Prisma.SessionOrderByWithRelationInput[] =
+      query.sorting.sortBy === 'dueDate'
+        ? [{ transparenceGds: { dueDate: direction } }]
+        : query.sorting.sortBy === 'date'
+          ? [{ date: direction }]
+          : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
 
     const [totalCount, sessions, reportedIds] = await this.db.withTransaction(async () => {
       const txCount = await this.db.tx.session.count({ where });

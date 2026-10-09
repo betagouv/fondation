@@ -1,6 +1,8 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -10,14 +12,12 @@ import {
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { TransparenceFilesFinder } from '../finders/transparence-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
-import {
-  deleteReportsAfterAffectationPublicationRawQuery,
-  insertLodamNominationFilesRawQuery,
-} from 'src/generated/prisma/sql';
+import { insertLodamNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { ReportService } from 'src/modules/report/report.service';
 import {
   LodamSessionTransparenceFilesCreated,
   SessionTransparence,
@@ -57,7 +57,6 @@ import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 import { timeOnlyToDate } from 'src/utils/time-only';
 
-import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 
 export type LolfiSessionIngestion =
@@ -74,6 +73,8 @@ export class SessionTransparenceRepository {
     private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly files: Files,
     private readonly transparenceFilesFinder: TransparenceFilesFinder,
+    @Inject(forwardRef(() => ReportService))
+    private readonly reports: ReportService,
   ) {}
 
   @Transactional()
@@ -320,48 +321,14 @@ export class SessionTransparenceRepository {
       versionId = affectationVersion.id;
     }
 
-    const reportsToCreate = session.affectationVersions.flatMap(({ affectations }) =>
-      affectations.map(
-        ({ nominationFileId, userId }) =>
-          ({
-            /** @deprecated */
-            formation: session.formation,
-            id: makeId('ReportId'),
-            nominationFileId,
-            reporterId: userId,
-            sessionId: session.id,
-          }) satisfies Prisma.ReportCreateManyInput,
+    await this.reports.internalSyncReportsWithAffectations({
+      affectations: session.affectationVersions.flatMap(({ affectations }) =>
+        affectations.map(({ nominationFileId, userId }) => ({ nominationFileId, reporterId: userId })),
       ),
-    );
+      formation: prismaFormationEnumToFormationEnum(session.formation),
+      sessionId: session.id,
+    });
 
-    for (const reportToCreate of reportsToCreate) {
-      const [existingReport] = await this.db.tx.report.updateManyAndReturn({
-        data: { isDeleted: false },
-        select: { id: true } satisfies Prisma.ReportSelect,
-        where: {
-          nominationFileId: reportToCreate.nominationFileId,
-          reporterId: reportToCreate.reporterId,
-          sessionId: reportToCreate.sessionId,
-        },
-      });
-
-      if (!existingReport) {
-        await this.db.tx.report.create({
-          data: {
-            ...reportToCreate,
-            reportRules: {
-              createMany: { data: getAllNominationSessionReportRules() },
-            },
-          },
-        });
-      }
-    }
-
-    if (!versionId) return [];
-
-    await this.db.tx.$queryRawTyped(
-      deleteReportsAfterAffectationPublicationRawQuery(message.sessionId, versionId),
-    );
     return [
       {
         payload: { sessionId: message.sessionId, versionId },

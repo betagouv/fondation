@@ -1,49 +1,63 @@
-import { Injectable } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListMemberSessionReportsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
+  ) {}
 
-  async handle(query: { sessionId: string; userId: string }): Promise<ListedMemberSessionReportsDto> {
-    const reports = await this.db.tx.report.findMany({
-      where: {
-        isDeleted: false,
-        reporterId: query.userId,
-        sessionId: query.sessionId,
-      },
-      orderBy: [
-        { nominationFile: { number: { sort: 'asc', nulls: 'last' } } },
-        { nominationFile: { name: 'asc' } },
-      ],
-      select: {
-        id: true,
-        nominationFileId: true,
-        state: true,
-        nominationFile: {
-          select: {
-            detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
-            name: true,
-            number: true,
-          },
-        },
-      } satisfies Prisma.ReportSelect,
+  @Transactional()
+  async handle(query: {
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<ListedMemberSessionReportsDto> {
+    await this.sessions.assertMemberSessionExists({
+      sessionId: query.sessionId,
+      typeDeSaisine: 'TRANSPARENCE_GDS',
+      user: query.user,
     });
 
+    const reports = await this.db.tx.report.findMany({
+      select: { id: true, nominationFileId: true, state: true } satisfies Prisma.ReportSelect,
+      where: { isDeleted: false, reporterId: query.user.id, sessionId: query.sessionId },
+    });
+    const files = await this.sessions.internalFindNominationFilesByIds({
+      nominationFileIds: reports.map(({ nominationFileId }) => nominationFileId),
+    });
+
+    const items = reports.flatMap((report) => {
+      const file = files.get(report.nominationFileId);
+      if (!file) return [];
+
+      return [
+        {
+          name: file.name,
+          nominationFileId: report.nominationFileId,
+          number: file.number,
+          report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) },
+        },
+      ];
+    });
+
+    // a member reports on a few dozen files at most: the order is set here, numbered files first
     return {
-      items: reports.map((report) => ({
-        name: proposedMagistratName(report.nominationFile),
-        nominationFileId: report.nominationFileId,
-        number: report.nominationFile.number,
-        report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) },
-      })),
+      items: items.toSorted(
+        (a, b) =>
+          (a.number ?? Number.POSITIVE_INFINITY) - (b.number ?? Number.POSITIVE_INFINITY) ||
+          a.name.localeCompare(b.name),
+      ),
     };
   }
 }

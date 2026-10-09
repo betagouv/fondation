@@ -14,6 +14,10 @@ import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
 import {
+  useDetailedNominationSessionQuery,
+  useSessionNominationFileQuery,
+} from '@queries/nomination-sessions.queries';
+import {
   useAttachReportFilesMutation,
   useDetachReportFilesMutation,
   useReportQuery,
@@ -34,11 +38,17 @@ export function ReportOverview({ id }: { id: string }) {
   const isSg = useIsSg();
 
   const { data: retrievedReport, error, isPending } = useReportQuery(id);
+  const nominationFileQuery = useSessionNominationFileQuery({
+    enabled: !!retrievedReport,
+    nominationFileId: retrievedReport?.nominationFileId,
+    sessionId: retrievedReport?.sessionId,
+  });
+  const sessionQuery = useDetailedNominationSessionQuery({ sessionId: retrievedReport?.sessionId });
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
   const { mutate: detachReportFiles } = useDetachReportFilesMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
 
-  if (isPending) {
+  if (isPending || (retrievedReport && (nominationFileQuery.isPending || sessionQuery.isPending))) {
     return (
       <div className="fr-container fr-py-6v">
         <p>
@@ -53,7 +63,9 @@ export function ReportOverview({ id }: { id: string }) {
     return <Navigate replace to={ROUTE_PATHS.TRANSPARENCES.DASHBOARD} />;
   }
 
-  if (error || !retrievedReport) {
+  const nominationFile = nominationFileQuery.data;
+  const session = sessionQuery.data;
+  if (error || !retrievedReport || !nominationFile || !session) {
     return (
       <PageContentLayout>
         <Alert
@@ -67,8 +79,10 @@ export function ReportOverview({ id }: { id: string }) {
 
   const breadcrumb = breadCrumbOf({
     name: TransparencesCurrentPage.gdsReport,
-    report: retrievedReport,
+    nominationFileName: nominationFile.content.nomMagistrat,
+    session,
   });
+  const isArchived = nominationFile.isArchived;
 
   const onUpdateContent = (comment: string) => updateReport({ data: { comment }, reportId: id });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
@@ -89,15 +103,15 @@ export function ReportOverview({ id }: { id: string }) {
   };
 
   return (
-    <ArchiveBannerPortal isArchived={retrievedReport.isArchived}>
+    <ArchiveBannerPortal isArchived={isArchived}>
       <DetailsPageLayout
         alerts={
           <>
-            {!isSg && isAuditionMissing(retrievedReport) && <AuditionAnnouncedBanner fullWidth />}
+            {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
-              date={retrievedReport.auditionDate}
+              date={nominationFile.auditionDate}
               fullWidth
-              time={retrievedReport.auditionTime}
+              time={nominationFile.auditionTime}
             />
           </>
         }
@@ -112,27 +126,41 @@ export function ReportOverview({ id }: { id: string }) {
                 id="report-breadcrumb"
               />
             }
-            detectedMagistratId={retrievedReport.detectedMagistratId}
-            isReadOnly={retrievedReport.isArchived}
-            name={retrievedReport.name}
+            detectedMagistratId={nominationFile.content.detectedMagistratId}
+            isReadOnly={isArchived}
+            name={nominationFile.content.nomMagistrat}
             nominationFileId={retrievedReport.nominationFileId}
             onUpdateState={onUpdateState}
-            priorities={retrievedReport.priorities}
+            priorities={nominationFile.priorities}
             sessionId={retrievedReport.sessionId}
             state={retrievedReport.state}
           />
         }
-        identity={<ReportMagistratCard report={retrievedReport} />}
+        identity={
+          <ReportMagistratCard
+            report={{
+              biography: nominationFile.content.historique,
+              birthDate: nominationFile.content.dateDeNaissance,
+              currentPosition: nominationFile.content.posteActuel,
+              grade: nominationFile.content.grade,
+              missingEvaluation: nominationFile.missingEvaluation,
+              positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
+              rank: nominationFile.content.rang,
+              targetedGrade: nominationFile.content.gradeCible,
+              targetedPosition: nominationFile.content.posteCible,
+            }}
+          />
+        }
         navigation={<ReportNavigation reportId={id} sessionId={retrievedReport.sessionId} />}
         wideIdentity
       >
         <AutoSaveNotice />
         <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-        <ReportAttachmentsCard isReadOnly={retrievedReport.isArchived} onFilesAttached={onFilesAttached}>
+        <ReportAttachmentsCard isReadOnly={isArchived} onFilesAttached={onFilesAttached}>
           {retrievedReport.attachments.length > 0 && (
             <AttachedFilesList
               attachments={retrievedReport.attachments}
-              isReadOnly={retrievedReport.isArchived}
+              isReadOnly={isArchived}
               onDelete={onAttachedFileDeleted}
               reportId={id}
             />

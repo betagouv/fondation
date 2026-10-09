@@ -30,6 +30,8 @@ import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { MembersService } from 'src/modules/members';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -44,8 +46,9 @@ export class AgendaRepository {
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly agendaVersionFinder: AgendaVersionFinder,
 
-    @Inject(forwardRef(() => MembersService))
     private readonly members: MembersService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional(Propagation.Mandatory)
@@ -137,13 +140,12 @@ export class AgendaRepository {
   }
 
   private async persistAgendaCreated(message: AgendaCreated) {
-    const session = await this.db.tx.session.findUnique({
-      where: { id: message.sessionId, deletedAt: null },
-      select: { formation: true, name: true } satisfies Prisma.SessionSelect,
-    });
-
+    const sessions = await this.sessions.internalFindSessions({ sessionIds: [message.sessionId] });
+    const session = sessions.get(message.sessionId);
     if (!session) throw new InternalServerErrorException();
-    const { formation, name } = session;
+
+    const formation = formationEnumToPrismaFormationEnum(session.formation);
+    const name = session.name;
 
     return this.db.tx.agenda.create({
       data: {

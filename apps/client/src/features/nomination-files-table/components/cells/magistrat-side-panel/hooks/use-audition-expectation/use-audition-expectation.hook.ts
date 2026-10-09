@@ -35,7 +35,7 @@ export function useAuditionExpectation(
       announcements.push(
         nominationFile.auditionRequirement === 'POSITION'
           ? formatMessage({ defaultMessage: 'Une audition est à prévoir pour ce poste' })
-          : formatMessage({ defaultMessage: 'Une audition a été demandée' }),
+          : formatMessage({ defaultMessage: 'Magistrat à convoquer en audition' }),
       );
     if (reportersAnnounced)
       announcements.push(formatMessage({ defaultMessage: '2 rapporteurs sont attendus pour ce poste' }));

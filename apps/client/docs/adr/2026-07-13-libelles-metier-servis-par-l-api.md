@@ -8,7 +8,7 @@ date: 2026-07-13
 
 ## Contexte
 
-Les libellés des issues d'un dossier ("avis conforme", "sursis à statuer"…) étaient dupliqués
+Les libellés des issues d'un dossier ("avis conforme", "sursis à statuer"...) étaient dupliqués
 en dur côté client, alors qu'ils relèvent d'une règle métier : le libellé varie selon la
 formation siège / parquet et s'accompagne d'autres règles (commentaire obligatoire, ordre
 de sélection). Le serveur en a besoin pour lui-même, sans client dans la boucle (export Excel,

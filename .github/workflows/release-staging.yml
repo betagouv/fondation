@@ -51,6 +51,9 @@ jobs:
             echo 'markdown<<EOF'
             node scripts/changelog ${tags_current} ${tags_previous}
             echo EOF
+            echo 'html<<EOF'
+            node scripts/changelog ${tags_current} ${tags_previous} --html
+            echo EOF
           } >> "$GITHUB_OUTPUT"
 
       - name: Outputs changelog
@@ -63,11 +66,16 @@ jobs:
         continue-on-error: true
         env:
           CHANGELOG: ${{ steps.changelog.outputs.markdown }}
+          CHANGELOG_HTML: ${{ steps.changelog.outputs.html }}
           DEPLOYER: ${{ github.actor }}
         run: |
           room=$(jq -rn --arg id "$TCHAP_ROOM_ID" '$id | @uri')
-          jq -n --arg changelog "$CHANGELOG" --arg deployer "$DEPLOYER" \
-            '{ body: "Staging déployé par \($deployer)\n\n\($changelog)", msgtype: "m.text" }' \
-            | curl --fail --silent --show-error -X PUT \
+          jq -n --arg changelog "$CHANGELOG" --arg html "$CHANGELOG_HTML" --arg deployer "$DEPLOYER" '{
+              body: "Staging déployé par \($deployer)\n\n\($changelog)",
+              format: "org.matrix.custom.html",
+              formatted_body: "<strong>Staging déployé par \($deployer)</strong>\($html)",
+              msgtype: "m.text"
+            }' \
+            | curl --fail-with-body --silent --show-error -X PUT \
                 -H "Authorization: Bearer $TCHAP_ACCESS_TOKEN" -H 'Content-type: application/json' \
                 -d @- "$TCHAP_HOMESERVER_URL/_matrix/client/v3/rooms/$room/send/m.room.message/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"

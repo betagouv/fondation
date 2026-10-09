@@ -6,7 +6,7 @@ import {
   PresentationAuthoring,
   PresentationRestitution,
 } from '@/features/documents/components/presentations/PresentationAuthoring';
-import { FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { FormationBadge } from '@/shared/components/formation-badge';
 import { LinkButton } from '@/shared/ui/link-button';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { timeOnlyToDate, timeOnlyToString, toFrenchHours, type PlainTimeOnly } from '@/utils/time-only.util';
@@ -30,7 +30,7 @@ export function PresentationPresentedList() {
   const viewItems = (pastPresentations?.items ?? []).map((item) => ({
     authoring: { createdAt: item.createdAt, createdBy: item.createdBy },
     date: formatDateOnly(item.date),
-    formation: formatMessage(FormationEnumMessages[item.formation]),
+    formation: item.formation,
     hasPdf: item.status === 'VALIDATED',
     id: item.id,
     initials: toInitials(item.chairman),
@@ -78,9 +78,7 @@ export function PresentationPresentedList() {
             key={item.id}
           >
             <span>
-              <Badge as="span" className="fr-mb-0 h-6 w-24 justify-center" noIcon small>
-                {item.formation}
-              </Badge>
+              <FormationBadge className="fr-mb-0 w-24 justify-center" formation={item.formation} small />
             </span>
 
             <span className="fr-px-2v flex flex-col gap-y-1">

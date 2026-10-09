@@ -27,6 +27,7 @@ export class ObservationCreated {
   constructor(
     readonly id: string,
     readonly nominationFileId: string,
+    readonly sessionId: string,
     readonly magistratId: string,
     readonly dateReception: Date,
     readonly createdByUserId: string,
@@ -153,6 +154,7 @@ export class Observation {
       new ObservationCreated(
         id,
         command.nominationFile.id,
+        command.sessionId,
         command.magistratId,
         command.dateReception,
         command.createdByUserId,

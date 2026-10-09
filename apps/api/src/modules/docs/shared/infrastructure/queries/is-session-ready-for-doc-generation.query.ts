@@ -3,13 +3,13 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from '../../domain/doc-nomination-file-outcome';
+import { agendaProgressOf } from '../../domain/agenda-progress';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
+import { ActedNominationFilesFinder } from '../finders/acted-nomination-files.finder';
 import { AgendaFinder } from '../finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { initials } from 'src/utils/user.util';
@@ -43,6 +43,7 @@ export class IsSessionReadyForDocGenerationQuery {
   constructor(
     private readonly db: Db,
     private readonly agendas: AgendaFinder,
+    private readonly actedNominationFiles: ActedNominationFilesFinder,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -50,7 +51,7 @@ export class IsSessionReadyForDocGenerationQuery {
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<DocGenerationSessionReadinessDto> {
-    const session = await this.transparences.details({ formation: undefined, sessionId: query.sessionId });
+    const session = await this.transparences.internalGetSession({ sessionId: query.sessionId });
     if (session.isArchived) {
       return {
         agendaBlocker: 'ARCHIVED',
@@ -62,39 +63,34 @@ export class IsSessionReadyForDocGenerationQuery {
       };
     }
 
-    const lastVersion = await this.transparences.versions.last({ sessionId: query.sessionId });
-    const publishedVersion = await this.transparences.versions.lastPublished({
+    const lastVersion = await this.transparences.internalFindLastAffectationVersion({
+      sessionId: query.sessionId,
+    });
+    const publishedVersion = await this.transparences.internalFindLastPublishedAffectationVersion({
       sessionId: query.sessionId,
     });
 
     // acted: a final outcome carried by a presented notice, whatever the official report says
-    const hasAnyUnactedFile = await this.db.tx.dossierDeNomination.findFirst({
-      where: {
-        NOT: {
-          outcome: { in: NominationFileOutcome.finalOutcomes() },
-          presentationPlanInclusions: {
-            some: {
-              outcome: { in: [...FINAL_DOC_NOMINATION_FILE_OUTCOMES] },
-              plan: { isPresented: true },
-            },
-          },
-        },
-        sessionId: query.sessionId,
-      },
-      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
-    });
+    const sessionFileIds = new Set(
+      (
+        await this.transparences.internalFindSessionNominationFileOutcomes({ sessionId: query.sessionId })
+      ).keys(),
+    );
+    const actedFileIds =
+      sessionFileIds.size > 0 ? await this.actedNominationFiles.find({ fileIds: sessionFileIds }) : new Set();
+    const hasAnyUnactedFile = [...sessionFileIds].some((id) => !actedFileIds.has(id));
 
     // every version keeps its own rows: a reporter removed since then still sits in the older ones
     const hasAnyReporter =
       !lastVersion.isNone() &&
-      (await this.db.tx.nominationFileToReporter.findFirst({
-        where: { versionId: lastVersion.id },
-        select: { userId: true } satisfies Prisma.NominationFileToReporterSelect,
-      }));
+      (await this.transparences.internalCountAffectedReporters({
+        sessionId: query.sessionId,
+        versionId: lastVersion.id,
+      })) > 0;
 
     const agendaBlocker = agendaBlockerOf({
-      hasAnyReporter: Boolean(hasAnyReporter),
-      hasAnyUnactedFile: Boolean(hasAnyUnactedFile),
+      hasAnyReporter,
+      hasAnyUnactedFile,
     });
 
     const canCreateOfficialReport =
@@ -139,13 +135,7 @@ export class IsSessionReadyForDocGenerationQuery {
           select: {
             chairmanFirstName: true,
             chairmanLastName: true,
-            nominationFiles: {
-              select: {
-                nominationFile: {
-                  select: { id: true, outcome: true, reporterIds: { select: { versionId: true } } },
-                },
-              },
-            },
+            nominationFiles: { select: { nominationFileId: true } },
             sessionMeetingDate: true,
             status: true,
           },
@@ -165,14 +155,24 @@ export class IsSessionReadyForDocGenerationQuery {
     const unreportedAgendas = agendas.filter(({ officialReportId }) => !isDefined(officialReportId));
     if (unreportedAgendas.length === 0) return blocker('ALL_AGENDAS_REPORTED');
 
-    const incompleteAgendas = unreportedAgendas.flatMap((agenda) => {
-      const files = agenda.published.nominationFiles.flatMap(({ nominationFile }) =>
-        isDefined(nominationFile) ? [nominationFile] : [],
-      );
+    const progress = await this.transparences.internalFindNominationFilesProgress({
+      affectationVersionId: query.affectationVersionId,
+      nominationFileIds: [
+        ...new Set(
+          unreportedAgendas.flatMap(({ published }) =>
+            published.nominationFiles.map(({ nominationFileId }) => nominationFileId).filter(isDefined),
+          ),
+        ),
+      ],
+    });
 
-      const unaffected = files.filter(
-        ({ reporterIds }) => !reporterIds.some(({ versionId }) => versionId === query.affectationVersionId),
-      );
+    const incompleteAgendas = unreportedAgendas.flatMap((agenda) => {
+      const { filesCount, filesWithoutOutcome, filesWithoutReporter, filesWithUnpublishedReporter } =
+        agendaProgressOf(
+          agenda.published.nominationFiles.map(({ nominationFileId }) =>
+            nominationFileId ? (progress.get(nominationFileId) ?? null) : null,
+          ),
+        );
 
       const incomplete = {
         agendaId: agenda.id,
@@ -180,10 +180,10 @@ export class IsSessionReadyForDocGenerationQuery {
           firstName: agenda.published.chairmanFirstName,
           lastName: agenda.published.chairmanLastName,
         }),
-        filesCount: files.length,
-        filesWithoutOutcome: files.filter(({ outcome }) => outcome === null).length,
-        filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
-        filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0).length,
+        filesCount,
+        filesWithoutOutcome,
+        filesWithoutReporter,
+        filesWithUnpublishedReporter,
         meetingDate: DateOnly.fromUtcDate(agenda.published.sessionMeetingDate).toJson(),
       };
 
