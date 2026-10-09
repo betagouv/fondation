@@ -59,6 +59,20 @@ describe('NominationFileOutcome', () => {
     });
   });
 
+  describe('isFinal', () => {
+    it('does not consider a file without outcome as final', () => {
+      expect(NominationFileOutcome.isFinal(null)).toBe(false);
+    });
+
+    it.each(NominationFileOutcome.finalOutcomes())('considers %s as final', (outcome) => {
+      expect(NominationFileOutcome.isFinal(outcome)).toBe(true);
+    });
+
+    it.each(NominationFileOutcome.nonFinalOutcomes())('does not consider %s as final', (outcome) => {
+      expect(NominationFileOutcome.isFinal(outcome)).toBe(false);
+    });
+  });
+
   describe('commentRequired', () => {
     it('requires a comment for an unfavorable outcome', () => {
       expect(NominationFileOutcome.commentRequired('NON_VALIDATED')).toBe(true);

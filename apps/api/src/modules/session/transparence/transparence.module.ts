@@ -6,7 +6,9 @@ import { IngestModule } from 'src/modules/ingest/ingest.module';
 import { MagistratModule } from 'src/modules/magistrat/magistrat.module';
 import { MembersModule } from 'src/modules/members';
 import { ObservationModule } from 'src/modules/observation/observation.module';
+import { ReportModule } from 'src/modules/report/report.module';
 
+import { ArchivedSessionsController } from './archived-sessions.controller';
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
 import { AuditionPublicationFinder } from './infrastructure/finders/audition-publication.finder';
 import { AuditionsSeenFinder } from './infrastructure/finders/auditions-seen.finder';
@@ -15,9 +17,12 @@ import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
+import { NominationFileOutcomesFinder } from './infrastructure/finders/nomination-file-outcomes.finder';
+import { NominationFilesProgressFinder } from './infrastructure/finders/nomination-files-progress.finder';
 import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
 import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
+import { SessionReportedFilesFinder } from './infrastructure/finders/session-reported-files.finder';
 import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
@@ -38,6 +43,7 @@ import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-ma
 import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
 import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
 import { InternalListMemberSessionsQuery } from './infrastructure/queries/internal-list-member-sessions.query';
+import { ListArchivedNominationSessionsQuery } from './infrastructure/queries/list-archived-nomination-sessions.query';
 import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
 import { ListMissingEvaluationsAsExcelQuery } from './infrastructure/queries/list-missing-evaluations-as-excel.query';
 import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
@@ -52,7 +58,7 @@ import { TransparenceService } from './infrastructure/transparence.service';
 import { SessionController } from './transparence.controller';
 
 @Module({
-  controllers: [SessionController],
+  controllers: [ArchivedSessionsController, SessionController],
   exports: [TransparenceService, SummaryModule],
   imports: [
     SummaryModule,
@@ -61,6 +67,7 @@ import { SessionController } from './transparence.controller';
     forwardRef(() => DocsModule),
     forwardRef(() => MagistratModule),
     forwardRef(() => ObservationModule),
+    forwardRef(() => ReportModule),
   ],
   providers: [
     AffectationVersionFinder,
@@ -96,8 +103,12 @@ import { SessionController } from './transparence.controller';
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
     NominationFileJurisdictionsFinder,
+    ListArchivedNominationSessionsQuery,
+    NominationFileOutcomesFinder,
+    NominationFilesProgressFinder,
     NominationSessionFinder,
     ReportedSessionsFinder,
+    SessionReportedFilesFinder,
     ReportersAffectationFinder,
     SessionAuditionsFinder,
     SessionTransparenceRepository,

@@ -33,10 +33,7 @@ export class GetObservationDetailsQuery {
     userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.db.withTransaction(async () => {
-      const session = await this.db.tx.session.findUnique({
-        select: { archivedAt: true } satisfies Prisma.SessionSelect,
-        where: { id: query.sessionId },
-      });
+      const sessionState = await this.transparences.internalFindSessionState({ sessionId: query.sessionId });
 
       const observation = await this.db.tx.observation.findUnique({
         select: {
@@ -67,21 +64,10 @@ export class GetObservationDetailsQuery {
               lastName: true,
               observations: {
                 orderBy: { dateReception: 'desc' },
-                select: {
-                  dateReception: true,
-                  id: true,
-                  nominationFile: {
-                    select: {
-                      id: true,
-                      name: true,
-                      number: true,
-                      targetedPosition: true,
-                    },
-                  },
-                },
+                select: { dateReception: true, id: true, nominationFileId: true },
                 where: {
                   id: { not: query.observationId },
-                  nominationFile: { sessionId: query.sessionId },
+                  sessionId: query.sessionId,
                 },
               },
               usedName: true,
@@ -104,13 +90,6 @@ export class GetObservationDetailsQuery {
             take: 1,
             where: { userId: query.userId },
           },
-          nominationFile: {
-            select: {
-              detectedMagistratId: true,
-              name: true,
-              targetedPosition: true,
-            },
-          },
         } satisfies Prisma.ObservationSelect,
         where: {
           id: query.observationId,
@@ -122,17 +101,24 @@ export class GetObservationDetailsQuery {
         throw new NotFoundException();
       }
 
-      const reporters = await this.transparences.versions.findReporters({
-        nominationFileId: query.nominationFileId,
-        sessionId: query.sessionId,
+      const relatedFileIds = observation.magistrat.observations.map(
+        ({ nominationFileId }) => nominationFileId,
+      );
+      const files = await this.transparences.internalFindNominationFilesByIds({
+        nominationFileIds: [query.nominationFileId, ...relatedFileIds],
       });
-      const isUserReporter = reporters.some(({ id }) => id === query.userId);
+      const observedFile = files.get(query.nominationFileId);
+      if (!observedFile) throw new NotFoundException();
+
+      const reporters = await this.transparences.internalFindPublishedReporters({
+        nominationFileIds: [query.nominationFileId],
+      });
+      const isUserReporter = (reporters.get(query.nominationFileId) ?? []).some(
+        ({ id }) => id === query.userId,
+      );
 
       const observedNominationFiles = await this.transparences.internalFindAuditionStates({
-        nominationFileIds: [
-          query.nominationFileId,
-          ...observation.magistrat.observations.map(({ nominationFile }) => nominationFile.id),
-        ],
+        nominationFileIds: [query.nominationFileId, ...relatedFileIds],
         sessionId: query.sessionId,
       });
       const auditions = await this.transparences.internalFindSeenObservantAuditions({
@@ -153,7 +139,7 @@ export class GetObservationDetailsQuery {
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
         id: observation.id,
-        isArchived: !!session?.archivedAt,
+        isArchived: sessionState === 'ARCHIVED',
         isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
@@ -174,19 +160,26 @@ export class GetObservationDetailsQuery {
           usedName: observation.magistrat.usedName,
         },
         observedMagistrat: {
-          detectedMagistratId: observation.nominationFile.detectedMagistratId,
-          name: observation.nominationFile.name,
-          proposedPosition: observation.nominationFile.targetedPosition,
+          detectedMagistratId: observedFile.detectedMagistratId,
+          name: observedFile.name,
+          proposedPosition: observedFile.targetedPosition,
         },
         receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
-        relatedPropositions: observation.magistrat.observations.map((obs) => ({
-          magistratName: obs.nominationFile.name,
-          nominationFileId: obs.nominationFile.id,
-          number: obs.nominationFile.number,
-          observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
-          observationId: obs.id,
-          proposedPosition: obs.nominationFile.targetedPosition,
-        })),
+        relatedPropositions: observation.magistrat.observations.flatMap((obs) => {
+          const file = files.get(obs.nominationFileId);
+          if (!file) return [];
+
+          return [
+            {
+              magistratName: file.name,
+              nominationFileId: obs.nominationFileId,
+              number: file.number,
+              observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
+              observationId: obs.id,
+              proposedPosition: file.targetedPosition,
+            },
+          ];
+        }),
       };
     });
   }

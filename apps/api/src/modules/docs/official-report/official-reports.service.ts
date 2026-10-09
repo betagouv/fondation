@@ -89,10 +89,7 @@ export class OfficialReportsService {
     sessionId: string;
     absentMemberIds: readonly string[];
   }): Promise<CreatedOfficialReportDto> {
-    const session = await this.sessions.details({
-      formation: undefined,
-      sessionId: command.sessionId,
-    });
+    const session = await this.sessions.internalGetSession({ sessionId: command.sessionId });
 
     const secretary = await this.auth.detailsUser({
       userId: command.secretaryId,

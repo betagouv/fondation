@@ -30,20 +30,34 @@ import { TimeOnly } from 'src/utils/time-only';
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
-import { AffectationVersionFinder, FoundAffectationVersion } from './finders/affectation-version.finder';
+import {
+  AffectationVersionFinder,
+  FoundAffectationVersion,
+  OptionalAffectationVersion,
+} from './finders/affectation-version.finder';
 import { AuditionPublicationFinder } from './finders/audition-publication.finder';
 import { AuditionsSeenFinder, type SeenAudition } from './finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
 import {
   type HydratedNominationFile,
+  type FoundNominationFile,
   HydratedNominationFilesFinder,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
+import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
+import {
+  type NominationFileProgress,
+  NominationFilesProgressFinder,
+} from './finders/nomination-files-progress.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
-import { NominationSessionFinder } from './finders/transparence-session.finder';
+import {
+  type FoundNominationSession,
+  NominationSessionFinder,
+  type NominationSessionState,
+} from './finders/transparence-session.finder';
 import {
   CountNominationFilesByStatusQuery,
   NominationFilesStatusCountDto,
@@ -93,6 +107,10 @@ import {
   InternalListMemberSessionsQuery,
   type ListedMemberSessionsDto,
 } from './queries/internal-list-member-sessions.query';
+import {
+  ListArchivedNominationSessionsQuery,
+  ListedArchivedNominationSessionsDto,
+} from './queries/list-archived-nomination-sessions.query';
 import {
   ListCurrentlyAffectedReportersQuery,
   ListedCurrentlyAffectedReportersDto,
@@ -146,6 +164,7 @@ export class TransparenceService {
     private readonly listNominationFilesQuery: ListNominationFilesQuery,
     private readonly listNominationSessionAttachmentsQuery: ListNominationSessionAttachmentsQuery,
     private readonly listNominationSessionsQuery: ListNominationSessionsQuery,
+    private readonly listArchivedNominationSessionsQuery: ListArchivedNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
@@ -159,8 +178,10 @@ export class TransparenceService {
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
     private readonly db: Db,
-    readonly versions: AffectationVersionFinder,
+    private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
+    private readonly nominationFileOutcomesFinder: NominationFileOutcomesFinder,
+    private readonly nominationFilesProgressFinder: NominationFilesProgressFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
@@ -640,6 +661,16 @@ export class TransparenceService {
     return this.sessionsFinder.comments(query);
   }
 
+  listArchivedSessions(query: {
+    formations: readonly FormationEnum[] | undefined;
+    pagination: Pagination;
+    search: string | null;
+    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
+    typeDeSaisine: TypeDeSaisineEnum;
+  }): Promise<ListedArchivedNominationSessionsDto> {
+    return this.listArchivedNominationSessionsQuery.handle(query);
+  }
+
   listNominationSessions(query: {
     formations: readonly FormationEnum[] | undefined;
     pagination: Pagination;
@@ -826,6 +857,50 @@ export class TransparenceService {
     return this.sessionsFinder.formation(query);
   }
 
+  internalFindNominationFilesProgress(query: {
+    affectationVersionId: string;
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, NominationFileProgress>> {
+    return this.nominationFilesProgressFinder.find(query);
+  }
+
+  internalFindSessionNominationFileOutcomes(query: {
+    sessionId: string;
+  }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
+    return this.nominationFileOutcomesFinder.bySession(query);
+  }
+
+  internalCountAffectedReporters(query: {
+    sessionId: string;
+    versionId: string | undefined;
+  }): Promise<number> {
+    return this.sessionsFinder.affectedReportersCount(query);
+  }
+
+  internalFindNominationFileOutcomes(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
+    return this.nominationFileOutcomesFinder.find(query);
+  }
+
+  internalFindSessions(query: {
+    sessionIds: readonly string[];
+  }): Promise<Map<string, FoundNominationSession>> {
+    return this.sessionsFinder.find(query);
+  }
+
+  async internalGetSession(query: { sessionId: string }): Promise<FoundNominationSession> {
+    const sessions = await this.sessionsFinder.find({ sessionIds: [query.sessionId] });
+    const session = sessions.get(query.sessionId);
+    if (!session) throw new NotFoundException();
+
+    return session;
+  }
+
+  internalFindSessionState(query: { sessionId: string }): Promise<NominationSessionState> {
+    return this.sessionsFinder.state(query);
+  }
+
   /** @internal */
   internalListMagistratNominationFiles(query: {
     magistratId: string;
@@ -836,6 +911,34 @@ export class TransparenceService {
   }
 
   /** @internal */
+  internalFindLastAffectationVersion(query: { sessionId: string }): Promise<OptionalAffectationVersion> {
+    return this.versions.last(query);
+  }
+
+  internalFindLastPublishedAffectationVersion(query: {
+    sessionId: string;
+  }): Promise<OptionalAffectationVersion> {
+    return this.versions.lastPublished(query);
+  }
+
+  /** the reporters of each file in the last published version of its session */
+  internalFindPublishedReporters(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
+    return this.versions.findPublishedReporters(query);
+  }
+
+  internalFindNominationFilesByIds(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, FoundNominationFile>> {
+    return this.hydratedNominationFiles.byIds(query);
+  }
+
+  /** most recent session first, then by file number */
+  internalSortNominationFiles(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
+    return this.hydratedNominationFiles.sort(query);
+  }
+
   internalHydrateNominationFiles(query: {
     nominationFileIds: readonly string[];
     role: RoleEnum;

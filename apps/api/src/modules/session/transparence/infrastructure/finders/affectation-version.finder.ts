@@ -72,27 +72,43 @@ export class AffectationVersionFinder {
   }
 
   @Transactional()
-  async findReporters(query: {
-    nominationFileId: string;
-    sessionId: string;
-  }): Promise<{ id: string; firstName: string; lastName: string }[]> {
-    const version = await this.lastPublished({
-      sessionId: query.sessionId,
+  /** the reporters of each file in the last published version of its session */
+  async findPublishedReporters(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
+    const versions = await this.db.tx.affectationVersion.findMany({
+      select: { id: true, sessionId: true, version: true } satisfies Prisma.AffectationVersionSelect,
+      where: {
+        session: { dossierDeNominations: { some: { id: { in: [...query.nominationFileIds] } } } },
+        statut: 'PUBLIEE',
+      },
     });
-
-    if (version.isNone()) return [];
+    const lastBySessionId = new Map<string, { id: string; version: number }>();
+    for (const version of versions) {
+      const last = lastBySessionId.get(version.sessionId);
+      if (!last || last.version < version.version) lastBySessionId.set(version.sessionId, version);
+    }
+    if (lastBySessionId.size === 0) return new Map();
 
     const reporters = await this.db.tx.nominationFileToReporter.findMany({
       select: {
-        user: { select: { id: true, firstName: true, lastName: true } },
+        nominationFileId: true,
+        user: { select: { firstName: true, id: true, lastName: true } },
       } satisfies Prisma.NominationFileToReporterSelect,
       where: {
-        versionId: version.id,
-        nominationFileId: query.nominationFileId,
+        nominationFileId: { in: [...query.nominationFileIds] },
+        versionId: { in: [...lastBySessionId.values()].map(({ id }) => id) },
       },
     });
 
-    return reporters.map(({ user }) => user);
+    const byNominationFileId = new Map<string, { firstName: string; id: string; lastName: string }[]>();
+    for (const { nominationFileId, user } of reporters) {
+      const list = byNominationFileId.get(nominationFileId) ?? [];
+      list.push(user);
+      byNominationFileId.set(nominationFileId, list);
+    }
+
+    return byNominationFileId;
   }
 }
 

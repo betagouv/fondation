@@ -72,6 +72,10 @@ export class NominationFileOutcome {
     return (FINAL_OUTCOMES as readonly NominationFileOutcomeEnum[]).includes(outcome) ? 'FINAL' : 'PENDING';
   }
 
+  static isFinal(outcome: NominationFileOutcomeEnum | null): boolean {
+    return outcome !== null && NominationFileOutcome.statusOf(outcome) === 'FINAL';
+  }
+
   static allowsAudition(outcome: NominationFileOutcomeEnum | null): boolean {
     return outcome === null || NominationFileOutcome.statusOf(outcome) === 'PENDING';
   }

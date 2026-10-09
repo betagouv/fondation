@@ -29,24 +29,21 @@ export class ObservantAuditionRepository {
     sessionId: string;
   }): Promise<ObservantAudition> {
     const observation = await this.db.tx.observation.findUnique({
-      select: {
-        magistratId: true,
-        nominationFile: { select: { session: { select: { archivedAt: true, deletedAt: true } } } },
-      } satisfies Prisma.ObservationSelect,
+      select: { magistratId: true } satisfies Prisma.ObservationSelect,
       where: {
         id: predicate.observationId,
-        nominationFile: { sessionId: predicate.sessionId },
+        sessionId: predicate.sessionId,
         nominationFileId: predicate.nominationFileId,
       },
     });
     if (!observation) throw new NotFoundException();
 
-    const { session } = observation.nominationFile;
-    if (session.archivedAt || session.deletedAt) throw new ForbiddenException();
+    const state = await this.transparences.internalFindSessionState({ sessionId: predicate.sessionId });
+    if (state !== 'OPEN') throw new ForbiddenException();
 
     const observedFiles = await this.db.tx.observation.findMany({
       select: { nominationFileId: true } satisfies Prisma.ObservationSelect,
-      where: { magistratId: observation.magistratId, nominationFile: { sessionId: predicate.sessionId } },
+      where: { magistratId: observation.magistratId, sessionId: predicate.sessionId },
     });
 
     return ObservantAudition.from({

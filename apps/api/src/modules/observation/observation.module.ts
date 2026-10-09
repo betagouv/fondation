@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { NominationFileObservationsFinder } from './infrastructure/finders/nomination-file-observations.finder';
 import { ObservantAuditionsFinder } from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import { GetObservationDetailsQuery } from './infrastructure/queries/get-observation-details.query';
@@ -23,6 +24,7 @@ import { ObservationService } from './observation.service';
     GetObservationFileUrlQuery,
     ListObservationsAttachmentsQuery,
     ListObservationsQuery,
+    NominationFileObservationsFinder,
     ObservantAuditionRepository,
     ObservantAuditionsFinder,
     ObservationFinder,

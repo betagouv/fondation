@@ -1,7 +1,6 @@
 import assert from 'node:assert';
 
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { load } from 'cheerio';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -13,6 +12,7 @@ import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
+import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
 import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
@@ -22,6 +22,7 @@ import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framewo
 import { Sortable } from 'src/modules/framework/sorting';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
+import { ObservationService } from 'src/modules/observation/observation.service';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
@@ -55,6 +56,9 @@ export class ListNominationFilesQuery {
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
+    private readonly reportedFiles: SessionReportedFilesFinder,
+    @Inject(forwardRef(() => ObservationService))
+    private readonly observations: ObservationService,
   ) {}
 
   async handle(query: {
@@ -191,14 +195,18 @@ export class ListNominationFilesQuery {
 
     const nominationFileIds = new Set(txFiles.map(({ id }) => id));
     const linkedDocs = await this.docs.internalFindNominationFilesLinkedDocs({ nominationFileIds });
-    const reportedFileIds = await this.docs.internalFindReportedNominationFiles({ nominationFileIds });
+    const reportedFileIds = await this.reportedFiles.find({ nominationFileIds });
     const auditions = await this.auditionsSeen.findNominationFiles({
       nominationFileIds: [...nominationFileIds],
       role: query.user.role,
     });
+    const observations = await this.observations.internalFindNominationFilesObservations({
+      nominationFileIds,
+      userId: query.user.id,
+    });
     const observantAuditions = await this.auditionsSeen.findObservants({
       magistratIds: [
-        ...new Set(txFiles.flatMap((file) => file.observations.map(({ magistrat }) => magistrat.id))),
+        ...new Set([...observations.values()].flatMap((list) => list.map(({ magistrat }) => magistrat.id))),
       ],
       role: query.user.role,
       sessionId: query.sessionId,
@@ -280,30 +288,16 @@ export class ListNominationFilesQuery {
         memo: x.memberMemo || null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
-        observations: x.observations.map((obs) => {
-          return {
-            audition: observantAuditions.get(obs.magistrat.id) ?? null,
-            date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
-            followUp: obs.followUp,
-            followUpComment: obs.followUp ? obs.followUpComment : null,
-            hasDescription: !!obs.description.trim(),
-            hasUserComment: obs.memberComments.some(
-              ({ comment }) =>
-                !!load(comment || '')
-                  ?.text()
-                  ?.trim(),
-            ),
-            id: obs.id,
-            magistrat: obs.magistrat
-              ? {
-                  firstName: obs.magistrat.firstName,
-                  id: obs.magistrat.id,
-                  lastName: obs.magistrat.lastName,
-                  usedName: obs.magistrat.usedName,
-                }
-              : null,
-          };
-        }),
+        observations: (observations.get(x.id) ?? []).map((obs) => ({
+          audition: observantAuditions.get(obs.magistrat.id) ?? null,
+          date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
+          followUp: obs.followUp,
+          followUpComment: obs.followUp ? obs.followUpComment : null,
+          hasDescription: !!obs.description.trim(),
+          hasUserComment: obs.hasUserComment,
+          id: obs.id,
+          magistrat: obs.magistrat,
+        })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
@@ -443,30 +437,6 @@ const RawListedNominationFiles = z.array(
             firstName: z.string(),
             lastName: z.string(),
           }),
-        }),
-      )
-      .nullish()
-      .transform((x) => x ?? []),
-
-    observations: z
-      .array(
-        z.object({
-          id: z.string(),
-          followUp: z.enum(ObservationFollowUp.enum).nullable(),
-          followUpComment: z.string().nullable(),
-          description: z
-            .string()
-            .trim()
-            .nullish()
-            .transform((x) => x || ''),
-          dateReception: z.coerce.date(),
-          magistrat: z.object({
-            id: z.string(),
-            firstName: z.string(),
-            lastName: z.string(),
-            usedName: z.string().nullable(),
-          }),
-          memberComments: z.array(z.object({ comment: z.string().nullable() })),
         }),
       )
       .nullish()
