@@ -123,6 +123,12 @@ export class reports {
     }
 }
 
+export class archivedSessions {
+    public static listArchivedSessions<ThrowOnError extends boolean = false>(options?: Options<ListArchivedSessionsData, ThrowOnError>): RequestResult<ListArchivedSessionsResponses, unknown, ThrowOnError> {
+        return (options?.client ?? client).get<ListArchivedSessionsResponses, unknown, ThrowOnError>({ url: '/api/archived-sessions/v1', ...options });
+    }
+}
+
 export class sessions {
     public static listSessionsOfTypeGardeDesSceaux<ThrowOnError extends boolean = false>(options?: Options<ListSessionsOfTypeGardeDesSceauxData, ThrowOnError>): RequestResult<ListSessionsOfTypeGardeDesSceauxResponses, unknown, ThrowOnError> {
         return (options?.client ?? client).get<ListSessionsOfTypeGardeDesSceauxResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/garde-des-sceaux', ...options });
@@ -1058,12 +1064,6 @@ export class observations {
     
     public static listObservationsAttachments<ThrowOnError extends boolean = false>(options: Options<ListObservationsAttachmentsData, ThrowOnError>): RequestResult<ListObservationsAttachmentsResponses, unknown, ThrowOnError> {
         return (options.client ?? client).get<ListObservationsAttachmentsResponses, unknown, ThrowOnError>({ url: '/api/sessions/v2/{sessionId}/observations/attachments', ...options });
-    }
-}
-
-export class archivedSessions {
-    public static listArchivedSessions<ThrowOnError extends boolean = false>(options?: Options<ListArchivedSessionsData, ThrowOnError>): RequestResult<ListArchivedSessionsResponses, unknown, ThrowOnError> {
-        return (options?.client ?? client).get<ListArchivedSessionsResponses, unknown, ThrowOnError>({ url: '/api/archived-sessions/v1', ...options });
     }
 }
 
