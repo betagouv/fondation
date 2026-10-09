@@ -6,7 +6,7 @@ import { Tooltip } from '@/shared/ui/tooltip';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import type { PlainTimeOnly } from '@/utils/time-only.util';
-import { fullNameUpperCase } from '@/utils/user.utils';
+import { fullNameCapitalized } from '@/utils/user.utils';
 
 import { ObservantAuditionIcon } from './ObservantAuditionIcon';
 
@@ -44,7 +44,7 @@ function ObservantName(props: {
 }) {
   if (!props.magistrat) return null;
 
-  const words = fullNameUpperCase(props.magistrat).split(' ');
+  const words = fullNameCapitalized(props.magistrat).split(' ');
   const lastWord = words.pop();
 
   return (

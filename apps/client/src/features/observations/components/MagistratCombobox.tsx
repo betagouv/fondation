@@ -6,7 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { fullNameUpperCase } from '@/utils/user.utils';
+import { fullNameCapitalized } from '@/utils/user.utils';
 import { useSearchMagistratsQuery, type MagistratSearchResult } from '@queries/observations.queries';
 
 const searchTermFor = (magistrat: MagistratSearchResult) => `${magistrat.lastName} ${magistrat.firstName}`;
@@ -136,7 +136,7 @@ export function MagistratCombobox(props: {
                 onMouseEnter={() => setActiveIndex(index)}
                 role="option"
               >
-                <div className="font-medium">{fullNameUpperCase(result)}</div>
+                <div className="font-medium">{fullNameCapitalized(result)}</div>
                 <div className="text-xs text-(--text-mention-grey)">{magistratDetails(result)}</div>
               </div>
             ))}
@@ -156,7 +156,7 @@ export function MagistratCombobox(props: {
               },
             }}
           >
-            {fullNameUpperCase(magistrat)}
+            {fullNameCapitalized(magistrat)}
             {magistrat.currentPosition && ` - ${magistrat.currentPosition}`}
           </Tag>
         </div>

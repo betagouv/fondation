@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { findMagistratProfilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { capitalize } from 'src/utils/capitalize';
 
 export type MagistratProfile = {
   currentPosition: string | null;
@@ -35,7 +36,11 @@ export class MagistratProfilesFinder {
           {
             currentPosition: [magistrat.grade, position].filter(Boolean).join(' - ') || null,
             email: magistrat.email?.toLowerCase() ?? null,
-            name: [magistrat.lastName.toUpperCase(), magistrat.firstName.toUpperCase(), marriedName]
+            name: [
+              magistrat.lastName.toUpperCase(),
+              capitalize(magistrat.firstName.toLowerCase()),
+              marriedName,
+            ]
               .filter(Boolean)
               .join(' '),
             phoneNumber: magistrat.phone ? { label: magistrat.phoneLabel, number: magistrat.phone } : null,

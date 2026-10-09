@@ -3,7 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
-import { fullNameUpperCase } from '@/utils/user.utils';
+import { fullNameCapitalized } from '@/utils/user.utils';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
@@ -48,7 +48,7 @@ function ObservationCard(props: {
                 defaultMessage="Observant : {name}"
                 values={{
                   name: [
-                    fullNameUpperCase(props.observation.magistrat),
+                    fullNameCapitalized(props.observation.magistrat),
                     props.observation.magistrat.currentPosition,
                   ]
                     .filter(Boolean)
@@ -75,7 +75,7 @@ function ObservationCard(props: {
               props.observation.magistrat
                 ? intl.formatMessage(
                     { defaultMessage: "Voir le détail de l'observation par {name}" },
-                    { name: fullNameUpperCase(props.observation.magistrat) },
+                    { name: fullNameCapitalized(props.observation.magistrat) },
                   )
                 : intl.formatMessage({ defaultMessage: "Voir le détail de l'observation" })
             }
