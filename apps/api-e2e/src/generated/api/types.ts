@@ -1900,6 +1900,7 @@ export type SearchMagistratsResponseDto = {
         id: string;
         firstName: string;
         lastName: string;
+        name: string;
         usedName: string;
         grade: string | null;
         currentPosition: string | null;
