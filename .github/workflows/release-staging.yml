@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     tags:
-      - IT[0-9]+S[0-9]
+      - IT[0-9]+S[0-9]+
       - IT[0-9]+S[0-9]+-[0-9]+
 
 jobs:
