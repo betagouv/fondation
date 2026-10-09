@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+import { magistratFullName } from '../../domain/magistrat-name';
 import { findMagistratProfilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
-import { capitalize } from 'src/utils/capitalize';
 
 export type MagistratProfile = {
   currentPosition: string | null;
@@ -29,20 +29,12 @@ export class MagistratProfilesFinder {
         const position = [magistrat.functionLabel, magistrat.jurisdictionId?.replace(/\s+/g, ' ')]
           .filter(Boolean)
           .join(' ');
-        const marriedName =
-          magistrat.marriedName?.trim() && `(ép. ${magistrat.marriedName.trim().toUpperCase()})`;
         return [
           magistrat.magistratId,
           {
             currentPosition: [magistrat.grade, position].filter(Boolean).join(' - ') || null,
             email: magistrat.email?.toLowerCase() ?? null,
-            name: [
-              magistrat.lastName.toUpperCase(),
-              capitalize(magistrat.firstName.toLowerCase()),
-              marriedName,
-            ]
-              .filter(Boolean)
-              .join(' '),
+            name: magistratFullName(magistrat),
             phoneNumber: magistrat.phone ? { label: magistrat.phoneLabel, number: magistrat.phone } : null,
           },
         ];

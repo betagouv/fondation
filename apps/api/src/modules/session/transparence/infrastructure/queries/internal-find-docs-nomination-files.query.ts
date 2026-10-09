@@ -4,10 +4,11 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { buildMemberName, buildName, buildPosition } from '../helpers/magistrat.helper';
+import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
 import { Prisma } from 'src/generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
+import { magistratTitledFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -152,7 +153,7 @@ const SqlNominationFilesSchema = z
         : null,
 
       magistrat: {
-        name: buildName(item.magistrat),
+        name: magistratTitledFullName(item.magistrat),
         id: item.magistrat.id,
         externalId: item.magistrat.externalId,
         position: {

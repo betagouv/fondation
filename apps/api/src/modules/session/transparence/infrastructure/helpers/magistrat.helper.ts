@@ -1,20 +1,11 @@
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { capitalize } from 'src/utils/capitalize';
-import { isDefined } from 'src/utils/is-defined';
 
 export function buildMemberName(member: { gender: GenderEnum; firstName: string; lastName: string }): string {
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 
 type CivilityEnum = 'M.' | 'MME';
-export function buildName(options: {
-  civility: CivilityEnum;
-  firstName: string;
-  lastName: string;
-  marriedName: string | null;
-}): string {
-  return `${options.civility === 'MME' ? 'Mme' : 'M.'}\u00A0${options.lastName.toUpperCase()}\u00A0${capitalize(options.firstName.toLowerCase())}${isDefined(options.marriedName) ? ` (ép. ${options.marriedName.toUpperCase()})` : ''}`;
-}
 
 export function buildPosition(options: {
   civility: CivilityEnum;
