@@ -4,10 +4,12 @@ import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-o
 
 export type OutcomeCommentEvent = { type: 'drop' } | { type: 'comment'; value: string | null };
 
+export type CurrentOutcome = { comment: string | null; outcome: NominationFileOutcomeEnum | null };
+
 type OutcomeCommentDialogContextType = {
   waitForOutcomeComment: (
     outcome: NominationFileOutcomeEnum,
-    initialComment?: string | null,
+    current: CurrentOutcome,
   ) => Promise<OutcomeCommentEvent>;
 };
 

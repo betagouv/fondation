@@ -1,9 +1,9 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { DetailsCard } from '@/shared/ui/details';
-import { FileList, FileListItem } from '@/shared/ui/file-list';
 import { Upload } from '@/shared/ui/upload';
 import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { dateOnlyToIso } from '@/utils/date-only.util';

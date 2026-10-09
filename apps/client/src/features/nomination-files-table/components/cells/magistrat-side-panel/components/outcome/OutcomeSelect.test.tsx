@@ -84,7 +84,10 @@ describe('OutcomeSelect', () => {
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
-    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', null);
+    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', {
+      comment: null,
+      outcome: null,
+    });
     expect(mocks.mutate).toHaveBeenCalledWith(
       { comment: 'Bien', outcome: 'NON_VALIDATED' },
       expect.anything(),
@@ -115,7 +118,10 @@ describe('OutcomeSelect', () => {
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
-    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', 'Déjà écrit');
+    expect(mocks.waitForOutcomeComment).toHaveBeenCalledWith('NON_VALIDATED', {
+      comment: 'Déjà écrit',
+      outcome: 'VALIDATED',
+    });
   });
 
   it('drops the change without saving when the dialog is cancelled', async () => {

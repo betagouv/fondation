@@ -59,3 +59,40 @@ export function docNominationFileOutcomeLabel(props: {
       return assertNever(props.outcome);
   }
 }
+
+export function docNominationFileOutcomeSectionTitle(props: {
+  count: number;
+  formation: FormationEnum;
+  outcome: DocNominationFileOutcomeEnum;
+}): string {
+  switch (props.outcome) {
+    case 'NON_VALIDATED':
+      switch (props.formation) {
+        case 'PARQUET':
+          return props.count > 1 ? 'Avis défavorables' : 'Avis défavorable';
+        case 'SIEGE':
+          return props.count > 1 ? 'Avis non conformes' : 'Avis non conforme';
+        default:
+          return assertNever(props.formation);
+      }
+
+    case 'VALIDATED':
+      switch (props.formation) {
+        case 'PARQUET':
+          return props.count > 1 ? 'Avis favorables' : 'Avis favorable';
+        case 'SIEGE':
+          return props.count > 1 ? 'Avis conformes' : 'Avis conforme';
+        default:
+          return assertNever(props.formation);
+      }
+
+    case 'WITHDRAWN':
+      return props.count > 1 ? 'Retraits' : 'Retrait';
+
+    case 'SUSPENDED':
+      return 'Sursis';
+
+    default:
+      return assertNever(props.outcome);
+  }
+}

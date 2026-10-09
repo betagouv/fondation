@@ -44,8 +44,8 @@ export class AgendasFilter implements NestInterceptor {
             return new BadRequestException({
               validationError:
                 err.fileIds.length > 1
-                  ? `${err.fileIds.length} dossiers ont déjà été actés dans un procès-verbal restitué et avec une issue définitive`
-                  : `1 dossier a déjà été acté dans un procès-verbal restitué et avec une issue définitive`,
+                  ? `${err.fileIds.length} dossiers ont déjà été actés dans un ordre du jour restitué et avec une issue définitive`
+                  : `1 dossier a déjà été acté dans un ordre du jour restitué et avec une issue définitive`,
             });
           }
 

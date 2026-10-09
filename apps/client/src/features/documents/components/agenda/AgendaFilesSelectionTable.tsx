@@ -255,7 +255,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
         case 'REPORTED':
           return formatMessage({
             defaultMessage:
-              'Cette proposition est déjà actée dans un ordre du jour restitué, avec une issue définitive',
+              'Cette proposition est déjà actée dans un ordre du jour restitué et avec une issue définitive',
           });
         case 'UNIDENTIFIED':
           return formatMessage({
