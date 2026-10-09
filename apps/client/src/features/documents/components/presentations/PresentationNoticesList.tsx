@@ -170,7 +170,7 @@ function InnerPresentationNoticesList() {
 
               <span className="flex items-center gap-x-3">
                 <FormationBadge
-                  className="fr-mb-0 h-6 w-24 shrink-0 justify-center"
+                  className="fr-mb-0 w-24 shrink-0 justify-center"
                   formation={item.formation}
                   small
                 />

@@ -144,7 +144,7 @@ export function PresentationAgendaSelectionTable(props: { items: readonly Agenda
               />
 
               <FormationBadge
-                className={clsx('fr-mb-0 h-6 w-24 shrink-0 justify-center', {
+                className={clsx('fr-mb-0 w-24 shrink-0 justify-center', {
                   'text-(--text-disabled-grey)': isLockedOut,
                 })}
                 formation={item.formation}

@@ -78,7 +78,7 @@ export function PresentationPresentedList() {
             key={item.id}
           >
             <span>
-              <FormationBadge className="fr-mb-0 h-6 w-24 justify-center" formation={item.formation} small />
+              <FormationBadge className="fr-mb-0 w-24 justify-center" formation={item.formation} small />
             </span>
 
             <span className="fr-px-2v flex flex-col gap-y-1">
