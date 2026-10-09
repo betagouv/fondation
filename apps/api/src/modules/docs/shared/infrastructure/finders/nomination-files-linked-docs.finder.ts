@@ -1,20 +1,14 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { DocNominationFileOutcomeEnum } from '../../domain/doc-nomination-file-outcome';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { assertPgParams } from 'src/utils/assert-pg-params';
 import { isDefined } from 'src/utils/is-defined';
 
 export type NominationFileLinkedDoc = {
-  agenda: { id: string; outcome: DocNominationFileOutcomeEnum | null; sessionMeetingDate: Date };
-  officialReport: {
-    id: string;
-    isValidated: boolean;
-    outcome: DocNominationFileOutcomeEnum;
-    sessionMeetingDate: Date;
-  } | null;
+  agenda: { sessionMeetingDate: Date };
+  officialReport: { isValidated: boolean; sessionMeetingDate: Date } | null;
 };
 
 @Injectable()
@@ -30,7 +24,6 @@ export class NominationFilesLinkedDocsFinder {
     const agendaInclusions = await this.db.tx.agendaNominationFile.findMany({
       select: {
         nominationFileId: true,
-        outcome: true,
         version: {
           select: {
             agenda: { select: { id: true, officialReportId: true } },
@@ -44,14 +37,8 @@ export class NominationFilesLinkedDocsFinder {
     const officialReportInclusions = await this.db.tx.officialReportNominationFile.findMany({
       select: {
         nominationFileId: true,
-        outcome: true,
         version: {
-          select: {
-            officialReportId: true,
-            sessionMeetingDate: true,
-            status: true,
-            validatedAt: true,
-          },
+          select: { officialReportId: true, sessionMeetingDate: true, status: true, validatedAt: true },
         },
       } satisfies Prisma.OfficialReportNominationFileSelect,
       where: { nominationFileId: { in: nominationFileIds } },
@@ -77,17 +64,15 @@ export class NominationFilesLinkedDocsFinder {
         const docs = speakingVersions(
           agendaInclusionsByFileId.get(nominationFileId) ?? [],
           (inclusion) => inclusion.version.agenda.id,
-        ).map(({ version, outcome }) => {
+        ).map(({ version }) => {
           const { agenda } = version;
           const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
 
           return {
-            agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
+            agenda: { sessionMeetingDate: version.sessionMeetingDate },
             officialReport: inclusion
               ? {
-                  id: inclusion.version.officialReportId,
                   isValidated: isDefined(inclusion.version.validatedAt),
-                  outcome: inclusion.outcome,
                   sessionMeetingDate: inclusion.version.sessionMeetingDate,
                 }
               : null,

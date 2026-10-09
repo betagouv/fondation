@@ -219,18 +219,15 @@ export class ListNominationFilesQuery {
     const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
 
-    const files = txFiles.map((file) => {
-      const docs = linkedDocs.get(file.id) ?? [];
-      return {
-        ...file,
-        jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
-        lockedReason: nominationFilesPolicies.nominationFileLock(
-          { isReported: reportedFileIds.has(file.id) },
-          { archivedAt: sessionArchivedAt },
-        ),
-        status: transparenceFileStatus({ docs, outcome: file.outcome }),
-      };
-    });
+    const files = txFiles.map((file) => ({
+      ...file,
+      jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
+      lockedReason: nominationFilesPolicies.nominationFileLock(
+        { isReported: reportedFileIds.has(file.id) },
+        { archivedAt: sessionArchivedAt },
+      ),
+      status: transparenceFileStatus({ docs: linkedDocs.get(file.id) ?? [] }),
+    }));
 
     return files.map((x): NominationFileAffectationItem => {
       const auditionedPosition = {
