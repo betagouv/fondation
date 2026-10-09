@@ -14,7 +14,7 @@ export function AdminFeedbacksPage() {
         <FormattedMessage defaultMessage="Avis des utilisateurs" />
       </h1>
       <p className="fr-mb-6v max-w-3xl leading-7 text-(--text-mention-grey)">
-        <FormattedMessage defaultMessage="Les membres et le secrétariat général donnent leur avis depuis l'en-tête du site et peuvent le donner à nouveau à tout moment." />
+        <FormattedMessage defaultMessage="Avis des membres et du secrétariat général, donnés depuis l'en-tête." />
       </p>
 
       <section className="fr-p-6v max-w-3xl border border-solid border-(--border-default-grey)">
@@ -24,7 +24,7 @@ export function AdminFeedbacksPage() {
             <FormattedMessage defaultMessage="Export Excel" />
           </h2>
           <p className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Le fichier contient une ligne par envoi, rangée avec les autres envois du même répondant. Chaque répondant y apparaît sous un numéro, jamais sous son nom. Pour chaque nouvel envoi, la dernière colonne indique les réponses modifiées, avec l'ancienne et la nouvelle valeur." />
+            <FormattedMessage defaultMessage="Une ligne par envoi, groupée par répondant (numéro anonyme). La dernière colonne liste les réponses modifiées depuis l'envoi précédent." />
           </p>
         </div>
         <Button
