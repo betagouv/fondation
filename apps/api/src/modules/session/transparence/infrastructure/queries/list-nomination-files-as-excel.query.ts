@@ -5,6 +5,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
 import { nominationFileOutcomeLabel } from 'src/modules/shared/nomination-file-outcome.enum';
@@ -30,6 +31,7 @@ export class ListNominationFilesAsExcelQuery {
           dossierDeNominations: {
             orderBy: { number: 'asc' },
             select: {
+              detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
               id: true,
               name: true,
               number: true,
@@ -46,7 +48,7 @@ export class ListNominationFilesAsExcelQuery {
               observations: {
                 select: {
                   magistrat: {
-                    select: { firstName: true, usedName: true, lastName: true },
+                    select: { firstName: true, lastName: true, marriedName: true },
                   },
                 },
               },
@@ -71,7 +73,7 @@ export class ListNominationFilesAsExcelQuery {
 
     const rows = session.dossierDeNominations.map((nf) => [
       nf.number !== null ? String(nf.number) : '',
-      nf.name || '',
+      nf.detectedMagistrat ? magistratFullName(nf.detectedMagistrat) : nf.name || '',
       nf.currentPosition || '',
       nf.grade || '',
       nf.targetedPosition || '',
@@ -80,14 +82,7 @@ export class ListNominationFilesAsExcelQuery {
         .map(({ user }) => `${user.lastName.toUpperCase()} ${capitalize(user.firstName)}`)
         .join(', '),
       nf.observations
-        .map(({ magistrat }) =>
-          [
-            capitalize(magistrat.firstName),
-            magistrat.usedName && magistrat.usedName !== magistrat.lastName
-              ? magistrat.usedName.toUpperCase()
-              : magistrat.lastName.toUpperCase(),
-          ].join(' '),
-        )
+        .map(({ magistrat }) => magistratFullName(magistrat))
         .concat(nf.observers || [])
         .join(','),
       nf.priorities.map((x) => PriorityEnumLabels[x]).join(', '),
