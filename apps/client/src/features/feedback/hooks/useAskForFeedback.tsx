@@ -15,11 +15,8 @@ export function useAskForFeedback() {
             <p className="fr-mb-2v">
               <FormattedMessage defaultMessage="Votre retour sur l'utilisation de Fondation permettra d'en améliorer le fonctionnement." />
             </p>
-            <p className="fr-mb-4v">
+            <p className="fr-mb-0">
               <FormattedMessage defaultMessage="Ce questionnaire demande environ deux minutes." />
-            </p>
-            <p className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
-              <FormattedMessage defaultMessage="Vos réponses sont exploitées sous un numéro, sans que votre nom y figure." />
             </p>
           </>
         ),

@@ -47,13 +47,9 @@ export function AdminFeedbackForm(props: {
         description={
           props.onSubmit
             ? formatMessage({
-                defaultMessage:
-                  "Environnement de test : en tant qu'administrateur, vos réponses sont enregistrées afin de tester leur envoi et l'export Excel. En production, vous pourrez seulement parcourir le questionnaire.",
+                defaultMessage: "Recette : vos réponses sont enregistrées, pour tester l'envoi et l'export.",
               })
-            : formatMessage({
-                defaultMessage:
-                  "En tant qu'administrateur, vous pouvez parcourir le questionnaire. Vos réponses ne seront ni enregistrées ni comptabilisées.",
-              })
+            : formatMessage({ defaultMessage: 'Aperçu : vos réponses ne sont pas enregistrées.' })
         }
         severity="info"
         small
