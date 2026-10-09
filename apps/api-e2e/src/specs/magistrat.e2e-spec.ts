@@ -453,7 +453,7 @@ test.describe('Magistrat E2E', () => {
     const [header, ...rows] = parse(Buffer.from(exported.data as ArrayBuffer))[0]!.data as string[][];
     const observants = header!.indexOf('Observants');
     const row = rows.find((cells) => cells.some((cell) => /valrose/i.test(String(cell))));
-    expect(row![observants]).toBe('HONORINE VALROSE');
+    expect(row![observants]).toBe('VALROSE Honorine (ép. DUBOIS)');
   });
 
   test('should list the observations of the most recent session first, without the deleted ones', async ({
