@@ -81,7 +81,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
     >
       <span>
         {(warningLabel || leadingWords) && (
-          <span className={clsx('uppercase!', nameUnderline)}>
+          <span className={nameUnderline}>
             {warningLabel && (
               <i
                 aria-hidden
@@ -92,7 +92,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
           </span>
         )}
         <span className="whitespace-nowrap">
-          <span className={clsx('uppercase!', nameUnderline)}>{lastWord}</span>
+          <span className={nameUnderline}>{lastWord}</span>
           <span className="inline-flex items-center align-middle">
             {(props.nominationFile.auditionDate || auditionAnnounced) && (
               <Tooltip label={auditionLabel}>
