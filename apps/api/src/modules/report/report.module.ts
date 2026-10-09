@@ -7,6 +7,7 @@ import { GetReportFileUrlsQuery } from './infrastructure/queries/get-report-file
 import { ListMemberSessionReportsQuery } from './infrastructure/queries/list-member-session-reports.query';
 import { SearchNominationFileMembersReportQuery } from './infrastructure/queries/search-nomination-file-members-report.query';
 import { ReportRepository } from './infrastructure/report.repository';
+import { SessionReportsRepository } from './infrastructure/session-reports.repository';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 
@@ -17,6 +18,7 @@ import { ReportService } from './report.service';
   providers: [
     ReportRepository,
     ReportService,
+    SessionReportsRepository,
     GetReportFileUrlsQuery,
     DetailReportQuery,
     ListMemberSessionReportsQuery,

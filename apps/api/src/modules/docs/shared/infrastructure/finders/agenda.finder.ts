@@ -1,8 +1,16 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { type AgendaProgress, agendaProgressOf } from '../../domain/agenda-progress';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
@@ -10,7 +18,8 @@ import { TransparenceService } from 'src/modules/session/transparence/infrastruc
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 import { fullname } from 'src/utils/user.util';
@@ -51,79 +60,45 @@ export class AgendaFinder {
     affectationVersionId: string;
     sessionId: string;
   }): Promise<boolean> {
-    const where = await this.buildFindReportableInOfficialReport(query);
-    if (!where) return false;
-
-    const result = await this.db.tx.agenda.findFirst({
-      where,
-      select: { id: true } satisfies Prisma.AgendaSelect,
-    });
-    return Boolean(result);
+    const progress = await this.progressOfFreeAgendas(query);
+    return [...progress.values()].some(({ isReportable }) => isReportable);
   }
 
   @Transactional()
   async findOfficialReportReadiness(query: {
     sessionId: string;
   }): Promise<Map<string, OfficialReportReadiness>> {
-    const agendas = await this.db.tx.agenda.findMany({
-      where: { officialReportId: null, sessionId: query.sessionId },
-      select: {
-        id: true,
-        versions: {
-          ...AGENDA_CONTENT_VERSIONS,
-          select: {
-            nominationFiles: {
-              select: {
-                nominationFile: {
-                  select: { outcome: true, reporterIds: { select: { versionId: true } } },
-                },
-              },
-            },
-            status: true,
-          },
-        },
-      } satisfies Prisma.AgendaSelect,
+    const publishedVersion = await this.transparences.internalFindLastPublishedAffectationVersion({
+      sessionId: query.sessionId,
     });
-
-    const publishedVersion = await this.transparences.versions.lastPublished({ sessionId: query.sessionId });
     if (publishedVersion.isNone()) {
+      const agendas = await this.db.tx.agenda.findMany({
+        select: { id: true } satisfies Prisma.AgendaSelect,
+        where: { officialReportId: null, sessionId: query.sessionId },
+      });
       return new Map(
         agendas.map(({ id }): [string, OfficialReportReadiness] => [id, { status: 'NEVER_PUBLISHED' }]),
       );
     }
 
     // the very rule the report creation checks, so the answer given here never contradicts it
-    const where = await this.buildFindReportableInOfficialReport({
+    const progress = await this.progressOfFreeAgendas({
       affectationVersionId: publishedVersion.id,
       sessionId: query.sessionId,
     });
-    const reportable = where
-      ? await this.db.tx.agenda.findMany({ where, select: { id: true } satisfies Prisma.AgendaSelect })
-      : [];
-    const reportableIds = new Set(reportable.map(({ id }) => id));
 
     return new Map(
-      agendas.map(({ id, versions }): [string, OfficialReportReadiness] => {
-        if (reportableIds.has(id)) return [id, { status: 'READY' }];
-
-        const files = (agendaContentOf(versions)?.nominationFiles ?? []).flatMap(({ nominationFile }) =>
-          nominationFile ? [nominationFile] : [],
-        );
-        const unaffected = files.filter(
-          ({ reporterIds }) => !reporterIds.some(({ versionId }) => versionId === publishedVersion.id),
-        );
-
-        return [
-          id,
-          {
-            filesWithoutOutcome: files.filter(({ outcome }) => outcome === null).length,
-            filesWithoutReporter: unaffected.filter(({ reporterIds }) => reporterIds.length === 0).length,
-            filesWithUnpublishedReporter: unaffected.filter(({ reporterIds }) => reporterIds.length > 0)
-              .length,
-            status: 'INCOMPLETE',
-          },
-        ];
-      }),
+      [...progress].map(([id, agenda]): [string, OfficialReportReadiness] => [
+        id,
+        agenda.isReportable
+          ? { status: 'READY' }
+          : {
+              filesWithoutOutcome: agenda.filesWithoutOutcome,
+              filesWithoutReporter: agenda.filesWithoutReporter,
+              filesWithUnpublishedReporter: agenda.filesWithUnpublishedReporter,
+              status: 'INCOMPLETE',
+            },
+      ]),
     );
   }
 
@@ -133,54 +108,65 @@ export class AgendaFinder {
     ignoreOfficialReportId?: string;
     sessionId: string;
   }): Promise<FoundAgendasDto> {
-    const where = await this.buildFindReportableInOfficialReport(query);
-    if (!where) return { items: [] };
+    const publishedVersion = await this.transparences.internalFindLastPublishedAffectationVersion({
+      sessionId: query.sessionId,
+    });
+    if (publishedVersion.isNone()) return { items: [] };
 
-    return this.find(where, query.ids);
+    const progress = await this.progressOfFreeAgendas({
+      ...query,
+      affectationVersionId: publishedVersion.id,
+    });
+    const reportableIds = [...progress].flatMap(([id, { isReportable }]) => (isReportable ? [id] : []));
+    if (reportableIds.length === 0) return { items: [] };
+
+    return this.find({ id: { in: reportableIds }, sessionId: query.sessionId }, query.ids);
   }
 
-  private async buildFindReportableInOfficialReport(query: {
-    affectationVersionId?: string;
+  /**
+   * the progress of each agenda no official report holds yet (but the one ignored), read on the version
+   * the other documents speak of
+   */
+  private async progressOfFreeAgendas(query: {
+    affectationVersionId: string;
     ids?: Set<string>;
     ignoreOfficialReportId?: string;
     sessionId: string;
-  }): Promise<Prisma.AgendaWhereInput | null> {
-    let versionId = query.affectationVersionId;
-    if (!versionId) {
-      const publishedVersion = await this.transparences.versions.lastPublished({
+  }): Promise<Map<string, AgendaProgress>> {
+    const agendas = await this.db.tx.agenda.findMany({
+      select: {
+        id: true,
+        versions: {
+          ...AGENDA_CONTENT_VERSIONS,
+          select: { nominationFiles: { select: { nominationFileId: true } }, status: true },
+        },
+      } satisfies Prisma.AgendaSelect,
+      where: {
+        id: { in: query.ids ? [...query.ids] : undefined },
+        OR: query.ignoreOfficialReportId
+          ? [{ officialReportId: null }, { officialReportId: query.ignoreOfficialReportId }]
+          : [{ officialReportId: null }],
         sessionId: query.sessionId,
-      });
-
-      if (publishedVersion.isNone()) return null;
-      versionId = publishedVersion.id;
-    }
-
-    const decidedFiles = {
-      nominationFiles: {
-        every: {
-          nominationFile: {
-            outcome: { not: null },
-            reporterIds: { some: { versionId } },
-          },
-        },
       },
-    } satisfies Prisma.AgendaVersionWhereInput;
+    });
 
-    return {
-      AND: [
-        { OR: [{ officialReport: null }, { officialReportId: query.ignoreOfficialReportId }] },
-        // the version asked to carry decided files is the very one the report will be made of, or
-        // a draft would qualify an agenda whose validated version the report then reads
-        {
-          OR: [
-            { versions: { some: { status: 'VALIDATED', ...decidedFiles } } },
-            { versions: { every: { status: 'DRAFT' }, some: decidedFiles } },
-          ],
-        },
-      ],
-      id: { in: query.ids ? Array.from(query.ids) : undefined },
-      sessionId: query.sessionId,
-    };
+    const fileIdsByAgendaId = new Map(
+      agendas.map(({ id, versions }) => [
+        id,
+        (agendaContentOf(versions)?.nominationFiles ?? []).map(({ nominationFileId }) => nominationFileId),
+      ]),
+    );
+    const progress = await this.transparences.internalFindNominationFilesProgress({
+      affectationVersionId: query.affectationVersionId,
+      nominationFileIds: [...new Set([...fileIdsByAgendaId.values()].flat().filter(isDefined))],
+    });
+
+    return new Map(
+      [...fileIdsByAgendaId].map(([id, fileIds]) => [
+        id,
+        agendaProgressOf(fileIds.map((fileId) => (fileId ? (progress.get(fileId) ?? null) : null))),
+      ]),
+    );
   }
 
   findAwaitingPresentationPlan(query: {
@@ -271,12 +257,9 @@ export class AgendaFinder {
       this.logger.warn(`Agendas not found: ${Array.from(missing).join(', ')}`);
     }
 
-    const sessions = new Map<string, { date: DateOnlyJson; typeDeSaisine: TypeDeSaisineEnum }>();
     const sessionIds = new Set(items.map(({ sessionId }) => sessionId));
-    for (const sessionId of sessionIds) {
-      const session = await this.transparences.details({ formation: undefined, sessionId });
-      sessions.set(sessionId, { date: session.date, typeDeSaisine: session.typeDeSaisine });
-    }
+    const sessions = await this.transparences.internalFindSessions({ sessionIds: [...sessionIds] });
+    if (sessions.size !== sessionIds.size) throw new NotFoundException();
     const comments = await this.transparences.internalFindComments({ sessionIds: [...sessionIds] });
 
     return {
@@ -296,7 +279,7 @@ export class AgendaFinder {
           id: item.sessionId,
           name: item.sessionName,
           typeDeSaisine: sessions.get(item.sessionId)!.typeDeSaisine,
-          date: sessions.get(item.sessionId)!.date,
+          date: sessions.get(item.sessionId)!.date.toJson(),
           comment: comments.get(item.sessionId) ?? null,
         },
         formation: prismaFormationEnumToFormationEnum(item.formation),

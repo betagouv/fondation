@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 
+import { ObservationModule } from '../observation/observation.module';
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
 import { MagistratProfilesFinder } from './infrastructure/finders/magistrat-profiles.finder';
@@ -13,7 +14,7 @@ import { MagistratController } from './magistrat.controller';
 import { MagistratService } from './magistrat.service';
 
 @Module({
-  imports: [forwardRef(() => TransparenceModule)],
+  imports: [forwardRef(() => ObservationModule), forwardRef(() => TransparenceModule)],
   controllers: [MagistratController],
   exports: [MagistratService],
   providers: [

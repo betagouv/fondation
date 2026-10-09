@@ -157,6 +157,34 @@ export type UpdateReportRuleValidationDto = {
     isValidated: boolean;
 };
 
+export type ListedArchivedNominationSessionsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        formation: 'SIEGE' | 'PARQUET';
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        dueDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        typeDeSaisine: 'TRANSPARENCE_GDS';
+        status: 'TO_VALIDATE' | 'READY';
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type ListedNominationSessionsDto = {
     items: Array<{
         id: string;
@@ -2297,34 +2325,6 @@ export type ListedObservationsAttachmentsDto = {
     }>;
 };
 
-export type ListedArchivedNominationSessionsDto = {
-    items: Array<{
-        id: string;
-        name: string;
-        formation: 'SIEGE' | 'PARQUET';
-        date: {
-            year: number;
-            month: number;
-            day: number;
-        };
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-};
-
 export type PaginatedAdminUserListItemDto = {
     items: Array<{
         id: string;
@@ -2625,6 +2625,29 @@ export type UpdateReportRuleValidationResponses = {
 };
 
 export type UpdateReportRuleValidationResponse = UpdateReportRuleValidationResponses[keyof UpdateReportRuleValidationResponses];
+
+export type ListArchivedSessionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        sortBy?: 'date' | 'dueDate';
+        formations?: Array<'SIEGE' | 'PARQUET'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/archived-sessions/v1';
+};
+
+export type ListArchivedSessionsResponses = {
+    200: ListedArchivedNominationSessionsDto;
+};
+
+export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
 
 export type ListSessionsOfTypeGardeDesSceauxData = {
     body?: never;
@@ -4895,29 +4918,6 @@ export type ListObservationsAttachmentsResponses = {
 };
 
 export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
-
-export type ListArchivedSessionsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        search?: string;
-        sortBy?: 'date' | 'dueDate';
-        formations?: Array<'SIEGE' | 'PARQUET'>;
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/archived-sessions/v1';
-};
-
-export type ListArchivedSessionsResponses = {
-    200: ListedArchivedNominationSessionsDto;
-};
-
-export type ListArchivedSessionsResponse = ListArchivedSessionsResponses[keyof ListArchivedSessionsResponses];
 
 export type ListUsersData = {
     body?: never;

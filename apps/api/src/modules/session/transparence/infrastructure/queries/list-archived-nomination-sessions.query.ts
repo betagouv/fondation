@@ -2,7 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { ListArchivedNominationSessionsQueryDto } from '../../archived-sessions.dto';
+import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -26,7 +26,7 @@ export class ListArchivedNominationSessionsQuery {
     search: string | null;
     typeDeSaisine: TypeDeSaisineEnum;
     formations: readonly FormationEnum[] | undefined;
-    sorting: Sortable<ListArchivedNominationSessionsQueryDto>;
+    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
     pagination: Pagination;
   }): Promise<ListedArchivedNominationSessionsDto> {
     const where: Prisma.SessionWhereInput = {
@@ -41,13 +41,14 @@ export class ListArchivedNominationSessionsQuery {
       }),
     };
 
-    const orderBy: Prisma.SessionOrderByWithRelationInput[] = query.sorting.sortBy
-      ? [
-          {
-            [query.sorting.sortBy]: query.sorting.sortDesc ? ('desc' as const) : ('asc' as const),
-          },
-        ]
-      : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
+    const direction = query.sorting.sortDesc ? ('desc' as const) : ('asc' as const);
+    // the due date lives on the transparence, the session column of that name is deprecated and ignored by Prisma
+    const orderBy: Prisma.SessionOrderByWithRelationInput[] =
+      query.sorting.sortBy === 'dueDate'
+        ? [{ transparenceGds: { dueDate: direction } }]
+        : query.sorting.sortBy === 'date'
+          ? [{ date: direction }]
+          : [{ date: 'desc' as const }, { createdAt: 'asc' as const }];
 
     const totalCount = await this.db.tx.session.count({ where });
     const sessions = await this.db.tx.session.findMany({

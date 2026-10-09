@@ -8,8 +8,7 @@ date: 2026-06-16
 
 > [!NOTE]
 > Certaines de ces conventions sont difficilement portables vers oxlint.
-> Si des plugins permettent de forcer ces conventions on devrait privilégier
-> leur automatisation.
+> Si des plugins permettent de les vérifier automatiquement, ils sont à privilégier.
 
 ## [A] Privilégier le mot-clé `function`
 
@@ -18,9 +17,9 @@ que de déclarer une lambda.
 
 ### Exception
 
-1. On a besoin d'utiliser `this` en dehors du scope courant
+1. On a besoin d'utiliser `this` en dehors du scope courant.
 
-2. On est déjà dans une fonction. Redéclarer une fonction avec le mot-clé est un peu déroutant.
+2. On est déjà dans une fonction : y déclarer une autre fonction avec le mot-clé est déroutant.
 
 3. En dehors des composants, certains hooks gagnent en lisibilité lorsqu'ils sont déclarés comme lambda (par exemple ceux de TanStack Query).
 
@@ -63,13 +62,12 @@ export function Card(props: React.PropsWithChildren) {
 
 ### Exceptions
 
-1. On a besoin de respecter un type précis (très rare et globalement à éviter)
-2. On utilise `React.memo` ou équivalent (obsolète avec React Compiler ?)
+1. On a besoin de respecter un type précis (rare, à éviter).
+2. On utilise `React.memo` ou un équivalent.
 
 ## [C] Les props sont typées en "inline"
 
-De manière générale, on préférera déclarer les types directement au
-niveau du seul paramètre de la fonction et utiliser le terme de props.
+On déclare le type directement sur l'unique paramètre de la fonction, nommé `props`.
 
 ```tsx
 export function Card(props: React.PropsWithChildren<{ className: string }>) {
@@ -77,20 +75,20 @@ export function Card(props: React.PropsWithChildren<{ className: string }>) {
 }
 ```
 
-1. en utilisant props, la provenance des informations est claire
-2. l'export ou la réutilisation des types de Props est généralement un smell
+1. Avec `props`, la provenance de chaque donnée est claire.
+2. Exporter ou réutiliser un type de props signale souvent un couplage inutile.
 
 ### Exceptions
 
 On a besoin de complexifier le type, par exemple :
 
-1. On hérite des props d'un composant html
+1. On hérite des props d'un élément HTML.
 
 ```ts
 type CardProps = { title: string; description: string } & React.HTMLAttributes<HTMLDivElement>;
 ```
 
-2. On veut créer un type complexe (discriminated union, Omit, Pick...). Généralement, _à éviter_
+2. On a besoin d'un type complexe (union discriminée, `Omit`, `Pick`...), à éviter en général.
 
 ```ts
 type ButtonProps =
@@ -98,7 +96,7 @@ type ButtonProps =
   | ({ as: 'button'; priority: 'primary' | 'secondary' } & React.HTMLAttributes<HTMLButtonElement>);
 ```
 
-3. On peut déconstruire les éléments des props dans le composant
+3. On déstructure les props dans le composant.
 
 ```tsx
 export function Card(props: React.PropsWithChildren<{ className: string }>) {
@@ -107,4 +105,4 @@ export function Card(props: React.PropsWithChildren<{ className: string }>) {
 }
 ```
 
-On perd le bénéfice C.1. On peut toutefois gagner en lisibilité.
+On perd le bénéfice C.1, au profit parfois de la lisibilité.

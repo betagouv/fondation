@@ -5,7 +5,7 @@ Chaque proposition doit :
 - Séparer les problématiques plutôt que tout réunir dans une seule et même fonction, classe ou fichier
 - Privilégier l'anglais, sauf quand il n'existe pas d'équivalent métier
 - Limiter l'ajout de dépendances, en préférant la bibliothèque standard de Node.js 24 LTS
-- Ne pas avoir peur de répéter du code plutôt que de créer des abstractions trop tôt
+- Ne pas avoir peur de répéter une requête plutôt que de créer une abstraction trop tôt. Un DTO ou une règle de gestion n'existe en revanche qu'à un seul endroit
 
 Concernant le style :
 
@@ -68,7 +68,7 @@ Les briques essentielles du back-end sont :
 ### Recommandations
 
 - On génère une spécification OpenAPI 3.0, utilisée par le front-end pour générer son client (via la commande `pnpm run openapi:generate`)
-- Cette spécification suit les bonnes pratiques de Nest.js avec les décorateurs `@Api…` et exploite `nestjs-zod` pour le typage fort
+- Cette spécification suit les bonnes pratiques de Nest.js avec les décorateurs `@Api...` et exploite `nestjs-zod` pour le typage fort
 - Les DTO se nomment ainsi :
   - En entrée, du nom de l'action à effectuer suivi de `Dto`. Par exemple, pour l'action "supprimer une session" : `DeleteSessionDto`
   - En sortie, du participe passé de l'action. Dans l'exemple précédent : `DeletedSessionDto`
@@ -184,14 +184,16 @@ export class UsersModule {}
 - Un finder prend des identifiants, pas des données déjà chargées : les jointures se font en SQL, pas en TypeScript après coup
 - Préférer TypedSQL à un `$queryRaw` écrit dans le code, sauf quand la structure de la requête varie à l'exécution
 - Ne jamais rapprocher des données par leur texte (`ILIKE`) avec une table de référence : passer par les clés étrangères
-- Un module lit les données d'un autre module par une méthode `internal…` du service de ce module. Seules la table `users` (`identity_and_access_context`) et les tables de référence LOLFI (`data_administration_context`) peuvent être lues directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
+- Une table appartient au module qui l'écrit, quel que soit le schéma où elle est rangée
+- Un module lit les données d'un autre module par une méthode `internal...` du service de ce module. Seules la table `users` (`identity_and_access_context`) et les tables de référence LOLFI (`data_administration_context`) peuvent être lues directement. Un endpoint vit dans le contrôleur qui possède son chemin REST
+- Un module écrit dans les données d'un autre module par une méthode `internal...` du service de ce module, dans la transaction de l'appelant (`@Transactional(Propagation.Mandatory)` côté propriétaire)
 - Un endpoint sans `@HasRole` est public : le middleware d'authentification ne fait qu'attacher l'utilisateur à la requête. L'autorisation se fait par rôle, jamais par l'URL
 
 ### DTO
 
 - Ne mettre dans un DTO que ce que le client affiche : masquer une donnée dans l'interface ne la protège pas, elle reste lisible dans l'onglet Réseau
 - Réutiliser la forme existante d'un concept avant d'en inventer une : par exemple, l'issue d'un dossier voyage partout en `{ value, comment }`
-- Préférer un statut à un booléen, des sous-objets à un `extend`, des objets `{ id, … }` à des chaînes dans les tableaux et des noms compréhensibles hors de leur contexte (`session: { id, name, date }` plutôt que `dateTransparence`)
+- Préférer un statut à un booléen, des sous-objets à un `extend`, des objets `{ id, ... }` à des chaînes dans les tableaux et des noms compréhensibles hors de leur contexte (`session: { id, name, date }` plutôt que `dateTransparence`)
 - Les libellés d'affichage voyagent dans le DTO (`{ id, label }`) : ils ne sont ni reconstruits par jointure côté front ni concaténés en SQL
 
 ### Performance et transactions
@@ -338,7 +340,7 @@ La synchronisation entre le client et le serveur utilise TanStack Query et le SD
 ## Façon de travailler
 
 - Un défaut préexistant se corrige dans la PR en cours, dans un commit séparé, une fois vérifié dans le code
-- `// TODO: see …` marque une convergence future entre deux implémentations parallèles
+- `// TODO: see ...` marque une convergence future entre deux implémentations parallèles
 
 ## Vocabulaire métier
 

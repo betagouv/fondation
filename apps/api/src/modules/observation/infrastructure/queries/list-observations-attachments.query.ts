@@ -1,69 +1,64 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+
+const OBSERVATIONS_PER_FILE = 6;
 
 @Injectable()
 export class ListObservationsAttachmentsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
+  ) {}
 
+  @Transactional()
   async handle(query: {
     sessionId: string;
     magistratId: string | undefined;
     excludeObservationId: string | undefined;
   }): Promise<ListedObservationsAttachmentsDto> {
-    const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
+    const sessions = await this.sessions.internalFindSessions({ sessionIds: [query.sessionId] });
+    if (!sessions.has(query.sessionId)) throw new NotFoundException();
+
+    const observations = await this.db.tx.observation.findMany({
+      orderBy: { createdAt: 'desc' },
       select: {
-        dossierDeNominations: {
-          select: {
-            observations: {
-              take: 6,
-              orderBy: { createdAt: 'desc' },
-              where: {
-                magistratId: query.magistratId,
-                id: { not: query.excludeObservationId },
-              },
-              select: {
-                id: true,
-                files: {
-                  where: {
-                    originalObservationId: null,
-                    NOT: {
-                      linkedToObservations: {
-                        some: { observationId: query.excludeObservationId },
-                      },
-                    },
-                  },
-                  orderBy: { file: { createdAt: 'desc' } },
-                  select: {
-                    file: {
-                      select: { id: true, name: true },
-                    },
-                  },
-                },
-              },
-            },
+        files: {
+          orderBy: { file: { createdAt: 'desc' } },
+          select: { file: { select: { id: true, name: true } } },
+          where: {
+            NOT: { linkedToObservations: { some: { observationId: query.excludeObservationId } } },
+            originalObservationId: null,
           },
         },
-      } satisfies Prisma.SessionSelect,
+        id: true,
+        nominationFileId: true,
+      } satisfies Prisma.ObservationSelect,
+      where: {
+        id: { not: query.excludeObservationId },
+        magistratId: query.magistratId,
+        sessionId: query.sessionId,
+      },
     });
 
-    if (!session || session.dossierDeNominations.length === 0) {
-      throw new NotFoundException();
-    }
+    const keptPerFile = new Map<string, number>();
+    const items = observations.flatMap((observation) => {
+      const kept = keptPerFile.get(observation.nominationFileId) ?? 0;
+      if (kept === OBSERVATIONS_PER_FILE) return [];
+      keptPerFile.set(observation.nominationFileId, kept + 1);
 
-    const items = session.dossierDeNominations.flatMap((ddn) =>
-      ddn.observations.flatMap((obs) =>
-        obs.files.map(({ file }) => ({
-          fileId: file.id,
-          name: file.name,
-          observationId: obs.id,
-        })),
-      ),
-    );
+      return observation.files.map(({ file }) => ({
+        fileId: file.id,
+        name: file.name,
+        observationId: observation.id,
+      }));
+    });
 
     return { items };
   }

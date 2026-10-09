@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -18,7 +18,7 @@ import {
   presentationPlanStatusSchema,
 } from 'src/modules/docs/presentation-plan/infrastructure/presentation-plan-status';
 import { Db } from 'src/modules/framework/database';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 
@@ -37,14 +37,14 @@ export class FindSessionDocsQuery {
   constructor(
     private readonly db: Db,
     private readonly agendas: AgendaFinder,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<FoundSessionDocsDto> {
-    const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId },
-      select: { typeDeSaisine: true } satisfies Prisma.SessionSelect,
-    });
+    const sessions = await this.sessions.internalFindSessions({ sessionIds: [query.sessionId] });
+    const session = sessions.get(query.sessionId);
     const agendas = await this.db.tx.agenda.findMany({
       where: { sessionId: query.sessionId },
       select: {
@@ -210,7 +210,7 @@ export class FindSessionDocsQuery {
           type: 'AGENDA',
           sessionName: null,
           date: DateOnly.fromUtcDate(file.sessionMeetingDate),
-          typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
+          typeDeSaisine,
           chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
         }),
       })),
@@ -239,7 +239,7 @@ export class FindSessionDocsQuery {
           sessionName: null,
           date: DateOnly.fromUtcDate(file.sessionMeetingDate),
           type: 'OFFICIAL_REPORT',
-          typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(typeDeSaisine),
+          typeDeSaisine,
           chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
         }),
       })),

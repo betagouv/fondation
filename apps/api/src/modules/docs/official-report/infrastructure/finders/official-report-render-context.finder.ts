@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
@@ -12,6 +12,7 @@ import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { Db } from 'src/modules/framework/database';
 import { MembersService } from 'src/modules/members';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
@@ -35,6 +36,8 @@ export class OfficialReportRenderContextFinder {
     private readonly db: Db,
     private readonly members: MembersService,
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional()
@@ -179,11 +182,7 @@ export class OfficialReportRenderContextFinder {
       ),
     );
 
-    const session = await this.db.tx.session.findUnique({
-      where: { id: agenda.sessionId, deletedAt: null },
-      select: { date: true, formation: true } satisfies Prisma.SessionSelect,
-    });
-    if (!session) throw new NotFoundException();
+    const session = await this.sessions.internalGetSession({ sessionId: agenda.sessionId });
 
     const formation = prismaFormationEnumToFormationEnum(agenda.formation);
 
@@ -293,7 +292,7 @@ export class OfficialReportRenderContextFinder {
       justiceDepartmentContact: report.justiceDepartmentContactName,
       agendaProposals,
       fileAgendas,
-      session: { id: agenda.sessionId, date: DateOnly.fromUtcDate(session.date) },
+      session: { date: session.date, id: agenda.sessionId },
       agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
       userDefinedBlocks: {
         intro: userDefinedInto,

@@ -40,25 +40,10 @@ export class ReportRuleValidationUpdated {
 type ReportEvent = ReportFilesAttached | ReportFilesDetached | ReportUpdated | ReportRuleValidationUpdated;
 
 export class Report {
-  private constructor(
-    readonly id: Id<'ReportId'>,
-    readonly sessionName: string,
-    readonly nomAspirant: string,
-    readonly reporterFullName: string,
-  ) {}
+  private constructor(readonly id: Id<'ReportId'>) {}
 
-  static from(props: {
-    id: string;
-    sessionName: string;
-    nomAspirant: string;
-    reporterFullName: string;
-  }): Report {
-    return new Report(
-      makeId('ReportId', props.id),
-      props.sessionName,
-      props.nomAspirant,
-      props.reporterFullName,
-    );
+  static from(props: { id: string }): Report {
+    return new Report(makeId('ReportId', props.id));
   }
 
   attachFiles(command: {

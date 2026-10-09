@@ -7,9 +7,6 @@ describe('Report', () => {
     const reportId = randomUUID();
     const report = Report.from({
       id: reportId,
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
@@ -33,9 +30,6 @@ describe('Report', () => {
   it('should ignore an empty list of files to attach', () => {
     const report = Report.from({
       id: randomUUID(),
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     report.attachFiles({
@@ -50,9 +44,6 @@ describe('Report', () => {
     const reportId = randomUUID();
     const report = Report.from({
       id: reportId,
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
@@ -71,9 +62,6 @@ describe('Report', () => {
   it('should ignore an empty list of file ids to detach', () => {
     const report = Report.from({
       id: randomUUID(),
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     report.detachFiles({ reporterId: randomUUID(), fileNames: [] });

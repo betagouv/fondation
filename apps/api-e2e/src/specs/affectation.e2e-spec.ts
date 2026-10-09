@@ -41,6 +41,31 @@ test.describe('Session Affectations E2E', () => {
     expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
   });
 
+  test('never auto-affects a member a file of a jurisdiction they exclude', async ({ agent, registerUser, expect }) => {
+    const excluding = await registerUser('MEMBRE_COMMUN');
+    await agent.members.excludeJurisdictions({
+      body: { jurisdictionIds: [seed.jurisdictions['CA  LYON'].id] },
+      path: { userId: excluding.id },
+    });
+
+    // every other member of the test database stays out, for the excluding one to be the only candidate
+    const otherMemberIds: string[] = [];
+    for (let page = 1; ; page++) {
+      const members = await agent.members.listMembers({ query: { formations: [], limit: 200, page } });
+      otherMemberIds.push(...members.data!.items.map(({ id }) => id).filter((id) => id !== excluding.id));
+      if (members.data!.items.length < 200) break;
+    }
+
+    const affected = await agent.sessions.autoAffectation({
+      body: { excludedMemberIds: otherMemberIds, nominationFileIds: [nominationFileId] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]!.reporters).toEqual([]);
+  });
+
   test('counts a nomination file once whatever its number of reporters', async ({ agent, logIn, expect }) => {
     const secondMember = await logIn('MEMBRE_COMMUN');
 

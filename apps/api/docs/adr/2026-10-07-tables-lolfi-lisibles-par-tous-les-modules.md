@@ -16,7 +16,7 @@ L'ADR du 20/07/2026 pose qu'un module lit les données d'un autre module par son
 une seule exception : la table `users`.
 
 Les tables de `data_administration_context` (`candidate`, `position`, `function`,
-`jurisdictions`…) sont écrites par le module ingest, à chaque import LOLFI. Ce module n'expose
+`jurisdictions`...) sont écrites par le module ingest, à chaque import LOLFI. Ce module n'expose
 qu'une lecture interne (`internalDetailsLolfiSession`, utilisée par session pour importer une
 session). Ces tables n'appartiennent à aucun module métier : elles décrivent les postes, les
 juridictions et les candidatures telles que LOLFI les transmet.
@@ -38,12 +38,11 @@ magistrat affiche le numéro de téléphone que LOLFI recopie sur chaque candida
 - **`nominations_context.magistrat`** est elle aussi une copie LOLFI : seul ingest l'écrit
   (`insertMagistratRawQuery`). Elle relève de la même règle, même si elle n'est pas rangée dans
   `data_administration_context`.
-- **`data_administration_context.excluded_jurisdictions`** fait exception : ce n'est pas une
-  table LOLFI. Seul le module members l'écrit (les juridictions qu'un membre exclut de
-  l'auto-affectation) et ingest n'y touche jamais. Elle est rangée dans ce schéma par erreur et
-  doit rejoindre `identity_and_access_context`, à côté de `users`. Elle relève de la règle
-  générale : les autres modules doivent la lire par `MembersService`. Session la lit encore
-  directement (`AutoAffectationsFinder`).
+- **`excluded_jurisdictions`** n'était pas une table LOLFI, malgré son schéma d'origine. Seul le
+  module members l'écrit (les juridictions qu'un membre exclut de l'auto-affectation) et ingest
+  n'y touche jamais. Depuis FON-591, elle vit dans `identity_and_access_context`, à côté de
+  `users`. Elle relève de la règle générale : les autres modules la lisent par `MembersService`
+  (`internalFindExcludedJurisdictions`).
 
 ## Cas existants
 

@@ -27,66 +27,74 @@ export class NominationFilesLinkedDocsFinder {
 
     const nominationFileIds = Array.from(predicate.nominationFileIds);
 
-    const nominationFiles = await this.db.tx.dossierDeNomination.findMany({
-      where: { id: { in: nominationFileIds } },
+    const agendaInclusions = await this.db.tx.agendaNominationFile.findMany({
       select: {
-        id: true,
-        agendaInclusions: {
+        nominationFileId: true,
+        outcome: true,
+        version: {
           select: {
-            outcome: true,
-            version: {
-              select: {
-                status: true,
-                sessionMeetingDate: true,
-                agenda: { select: { id: true, officialReportId: true } },
-              },
-            },
+            agenda: { select: { id: true, officialReportId: true } },
+            sessionMeetingDate: true,
+            status: true,
           },
         },
-        officialReportInclusions: {
+      } satisfies Prisma.AgendaNominationFileSelect,
+      where: { nominationFileId: { in: nominationFileIds } },
+    });
+    const officialReportInclusions = await this.db.tx.officialReportNominationFile.findMany({
+      select: {
+        nominationFileId: true,
+        outcome: true,
+        version: {
           select: {
-            outcome: true,
-            version: {
-              select: {
-                status: true,
-                officialReportId: true,
-                validatedAt: true,
-                sessionMeetingDate: true,
-              },
-            },
+            officialReportId: true,
+            sessionMeetingDate: true,
+            status: true,
+            validatedAt: true,
           },
         },
-      } satisfies Prisma.DossierDeNominationSelect,
+      } satisfies Prisma.OfficialReportNominationFileSelect,
+      where: { nominationFileId: { in: nominationFileIds } },
     });
 
+    const agendaInclusionsByFileId = Map.groupBy(
+      agendaInclusions,
+      ({ nominationFileId }) => nominationFileId,
+    );
+    const officialReportInclusionsByFileId = Map.groupBy(
+      officialReportInclusions,
+      ({ nominationFileId }) => nominationFileId,
+    );
+
     return new Map(
-      nominationFiles.map((file) => {
+      nominationFileIds.map((nominationFileId) => {
         const byIds = new Map(
           speakingVersions(
-            file.officialReportInclusions,
+            officialReportInclusionsByFileId.get(nominationFileId) ?? [],
             (inclusion) => inclusion.version.officialReportId,
           ).map((x) => [x.version.officialReportId, x] as const),
         );
-        const docs = speakingVersions(file.agendaInclusions, (inclusion) => inclusion.version.agenda.id).map(
-          ({ version, outcome }) => {
-            const { agenda } = version;
-            const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
+        const docs = speakingVersions(
+          agendaInclusionsByFileId.get(nominationFileId) ?? [],
+          (inclusion) => inclusion.version.agenda.id,
+        ).map(({ version, outcome }) => {
+          const { agenda } = version;
+          const inclusion = agenda.officialReportId ? (byIds.get(agenda.officialReportId) ?? null) : null;
 
-            return {
-              agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
-              officialReport: inclusion
-                ? {
-                    id: inclusion.version.officialReportId,
-                    isValidated: isDefined(inclusion.version.validatedAt),
-                    outcome: inclusion.outcome,
-                    sessionMeetingDate: inclusion.version.sessionMeetingDate,
-                  }
-                : null,
-            };
-          },
-        );
+          return {
+            agenda: { id: agenda.id, outcome: outcome, sessionMeetingDate: version.sessionMeetingDate },
+            officialReport: inclusion
+              ? {
+                  id: inclusion.version.officialReportId,
+                  isValidated: isDefined(inclusion.version.validatedAt),
+                  outcome: inclusion.outcome,
+                  sessionMeetingDate: inclusion.version.sessionMeetingDate,
+                }
+              : null,
+          };
+        });
 
-        return [file.id, docs];
+        return [nominationFileId, docs];
       }),
     );
   }

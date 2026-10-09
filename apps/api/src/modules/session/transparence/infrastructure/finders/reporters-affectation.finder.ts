@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
-import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
+import { SessionReportedFilesFinder } from './session-reported-files.finder';
 
 @Injectable()
 export class ReportersAffectationFinder {
@@ -13,8 +13,7 @@ export class ReportersAffectationFinder {
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
 
-    @Inject(forwardRef(() => DocsService))
-    private readonly docs: DocsService,
+    private readonly reportedFiles: SessionReportedFilesFinder,
   ) {}
 
   // the secretariat works on the last version of the affectations, published or not
@@ -29,7 +28,7 @@ export class ReportersAffectationFinder {
       : await this.db.tx.nominationFileToReporter.count({
           where: { nominationFileId: query.nominationFileId, versionId: version.id },
         } satisfies Prisma.NominationFileToReporterCountArgs);
-    const reportedFileIds = await this.docs.internalFindReportedNominationFiles({
+    const reportedFileIds = await this.reportedFiles.find({
       nominationFileIds: new Set([query.nominationFileId]),
     });
 
