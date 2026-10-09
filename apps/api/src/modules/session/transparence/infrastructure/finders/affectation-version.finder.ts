@@ -71,8 +71,8 @@ export class AffectationVersionFinder {
     });
   }
 
-  @Transactional()
   /** the reporters of each file in the last published version of its session */
+  @Transactional()
   async findPublishedReporters(query: {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {

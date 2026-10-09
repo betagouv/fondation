@@ -78,8 +78,8 @@ export class HydratedNominationFilesFinder {
     return new Map(files.map(({ id, ...label }) => [id, label] as const));
   }
 
-  @Transactional()
   /** files of deleted sessions are left out */
+  @Transactional()
   async sort(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
     assertPgParams(query.nominationFileIds);
 

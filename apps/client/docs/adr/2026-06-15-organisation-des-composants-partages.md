@@ -19,13 +19,13 @@ Les composants partagés vivent dans [shared/ui](../../src/shared/ui) pour les b
 
 ## Des chemins propres
 
-Pour encapsuler la complexité et faciliter la découverte des composants, on respecte une convention proche des URLs. Du mieux possible, les exports des composants partagés doivent avoir un point de découverte unique qui expose toute la logique publique.
+Pour encapsuler la complexité et faciliter la découverte des composants, on respecte une convention proche des URLs. Autant que possible, chaque composant partagé expose sa logique publique par un point d'entrée unique.
 
-Les dossiers respectent une casse `kebab-case`, les composants internes respectent la convention classique en `PascalCase`.
+Les dossiers sont en `kebab-case`. Les composants sont en `PascalCase`.
 
-Ce point d'export sera un fichier [barrel file](https://basarat.gitbook.io/typescript/main-1/barrel).
+Ce point d'entrée est un [barrel file](https://basarat.gitbook.io/typescript/main-1/barrel).
 
-Ainsi pour un composant `Card` le chemin sur disque sera :
+Pour un composant `Card`, l'arborescence est la suivante :
 
 ```txt
 shared/ui/
@@ -36,20 +36,20 @@ shared/ui/
   ` - Card.test.tsx
 ```
 
-Les composants qui importeront `Card` le feront ainsi :
+Les composants importent `Card` ainsi :
 
 ```tsx
 import { Card } from '@/shared/ui/card';
 ```
 
-Le fichier barrel se contentera d'exporter les éléments publics :
+Le barrel exporte seulement les éléments publics :
 
 ```ts
 // shared/ui/card/index.ts
 export { Card, type CardProps } from './Card';
 ```
 
-Les composants peuvent déclarer autant d'éléments internes utiles à leur fonctionnement (context, types, hooks, tests, stories storybook…). Leurs exports
+Les composants peuvent déclarer autant d'éléments internes utiles à leur fonctionnement (context, types, hooks, tests, stories storybook...). Leurs exports
 doivent correspondre à leur API publique.
 
 ## Exemples

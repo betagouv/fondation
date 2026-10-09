@@ -81,9 +81,9 @@ src/features/reports/
 └─ hooks/
 ```
 
-**Critère d'appartenance** : si supprimer le domaine supprimerait le fichier, alors le
-fichier appartient à la feature. Un formatter spécifique aux rapports vit dans
-`features/reports/utils`, pas dans le `utils/` global.
+**Critère d'appartenance** : un fichier qui disparaîtrait avec le domaine appartient à la
+feature. Un formateur propre aux rapports irait dans `features/reports/utils`, pas dans le
+`utils/` global.
 
 ## `shared/` : les briques React réutilisables
 
@@ -105,7 +105,7 @@ risque de collision de noms :
 
 - **`shared/ui/`** : la couche feuille. Ces composants **ne dépendent de rien d'interne** : ni
   `features/` ni `queries/` ni le client généré. Ils sont purement présentationnels (`Card`,
-  `DataTable`, `Breadcrumb`, les dropdowns, `combobox`, `loaders`…). C'est l'ancien
+  `DataTable`, `Breadcrumb`, les dropdowns, `combobox`, `loaders`...). C'est l'ancien
   `components/shared`.
 - **`shared/components/`** : composants réutilisés qui ont le droit de **toucher un peu de
   métier** transverse sans appartenir à un domaine précis (`PriorityBadge`, `OutcomeBadge`,
@@ -113,9 +113,8 @@ risque de collision de noms :
 
 L'intérêt de `ui/` n'est donc pas d'éviter des collisions. Il est d'**isoler une couche sans
 dépendance interne** : elle est testable seule et extractible dans un paquet sans entraîner le
-reste de l'application. Cet invariant est mécanique et non seulement déclarative : une règle
-`no-restricted-imports` scopée à `shared/ui/` dans `.oxlintrc.json` suffit à interdire tout
-import de `features/`, `queries/` ou du client généré.
+reste de l'application. Une règle `no-restricted-imports` limitée à `shared/ui/` dans
+`.oxlintrc.json` interdit tout import de `features/`, `queries/` ou du client généré.
 
 La convention d'organisation interne de ces composants (dossier `kebab-case`, barrel file
 `index.ts`, import via un point d'entrée unique) est décrite dans
@@ -156,11 +155,9 @@ affaire du **routeur**, pas de la feature.
 **reflète l'arbre du routeur** qui est hiérarchique (`.../session/:id/docs/...`).
 
 > [!NOTE]
-> On regroupe dans `pages/` mais **pas** dans `features/`. Une feature est autonome : `agenda`,
-> `official-report` et `presentations` restent à plat et **dépendent** de `features/documents/`,
-> qui détient leurs briques communes (les sélecteurs de membres). Les imbriquer ferait de
-> `documents/` un nœud hybride (feature _et_ namespace). Le groupement par arbre revient au
-> routeur et donc à `pages/`.
+> Côté `features/`, `agenda`, `official-report` et `presentations` vivent dans
+> `features/documents/components/`, à côté de leurs briques communes (les sélecteurs de
+> membres).
 
 ## Les dossiers techniques restent à la racine
 
@@ -181,8 +178,8 @@ src/
 
 ## Pourquoi pas tout dans `shared/` ?
 
-C'est la question centrale. Pourquoi `queries/`, `types/`, `utils/`, `constants/` ne sont-ils
-pas rangés sous `shared/` alors qu'ils sont eux aussi partagés ?
+Pourquoi `queries/` et `utils/` ne sont-ils pas rangés sous `shared/` alors qu'ils sont eux
+aussi partagés ?
 
 1. **`shared/` a un sens précis : "briques React réutilisables".** Si on y mettait aussi les
    types, les fonctions pures et la couche de données, `shared/` deviendrait un fourre-tout qui
@@ -192,8 +189,7 @@ pas rangés sous `shared/` alors qu'ils sont eux aussi partagés ?
 2. **Chaque dossier technique est une couche distincte.** `queries/` n'est pas "un composant
    partagé" : c'est la **couche d'accès aux données**, avec sa propre convention (un registre
    de clés par fichier, cf. `CLAUDE.md`). La garder visible et à part rend l'architecture
-   lisible d'un coup d'œil. Pareil pour `types/` (définitions), `utils/` (fonctions pures),
-   `constants/` (valeurs).
+   lisible d'un coup d'œil. Il en va de même pour `utils/` (fonctions pures).
 
 3. **Le test qui tranche** : ces fichiers seraient au même endroit qu'ils soient partagés ou
    non, leur place dépend de **ce qu'ils sont** (un type, une fonction, une requête), pas de
@@ -202,11 +198,11 @@ pas rangés sous `shared/` alors qu'ils sont eux aussi partagés ?
 
 En résumé :
 
-|                                         | Critère de rangement                   |                       |
-| --------------------------------------- | -------------------------------------- | --------------------- |
-| `features/`                             | appartient à un domaine                | local                 |
-| `shared/`                               | brique React réutilisée entre domaines | partagé par intention |
-| racine (`queries`, `types`, `utils`...) | nature technique du fichier            | transverse par nature |
+|                                | Critère de rangement                   |                       |
+| ------------------------------ | -------------------------------------- | --------------------- |
+| `features/`                    | appartient à un domaine                | local                 |
+| `shared/`                      | brique React réutilisée entre domaines | partagé par intention |
+| racine (`queries`, `utils`...) | nature technique du fichier            | transverse par nature |
 
 ## Comment la migration a été faite
 
@@ -233,6 +229,6 @@ de comportement**. Chaque PR suit la même procédure :
   (`shared/enums`, `features/administration/labels`). Il reste
   `features/transparence/labels/labels-mappers.ts`, qui concatène un libellé de transparence côté
   client au lieu de le recevoir de l'API.
-- Certains composants `Session*` vivent dans `transparence/` (cohérent : la transparence est le
-  workspace d'une session) mais sont mal nommés. Le renommage fera l'objet d'un ticket séparé,
-  on ne les déplace pas au seul motif du nom.
+- Certains composants `Session*` vivent dans `transparence/`, ce qui est cohérent puisque la
+  transparence est l'espace de travail d'une session. Leur nom est trompeur. Le renommage fera
+  l'objet d'un ticket séparé : on ne les déplace pas au seul motif du nom.

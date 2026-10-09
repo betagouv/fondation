@@ -88,6 +88,7 @@ export class MembersService {
     return this.excludedJurisdictionsFinder.find(query);
   }
 
+  /** @internal */
   internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
     return this.internalGetMemberQuery.handle(query);
   }

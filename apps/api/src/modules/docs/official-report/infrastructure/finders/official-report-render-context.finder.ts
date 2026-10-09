@@ -292,7 +292,7 @@ export class OfficialReportRenderContextFinder {
       justiceDepartmentContact: report.justiceDepartmentContactName,
       agendaProposals,
       fileAgendas,
-      session: { id: agenda.sessionId, date: session.date },
+      session: { date: session.date, id: agenda.sessionId },
       agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
       userDefinedBlocks: {
         intro: userDefinedInto,

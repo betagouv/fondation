@@ -11,7 +11,6 @@ export type AgendaProgress = {
   filesWithoutOutcome: number;
   filesWithoutReporter: number;
   filesWithUnpublishedReporter: number;
-  /** an official report can be made of it once every file is decided and affected */
   isReportable: boolean;
 };
 

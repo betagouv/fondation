@@ -34,8 +34,8 @@ export class ReportRepository {
 
   async find(props: { id: string; reporterId: string }): Promise<Report> {
     const report = await this.db.tx.report.findUnique({
-      where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
       select: { id: true, sessionId: true } satisfies Prisma.ReportSelect,
+      where: { id: props.id, isDeleted: false, reporterId: props.reporterId },
     });
     if (!report) throw new NotFoundException();
 
@@ -67,13 +67,13 @@ export class ReportRepository {
 
   private async persistReportFilesDetached(message: ReportFilesDetached) {
     const report = await this.db.tx.report.findFirst({
-      where: { id: message.id, reporterId: message.reporterId },
       include: {
         files: {
+          include: { file: { select: { id: true, name: true, path: true } } },
           where: { file: { name: { in: message.fileNames as string[] } } },
-          include: { file: { select: { name: true, path: true, id: true } } },
         },
       } satisfies Prisma.ReportInclude,
+      where: { id: message.id, reporterId: message.reporterId },
     });
 
     const files = (report?.files ?? []).map(({ file }) => ({
@@ -93,8 +93,8 @@ export class ReportRepository {
     await this.db.tx.reportFile.createMany({
       data: message.files.map(({ id }) => ({
         fileId: id,
-        usage: message.usage,
         reportId: message.id,
+        usage: message.usage,
       })),
     });
   }

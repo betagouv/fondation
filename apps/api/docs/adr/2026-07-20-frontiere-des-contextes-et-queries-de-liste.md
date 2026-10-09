@@ -15,12 +15,13 @@ pour ça.
 ## Contexte
 
 Le back est découpé en modules (session, report, members...). Chaque module possède ses
-tables, regroupées dans un schéma Postgres qu'on appelle un contexte.
+tables. Elles sont rangées dans des schémas Postgres qu'on appelle des contextes. Un même
+contexte peut accueillir plusieurs modules : `nominations_context` sert session, observation et
+magistrat.
 
 `listNominationFilesRawQuery` est la requête qui remplit le tableau des dossiers. C'est la
 plus utilisée de l'application : elle tourne pour tous les rôles, à chaque changement de
-page, de tri ou de filtre. À force d'ajouts, elle fait environ 220 lignes et cinq
-sous-requêtes. Certaines ne servent qu'un détail d'affichage (`hasAttachment` pour une
+page, de tri ou de filtre. À force d'ajouts, elle accumule les sous-requêtes. Certaines ne servent qu'un détail d'affichage (`hasAttachment` pour une
 icône) ou qu'une partie des utilisateurs (`member_memo`).
 
 La PR #500 proposait d'y ajouter une sous-requête de plus (`myReportId`) pour afficher un
@@ -39,29 +40,29 @@ exemples qui font l'inverse. Impossible de deviner la bonne direction en lisant 
   possède le chemin REST
   (`GET /api/members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/reports`)
   et il est chargé à l'ouverture du panneau. C'est le pattern posé par FON-505 et repris par
-  FON-451 : une classe query, un `findFirst` Prisma et un DTO nommé selon la convention
-  (`Search...Dto` en entrée, `Found...Dto` en sortie).
+  FON-451 : une classe query, un `findFirst` Prisma et un DTO de sortie nommé selon la
+  convention (`FoundNominationFileMembersReportDto`). Les paramètres viennent du chemin.
 - **La table `users` est la seule lecture cross-module autorisée.** Afficher un nom oblige à
   lire la table des utilisateurs : sans cette lecture, pas de nom. Tous les modules peuvent
   la lire directement. Complétée par l'ADR du 07/10/2026 : les tables LOLFI de
   `data_administration_context` suivent la même règle.
-- Côté client, cette donnée a sa propre query Tanstack, avec sa clé dans le registre et un
+- Côté client, cette donnée a sa propre query TanStack, avec sa clé dans le registre et un
   `enabled` pour ne charger qu'à l'usage. Elle ne passe pas par le cache du tableau.
 
 ## Cas existants et leur sort
 
 Le code contient des cas qui semblaient contredire cette règle. La review de la PR #500 les
-a tranchés :
+a tranchés. La colonne "Depuis" donne leur état au 09/10/2026 :
 
-| Cas                                                                                                           | Où                                                                                       | Décision                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| le tableau contient des données propres à l'utilisateur connecté (`member_memo`, commentaires d'observations) | `listNominationFilesRawQuery`                                                            | on garde : données de l'utilisateur pour le tableau lui-même, pas un franchissement de frontière                       |
-| le tableau contient un détail d'affichage (`hasAttachment`)                                                   | `listNominationFilesRawQuery`                                                            | on garde : sert le tableau, pas de problème identifié                                                                  |
-| le tableau lit les noms des rapporteurs dans les tables du module identity                                    | `listNominationFilesRawQuery`                                                            | on garde : `users` est la lecture cross-module autorisée (voir Décision)                                               |
-| le module session lit les tables du module report                                                             | `internalDetailsMemberSessionRawQuery`, `internalCountTotalDetailsMemberSessionRawQuery` | à trancher dans un ticket dédié                                                                                        |
-| le module session supprime des lignes dans les tables du module report                                        | `deleteReportsAfterAffectationPublicationRawQuery`                                       | dette assumée : choix historique pour éviter une dépendance circulaire. À reprendre avec le socle événementiel à venir |
-| le module members lit les tables des modules nominations, report et identity                                  | `detailsMemberRawQuery`, `listMembersRawQuery`                                           | on garde : écran de synthèse, il rassemble forcément plusieurs modules                                                 |
-| la requête des dossiers pour l'agenda lit les tables des modules nominations et identity                      | `findAgendaNominationFilesRawQuery`                                                      | on garde : la requête vit dans le module session, qui l'expose en interne. C'est le pattern cible                      |
+| Cas                                                                                                           | Où                                                                                       | Décision                                                                                                               | Depuis                                                                  |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| le tableau contient des données propres à l'utilisateur connecté (`member_memo`, commentaires d'observations) | `listNominationFilesRawQuery`                                                            | on garde : données de l'utilisateur pour le tableau lui-même, pas un franchissement de frontière                       | le mémo reste. Les observations sont servies par `ObservationService`   |
+| le tableau contient un détail d'affichage (`hasAttachment`)                                                   | `listNominationFilesRawQuery`                                                            | on garde : sert le tableau, pas de problème identifié                                                                  | inchangé                                                                |
+| le tableau lit les noms des rapporteurs dans les tables du module identity                                    | `listNominationFilesRawQuery`                                                            | on garde : `users` est la lecture cross-module autorisée (voir Décision)                                               | inchangé                                                                |
+| le module session lit les tables du module report                                                             | `internalDetailsMemberSessionRawQuery`, `internalCountTotalDetailsMemberSessionRawQuery` | à trancher dans un ticket dédié                                                                                        | requêtes supprimées (ADR du 04/08/2026)                                 |
+| le module session supprime des lignes dans les tables du module report                                        | `deleteReportsAfterAffectationPublicationRawQuery`                                       | dette assumée : choix historique pour éviter une dépendance circulaire. À reprendre avec le socle événementiel à venir | session appelle `ReportService` dans sa transaction (ADR du 09/10/2026) |
+| le module members lit les tables des modules nominations, report et identity                                  | `detailsMemberRawQuery`, `listMembersRawQuery`                                           | on garde : écran de synthèse, il rassemble forcément plusieurs modules                                                 | inchangé                                                                |
+| la requête des dossiers pour l'agenda lit les tables des modules nominations et identity                      | `findAgendaNominationFilesRawQuery`                                                      | on garde : la requête vit dans le module session, qui l'expose en interne. C'est le pattern cible                      | inchangé                                                                |
 
 À savoir aussi : les tables des différents modules vivent dans la même base et certaines
 sont liées entre elles (un rapport pointe vers son dossier, avec suppression en cascade).

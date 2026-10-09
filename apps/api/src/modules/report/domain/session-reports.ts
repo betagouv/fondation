@@ -1,7 +1,12 @@
 import type { FormationEnum } from 'src/modules/shared/formation.enum';
 
 type Affectation = { nominationFileId: string; reporterId: string };
-type SessionReport = Affectation & { createdAt: Date; hasContent: boolean; id: string; isDeleted: boolean };
+export type SessionReport = Affectation & {
+  createdAt: Date;
+  hasContent: boolean;
+  id: string;
+  isDeleted: boolean;
+};
 
 export class ReportsCreated {
   constructor(

@@ -812,6 +812,7 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  /** @internal */
   async internalIngestLolfiSessions(
     sessions: readonly { id: number; creationDate: DateOnly; name: string | null }[],
   ): Promise<void> {
@@ -844,6 +845,7 @@ export class TransparenceService {
     return this.synchronisedLolfiSessionsFinder.find(query.lolfiSessionIds);
   }
 
+  /** @internal */
   async internalFindNominationFiles(query: {
     ids?: readonly string[] | undefined;
     sessionId: string;
@@ -853,10 +855,12 @@ export class TransparenceService {
     );
   }
 
+  /** @internal */
   internalGetSessionFormation(query: { sessionId: string }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
   }
 
+  /** @internal */
   internalFindNominationFilesProgress(query: {
     affectationVersionId: string;
     nominationFileIds: readonly string[];
@@ -864,12 +868,14 @@ export class TransparenceService {
     return this.nominationFilesProgressFinder.find(query);
   }
 
+  /** @internal */
   internalFindSessionNominationFileOutcomes(query: {
     sessionId: string;
   }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
     return this.nominationFileOutcomesFinder.bySession(query);
   }
 
+  /** @internal */
   internalCountAffectedReporters(query: {
     sessionId: string;
     versionId: string | undefined;
@@ -877,18 +883,21 @@ export class TransparenceService {
     return this.sessionsFinder.affectedReportersCount(query);
   }
 
+  /** @internal */
   internalFindNominationFileOutcomes(query: {
     nominationFileIds: ReadonlySet<string>;
   }): Promise<Map<string, NominationFileOutcomeEnum | null>> {
     return this.nominationFileOutcomesFinder.find(query);
   }
 
+  /** @internal */
   internalFindSessions(query: {
     sessionIds: readonly string[];
   }): Promise<Map<string, FoundNominationSession>> {
     return this.sessionsFinder.find(query);
   }
 
+  /** @internal */
   async internalGetSession(query: { sessionId: string }): Promise<FoundNominationSession> {
     const sessions = await this.sessionsFinder.find({ sessionIds: [query.sessionId] });
     const session = sessions.get(query.sessionId);
@@ -897,6 +906,7 @@ export class TransparenceService {
     return session;
   }
 
+  /** @internal */
   internalFindSessionState(query: { sessionId: string }): Promise<NominationSessionState> {
     return this.sessionsFinder.state(query);
   }
@@ -915,30 +925,34 @@ export class TransparenceService {
     return this.versions.last(query);
   }
 
+  /** @internal */
   internalFindLastPublishedAffectationVersion(query: {
     sessionId: string;
   }): Promise<OptionalAffectationVersion> {
     return this.versions.lastPublished(query);
   }
 
-  /** the reporters of each file in the last published version of its session */
+  /** @internal */
   internalFindPublishedReporters(query: {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
     return this.versions.findPublishedReporters(query);
   }
 
+  /** @internal */
   internalFindNominationFilesByIds(query: {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, FoundNominationFile>> {
     return this.hydratedNominationFiles.byIds(query);
   }
 
+  /** @internal */
   /** most recent session first, then by file number */
   internalSortNominationFiles(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
     return this.hydratedNominationFiles.sort(query);
   }
 
+  /** @internal */
   internalHydrateNominationFiles(query: {
     nominationFileIds: readonly string[];
     role: RoleEnum;

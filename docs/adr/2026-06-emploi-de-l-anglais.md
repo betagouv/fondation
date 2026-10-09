@@ -6,44 +6,42 @@ authors:
 date: 2026-06-15
 ---
 
-Le projet a subi plusieurs changements d'équipe, provoquant des allers-retours : une version en anglais, puis
-une évolution vers le français et maintenant un retour à l'anglais.
+Au fil des changements d'équipe, le code est passé de l'anglais au français, puis revient à
+l'anglais.
 
 > [!IMPORTANT]
-> **tl;dr**: Nous utiliserons désormais l'anglais comme langage principal, sauf lorsque des équivalents
-> métiers n'existent pas.
-
----
+> **En résumé :** l'anglais est la langue principale du code, sauf pour les termes métier qui
+> n'ont pas d'équivalent.
 
 ## Pourquoi
 
-1. Cela permet une homogénéité avec les termes techniques.
-   Même si le mélange existe de toute façon, autant limiter la charge cognitive[^1] (voir [Points négatifs](#points-négatifs)).
+1. Le code reste homogène avec les termes techniques, déjà en anglais. Le mélange des deux
+   langues ne disparaît pas. Il diminue, ce qui réduit la charge cognitive[^1] (voir
+   [Points négatifs](#points-négatifs)).
 
-2. C'est plus cohérent avec les outils.
-   Particulièrement vrai avec jest / vitest. `it('should ...')` est plus simple à lire.
+2. Le code est plus cohérent avec les outils, par exemple avec Vitest : `it('should ...')` se lit
+   plus simplement.
 
-3. Cela implique de bien réfléchir à son glossaire métier.
+3. Le choix oblige à tenir un glossaire métier.
 
 [^1]: https://github.com/zakirullin/cognitive-load
 
 ## Points négatifs
 
-Même si le choix est pragmatique, il implique de jongler entre le français et l'anglais
-lors des discussions, ce qui peut augmenter la fameuse charge cognitive[^1].
+Les discussions se tiennent en français alors que le code est en anglais. Passer de l'un à
+l'autre peut augmenter la charge cognitive[^1].
 
 ## Cas particuliers
 
 _Quand ne pas utiliser l'anglais ?_
 
-1. Lorsque c'est le produit qui pilote.
-   Certains tests par exemple sont directement issus de discussions avec le produit.
+1. Lorsque le produit pilote : certains tests, par exemple, reprennent directement les
+   discussions avec le produit.
 
-2. Lorsqu'un terme métier n'a pas vraiment d'équivalent.
-   Certaines traductions peuvent créer beaucoup de confusion. Parfois, un terme trop spécifique
-   est mal connu en anglais. Autant utiliser le terme en français.
+2. Lorsqu'un terme métier n'a pas d'équivalent : une traduction approximative crée de la
+   confusion. Le terme français est alors conservé.
 
-3. Dans les documents plus verbeux (comme celui-ci).
+3. Dans les documents rédigés, comme celui-ci.
 
 ## Glossaire métier _partiel_
 
@@ -64,7 +62,7 @@ _Quand ne pas utiliser l'anglais ?_
 
 ## Termes non traduits
 
-1. **Transparence**, on utilise relativement peu ce terme. On privilégie le terme de `Nomination session` lorsque c'est possible.
-   Néanmoins le `TypeDeSaisine` nécessite ce détail.
+1. **Transparence** : le code emploie plutôt `Nomination session`. Le terme reste dans
+   la valeur `TRANSPARENCE_GDS` de `TypeDeSaisine`.
 
 2. **Magistrat**

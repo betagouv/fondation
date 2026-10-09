@@ -105,7 +105,7 @@ export class ListObservationsQuery {
           },
         },
       } satisfies Prisma.ObservationSelect,
-      where: { sessionId: query.sessionId, nominationFileId: query.nominationFileId },
+      where: { nominationFileId: query.nominationFileId, sessionId: query.sessionId },
     });
 
     const magistratIds = [

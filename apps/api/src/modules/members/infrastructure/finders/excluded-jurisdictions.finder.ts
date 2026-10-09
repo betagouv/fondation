@@ -12,8 +12,8 @@ export class ExcludedJurisdictionsFinder {
     assertPgParams(query.memberIds);
 
     const exclusions = await this.db.tx.excludedJurisdiction.findMany({
-      where: { userId: { in: [...query.memberIds] } },
       select: { jurisdictionId: true, userId: true } satisfies Prisma.ExcludedJurisdictionSelect,
+      where: { userId: { in: [...query.memberIds] } },
     });
 
     const byMemberId = new Map<string, Set<string>>();

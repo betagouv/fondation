@@ -26,20 +26,23 @@ des lignes chargées ? Le passage au défilement infini faisait échouer ce cas 
 ## Décision
 
 1. **Le socle ne grossit plus.** Il ne contient que des données du module session et des
-   primitives génériques : pagination, tri et filtres sur ses propres colonnes.
+   primitives génériques : pagination, tri et filtres sur ses propres colonnes. Il lit aussi
+   les tables que tous les modules peuvent lire (`users` et les tables LOLFI, ADR du
+   07/10/2026). Depuis FON-591, les observations n'y figurent plus : `ObservationService` les
+   sert pour les dossiers de la page.
 2. **Toute donnée d'un autre module est une surcouche.** Le module propriétaire l'expose par
    une query `internal...` sur son service. L'endpoint vit dans le contrôleur qui possède le
-   chemin REST et la donnée est indexée par `nominationFileId`. Côté client, une query Tanstack
+   chemin REST et la donnée est indexée par `nominationFileId`. Côté client, une query TanStack
    la charge en parallèle du tableau. Un modèle construit dans un Context la sert ensuite à
    chaque ligne. `ListMemberSessionReportsQuery` côté report et `MemberReports` côté client
    suivent ce schéma.
 3. **Filtrer sur une surcouche ne passe jamais par une jointure dans le socle.** Le module
    propriétaire traduit le filtre en une liste de `nominationFileIds`. Cette primitive existe
-   déjà pour la règle 4. Elle reste privée : le comptage total ne la connaît pas et l'exposer
-   fausserait la pagination.
-4. **Le socle sert aussi un dossier seul.** La même requête, restreinte à un identifiant et le
+   déjà pour la règle 4. Depuis FON-530, c'est un filtre public de la liste, que le comptage
+   total prend aussi en compte.
+4. **Le socle sert aussi un dossier seul.** La même requête restreinte à un identifiant et le
    même mapping (`loadFiles`) servent l'endpoint `GET /:sessionId/files/:nominationFileId`. Il
-   répond un objet identique à un item de la liste. Un test e2e le vérifie. Un dossier étranger
+   renvoie un objet identique à un item de la liste. Un test e2e le vérifie. Un dossier étranger
    à la session répond 404.
 
 Le panneau affiche un dossier hors liste sans attendre. Ses flèches de navigation exigent en

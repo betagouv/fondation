@@ -1,4 +1,10 @@
-import { ReportsCreated, ReportsDeleted, ReportsRestored, SessionReports } from './session-reports';
+import {
+  ReportsCreated,
+  ReportsDeleted,
+  ReportsRestored,
+  type SessionReport,
+  SessionReports,
+} from './session-reports';
 
 const affectation = { nominationFileId: 'file-1', reporterId: 'reporter-1' };
 
@@ -12,7 +18,7 @@ function report(props: { createdAt?: string; hasContent?: boolean; id: string; i
   };
 }
 
-function sync(reports: ReturnType<typeof report>[], affectations = [affectation]) {
+function sync(reports: SessionReport[], affectations = [affectation]) {
   const sessionReports = SessionReports.from({ reports, sessionId: 'session-1' });
   sessionReports.syncWith({ affectations, formation: 'PARQUET' });
   return sessionReports.messages;

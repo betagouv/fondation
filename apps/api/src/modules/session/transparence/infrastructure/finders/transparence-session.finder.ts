@@ -25,8 +25,8 @@ export class NominationSessionFinder {
 
   async state(query: { sessionId: string }): Promise<NominationSessionState> {
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId },
       select: { archivedAt: true, deletedAt: true } satisfies Prisma.SessionSelect,
+      where: { id: query.sessionId },
     });
     if (!session) throw new NotFoundException();
 
@@ -38,7 +38,6 @@ export class NominationSessionFinder {
   /** deleted sessions are left out */
   async find(query: { sessionIds: readonly string[] }): Promise<Map<string, FoundNominationSession>> {
     const sessions = await this.db.tx.session.findMany({
-      where: { deletedAt: null, id: { in: [...query.sessionIds] } },
       select: {
         archivedAt: true,
         date: true,
@@ -47,6 +46,7 @@ export class NominationSessionFinder {
         name: true,
         typeDeSaisine: true,
       } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: { in: [...query.sessionIds] } },
     });
 
     return new Map(
