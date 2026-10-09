@@ -30,6 +30,6 @@ WHERE (
   ))
 )
 
-ORDER BY "rank" DESC, m.used_name ASC
+ORDER BY "rank" DESC, m.last_name ASC, m.first_name ASC
 
 OFFSET $3 LIMIT $4;
