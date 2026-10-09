@@ -29,15 +29,9 @@ if [[ ! $next =~ $TAG_FORMAT ]]; then
   exit 1
 fi
 
-# The team's deployment procedure asks to wait a minute after the merge on develop.
-remaining=$((60 - $(date +%s) + $(git log -1 --format=%ct)))
-if ((remaining > 0)); then
-  echo "Develop was just updated, waiting ${remaining}s…"
-  sleep "$remaining"
-fi
-
 echo "Last staging tag: ${last:-none}"
-echo "Commit:           $(git log -1 --format='%h %s')"
+echo "Commit:           $(git log -1 --format='%h %s (%cr)')"
+echo "Check that this commit includes your merge."
 read -rp "Push $next to deploy staging? [y/N] " answer
 [[ $answer == [yY] ]] || exit 0
 
