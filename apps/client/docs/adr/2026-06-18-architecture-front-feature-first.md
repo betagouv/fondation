@@ -6,7 +6,7 @@ author:
 date: 2026-06-18
 ---
 
-Suite à l'audit du front, on range désormais le code **par domaine métier**
+À la suite de l'audit du front, on range désormais le code **par domaine métier**
 plutôt que par type technique. Cet ADR explique où va chaque fichier et pourquoi.
 
 ## Le problème
@@ -39,11 +39,11 @@ Conséquences :
 
 On distingue **trois zones**, selon la nature du fichier :
 
-| Zone                            | Question à se poser                                                                                                        | Exemple                                      |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `features/<domaine>/`           | Ce fichier appartient-il à **un** domaine métier ?                                                                         | `features/reports/components/ReportList.tsx` |
-| `shared/`                       | Est-ce une **brique React** (composant, hook, context) réutilisée par plusieurs domaines, **sans** logique métier propre ? | `shared/ui/card`                             |
-| Dossiers techniques à la racine | Est-ce une **couche technique** ou une **primitive** transverse (accès aux données, types, fonctions pures, constantes) ?  | `queries/`, `utils/`                         |
+| Zone                            | Question à se poser                                                                                                        | Exemple                                          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `features/<domaine>/`           | Ce fichier appartient-il à **un** domaine métier ?                                                                         | `features/reports/components/ReportOverview.tsx` |
+| `shared/`                       | Est-ce une **brique React** (composant, hook, context) réutilisée par plusieurs domaines, **sans** logique métier propre ? | `shared/ui/card`                                 |
+| Dossiers techniques à la racine | Est-ce une **couche technique** ou une **primitive** transverse (accès aux données, types, fonctions pures, constantes) ?  | `queries/`, `utils/`                             |
 
 > [!NOTE]
 > Règle d'or : on classe par **nature** du fichier, pas par "est-ce partagé ?".
@@ -58,15 +58,14 @@ composants, hooks, context, constantes, libellés, utilitaires.
 ```txt
 src/features/
 ├─ administration/
-├─ agenda/
 ├─ auth/
 ├─ documents/
+├─ feedback/
 ├─ jobs/
+├─ magistrats/
 ├─ members/
 ├─ nomination-files-table/
 ├─ observations/
-├─ official-report/
-├─ presentations/
 ├─ reports/
 ├─ sessions/
 ├─ summary/
@@ -79,9 +78,7 @@ Structure interne d'une feature (ex. `reports`) :
 src/features/reports/
 ├─ components/
 ├─ constants/
-├─ hooks/
-├─ labels/
-└─ utils/
+└─ hooks/
 ```
 
 **Critère d'appartenance** : si supprimer le domaine supprimerait le fichier, alors le
@@ -97,7 +94,9 @@ et qui ne portent pas de domaine métier à eux seuls.
 src/shared/
 ├─ components/
 ├─ context/
+├─ enums/       valeurs et libellés react-intl des énumérations
 ├─ hooks/
+├─ storybook/   utilitaires des stories
 └─ ui/
 ```
 
@@ -105,16 +104,16 @@ Deux niveaux de composants, distingués par leur **direction de dépendance** et
 risque de collision de noms :
 
 - **`shared/ui/`** : la couche feuille. Ces composants **ne dépendent de rien d'interne** : ni
-  `features/`, ni `queries/`, ni le client généré. Ils sont purement présentationnels (`Card`,
-  `DataTable`, `Breadcrumb`, les dropdowns, `combobox`, `loaders`...). C'est l'ancien
+  `features/` ni `queries/` ni le client généré. Ils sont purement présentationnels (`Card`,
+  `DataTable`, `Breadcrumb`, les dropdowns, `combobox`, `loaders`…). C'est l'ancien
   `components/shared`.
 - **`shared/components/`** : composants réutilisés qui ont le droit de **toucher un peu de
-  métier** transverse sans appartenir à un domaine précis (`UserAvatar`, `PriorityBadge`,
-  les `banners`, `LolfiMagistratLink`).
+  métier** transverse sans appartenir à un domaine précis (`PriorityBadge`, `OutcomeBadge`,
+  les `banners`, `LolfiLink`, `FileList`).
 
 L'intérêt de `ui/` n'est donc pas d'éviter des collisions. Il est d'**isoler une couche sans
 dépendance interne** : elle est testable seule et extractible dans un paquet sans entraîner le
-reste de l'application. Cette invariante est mécanique et non seulement déclarative : une règle
+reste de l'application. Cet invariant est mécanique et non seulement déclarative : une règle
 `no-restricted-imports` scopée à `shared/ui/` dans `.oxlintrc.json` suffit à interdire tout
 import de `features/`, `queries/` ou du client généré.
 
@@ -129,13 +128,16 @@ des morceaux de `features/` et `shared/` ; elle ne contient pas de logique méti
 
 ```txt
 src/pages/
+├─ accessibility/
 ├─ auth/
 ├─ documents/
 │  ├─ agenda/
 │  ├─ official-report/
 │  └─ presentations/
 ├─ error/
+├─ feedback/
 ├─ help/
+├─ magistrats/
 ├─ members/
 ├─ observations/
 ├─ reports/
@@ -157,8 +159,8 @@ affaire du **routeur**, pas de la feature.
 > On regroupe dans `pages/` mais **pas** dans `features/`. Une feature est autonome : `agenda`,
 > `official-report` et `presentations` restent à plat et **dépendent** de `features/documents/`,
 > qui détient leurs briques communes (les sélecteurs de membres). Les imbriquer ferait de
-> `documents/` un nœud hybride (feature _et_ namespace). Le groupement par arbre est l'affaire
-> du routeur, donc de `pages/`.
+> `documents/` un nœud hybride (feature _et_ namespace). Le groupement par arbre revient au
+> routeur et donc à `pages/`.
 
 ## Les dossiers techniques restent à la racine
 
@@ -167,14 +169,13 @@ couches techniques transverses, chacune un repère architectural reconnaissable 
 
 ```txt
 src/
-├─ constants/   valeurs littérales globales
 ├─ generated/   client API généré (hey-api), ne pas éditer à la main
 ├─ i18n/        internationalisation
 ├─ layout/      ossature de l'application (header...)
-├─ queries/     couche d'état asynchrone (Tanstack Query + SDK)
+├─ queries/     couche d'état asynchrone (TanStack Query + SDK)
 ├─ router.tsx   l'objet routeur (arbre des routes), rendu par main.tsx
 ├─ styles/      styles globaux + doc des couleurs DSFR
-├─ types/       définitions de types transverses
+├─ test-utils/  fabriques et utilitaires de test
 └─ utils/       fonctions pures transverses
 ```
 
@@ -228,8 +229,10 @@ de comportement**. Chaque PR suit la même procédure :
 ## Dette connue et suites
 
 - Le mouvement naturel à venir est de **pousser vers le bas** ce qui reste à la racine mais est
-  en réalité spécifique à un domaine. Les `labels/` (libellés en dur) sont à migrer vers
-  `react-intl` dans un ticket dédié.
+  en réalité spécifique à un domaine. Les libellés d'énumérations sont passés à `react-intl`
+  (`shared/enums`, `features/administration/labels`). Il reste
+  `features/transparence/labels/labels-mappers.ts`, qui concatène un libellé de transparence côté
+  client au lieu de le recevoir de l'API.
 - Certains composants `Session*` vivent dans `transparence/` (cohérent : la transparence est le
   workspace d'une session) mais sont mal nommés. Le renommage fera l'objet d'un ticket séparé,
   on ne les déplace pas au seul motif du nom.
