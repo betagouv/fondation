@@ -4,7 +4,7 @@ import { useState, type RefObject } from 'react';
 import { useDebounce } from 'use-debounce';
 
 import type { FormationEnum } from '@/shared/enums/formation.enum';
-import { capitalize } from '@/utils/string.utils';
+import { memberFullName } from '@/utils/user.utils';
 import { useMemberListQuery } from '@queries/members.queries';
 
 type MemberExclusionSelectorProps = {
@@ -59,7 +59,7 @@ export function MemberExclusionSelector({ formation, excludedMemberIdsRef }: Mem
         <div className="fr-p-4v max-h-32 overflow-y-auto">
           <Checkbox
             options={displayedMembers.map((member) => ({
-              label: `${member.lastName.toUpperCase()} ${capitalize(member.firstName.toLowerCase())}`,
+              label: memberFullName(member),
               nativeInputProps: {
                 checked: selected.has(member.id),
                 onChange: () => toggle(member),
