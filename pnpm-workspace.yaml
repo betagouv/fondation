@@ -19,7 +19,7 @@ minimumReleaseAge: 10080 # 7 days
 overrides:
   multer: 2.4.0
   node-xlsx>xlsx: '-'
-  prosemirror-model: 1.25.11
+  prosemirror-model: 1.25.12
   prosemirror-view: 1.42.4
   qs: 6.16.0
 
