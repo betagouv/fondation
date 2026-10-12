@@ -1,4 +1,5 @@
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -82,6 +83,10 @@ export class NominationFileOutcome {
 
   static commentRequired(outcome: NominationFileOutcomeEnum): boolean {
     return outcome === 'NON_VALIDATED';
+  }
+
+  static commentSeenBy(props: { comment: string | null; role: RoleEnum }): string | null {
+    return isSecretariat(props.role) ? props.comment : null;
   }
 
   static selectableOutcomes(formation: FormationEnum): SelectableNominationFileOutcome[] {

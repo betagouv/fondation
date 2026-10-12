@@ -49,6 +49,19 @@ describe('NominationFileOutcome', () => {
     expect(outcome.comment).toBeNull();
   });
 
+  describe('commentSeenBy', () => {
+    it.each(['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as const)('shows the comment to %s', (role) => {
+      expect(NominationFileOutcome.commentSeenBy({ comment: 'a comment', role })).toBe('a comment');
+    });
+
+    it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+      'hides the comment from %s',
+      (role) => {
+        expect(NominationFileOutcome.commentSeenBy({ comment: 'a comment', role })).toBeNull();
+      },
+    );
+  });
+
   describe('statusOf', () => {
     it.each(NominationFileOutcome.finalOutcomes())('considers %s as final', (outcome) => {
       expect(NominationFileOutcome.statusOf(outcome)).toBe('FINAL');
