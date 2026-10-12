@@ -32,6 +32,7 @@ const DOCS: SessionDocument[] = [
     officialReportId: null,
     officialReportReadiness: { status: 'READY' },
     outdated: false,
+    presentation: { status: 'TO_PRESENT' },
     presentationPlans: [],
     status: 'VALIDATED',
     type: 'agenda',
@@ -81,7 +82,7 @@ describe('SessionDocumentsTable', () => {
     const [agenda] = DOCS;
 
     it('should call a document never validated a draft', () => {
-      render(table([{ ...agenda!, status: 'DRAFT', validatedAt: null }]));
+      render(table([{ ...agenda!, presentation: null, status: 'DRAFT', validatedAt: null }]));
 
       expect(screen.getByText('brouillon')).toBeInTheDocument();
     });
@@ -101,6 +102,55 @@ describe('SessionDocumentsTable', () => {
         expect(screen.queryByText('validé')).not.toBeInTheDocument();
       },
     );
+  });
+
+  describe('the restitution of an agenda', () => {
+    const [agenda, officialReport] = DOCS;
+    const PRESENTED = {
+      by: { id: 'user-1', name: 'Camille Martin' },
+      date: { day: 15, month: 3, year: 2028 },
+      endTime: { hours: 10, minutes: 15, seconds: 0 },
+      status: 'PRESENTED',
+    } as const;
+
+    it('should tell a validated agenda is still to present', () => {
+      render(table([agenda!]));
+
+      expect(screen.getByText('À restituer')).toBeInTheDocument();
+      expect(screen.queryByText(/Restitué le/)).not.toBeInTheDocument();
+    });
+
+    it('should tell when and by whom an agenda was presented', () => {
+      render(table([{ ...agenda!, presentation: PRESENTED }]));
+
+      expect(screen.getByText('Restitué')).toBeInTheDocument();
+      expect(rowTexts()).toEqual([
+        expect.stringMatching(/Validé le 10\/03\/2028.*Restitué le 15\/03\/2028 à 10h15 par Camille Martin/),
+      ]);
+    });
+
+    it('should say "vous" to whoever presented the agenda', () => {
+      render(
+        table([{ ...agenda!, presentation: { ...PRESENTED, by: { id: 'me', name: 'Lucas Bernard' } } }]),
+      );
+
+      expect(rowTexts()).toEqual([expect.stringContaining('Restitué le 15/03/2028 à 10h15 par vous')]);
+    });
+
+    it('should keep only the date of a presentation whose author and ending time are unknown', () => {
+      render(table([{ ...agenda!, presentation: { ...PRESENTED, by: null, endTime: null } }]));
+
+      expect(rowTexts()).toEqual([expect.stringMatching(/Restitué le 15\/03\/2028(?! à)(?! par)/)]);
+    });
+
+    it('should not badge an agenda never validated, nor an official report', () => {
+      render(
+        table([{ ...agenda!, presentation: null, status: 'DRAFT', validatedAt: null }, officialReport!]),
+      );
+
+      expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
+      expect(screen.queryByText('Restitué')).not.toBeInTheDocument();
+    });
   });
 
   it('should date both the validation and the last change of a draft opened on it', () => {
@@ -201,6 +251,7 @@ describe('SessionDocumentsTable', () => {
           officialReportId: 'pv-1',
           officialReportReadiness: null,
           outdated: false,
+          presentation: { status: 'TO_PRESENT' },
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
@@ -218,6 +269,7 @@ describe('SessionDocumentsTable', () => {
           officialReportId: null,
           officialReportReadiness: { status: 'READY' },
           outdated: false,
+          presentation: { status: 'TO_PRESENT' },
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
@@ -301,6 +353,7 @@ describe('SessionDocumentsTable', () => {
           officialReportId: 'pv-1',
           officialReportReadiness: null,
           outdated: false,
+          presentation: { status: 'TO_PRESENT' },
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',
@@ -342,6 +395,7 @@ describe('SessionDocumentsTable', () => {
           officialReportId: null,
           officialReportReadiness: { status: 'READY' },
           outdated: true,
+          presentation: { status: 'TO_PRESENT' },
           presentationPlans: [],
           status: 'VALIDATED',
           type: 'agenda',

@@ -1091,6 +1091,64 @@ test.describe('Docs Service', () => {
     expect(atRewriting.data!.outdated).toBe(false);
   });
 
+  test('should tell a validated agenda presented once the notice holding it is', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const agendaId = agenda.data!.id;
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agendaId }],
+        chairmanId,
+        date: MEETING_DATE,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    const planId = plan.data!.id;
+    await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    await agent.docs.validatePresentationPlan({ path: { planId } });
+
+    const presentationOf = async () => {
+      const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+      const found = docs.data!.items.find(({ id }) => id === agendaId);
+      return found?.type === 'agenda' ? found.presentation : undefined;
+    };
+
+    expect(await presentationOf()).toEqual({ status: 'TO_PRESENT' });
+
+    await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
+
+    expect(await presentationOf()).toEqual({
+      by: { id: expect.any(String), name: expect.any(String) },
+      date: MEETING_DATE,
+      endTime: { hours: 10, minutes: 15, seconds: 0 },
+      status: 'PRESENTED',
+    });
+  });
+
   test('should refuse to restitute a notice nobody validated', async ({ agent, expect, registerUser }) => {
     // the notice refuses a formation whose only present member presides it
     await registerUser('MEMBRE_DU_PARQUET');

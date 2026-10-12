@@ -60,6 +60,8 @@ export class FindSessionDocsQuery {
                 time: true,
                 pdfId: true,
                 isPresented: true,
+                endTime: true,
+                presenter: { select: { firstName: true, id: true, lastName: true } },
                 chairmanFirstName: true,
                 chairmanLastName: true,
                 _count: { select: { agendas: true } },
@@ -111,6 +113,7 @@ export class FindSessionDocsQuery {
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
           outdated: versions.some((version) => version.outdated),
+          presentation: published ? presentationOf(agenda.justicePresentationPlans) : null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
           validator: published?.validator ?? null,
         },
@@ -190,6 +193,7 @@ export class FindSessionDocsQuery {
           isPresented: plan.isPresented,
           otherAgendasCount: plan._count.agendas - 1,
         })),
+        presentation: file.presentation,
         outdated: file.outdated,
         status: file.status,
         draftChangesBy: file.draftChangesBy,
@@ -263,6 +267,28 @@ export class FindSessionDocsQuery {
   }
 }
 
+/** a validated notice alone holds its agendas, so at most one presented notice holds an agenda */
+function presentationOf(
+  plans: readonly {
+    plan: {
+      date: Date;
+      endTime: Date | null;
+      isPresented: boolean;
+      presenter: { firstName: string; id: string; lastName: string } | null;
+    };
+  }[],
+) {
+  const presented = plans.find(({ plan }) => plan.isPresented)?.plan;
+  if (!presented) return { status: 'TO_PRESENT' as const };
+
+  return {
+    by: writerOf(presented.presenter),
+    date: DateOnly.fromUtcDate(presented.date).toJson(),
+    endTime: presented.endTime ? dateToTimeOnly(presented.endTime) : null,
+    status: 'PRESENTED' as const,
+  };
+}
+
 export class FoundSessionDocsDto extends createZodDto(
   z.object({
     items: z.array(
@@ -286,6 +312,19 @@ export class FoundSessionDocsDto extends createZodDto(
               otherAgendasCount: z.number(),
             }),
           ),
+          /** null while the agenda has never been validated */
+          presentation: z
+            .discriminatedUnion('status', [
+              z.object({ status: z.enum(['TO_PRESENT']) }),
+              z.object({
+                status: z.enum(['PRESENTED']),
+                by: writerSchema,
+                date: dateOnlyJsonSchema,
+                /** null on the notices presented without an ending time */
+                endTime: timeOnlySchema.nullable(),
+              }),
+            ])
+            .nullable(),
           outdated: z.boolean(),
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),

@@ -41,6 +41,7 @@ function anAgenda(
     officialReportId,
     officialReportReadiness: officialReportId ? null : { status: 'READY' },
     outdated: false,
+    presentation: { status: 'TO_PRESENT' },
     presentationPlans: [],
     status: 'VALIDATED',
     type: 'agenda',

@@ -36,6 +36,7 @@ const AGENDA: SessionDocument = {
   officialReportId: null,
   officialReportReadiness: { status: 'READY' },
   outdated: false,
+  presentation: { status: 'TO_PRESENT' },
   presentationPlans: [],
   status: 'VALIDATED',
   type: 'agenda',

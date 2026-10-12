@@ -1159,6 +1159,25 @@ export type FoundSessionDocsDto = {
             isPresented: boolean;
             otherAgendasCount: number;
         }>;
+        presentation: {
+            status: 'TO_PRESENT';
+        } | {
+            status: 'PRESENTED';
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            endTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+        } | null;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;

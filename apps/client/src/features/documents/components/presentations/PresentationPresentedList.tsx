@@ -9,17 +9,12 @@ import {
 import { FormationBadge } from '@/shared/components/formation-badge';
 import { LinkButton } from '@/shared/ui/link-button';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { timeOnlyToDate, timeOnlyToString, toFrenchHours, type PlainTimeOnly } from '@/utils/time-only.util';
+import { inFrenchHours, timeOnlyToDate } from '@/utils/time-only.util';
 import { toInitials } from '@/utils/user.utils';
 import {
   useListPresentedPlansQuery,
   useOpenJusticePresentationPlanPdfDocumentMutation,
 } from '@queries/agenda.queries';
-
-function inFrenchHours(time: PlainTimeOnly) {
-  const hoursAndMinutes = timeOnlyToString(time, 'HH:mm');
-  return hoursAndMinutes ? toFrenchHours(hoursAndMinutes) : null;
-}
 
 export function PresentationPresentedList() {
   const { formatMessage } = useIntl();

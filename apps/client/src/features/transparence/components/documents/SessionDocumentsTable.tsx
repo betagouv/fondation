@@ -12,7 +12,13 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { NewTable } from '@/shared/ui/new-table';
-import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import {
+  compareDateOnly,
+  formatDateOnly,
+  formatLongDateOnly,
+  type PlainDateOnly,
+} from '@/utils/date-only.util';
+import { inFrenchHours } from '@/utils/time-only.util';
 import { useUser } from '@queries/auth.queries';
 
 import {
@@ -75,9 +81,9 @@ function Moment(props: { at: string }) {
 function useAuthorship() {
   const { currentUserId } = useContext(SessionDocumentsTableContext);
 
-  return (at: string, by: SessionDocument['createdBy']) => ({
+  return (moment: ReactNode, by: SessionDocument['createdBy']) => ({
     author: by?.name,
-    moment: <Moment at={at} />,
+    moment,
     who: !by ? 'nobody' : by.id === currentUserId ? 'self' : 'someone',
   });
 }
@@ -109,6 +115,52 @@ function DocumentStatus(props: { doc: SessionDocument }) {
   );
 }
 
+function AgendaPresentationStatus(props: { doc: SessionDocument }) {
+  const { doc } = props;
+  if (doc.type !== 'agenda' || !doc.presentation) return null;
+
+  return doc.presentation.status === 'PRESENTED' ? (
+    <Badge as="span" className="rounded-full" noIcon severity="success" small>
+      <FormattedMessage defaultMessage="Restitué" />
+    </Badge>
+  ) : (
+    <Badge as="span" className="rounded-full" noIcon severity="new" small>
+      <FormattedMessage defaultMessage="À restituer" />
+    </Badge>
+  );
+}
+
+/** the notice date and its ending time make no instant, so neither goes through Moment */
+function AgendaPresentationTrace(props: { doc: SessionDocument }) {
+  const authorship = useAuthorship();
+  const { doc } = props;
+  if (doc.type !== 'agenda' || doc.presentation?.status !== 'PRESENTED') return null;
+
+  const { by, date, endTime } = doc.presentation;
+  const time = endTime && inFrenchHours(endTime);
+
+  return (
+    <Trace>
+      <FormattedMessage
+        defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+        values={authorship(
+          <span className="whitespace-nowrap">
+            {time ? (
+              <FormattedMessage
+                defaultMessage="{date} à {time}"
+                values={{ date: formatDateOnly(date), time }}
+              />
+            ) : (
+              formatDateOnly(date)
+            )}
+          </span>,
+          by,
+        )}
+      />
+    </Trace>
+  );
+}
+
 function OutdatedDocument(props: { state: SessionDocumentGroupState | undefined }) {
   if (props.state !== 'outdatedOfficialReport' && props.state !== 'outdatedAgenda') return null;
 
@@ -135,23 +187,25 @@ function SessionDocumentItem(props: { doc: SessionDocument }) {
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-0">{renderName?.(doc) ?? doc.name}</div>
           <DocumentStatus doc={doc} />
+          <AgendaPresentationStatus doc={doc} />
           <OutdatedDocument state={states?.get(doc.id)} />
         </div>
         {/* the file name carries no time, so two documents of the same day are told apart here */}
         <Trace>
           <FormattedMessage
             defaultMessage="Créé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-            values={authorship(doc.createdAt, doc.createdBy)}
+            values={authorship(<Moment at={doc.createdAt} />, doc.createdBy)}
           />
         </Trace>
         {doc.validatedAt && (
           <Trace>
             <FormattedMessage
               defaultMessage="Validé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-              values={authorship(doc.validatedAt, doc.validatedBy)}
+              values={authorship(<Moment at={doc.validatedAt} />, doc.validatedBy)}
             />
           </Trace>
         )}
+        <AgendaPresentationTrace doc={doc} />
         {doc.draftUpdate && (
           <Trace>
             {doc.draftUpdate.origin === 'SYSTEM' ? (
@@ -166,7 +220,7 @@ function SessionDocumentItem(props: { doc: SessionDocument }) {
             ) : (
               <FormattedMessage
                 defaultMessage="Modifié le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-                values={authorship(doc.draftUpdate.at, doc.draftUpdate.by)}
+                values={authorship(<Moment at={doc.draftUpdate.at} />, doc.draftUpdate.by)}
               />
             )}
           </Trace>
