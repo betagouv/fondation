@@ -1091,7 +1091,7 @@ test.describe('Docs Service', () => {
     expect(atRewriting.data!.outdated).toBe(false);
   });
 
-  test('should tell a validated agenda presented once the notice holding it is', async ({
+  test('should tell a validated agenda presented while the notice holding it is', async ({
     agent,
     expect,
     registerUser,
@@ -1147,6 +1147,10 @@ test.describe('Docs Service', () => {
       endTime: { hours: 10, minutes: 15, seconds: 0 },
       status: 'PRESENTED',
     });
+
+    await agent.docs.unPresentPlan({ path: { planId } });
+
+    expect(await presentationOf()).toEqual({ status: 'TO_PRESENT' });
   });
 
   test('should refuse to restitute a notice nobody validated', async ({ agent, expect, registerUser }) => {
