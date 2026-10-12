@@ -1236,7 +1236,11 @@ test.describe('Docs Service', () => {
     expect(presented.response?.status).toBe(204);
 
     const presentedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
-    expect(presentedMetadata.data!.presentation).toEqual({ at: expect.any(String), by: ready?.createdBy });
+    expect(presentedMetadata.data!.presentation).toEqual({
+      by: ready?.createdBy,
+      date: MEETING_DATE,
+      endTime: { hours: 11, minutes: 0, seconds: 0 },
+    });
 
     // presenting twice would append a second ending time to the text and its pdf
     const presentedAgain = await agent.docs.presentPlan({

@@ -1,26 +1,29 @@
 import { FormattedMessage } from 'react-intl';
 
+import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { AlertBanner } from '@/shared/ui/alert-banner';
+import type { PlainDateOnly } from '@/utils/date-only.util';
+import type { PlainTimeOnly } from '@/utils/time-only.util';
 import { useUser } from '@queries/auth.queries';
 
-type Trace = { at: string; by: { id: string; name: string } | null };
+type Writer = { id: string; name: string } | null;
+type Trace = { at: string; by: Writer };
+type Presentation = { by: Writer; date: PlainDateOnly; endTime: PlainTimeOnly | null };
 
 export function DocumentValidatedBanner(props: {
   kind: 'agenda' | 'notice' | 'officialReport';
-  presentation?: Trace | null;
+  presentation?: Presentation | null;
   validation: Trace | null;
 }) {
   const dateAndTime = useDateAndTime();
   const { user } = useUser();
   const { kind, presentation, validation } = props;
 
-  const who = (trace: Trace) => (!trace.by ? 'nobody' : trace.by.id === user?.id ? 'self' : 'someone');
-  const values = (trace: Trace) => ({
-    ...dateAndTime(trace.at),
+  const authorship = (by: Writer) => ({
     kind,
-    who: who(trace),
-    writer: trace.by?.name,
+    who: !by ? 'nobody' : by.id === user?.id ? 'self' : 'someone',
+    writer: by?.name,
   });
 
   if (!validation && !presentation) return null;
@@ -34,14 +37,17 @@ export function DocumentValidatedBanner(props: {
           {validation && (
             <FormattedMessage
               defaultMessage="{kind, select, notice {Validée} other {Validé}} le {date} à {time}{who, select, self { par vous} someone { par {writer}} other {}}"
-              values={values(validation)}
+              values={{ ...dateAndTime(validation.at), ...authorship(validation.by) }}
             />
           )}
           {validation && presentation && ' - '}
           {presentation && (
             <FormattedMessage
-              defaultMessage="{kind, select, notice {Restituée} other {Restitué}} le {date} à {time}{who, select, self { par vous} someone { par {writer}} other {}}"
-              values={values(presentation)}
+              defaultMessage="{kind, select, notice {Restituée} other {Restitué}} le {moment}{who, select, self { par vous} someone { par {writer}} other {}}"
+              values={{
+                ...authorship(presentation.by),
+                moment: <PresentationMoment date={presentation.date} endTime={presentation.endTime} />,
+              }}
             />
           )}
         </>

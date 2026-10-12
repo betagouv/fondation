@@ -5,6 +5,8 @@ import {
   DOC_SYSTEM_UPDATE_CAUSES,
   type DocSystemUpdateCause,
 } from 'src/modules/docs/shared/domain/doc-system-update-cause';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
 import { fullname } from 'src/utils/user.util';
 
 const writerSchema = z.object({ id: z.string(), name: z.string() });
@@ -70,4 +72,24 @@ export function traceOf(
   if (!at) return null;
 
   return { at: at.toISOString(), by: person ? { id: person.id, name: fullname(person) } : null };
+}
+
+/** a restitution is dated by its notice and its ending time rather than by the click, which may come later */
+export const presentationTraceSchema = z.object({
+  by: writerSchema.nullable(),
+  date: dateOnlyJsonSchema,
+  /** null on the notices presented without an ending time */
+  endTime: timeOnlySchema.nullable(),
+});
+
+export function presentationTraceOf(plan: {
+  date: Date;
+  endTime: Date | null;
+  presenter: Person;
+}): z.infer<typeof presentationTraceSchema> {
+  return {
+    by: plan.presenter ? { id: plan.presenter.id, name: fullname(plan.presenter) } : null,
+    date: DateOnly.fromUtcDate(plan.date).toJson(),
+    endTime: plan.endTime ? dateToTimeOnly(plan.endTime) : null,
+  };
 }

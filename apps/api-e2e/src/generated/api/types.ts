@@ -1162,7 +1162,6 @@ export type FoundSessionDocsDto = {
         presentation: {
             status: 'TO_PRESENT';
         } | {
-            status: 'PRESENTED';
             by: {
                 id: string;
                 name: string;
@@ -1177,6 +1176,7 @@ export type FoundSessionDocsDto = {
                 minutes: number;
                 seconds: number;
             } | null;
+            status: 'PRESENTED';
         } | null;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
@@ -1752,10 +1752,19 @@ export type DetailedPresentationPlanMetadataDto = {
         } | null;
     } | null;
     presentation: {
-        at: string;
         by: {
             id: string;
             name: string;
+        } | null;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        endTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
         } | null;
     } | null;
     isManuallyEdited: boolean;

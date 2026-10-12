@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
 import { DOC_SYSTEM_UPDATE_CAUSES } from '../../domain/doc-system-update-cause';
+import { presentationTraceOf, presentationTraceSchema } from '../document-trace';
 import { draftChangesBy, draftChangesBySchema, draftLastChange } from '../draft-changes-by';
 import {
   AgendaFinder,
@@ -281,12 +282,7 @@ function presentationOf(
   const presented = plans.find(({ plan }) => plan.isPresented)?.plan;
   if (!presented) return { status: 'TO_PRESENT' as const };
 
-  return {
-    by: writerOf(presented.presenter),
-    date: DateOnly.fromUtcDate(presented.date).toJson(),
-    endTime: presented.endTime ? dateToTimeOnly(presented.endTime) : null,
-    status: 'PRESENTED' as const,
-  };
+  return { ...presentationTraceOf(presented), status: 'PRESENTED' as const };
 }
 
 export class FoundSessionDocsDto extends createZodDto(
@@ -316,13 +312,7 @@ export class FoundSessionDocsDto extends createZodDto(
           presentation: z
             .discriminatedUnion('status', [
               z.object({ status: z.enum(['TO_PRESENT']) }),
-              z.object({
-                status: z.enum(['PRESENTED']),
-                by: writerSchema,
-                date: dateOnlyJsonSchema,
-                /** null on the notices presented without an ending time */
-                endTime: timeOnlySchema.nullable(),
-              }),
+              presentationTraceSchema.extend({ status: z.enum(['PRESENTED']) }),
             ])
             .nullable(),
           outdated: z.boolean(),
