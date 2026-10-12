@@ -79,22 +79,32 @@ export function AgendaValidation(props: {
   );
 }
 
-/** dated by the notice and its ending time rather than by the click, which may come later */
+/**
+ * a restitution is dated by its notice and its ending time rather than by the click, which may come later;
+ * the two make no instant, so neither goes through a time zone
+ */
+export function PresentationMoment(props: { date: PlainDateOnly; endTime: PlainTimeOnly | null }) {
+  const date = formatDateOnly(props.date);
+  const time = props.endTime && inFrenchHours(props.endTime);
+
+  return (
+    <span className="whitespace-nowrap">
+      {time ? <FormattedMessage defaultMessage="{date} à {time}" values={{ date, time }} /> : date}
+    </span>
+  );
+}
+
 export function PresentationRestitution(props: {
   date: PlainDateOnly;
   endTime: PlainTimeOnly | null;
   presentedBy: Writer;
 }) {
-  const date = formatDateOnly(props.date);
-  const time = props.endTime && inFrenchHours(props.endTime);
-
   return (
     <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
-      {time ? (
-        <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={{ date, time }} />
-      ) : (
-        <FormattedMessage defaultMessage="Restituée le {date}" values={{ date }} />
-      )}
+      <FormattedMessage
+        defaultMessage="Restituée le {moment}"
+        values={{ moment: <PresentationMoment date={props.date} endTime={props.endTime} /> }}
+      />
       <PresentationWriter writer={props.presentedBy} />
     </span>
   );

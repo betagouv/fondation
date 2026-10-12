@@ -9,16 +9,11 @@ import {
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { PresentationMoment } from '@/features/documents/components/presentations/PresentationAuthoring';
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { NewTable } from '@/shared/ui/new-table';
-import {
-  compareDateOnly,
-  formatDateOnly,
-  formatLongDateOnly,
-  type PlainDateOnly,
-} from '@/utils/date-only.util';
-import { inFrenchHours } from '@/utils/time-only.util';
+import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { useUser } from '@queries/auth.queries';
 
 import {
@@ -130,32 +125,18 @@ function AgendaPresentationStatus(props: { doc: SessionDocument }) {
   );
 }
 
-/** the notice date and its ending time make no instant, so neither goes through Moment */
 function AgendaPresentationTrace(props: { doc: SessionDocument }) {
   const authorship = useAuthorship();
   const { doc } = props;
   if (doc.type !== 'agenda' || doc.presentation?.status !== 'PRESENTED') return null;
 
   const { by, date, endTime } = doc.presentation;
-  const time = endTime && inFrenchHours(endTime);
 
   return (
     <Trace>
       <FormattedMessage
         defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-        values={authorship(
-          <span className="whitespace-nowrap">
-            {time ? (
-              <FormattedMessage
-                defaultMessage="{date} à {time}"
-                values={{ date: formatDateOnly(date), time }}
-              />
-            ) : (
-              formatDateOnly(date)
-            )}
-          </span>,
-          by,
-        )}
+        values={authorship(<PresentationMoment date={date} endTime={endTime} />, by)}
       />
     </Trace>
   );
