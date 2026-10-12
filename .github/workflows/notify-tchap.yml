@@ -49,8 +49,7 @@ jobs:
           package-manager-cache: false
 
       # The tags follow the staging iterations and a production release may span several of them.
-      # Production is deployed by a merge commit whose first parent is the previous production,
-      # so what the merge brought is exactly what got deployed
+      # Production moves by one commit per release, a merge or a squash, whose first parent is the previous production
       - shell: bash
         id: changelog
         if: ${{ inputs.result == 'success' }}
@@ -60,7 +59,6 @@ jobs:
           tags_previous: ${{ inputs.tags_previous }}
         run: |
           if [[ "$environment" == 'production' ]]; then
-            git rev-parse --verify --quiet 'HEAD^2' > /dev/null || { echo 'production is not on a merge commit' >&2; exit 1; }
             head='HEAD'
             previous='HEAD^1'
           else
