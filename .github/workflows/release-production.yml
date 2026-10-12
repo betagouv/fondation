@@ -18,3 +18,15 @@ jobs:
       SCALINGO_SSH_KEY: ${{ secrets.SCALINGO_SSH_KEY }}
     with:
       environment: production
+
+  notify:
+    needs: [release]
+    if: ${{ always() && needs.release.result != 'skipped' }}
+    uses: ./.github/workflows/notify-tchap.yml
+    secrets:
+      TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
+    with:
+      environment: production
+      result: ${{ needs.release.result }}
+      tags_current: ${{ needs.release.outputs.tags_current }}
+      tags_previous: ${{ needs.release.outputs.tags_previous }}
