@@ -9,8 +9,8 @@ import {
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { PresentationMoment } from '@/features/documents/components/presentations/PresentationAuthoring';
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
+import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { NewTable } from '@/shared/ui/new-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';

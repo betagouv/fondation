@@ -1,10 +1,11 @@
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
+import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
-import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import type { PlainDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { inFrenchHours, type PlainTimeOnly } from '@/utils/time-only.util';
+import type { PlainTimeOnly } from '@/utils/time-only.util';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -75,21 +76,6 @@ export function AgendaValidation(props: {
           <PresentationWriter writer={createdBy} />
         </>
       )}
-    </span>
-  );
-}
-
-/**
- * a restitution is dated by its notice and its ending time rather than by the click, which may come later;
- * the two make no instant, so neither goes through a time zone
- */
-export function PresentationMoment(props: { date: PlainDateOnly; endTime: PlainTimeOnly | null }) {
-  const date = formatDateOnly(props.date);
-  const time = props.endTime && inFrenchHours(props.endTime);
-
-  return (
-    <span className="whitespace-nowrap">
-      {time ? <FormattedMessage defaultMessage="{date} à {time}" values={{ date, time }} /> : date}
     </span>
   );
 }
