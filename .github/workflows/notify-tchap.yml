@@ -1,0 +1,119 @@
+name: 'Notify Tchap'
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "'staging' or 'production'"
+        required: true
+        type: string
+      result:
+        description: 'the result of the release job'
+        required: true
+        type: string
+      tags_current:
+        description: 'the deployed tag'
+        required: false
+        type: string
+      tags_previous:
+        description: 'the tag deployed before it'
+        required: false
+        type: string
+
+    secrets:
+      TCHAP_ACCESS_TOKEN:
+        required: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    env:
+      TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
+      TCHAP_HOMESERVER_URL: ${{ vars.TCHAP_HOMESERVER_URL }}
+      TCHAP_ROOM_ID: ${{ vars.TCHAP_ROOM_ID }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        if: ${{ inputs.result == 'success' }}
+        with:
+          persist-credentials: false
+          fetch-tags: true
+          fetch-depth: 0
+
+      - name: Use Node.js
+        if: ${{ inputs.result == 'success' }}
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24.12.0'
+          package-manager-cache: false
+
+      # The tags follow the staging iterations and a production release may span several of them.
+      # Production moves by one commit per release, a merge or a squash, whose first parent is the previous production
+      - shell: bash
+        id: changelog
+        if: ${{ inputs.result == 'success' }}
+        env:
+          environment: ${{ inputs.environment }}
+          tags_current: ${{ inputs.tags_current }}
+          tags_previous: ${{ inputs.tags_previous }}
+        run: |
+          if [[ "$environment" == 'production' ]]; then
+            head='HEAD'
+            previous='HEAD^1'
+          else
+            head="$tags_current"
+            previous="$tags_previous"
+          fi
+          {
+            echo 'markdown<<EOF'
+            node scripts/changelog "$head" "$previous"
+            echo EOF
+            echo 'html<<EOF'
+            node scripts/changelog "$head" "$previous" --html
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Outputs changelog
+        if: ${{ inputs.result == 'success' }}
+        env:
+          CHANGELOG: ${{ steps.changelog.outputs.markdown }}
+        run: echo "$CHANGELOG" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Tchap
+        if: ${{ always() && env.TCHAP_ACCESS_TOKEN != '' }}
+        continue-on-error: true
+        env:
+          CHANGELOG: ${{ steps.changelog.outputs.markdown }}
+          CHANGELOG_HTML: ${{ steps.changelog.outputs.html }}
+          DEPLOYER: ${{ github.actor }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          RESULT: ${{ inputs.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSION: ${{ inputs.tags_current }}
+        run: |
+          if [[ "$RESULT" == 'success' ]]; then
+            # A Matrix event is refused beyond 64 KB, the full changelog stays in the run summary
+            if (( $(printf '%s%s' "$CHANGELOG" "$CHANGELOG_HTML" | wc -c) > 50000 )); then
+              CHANGELOG="Changelog complet : $RUN_URL"
+              CHANGELOG_HTML="<p><a href=\"$RUN_URL\">Changelog complet</a></p>"
+            fi
+            message=$(jq -n --arg title "Déploiement $ENVIRONMENT $VERSION par $DEPLOYER" --arg changelog "$CHANGELOG" --arg html "$CHANGELOG_HTML" '{
+              body: ([$title, $changelog] | map(select(length > 0)) | join("\n\n")),
+              format: "org.matrix.custom.html",
+              formatted_body: "<strong>\($title)</strong>\($html)",
+              msgtype: "m.text"
+            }')
+          else
+            message=$(jq -n --arg title "🚨 Déploiement $ENVIRONMENT${VERSION:+ $VERSION} en échec ($RESULT)" --arg url "$RUN_URL" '{
+              body: "\($title)\n\n\($url)",
+              format: "org.matrix.custom.html",
+              formatted_body: "<strong>\($title)</strong><br><br><a href=\"\($url)\">\($url)</a>",
+              msgtype: "m.text"
+            }')
+          fi
+
+          room=$(jq -rn --arg id "$TCHAP_ROOM_ID" '$id | @uri')
+          echo "$message" | curl --fail-with-body --silent --show-error -X PUT \
+            -H "Authorization: Bearer $TCHAP_ACCESS_TOKEN" -H 'Content-type: application/json' \
+            -d @- "$TCHAP_HOMESERVER_URL/_matrix/client/v3/rooms/$room/send/m.room.message/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
