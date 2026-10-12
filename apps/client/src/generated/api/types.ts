@@ -1698,7 +1698,6 @@ export type ListedPresentedPlansDto = {
             id: string;
             name: string;
         } | null;
-        presentedAt: string | null;
         presentedBy: {
             id: string;
             name: string;

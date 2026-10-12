@@ -2,7 +2,9 @@ import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { inFrenchHours, type PlainTimeOnly } from '@/utils/time-only.util';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -77,20 +79,23 @@ export function AgendaValidation(props: {
   );
 }
 
-export function PresentationRestitution(props: { presentedAt: string | null; presentedBy: Writer }) {
-  const dateAndTime = useDateAndTime();
-  const { presentedAt, presentedBy } = props;
+/** dated by the notice and its ending time rather than by the click, which may come later */
+export function PresentationRestitution(props: {
+  date: PlainDateOnly;
+  endTime: PlainTimeOnly | null;
+  presentedBy: Writer;
+}) {
+  const date = formatDateOnly(props.date);
+  const time = props.endTime && inFrenchHours(props.endTime);
 
   return (
     <span className="fr-text--sm fr-mb-0 fr-ml-2v inline-block text-(--text-mention-grey)">
-      {presentedAt ? (
-        <>
-          <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={dateAndTime(presentedAt)} />
-          <PresentationWriter writer={presentedBy} />
-        </>
+      {time ? (
+        <FormattedMessage defaultMessage="Restituée le {date} à {time}" values={{ date, time }} />
       ) : (
-        <FormattedMessage defaultMessage="Restituée à une date inconnue" />
+        <FormattedMessage defaultMessage="Restituée le {date}" values={{ date }} />
       )}
+      <PresentationWriter writer={props.presentedBy} />
     </span>
   );
 }

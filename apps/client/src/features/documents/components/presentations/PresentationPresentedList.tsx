@@ -35,7 +35,8 @@ export function PresentationPresentedList() {
     },
     outdated: item.outdated,
     restitution: {
-      presentedAt: item.presentedAt,
+      date: item.date,
+      endTime: item.endTime,
       presentedBy: item.presentedBy,
     },
     time: timeOnlyToDate(item.time),
