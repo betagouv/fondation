@@ -1,14 +1,13 @@
-import { Magistrat } from 'shared-models';
-
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { assertNever } from 'src/utils/assert-never';
 
-export function formationToMemberRole(
-  formation?: Magistrat.Formation,
-): Magistrat.Formation[keyof Magistrat.Formation][] {
+import { FormationEnum } from './formation.enum';
+
+export function formationToMemberRole(formation?: FormationEnum): RoleEnum[] {
   switch (formation) {
-    case Magistrat.Formation.PARQUET:
+    case 'PARQUET':
       return ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET'];
-    case Magistrat.Formation.SIEGE:
+    case 'SIEGE':
       return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE'];
     case undefined:
       return ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE', 'MEMBRE_DU_PARQUET'];

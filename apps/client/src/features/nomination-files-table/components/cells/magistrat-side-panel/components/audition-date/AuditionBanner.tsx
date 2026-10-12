@@ -1,0 +1,61 @@
+import { FormattedMessage } from 'react-intl';
+
+import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { AlertBanner, AlertBannerAction } from '@/shared/ui/alert-banner';
+import type { PlainDateOnly } from '@/utils/date-only.util';
+import { isPastSchedule, type PlainTimeOnly } from '@/utils/time-only.util';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+
+import { AUDITION_SECTION_ID } from './AuditionDate';
+import { AUDITION_DATE_INPUT_ID } from './AuditionDateForm';
+
+const BANNER_LAYOUT = '-mx-8 px-8 py-4';
+
+export function AuditionBanner(props: {
+  auditionDate: PlainDateOnly | null;
+  auditionMissing: boolean;
+  auditionRequirement: SessionNominationFile['auditionRequirement'];
+  auditionTime: PlainTimeOnly | null;
+  editable: boolean;
+}) {
+  const { auditionDate, auditionMissing, auditionTime, editable } = props;
+
+  const goToDateField = () => {
+    document.getElementById(AUDITION_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(AUDITION_DATE_INPUT_ID)?.focus({ preventScroll: true });
+  };
+
+  if (auditionMissing) {
+    // a missing audition can always be scheduled, so only the secretariat cannot edit it
+    if (!editable) return <AuditionAnnouncedBanner className={BANNER_LAYOUT} />;
+
+    return (
+      <AlertBanner
+        className={BANNER_LAYOUT}
+        icon="fr-icon-warning-fill"
+        message={
+          props.auditionRequirement === 'POSITION' ? (
+            <FormattedMessage defaultMessage="Une audition est à prévoir pour ce poste" />
+          ) : (
+            <FormattedMessage defaultMessage="Magistrat à convoquer en audition" />
+          )
+        }
+        tone="warning"
+      >
+        <AlertBannerAction onClick={goToDateField}>
+          <FormattedMessage defaultMessage="Programmer" />
+        </AlertBannerAction>
+      </AlertBanner>
+    );
+  }
+
+  return (
+    <AuditionScheduledBanner className={BANNER_LAYOUT} date={auditionDate} time={auditionTime}>
+      {editable && !isPastSchedule(auditionDate, auditionTime) && (
+        <AlertBannerAction onClick={goToDateField}>
+          <FormattedMessage defaultMessage="Modifier" />
+        </AlertBannerAction>
+      )}
+    </AuditionScheduledBanner>
+  );
+}

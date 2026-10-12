@@ -1,12 +1,12 @@
-import { NominationFile, ReportFileUsage } from 'shared-models';
-
+import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import { Id, makeId } from 'src/utils/id';
 
 export class ReportFilesAttached {
   constructor(
     readonly id: string,
     readonly reporterId: string,
-    readonly usage: ReportFileUsage,
+    readonly usage: ReportFileUsageEnum,
     readonly files: readonly { id: string }[],
   ) {}
 }
@@ -23,7 +23,7 @@ export class ReportUpdated {
   constructor(
     readonly id: string,
     readonly data: {
-      status: NominationFile.ReportState | undefined;
+      status: ReportStateEnum | undefined;
       comment: string | undefined;
     },
   ) {}
@@ -40,30 +40,15 @@ export class ReportRuleValidationUpdated {
 type ReportEvent = ReportFilesAttached | ReportFilesDetached | ReportUpdated | ReportRuleValidationUpdated;
 
 export class Report {
-  private constructor(
-    readonly id: Id<'ReportId'>,
-    readonly sessionName: string,
-    readonly nomAspirant: string,
-    readonly reporterFullName: string,
-  ) {}
+  private constructor(readonly id: Id<'ReportId'>) {}
 
-  static from(props: {
-    id: string;
-    sessionName: string;
-    nomAspirant: string;
-    reporterFullName: string;
-  }): Report {
-    return new Report(
-      makeId('ReportId', props.id),
-      props.sessionName,
-      props.nomAspirant,
-      props.reporterFullName,
-    );
+  static from(props: { id: string }): Report {
+    return new Report(makeId('ReportId', props.id));
   }
 
   attachFiles(command: {
     reporterId: string;
-    fileUsage: ReportFileUsage;
+    fileUsage: ReportFileUsageEnum;
     files: readonly { id: string }[];
   }): void {
     if (command.files.length === 0) return;
@@ -81,7 +66,7 @@ export class Report {
 
   update(command: {
     data: {
-      status: NominationFile.ReportState | undefined;
+      status: ReportStateEnum | undefined;
       comment: string | undefined;
     };
   }) {

@@ -1,0 +1,122 @@
+import { Module, forwardRef } from '@nestjs/common';
+
+import { SummaryModule } from '../summaries/summary.module';
+import { DocsModule } from 'src/modules/docs/docs.module';
+import { IngestModule } from 'src/modules/ingest/ingest.module';
+import { MagistratModule } from 'src/modules/magistrat/magistrat.module';
+import { MembersModule } from 'src/modules/members';
+import { ObservationModule } from 'src/modules/observation/observation.module';
+import { ReportModule } from 'src/modules/report/report.module';
+
+import { ArchivedSessionsController } from './archived-sessions.controller';
+import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';
+import { AuditionPublicationFinder } from './infrastructure/finders/audition-publication.finder';
+import { AuditionsSeenFinder } from './infrastructure/finders/auditions-seen.finder';
+import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectations.finder';
+import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
+import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
+import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
+import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
+import { NominationFileOutcomesFinder } from './infrastructure/finders/nomination-file-outcomes.finder';
+import { NominationFilesProgressFinder } from './infrastructure/finders/nomination-files-progress.finder';
+import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
+import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
+import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
+import { SessionReportedFilesFinder } from './infrastructure/finders/session-reported-files.finder';
+import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
+import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
+import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
+import { UnaffectedFilesFinder } from './infrastructure/finders/unaffected-files.finder';
+import { CountNominationFilesByStatusQuery } from './infrastructure/queries/count-nomination-files-by-status.query';
+import { CountSessionAuditionsQuery } from './infrastructure/queries/count-session-auditions.query';
+import { CountUnaffectedFilesQuery } from './infrastructure/queries/count-unaffected-files.query';
+import { CountUsersNewSessionsQuery } from './infrastructure/queries/count-users-new-sessions.query';
+import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-affectation-history.query';
+import { DetailAuditionsPublicationQuery } from './infrastructure/queries/detail-auditions-publication.query';
+import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
+import { DetailNominationFileAuditionHistoryQuery } from './infrastructure/queries/detail-nomination-file-audition-history.query';
+import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
+import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
+import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
+import { DetailSessionCommentQuery } from './infrastructure/queries/detail-session-comment.query';
+import { GetLolfiMagistratUrlQuery } from './infrastructure/queries/get-lolfi-magistrat-url.query';
+import { InternalFindDocsNominationFilesQuery } from './infrastructure/queries/internal-find-docs-nomination-files.query';
+import { InternalListMagistratNominationFilesQuery } from './infrastructure/queries/internal-list-magistrat-nomination-files.query';
+import { ListArchivedNominationSessionsQuery } from './infrastructure/queries/list-archived-nomination-sessions.query';
+import { ListCurrentlyAffectedReportersQuery } from './infrastructure/queries/list-currently-affected-reporters.query';
+import { ListMemberSessionsQuery } from './infrastructure/queries/list-member-sessions.query';
+import { ListMissingEvaluationsAsExcelQuery } from './infrastructure/queries/list-missing-evaluations-as-excel.query';
+import { ListNominationFileAttachmentsQuery } from './infrastructure/queries/list-nomination-file-attachments.query';
+import { ListNominationFilesAsExcelQuery } from './infrastructure/queries/list-nomination-files-as-excel.query';
+import { ListNominationFilesQuery } from './infrastructure/queries/list-nomination-files.query';
+import { ListNominationSessionAttachmentsQuery } from './infrastructure/queries/list-nomination-session-attachments.query';
+import { ListNominationSessionsQuery } from './infrastructure/queries/list-nomination-sessions.query';
+import { ListSessionAuditionsAsExcelQuery } from './infrastructure/queries/list-session-auditions-as-excel.query';
+import { ListSessionAuditionsQuery } from './infrastructure/queries/list-session-auditions.query';
+import { SessionTransparenceRepository } from './infrastructure/repositories/session-transparence.repository';
+import { TransparenceService } from './infrastructure/transparence.service';
+import { MemberSessionsController } from './member-sessions.controller';
+import { SessionController } from './transparence.controller';
+
+@Module({
+  controllers: [ArchivedSessionsController, MemberSessionsController, SessionController],
+  exports: [TransparenceService, SummaryModule],
+  imports: [
+    SummaryModule,
+    MembersModule,
+    forwardRef(() => IngestModule),
+    forwardRef(() => DocsModule),
+    MagistratModule,
+    forwardRef(() => ObservationModule),
+    forwardRef(() => ReportModule),
+  ],
+  providers: [
+    AffectationVersionFinder,
+    AuditionPublicationFinder,
+    AuditionsSeenFinder,
+    AutoAffectationsFinder,
+    CountNominationFilesByStatusQuery,
+    CountSessionAuditionsQuery,
+    CountUnaffectedFilesQuery,
+    CountUsersNewSessionsQuery,
+    DetailNominationFileAttachmentQuery,
+    DetailAffectationHistoryQuery,
+    DetailAuditionsPublicationQuery,
+    DetailNominationFileAuditionHistoryQuery,
+    DetailNominationSessionAffectationVersionQuery,
+    DetailNominationSessionAttachmentQuery,
+    DetailNominationSessionQuery,
+    DetailSessionCommentQuery,
+    GetLolfiMagistratUrlQuery,
+    HydratedNominationFilesFinder,
+    InternalFindDocsNominationFilesQuery,
+    InternalListMagistratNominationFilesQuery,
+    ListMemberSessionsQuery,
+    ListCurrentlyAffectedReportersQuery,
+    ListNominationFileAttachmentsQuery,
+    ListMissingEvaluationsAsExcelQuery,
+    ListSessionAuditionsAsExcelQuery,
+    ListSessionAuditionsQuery,
+    ListNominationFilesAsExcelQuery,
+    ListNominationFilesQuery,
+    ListNominationSessionAttachmentsQuery,
+    ListNominationSessionsQuery,
+    LolfiNominationSessionFinder,
+    LolfiTransparenceFilesFinder,
+    NominationFileJurisdictionsFinder,
+    ListArchivedNominationSessionsQuery,
+    NominationFileOutcomesFinder,
+    NominationFilesProgressFinder,
+    NominationSessionFinder,
+    ReportedSessionsFinder,
+    SessionReportedFilesFinder,
+    ReportersAffectationFinder,
+    SessionAuditionsFinder,
+    SessionTransparenceRepository,
+    SynchronisedLolfiSessionsFinder,
+    TransparenceFilesFinder,
+    TransparenceService,
+    UnaffectedFilesFinder,
+  ],
+})
+export class TransparenceModule {}

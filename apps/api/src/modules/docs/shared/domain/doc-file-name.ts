@@ -1,0 +1,33 @@
+import { format } from 'date-fns';
+
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { TypeDeSaisineEnum, TypeDeSaisineEnumLabels } from 'src/modules/shared/type-de-saisine.enum';
+import { DateOnly } from 'src/utils/date-only';
+import { initials } from 'src/utils/user.util';
+
+export function docFileName(file: {
+  type: 'AGENDA' | 'OFFICIAL_REPORT' | 'PRESENTATION_PLAN';
+  typeDeSaisine: TypeDeSaisineEnum;
+  chairman: { firstName: string; lastName: string };
+  sessionName: string | null;
+  formation: 'SIEGE' | 'PARQUET' | FormationEnum | null;
+  date: DateOnly;
+}): string {
+  const docType = file.type === 'AGENDA' ? 'ODJ' : file.type === 'OFFICIAL_REPORT' ? 'PV' : 'NDR';
+
+  const date = format(file.date.toLocalStartOfDay(), 'dd-MM-yyyy');
+  const formationLabel = file.formation ? (file.formation === 'SIEGE' ? 'Siège' : 'Parquet') : null;
+  const firstLetters = initials(file.chairman);
+  const typeDeSaisineLabel = TypeDeSaisineEnumLabels.TRANSPARENCE_GDS;
+  const sessionName = file.sessionName
+    ? file.typeDeSaisine === 'TRANSPARENCE_GDS'
+      ? file.sessionName.replace(/^transparence\b/i, '').trim()
+      : file.sessionName
+    : null;
+
+  return (
+    [docType, date, sessionName ? `${typeDeSaisineLabel} ${sessionName}` : null, firstLetters, formationLabel]
+      .filter(Boolean)
+      .join(' - ') + '.pdf'
+  );
+}

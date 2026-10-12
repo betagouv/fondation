@@ -1,11 +1,11 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Magistrat } from 'shared-models';
-
 import { MemberTitleEnum } from '../domain/member-enums';
-import { Prisma } from 'src/generated/prisma/client';
 import { Pagination } from 'src/modules/framework/pagination';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 
+import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import {
@@ -27,6 +27,7 @@ export class MembersService {
     private readonly internalFindMembersByFullName: InternalFindMembersByFullNameQuery,
     private readonly internalGetMemberQuery: InternalGetMemberQuery,
     private readonly internalFindMembersByFormationQuery: InternalFindMembersByFormationQuery,
+    private readonly excludedJurisdictionsFinder: ExcludedJurisdictionsFinder,
   ) {}
 
   listMembers(query: {
@@ -43,18 +44,21 @@ export class MembersService {
     return this.detailsMemberQuery.handle(query);
   }
 
+  @Transactional()
   async excludeJurisdictions(command: { userId: string; jurisdictionIds: readonly string[] }) {
     const member = await this.memberRepository.findWithJurisdictions(command);
     member.excludeJurisdictions(command.jurisdictionIds);
     await this.memberRepository.persist(member);
   }
 
+  @Transactional()
   async updateDisplayTitle(command: { userId: string; displayTitle: string | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateDisplayTitle(command.displayTitle);
     await this.memberRepository.persist(member);
   }
 
+  @Transactional()
   async updateTitle(command: { userId: string; title: MemberTitleEnum | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateTitle(command.title);
@@ -64,30 +68,33 @@ export class MembersService {
   /** @internal */
   findMembers(query: {
     ids: readonly string[] | undefined;
-    formation: Magistrat.Formation | undefined;
-    tx?: Prisma.TransactionClient;
+    formation: FormationEnum | undefined;
   }): Promise<string[]> {
     return this.internalFindMembersQuery.handle(query);
   }
 
   /** @internal */
   findMembersByFullName(query: {
-    formation: Magistrat.Formation | undefined;
+    formation: FormationEnum | undefined;
     fullNames: readonly string[];
   }): Promise<{ fullName: string; id: string; firstName: string; lastName: string }[]> {
     return this.internalFindMembersByFullName.handle(query);
   }
 
   /** @internal */
-  internalGetMember(query: { id: string; tx?: Prisma.TransactionClient }): Promise<InternalMemberDto> {
+  internalFindExcludedJurisdictions(query: {
+    memberIds: readonly string[];
+  }): Promise<Map<string, Set<string>>> {
+    return this.excludedJurisdictionsFinder.find(query);
+  }
+
+  /** @internal */
+  internalGetMember(query: { id: string }): Promise<InternalMemberDto> {
     return this.internalGetMemberQuery.handle(query);
   }
 
   /** @internal */
-  internalFindMembersByFormation(query: {
-    formation: Magistrat.Formation;
-    tx?: Prisma.TransactionClient;
-  }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByFormation(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByFormationQuery.handle(query);
   }
 }

@@ -1,0 +1,203 @@
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseBoolPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  StreamableFile,
+  UseInterceptors,
+  UsePipes,
+} from '@nestjs/common';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
+
+import { FILE_MIME_TYPES } from 'src/modules/framework/files';
+import { ParseBigIntPipe } from 'src/modules/framework/pipes';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+
+import { AgendasService } from './agendas.service';
+import {
+  CreatedAgendaDto,
+  CreateOrUpdateAgendaDto,
+  EditAgendaFileBlockDto,
+  UpdateAgendaFilesDto,
+  UpdateAgendaMetadataDto,
+} from './infrastructure/agendas.dto';
+import { AgendasFilter } from './infrastructure/agendas.filter';
+import { DetailedAgendaDocumentBlocksDto } from './infrastructure/queries/details-agenda-document-blocks.query';
+import { DetailedAgendaFilesDto } from './infrastructure/queries/details-agenda-files.query';
+import { DetailedAgendaMetadata } from './infrastructure/queries/details-agenda-metadata.query';
+import { DetailedSessionAgenda } from './infrastructure/queries/details-session-agenda.query';
+
+@ApiTags('Docs')
+@Controller('/api/docs/v1')
+@UseInterceptors(AgendasFilter)
+export class AgendasController {
+  constructor(private readonly agendas: AgendasService) {}
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Post('/sessions/:sessionId/agendas')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ type: CreatedAgendaDto, status: HttpStatus.CREATED })
+  createAgenda(
+    @AuthedUser() authUser: { id: string },
+    @Param('sessionId') sessionId: string,
+    @Body() body: CreateOrUpdateAgendaDto,
+  ): Promise<CreatedAgendaDto> {
+    return this.agendas.createAgenda({
+      sessionId,
+      date: body.date,
+      authorId: authUser.id,
+      chairmanId: body.chairmanId,
+      nominationFileIds: body.nominationFileIds,
+      sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/agendas/:agendaId/metadata')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgendaMetadata(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: UpdateAgendaMetadataDto,
+  ): Promise<void> {
+    return this.agendas.updateAgendaMetadata({
+      agendaId,
+      date: body.date,
+      authorId: authUser.id,
+      chairmanId: body.chairmanId,
+      sessionMeetingDate: body.sessionMeetingDate,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/agendas/:agendaId/files')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateAgendaFiles(
+    @Param('agendaId') agendaId: string,
+    @AuthedUser() authUser: { id: string },
+    @Body() body: UpdateAgendaFilesDto,
+  ): Promise<void> {
+    return this.agendas.updateAgendaFiles({
+      agendaId,
+      authorId: authUser.id,
+      nominationFileIds: body.nominationFileIds,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/sessions/:sessionId/agendas/:agendaId')
+  @ZodResponse({ type: DetailedSessionAgenda, status: HttpStatus.OK })
+  detailsSessionAgenda(
+    @Param('sessionId') sessionId: string,
+    @Param('agendaId') agendaId: string,
+  ): Promise<DetailedSessionAgenda> {
+    return this.agendas.detailsSessionAgenda({ sessionId, agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId.html')
+  @ApiProduces('text/html')
+  @ApiOkResponse({ content: { 'text/html': {} } })
+  @Header('content-type', 'text/html')
+  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
+  generateAgendaHtml(
+    @Param('agendaId') agendaId: string,
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
+    forceNew: boolean,
+  ): Promise<string> {
+    return this.agendas.getOrCreateAgendaDocument({ id: agendaId, forceNew });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId.pdf')
+  @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
+  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
+  generateAgendaPdf(
+    @Param('agendaId') agendaId: string,
+    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
+    forceNew: boolean,
+  ): Promise<StreamableFile> {
+    return this.agendas.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaMetadata })
+  detailsAgendaMetadata(@Param('agendaId') agendaId: string): Promise<DetailedAgendaMetadata> {
+    return this.agendas.detailsAgendaMetadata({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId/files')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaFilesDto })
+  detailsAgendaFiles(@Param('agendaId') agendaId: string): Promise<DetailedAgendaFilesDto> {
+    return this.agendas.detailsAgendaFiles({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Get('/agendas/:agendaId/blocks')
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAgendaDocumentBlocksDto })
+  detailsAgendaDocumentBlocks(@Param('agendaId') agendaId: string): Promise<DetailedAgendaDocumentBlocksDto> {
+    return this.agendas.detailsAgendaDocumentBlocks({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/agendas/:agendaId/blocks/files/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  editAgendaFileBlock(
+    @AuthedUser() authUser: { id: string },
+    @Param('agendaId') agendaId: string,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+    @Body() { html, outdated }: EditAgendaFileBlockDto,
+  ): Promise<void> {
+    return this.agendas.editAgendaFileBlock({ agendaId, authorId: authUser.id, fileId, html, outdated });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/blocks/files/:fileId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  resetAgendaFileBlock(
+    @AuthedUser() authUser: { id: string },
+    @Param('agendaId') agendaId: string,
+    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+  ): Promise<void> {
+    return this.agendas.resetAgendaFileBlock({ agendaId, authorId: authUser.id, fileId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Post('/agendas/:agendaId/validation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  validateAgenda(@AuthedUser() authUser: { id: string }, @Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.validateAgenda({ agendaId, authorId: authUser.id });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId/draft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  discardAgendaDraft(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.discardAgendaDraft({ agendaId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/agendas/:agendaId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteAgenda(@Param('agendaId') agendaId: string): Promise<void> {
+    return this.agendas.deleteAgenda({ agendaId });
+  }
+}

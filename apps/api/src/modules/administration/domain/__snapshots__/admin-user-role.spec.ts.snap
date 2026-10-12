@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`AdminUserRole handle all possible combinations without throwing 1`] = `
+exports[`AdminUserRole > handle all possible combinations without throwing 1`] = `
 [
   {
     "duty": "PRESIDENT",
@@ -1105,7 +1105,7 @@ exports[`AdminUserRole handle all possible combinations without throwing 1`] = `
 ]
 `;
 
-exports[`AdminUserRole should always retitle in the same way 1`] = `
+exports[`AdminUserRole > should always retitle in the same way 1`] = `
 [
   {
     "duty": "PRESIDENT",

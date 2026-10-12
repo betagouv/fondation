@@ -1,7 +1,6 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import { SessionModule } from '../session/session.module';
-
+import { ExcludedJurisdictionsFinder } from './infrastructure/finders/excluded-jurisdictions.finder';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -12,15 +11,17 @@ import { InternalFindMembersQuery } from './infrastructure/queries/internal-find
 import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-member.query';
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
+import { SearchMagistratAuthorizationQuery } from './infrastructure/queries/search-magistrat-authorization.query';
 import { JurisdictionsController } from './jurisdictions.controller';
+import { MagistratPublicController } from './magistrat.public.controller';
 import { MembersController } from './members.controller';
 
 @Module({
-  imports: [forwardRef(() => SessionModule)],
-  controllers: [MembersController, JurisdictionsController],
+  controllers: [MembersController, JurisdictionsController, MagistratPublicController],
   exports: [MembersService],
   providers: [
     DetailsMemberQuery,
+    ExcludedJurisdictionsFinder,
     InternalFindMembersByFormationQuery,
     InternalFindMembersByFullNameQuery,
     InternalFindMembersQuery,
@@ -30,6 +31,7 @@ import { MembersController } from './members.controller';
     MemberRepository,
     MembersService,
     SearchJurisdictionsQuery,
+    SearchMagistratAuthorizationQuery,
   ],
 })
 export class MembersModule {}

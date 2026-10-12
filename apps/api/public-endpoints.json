@@ -1,0 +1,16 @@
+{
+  "endpoints": [
+    {
+      "operation": "callback",
+      "reason": "openid auth"
+    },
+    {
+      "operation": "listOpenIdProviders",
+      "reason": "openid auth"
+    },
+    {
+      "operation": "prepareOpenIdRequest",
+      "reason": "openid auth"
+    }
+  ]
+}

@@ -1,48 +1,52 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { PrioriteEnum, ReportStatusEnum } from '@/types/enums.types';
 import * as $api from '@api/sdk';
 import type {
   DetailedMemberDto,
+  DetailedSummaryDto,
   ListedMemberSessionsDto,
   ListMembersData,
-  PaginatedNominationFiles,
+  UpdateAuditionDateDto,
+  UpdateAuditionRequestDto,
+  UpdateMissingEvaluationCommentDto,
+  UpdateMissingEvaluationDto,
 } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
-import { sessionKeys } from './nomination-sessions.queries';
+import { auditionKeys } from './auditions.queries';
+import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
+import { summaryKeys } from './summary.queries';
+
+export type ListMembersOptions = {
+  formations?: NonNullable<ListMembersData['query']>['formations'];
+  pagination?: { pageIndex: number; pageSize: number };
+  search?: string;
+  sorting?: { id: string; desc: boolean }[];
+};
 
 export const memberKeys = {
-  listMembers: (props: { page?: number; limit?: number; formations?: string[] }) =>
-    ['listMembers', props] as const,
+  allListMemberSessionReports: () => ['listMemberSessionReports'] as const,
+
+  allListedMembers: () => ['listMembers'] as const,
 
   detailsMember: (props: { userId: string | undefined }) => ['detailsMember', props.userId] as const,
 
   listMemberGdsSessions: (props: { userId: string | undefined }) =>
     ['listMemberGdsSessions', props.userId] as const,
 
-  detailMemberGdsSession: (props: {
-    userId: string | undefined;
-    sessionId: string | undefined;
-    [k: string]: unknown;
-  }) => {
-    const { userId, sessionId, ...rest } = props;
-    return ['detailMemberGdsSession', userId, sessionId, rest] as const;
-  },
+  listMemberSessionReports: (props: { sessionId: string | undefined; userId: string | undefined }) =>
+    ['listMemberSessionReports', props.userId, props.sessionId] as const,
+
+  listMembers: (props: ListMembersOptions) => ['listMembers', props] as const,
 };
 
-export const useMemberListQuery = (
-  options: {
-    search?: string;
-    formations?: NonNullable<ListMembersData['query']>['formations'];
-    sorting?: { id: string; desc: boolean }[];
-    pagination?: { pageIndex: number; pageSize: number };
-  } = {},
-) =>
+export const useMemberListQuery = ({
+  enabled,
+  ...options
+}: ListMembersOptions & { enabled?: boolean } = {}) =>
   useQuery({
-    staleTime: 1_000,
+    enabled,
     placeholderData: (prev) => prev,
-    queryKey: memberKeys.listMembers(options),
     queryFn: () => {
       let page, limit;
       if (options.pagination) {
@@ -60,24 +64,26 @@ export const useMemberListQuery = (
       return $api.members
         .listMembers({
           query: {
-            page,
+            formations: options.formations ?? [],
             limit,
+            page,
+            search: options.search?.trim() || undefined,
             sortBy,
             sortDirection,
-            formations: options.formations ?? [],
-            search: options.search?.trim() || undefined,
           },
         })
         .then(({ data }) => data ?? null);
     },
+    queryKey: memberKeys.listMembers(options),
+    staleTime: 1_000,
   });
 
 export const useDetailedMember = (options: { userId: string | undefined }) =>
   useQuery({
     enabled: !!options.userId,
-    queryKey: memberKeys.detailsMember({ userId: options.userId }),
     queryFn: () =>
       $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data),
+    queryKey: memberKeys.detailsMember({ userId: options.userId }),
   });
 
 export function useUpdateTitleMutation(options: { userId: string }) {
@@ -86,8 +92,8 @@ export function useUpdateTitleMutation(options: { userId: string }) {
   return useMutation({
     mutationFn: (title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null) =>
       $api.members.updateTitle({
-        path: { userId: options.userId },
         body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' },
+        path: { userId: options.userId },
       }),
 
     onSuccess: (_data, title) => {
@@ -112,8 +118,8 @@ export const useUpdateDisplayTitleMutation = (options: { userId: string }) => {
   return useMutation({
     mutationFn: (displayTitle: string | null) =>
       $api.members.updateDisplayTitle({
-        path: { userId: options.userId },
         body: { displayTitle },
+        path: { userId: options.userId },
       }),
 
     onSuccess: () => queryClient.invalidateQueries({ queryKey: docsKeys.members() }),
@@ -125,14 +131,16 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
   return useMutation({
     mutationFn: async (jurisdictionIds: readonly string[]) => {
       await $api.members.excludeJurisdictions({
-        path: { userId: options.userId },
         body: { jurisdictionIds: jurisdictionIds as string[] },
+        path: { userId: options.userId },
       });
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: memberKeys.detailsMember({ userId: options.userId }),
-      }),
+      });
+      await queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+    },
   });
 }
 
@@ -143,7 +151,6 @@ export type SessionOfTypeGardeDesSceaux = Omit<ListedMemberSessionsDto['items'][
 export function useListMemberGdsSessions(input: { userId: string | undefined }) {
   return useQuery({
     enabled: !!input.userId,
-    queryKey: memberKeys.listMemberGdsSessions(input),
     queryFn: async () => {
       if (!input.userId) return null;
 
@@ -158,63 +165,201 @@ export function useListMemberGdsSessions(input: { userId: string | undefined }) 
         })),
       };
     },
+    queryKey: memberKeys.listMemberGdsSessions(input),
   });
 }
 
-export function useDetailedMemberGdsSession(input: {
-  userId: string | undefined;
+export function useListMemberSessionReports(input: {
   sessionId: string | undefined;
-
-  status: ReportStatusEnum[] | undefined;
-  priorities: (PrioriteEnum | null)[] | undefined;
-  pagination: { pageIndex: number; pageSize: number };
-  sorting: { id: 'name' | 'fileNumber' | 'targetedPosition' | 'targetedGrade'; desc: boolean }[];
+  userId: string | undefined;
 }) {
   return useQuery({
-    queryKey: memberKeys.detailMemberGdsSession(input),
     enabled: Boolean(input.sessionId && input.userId),
-    placeholderData: (prev) => prev,
-    queryFn: () => {
+    queryFn: async () => {
       if (!input.sessionId || !input.userId) return null;
 
-      return $api.members
-        .detailsMemberSession({
-          path: { userId: input.userId, sessionId: input.sessionId },
-          query: {
-            status: input.status?.join(','),
-            priorities: input.priorities?.join(','),
-            page: input.pagination.pageIndex + 1,
-            limit: input.pagination.pageSize,
-            sortBy: input.sorting[0]?.id,
-            sortDesc: input.sorting[0]?.desc,
-          },
-        })
-        .then(({ data = null }) => data);
+      const { data } = await $api.members.listMemberSessionReports({
+        path: { sessionId: input.sessionId, userId: input.userId },
+      });
+
+      return data ?? null;
     },
+    queryKey: memberKeys.listMemberSessionReports(input),
   });
 }
+
 export function useUpdateNominationFileCommentMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (mutation: { sessionId: string; nominationFileId: string; comment: string | null }) => {
       await $api.sessions.updateNominationFileComment({
-        path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
         body: { comment: mutation.comment },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
     onSuccess: (_, { sessionId, nominationFileId, comment }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: { items: { id: string; comment?: string | null }[] } | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((file) => (file.id === nominationFileId ? { ...file, comment } : file)),
-          };
-        },
+        mapCachedNominationFiles((file) => (file.id === nominationFileId ? { ...file, comment } : file)),
       );
+    },
+  });
+}
+
+export function useUpdateNominationFileAuditionDateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: UpdateAuditionDateDto & { sessionId: string; nominationFileId: string }) => {
+      await $api.sessions.updateNominationFileAuditionDate({
+        body: { auditionDate: mutation.auditionDate, auditionTime: mutation.auditionTime },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, auditionDate, auditionTime }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId
+            ? {
+                ...file,
+                auditionDate,
+                auditionTime: auditionTime
+                  ? {
+                      hours: auditionTime.hours,
+                      minutes: auditionTime.minutes ?? 0,
+                      seconds: auditionTime.seconds ?? 0,
+                    }
+                  : null,
+              }
+            : file,
+        ),
+      );
+
+      queryClient.setQueryData(
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
+      );
+
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+        }),
+      ]);
+    },
+  });
+}
+
+export function useUpdateNominationFileAuditionRequestMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateAuditionRequestDto & { nominationFileId: string; sessionId: string },
+    ) => {
+      await $api.sessions.updateNominationFileAuditionRequest({
+        body: { requested: mutation.requested },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+      });
+    },
+    onSuccess: (_, { nominationFileId, requested, sessionId }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId
+            ? {
+                ...file,
+                auditionDate: requested ? file.auditionDate : null,
+                auditionRequired: requested,
+                // the toggle is locked where the position sets the audition: only the secretariat adds one
+                auditionRequirement: requested ? 'SECRETARIAT' : null,
+                auditionTime: requested ? file.auditionTime : null,
+              }
+            : file,
+        ),
+      );
+
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        }),
+      ]);
+    },
+  });
+}
+
+export function useUpdateNominationFileMissingEvaluationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateMissingEvaluationDto & { sessionId: string; nominationFileId: string },
+    ) => {
+      await $api.sessions.updateNominationFileMissingEvaluation({
+        body: { missingEvaluation: mutation.missingEvaluation },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+      });
+    },
+    onSuccess: async (_, { sessionId, nominationFileId, missingEvaluation }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId
+            ? {
+                ...file,
+                missingEvaluation,
+                missingEvaluationComment: missingEvaluation ? file.missingEvaluationComment : null,
+              }
+            : file,
+        ),
+      );
+
+      queryClient.setQueryData(
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        (old: DetailedSummaryDto | undefined) => (old ? { ...old, missingEvaluation } : old),
+      );
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
+        }),
+      ]);
+    },
+  });
+}
+
+export function useUpdateNominationFileMissingEvaluationCommentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: UpdateMissingEvaluationCommentDto & { sessionId: string; nominationFileId: string },
+    ) => {
+      await $api.sessions.updateNominationFileMissingEvaluationComment({
+        body: { comment: mutation.comment },
+        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+      });
+    },
+    onSuccess: (_, { sessionId, nominationFileId, comment }) => {
+      queryClient.setQueriesData(
+        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
+        mapCachedNominationFiles((file) =>
+          file.id === nominationFileId ? { ...file, missingEvaluationComment: comment } : file,
+        ),
+      );
+
+      return queryClient.invalidateQueries({
+        queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
+      });
     },
   });
 }
@@ -224,24 +369,17 @@ export function useWriteNominationFileMemberMemoMutation() {
   return useMutation({
     mutationFn: (mutation: { userId: string; sessionId: string; nominationFileId: string; memo: string }) =>
       $api.members.writeNominationFileMemberMemo({
-        path: {
-          userId: mutation.userId,
-          sessionId: mutation.sessionId,
-          nominationFileId: mutation.nominationFileId,
-        },
         body: { memo: mutation.memo },
+        path: {
+          nominationFileId: mutation.nominationFileId,
+          sessionId: mutation.sessionId,
+          userId: mutation.userId,
+        },
       }),
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) => (item.id === nominationFileId ? { ...item, memo } : item)),
-          };
-        },
+        mapCachedNominationFiles((item) => (item.id === nominationFileId ? { ...item, memo } : item)),
       ),
   });
 }

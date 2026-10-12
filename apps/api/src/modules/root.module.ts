@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 
 import { AdministrationModule } from './administration/administration.module';
-import { ArchivedSessionsModule } from './archived-sessions/archived-sessions.module';
 import { DocsModule } from './docs/docs.module';
+import { FeedbackModule } from './feedback/feedback.module';
 import { FrameworkModule } from './framework/framework.module';
 import { IngestModule } from './ingest/ingest.module';
+import { MagistratHistoryModule } from './magistrat-history/magistrat-history.module';
+import { MagistratModule } from './magistrat/magistrat.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { MembersModule } from './members';
 import { ObservationModule } from './observation/observation.module';
 import { ReportModule } from './report/report.module';
-import { SessionModule } from './session/session.module';
+import { TransparenceModule } from './session/transparence/transparence.module';
 import { SimpleAuthModule } from './simple-auth';
 
 @Module({
@@ -17,13 +19,15 @@ import { SimpleAuthModule } from './simple-auth';
     SimpleAuthModule,
     ReportModule,
     IngestModule,
-    SessionModule,
-    ArchivedSessionsModule,
+    TransparenceModule,
     MembersModule,
+    MagistratModule,
+    MagistratHistoryModule,
     MaintenanceModule,
     ObservationModule,
     AdministrationModule,
     DocsModule,
+    FeedbackModule,
   ],
 })
 class FondationModule {}

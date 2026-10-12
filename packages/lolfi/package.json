@@ -9,19 +9,21 @@
     "dist"
   ],
   "scripts": {
+    "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
+    "generate:fictitious-archive": "node --require @swc-node/register fictitious-archive/generate-fictitious-archive.ts",
     "lint:check": "oxlint",
     "lint": "oxlint --fix",
     "test": "node --test --require @swc-node/register test/*.test.ts"
   },
   "devDependencies": {
-    "@swc-node/register": "^1.11.1",
-    "@types/node": "24.12.4",
-    "typescript": "5.9.3"
+    "@swc-node/register": "1.12.1",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@faker-js/faker": "catalog:",
-    "date-fns": "4.2.1",
-    "jszip": "3.10.1"
+    "date-fns": "4.4.0",
+    "jszip": "3.10.2"
   }
 }

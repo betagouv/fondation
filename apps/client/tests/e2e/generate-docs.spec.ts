@@ -2,8 +2,11 @@ import { test } from '../fixtures';
 
 test.describe('Générer un ordre du jour', () => {
   let sessionName: string;
+  let chairmanId: string;
 
-  test.beforeEach(async ({ app, registerUser }) => {
+  test.beforeEach(async ({ app, http, registerUser }) => {
+    test.setTimeout(30_000);
+
     if (sessionName) {
       await app.pages.manageSessions.goto();
       await app.pages.manageSessions.sessionRow(sessionName).click();
@@ -95,32 +98,21 @@ test.describe('Générer un ordre du jour', () => {
 
     const page = app.pages.session;
 
-    // Et que je bascule en mode édition
-    await page.switchToEditModeButton.click();
-    await page.switchToReadModeButton.waitFor();
-
     // Et que j'affecte "Sophie de Bawr" aux 3 dossiers
     for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      const row = page.sessionRow({ name });
-      await row.locator(page.selectReporterButton).click();
-      await page.searchReporterInput.fill(memberLastName);
-      await app.page.getByRole('checkbox', { name: memberLastName }).first().click({ force: true });
-      await app.page.getByRole('document').click();
+      await page.editAffectation({ name }, { reporters: [new RegExp(memberLastName, 'i')] });
     }
 
-    // Et que je sauvegarde les affectations
-    await page.saveAffectationsButton.click();
-    await page.switchToEditModeButton.waitFor();
-
     // Et que je publie aux membres
-    await page.publishAffectationsButton.click();
-    await app.page.getByRole('alert').waitFor();
-  });
+    await page.publishAffectations();
+    await page.publishedAffectationsToast.waitFor();
 
-  test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
-    test.setTimeout(10_000);
+    // Quand je définis une issue "SURSIS" à tous les dossiers
+    for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
+      await page.defineOutcome({ name }, 'SURSIS');
+    }
 
-    // Et un utilisateur Michel Foucault membre du parquet
+    // Et un utilisateur Michel Foucault, président du parquet
     const chairman = await http.auth.registerUser({
       defaultUser: {
         firstName: 'michel ' + crypto.randomUUID(),
@@ -130,11 +122,14 @@ test.describe('Générer un ordre du jour', () => {
       },
       role: 'MEMBRE_DU_PARQUET',
     });
-
-    // Avec le titre "Président du Parquet"
     await http.http.put(`/api/members/v1/${chairman.id}/title`, {
       data: { title: 'PRESIDENT_PARQUET' },
     });
+    chairmanId = chairman.id;
+  });
+
+  test('génère un ordre du jour et un PV à partir de 3 dossiers sélectionnés', async ({ app, http }) => {
+    test.setTimeout(30_000);
 
     const firstSecretary = await http.auth.registerUser({
       role: 'ADJOINT_SECRETAIRE_GENERAL',
@@ -146,25 +141,20 @@ test.describe('Générer un ordre du jour', () => {
       },
     });
 
-    // Avec le titre "Président du Parquet"
     await http.http.put(`/api/administration/v1/users/${firstSecretary.id}/role`, {
       data: { role: 'FIRST_SECRETARY' },
     });
 
-    // Quand je bascule en mode édition
-    await app.pages.session.switchToEditModeButton.click();
-    await app.pages.session.switchToReadModeButton.waitFor();
-
-    // Et que je sélectionne les 3 dossiers
-    for (const name of ['BOURDIEU PIERRE', 'HARENDT ANNA', 'GRAMSCI ANTONIO']) {
-      await app.pages.session.sessionRow({ name }).getByRole('checkbox').first().click({ force: true });
-    }
-
-    await app.pages.session.addToAgenda();
+    // Quand j'ouvre la génération d'un ordre du jour
     const agendaPage = await app.pages.session.startAgendaGeneration();
-    await agendaPage.goToNextStep();
 
-    const { agendaId } = await agendaPage.fill({ sessionMeetingDate: new Date(), chairman: chairman.id });
+    // Et que je renseigne les données de l'ordre du jour
+    await agendaPage.fillMetadata({ chairman: chairmanId, sessionMeetingDate: new Date() });
+
+    // Et que je sélectionne les 3 dossiers, qu'un sursis exclut de la sélection par défaut
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
+
+    const { agendaId } = await agendaPage.submit();
 
     await app.pages.manageSessions.goto();
     await app.pages.manageSessions.sessionRow(sessionName).click();
@@ -182,11 +172,31 @@ test.describe('Générer un ordre du jour', () => {
     await justiceContact.button(contact).click();
     await justiceContact.confirm();
     await justiceContact.blur();
-    await justiceContact.fill(contact);
-    await justiceContact.option(contact).click({ force: true });
 
-    await test.expect(justiceContact.input.inputValue()).resolves.toBeDefined();
+    await test.expect(justiceContact.input).toHaveValue(contact);
 
     await officialReportPage.submit();
+  });
+
+  test('sélectionne les propositions depuis le tableau de génération', async ({ app }) => {
+    // Quand je démarre la génération d'un ordre du jour et renseigne ses données
+    const agendaPage = await app.pages.session.startAgendaGeneration();
+    await agendaPage.fillMetadata({ chairman: chairmanId, sessionMeetingDate: new Date() });
+
+    // Alors aucune proposition n'est présélectionnée
+    await test.expect(agendaPage.selectedCount).toHaveText('Aucune proposition sélectionnée');
+
+    // Et quand je coche toutes les propositions éligibles
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
+
+    // Alors les 3 sont retenues
+    await test.expect(agendaPage.selectedCount).toHaveText('3 propositions sélectionnées sur 3');
+
+    // Et quand je les décoche pour n'en garder qu'une
+    await agendaPage.selectAllFilesCheckbox.click({ force: true });
+    await agendaPage.selectFile({ name: 'BOURDIEU PIERRE' });
+
+    // Alors le compteur ne retient que celle-ci
+    await test.expect(agendaPage.selectedCount).toHaveText('1 proposition sélectionnée sur 3');
   });
 });

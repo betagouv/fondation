@@ -41,32 +41,69 @@ model User {
   duty         PrismaUserDutyEnum?
   displayTitle String?              @map("display_title")
 
-  sessions                            AuthSession[]
-  excludedJurisdictionIds             ExcludedJurisdiction[]
-  reporterOnNominationFileIds         NominationFileToReporter[]
-  publishedVersions                   AffectationVersion[]
-  commentAccess                       CommentAccess[]            @ignore
-  createdObservations                 Observation[]              @relation("user_to_observation")
-  observationMemberComments           ObservationMemberComment[]
-  memos                               MemberMemo[]
-  authorOfSummaries                   Summary[]
-  readerOfSummaries                   SummaryReader[]
-  followedUpObservations              Observation[]              @relation("user_to_observation_follow_up")
-  validatedSessions                   Session[]
-  agendas                             Agenda[]
-  agendasAuthor                       Agenda[]                   @relation("agenda_author")
-  authImpersonations                  AuthImpersonation[]
-  authorOfJusticeDepartmentContacts   JusticeDepartmentContact[]
-  chairmanOfOfficialReports           OfficialReport[]           @relation("official_reports_chairman")
-  secretaryOfOfficialReports          OfficialReport[]           @relation("official_reports_secretary")
-  authorOfOfficialReports             OfficialReport[]           @relation("official_reports_author")
-  chairmanOfJusticePresentationPlans  JusticePresentationPlan[]  @relation("justice_presentation_chairman")
-  secretaryOfJusticePresentationPlans JusticePresentationPlan[]  @relation("justice_presentation_secretary")
-  authorOfJusticePresentationPlans    JusticePresentationPlan[]  @relation("justice_presentation_author")
-  deletorOfSessions                   Session[]                  @relation("session_deletion_author")
-  archiverOfSessions                  Session[]                  @relation("session_archive_author")
+  sessions                             AuthSession[]
+  excludedJurisdictionIds              ExcludedJurisdiction[]
+  reporterOnNominationFileIds          NominationFileToReporter[]
+  publishedVersions                    AffectationVersion[]                   @relation("affectation_version_publisher")
+  authorOfAffectationVersions          AffectationVersion[]                   @relation("affectation_version_author")
+  commentAccess                        CommentAccess[]                        @ignore
+  createdObservations                  Observation[]                          @relation("user_to_observation")
+  observationMemberComments            ObservationMemberComment[]
+  memos                                MemberMemo[]
+  authorOfSummaries                    Summary[]
+  readerOfSummaries                    SummaryReader[]
+  followedUpObservations               Observation[]                          @relation("user_to_observation_follow_up")
+  validatedSessions                    Session[]
+  agendasAuthor                        Agenda[]                               @relation("agenda_author")
+  chairmanOfAgendaVersions             AgendaVersion[]
+  authorOfAgendaVersions               AgendaVersion[]                        @relation("agenda_version_author")
+  validatorOfAgendaVersions            AgendaVersion[]                        @relation("agenda_version_validator")
+  authImpersonations                   AuthImpersonation[]
+  authorOfJusticeDepartmentContacts    JusticeDepartmentContact[]
+  chairmanOfOfficialReports            OfficialReportVersion[]                @relation("official_report_version_chairman")
+  secretaryOfOfficialReports           OfficialReportVersion[]                @relation("official_report_version_secretary")
+  authorOfOfficialReportVersions       OfficialReportVersion[]                @relation("official_report_version_author")
+  validatorOfOfficialReportVersions    OfficialReportVersion[]                @relation("official_report_version_validator")
+  editorOfAgendaBlocks                 AgendaNominationFile[]                 @relation("agenda_block_editor")
+  editorOfOfficialReportBlocks         OfficialReportNominationFile[]         @relation("official_report_block_editor")
+  authorOfOfficialReports              OfficialReport[]                       @relation("official_reports_author")
+  chairmanOfJusticePresentationPlans   JusticePresentationPlan[]              @relation("justice_presentation_chairman")
+  secretaryOfJusticePresentationPlans  JusticePresentationPlan[]              @relation("justice_presentation_secretary")
+  authorOfJusticePresentationPlans     JusticePresentationPlan[]              @relation("justice_presentation_author")
+  editorOfJusticePresentationPlans     JusticePresentationPlan[]              @relation("justice_presentation_editor")
+  presenterOfJusticePresentationPlans  JusticePresentationPlan[]              @relation("justice_presentation_presenter")
+  validatorOfJusticePresentationPlans  JusticePresentationPlan[]              @relation("justice_presentation_validator")
+  removerOfJusticePresentationAgendas  JusticePresentationPlanRemovedAgenda[] @relation("justice_presentation_agenda_remover")
+  editorOfAgendaVersions               AgendaVersion[]                        @relation("agenda_version_editor")
+  editorOfOfficialReportVersions       OfficialReportVersion[]                @relation("official_report_version_editor")
+  deletorOfSessions                    Session[]                              @relation("session_deletion_author")
+  archiverOfSessions                   Session[]                              @relation("session_archive_author")
+  creatorOfFiles                       File[]                                 @relation("file_creator")
+  authorOfSessionCommentVersions       SessionCommentVersion[]                @relation("session_comment_version_author")
+  impersonatorOfSessionCommentVersions SessionCommentVersion[]                @relation("session_comment_version_impersonator")
+  authorOfObservantAuditionVersions       ObservantAuditionVersion[]       @relation("observant_audition_version_author")
+  impersonatorOfObservantAuditionVersions ObservantAuditionVersion[]       @relation("observant_audition_version_impersonator")
+  authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[] @relation("nomination_file_audition_version_author")
+  impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[] @relation("nomination_file_audition_version_impersonator")
+  feedbacks Feedback[]
+  publisherOfAuditionPublications    AuditionPublication[] @relation("audition_publication_publisher")
+  impersonatorOfAuditionPublications AuditionPublication[] @relation("audition_publication_impersonator")
+  authorOfMagistratPhoneNumbers MagistratPhoneNumber[]
 
   @@map("users")
+  @@schema("identity_and_access_context")
+}
+
+model OpenIdRequest {
+  id        String   @db.Uuid
+  provider  String
+  nonce     Bytes    @db.ByteA
+  challenge Bytes?   @db.ByteA
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@id([provider, id], name: "primaryKey")
+  @@map("openid_request")
   @@schema("identity_and_access_context")
 }
 
@@ -108,4 +145,16 @@ enum PrismaUserDutyEnum {
 
   @@map("user_duty_enum")
   @@schema("nominations_context")
+}
+
+model ExcludedJurisdiction {
+  userId         String @map("user_id") @db.Uuid
+  jurisdictionId String @map("jurisdiction_id")
+
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [codejur], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_jurisdiction_id_jurisdictions_codejur_fk")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "excluded_jurisdictions_user_id_users_id_fk")
+
+  @@id([userId, jurisdictionId], map: "excluded_jurisdictions_user_id_jurisdiction_id_pk")
+  @@map("excluded_jurisdictions")
+  @@schema("identity_and_access_context")
 }

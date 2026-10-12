@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "declaration": true,
+    "declaration": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ESNext",
     "sourceMap": true,
+    "rootDir": ".",
     "outDir": "./dist",
     // "baseUrl": "./",
     "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
@@ -22,7 +24,7 @@
     "lib": ["ESNext"],
     "types": [
       "node",
-      "jest",
+      "vitest/globals",
       "bcrypt",
       "common-tags",
       "cookie-parser",
@@ -30,7 +32,6 @@
       "inquirer",
       "pg",
       "sax",
-      "supertest",
       "unzipper",
       "multer"
     ],

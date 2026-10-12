@@ -1,24 +1,27 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InternalDetailsLolfiSessionQuery {
   private logger = new Logger(InternalDetailsLolfiSessionQuery.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(sessionId: number): Promise<DetailedLolfiSession> {
-    const nominationFiles = await this.prisma.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
+    const nominationFiles = await this.db.tx.$queryRawTyped(detailLolfiSessionRawQuery(sessionId));
     const perPositionId = Map.groupBy(nominationFiles, (file) => file.detectedTargetedPositionId);
 
-    const GradeSchema = z.enum(Magistrat.Grade);
+    const GradeSchema = z.enum(GradeEnum);
     const items: DetailedLolfiSession['items'] = [];
     for (const [positionId, files] of perPositionId) {
       const designatedFiles = files.filter(({ isDesignated }) => isDesignated);
@@ -46,10 +49,14 @@ export class InternalDetailsLolfiSessionQuery {
           detectedTargetedFunctionId: file.detectedTargetedFunctionId,
           detectedTargetedPositionId: file.detectedTargetedPositionId,
           sortableTargetedGrade: file.sortableTargetedGrade,
-          targetedGrade: await GradeSchema.parseAsync(file.targetedGrade),
+          targetedGrade: GradeSchema.parse(file.targetedGrade),
           targetedPosition: file.targetedPosition,
           formation: prismaFormationEnumToFormationEnum(file.formation),
           rank: `(${file.rank} sur une liste de ${files.length})`,
+          priorities: ([] as PriorityEnum[]).concat(
+            file.isOutreMer ? ['OUTRE_MER'] : [],
+            file.isProfiled ? ['PROFILE'] : [],
+          ),
           magistrat: {
             id: file.magistratId,
             externalId: assertIsDefined(file.magistratExternalId),
@@ -73,20 +80,21 @@ export type DetailedLolfiSession = {
     rank: string;
     lastRankingDate: Date | null;
     lastPositionDate: Date | null;
-    formation: Magistrat.Formation;
+    formation: FormationEnum;
     targetedPosition: string | null;
-    targetedGrade: Magistrat.Grade;
+    targetedGrade: GradeEnum;
     sortableTargetedGrade: number;
     detectedTargetedPositionId: number | null;
     detectedTargetedFunctionId: string | null;
     detectedJurisdictionId: string | null;
+    priorities: PriorityEnum[];
     magistrat: {
       id: string;
       externalId: number;
       name: string;
       birthDate: Date | null;
       biography: string | null;
-      grade: Magistrat.Grade;
+      grade: GradeEnum;
       currentPosition: string | null;
     };
   }[];

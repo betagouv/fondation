@@ -22,13 +22,18 @@ export default defineConfig({
       name: 'chromium',
       testDir: './tests/e2e',
       dependencies: ['setup'],
-      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/sg.json' },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/sg.json',
+        viewport: { height: 1000, width: 1280 },
+      },
     },
   ],
 
   webServer: [
     {
       name: 'backend',
+      env: { PORT: '3000', ...process.env },
       command: 'pnpm run --filter api start:e2e',
       url: 'http://localhost:3000/_health',
       reuseExistingServer: !process.env.CI,

@@ -1,12 +1,12 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
-import { LOLFI_FLUSH_TRANSACTION } from './lolfi-ingestor.util';
 
 @Injectable()
 export class LolfiPostesIngestor {
@@ -14,7 +14,7 @@ export class LolfiPostesIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -75,54 +75,52 @@ export class LolfiPostesIngestor {
     return { success: success && mappingResult.success };
   }
 
-  private flush(props: {
+  @Transactional(Propagation.RequiresNew)
+  private async flush(props: {
     items: RawPosition[];
     jobId: number;
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma
-      .$transaction(async (tx) => {
-        const unknown = await tx.$queryRawTyped(insertPositionsRawQuery(props.items));
+    try {
+      const unknown = await this.db.tx.$queryRawTyped(insertPositionsRawQuery(props.items));
 
-        const errors: { entityId: string; error: string }[] = [];
-        for (const u of unknown) {
-          const entityId = u.id;
-          if (!entityId) continue;
+      const errors: { entityId: string; error: string }[] = [];
+      for (const u of unknown) {
+        const entityId = u.id;
+        if (!entityId) continue;
 
-          const error =
-            u.unknownFunctionId !== null
-              ? `Fonction "${u.unknownFunctionId}" inconnue`
-              : u.unknownGradeId !== null
-                ? `Grade "${u.unknownGradeId}" inconnu`
-                : u.unknownJurisdictionId !== null
-                  ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
-                  : u.unknownJurisdictionTypeId !== null
-                    ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
-                    : null;
-          if (!error) continue;
+        const error =
+          u.unknownFunctionId !== null
+            ? `Fonction "${u.unknownFunctionId}" inconnue`
+            : u.unknownGradeId !== null
+              ? `Grade "${u.unknownGradeId}" inconnu`
+              : u.unknownJurisdictionId !== null
+                ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
+                : u.unknownJurisdictionTypeId !== null
+                  ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
+                  : null;
+        if (!error) continue;
 
-          errors.push({ entityId: String(entityId), error });
-        }
+        errors.push({ entityId: String(entityId), error });
+      }
 
-        if (errors.length > 0) {
-          await tx.ingestionJobFileError.createMany({
-            data: errors.map(({ entityId, error }) => ({
-              error,
-              entityId,
-              jobId: props.jobId,
-              fileId: props.fileId,
-            })),
-          });
-        }
-      }, LOLFI_FLUSH_TRANSACTION)
-      .catch((error) => {
-        this.logger.error(`Failed flushing POSTES_2.xml chunk`, error);
-        props.result.success = false;
-      })
-      .finally(() => {
-        props.items.length = 0;
-      });
+      if (errors.length > 0) {
+        await this.db.tx.ingestionJobFileError.createMany({
+          data: errors.map(({ entityId, error }) => ({
+            error,
+            entityId,
+            jobId: props.jobId,
+            fileId: props.fileId,
+          })),
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Failed flushing POSTES_2.xml chunk`, error);
+      props.result.success = false;
+    } finally {
+      props.items.length = 0;
+    }
   }
 }
 

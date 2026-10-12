@@ -1,15 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { captureException } from '@sentry/node';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsUserFromImpersonationQuery {
   private readonly logger = new Logger(DetailsUserFromImpersonationQuery.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly clock: Clock,
   ) {}
 
@@ -17,7 +18,7 @@ export class DetailsUserFromImpersonationQuery {
     id: string;
     authSessionId: string;
   }): Promise<{ id: string; role: string; impersonatorId: string } | null> {
-    const found = await this.prisma.authImpersonation.findFirst({
+    const found = await this.db.tx.authImpersonation.findFirst({
       where: { id: impersonation.id },
       select: {
         expiresAt: true,
@@ -29,7 +30,7 @@ export class DetailsUserFromImpersonationQuery {
             user: { select: { id: true, role: true } },
           },
         },
-      },
+      } satisfies Prisma.AuthImpersonationSelect,
     });
 
     if (!found) return null;

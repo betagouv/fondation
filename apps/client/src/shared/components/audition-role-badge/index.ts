@@ -1,0 +1,1 @@
+export { AuditionRoleBadge } from './AuditionRoleBadge';

@@ -1,33 +1,32 @@
-import { NominationFile } from 'shared-models';
-
 import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
 import { assertNever } from 'src/utils/assert-never';
 
-export function reportStateToPrismaReportStateEnum(value: NominationFile.ReportState): PrismaReportStateEnum {
+export function reportStateToPrismaReportStateEnum(value: ReportStateEnum): PrismaReportStateEnum {
   switch (value) {
-    case NominationFile.ReportState.IN_PROGRESS:
+    case 'IN_PROGRESS':
       return 'IN_PROGRESS';
-    case NominationFile.ReportState.NEW:
+    case 'NEW':
       return 'NEW';
-    case NominationFile.ReportState.READY_TO_SUPPORT:
+    case 'READY_TO_SUPPORT':
       return 'READY_TO_SUPPORT';
-    case NominationFile.ReportState.SUPPORTED:
+    case 'SUPPORTED':
       return 'SUPPORTED';
     default:
       return assertNever(value);
   }
 }
 
-export function prismaReportStateEnumToReportState(value: PrismaReportStateEnum): NominationFile.ReportState {
+export function prismaReportStateEnumToReportState(value: PrismaReportStateEnum): ReportStateEnum {
   switch (value) {
     case 'IN_PROGRESS':
-      return NominationFile.ReportState.IN_PROGRESS;
+      return 'IN_PROGRESS';
     case 'NEW':
-      return NominationFile.ReportState.NEW;
+      return 'NEW';
     case 'READY_TO_SUPPORT':
-      return NominationFile.ReportState.READY_TO_SUPPORT;
+      return 'READY_TO_SUPPORT';
     case 'SUPPORTED':
-      return NominationFile.ReportState.SUPPORTED;
+      return 'SUPPORTED';
     default:
       return assertNever(value);
   }

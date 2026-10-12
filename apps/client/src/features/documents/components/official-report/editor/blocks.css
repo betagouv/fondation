@@ -1,0 +1,22 @@
+.doc-block--title {
+  font-weight: 700;
+}
+
+.doc-block--conclusion {
+  margin-top: 2rem;
+}
+
+.doc-block {
+  &:is(h2) {
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.8rem;
+  }
+
+  &:is(h3) {
+    font-size: 1.25rem;
+  }
+}
+
+li.node-fileBlock::marker {
+  content: '';
+}

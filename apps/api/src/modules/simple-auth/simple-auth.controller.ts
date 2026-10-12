@@ -30,8 +30,6 @@ import {
 } from 'express';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
@@ -143,13 +141,13 @@ export class SimpleAuthController {
   registerUser(@Body() body: RegisterUserDto): Promise<RegisteredUserDto> {
     return this.auth.registerUser({
       ...body,
-      role: body.role ?? Role.MEMBRE_COMMUN,
+      role: body.role ?? 'MEMBRE_COMMUN',
     });
   }
 
   @Post('users/:userId/impersonations')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @HasRole(Role.ADMIN)
+  @HasRole('ADMIN')
   async impersonate(
     @Param('userId') targetUserId: string,
     @Res() res: ExpressResponse,

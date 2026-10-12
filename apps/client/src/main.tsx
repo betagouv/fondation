@@ -1,42 +1,22 @@
-import './index.css';
+import './styles/index.css';
 import './instrument.ts';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import * as Sentry from '@sentry/react';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { IntlProvider } from 'react-intl';
-import { Link } from 'react-router';
+import { Link, RouterProvider } from 'react-router';
 
-import { authKeys } from '@queries/auth.queries.ts';
+import { queryClient } from '@queries/query-client.ts';
 
 import { frFormat } from './i18n/formats.ts';
-import { AppRouter } from './router/AppRouter.tsx';
-import { HttpException } from './utils/http-exception.ts';
+import { router } from './router.tsx';
 import { matomo } from './utils/matomo.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
 matomo?.start();
-
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: clearQueryClient }),
-  mutationCache: new MutationCache({ onError: clearQueryClient }),
-  defaultOptions: {
-    mutations: { retry: false },
-    queries: { retry: false },
-  },
-});
-
-async function clearQueryClient(error: Error): Promise<void> {
-  console.error(error);
-  if (error instanceof HttpException && error.statusCode === 401) {
-    queryClient.clear();
-    await queryClient.invalidateQueries({
-      queryKey: authKeys.introspectSession(),
-    });
-  }
-}
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: Sentry.reactErrorHandler(),
@@ -47,7 +27,7 @@ createRoot(document.getElementById('root')!, {
     <QueryClientProvider client={queryClient}>
       <NuqsAdapter>
         <IntlProvider formats={frFormat} locale="fr" defaultLocale="fr">
-          <AppRouter />
+          <RouterProvider router={router} />
         </IntlProvider>
       </NuqsAdapter>
     </QueryClientProvider>

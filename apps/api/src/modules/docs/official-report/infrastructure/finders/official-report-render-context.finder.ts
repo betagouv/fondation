@@ -1,0 +1,319 @@
+import { Transactional } from '@nestjs-cls/transactional';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+
+import { OfficialReportChairman } from '../../domain/official-report-chairman';
+import { OfficialReportMember } from '../../domain/official-report-member';
+import { OfficialReportMembersList } from '../../domain/official-report-member-list';
+import { OfficialReportSecretary } from '../../domain/official-report-secretary';
+import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
+import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
+import { Prisma } from 'src/generated/prisma/client';
+import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
+import { Db } from 'src/modules/framework/database';
+import { MembersService } from 'src/modules/members';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { DateOnly } from 'src/utils/date-only';
+import { makeId } from 'src/utils/id';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { dateToTimeOnly } from 'src/utils/time-only';
+import { fullname } from 'src/utils/user.util';
+
+import { OfficialReportVersionFinder } from './official-report-version.finder';
+
+function writer(
+  user: { id: string; firstName: string; lastName: string } | null,
+): { id: string; name: string } | null {
+  return user ? { id: user.id, name: fullname(user) } : null;
+}
+
+@Injectable()
+export class OfficialReportRenderContextFinder {
+  constructor(
+    private readonly db: Db,
+    private readonly members: MembersService,
+    private readonly officialReportVersionFinder: OfficialReportVersionFinder,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
+  ) {}
+
+  @Transactional()
+  async find(query: { officialReportId: string }): Promise<OfficialReportRenderContext> {
+    const versionId = await this.officialReportVersionFinder.latest(query);
+    const report = await this.db.tx.officialReportVersion.findUnique({
+      where: { id: versionId },
+      select: {
+        hasRenunciation: true,
+        justiceDepartmentContactName: true,
+
+        sessionMeetingDate: true,
+        sessionMeetingStartingTime: true,
+        sessionMeetingEndingTime: true,
+
+        officialReport: {
+          select: {
+            agenda: {
+              select: {
+                id: true,
+                sessionId: true,
+                formation: true,
+                versions: {
+                  take: 2,
+                  orderBy: { version: 'desc' },
+                  select: {
+                    date: true,
+                    status: true,
+                    nominationFiles: {
+                      select: {
+                        nominationFileId: true,
+                        htmlEdited: true,
+                        htmlEditedAt: true,
+                        editor: { select: { id: true, firstName: true, lastName: true } },
+                      },
+                      where: { htmlEdited: { not: null } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        chairman: {
+          select: {
+            id: true,
+            lastName: true,
+            firstName: true,
+            title: true,
+            displayTitle: true,
+            duty: true,
+            role: true,
+            gender: true,
+            sort: true,
+          },
+        },
+
+        secretary: {
+          select: {
+            id: true,
+            lastName: true,
+            firstName: true,
+            title: true,
+            displayTitle: true,
+            duty: true,
+            role: true,
+            gender: true,
+          },
+        },
+
+        members: { select: { memberId: true, isAbsent: true } },
+
+        nominationFiles: {
+          orderBy: { number: 'asc' },
+          select: {
+            id: true,
+            number: true,
+            nominationFileId: true,
+
+            name: true,
+            position: true,
+            grade: true,
+            targetedPosition: true,
+            targetedGrade: true,
+            reporters: true,
+            outcome: true,
+
+            htmlEdited: true,
+            htmlOutdated: true,
+            htmlEditedAt: true,
+            htmlFromAgenda: true,
+            editor: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+
+        introHtml: true,
+        introOutdated: true,
+        conclusionHtml: true,
+        conclusionOutdated: true,
+        sectionTitles: { select: { outcome: true, title: true } },
+        sectionIntros: { select: { outcome: true, html: true } },
+      } satisfies Prisma.OfficialReportVersionSelect,
+    });
+
+    if (!report) throw new NotFoundException();
+
+    const agendaFiles = await this.db.tx.agendaNominationFile.findMany({
+      distinct: ['nominationFileId'],
+      select: {
+        nominationFileId: true,
+        version: { select: { agendaId: true } },
+      } satisfies Prisma.AgendaNominationFileSelect,
+      where: {
+        nominationFileId: { not: null },
+        version: { agenda: { officialReportId: query.officialReportId } },
+      },
+    });
+    const fileAgendas = new Map(
+      agendaFiles.flatMap(({ nominationFileId, version }) =>
+        nominationFileId ? [[nominationFileId, version.agendaId] as const] : [],
+      ),
+    );
+
+    const { agenda } = report.officialReport;
+    // the report speaks of the agenda as it was validated, and of its draft only while the agenda
+    // has never been validated, which is the one case where nothing else exists to speak of
+    const agendaContent = agendaContentOf(agenda?.versions ?? []);
+    const agendaDate = agendaContent?.date;
+    if (!agenda || !agendaDate) throw new NotFoundException();
+
+    const agendaProposals = new Map(
+      (agendaContent?.nominationFiles ?? []).flatMap((file) =>
+        file.nominationFileId && file.htmlEdited
+          ? [
+              [
+                file.nominationFileId,
+                { at: file.htmlEditedAt, by: writer(file.editor), html: file.htmlEdited },
+              ] as const,
+            ]
+          : [],
+      ),
+    );
+
+    const session = await this.sessions.internalGetSession({ sessionId: agenda.sessionId });
+
+    const formation = prismaFormationEnumToFormationEnum(agenda.formation);
+
+    const rawChairman = assertIsDefined(
+      report.chairman,
+      `unknown chairman for official report "${query.officialReportId}"`,
+    );
+    const chairman = OfficialReportChairman.from({
+      ...rawChairman,
+      role: prismaRoleEnumToRoleEnum(rawChairman.role),
+      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
+      expectedFormation: formation,
+    });
+
+    const rawSecretary = assertIsDefined(
+      report.secretary,
+      `unknown secretary for official report "${query.officialReportId}"`,
+    );
+    const secretary = OfficialReportSecretary.from({
+      ...rawSecretary,
+      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
+      gender: prismaGenderEnumToGenderEnum(rawSecretary.gender),
+    });
+
+    const absentMembers = new Map(
+      report.members.map(({ memberId, isAbsent }) => [memberId, isAbsent] as const),
+    );
+    const members = await this.members.internalFindMembersByFormation({ formation });
+
+    const membersList = OfficialReportMembersList.from(
+      members.flatMap((member) => {
+        const isAbsent = absentMembers.get(member.id);
+        if (!isDefined(isAbsent)) return [];
+
+        // oxlint-disable-next-line typescript/no-misused-spread
+        return [OfficialReportMember.from({ ...member, isAbsent, expectedFormation: formation })];
+      }),
+    );
+
+    const userDefinedInto = report.introHtml?.trim()
+      ? { html: report.introHtml?.trim(), isOutdated: report.introOutdated }
+      : undefined;
+
+    const userDefinedConclusion = report.conclusionHtml?.trim()
+      ? { html: report.conclusionHtml?.trim(), isOutdated: report.conclusionOutdated }
+      : undefined;
+
+    const sectionTitles = report.sectionTitles.flatMap(({ outcome, title }) => {
+      const html = title?.trim();
+      if (!html) return [];
+
+      return [{ type: 'title' as const, outcome, html }];
+    });
+    const sectionIntros = report.sectionIntros.map(({ outcome, html }) => ({
+      type: 'intro' as const,
+      outcome,
+      html,
+    }));
+
+    const userDefinedOutcomes = [...sectionTitles, ...sectionIntros].reduce(
+      (outcomes, x) => ({
+        ...outcomes,
+        [x.outcome]: {
+          ...outcomes[x.outcome],
+          [x.type]: { html: x.html, isOutdated: false },
+        },
+      }),
+      {} as {
+        [K in DocNominationFileOutcomeEnum]?: {
+          [KK in 'title' | 'intro']?: { html: string; isOutdated: boolean };
+        };
+      },
+    );
+
+    // a block the report never rewrote still goes stale when the agenda writes its own sentence,
+    // so the flag travels even with no text of its own
+    const userDefinedFiles = Object.fromEntries(
+      report.nominationFiles
+        .filter((f) => f.nominationFileId && (f.htmlEdited?.trim() || f.htmlOutdated))
+        .map(
+          (f) =>
+            [
+              f.nominationFileId,
+              {
+                html: f.htmlEdited,
+                isOutdated: f.htmlOutdated,
+                editedAt: f.htmlEditedAt,
+                editedBy: writer(f.editor),
+                fromAgenda: f.htmlFromAgenda,
+              },
+            ] as const,
+        ),
+    );
+
+    const sessionMeeting = OfficialReportSessionMeeting.from({
+      date: DateOnly.fromUtcDate(report.sessionMeetingDate),
+      startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
+      endTime: dateToTimeOnly(report.sessionMeetingEndingTime),
+    });
+
+    return {
+      chairman,
+      secretary,
+      sessionMeeting,
+      members: membersList,
+      hasRenouncement: report.hasRenunciation,
+      justiceDepartmentContact: report.justiceDepartmentContactName,
+      agendaProposals,
+      fileAgendas,
+      session: { date: session.date, id: agenda.sessionId },
+      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
+      userDefinedBlocks: {
+        intro: userDefinedInto,
+        conclusion: userDefinedConclusion,
+        files: userDefinedFiles,
+        outcomes: userDefinedOutcomes,
+      },
+      files: report.nominationFiles.map((f) => ({
+        id: f.id,
+        number: f.number,
+        nominationFileId: isDefined(f.nominationFileId)
+          ? makeId('NominationFileId', f.nominationFileId)
+          : null,
+        name: f.name,
+        currentPosition: f.position,
+        currentGrade: f.grade,
+        targetedPosition: f.targetedPosition ?? '',
+        targetedGrade: f.targetedGrade,
+        reporters: f.reporters,
+        outcome: f.outcome,
+      })),
+    } satisfies OfficialReportRenderContext;
+  }
+}

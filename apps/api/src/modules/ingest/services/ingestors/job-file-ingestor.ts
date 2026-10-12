@@ -1,6 +1,6 @@
 import { pipeline } from 'node:stream/promises';
-import { inspect } from 'node:util';
 
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 import { fr } from 'zod/locales';
@@ -8,8 +8,9 @@ import { fr } from 'zod/locales';
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 import { ResultBuilder } from 'src/utils/result';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class JobFileIngestor {
   constructor(
     private readonly clock: Clock,
     private readonly files: Files,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   async ingest<T>(options: {
@@ -39,7 +40,7 @@ export class JobFileIngestor {
         return this.succeedJobFile({ file, startedAt, jobId: job.id });
       }
 
-      await this.prisma.ingestionJobFile.update({
+      await this.db.tx.ingestionJobFile.update({
         where: { primaryKey: { jobId: job.id, fileId: file.id } },
         data: { status: 'RUNNING', startedAt },
       });
@@ -100,7 +101,7 @@ export class JobFileIngestor {
       return this.failJobFile({
         file,
         jobId: job.id,
-        errors: [{ error: `Erreur technique: ${inspect(e)}` }],
+        errors: [{ error: `Erreur technique: ${describeErrorWithoutSecrets(e)}` }],
       });
     } finally {
       const duration = start! ? (performance.now() - start).toFixed(2) : null;
@@ -108,12 +109,13 @@ export class JobFileIngestor {
     }
   }
 
+  @Transactional()
   private async succeedJobFile(context: {
     startedAt?: Date;
     jobId: number;
     file: { id: string; name: string };
   }): Promise<{ success: boolean }> {
-    return this.prisma.ingestionJobFile
+    return this.db.tx.ingestionJobFile
       .update({
         data: {
           status: 'SUCCEEDED',
@@ -133,13 +135,14 @@ export class JobFileIngestor {
       );
   }
 
+  @Transactional()
   private async failJobFile(context: {
     errors: { entityNumber?: number; error: string }[];
     jobId: number;
     file: { id: string; name: string };
   }): Promise<{ success: false }> {
     this.logger.error(`${context.file.name} failed`);
-    await this.prisma.ingestionJobFile
+    await this.db.tx.ingestionJobFile
       .update({
         where: {
           primaryKey: { jobId: context.jobId, fileId: context.file.id },

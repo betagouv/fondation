@@ -1,9 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertLolfiSessionRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -14,7 +15,7 @@ export class LolfiSessionsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -28,9 +29,9 @@ export class LolfiSessionsIngestor {
     const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
 
-    const accumulator: RawSession[] = [];
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawSession; success: boolean }>) {
+      const accumulator: RawSession[] = [];
       const ids = new Set<number>();
       for await (const { data, success } of source) {
         if (ids.has(data.num_session)) {
@@ -61,8 +62,9 @@ export class LolfiSessionsIngestor {
     return { success: success && mappingResult.success };
   }
 
+  @Transactional()
   private flush(props: { items: RawSession[]; jobId: number; fileId: string; result: { success: boolean } }) {
-    return this.prisma.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
+    return this.db.tx.$queryRawTyped(insertLolfiSessionRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing SESSIONS.xml chunk`, error);
       props.result.success = false;
     });

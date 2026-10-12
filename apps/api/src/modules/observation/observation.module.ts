@@ -1,34 +1,35 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
-import { SessionModule } from '../session/session.module';
+import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { NominationFileObservationsFinder } from './infrastructure/finders/nomination-file-observations.finder';
+import { ObservantAuditionsFinder } from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
-import { MagistratService } from './infrastructure/magistrat.service';
 import { GetObservationDetailsQuery } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
 import { ListObservationsAttachmentsQuery } from './infrastructure/queries/list-observations-attachments.query';
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
-import { SearchMagistratsQuery } from './infrastructure/queries/search-magistrats.query';
+import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
-import { MagistratController } from './magistrat.controller';
 import { ObservationAttachmentsController } from './observation-attachments.controller';
 import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 
 @Module({
-  imports: [SessionModule],
-  controllers: [MagistratController, ObservationController, ObservationAttachmentsController],
-  exports: [ObservationService, MagistratService],
+  imports: [forwardRef(() => TransparenceModule)],
+  controllers: [ObservationController, ObservationAttachmentsController],
+  exports: [ObservationService],
   providers: [
     GetObservationDetailsQuery,
     GetObservationFileUrlQuery,
     ListObservationsAttachmentsQuery,
     ListObservationsQuery,
-    MagistratService,
+    NominationFileObservationsFinder,
+    ObservantAuditionRepository,
+    ObservantAuditionsFinder,
     ObservationFinder,
     ObservationRepository,
     ObservationService,
-    SearchMagistratsQuery,
   ],
 })
 export class ObservationModule {}

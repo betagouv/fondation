@@ -13,6 +13,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { HttpService } from '@nestjs/axios';
 import {
   Inject,
@@ -29,13 +30,14 @@ import { lastValueFrom } from 'rxjs';
 import { Clock } from '../clock';
 import { Prisma } from 'src/generated/prisma/client';
 import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
+import { afterCommit, Db } from 'src/modules/framework/database';
 import { makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { noop } from 'src/utils/noop';
 import { ignoreAsync, isFulfilled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
+import { contentDisposition } from './content-disposition';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 
@@ -77,15 +79,15 @@ export class Files implements OnApplicationBootstrap {
   private readonly hasSse: boolean = false;
   private readonly sseHeaders:
     | {
+        SSECustomerAlgorithm: 'AES256';
         SSECustomerKey: string;
         SSECustomerKeyMD5: string;
-        SSECustomerAlgorithm: 'AES256';
       }
     | Record<string, never> = {};
 
   constructor(
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly http: HttpService,
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
@@ -98,71 +100,78 @@ export class Files implements OnApplicationBootstrap {
 
       this.hasSse = true;
       this.sseHeaders = {
+        SSECustomerAlgorithm: 'AES256',
         SSECustomerKey,
         SSECustomerKeyMD5,
-        SSECustomerAlgorithm: 'AES256',
       };
     }
 
     this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
     this.bucketName = config.s3.bucket;
     this.client = new S3Client({
-      maxAttempts: 3,
-      region: config.s3.region,
       credentials: config.s3.credentials,
       endpoint: config.s3.endpoint,
       forcePathStyle: config.s3.forcePathStyle,
+      maxAttempts: 3,
+      region: config.s3.region,
     });
   }
 
+  @Transactional(Propagation.RequiresNew)
   async getPublicUrls(fileIds: readonly string[]): Promise<{ [fileId: string]: URL }> {
     if (fileIds.length === 0) return {};
 
-    return this.prisma.$transaction(async (tx) => {
-      const files = await tx.file.findMany({
-        where: { id: { in: fileIds as string[] } },
-        select: {
-          id: true,
-          name: true,
-          path: true,
-          filePublicUrls: {
-            where: { expiresAt: { gt: this.clock.now() } },
-            select: { id: true, url: true, expiresAt: true },
-            orderBy: [{ expiresAt: 'desc' }],
-            take: 1,
-          },
+    const files = await this.db.tx.file.findMany({
+      select: {
+        filePublicUrls: {
+          orderBy: [{ expiresAt: 'desc' }],
+          select: { expiresAt: true, id: true, url: true },
+          take: 1,
+          where: { expiresAt: { gt: this.clock.now() } },
         },
-      });
-
-      const publicUrls = await Promise.allSettled(
-        files.map((file) => {
-          const publicUrl = file.filePublicUrls[0];
-          if (publicUrl) {
-            return Promise.resolve({
-              ...publicUrl,
-              fileId: file.id,
-              publicUrl: new URL(`${process.env.ORIGIN_URL}/api/files/v1/${publicUrl.id}`),
-              existing: true,
-            });
-          }
-
-          return this.generatePublicUrl(file);
-        }),
-      ).then((result) => result.filter(isFulfilled).map(({ value }) => value));
-
-      await tx.filePublicUrl.createMany({
-        data: publicUrls
-          .filter((x) => !('existing' in x))
-          .map((x) => ({
-            id: x.id,
-            url: x.url.toString(),
-            fileId: x.fileId,
-            expiresAt: x.expiresAt,
-          })),
-      });
-
-      return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
+        id: true,
+        name: true,
+        path: true,
+      } satisfies Prisma.FileSelect,
+      where: { id: { in: fileIds as string[] } },
     });
+
+    const publicUrls = await Promise.allSettled(
+      files.map((file) => {
+        const publicUrl = file.filePublicUrls[0];
+        if (publicUrl) {
+          return Promise.resolve({
+            ...publicUrl,
+            existing: true,
+            fileId: file.id,
+            publicUrl: new URL(`${this.config.originUrl}/api/files/v1/${publicUrl.id}`),
+          });
+        }
+
+        return this.generatePublicUrl(file);
+      }),
+    ).then((result) => {
+      for (const outcome of result) {
+        if (outcome.status === 'rejected') {
+          this.logger.error(`failed to build a public url`, outcome.reason);
+        }
+      }
+
+      return result.filter(isFulfilled).map(({ value }) => value);
+    });
+
+    await this.db.tx.filePublicUrl.createMany({
+      data: publicUrls
+        .filter((x) => !('existing' in x))
+        .map((x) => ({
+          expiresAt: x.expiresAt,
+          fileId: x.fileId,
+          id: x.id,
+          url: x.url.toString(),
+        })),
+    });
+
+    return Object.fromEntries(publicUrls.map((x) => [x.fileId, x.publicUrl]));
   }
 
   async openBatchStreamSession(
@@ -184,10 +193,10 @@ export class Files implements OnApplicationBootstrap {
           client: this.client,
           params: {
             ...this.sseHeaders,
-            Bucket: this.bucketName,
-            Key: encodeURI(path),
             Body: passthrough,
+            Bucket: this.bucketName,
             ContentType: file.mimeType,
+            Key: encodeURI(path),
             Metadata: Object.fromEntries(
               Object.entries(file.meta ?? {}).filter((entry): entry is [string, string] => !!entry[1]),
             ),
@@ -198,11 +207,11 @@ export class Files implements OnApplicationBootstrap {
           file: { ...file, path },
           promise: Sentry.startSpan(
             {
-              name: 'fr.csm.fondation:files:create_single',
               attributes: {
                 'file.name': file.name,
                 'file.type': file.mimeType,
               },
+              name: 'fr.csm.fondation:files:create_single',
             },
             async (span) => {
               const { $metadata } = await upload.done();
@@ -220,7 +229,7 @@ export class Files implements OnApplicationBootstrap {
     await Sentry.startSpan({ name: 'fr.csm.fondation:files:create' }, (span) =>
       factory(helper).catch((error) => {
         span.setAttribute('error', error);
-        span.recordException(error);
+        Sentry.captureException(error);
         this.logger.warn(`file batch stream session factory failed with error: ${error}`);
       }),
     );
@@ -254,19 +263,20 @@ export class Files implements OnApplicationBootstrap {
     }
 
     try {
-      const toCreate = fulfilled.map((file) => ({
-        name: file.name,
-        path: file.path.split('/'),
-        id: file.meta?.id ?? makeId('FileId'),
-        bucket: this.bucketName,
-      }));
+      return await this.db.withTransaction(Propagation.RequiresNew, async () => {
+        const toCreate = fulfilled.map((file) => ({
+          bucket: this.bucketName,
+          id: file.meta?.id ?? makeId('FileId'),
+          name: file.name,
+          path: file.path.split('/'),
+          sizeInBytes: file.size ?? null,
+        }));
 
-      await this.prisma.file.createMany({ data: toCreate });
-
-      return toCreate.map(({ id }) => id);
+        await this.db.tx.file.createMany({ data: toCreate });
+        return toCreate.map(({ id }) => id);
+      });
     } catch (error) {
       this.logger.warn(`SQL error, while creating files`, { error });
-
       ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
       throw new InternalServerErrorException(`Failed uploading ${fulfilled.length} files`);
     }
@@ -280,34 +290,68 @@ export class Files implements OnApplicationBootstrap {
     });
   }
 
-  /** this is a best effort request to delete the files */
+  /**
+   * this is a best effort request to delete the files, made once the current transaction is committed:
+   * a file left over is litter, a file gone while its row still points to it is a breakdown
+   */
   delete(files: readonly { id: string; path: readonly string[] }[]): void {
-    ignoreAsync(() =>
-      Sentry.startSpan(
-        {
-          name: 'fr.csm.fondation:files:delete',
-          attributes: { objectsCount: files.length },
-        },
-        () => this._delete(files),
+    afterCommit(this.db, () =>
+      ignoreAsync(() =>
+        Sentry.startSpan(
+          {
+            attributes: { objectsCount: files.length },
+            name: 'fr.csm.fondation:files:delete',
+          },
+          () => this._delete(files),
+        ),
       ),
     );
+  }
+
+  /** a linked observation file is another row pointing to the same object: the object stays while one of them remains */
+  private async pathsStillReferenced(
+    files: readonly ({ id: string; path: readonly string[] } | string)[],
+  ): Promise<Set<string>> {
+    const rows = files.filter((file) => typeof file !== 'string');
+    if (rows.length === 0) return new Set();
+
+    const others = await this.db.withTransaction(Propagation.RequiresNew, () =>
+      this.db.tx.file.findMany({
+        select: { path: true } satisfies Prisma.FileSelect,
+        where: {
+          bucket: this.bucketName,
+          id: { notIn: rows.map(({ id }) => id) },
+          OR: rows.map((file) => ({ path: { equals: [...file.path] } })),
+        },
+      }),
+    );
+
+    return new Set(others.map(({ path }) => path.join('/')));
   }
 
   private async _delete(files: readonly ({ id: string; path: readonly string[] } | string)[]): Promise<void> {
     if (files.length === 0) return;
     try {
-      const response = await this.client.send(
-        new DeleteObjectsCommand({
-          Bucket: this.bucketName,
-          Delete: {
-            Objects: files.map((file) => ({
-              Key: typeof file === 'string' ? encodeURI(file) : encodeURI(file.path.join('/')),
-            })),
-          },
-        }),
+      const sharedPaths = await this.pathsStillReferenced(files);
+      const objects = files.filter(
+        (file) => typeof file === 'string' || !sharedPaths.has(file.path.join('/')),
       );
 
-      if ((response.Errors?.length ?? 0) > 0) {
+      const response =
+        objects.length > 0
+          ? await this.client.send(
+              new DeleteObjectsCommand({
+                Bucket: this.bucketName,
+                Delete: {
+                  Objects: objects.map((file) => ({
+                    Key: typeof file === 'string' ? encodeURI(file) : encodeURI(file.path.join('/')),
+                  })),
+                },
+              }),
+            )
+          : null;
+
+      if (response && (response.Errors?.length ?? 0) > 0) {
         const deletedPaths = (response.Deleted ?? [])
           .filter((d) => d.DeleteMarker)
           .map((d) => ({ Key: d.Key, VersionId: d.DeleteMarkerVersionId }));
@@ -320,19 +364,19 @@ export class Files implements OnApplicationBootstrap {
         );
       }
 
-      await this.prisma
-        .$transaction(
-          files.map((file) => {
+      await this.db
+        .withTransaction(Propagation.RequiresNew, async () => {
+          for (const file of files) {
             if (typeof file === 'string') {
               const path = file.split('/');
-              return this.prisma.file.deleteMany({
+              await this.db.tx.file.deleteMany({
                 where: { bucket: this.bucketName, path: { equals: path } },
               });
+            } else {
+              await this.db.tx.file.delete({ where: { id: file.id } });
             }
-
-            return this.prisma.file.delete({ where: { id: file.id } });
-          }),
-        )
+          }
+        })
         .catch((err) => {
           throw new RollbackFilePathOperationError(
             files,
@@ -384,8 +428,8 @@ export class Files implements OnApplicationBootstrap {
             new DeleteObjectsCommand({
               Bucket: this.bucketName,
               Delete: {
-                Quiet: true,
                 Objects: versionsToDelete.filter((path) => !!path.Key),
+                Quiet: true,
               },
             }),
           )
@@ -396,11 +440,20 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async getFileContent(fileUrlId: string): Promise<{ file: StreamableFile; expiresAt: Date }> {
-    const file = await this.prisma.filePublicUrl.findUnique({
-      where: { id: fileUrlId, expiresAt: { gt: this.clock.now() } },
-      select: { url: true, expiresAt: true, file: { select: { name: true } } },
-    });
+  async getFileContent(
+    fileUrlId: string,
+    options?: { download?: boolean },
+  ): Promise<{ expiresAt: Date; file: StreamableFile }> {
+    const file = await this.db.withTransaction(Propagation.RequiresNew, () =>
+      this.db.tx.filePublicUrl.findUnique({
+        select: {
+          expiresAt: true,
+          file: { select: { name: true } },
+          url: true,
+        } satisfies Prisma.FilePublicUrlSelect,
+        where: { expiresAt: { gt: this.clock.now() }, id: fileUrlId },
+      }),
+    );
 
     if (!file) throw new NotFoundException();
 
@@ -409,9 +462,9 @@ export class Files implements OnApplicationBootstrap {
       const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } = this.sseHeaders;
 
       headers = {
+        'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
         'x-amz-server-side-encryption-customer-key': SSECustomerKey,
         'x-amz-server-side-encryption-customer-key-MD5': SSECustomerKeyMD5,
-        'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
       };
     }
 
@@ -425,17 +478,19 @@ export class Files implements OnApplicationBootstrap {
     return {
       expiresAt: file.expiresAt,
       file: new StreamableFile(response.data, {
+        disposition: contentDisposition({ download: options?.download, name: file.file.name }),
         type: filenameToMimeType(file.file.name),
-        disposition: `inline; filename="${encodeURIComponent(file.file.name)}"`,
       }),
     };
   }
 
-  async getFile(props: { fileId: string; tx?: Prisma.TransactionClient }): Promise<Readable | null> {
-    const storedFile = await (props.tx ?? this.prisma).file.findUnique({
-      where: { id: props.fileId },
-      select: { path: true },
-    });
+  async getFile(props: { fileId: string }): Promise<Readable | null> {
+    const storedFile = await this.db.withTransaction(Propagation.RequiresNew, () =>
+      this.db.tx.file.findUnique({
+        select: { path: true } satisfies Prisma.FileSelect,
+        where: { id: props.fileId },
+      }),
+    );
 
     if (!storedFile) return null;
 
@@ -452,14 +507,14 @@ export class Files implements OnApplicationBootstrap {
   }
 
   private async generatePublicUrl(file: { id: string; path: readonly string[] }): Promise<{
-    publicUrl: URL;
-    url: URL;
-    id: string;
     expiresAt: Date;
     fileId: string;
+    id: string;
+    publicUrl: URL;
+    url: URL;
   }> {
     const id = makeId('FilePublicUrlId');
-    const publicUrl = new URL(`${process.env.ORIGIN_URL}/api/files/v1/${id}`);
+    const publicUrl = new URL(`${this.config.originUrl}/api/files/v1/${id}`);
     const expiresAt = new Date(this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS);
     const url = new URL(
       await getSignedUrl(
@@ -473,12 +528,11 @@ export class Files implements OnApplicationBootstrap {
       ),
     );
 
-    return { fileId: file.id, id, url, expiresAt, publicUrl };
+    return { expiresAt, fileId: file.id, id, publicUrl, url };
   }
 
   async onApplicationBootstrap(): Promise<void> {
     if (this.config.isProduction) {
-      // TODO: shouldn't we create it to ease things?
       await this.ensureBucketExists();
       await this.putBucketCors();
     }
@@ -495,17 +549,17 @@ export class Files implements OnApplicationBootstrap {
         CORSConfiguration: {
           CORSRules: [
             {
-              AllowedOrigins: [this.config.originUrl],
               AllowedHeaders: ['*'],
-              ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+              AllowedOrigins: [this.config.originUrl],
+              ExposeHeaders: ['ETag'],
               MaxAgeSeconds: (12 * time.HOURS) / time.SECONDS,
             },
             {
-              AllowedOrigins: [this.config.frontendOriginUrl],
               AllowedHeaders: ['*'],
-              ExposeHeaders: ['ETag'],
               AllowedMethods: ['GET', 'HEAD'],
+              AllowedOrigins: [this.config.frontendOriginUrl],
+              ExposeHeaders: ['ETag'],
               MaxAgeSeconds: (12 * time.HOURS) / time.SECONDS,
             },
           ],

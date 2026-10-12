@@ -1,0 +1,168 @@
+import { Transactional } from '@nestjs-cls/transactional';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+
+import { Prisma } from 'src/generated/prisma/client';
+import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
+import { Db } from 'src/modules/framework/database';
+import { MembersService } from 'src/modules/members';
+import {
+  AutoAffectationMember,
+  AutoAffectationNominationFile,
+  AutoAffectations,
+} from 'src/modules/session/transparence/domain/auto-affectation';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
+import { DateOnly } from 'src/utils/date-only';
+import { isDefined } from 'src/utils/is-defined';
+
+import { NominationFileJurisdictionsFinder } from './nomination-file-jurisdictions.finder';
+import { UnaffectedFilesFinder } from './unaffected-files.finder';
+
+@Injectable()
+export class AutoAffectationsFinder {
+  readonly logger = new Logger(AutoAffectationsFinder.name);
+
+  constructor(
+    private readonly db: Db,
+    private readonly membersService: MembersService,
+    private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
+    private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+  ) {}
+
+  @Transactional()
+  async find(predicate: {
+    sessionId: string;
+    nominationFileIds: readonly string[] | undefined;
+    excludedMemberIds: readonly string[] | undefined;
+  }): Promise<AutoAffectations> {
+    const session = await this.db.tx.session.findUnique({
+      where: { id: predicate.sessionId, deletedAt: null },
+      select: {
+        date: true,
+        formation: true,
+      } satisfies Prisma.SessionSelect,
+    });
+
+    if (!session) throw new NotFoundException();
+
+    const nominationFiles = await this.unaffectedFilesFinder.find({
+      sessionId: predicate.sessionId,
+      nominationFileIds: predicate.nominationFileIds,
+    });
+
+    const date = DateOnly.fromUtcDate(session.date);
+    const formation = prismaFormationEnumToFormationEnum(session.formation);
+    const members = await this.findMembers({
+      date,
+      formation,
+      sessionId: predicate.sessionId,
+      excludedMemberIds: predicate.excludedMemberIds,
+    });
+
+    const jurisdictions = await this.jurisdictionsFinder.find({
+      nominationFileIds: nominationFiles.items.map(({ id }) => id),
+    });
+
+    const files = this.toAutoAffectationNominationFiles(
+      nominationFiles.items.map((file) => {
+        const { current = null, targeted = null } = jurisdictions.get(file.id) ?? {};
+        return {
+          ...file,
+          currentJurisdiction: current?.id ?? null,
+          targetedJurisdiction: targeted?.id ?? null,
+        };
+      }),
+      { date, formation },
+    );
+
+    return AutoAffectations.from({
+      files,
+      members,
+    });
+  }
+
+  private toAutoAffectationNominationFiles(
+    nominationFiles: readonly {
+      id: string;
+      targetedGrade: string | null;
+      currentJurisdiction: string | null;
+      targetedJurisdiction: string | null;
+      number: number | null;
+    }[],
+    session: { formation: FormationEnum; date: DateOnly },
+  ): AutoAffectationNominationFile[] {
+    return nominationFiles
+      .map(({ id, number, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
+        if (
+          !isDefined(number) ||
+          !isGrade(targetedGrade) ||
+          (!currentJurisdiction && !targetedJurisdiction)
+        ) {
+          return null;
+        }
+
+        return AutoAffectationNominationFile.from({
+          id,
+          session,
+          targetedGrade,
+          number,
+          currentJurisdiction,
+          targetedJurisdiction,
+        });
+      })
+      .filter(isDefined);
+  }
+
+  private async findMembers(session: {
+    date: DateOnly;
+    sessionId: string;
+    formation: FormationEnum;
+    excludedMemberIds: readonly string[] | undefined;
+  }): Promise<AutoAffectationMember[]> {
+    let memberIds = await this.membersService.findMembers({
+      ids: undefined,
+      formation: session.formation,
+    });
+
+    if (session.excludedMemberIds?.length) {
+      const excluded = new Set(session.excludedMemberIds);
+      memberIds = memberIds.filter((id) => !excluded.has(id));
+    }
+
+    if (memberIds.length === 0) return [];
+
+    const [membersExcludedJurisdictions, memberYearlyWorkload] = [
+      await this.membersService.internalFindExcludedJurisdictions({ memberIds }),
+
+      await this.db.tx.$queryRawTyped(findMemberCurrentYearWorkloadRawQuery(memberIds, session.formation)),
+    ];
+
+    const affectationCountByMemberIdAndGrade = memberYearlyWorkload.reduce(
+      (map, { targetedGrade, workload, reporterId }) => {
+        if (!isGrade(targetedGrade)) return map;
+
+        const byGrade = map.get(reporterId) ?? new Map();
+        byGrade.set(targetedGrade, Number(workload));
+
+        map.set(reporterId, byGrade);
+        return map;
+      },
+      new Map<string, Map<GradeEnum, number>>(),
+    );
+
+    return memberIds.map((id) => {
+      const excludedJurisdictions = membersExcludedJurisdictions.get(id) ?? new Set<string>();
+      const affectationCountPerGrade =
+        affectationCountByMemberIdAndGrade.get(id) ?? new Map<GradeEnum, number>();
+
+      return AutoAffectationMember.from({
+        id,
+        session,
+        excludedJurisdictions,
+        affectationCountPerGrade,
+      });
+    });
+  }
+}

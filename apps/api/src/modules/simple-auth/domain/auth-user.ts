@@ -1,8 +1,9 @@
 import z from 'zod';
 
-import { Gender, Role } from 'shared-models';
-
-import { makeId } from 'src/utils/id';
+import { OpenIdProvider } from '../openid';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { Id, makeId } from 'src/utils/id';
 
 import { AuthImpersonation } from './auth-impersonation';
 import { AuthPassword } from './auth-password';
@@ -14,19 +15,19 @@ export class AuthUserRegistered {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
-  readonly role: Role;
+  readonly role: RoleEnum;
   readonly email: string;
   readonly password: string;
-  readonly gender: Gender;
+  readonly gender: GenderEnum;
 
   constructor(props: {
     id: string;
     firstName: string;
     lastName: string;
-    role: Role;
+    role: RoleEnum;
     email: string;
     password: AuthPassword;
-    gender: Gender;
+    gender: GenderEnum;
   }) {
     this.id = props.id;
     this.firstName = props.firstName;
@@ -71,22 +72,36 @@ export class AuthImpersonationRevoked {
   ) {}
 }
 
+export class AuthOpenIdRequestCompleted {
+  constructor(
+    readonly userId: string,
+    readonly request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider },
+  ) {}
+}
+
+export type AuthenticationStrategy =
+  | { type: 'password'; plainPassword: string }
+  | { type: 'openid'; request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider } };
+
 type AuthUserEvent =
   | AuthUserRegistered
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
   | AuthImpersonationStarted
-  | AuthImpersonationRevoked;
+  | AuthImpersonationRevoked
+  | AuthOpenIdRequestCompleted;
 
 export class AuthUser {
   constructor(
     readonly id: string,
-    readonly password: AuthPassword,
+    private readonly password: AuthPassword,
   ) {}
 
-  async authenticate(props: { plainPassword: string; now: Date }): Promise<AuthSession> {
-    if (!(await this.password.equals(props.plainPassword))) {
-      throw new AuthUserNotAuthentifiable();
+  async authenticate(props: AuthenticationStrategy & { now: Date }): Promise<AuthSession> {
+    if (props.type === 'password') {
+      if (!(await this.password.equals(props.plainPassword))) {
+        throw new AuthUserNotAuthentifiable();
+      }
     }
 
     const session = AuthSession.start({
@@ -95,6 +110,10 @@ export class AuthUser {
     });
 
     this.#messages.push(new AuthUserAuthenticated(this.id, session));
+    if (props.type === 'openid') {
+      this.#messages.push(new AuthOpenIdRequestCompleted(this.id, props.request));
+    }
+
     return session;
   }
 
@@ -109,10 +128,10 @@ export class AuthUser {
   static async register(props: {
     firstName: string;
     lastName: string;
-    role: Role;
+    role: RoleEnum;
     email: string;
     password: string;
-    gender: Gender;
+    gender: GenderEnum;
   }) {
     const password = await AuthPassword.create(props.password);
     const email = await z.email().toLowerCase().parseAsync(props.email);

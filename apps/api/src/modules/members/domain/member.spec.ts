@@ -1,7 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
 
-import { Role } from 'shared-models';
-
 import { makeId } from 'src/utils/id';
 
 import { ExcludedMemberJurisdictions, Member } from './member';
@@ -10,7 +8,7 @@ describe('Member', () => {
   it('should exclude a jurisdiction', () => {
     const member = Member.from({
       id: 'member-id',
-      role: Role.MEMBRE_COMMUN,
+      role: 'MEMBRE_COMMUN',
       jurisdictionIds: new Set([makeId('JurisdictionId', 'TGI LYON')]),
     });
 
@@ -27,7 +25,7 @@ describe('Member', () => {
   it('should allow a jurisdiction', () => {
     const member = Member.from({
       id: 'member-id',
-      role: Role.MEMBRE_COMMUN,
+      role: 'MEMBRE_COMMUN',
       jurisdictionIds: new Set(),
     });
 
@@ -44,7 +42,7 @@ describe('Member', () => {
   it('should throw, if a jurisdiction does not exist', () => {
     const member = Member.from({
       id: 'member-id',
-      role: Role.MEMBRE_COMMUN,
+      role: 'MEMBRE_COMMUN',
       jurisdictionIds: new Set(),
     });
 

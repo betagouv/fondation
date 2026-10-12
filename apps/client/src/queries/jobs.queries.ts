@@ -1,9 +1,9 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import type { JobStatusEnum } from '@/types/enums.types';
+import type { JobStatusEnum } from '@/shared/enums/job-status.enum';
 import * as $api from '@api/sdk';
 
-export const jobKeys = {
+const jobKeys = {
   listJobs: (props: { statuses?: JobStatusEnum[]; limit?: number } = {}) =>
     [`jobs`, `listJobs`, props] as const,
   detailsJob: (props: { jobId: number }) => [`jobs`, `detailsJob`, props.jobId] as const,

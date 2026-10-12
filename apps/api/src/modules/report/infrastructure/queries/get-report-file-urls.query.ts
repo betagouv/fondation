@@ -4,14 +4,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class GetReportFileUrlsQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
@@ -22,14 +23,14 @@ export class GetReportFileUrlsQuery {
   }): Promise<GetReportFileUrlsResponseDto> {
     assert.ok(query.fileNames.length <= 30);
 
-    const report = await this.prisma.report.findFirst({
+    const report = await this.db.tx.report.findFirst({
       where: { reporterId: query.userId, id: query.reportId, isDeleted: false },
       select: {
         files: {
           where: { file: { name: { in: query.fileNames as string[] } } },
           select: { file: { select: { id: true, name: true, path: true } } },
         },
-      },
+      } satisfies Prisma.ReportSelect,
     });
 
     if (!report) throw new NotFoundException();

@@ -1,7 +1,15 @@
 import { capitalize, unaccent } from './string.utils';
 
-export function toFullName(user: { firstName: string; lastName: string; usedName?: string | null }) {
-  return `${capitalize(user.firstName.toLowerCase())} ${(user.usedName?.trim() || user.lastName.trim()).toUpperCase()}`;
+type Person = { firstName: string; lastName: string };
+
+// Honorine
+export function capitalizedFirstName(person: Person) {
+  return capitalize(person.firstName.toLowerCase());
+}
+
+// Honorine VALROSE
+export function memberFullName(person: Person) {
+  return `${capitalizedFirstName(person)} ${person.lastName.trim().toUpperCase()}`;
 }
 
 function extractInitial(word: string) {

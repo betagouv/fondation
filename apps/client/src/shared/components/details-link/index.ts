@@ -1,0 +1,1 @@
+export { DetailsLink } from './DetailsLink';

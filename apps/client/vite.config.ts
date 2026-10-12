@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+import pkg from './package.json' with { type: 'json' };
+
 process.env.VITE_FAVICON = process.env.VITE_DEPLOY_ENV === 'production' ? 'favicon' : 'favicon.staging';
 
 // https://vite.dev/config/
@@ -30,6 +32,18 @@ export default defineConfig({
     formatjs({ ast: true }),
   ],
   css: { lightningcss: { errorRecovery: true } },
+  // react-dsfr update-icons (predev / prestorybook hook) deletes node_modules/.vite:
+  // keep the dev server cache out of its reach so launching storybook does not
+  // corrupt a running dev server (predev clears this cache instead)
+  cacheDir: 'node_modules/.vite-app',
+  // TipTap is only reached through lazy routes: pre-bundling it avoids a mid-session
+  // re-optimization (504 "Outdated Optimize Dep" on navigation). @tiptap/pm is
+  // excluded because it only has subpath exports
+  optimizeDeps: {
+    include: Object.keys(pkg.dependencies).filter(
+      (dep) => dep.startsWith('@tiptap/') && dep !== '@tiptap/pm',
+    ),
+  },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
@@ -47,9 +61,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@queries': resolve(__dirname, 'src/queries'),
-      '@api': resolve(__dirname, 'src/generated/api'),
-      '@': resolve(__dirname, 'src'),
+      '@queries': resolve(import.meta.dirname, 'src/queries'),
+      '@api': resolve(import.meta.dirname, 'src/generated/api'),
+      '@': resolve(import.meta.dirname, 'src'),
     },
   },
 });

@@ -1,18 +1,9 @@
-import { Magistrat } from 'shared-models';
-
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import * as time from 'src/utils/time';
 
-export type ReceivedDesignations = {
-  candidatures: number;
-  perFormation: Record<Magistrat.Formation, number>;
-};
+export type ReceivedDesignations = { candidatures: number; perFormation: Record<FormationEnum, number> };
 
-const FORMATIONS = [Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET] as const;
-
-const FORMATION_LABELS: Record<Magistrat.Formation, string> = {
-  [Magistrat.Formation.SIEGE]: 'siège',
-  [Magistrat.Formation.PARQUET]: 'parquet',
-};
+const FORMATION_LABELS: Record<FormationEnum, string> = { SIEGE: 'siège', PARQUET: 'parquet' };
 
 // Every transparence ever received came with its candidatures, the longest gap observed between a
 // publication and its import being a weekend. Past a week, an empty one is outside anything seen.
@@ -26,7 +17,7 @@ const EMPTY_TOLERANCE = time.WEEKS;
 export function incompleteTransparenceReason(
   transparence: {
     designations: ReceivedDesignations | undefined;
-    formationsWithSession: ReadonlySet<Magistrat.Formation>;
+    formationsWithSession: ReadonlySet<FormationEnum>;
     publishedAt: Date;
   },
   now: Date,
@@ -38,7 +29,7 @@ export function incompleteTransparenceReason(
   }
 
   const { candidatures, perFormation } = transparence.designations;
-  const expected = FORMATIONS.filter((formation) => perFormation[formation] > 0);
+  const expected = Object.values(FormationEnum).filter((formation) => perFormation[formation] > 0);
 
   if (expected.length === 0) {
     const received = `${candidatures} ${plural(candidatures, 'candidature')} et aucune proposition`;

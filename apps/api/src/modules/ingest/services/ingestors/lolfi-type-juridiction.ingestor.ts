@@ -1,9 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
 import { insertJurisdictionTypesRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -13,7 +14,7 @@ export class LolfiTypeJuridictionIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -54,8 +55,9 @@ export class LolfiTypeJuridictionIngestor {
     return { success: success && mappingResult.success };
   }
 
+  @Transactional()
   private flush(props: { items: TypeJuridiction[]; result: { success: boolean } }) {
-    return this.prisma
+    return this.db.tx
       .$queryRawTyped(insertJurisdictionTypesRawQuery(props.items))
       .then(
         () => ({ success: true }),

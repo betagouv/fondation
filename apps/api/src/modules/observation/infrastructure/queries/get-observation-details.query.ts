@@ -1,53 +1,80 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { dateOnlyJsonSchema } from 'shared-models';
-
+import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 import { Prisma } from 'src/generated/prisma/client';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
-import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
+import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { auditionScheduleSchema } from 'src/utils/audition-schedule';
 import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class GetObservationDetailsQuery {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
+    private readonly db: Db,
     private readonly files: Files,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
   async handle(query: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
+    sessionId: string;
+    userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
-    return this.prisma.$transaction(async (tx) => {
-      const session = await tx.session.findUnique({
-        where: { id: query.sessionId },
-        select: { archivedAt: true },
-      });
+    return this.db.withTransaction(async () => {
+      const sessionState = await this.transparences.internalFindSessionState({ sessionId: query.sessionId });
 
-      const observation = await tx.observation.findUnique({
-        where: {
-          id: query.observationId,
-          nominationFileId: query.nominationFileId,
-        },
+      const observation = await this.db.tx.observation.findUnique({
         select: {
-          id: true,
           dateReception: true,
+          description: true,
+          files: {
+            select: {
+              file: {
+                select: {
+                  createdAt: true,
+                  createdBy: { select: { firstName: true, id: true, lastName: true } },
+                  id: true,
+                  name: true,
+                  sizeInBytes: true,
+                },
+              },
+            },
+          },
           followUp: true,
           followUpComment: true,
-          description: true,
-
+          id: true,
+          magistrat: {
+            select: {
+              careerHistory: true,
+              externalId: true,
+              firstName: true,
+              id: true,
+              lastName: true,
+              marriedName: true,
+              observations: {
+                orderBy: { dateReception: 'desc' },
+                select: { dateReception: true, id: true, nominationFileId: true },
+                where: {
+                  id: { not: query.observationId },
+                  sessionId: query.sessionId,
+                },
+              },
+            },
+          },
           memberComments: {
-            take: 1,
-            where: { userId: query.userId },
             select: {
               comment: true,
               screenshots: {
@@ -61,55 +88,13 @@ export class GetObservationDetailsQuery {
                 },
               },
             },
+            take: 1,
+            where: { userId: query.userId },
           },
-
-          magistrat: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              usedName: true,
-              careerHistory: true,
-              externalId: true,
-              observations: {
-                orderBy: { dateReception: 'desc' },
-                where: {
-                  id: { not: query.observationId },
-                  nominationFile: { sessionId: query.sessionId },
-                },
-                select: {
-                  id: true,
-                  dateReception: true,
-                  nominationFile: {
-                    select: {
-                      id: true,
-                      number: true,
-                      name: true,
-                      targetedPosition: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-
-          nominationFile: {
-            select: {
-              name: true,
-              targetedPosition: true,
-            },
-          },
-
-          files: {
-            select: {
-              file: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
+        } satisfies Prisma.ObservationSelect,
+        where: {
+          id: query.observationId,
+          nominationFileId: query.nominationFileId,
         },
       });
 
@@ -117,54 +102,45 @@ export class GetObservationDetailsQuery {
         throw new NotFoundException();
       }
 
-      const reporterIds = await this.affectationVersionFinder.findReporterIds({
-        tx,
-        sessionId: query.sessionId,
-        nominationFileId: query.nominationFileId,
+      const relatedFileIds = observation.magistrat.observations.map(
+        ({ nominationFileId }) => nominationFileId,
+      );
+      const files = await this.transparences.internalFindNominationFilesByIds({
+        nominationFileIds: [query.nominationFileId, ...relatedFileIds],
       });
-      const isUserReporter = reporterIds.includes(query.userId);
+      const observedFile = files.get(query.nominationFileId);
+      if (!observedFile) throw new NotFoundException();
 
-      const candidacy = await this.findRelatedNominationFiles(
-        tx,
-        query.sessionId,
-        observation.magistrat.firstName,
-        observation.magistrat.lastName,
-        observation.magistrat.usedName,
+      const reporters = await this.transparences.internalFindPublishedReporters({
+        nominationFileIds: [query.nominationFileId],
+      });
+      const isUserReporter = (reporters.get(query.nominationFileId) ?? []).some(
+        ({ id }) => id === query.userId,
       );
 
+      const observedNominationFiles = await this.transparences.internalFindAuditionStates({
+        nominationFileIds: [query.nominationFileId, ...relatedFileIds],
+        sessionId: query.sessionId,
+      });
+      const auditions = await this.transparences.internalFindSeenObservantAuditions({
+        magistratIds: [observation.magistrat.id],
+        role: query.role,
+        sessionId: query.sessionId,
+      });
+
       return {
-        id: observation.id,
-        isArchived: !!session?.archivedAt,
-        receptionDate: DateOnly.fromDate(observation.dateReception).toJson(),
-        followUp: observation.followUp,
-        followUpComment: observation.followUpComment,
         description: observation.description,
-        observant: {
-          id: observation.magistrat.id,
-          firstName: observation.magistrat.firstName,
-          lastName: observation.magistrat.lastName,
-          usedName: observation.magistrat.usedName,
-          biography: observation.magistrat.careerHistory,
-          externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
-          candidacy,
-        },
-        observedMagistrat: {
-          name: observation.nominationFile.name,
-          proposedPosition: observation.nominationFile.targetedPosition,
-        },
         files: observation.files.map(({ file }) => ({
+          addedAt: file.createdAt.toISOString(),
+          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
           id: file.id,
           name: file.name,
+          size: file.sizeInBytes,
         })),
-        relatedPropositions: observation.magistrat.observations.map((obs) => ({
-          observationId: obs.id,
-          nominationFileId: obs.nominationFile.id,
-          number: obs.nominationFile.number,
-          magistratName: obs.nominationFile.name,
-          proposedPosition: obs.nominationFile.targetedPosition,
-          observationDate: DateOnly.fromDate(obs.dateReception).toJson(),
-        })),
-
+        followUp: observation.followUp,
+        followUpComment: observation.followUpComment,
+        id: observation.id,
+        isArchived: sessionState === 'ARCHIVED',
         isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
@@ -174,6 +150,35 @@ export class GetObservationDetailsQuery {
               ),
             }
           : null,
+        observant: {
+          audition: auditions.get(observation.magistrat.id) ?? null,
+          auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
+          biography: observation.magistrat.careerHistory,
+          externalUrl: buildMagistratLolfiUrl(observation.magistrat.externalId),
+          id: observation.magistrat.id,
+          name: magistratFullName(observation.magistrat),
+        },
+        observedMagistrat: {
+          detectedMagistratId: observedFile.detectedMagistratId,
+          name: observedFile.name,
+          proposedPosition: observedFile.targetedPosition,
+        },
+        receptionDate: DateOnly.fromUtcDate(observation.dateReception).toJson(),
+        relatedPropositions: observation.magistrat.observations.flatMap((obs) => {
+          const file = files.get(obs.nominationFileId);
+          if (!file) return [];
+
+          return [
+            {
+              magistratName: file.name,
+              nominationFileId: obs.nominationFileId,
+              number: file.number,
+              observationDate: DateOnly.fromUtcDate(obs.dateReception).toJson(),
+              observationId: obs.id,
+              proposedPosition: file.targetedPosition,
+            },
+          ];
+        }),
       };
     });
   }
@@ -192,66 +197,19 @@ export class GetObservationDetailsQuery {
       })
       .filter(isDefined);
   }
-
-  private async findRelatedNominationFiles(
-    tx: Prisma.TransactionClient,
-    sessionId: string,
-    firstName: string,
-    lastName: string,
-    usedName: string | null,
-  ): Promise<{
-    nominationFileId: string;
-    desiredPosition: string | null;
-    rank: string | null;
-  } | null> {
-    const searchPatterns = [
-      {
-        contains: `${lastName.toUpperCase()} ${firstName}`,
-        mode: 'insensitive' as const,
-      },
-    ];
-
-    if (usedName && usedName !== lastName) {
-      searchPatterns.push(
-        {
-          contains: `${usedName.toUpperCase()} ${firstName}`,
-          mode: 'insensitive' as const,
-        },
-        { contains: usedName, mode: 'insensitive' as const },
-      );
-    }
-
-    const dossier = await tx.dossierDeNomination.findFirst({
-      where: {
-        sessionId,
-        OR: searchPatterns.map((pattern) => ({ name: pattern })),
-      },
-      select: {
-        id: true,
-        targetedPosition: true,
-        rank: true,
-      },
-    });
-
-    if (!dossier) return null;
-
-    return {
-      nominationFileId: dossier.id,
-      desiredPosition: dossier.targetedPosition,
-      rank: dossier.rank,
-    };
-  }
 }
+
+const ObservationAttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: z.number().int().nullable(),
+  addedAt: z.iso.datetime(),
+  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+});
 
 const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
-});
-
-const CandidacySchema = z.object({
-  nominationFileId: z.string(),
-  desiredPosition: z.string().nullable(),
-  rank: z.string().nullable(),
 });
 
 const RelatedPropositionSchema = z.object({
@@ -270,21 +228,21 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     receptionDate: dateOnlyJsonSchema,
     observant: z.object({
       id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      usedName: z.string().nullable(),
+      name: z.string(),
       biography: z.string().nullable(),
-      candidacy: CandidacySchema.nullable(),
+      audition: auditionScheduleSchema.nullable(),
+      auditionScheduling: z.enum(['SCHEDULABLE', ...UNSCHEDULABLE_REASONS]),
       externalUrl: z.url(),
     }),
     observedMagistrat: z.object({
       name: z.string(),
       proposedPosition: z.string().nullable(),
+      detectedMagistratId: z.string().nullable(),
     }),
     description: z.string(),
     followUp: z.enum(ObservationFollowUp.enum).nullable(),
     followUpComment: z.string().nullable(),
-    files: z.array(ObservationFileSchema),
+    files: z.array(ObservationAttachmentSchema),
     relatedPropositions: z.array(RelatedPropositionSchema),
     isMemberReporter: z.boolean(),
     memberComment: z

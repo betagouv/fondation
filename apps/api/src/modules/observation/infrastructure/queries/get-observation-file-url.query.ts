@@ -2,18 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 
 @Injectable()
 export class GetObservationFileUrlQuery {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
   ) {}
 
   async handle(query: { observationId: string; fileId: string }): Promise<GetObservationFileUrlResponseDto> {
-    const observationFile = await this.prisma.observationFile.findUnique({
+    const observationFile = await this.db.tx.observationFile.findUnique({
       where: {
         observationId_fileId: {
           observationId: query.observationId,
@@ -27,7 +28,7 @@ export class GetObservationFileUrlQuery {
             name: true,
           },
         },
-      },
+      } satisfies Prisma.ObservationFileSelect,
     });
 
     if (!observationFile) throw new NotFoundException();

@@ -13,13 +13,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { isScriptDivergent } from '../domain/divergent-script';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { MulterFile } from 'src/modules/framework/files/multipart/multipart.types';
-import { Mattermost } from 'src/modules/framework/mattermost';
+import { Tchap } from 'src/modules/framework/tchap';
 import { HasRole, IsMachine } from 'src/modules/simple-auth';
 
 import { IngestedLolfiArchiveDto } from './ingest.dto';
@@ -31,7 +29,7 @@ export class IngestController {
 
   constructor(
     private readonly ingest: IngestService,
-    private readonly mattermost: Mattermost,
+    private readonly tchap: Tchap,
     @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {}
 
@@ -45,11 +43,11 @@ export class IngestController {
     const text = `La copie en service sur le relais annonce "${call.announced ?? 'aucune empreinte'}" alors que le dépôt attend "${expected}". Le script doit être recopié.`;
     this.logger.error(text);
 
-    await this.mattermost.alert({ title: ':alert: Script du relais SDV divergent', text });
+    await this.tchap.alert({ text, title: '🚨 Script du relais SDV divergent' });
   }
 
   @Post('/lolfi')
-  @HasRole(Role.ADMIN, 'MACHINE')
+  @HasRole('ADMIN', 'MACHINE')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

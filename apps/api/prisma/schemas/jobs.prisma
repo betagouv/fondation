@@ -36,6 +36,15 @@ model IngestionJobError {
   @@schema("jobs")
 }
 
+model LolfiTransparenceAnomaly {
+  lolfiSessionId Int      @id @map("lolfi_session_id") @db.Integer
+  reason         String
+  alertedAt      DateTime @map("alerted_at")
+
+  @@map("lolfi_transparence_anomaly")
+  @@schema("jobs")
+}
+
 model IngestionJobFile {
   jobId      Int    @map("job_id") @db.Integer
   fileId     String @map("file_id") @db.Uuid

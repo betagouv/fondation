@@ -1,37 +1,34 @@
-import { Magistrat } from 'shared-models';
-
+import { FormationEnum } from '../formation.enum';
 import { PrismaFormationEnum } from 'src/generated/prisma/enums';
 import { assertNever } from 'src/utils/assert-never';
 
-export function prismaFormationEnumToFormationEnum(value: PrismaFormationEnum): Magistrat.Formation {
+export function prismaFormationEnumToFormationEnum(value: PrismaFormationEnum): FormationEnum {
   switch (value) {
     case 'PARQUET':
-      return Magistrat.Formation.PARQUET;
-    case 'SIEGE':
-      return Magistrat.Formation.SIEGE;
-    default:
-      return assertNever(value);
-  }
-}
-
-export function formationEnumToPrismaFormationEnum(value: Magistrat.Formation): PrismaFormationEnum {
-  switch (value) {
-    case Magistrat.Formation.PARQUET:
       return 'PARQUET';
-    case Magistrat.Formation.SIEGE:
+    case 'SIEGE':
       return 'SIEGE';
     default:
       return assertNever(value);
   }
 }
 
-export function formationLabel(value: Magistrat.Formation | PrismaFormationEnum): string {
+export function formationEnumToPrismaFormationEnum(value: FormationEnum): PrismaFormationEnum {
   switch (value) {
-    case PrismaFormationEnum.PARQUET:
-    case Magistrat.Formation.PARQUET:
+    case 'PARQUET':
+      return 'PARQUET';
+    case 'SIEGE':
+      return 'SIEGE';
+    default:
+      return assertNever(value);
+  }
+}
+
+export function formationLabel(value: FormationEnum | PrismaFormationEnum): string {
+  switch (value) {
+    case 'PARQUET':
       return 'Parquet';
-    case PrismaFormationEnum.SIEGE:
-    case Magistrat.Formation.SIEGE:
+    case 'SIEGE':
       return 'Siège';
 
     default:

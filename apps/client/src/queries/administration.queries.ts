@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { AdminUserRoleEnum } from '@/pages/admin/users/admin-user-enum';
+import type { AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import * as $api from '@api/sdk';
 import type { DetailedAdminUserDto } from '@api/types';
 
 import { docsKeys } from './agenda.queries';
 
-export const adminKeys = {
+const adminKeys = {
   users: (params: { search?: string; page?: number; pageSize?: number }) =>
     ['admin', 'users', params] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,

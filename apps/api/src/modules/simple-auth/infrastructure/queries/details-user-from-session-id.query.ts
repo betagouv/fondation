@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsUserFromSessionIdQuery {
   constructor(
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   private async _handle(query: { sessionId: string }): Promise<{ id: string; role: string } | null> {
-    const maybeUser = await this.prisma.authSession.findUnique({
-      select: { user: { select: { id: true, role: true } } },
+    const maybeUser = await this.db.tx.authSession.findUnique({
+      select: { user: { select: { id: true, role: true } } } satisfies Prisma.AuthSessionSelect,
       where: {
         invalidatedAt: null,
         sessionId: query.sessionId,

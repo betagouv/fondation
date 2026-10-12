@@ -1,0 +1,24 @@
+import type { FormationEnum } from '@/shared/enums/formation.enum';
+import type { PlainDateOnly } from '@/utils/date-only.util';
+import type { PlainTimeOnly } from '@/utils/time-only.util';
+
+export type OfficialReport = {
+  sessionMeetingDate: PlainDateOnly;
+  sessionMeetingStartingTime: PlainTimeOnly;
+  sessionMeetingEndingTime: PlainTimeOnly;
+  hasRenunciation: boolean;
+  justiceContactId: string;
+  chairmanId: string;
+  secretaryId: string;
+  memberIds: string[];
+  agendaId: string;
+};
+
+export type OfficialReportContextType = {
+  officialReportId: string | null;
+  session: { id: string; formation: FormationEnum };
+  report: OfficialReport | null;
+  isSubmitting: boolean;
+  submit(form: OfficialReport): Promise<void>;
+  cancel(): void;
+};

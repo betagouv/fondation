@@ -11,6 +11,35 @@ const TEMPLATES = {
   REPO_ISSUE: (id) => `https://github.com/betagouv/fondation/issue/${id}`,
 };
 
+const HTML_ESCAPES = { '"': '&quot;', '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+
+/**
+ * @typedef {object} Format
+ * @property {(text: string) => string} code
+ * @property {(text: string) => string} escape
+ * @property {(line: string) => string} item
+ * @property {(text: string, url: string) => string} link
+ * @property {(items: string[]) => string} list
+ */
+
+/** @type {Record<'html' | 'markdown', Format>} */
+const FORMATS = {
+  html: {
+    code: (text) => `<code>${text}</code>`,
+    escape: (text) => text.replace(/["&<>]/g, (char) => HTML_ESCAPES[char]),
+    item: (line) => `<li>${line}</li>`,
+    link: (text, url) => `<a href="${url}">${text}</a>`,
+    list: (items) => `<ul>${items.join('')}</ul>`,
+  },
+  markdown: {
+    code: (text) => `\`${text}\``,
+    escape: (text) => text,
+    item: (line) => `- ${line}`,
+    link: (text, url) => `[${text}](${url})`,
+    list: (items) => items.join('\n'),
+  },
+};
+
 /** @param {[string, string]} commandRange @returns {string[]} */
 function logCommits(commandRange) {
   /** @type string */
@@ -24,21 +53,21 @@ function logCommits(commandRange) {
     .filter(Boolean);
 }
 
-/** @param {string} commit @returns {string} */
-function decorateCommit(commit) {
-  let outputCommit = commit;
+/** @param {string} commit @param {Format} format @returns {string} */
+function decorateCommit(commit, format) {
+  let outputCommit = format.escape(commit);
 
   const hashRe = /^(?<hash>\w+)\b/;
   outputCommit = outputCommit.replace(hashRe, (...args) => {
     const { hash } = args.at(-1);
-    return `\`${hash}\``;
+    return format.code(hash);
   });
 
   const issueRe = new RegExp(`(?<type>fix|feat|refactor|docs|chore)\\((?<issueId>${TRGM}-\\d+)\\): `);
   outputCommit = outputCommit.replace(issueRe, (...args) => {
     const { type, issueId } = args.at(-1);
     if (!/0+$/.test(issueId)) {
-      return `${type}([${issueId}](${TEMPLATES.ISSUE(issueId)})): `;
+      return `${type}(${format.link(issueId, TEMPLATES.ISSUE(issueId))}): `;
     }
 
     return args.at(0);
@@ -47,31 +76,26 @@ function decorateCommit(commit) {
   const prRe = /(?<message>.+) \(#(?<prId>\d+)\)$/;
   outputCommit = outputCommit.replace(prRe, (...args) => {
     const { message, prId } = args.at(-1);
-    return `${message} ([#${prId}](${TEMPLATES.PR(prId)}))`;
+    return `${message} (${format.link(`#${prId}`, TEMPLATES.PR(prId))})`;
   });
 
   const repoIssueRe = /(?<magic>closes|resolves) #(?<issueId>\d+)/;
-  outputCommit = outputCommit.replace(repoIssueRe, (_match, magic, issueId, offset, str) => {
-    const offsetEnd = offset + magic.length + 2 + issueId.length;
-    console.log({ _match, magic, issueId, offset, str, offsetEnd });
-    return magic + ' ' + `[#${issueId}](${TEMPLATES.REPO_ISSUE(issueId)})`;
+  outputCommit = outputCommit.replace(repoIssueRe, (_match, magic, issueId) => {
+    return `${magic} ${format.link(`#${issueId}`, TEMPLATES.REPO_ISSUE(issueId))}`;
   });
 
   return outputCommit;
 }
 
 function main() {
-  const head = process.argv[2];
+  const [head, source] = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
   assert.ok(typeof head === 'string', 'head expected a commit');
-
-  const source = process.argv[3];
   assert.ok(typeof source === 'string', 'source expected a commit');
 
-  const commits = logCommits([source, head])
-    .map((x) => `- ${decorateCommit(x)}`)
-    .join('\n');
+  const format = process.argv.includes('--html') ? FORMATS.html : FORMATS.markdown;
+  const commits = logCommits([source, head]).map((x) => format.item(decorateCommit(x, format)));
 
-  console.log(commits);
+  console.log(format.list(commits));
 }
 
 main();

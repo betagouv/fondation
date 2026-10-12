@@ -1,0 +1,110 @@
+import clsx from 'clsx';
+import type { Ref } from 'react';
+import { FormattedMessage } from 'react-intl';
+
+import { PriorityBadge } from '@/shared/components/priority-badge';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
+import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
+import { memberFullName } from '@/utils/user.utils';
+
+const PRIORITY_ITEMS = Object.values(PrioriteEnum);
+
+const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)!';
+
+const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
+
+const NO_REPORTER = 'none';
+
+export function PrioritySelect(props: {
+  disabled?: boolean;
+  onChange: (value: PrioriteEnum[]) => void;
+  value: readonly PrioriteEnum[];
+}) {
+  const options = PRIORITY_ITEMS.map((priority) => ({
+    label: <PriorityBadge priority={priority} small={false} />,
+    value: priority,
+  }));
+
+  return (
+    <Dropdown
+      disabled={props.disabled}
+      label={<FormattedMessage defaultMessage="Définir une priorité" />}
+      multiple
+      onSelect={(values) => props.onChange(values as PrioriteEnum[])}
+      options={options}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+      selected={props.value}
+    />
+  );
+}
+
+type Reporter = { firstName: string; lastName: string; userId: string };
+
+export function ReporterSelect(props: {
+  available: readonly Reporter[];
+  disabled?: boolean;
+  excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
+  onChange: (ids: string[]) => void;
+  onClear?: () => void;
+  ref?: Ref<DropdownHandle>;
+  value: readonly string[];
+}) {
+  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, onChange, onClear, ref, value } = props;
+
+  const reporterOptions = [...available]
+    .sort((a, b) => a.lastName.localeCompare(b.lastName))
+    .map((reporter) => {
+      const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
+
+      return {
+        label: (
+          <span
+            className={clsx(
+              REPORTER_TAG,
+              excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+            )}
+            title={excludedTitle}
+          >
+            {memberFullName(reporter)}
+            {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+          </span>
+        ),
+        value: reporter.userId,
+      };
+    });
+
+  const options = onClear
+    ? [
+        {
+          label: (
+            <span
+              className={clsx(
+                REPORTER_TAG,
+                'fr-tag--icon-left fr-icon-close-circle-line text-(--text-action-high-blue-france)!',
+              )}
+            >
+              <FormattedMessage defaultMessage="Aucun" />
+            </span>
+          ),
+          value: NO_REPORTER,
+        },
+        ...reporterOptions,
+      ]
+    : reporterOptions;
+
+  return (
+    <Dropdown
+      disabled={props.disabled}
+      label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
+      multiple
+      onSelect={(ids) => {
+        if (ids.includes(NO_REPORTER)) onClear?.();
+        else onChange(ids);
+      }}
+      options={options}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+      ref={ref}
+      selected={value}
+    />
+  );
+}

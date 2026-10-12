@@ -35,12 +35,16 @@ export function isMimeType(value: unknown): value is FileMimeType {
   return MIME_TYPES.has(value as any);
 }
 
+const EXTENSION_ALIASES: Record<string, FileMimeType> = {
+  jpeg: FILE_MIME_TYPES.jpg,
+};
+
 /** @param filename a UNIX filename like {filename}.{extension}. It eventually supports format like {filename}.{extension}-{suffix} */
 export function filenameToMimeType(filename: string): FileMimeType | undefined {
-  const extension = filename.split('.').at(-1)?.split('-').at(0);
-  return isDefined(extension) && extension in FILE_MIME_TYPES
-    ? (FILE_MIME_TYPES as any)[extension]
-    : undefined;
+  const extension = filename.split('.').at(-1)?.split('-').at(0)?.toLowerCase();
+  if (!isDefined(extension)) return undefined;
+
+  return (FILE_MIME_TYPES as Record<string, FileMimeType>)[extension] ?? EXTENSION_ALIASES[extension];
 }
 
 /**

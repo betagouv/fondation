@@ -1,18 +1,19 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-
-import { Magistrat } from 'shared-models';
 
 import { isMember, MEMBER_ROLES } from '../member.utils';
 import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { listMembersRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class ListMembersQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: {
     pagination: Pagination;
     formations: readonly ('PARQUET' | 'SIEGE' | 'COMMUN')[] | undefined;
@@ -33,31 +34,29 @@ export class ListMembersQuery {
                   : [],
           );
 
-    const [totalCount, items] = await this.prisma.$transaction([
-      this.prisma.user.count({
-        where: {
-          role: { in: roles },
-          OR: query.search
-            ? [
-                { email: { contains: query.search, mode: 'insensitive' } },
-                { firstName: { contains: query.search, mode: 'insensitive' } },
-                { lastName: { contains: query.search, mode: 'insensitive' } },
-              ]
-            : undefined,
-        },
-      }),
+    const totalCount = await this.db.tx.user.count({
+      where: {
+        role: { in: roles },
+        OR: query.search
+          ? [
+              { email: { contains: query.search, mode: 'insensitive' } },
+              { firstName: { contains: query.search, mode: 'insensitive' } },
+              { lastName: { contains: query.search, mode: 'insensitive' } },
+            ]
+          : undefined,
+      },
+    });
 
-      this.prisma.$queryRawTyped(
-        listMembersRawQuery(
-          roles,
-          query.search || null,
-          query.sortBy || null,
-          query.sortDirection || null,
-          query.pagination.limit,
-          (query.pagination.page - 1) * query.pagination.limit,
-        ),
+    const items = await this.db.tx.$queryRawTyped(
+      listMembersRawQuery(
+        roles,
+        query.search || null,
+        query.sortBy || null,
+        query.sortDirection || null,
+        query.pagination.limit,
+        (query.pagination.page - 1) * query.pagination.limit,
       ),
-    ]);
+    );
 
     return paginate({
       totalCount,
@@ -72,11 +71,12 @@ const MemberListItemDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
+  excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
   stats: z.array(
     z.object({
       year: z.number().int().gt(1),
       count: z.number().int().gte(0),
-      targetedGrade: z.enum(Magistrat.Grade),
+      targetedGrade: z.enum(GradeEnum),
     }),
   ),
 });

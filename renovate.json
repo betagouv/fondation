@@ -4,13 +4,50 @@
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "semanticCommitScope": "FON-000",
+  "commitMessageLowerCase": "never",
+  "commitMessageAction": "update",
   "dependencyDashboard": true,
   "schedule": ["after 6am and before 8pm on Sunday"],
   "pinDigests": true,
   "minimumReleaseAge": "15 days",
-  "prConcurrentLimit": 1,
+  "prConcurrentLimit": 5,
+  "toolSettings": {
+    "nodeMaxMemory": 2048
+  },
   "vulnerabilityAlerts": {
     "enabled": true,
     "prConcurrentLimit": 1
-  }
+  },
+  "packageRules": [
+    {
+      "description": "zod 4.5+ emits `type: [X, 'null']` for nullable fields, which nestjs-zod does not convert to OpenAPI 3.0 `nullable`",
+      "matchPackageNames": ["zod"],
+      "allowedVersions": "<4.5.0"
+    },
+    {
+      "matchFileNames": ["apps/api/package.json", "apps/api-e2e/package.json"],
+      "groupName": "api",
+      "additionalBranchPrefix": "api/"
+    },
+    {
+      "matchFileNames": ["apps/client/package.json"],
+      "groupName": "client",
+      "additionalBranchPrefix": "client/"
+    },
+    {
+      "matchFileNames": ["packages/**/package.json"],
+      "groupName": "packages",
+      "additionalBranchPrefix": "packages/"
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "groupName": "docker",
+      "additionalBranchPrefix": "docker/"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github",
+      "additionalBranchPrefix": "github/"
+    }
+  ]
 }

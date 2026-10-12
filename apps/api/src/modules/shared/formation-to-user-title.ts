@@ -1,14 +1,14 @@
-import { Magistrat } from 'shared-models';
-
 import { USER_TITLES, UserTitleEnum } from '../administration/domain/user-enum';
 
+import { FormationEnum } from './formation.enum';
+
 export function formationToUserTitle(
-  formation: Magistrat.Formation | null | undefined,
+  formation: FormationEnum | null | undefined,
 ): (UserTitleEnum | undefined | null)[] {
   switch (formation) {
-    case Magistrat.Formation.PARQUET:
+    case 'PARQUET':
       return ['DEPUTY_PRESIDENT_PARQUET', 'PRESIDENT_PARQUET'];
-    case Magistrat.Formation.SIEGE:
+    case 'SIEGE':
       return ['DEPUTY_PRESIDENT_SIEGE', 'PRESIDENT_SIEGE'];
     default:
       return [...USER_TITLES];

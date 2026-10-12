@@ -1,0 +1,23 @@
+{
+  "name": "api-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "openapi:generate": "openapi-ts",
+    "test": "vitest run",
+    "test:coverage": "rm -rf ../api/coverage/e2e && COVERAGE=1 vitest run && pnpm --filter api exec c8 report",
+    "types:check": "tsc -p ."
+  },
+  "devDependencies": {
+    "@faker-js/faker": "catalog:",
+    "@hey-api/openapi-ts": "catalog:",
+    "@types/node": "catalog:",
+    "lolfi": "workspace:*",
+    "node-xlsx": "0.24.0",
+    "postgres": "3.4.9",
+    "typescript": "catalog:",
+    "undici-types": "8.10.2",
+    "vitest": "catalog:"
+  }
+}

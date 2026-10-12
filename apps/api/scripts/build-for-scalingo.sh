@@ -2,8 +2,7 @@
 
 [[ -n "$DATABASE_URL" ]] || { echo "Missing DATABASE_URL"; exit 1; }
 
-./scripts/sheetjs.sh && \
-  pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
+pnpm --filter api... install --frozen-lockfile --ignore-scripts && \
   pnpm --filter api exec prisma migrate --config prisma.config.ts deploy && \
   pnpm --filter api exec prisma generate --config prisma.config.ts --generator client --sql && \
   pnpm --filter api... run build
@@ -14,23 +13,19 @@
   pnpm run --filter api sentry \
     sourcemaps upload --org betagouv --project fondation_api ./dist
 
-## @see apps/api/package.json#scripts.postinstall
-postinstall="bash apps/api/scripts/postinstall.sh" && \
 temp=$(basename $(mktemp -d)) && \
   mkdir -p "$temp" && \
-  find {apps/api,packages/shared-models}/dist \
+  find apps/api/dist packages/documents-assets/dist \
     -iname '*.d.ts' -type f -delete \
     -or -iname '*.map' -type f -delete \
     -or -iname '*.tsbuildinfo' -type f -delete && \
   mv bin pnpm-lock.yaml pnpm-workspace.yaml vendor "$temp" && \
-  mkdir -p "$temp/apps/api" && \
-  mkdir -p "$temp/apps/api/scripts" && \
+  mkdir -p "$temp/apps/api" "$temp/packages/documents-assets" && \
   mv apps/api/dist "$temp/apps/api" && \
-  mv apps/api/scripts/postinstall.sh $temp/apps/api/scripts && \
-  mkdir -p "$temp/packages/shared-models" && \
-  mv packages/shared-models/dist "$temp/packages/shared-models" && \
-  jq ".scripts = {build: \"$postinstall\"} | del(.jest)" package.json > "$temp/package.json" && \
-  jq 'del(.scripts,.jest)' apps/api/package.json > "$temp/apps/api/package.json" && \
-  jq 'del(.scripts,.types)' packages/shared-models/package.json > "$temp/packages/shared-models/package.json" && \
-  mv apps/api/scalingo/{.buildpacks,Procfile,Aptfile,cron.json} "$temp" && \
+  mv packages/documents-assets/{dist,assets} "$temp/packages/documents-assets" && \
+  jq 'del(.scripts)' package.json > "$temp/package.json" && \
+  jq 'del(.scripts)' apps/api/package.json > "$temp/apps/api/package.json" && \
+  jq 'del(.scripts)' packages/documents-assets/package.json \
+    > "$temp/packages/documents-assets/package.json" && \
+  mv apps/api/scalingo/{.buildpacks,Procfile,cron.json} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"

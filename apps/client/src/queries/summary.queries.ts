@@ -4,67 +4,62 @@ import * as $api from '@api/sdk';
 import type { DetailedSummaryDto } from '@api/types';
 
 export const summaryKeys = {
-  detailsSummary: (props?: { sessionId: string; nominationFileId: string }) =>
+  detailsSummary: (props?: { nominationFileId: string; sessionId: string }) =>
     ['summaries', 'detailsSummary', props] as const,
   searchSummaryReaders: (props?: {
-    sessionId: string;
+    includeIds?: readonly string[];
     nominationFileId: string;
     search?: string;
-    includeIds?: readonly string[];
+    sessionId: string;
   }) => ['summaries', 'searchSummaryReaders', props] as const,
 };
 
-export const useSummaryQuery = (options: { sessionId: string; nominationFileId: string }) =>
+function injectScreenshotUrls(
+  content: string,
+  screenshots: readonly { id: string; name: string; url: string }[],
+): string {
+  const byId = new Map(screenshots.map((s) => [s.id, s.url]));
+  const byName = new Map(screenshots.map((s) => [s.name, s.url]));
+
+  const { body } = new DOMParser().parseFromString(content, 'text/html');
+  for (const $img of body.querySelectorAll('img')) {
+    const url =
+      ($img.dataset.fileId && byId.get($img.dataset.fileId)) ||
+      ($img.dataset.fileName && byName.get($img.dataset.fileName));
+    if (url) $img.src = url;
+  }
+
+  return body.innerHTML;
+}
+
+export const useSummaryQuery = (options: { nominationFileId: string; sessionId: string }) =>
   useQuery({
-    refetchOnWindowFocus: false,
-    queryKey: summaryKeys.detailsSummary(options),
     queryFn: async () => {
       const { data } = await $api.summaries.detailSummary({ path: options });
 
       if (data) {
-        const byId = new Map(data.summary.screenshots.map((s) => [s.id, s.url]));
-        const byName = new Map(data.summary.screenshots.map((s) => [s.name, s.url]));
-
-        const $div = document.createElement('div');
-        $div.innerHTML = data.summary.content;
-        for (const $img of $div.querySelectorAll('img')) {
-          if ($img.dataset.fileId) {
-            const url = byId.get($img.dataset.fileId);
-            if (url) {
-              $img.src = url;
-              continue;
-            }
-          }
-
-          if ($img.dataset.fileName) {
-            const url = byName.get($img.dataset.fileName);
-            if (url) {
-              $img.src = url;
-              continue;
-            }
-          }
-        }
-
-        data.summary.content = $div.innerHTML;
+        data.summary.content = injectScreenshotUrls(data.summary.content, data.summary.screenshots);
       }
 
       return data ?? null;
     },
+    queryKey: summaryKeys.detailsSummary(options),
+    refetchOnWindowFocus: false,
   });
 
 export function useAttachSummaryFilesMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (mutation: { files: File[]; sessionId: string; nominationFileId: string }) => {
+    mutationFn: async (mutation: { files: File[]; nominationFileId: string; sessionId: string }) => {
       const { nominationFileId, sessionId } = mutation;
       await $api.summaries.attachSummaryFiles({
-        path: { sessionId, nominationFileId },
         body: { files: mutation.files },
+        path: { nominationFileId, sessionId },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSuccess: (_, { nominationFileId, sessionId }) =>
       queryClient.invalidateQueries({
-        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
       }),
   });
 }
@@ -73,17 +68,17 @@ export function useDetachSummaryFilesMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (mutation: { fileIds: string[]; sessionId: string; nominationFileId: string }) => {
+    mutationFn: async (mutation: { fileIds: string[]; nominationFileId: string; sessionId: string }) => {
       const { nominationFileId, sessionId } = mutation;
 
       await $api.summaries.detachSummaryFiles({
-        path: { sessionId, nominationFileId },
+        path: { nominationFileId, sessionId },
         query: { fileIds: mutation.fileIds },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId, fileIds }) => {
+    onSuccess: (_, { fileIds, nominationFileId, sessionId }) => {
       queryClient.setQueryData(
-        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => {
           if (!old) return old;
 
@@ -102,42 +97,36 @@ export function useDetachSummaryFilesMutation() {
 
 export const useGenerateSummaryAttachmentPublicUrlMutation = () =>
   useMutation({
-    async mutationFn(mutation: { sessionId: string; nominationFileId: string; fileId: string }) {
-      const { sessionId, nominationFileId, fileId } = mutation;
+    async mutationFn(mutation: {
+      fileId: string;
+      nominationFileId: string;
+      sessionId: string;
+    }): Promise<string | null> {
+      const { fileId, nominationFileId, sessionId } = mutation;
       const { data } = await $api.summaries.generateAttachmentPublicUrl({
-        path: { sessionId, nominationFileId, fileId },
+        path: { fileId, nominationFileId, sessionId },
       });
 
-      if (!data) return;
-
-      const $a = document.createElement('a');
-      $a.href = data.url;
-      $a.target = '_blank';
-      $a.rel = 'noopener noreferrer';
-
-      document.body.appendChild($a);
-
-      $a.click();
-      $a.remove();
+      return data?.url ?? null;
     },
   });
 
 export function useIncludeFileInSummaryContentMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (mutation: { sessionId: string; nominationFileId: string; files: readonly File[] }) => {
-      const { sessionId, nominationFileId, files } = mutation;
+    mutationFn: async (mutation: { files: readonly File[]; nominationFileId: string; sessionId: string }) => {
+      const { files, nominationFileId, sessionId } = mutation;
       const { data } = await $api.summaries.includeFilesInContent({
-        path: { sessionId, nominationFileId },
         body: { files: [...files] },
+        path: { nominationFileId, sessionId },
       });
 
       return data ?? null;
     },
 
-    onSuccess(data, { sessionId, nominationFileId }) {
+    onSuccess(data, { nominationFileId, sessionId }) {
       queryClient.setQueryData(
-        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => {
           if (!old || !data) return old;
 
@@ -157,16 +146,16 @@ export function useIncludeFileInSummaryContentMutation() {
 export function useWriteSummaryMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (mutation: { sessionId: string; nominationFileId: string; content: string }) => {
-      const { sessionId, nominationFileId, content } = mutation;
+    mutationFn: async (mutation: { content: string; nominationFileId: string; sessionId: string }) => {
+      const { content, nominationFileId, sessionId } = mutation;
       await $api.summaries.writeSummary({
-        path: { sessionId, nominationFileId },
         body: { content },
+        path: { nominationFileId, sessionId },
       });
     },
-    onSuccess(_, { sessionId, nominationFileId, content }) {
+    onSuccess(_, { content, nominationFileId, sessionId }) {
       queryClient.setQueryData(
-        summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => {
           if (!old) return old;
 
@@ -184,18 +173,17 @@ export function useWriteSummaryMutation() {
 }
 
 export const useSearchSummaryReadersQuery = (options: {
-  sessionId: string;
+  includeIds?: string[];
   nominationFileId: string;
   search?: string;
-  includeIds?: string[];
+  sessionId: string;
 }) =>
   useQuery({
     placeholderData: (prev) => prev,
-    queryKey: summaryKeys.searchSummaryReaders(options),
     queryFn: async () => {
-      const { sessionId, nominationFileId, search, includeIds } = options;
+      const { includeIds, nominationFileId, search, sessionId } = options;
       const { data } = await $api.summaries.searchSummaryReaders({
-        path: { sessionId, nominationFileId },
+        path: { nominationFileId, sessionId },
         query: (search ?? '').length > 2 ? { search } : (includeIds ?? []).length ? { includeIds } : {},
       });
 
@@ -210,6 +198,8 @@ export const useSearchSummaryReadersQuery = (options: {
 
       return data ?? null;
     },
+    queryKey: summaryKeys.searchSummaryReaders(options),
+    staleTime: 30_000,
   });
 
 export function useUpdateSummaryReadersMutation() {
@@ -217,30 +207,30 @@ export function useUpdateSummaryReadersMutation() {
 
   return useMutation({
     mutationFn: async (mutation: {
-      sessionId: string;
       nominationFileId: string;
       readerIds: readonly string[];
+      sessionId: string;
     }) => {
-      const { sessionId, nominationFileId, readerIds } = mutation;
+      const { nominationFileId, readerIds, sessionId } = mutation;
       await $api.summaries.updateSummaryReadersList({
-        path: { sessionId, nominationFileId },
         body: { readerIds: readerIds as string[] },
+        path: { nominationFileId, sessionId },
       });
     },
 
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSuccess: (_, { nominationFileId, sessionId }) =>
       queryClient.invalidateQueries({
-        queryKey: summaryKeys.detailsSummary({ sessionId, nominationFileId }),
+        queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
       }),
   });
 }
 
 export function useCreateSummaryMutation() {
   return useMutation({
-    mutationFn: async (mutation: { sessionId: string; nominationFileId: string }) => {
-      const { sessionId, nominationFileId } = mutation;
+    mutationFn: async (mutation: { nominationFileId: string; sessionId: string }) => {
+      const { nominationFileId, sessionId } = mutation;
       const { data } = await $api.summaries.createSummary({
-        path: { sessionId, nominationFileId },
+        path: { nominationFileId, sessionId },
       });
 
       return data ?? null;

@@ -5,10 +5,9 @@
 
 SELECT
   m.id,
-  m.civilite AS "civility",
   m.first_name AS "firstName",
   m.last_name AS "lastName",
-  m.used_name AS "usedName",
+  m.married_name AS "marriedName",
   m.grade,
 
   p.function_id AS "functionId",
@@ -31,6 +30,6 @@ WHERE (
   ))
 )
 
-ORDER BY "rank" DESC, m.used_name ASC
+ORDER BY "rank" DESC, m.last_name ASC, m.first_name ASC
 
 OFFSET $3 LIMIT $4;

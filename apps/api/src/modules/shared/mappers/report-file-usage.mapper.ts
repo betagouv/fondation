@@ -1,29 +1,15 @@
-import { ReportFileUsage } from 'shared-models';
-
 import { PrismaReportFileUsageEnum } from 'src/generated/prisma/enums';
+import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 export function prismaReportFileUsageEnumToReportFileUsage(
   value: PrismaReportFileUsageEnum,
-): ReportFileUsage {
+): ReportFileUsageEnum {
   switch (value) {
     case 'ATTACHMENT':
-      return ReportFileUsage.ATTACHMENT;
+      return 'ATTACHMENT';
     case 'EMBEDDED_SCREENSHOT':
-      return ReportFileUsage.EMBEDDED_SCREENSHOT;
-    default:
-      return assertNever(value);
-  }
-}
-
-export function reportFileUsageToPrismaReportFileUsageEnum(
-  value: PrismaReportFileUsageEnum,
-): ReportFileUsage {
-  switch (value) {
-    case 'ATTACHMENT':
-      return ReportFileUsage.ATTACHMENT;
-    case 'EMBEDDED_SCREENSHOT':
-      return ReportFileUsage.EMBEDDED_SCREENSHOT;
+      return 'EMBEDDED_SCREENSHOT';
     default:
       return assertNever(value);
   }

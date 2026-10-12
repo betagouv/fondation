@@ -1,0 +1,329 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { axe } from 'vitest-axe';
+
+import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { frFormat } from '@/i18n/formats';
+import { FormationEnum } from '@/shared/enums/formation.enum';
+import { PrioriteEnum } from '@/shared/enums/priorite.enum';
+import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
+import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
+import * as $api from '@api/sdk';
+import { authKeys } from '@queries/auth.queries';
+import { memberKeys, type ListMembersOptions } from '@queries/members.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { reportKeys } from '@queries/reports.queries';
+
+import { Header } from './Header';
+
+const SESSION_ID = 'session-1';
+const CURRENT_USER_ID = 'current-user';
+
+const CURRENT_USER = { firstName: 'Jean', id: CURRENT_USER_ID, lastName: 'Petit' };
+const OTHER_REPORTER = { firstName: 'Marie', id: 'reporter-1', lastName: 'Lefevre' };
+const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
+const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
+
+function renderHeader(options: {
+  canManage?: boolean;
+  excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
+  isSg?: boolean;
+  myReportId?: string;
+  nominationFile: SessionNominationFile;
+}) {
+  const client = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+  });
+  const memberListOptions: ListMembersOptions = {
+    formations: ['COMMUN', FormationEnum.SIEGE],
+    pagination: { pageIndex: 0, pageSize: 100 },
+  };
+  client.setQueryData(authKeys.introspectSession(), CURRENT_USER);
+  client.setQueryData(memberKeys.listMembers(memberListOptions), {
+    items: [
+      { ...CURRENT_USER, excludedJurisdictions: [] },
+      {
+        ...OTHER_REPORTER,
+        excludedJurisdictions: options.excludedJurisdictionsOfOtherReporter ?? [],
+      },
+    ],
+  });
+  client.setQueryData(
+    reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
+    options.myReportId ?? null,
+  );
+
+  return render(
+    <MemoryRouter
+      initialEntries={[
+        options.isSg === false ? ROUTE_PATHS.TRANSPARENCES.DASHBOARD : ROUTE_PATHS.SG.DASHBOARD,
+      ]}
+    >
+      <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
+        <QueryClientProvider client={client}>
+          <NominationFilesTableProvider
+            canManage={options.canManage ?? true}
+            formation={FormationEnum.SIEGE}
+            outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
+            sessionId={SESSION_ID}
+          >
+            <Header nominationFile={options.nominationFile} sessionId={SESSION_ID} />
+          </NominationFilesTableProvider>
+        </QueryClientProvider>
+      </IntlProvider>
+    </MemoryRouter>,
+  );
+}
+
+describe('Header reporter status', () => {
+  it('announces when no reporter is assigned', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [] }) });
+
+    expect(screen.getByText('Affectation non effectuée')).toBeInTheDocument();
+  });
+
+  it('lists reporters when the current user is not one of them', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
+
+    expect(screen.getByText('Marie LEFEVRE')).toBeInTheDocument();
+    expect(screen.queryByText('Vous êtes rapporteur')).not.toBeInTheDocument();
+  });
+
+  it('highlights the current user as a reporter, with co-reporters', () => {
+    renderHeader({
+      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER, OTHER_REPORTER] }),
+    });
+
+    expect(screen.getByText('Vous êtes rapporteur')).toBeInTheDocument();
+    expect(screen.getByText('avec')).toBeInTheDocument();
+    expect(screen.getByText('Marie LEFEVRE')).toBeInTheDocument();
+    expect(screen.queryByText('Jean PETIT')).not.toBeInTheDocument();
+  });
+
+  it('marks the current user as the sole reporter, without co-reporters', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER] }) });
+
+    expect(screen.getByText('Vous êtes rapporteur')).toBeInTheDocument();
+    expect(screen.queryByText('avec')).not.toBeInTheDocument();
+    expect(screen.queryByText('Jean PETIT')).not.toBeInTheDocument();
+  });
+
+  it('links to the report of the current user when they have one', () => {
+    renderHeader({
+      isSg: false,
+      myReportId: 'report-1',
+      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER] }),
+    });
+
+    expect(screen.getByRole('link', { name: 'Voir mon dossier' })).toHaveAttribute(
+      'href',
+      getGdsReportPath('report-1'),
+    );
+  });
+
+  it('hides the report link when the current user has no report', () => {
+    renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
+
+    expect(screen.queryByRole('link', { name: 'Voir mon dossier' })).not.toBeInTheDocument();
+  });
+
+  it('flags a reporter excluded from the jurisdiction of the file', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: LYON, targeted: null } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(
+      screen.getByText("Juridiction exclue pour Marie LEFEVRE : Cour d'appel de Lyon"),
+    ).toBeInTheDocument();
+  });
+
+  it('names every excluded jurisdiction of the file for the same reporter', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [RENNES, LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: LYON, targeted: RENNES } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(
+      screen.getByText(
+        "Juridictions exclues pour Marie LEFEVRE : Cour d'appel de Lyon et Cour d'appel de Rennes",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves a reporter alone when the file is outside their excluded jurisdictions', () => {
+    renderHeader({
+      excludedJurisdictionsOfOtherReporter: [LYON],
+      nominationFile: makeSessionNominationFile({
+        content: { jurisdictions: { current: { id: 'CA  PARIS', label: null }, targeted: null } },
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(screen.queryByText(/Juridiction exclue pour/)).not.toBeInTheDocument();
+  });
+});
+
+describe('Header edition', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('offers the edit button when the table is editable and the file is updatable', () => {
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null } }),
+    });
+
+    expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
+  });
+
+  it('hides the edit button for a member (table not editable)', () => {
+    renderHeader({
+      canManage: false,
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null } }),
+    });
+
+    expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
+  });
+
+  it('hides the edit button when the file is not updatable', () => {
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: 'REPORTED' } }),
+    });
+
+    expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
+  });
+
+  it('swaps read controls for edit controls, and cancel restores read mode', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({ content: { lockedReason: null }, reporters: [] }),
+    });
+
+    expect(screen.getByText('Affectation non effectuée')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+
+    expect(screen.getByRole('button', { name: 'Valider' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Annuler' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Affecter un rapporteur/ })).toBeInTheDocument();
+    expect(screen.queryByText('Affectation non effectuée')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Annuler' }));
+
+    expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+
+  it('saves the current affectation when validating, then leaves edit mode', async () => {
+    const affectReporters = vi
+      .spyOn($api.sessions, 'affectReporters')
+      .mockResolvedValue({} as Awaited<ReturnType<typeof $api.sessions.affectReporters>>);
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        priorities: [PrioriteEnum.ETOILE],
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Valider' }));
+
+    expect(affectReporters).toHaveBeenCalledTimes(1);
+    expect(affectReporters).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          items: [
+            {
+              nominationFileId: 'nomination-file',
+              priorities: [PrioriteEnum.ETOILE],
+              reporterIds: [OTHER_REPORTER.id],
+            },
+          ],
+        },
+        path: { sessionId: SESSION_ID },
+      }),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Header missing second reporter', () => {
+  // jsdom implements no layout, so scrollIntoView is absent from Element.prototype
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('stays silent on a position expecting no particular reporters', () => {
+    renderHeader({
+      nominationFile: makeSessionNominationFile({ expectedReportersCount: null, reporters: [] }),
+    });
+
+    expect(screen.queryByText('2 rapporteurs sont attendus pour ce poste')).not.toBeInTheDocument();
+  });
+
+  it('opens the affectation and focuses the reporter select', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        expectedReportersCount: 2,
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(screen.getByText('2 rapporteurs sont attendus pour ce poste')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Affecter' }));
+
+    expect(screen.getByRole('button', { name: /Affecter un rapporteur/ })).toHaveFocus();
+  });
+
+  it('keeps warning until a second reporter is selected', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        expectedReportersCount: 2,
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Affecter' }));
+    expect(screen.getByText('2 rapporteurs sont attendus pour ce poste')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
+    await user.click(screen.getByRole('option', { name: /Jean PETIT/ }));
+
+    expect(screen.queryByText('2 rapporteurs sont attendus pour ce poste')).not.toBeInTheDocument();
+  });
+});
+
+describe('Header accessibility', () => {
+  it('passes basic accessibility checks', async () => {
+    const { container } = renderHeader({
+      myReportId: 'report-1',
+      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER, OTHER_REPORTER] }),
+    });
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});

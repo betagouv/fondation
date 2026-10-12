@@ -1,3 +1,4 @@
+import { capitalize } from './capitalize';
 import { unaccent } from './unaccent';
 
 function retrieveInitials(word: string): string {
@@ -19,6 +20,10 @@ function retrieveInitials(word: string): string {
   }
 
   return letters.join('');
+}
+
+export function fullname(user: { firstName: string; lastName: string }): string {
+  return `${capitalize(user.firstName)}\u00A0${user.lastName.toUpperCase()}`;
 }
 
 export function initials(user: { firstName: string; lastName: string }) {

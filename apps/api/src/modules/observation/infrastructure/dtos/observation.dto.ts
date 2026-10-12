@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
+import { scheduleAuditionSchema } from 'src/utils/audition-schedule';
 
 const linkedObservationsAttachmentsMultipartSchema = z
   .array(z.object({ observationId: z.string(), fileId: z.string() }))
@@ -27,17 +28,6 @@ export class ListObservationsQueryDto extends createZodDto(
   }),
 ) {}
 
-export class SearchMagistratsQueryDto extends createZodDto(
-  z.object({
-    search: z.string().min(2).optional(),
-    ignore: z
-      .string()
-      .optional()
-      .transform((x) => (x ?? '').split(',').filter((x) => !!x))
-      .pipe(z.array(z.uuid())),
-  }),
-) {}
-
 export class UpdateObservationDto extends createZodDto(
   z.object({
     files: z.array(z.file()).optional(),
@@ -60,6 +50,8 @@ export class FollowUpOnObservationDto extends createZodDto(
     comment: z.string().trim().nullable(),
   }),
 ) {}
+
+export class ScheduleObservantAuditionDto extends createZodDto(scheduleAuditionSchema) {}
 
 export class ListObservationsAttachmentsQueryDto extends createZodDto(
   z.object({

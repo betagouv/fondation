@@ -2,15 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class DetailsJobQuery {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly db: Db) {}
 
   async handle(query: { jobId: number }): Promise<DetailedJobDto> {
-    const job = await this.prisma.ingestionJob.findUnique({
+    const job = await this.db.tx.ingestionJob.findUnique({
       where: { id: query.jobId },
       select: {
         id: true,
@@ -38,7 +39,7 @@ export class DetailsJobQuery {
             },
           },
         },
-      },
+      } satisfies Prisma.IngestionJobSelect,
     });
 
     if (!job) throw new NotFoundException();

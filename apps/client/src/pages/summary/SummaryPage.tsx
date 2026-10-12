@@ -1,42 +1,40 @@
+import { FormattedMessage } from 'react-intl';
 import { useParams } from 'react-router';
 
-import { AuthGuard } from '@/components/guards/AuthGuard';
-import { ArchiveBannerPortal } from '@/components/shared/layouts/archived-banner/ArchiveBannerPortal';
-import { SummaryContainer } from '@/components/summary/components/SummaryContainer';
-import { Summary } from '@/components/summary/Summary';
-import { useVisibleSummarySections } from '@/components/summary/useVisibleSummarySections';
-import { AUTHORIZED_ROLES } from '@/constants/authorized-roles.constants';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { SummaryDetailsContent } from '@/features/summary/components/SummaryDetailsContent';
+import { SummaryNotFound } from '@/features/summary/components/SummaryNotFound';
+import { SummaryContext } from '@/features/summary/context/SummaryContext';
+import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';
 
-import { SummaryContext } from './SummaryContext';
-import { SummaryNotFound } from './SummaryNotFound';
-
 function SummaryPageInner() {
   const { user } = useUser();
+  const isSg = useIsSg();
 
-  const params = useParams<{ sessionId: string; fileId: string }>();
+  const params = useParams<{ fileId: string; sessionId: string }>();
   const sessionId = params.sessionId!;
   const nominationFileId = params.fileId!;
 
-  const { sections, showSection } = useVisibleSummarySections();
-
-  const { data, isLoading, error, isFetched } = useSummaryQuery({
-    sessionId: sessionId!,
+  const { data, error, isFetched, isLoading } = useSummaryQuery({
     nominationFileId: nominationFileId!,
+    sessionId: sessionId!,
   });
 
   if (isLoading) {
     return (
-      <SummaryContainer>
-        <p>Chargement...</p>
-      </SummaryContainer>
+      <div className="fr-container fr-py-6v">
+        <p>
+          <FormattedMessage defaultMessage="Chargement..." />
+        </p>
+      </div>
     );
   }
 
   const canWriteSummary =
-    isFetched && !!user?.id && !!data && !!data.summary.author?.id && user.id === data.summary.author.id;
+    isFetched && !!user?.id && !!data && (data.summary.author ? user.id === data.summary.author.id : isSg);
 
   const canReadSummary =
     isFetched &&
@@ -51,22 +49,14 @@ function SummaryPageInner() {
   return (
     <SummaryContext
       value={{
-        sections,
-        showSection,
-        sessionId,
-        nominationFileId,
         canWriteSummary,
+        nominationFileId,
+        sessionId,
         summary: data ?? null,
       }}
     >
       <ArchiveBannerPortal isArchived={data?.isArchived}>
-        {notFound ? (
-          <SummaryNotFound />
-        ) : (
-          <SummaryContainer>
-            <Summary />
-          </SummaryContainer>
-        )}
+        {notFound ? <SummaryNotFound /> : <SummaryDetailsContent />}
       </ArchiveBannerPortal>
     </SummaryContext>
   );
@@ -74,9 +64,5 @@ function SummaryPageInner() {
 
 export function SummaryPage() {
   const { fileId: nominationFileId } = useParams();
-  return (
-    <AuthGuard authorizedRoles={AUTHORIZED_ROLES.ALL}>
-      <SummaryPageInner key={nominationFileId} />
-    </AuthGuard>
-  );
+  return <SummaryPageInner key={nominationFileId} />;
 }

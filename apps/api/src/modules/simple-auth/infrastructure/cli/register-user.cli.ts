@@ -2,9 +2,9 @@ import { type QuestionMap } from 'inquirer';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import z from 'zod';
 
-import { Gender, Role } from 'shared-models';
-
 import { SimpleAuthService } from '../../simple-auth.service';
+import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { RoleEnum } from 'src/modules/shared/role.enum';
 
 const RegisterUserKey = {
   gender: 'gender',
@@ -16,8 +16,8 @@ const RegisterUserKey = {
 } as const;
 
 type RegisterUserOptions = {
-  [RegisterUserKey.gender]: Gender;
-  [RegisterUserKey.role]: Role;
+  [RegisterUserKey.gender]: GenderEnum;
+  [RegisterUserKey.role]: RoleEnum;
   [RegisterUserKey.firstName]: string;
   [RegisterUserKey.lastName]: string;
   [RegisterUserKey.email]: string;
@@ -39,13 +39,13 @@ export class RegisterUserCliCommand extends CommandRunner {
         {
           type: 'list',
           name: 'role',
-          choices: Object.values(Role),
+          choices: Object.values(RoleEnum),
           message: 'role:',
         },
         {
           type: 'list',
           name: 'gender',
-          choices: Object.values(Gender),
+          choices: Object.values(GenderEnum),
           message: 'gender:',
         },
         { type: 'input', name: 'firstName', message: 'first name:' },
@@ -73,8 +73,8 @@ export class RegisterUserCliCommand extends CommandRunner {
     ).filter((prompt) => !(options as any)[prompt.name]);
 
     const answers = await this.inquirer.inquirer.prompt<{
-      role: Role;
-      gender: Gender;
+      role: RoleEnum;
+      gender: GenderEnum;
       email: string;
       firstName: string;
       lastName: string;
@@ -84,20 +84,20 @@ export class RegisterUserCliCommand extends CommandRunner {
   }
 
   @Option({
-    choices: Object.values(Role),
+    choices: Object.values(RoleEnum),
     flags: '-r, --role <role>',
     name: RegisterUserKey.role,
   })
-  parseRole(role: Role) {
+  parseRole(role: RoleEnum) {
     return role;
   }
 
   @Option({
-    choices: Object.values(Gender),
+    choices: Object.values(GenderEnum),
     flags: '-g, --gender <gender>',
     name: RegisterUserKey.gender,
   })
-  parseGender(gender: Gender) {
+  parseGender(gender: GenderEnum) {
     return gender;
   }
 

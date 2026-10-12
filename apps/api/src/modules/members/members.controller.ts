@@ -1,12 +1,9 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
-  forwardRef,
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   ParseUUIDPipe,
   Put,
@@ -15,19 +12,10 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role, TypeDeSaisine } from 'shared-models';
-
-import { DetailedMemberSessionDto } from '../session/infrastructure/queries/internal-detail-member-session.query';
-import { ListedMemberSessionsDto } from '../session/infrastructure/queries/internal-list-member-sessions.query';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { HasRole } from 'src/modules/simple-auth';
 
-import {
-  DetailsMemberSessionQueryDto,
-  ListMembersQueryDto,
-  WriteNominationFileMemberMemoDto,
-} from './infrastructure/dtos/members.dto';
+import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
 import {
   ExcludeJurisdictionsDto,
   UpdateMemberDisplayTitleDto,
@@ -39,13 +27,9 @@ import { PaginatedMemberListItemDto } from './infrastructure/queries/list-member
 
 @Controller('/api/members/v1')
 export class MembersController {
-  constructor(
-    private readonly members: MembersService,
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
-  ) {}
+  constructor(private readonly members: MembersService) {}
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get()
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
@@ -64,14 +48,14 @@ export class MembersController {
     });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/:userId')
   @ZodResponse({ type: DetailedMemberDto, status: HttpStatus.OK })
   detailsMember(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedMemberDto> {
     return this.members.detailsMember({ userId });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/excluded-jurisdictions')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -82,7 +66,7 @@ export class MembersController {
     return this.members.excludeJurisdictions({ userId, jurisdictionIds });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/display-title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
@@ -93,70 +77,11 @@ export class MembersController {
     return this.members.updateDisplayTitle({ userId, displayTitle });
   }
 
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:userId/title')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   updateTitle(@Param('userId') userId: string, @Body() { title }: UpdateMemberTitleDto): Promise<void> {
     return this.members.updateTitle({ userId, title });
-  }
-
-  @HasRole()
-  @Get('/:userId/sessions/transparence/garde-des-sceaux')
-  @ZodResponse({ type: ListedMemberSessionsDto, status: HttpStatus.OK })
-  listMemberSessions(
-    @Param('userId') userId: string,
-    @AuthedUser() authUser: { id: string; role: Role },
-  ): Promise<ListedMemberSessionsDto> {
-    if (userId !== authUser.id) throw new ForbiddenException();
-
-    return this.sessions.listMemberSessions({
-      user: authUser,
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-    });
-  }
-
-  @HasRole()
-  @ApiPaginated()
-  @Get('/:userId/sessions/transparence/garde-des-sceaux/:sessionId')
-  @ZodResponse({ type: DetailedMemberSessionDto, status: HttpStatus.OK })
-  detailsMemberSession(
-    @Param('userId') userId: string,
-    @Param('sessionId') sessionId: string,
-    @QueryPagination() pagination: Pagination,
-    @Query(ZodValidationPipe) query: DetailsMemberSessionQueryDto,
-    @AuthedUser() authUser: { id: string; role: Role },
-  ): Promise<DetailedMemberSessionDto> {
-    if (userId !== authUser.id) throw new ForbiddenException();
-
-    return this.sessions.detailMemberSession({
-      user: authUser,
-      priorities: query.priorities,
-      status: query.status ?? undefined,
-      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      typeDeSaisine: TypeDeSaisine.TRANSPARENCE_GDS,
-      pagination,
-      sessionId,
-    });
-  }
-
-  @HasRole()
-  @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async writeNominationFileMemberMemo(
-    @AuthedUser() authedUser: { id: string },
-    @Param('userId') userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Body() { memo }: WriteNominationFileMemberMemoDto,
-  ) {
-    if (authedUser.id !== userId) throw new ForbiddenException();
-
-    await this.sessions.writeNominationFileMemberMemo({
-      userId,
-      sessionId,
-      nominationFileId,
-      memo,
-    });
   }
 }

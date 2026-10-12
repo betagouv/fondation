@@ -21,7 +21,7 @@ jobs:
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 11.5.0
+          version: 11.27.0
           run_install: false
 
       - name: Use Node.js
@@ -29,10 +29,6 @@ jobs:
         with:
           node-version: '24.12.0'
           cache: 'pnpm'
-
-      - name: install sheetjs
-        shell: bash
-        run: ./scripts/sheetjs.sh
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts

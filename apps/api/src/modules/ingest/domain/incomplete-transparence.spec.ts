@@ -1,8 +1,10 @@
-import { Magistrat } from 'shared-models';
+import { describe, expect, it } from 'vitest';
+
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 import { incompleteTransparenceReason } from './incomplete-transparence';
 
-const noSession = new Set<Magistrat.Formation>();
+const noSession = new Set<FormationEnum>();
 const monday = new Date('2026-09-07T08:00:00Z');
 const published = new Date('2026-09-04T00:00:00Z');
 
@@ -25,7 +27,7 @@ describe('incompleteTransparenceReason', () => {
       incompleteTransparenceReason(
         {
           designations: { candidatures: 114, perFormation: { SIEGE: 20, PARQUET: 3 } },
-          formationsWithSession: new Set([Magistrat.Formation.SIEGE]),
+          formationsWithSession: new Set<FormationEnum>(['SIEGE']),
           publishedAt: published,
         },
         monday,
@@ -51,7 +53,7 @@ describe('incompleteTransparenceReason', () => {
       incompleteTransparenceReason(
         {
           designations: { candidatures: 3538, perFormation: { SIEGE: 707, PARQUET: 303 } },
-          formationsWithSession: new Set([Magistrat.Formation.SIEGE, Magistrat.Formation.PARQUET]),
+          formationsWithSession: new Set<FormationEnum>(['SIEGE', 'PARQUET']),
           publishedAt: published,
         },
         monday,
@@ -64,7 +66,7 @@ describe('incompleteTransparenceReason', () => {
       incompleteTransparenceReason(
         {
           designations: { candidatures: 98, perFormation: { SIEGE: 0, PARQUET: 18 } },
-          formationsWithSession: new Set([Magistrat.Formation.PARQUET]),
+          formationsWithSession: new Set<FormationEnum>(['PARQUET']),
           publishedAt: published,
         },
         monday,
@@ -77,7 +79,7 @@ describe('incompleteTransparenceReason', () => {
       incompleteTransparenceReason(
         {
           designations: { candidatures: 1, perFormation: { SIEGE: 0, PARQUET: 0 } },
-          formationsWithSession: new Set([Magistrat.Formation.PARQUET]),
+          formationsWithSession: new Set<FormationEnum>(['PARQUET']),
           publishedAt: published,
         },
         monday,

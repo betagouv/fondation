@@ -6,7 +6,7 @@
 
 import { createClientConfig } from '../../utils/http.config.ts';
 
-import { type ClientOptions, type Config, createClient, createConfig } from './client/index.ts';
+import { type Client, type ClientOptions, type Config, createClient, createConfig } from './client/index.ts';
 import type { ClientOptions as ClientOptions2 } from './types.ts';
 
 /**
@@ -19,4 +19,4 @@ import type { ClientOptions as ClientOptions2 } from './types.ts';
  */
 export type CreateClientConfig<T extends ClientOptions = ClientOptions2> = (override?: Config<ClientOptions & T>) => Config<Required<ClientOptions> & T>;
 
-export const client = createClient(createClientConfig(createConfig<ClientOptions2>()));
+export const client: Client = createClient(createClientConfig(createConfig<ClientOptions2>()));

@@ -16,10 +16,10 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { Role } from 'shared-models';
-
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from 'src/modules/framework/files';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import { DateOnly } from 'src/utils/date-only';
 
 import {
   AttachMemberCommentScreenshotsDto,
@@ -30,6 +30,7 @@ import {
   CreateObservationDto,
   CreateObservationResponseDto,
   FollowUpOnObservationDto,
+  ScheduleObservantAuditionDto,
   UpdateObservationDto,
 } from './infrastructure/dtos/observation.dto';
 import { ObservationsFilter } from './infrastructure/observation.filter';
@@ -39,136 +40,145 @@ import { ListObservationsResponseDto } from './infrastructure/queries/list-obser
 import { ObservationService } from './observation.service';
 
 @ApiTags('Observations')
-@ApiParam({ name: 'sessionId', type: 'string', format: 'uuid' })
-@ApiParam({ name: 'nominationFileId', type: 'string', format: 'uuid' })
+@ApiParam({ format: 'uuid', name: 'sessionId', type: 'string' })
+@ApiParam({ format: 'uuid', name: 'nominationFileId', type: 'string' })
 @UseInterceptors(ObservationsFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/observations')
 export class ObservationController {
   constructor(private readonly observations: ObservationService) {}
 
   @Post()
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
-    schema: CreateObservationDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: CreateObservationDto,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
-    type: CreateObservationResponseDto,
     status: HttpStatus.CREATED,
+    type: CreateObservationResponseDto,
   })
   async createObservation(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { files, form }: Multipart<typeof CreateObservationDto>,
   ): Promise<{ id: string }> {
     return this.observations.createObservation({
-      userId,
-      sessionId,
-      files: files ?? [],
-      nominationFileId,
-      magistratId: form.magistratId,
       dateReception: new Date(form.dateReception),
       description: form.description,
+      files: files ?? [],
       linkedAttachments: form.linkedObservationsAttachments,
+      magistratId: form.magistratId,
+      nominationFileId,
+      sessionId,
+      userId,
     });
   }
 
   @Get()
   @HasRole()
   @ZodResponse({
-    type: ListObservationsResponseDto,
     status: HttpStatus.OK,
+    type: ListObservationsResponseDto,
   })
   async listObservations(
-    @Param('nominationFileId') nominationFileId: string,
+    @AuthedUser() user: { role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<ListObservationsResponseDto> {
     return this.observations.listObservations({
       nominationFileId,
+      role: user.role,
+      sessionId,
     });
   }
 
   @Get('/:observationId')
   @HasRole()
   @ZodResponse({
-    type: GetObservationDetailsResponseDto,
     status: HttpStatus.OK,
+    type: GetObservationDetailsResponseDto,
   })
   async getObservationDetails(
-    @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @AuthedUser() user: { id: string; role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
-      userId,
-      sessionId,
       nominationFileId,
       observationId,
+      role: user.role,
+      sessionId,
+      userId: user.id,
     });
   }
 
   @Get('/:observationId/files/:fileId/url')
   @HasRole()
   @ZodResponse({
-    type: GetObservationFileUrlResponseDto,
     status: HttpStatus.OK,
+    type: GetObservationFileUrlResponseDto,
   })
   async getObservationFileUrl(
-    @Param('observationId') observationId: string,
-    @Param('fileId') fileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GetObservationFileUrlResponseDto> {
     return this.observations.getObservationFileUrl({
-      observationId,
       fileId,
+      observationId,
     });
   }
 
   @Delete('/:observationId')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteObservation(
-    @Param('observationId') observationId: string,
-    @AuthedUserId() userId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.observations.deleteObservation({
-      userId,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       observationId,
+      userId: user.id,
     });
   }
 
   @Patch('/:observationId')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UseMultipartBody({
-    schema: UpdateObservationDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: UpdateObservationDto,
   })
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
-    @Param('observationId') observationId: string,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { form, files }: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
     await this.observations.updateObservation({
-      observationId,
       dateReception: new Date(form.dateReception),
-      magistratId: form.magistratId,
       description: form.description,
-      filesToAttach: files ?? [],
       fileIdsToDetach: form.detachFileIds ?? [],
+      filesToAttach: files ?? [],
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       linkedFiles: form.linkedObservationsAttachments,
+      magistratId: form.magistratId,
+      observationId,
+      userId: user.id,
     });
   }
 
   @Post('/:observationId/member-comments/screenshots')
   @HasRole()
   @UseMultipartBody({
-    schema: AttachMemberCommentScreenshotsDto,
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: AttachMemberCommentScreenshotsDto,
   })
   @UsePipes(ZodValidationPipe)
   @ZodResponse({
@@ -177,17 +187,17 @@ export class ObservationController {
   })
   async attachMemberCommentScreenshots(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { files }: Multipart<typeof AttachMemberCommentScreenshotsDto>,
   ): Promise<AttachedMemberCommentScreenshotsDto> {
     return this.observations.attachMemberCommentScreenshots({
-      userId,
-      sessionId,
+      files,
       nominationFileId,
       observationId,
-      files,
+      sessionId,
+      userId,
     });
   }
 
@@ -197,22 +207,44 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(
     @AuthedUserId() userId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('nominationFileId') nominationFileId: string,
-    @Param('observationId') observationId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { comment }: WriteMemberCommentDto,
   ): Promise<void> {
     await this.observations.writeMemberComment({
-      userId,
-      sessionId,
+      comment,
       nominationFileId,
       observationId,
-      comment,
+      sessionId,
+      userId,
+    });
+  }
+
+  @Put('/:observationId/audition/schedule')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async scheduleObservantAudition(
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Body() { auditionDate, auditionTime }: ScheduleObservantAuditionDto,
+  ): Promise<void> {
+    await this.observations.scheduleObservantAudition({
+      auditionDateTime:
+        auditionDate && auditionTime ? { date: DateOnly.fromJson(auditionDate), time: auditionTime } : null,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
+      observationId,
+      sessionId,
+      userId: user.id,
     });
   }
 
   @Put('/:observationId/follow-up')
-  @HasRole(Role.ADJOINT_SECRETAIRE_GENERAL)
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async followUpOnObservation(
@@ -221,10 +253,10 @@ export class ObservationController {
     @Body() { followUp, comment }: FollowUpOnObservationDto,
   ) {
     await this.observations.followUpWith({
-      userId: user.id,
-      observationId,
-      followUp,
       comment,
+      followUp,
+      observationId,
+      userId: user.id,
     });
   }
 }

@@ -1,0 +1,65 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import z from 'zod';
+
+import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
+import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
+import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { dateOnlyJsonSchema } from 'src/utils/date-only';
+import { timeOnlySchema } from 'src/utils/time-only';
+
+@Injectable()
+export class ListMagistratNominationFilesQuery {
+  constructor(
+    private readonly db: Db,
+    private readonly sessions: TransparenceService,
+  ) {}
+
+  async handle(query: {
+    magistratId: string;
+    pagination: Pagination;
+    role: RoleEnum;
+  }): Promise<ListedMagistratNominationFilesDto> {
+    return this.db.withTransaction(async () => {
+      const magistrat = await this.db.tx.magistrat.findUnique({
+        select: { id: true } satisfies Prisma.MagistratSelect,
+        where: { id: query.magistratId },
+      });
+      if (!magistrat) throw new NotFoundException();
+
+      return this.sessions.internalListMagistratNominationFiles(query);
+    });
+  }
+}
+
+export const MagistratNominationFileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  number: z.number().int().nullable(),
+  reporters: z.array(z.object({ id: z.string(), firstName: z.string(), lastName: z.string() })),
+  session: z.object({
+    id: z.string(),
+    name: z.string(),
+    formation: z.enum(FormationEnum),
+    date: dateOnlyJsonSchema,
+    status: z.enum(SESSION_STATUSES),
+  }),
+  auditionDate: dateOnlyJsonSchema.nullable(),
+  auditionRequired: z.boolean(),
+  auditionTime: timeOnlySchema.nullable(),
+  canScheduleAudition: z.boolean(),
+  targetedGrade: z.string().nullable(),
+  targetedPosition: z.string().nullable(),
+  outcome: z
+    .object({
+      value: z.enum(NominationFileOutcome.enum),
+      comment: z.string().nullable(),
+    })
+    .nullable(),
+});
+
+export class ListedMagistratNominationFilesDto extends createPaginatedZodDto(MagistratNominationFileSchema) {}

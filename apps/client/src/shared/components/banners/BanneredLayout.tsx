@@ -1,0 +1,61 @@
+import clsx from 'clsx';
+import React from 'react';
+
+import { ImpersonationBanner } from '@/features/auth/components/ImpersonationBanner';
+
+import { ArchiveBanner } from './archived-banner/ArchivedSessionBanner';
+import { StagingBanner } from './StagingBanner';
+
+function Banners(
+  props: React.PropsWithChildren<{ hidden: boolean; ref: React.RefObject<HTMLDivElement | null> }>,
+) {
+  return (
+    <div
+      ref={props.ref}
+      className={clsx(
+        'fixed top-0 right-(--fondation-scroll-lock-gutter) left-0 z-(--z-index-banner) flex flex-col',
+        props.hidden && 'opacity-0',
+      )}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+export function BanneredLayout(props: React.PropsWithChildren) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [state, setState] = React.useState({ hidden: false, height: -1 });
+
+  React.useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const height = entry.contentRect.height;
+      setState({ height, hidden: height === 0 });
+    });
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return (
+    <>
+      <Banners hidden={state.hidden} ref={ref}>
+        <StagingBanner />
+        <ImpersonationBanner key={'ImpersonationBanner'} />
+        <ArchiveBanner key={'ArchivedSessionBanner'} />
+      </Banners>
+
+      <div
+        style={
+          {
+            marginTop: state.height,
+            '--fondation-banner-height': `${Math.max(state.height, 0)}px`,
+          } as React.CSSProperties
+        }
+      >
+        {props.children}
+      </div>
+    </>
+  );
+}

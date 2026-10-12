@@ -1,0 +1,277 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import clsx from 'clsx';
+import { useEffect, useRef, useState } from 'react';
+import { FormattedMessage } from 'react-intl';
+
+import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
+import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
+import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
+import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
+import {
+  useExcludedJurisdictions,
+  useExcludedJurisdictionTitles,
+} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
+import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { DetailsLink } from '@/shared/components/details-link';
+import { LolfiLink } from '@/shared/components/lolfi-link';
+import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import type { DropdownHandle } from '@/shared/ui/dropdown';
+import { type FromFilesListState, getGdsReportPath } from '@/utils/route-path.utils';
+import { memberFullName } from '@/utils/user.utils';
+import { useUser } from '@queries/auth.queries';
+import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
+import { useMyReportQuery } from '@queries/reports.queries';
+
+import { PrioritySelect, ReporterSelect } from './AffectationFields';
+import { MissingSecondReporterBanner } from './MissingSecondReporterBanner';
+
+const AFFECTATION_SECTION_ID = 'magistrat-affectation-section';
+
+export function Header(props: { nominationFile: SessionNominationFile; sessionId: string }) {
+  const { nominationFile, sessionId } = props;
+  const { user } = useUser();
+  const { canManage } = useNominationFilesTable();
+  const isSgContext = useIsSgNavigation();
+  const { nomMagistrat } = nominationFile.content;
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const affectation = useAffectation({
+    nominationFile,
+    onSaved: () => setIsEditing(false),
+    sessionId,
+  });
+
+  const startEditing = () => setIsEditing(true);
+  const stopEditing = () => setIsEditing(false);
+
+  const { reportersMissing } = useAuditionExpectation(nominationFile, {
+    selectedReportersCount: isEditing ? affectation.reporterIds.length : undefined,
+  });
+
+  const reporterSelectRef = useRef<DropdownHandle>(null);
+  const [pendingReporterFocus, setPendingReporterFocus] = useState(false);
+  const affectReporters = () => {
+    setIsEditing(true);
+    setPendingReporterFocus(true);
+  };
+
+  useEffect(() => {
+    if (!isEditing || !pendingReporterFocus) return;
+
+    setPendingReporterFocus(false);
+    document.getElementById(AFFECTATION_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    reporterSelectRef.current?.focusTrigger();
+  }, [isEditing, pendingReporterFocus]);
+
+  const prioritiesDirty = isEditing && affectation.prioritiesDirty;
+  const reportersDirty = isEditing && affectation.reportersDirty;
+  const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
+
+  const canEdit = canManage && isUpdatable(nominationFile);
+
+  const excludedJurisdictions = useExcludedJurisdictions();
+  const conflicts = excludedJurisdictions.conflictsFor(
+    nominationFile,
+    affectation.availableRapporteurs.map(({ userId }) => userId),
+  );
+  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+  const displayedReporterIds = isEditing
+    ? affectation.reporterIds
+    : nominationFile.reporters.map(({ id }) => id);
+  const selectedConflicts = conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId));
+
+  const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
+  const { data: myReportId } = useMyReportQuery({
+    enabled: isReporter,
+    nominationFileId: nominationFile.id,
+    sessionId,
+    userId: user?.id,
+  });
+  const surfaceClassName = isReporter
+    ? 'bg-(--background-contrast-brown-cafe-creme)'
+    : 'bg-(--background-alt-blue-france)';
+
+  return (
+    <div
+      className={clsx('-mx-8 -mt-8 flex flex-col gap-6 p-8', surfaceClassName)}
+      id={AFFECTATION_SECTION_ID}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-6">
+          {isEditing ? (
+            <div className="flex flex-col gap-1">
+              <PrioritySelect onChange={affectation.setPriorities} value={affectation.priorities} />
+              {showWarning && prioritiesDirty && <UnsavedWarning />}
+            </div>
+          ) : (
+            <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
+          )}
+          <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
+            <TitleNameIcons name={nomMagistrat}>
+              <DetailsLink
+                context={isSgContext ? 'sg' : 'membre'}
+                magistratId={nominationFile.content.detectedMagistratId}
+                small
+              />
+              <LolfiLink
+                name={nomMagistrat}
+                nominationFileId={nominationFile.id}
+                sessionId={sessionId}
+                small
+              />
+            </TitleNameIcons>
+          </h2>
+        </div>
+        {canEdit &&
+          (isEditing ? (
+            <div className="flex items-center gap-2">
+              <Button
+                className="btn-compact"
+                disabled={affectation.isPending}
+                onClick={stopEditing}
+                priority="secondary"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Annuler" />
+              </Button>
+              <Button
+                className="btn-compact"
+                disabled={affectation.isPending}
+                onClick={affectation.save}
+                priority="primary"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Valider" />
+              </Button>
+            </div>
+          ) : (
+            <Button className="btn-compact" onClick={startEditing} priority="secondary" size="small">
+              <FormattedMessage defaultMessage="Modifier" />
+            </Button>
+          ))}
+      </div>
+      {isEditing ? (
+        <div className="flex flex-col gap-1">
+          <ReporterSelect
+            available={affectation.availableRapporteurs}
+            excludedTitleByRapporteurId={excludedTitleByRapporteurId}
+            onChange={affectation.setReporterIds}
+            ref={reporterSelectRef}
+            value={affectation.reporterIds}
+          />
+          <ExcludedJurisdictionNotice conflicts={selectedConflicts} />
+          {showWarning && reportersDirty && <UnsavedWarning />}
+        </div>
+      ) : (
+        <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
+          <ReporterStatus
+            conflicts={selectedConflicts}
+            currentUserId={user?.id}
+            reporters={nominationFile.reporters}
+          />
+          {myReportId && (
+            <Button
+              className="btn-compact"
+              linkProps={{
+                // nuqs writes the filters to the URL without telling React Router: its location lags behind
+                state: { filesListSearch: window.location.search } satisfies FromFilesListState,
+                to: getGdsReportPath(myReportId),
+              }}
+              priority="secondary"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Voir mon dossier" />
+            </Button>
+          )}
+        </div>
+      )}
+      {isSgContext && reportersMissing && (
+        <MissingSecondReporterBanner editable={canEdit && !isEditing} onAffect={affectReporters} />
+      )}
+    </div>
+  );
+}
+
+function UnsavedWarning() {
+  return (
+    <p className="fr-error-text mt-2" role="alert">
+      <FormattedMessage defaultMessage="Modifications non enregistrées. Cliquez sur Valider pour sauvegarder." />
+    </p>
+  );
+}
+
+type Reporter = { firstName: string; id: string; lastName: string };
+
+function ReporterStatus(props: {
+  conflicts: readonly ExcludedJurisdictionConflict[];
+  currentUserId: string | undefined;
+  reporters: readonly Reporter[];
+}) {
+  const { conflicts, currentUserId, reporters } = props;
+  const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
+
+  if (reporters.length === 0)
+    return (
+      <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
+        <FormattedMessage defaultMessage="Affectation non effectuée" />
+      </div>
+    );
+
+  const isReporter = reporters.some((reporter) => reporter.id === currentUserId);
+
+  if (!isReporter) {
+    return (
+      <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
+        <FormattedMessage
+          defaultMessage="{count, plural, one {Rapporteur} other {Rapporteurs}} :"
+          values={{ count: reporters.length }}
+        />
+        {reporters.map((reporter) => (
+          <ReporterTag
+            excludedTitle={excludedTitleByMemberId.get(reporter.id)}
+            key={reporter.id}
+            reporter={reporter}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  const coReporters = reporters.filter((reporter) => reporter.id !== currentUserId);
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
+      <span className="font-bold">
+        <FormattedMessage defaultMessage="Vous êtes rapporteur" />
+      </span>
+      {coReporters.length > 0 && <FormattedMessage defaultMessage="avec" />}
+      {coReporters.map((reporter) => (
+        <ReporterTag
+          excludedTitle={excludedTitleByMemberId.get(reporter.id)}
+          key={reporter.id}
+          reporter={reporter}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ReporterTag(props: { excludedTitle?: string; reporter: Reporter }) {
+  return (
+    <Tag
+      className={clsx(
+        'gap-1.5 bg-(--background-default-grey)!',
+        props.excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+      )}
+    >
+      {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
+      {memberFullName(props.reporter)}
+    </Tag>
+  );
+}

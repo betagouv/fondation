@@ -1,0 +1,28 @@
+import { useIntl } from 'react-intl';
+import { generatePath } from 'react-router';
+
+import { IconLink } from '@/shared/ui/icon-link';
+import { ACTION_ICONS } from '@/shared/ui/icons';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+
+export function DocActionAgendaMetadata(props: {
+  agendaId: string;
+  disabled: boolean;
+  name: string;
+  sessionId: string;
+}) {
+  const { formatMessage } = useIntl();
+
+  return (
+    <IconLink
+      disabled={props.disabled}
+      iconId={ACTION_ICONS.agendaMetadata}
+      label={formatMessage({ defaultMessage: 'Éditer les métadonnées de {name}' }, { name: props.name })}
+      small
+      to={generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+        agendaId: props.agendaId,
+        sessionId: props.sessionId,
+      })}
+    />
+  );
+}

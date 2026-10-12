@@ -1,7 +1,5 @@
 import { randomUUID } from 'node:crypto';
 
-import { ReportFileUsage } from 'shared-models';
-
 import { Report, ReportFilesAttached, ReportFilesDetached } from './report';
 
 describe('Report', () => {
@@ -9,15 +7,12 @@ describe('Report', () => {
     const reportId = randomUUID();
     const report = Report.from({
       id: reportId,
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
     report.attachFiles({
       reporterId,
-      fileUsage: ReportFileUsage.ATTACHMENT,
+      fileUsage: 'ATTACHMENT',
       files: [{ id: 'file-id' }],
     });
 
@@ -27,7 +22,7 @@ describe('Report', () => {
     expect(filesAttached).toMatchObject({
       id: reportId,
       reporterId,
-      usage: ReportFileUsage.ATTACHMENT,
+      usage: 'ATTACHMENT',
       files: [{ id: 'file-id' }],
     });
   });
@@ -35,14 +30,11 @@ describe('Report', () => {
   it('should ignore an empty list of files to attach', () => {
     const report = Report.from({
       id: randomUUID(),
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     report.attachFiles({
       reporterId: randomUUID(),
-      fileUsage: ReportFileUsage.ATTACHMENT,
+      fileUsage: 'ATTACHMENT',
       files: [],
     });
     expect(report.messages).toHaveLength(0);
@@ -52,9 +44,6 @@ describe('Report', () => {
     const reportId = randomUUID();
     const report = Report.from({
       id: reportId,
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     const reporterId = randomUUID();
@@ -73,9 +62,6 @@ describe('Report', () => {
   it('should ignore an empty list of file ids to detach', () => {
     const report = Report.from({
       id: randomUUID(),
-      sessionName: 'SESSION_NAME',
-      nomAspirant: 'Jean MOULIN',
-      reporterFullName: 'ARENDT Hannah',
     });
 
     report.detachFiles({ reporterId: randomUUID(), fileNames: [] });

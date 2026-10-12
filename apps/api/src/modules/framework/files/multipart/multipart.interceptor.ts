@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import z from 'zod';
 import type { $ZodType } from 'zod/v4/core';
 
-import { FILE_MIME_TYPES, isMimeType } from '../mime-type';
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, isMimeType } from '../mime-type';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -188,13 +188,16 @@ async function toMultipartFile(props: {
 
   const id = makeId('FileId');
   const mimeType = isMimeType(props.file.mimetype) ? props.file.mimetype : FILE_MIME_TYPES.bin;
+  const ext = FILE_EXTENSIONS[mimeType];
 
   const path = props.destination({
     id,
+    ext,
     mimetype: mimeType,
     request: props.request as Omit<ExpressRequest, 'params'> & { params: Record<string, string> },
     originalname: props.file.originalname,
   });
+
   const multipartFile = new MultipartFile({
     buffers: [props.file.buffer],
     filename: props.file.originalname,

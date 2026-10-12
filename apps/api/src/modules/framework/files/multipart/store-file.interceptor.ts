@@ -3,8 +3,10 @@ import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { Files } from '../files';
 import { Sanitizer } from '../sanitizers';
+import { Objects } from '../storable/objects.storable';
+import { assertIsDefined } from 'src/utils/is-defined';
+import { ignoreAsync } from 'src/utils/promises';
 
 import { MultipartFile } from './multipart.file';
 import { StoredFile } from './multipart.types';
@@ -12,7 +14,7 @@ import { StoredFile } from './multipart.types';
 @Injectable()
 export class StoreFileInterceptor implements NestInterceptor {
   constructor(
-    private readonly files: Files,
+    private readonly files: Objects,
     private readonly sanitizer: Sanitizer,
   ) {}
 
@@ -33,7 +35,7 @@ export class StoreFileInterceptor implements NestInterceptor {
           multipartFiles.push(item);
 
           if (item.overrideFiles) {
-            const { id, path, name, mimeType } = item;
+            const { id, mimeType, name, path } = item;
             shouldOverrideBody = true;
             bodyOverride.push({ id, name, path, type: mimeType });
           }
@@ -47,7 +49,7 @@ export class StoreFileInterceptor implements NestInterceptor {
 
       multipartFiles.push(value);
       if (value.overrideFiles) {
-        const { id, path, name } = value;
+        const { id, name, path } = value;
         request.body[key] = {
           id,
           name,
@@ -57,22 +59,24 @@ export class StoreFileInterceptor implements NestInterceptor {
       }
     }
 
-    await this.files.create(
+    await this.files.put(
       await Promise.all(
         multipartFiles.map(async (f) => {
           const sanitized = await Sentry.startSpan(
             {
+              attributes: { 'file.size': f.size, 'file.type': f.mimeType },
               name: `fr.csm.fondation:files:sanitize`,
-              attributes: { 'file.type': f.mimeType, 'file.size': f.size },
             },
             () => this.sanitizer.sanitize(f),
           );
 
           return {
-            path: f.path as string,
+            content: sanitized,
+            createdById: request.user?.type === 'human' ? request.user.id : undefined,
+            id: f.id,
+            mime: f.mimeType,
             name: f.name,
-            meta: { id: f.id },
-            buffer: Buffer.from(await sanitized.arrayBuffer()),
+            path: assertIsDefined(f.path, `unknown object path`),
           };
         }),
       ),
@@ -80,10 +84,8 @@ export class StoreFileInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       catchError((err) => {
-        this.files.delete(
-          multipartFiles
-            .filter((f) => Boolean(f.deleteOnFail && f.path))
-            .map(({ id, path }) => ({ id, path: (path as string).split('/') })),
+        ignoreAsync(() =>
+          this.files.delete(multipartFiles.filter((f) => f.deleteOnFail).map(({ id }) => ({ id }))),
         );
 
         return throwError(() => err);

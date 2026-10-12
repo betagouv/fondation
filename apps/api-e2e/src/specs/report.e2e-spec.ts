@@ -1,0 +1,207 @@
+import { test } from '../fixtures.ts';
+import { makeFile } from '../utils/files.ts';
+import * as seed from '../utils/seed.ts';
+
+test.describe('Report E2E', () => {
+  let nominationFileId: string;
+  let reportId: string;
+  let sessionId: string;
+
+  test.beforeEach(async ({ sessions, agent, member, expect }) => {
+    // Create a session and assign the member so a report is created automatically
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'ETIENNE',
+          lastName: 'TREVOUX',
+          position: {
+            function: seed.functions.PR,
+            grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  LYON'],
+          },
+          targetPosition: {
+            function: seed.functions.PR,
+            grade: 'G3',
+            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+          },
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence rapport',
+    });
+
+    const filesResponse = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+    });
+    expect(filesResponse.response?.status).toBe(200);
+
+    nominationFileId = filesResponse.data!.items[0]!.id;
+    sessionId = session.id;
+
+    const affectResponse = await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId: session.id },
+    });
+    expect(affectResponse.response?.status).toBe(204);
+
+    const publishResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: session.id },
+    });
+    expect(publishResponse.response?.status).toBe(204);
+
+    const memberId = member['@user']!.id;
+    const reportsRes = await member.members.listMemberSessionReports({
+      path: { sessionId: session.id, userId: memberId },
+    });
+
+    reportId = reportsRes.data!.items[0]!.report.id;
+  });
+
+  test('should find my report for a nomination file', async ({ logIn, member, expect }) => {
+    const memberRes = await member.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: member['@user']!.id },
+    });
+    expect(memberRes.response?.status).toBe(200);
+    expect(memberRes.data?.reportId).toBe(reportId);
+
+    const memberWithoutReport = await logIn('MEMBRE_COMMUN');
+    const withoutReportRes = await memberWithoutReport.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(withoutReportRes.response?.status).toBe(200);
+    expect(withoutReportRes.data?.reportId).toBeNull();
+
+    const otherMemberRes = await member.members.searchNominationFileMembersReport({
+      path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(otherMemberRes.response?.status).toBe(403);
+  });
+
+  test('should list my session reports with their state', async ({ logIn, agent, member, expect }) => {
+    const filesRes = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    const file = filesRes.data!.items[0]!;
+
+    const memberRes = await member.members.listMemberSessionReports({
+      path: { sessionId, userId: member['@user']!.id },
+    });
+    expect(memberRes.response?.status).toBe(200);
+    expect(memberRes.data?.items).toEqual([
+      {
+        name: file.content.nomMagistrat,
+        nominationFileId,
+        number: file.content.numeroDeDossier,
+        report: { id: reportId, state: 'NEW' },
+      },
+    ]);
+
+    const memberWithoutReport = await logIn('MEMBRE_COMMUN');
+    const withoutReportRes = await memberWithoutReport.members.listMemberSessionReports({
+      path: { sessionId, userId: memberWithoutReport['@user']!.id },
+    });
+    expect(withoutReportRes.response?.status).toBe(200);
+    expect(withoutReportRes.data?.items).toEqual([]);
+  });
+
+  test('should list my session reports ordered by file number', async ({ sessions, agent, member, expect }) => {
+    // file numbers restart at 1 in each formation, so both candidates must stay in the same one
+    const parquetCandidate = (firstName: string, lastName: string) => ({
+      firstName,
+      lastName,
+      position: {
+        function: seed.functions.PR,
+        grade: 'G3' as const,
+        jurisdiction: seed.jurisdictions['CA  LYON'],
+      },
+      targetPosition: {
+        function: seed.functions.PR,
+        grade: 'G3' as const,
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+      },
+    });
+
+    const session = await sessions.createOne({
+      candidates: [parquetCandidate('EMILE', 'ZOLA'), parquetCandidate('MARIE', 'ABEL')],
+      createdAt: '22/04/2026',
+      name: 'Transparence ordre des rapports',
+    });
+
+    const filesRes = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+    const filesByNumber = filesRes.data!.items;
+    expect(filesByNumber).toHaveLength(2);
+
+    const filesInReverseOrder = [...filesByNumber].reverse();
+    const affectRes = await agent.sessions.affectReporters({
+      body: {
+        items: filesInReverseOrder.map((file) => ({
+          nominationFileId: file.id,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+      path: { sessionId: session.id },
+    });
+    expect(affectRes.response?.status).toBe(204);
+
+    const publishRes = await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: session.id },
+    });
+    expect(publishRes.response?.status).toBe(204);
+
+    const reportsRes = await member.members.listMemberSessionReports({
+      path: { sessionId: session.id, userId: member['@user']!.id },
+    });
+    expect(reportsRes.data!.items.map(({ name, number }) => ({ name, number }))).toEqual(
+      filesByNumber.map(({ content }) => ({ name: content.nomMagistrat, number: content.numeroDeDossier })),
+    );
+  });
+
+  test('should not list session reports of an unknown session', async ({ member, expect }) => {
+    const unknownSessionRes = await member.members.listMemberSessionReports({
+      path: { sessionId: crypto.randomUUID(), userId: member['@user']!.id },
+    });
+    expect(unknownSessionRes.response?.status).toBe(404);
+  });
+
+  test('should attach files to a report', async ({ member, expect }) => {
+    const file = makeFile({ name: `image_${crypto.randomUUID()}.png`, type: 'image/png' });
+
+    const attachmentRes = await member.reports.attachFiles({
+      body: { files: [file] },
+      path: { reportId },
+      query: { usage: 'ATTACHMENT' },
+    });
+    expect(attachmentRes.response?.status).toBe(204);
+
+    const responseBody = await member.reports.detailReport({ path: { reportId } });
+    expect(responseBody.response?.status).toBe(200);
+    expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
+  });
+
+  test('should detach files from a report', async ({ member, expect }) => {
+    const [file1, file2] = [null, null].map((_, i) =>
+      makeFile({ name: `image_${i + 1}_${crypto.randomUUID()}.png`, type: 'image/png' }),
+    ) as [File, File];
+
+    const attachmentRes = await member.reports.attachFiles({
+      body: { files: [file1, file2] },
+      path: { reportId },
+      query: { usage: 'ATTACHMENT' },
+    });
+    expect(attachmentRes.response?.status).toBe(204);
+
+    const reportResBefore = await member.reports.detailReport({ path: { reportId } });
+    expect(reportResBefore.data?.attachments).toHaveLength(2);
+
+    const deleteAttachmentRes = await member.reports.detachFiles({
+      path: { reportId },
+      query: { fileNames: file1.name },
+    });
+    expect(deleteAttachmentRes.response?.status).toBe(204);
+
+    const reportResAfter = await member.reports.detailReport({ path: { reportId } });
+    expect(reportResAfter.data?.attachments).toHaveLength(1);
+
+    expect(reportResAfter.data?.attachments.map(({ name }) => name)).not.toContain(file1.name);
+    expect(reportResAfter.data?.attachments.map(({ name }) => name)).toContain(file2.name);
+  });
+});

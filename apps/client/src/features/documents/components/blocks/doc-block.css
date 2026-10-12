@@ -1,0 +1,123 @@
+:root {
+  --document-bar-offset: 0px;
+}
+
+.ProseMirror-selectednode:has(.doc-block) {
+  outline: none;
+}
+
+.doc-block {
+  position: relative;
+  padding-left: 0.75rem;
+  margin: 0.25rem 0;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  padding: 12px;
+  text-align: justify;
+  text-wrap-style: stable;
+  word-break: break-word;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.doc-block--active {
+  border-left-color: var(--border-active-blue-france);
+  background: var(--background-alt-blue-france);
+}
+
+.doc-block__read-only {
+  background: var(--background-alt-grey);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  cursor: not-allowed;
+  padding: 12px;
+}
+
+/* the text can still be selected and copied, while the pointer keeps telling it cannot be written */
+.doc-block__read-only * {
+  cursor: not-allowed;
+}
+
+.doc-block--warning {
+  background: var(--background-alt-yellow-tournesol);
+  border-radius: 4px;
+}
+
+.doc-block--active.doc-block--warning {
+  border-left-color: var(--border-default-yellow-tournesol);
+}
+
+/* an edited block keeps a white body: only its left rule and its changed words turn yellow */
+.doc-block--edited {
+  border-left-color: var(--border-default-yellow-tournesol);
+}
+
+/* the words an edited block no longer shares with the text the document proposes */
+.doc-block__changed {
+  background: var(--background-contrast-yellow-tournesol);
+}
+
+/* a dropped word is drawn beside the text it left, and never reaches the document */
+.doc-block__removed {
+  background: var(--background-contrast-yellow-tournesol);
+  color: var(--text-mention-grey);
+  margin-right: 0.25rem;
+  text-decoration: line-through;
+  user-select: none;
+}
+
+/* yellow says the agenda wrote it, orange says this document did: the later rule wins the overlap */
+.doc-block__changed--own,
+.doc-block__removed--own {
+  background: var(--background-contrast-orange-terre-battue);
+}
+
+.doc-block__banner {
+  color: var(--text-default-grey);
+  border-radius: 0.25rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.doc-block__banner--warning {
+  background: var(--background-contrast-warning);
+  border: 1px solid var(--border-plain-warning);
+}
+
+.doc-block__banner--info {
+  background: white;
+  border: 1px solid var(--border-default-info);
+}
+
+/* the banner wears the colour of the hand whose sentence it offers */
+.doc-block__banner--agenda {
+  background: white;
+  border: 1px solid var(--border-default-yellow-tournesol);
+}
+
+.doc-block__banner p,
+.doc-block__banner ul {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.doc-block__generated {
+  background: var(--background-alt-grey);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.doc-block {
+  p,
+  ul {
+    margin-bottom: 0.5rem;
+  }
+
+  li > p {
+    margin-bottom: 0;
+  }
+}

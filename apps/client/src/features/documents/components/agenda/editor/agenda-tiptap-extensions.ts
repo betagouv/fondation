@@ -1,0 +1,96 @@
+import { Extension, type AnyExtension, type Command, type Editor } from '@tiptap/core';
+import Bold from '@tiptap/extension-bold';
+import Document from '@tiptap/extension-document';
+import HardBreak from '@tiptap/extension-hard-break';
+import Italic from '@tiptap/extension-italic';
+import { Paragraph } from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import { UndoRedo } from '@tiptap/extensions';
+import type { ReactNodeViewProps } from '@tiptap/react';
+
+import { changedWords } from '@/features/documents/components/blocks/changed-words';
+
+import type { AgendaBlocksModel } from './blocks/agenda-blocks.model';
+import { AgendaFileBlock, AgendaFileBlockNode } from './blocks/AgendaFileBlock';
+
+const AgendaModelExtension = Extension.create<{ model: AgendaBlocksModel | null }>({
+  addCommands() {
+    const { model } = this.options;
+    return {
+      acknowledgeBlock:
+        (viewProps: ReactNodeViewProps) =>
+        ({ editor }) => {
+          // without queueMicrotask, tiptap throws
+          queueMicrotask(() => void model?.acknowledgeBlock({ ...viewProps, editor }));
+          return true;
+        },
+
+      resetBlock:
+        (viewProps: ReactNodeViewProps) =>
+        ({ editor }) => {
+          // without queueMicrotask, tiptap throws
+          queueMicrotask(() => void model?.resetBlock({ ...viewProps, editor }));
+          return true;
+        },
+    };
+  },
+  addOptions: () => ({ model: null }),
+  name: 'agendaModel',
+});
+
+/**
+ * Undo/redo restore the block content *and* its `outdated` attribute (tracked by
+ * prosemirror-history). `onHistory` lets the model restage the restored state so the
+ * backend `outdated` flag follows the editor.
+ */
+const AgendaUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) => void) | null }>({
+  addCommands() {
+    const parent = this.parent?.();
+    type CommandFn = () => Command;
+    const wrap =
+      (command: CommandFn | undefined): CommandFn =>
+      () =>
+      (props) => {
+        const ran = command?.()(props) ?? false;
+        if (ran && props.dispatch) this.options.onHistory?.(props.editor);
+        return ran;
+      };
+
+    return {
+      ...parent,
+      redo: wrap(parent?.redo),
+      undo: wrap(parent?.undo),
+    };
+  },
+  addOptions() {
+    return { ...this.parent?.(), onHistory: null };
+  },
+});
+
+/**
+ * a proposition is a single paragraph: Enter can only break its line. `setHardBreak` refuses to
+ * break inside an isolating block, which the proposition is, so the break is inserted as is.
+ */
+const AgendaHardBreak = HardBreak.extend({
+  addKeyboardShortcuts() {
+    const breakLine = () => this.editor.commands.insertContent({ type: this.name });
+    return { Enter: breakLine, 'Shift-Enter': breakLine };
+  },
+});
+
+/** Minimal schema used to parse a block's inline html into inline nodes. */
+export const agendaInlineExtensions: AnyExtension[] = [Document, Paragraph, Text, Bold, Italic, HardBreak];
+
+export function buildAgendaExtensions(model: AgendaBlocksModel): AnyExtension[] {
+  return [
+    Document.extend({ content: 'agendaFileBlock+' }),
+    Text,
+    Bold,
+    Italic,
+    AgendaHardBreak,
+    changedWords({ blocks: [AgendaFileBlock.name], name: 'agendaChangedWords' }),
+    AgendaModelExtension.configure({ model }),
+    AgendaUndoRedo.configure({ onHistory: (editor) => model.onEditorUpdate(editor) }),
+    AgendaFileBlockNode,
+  ];
+}

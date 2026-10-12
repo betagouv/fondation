@@ -1,5 +1,4 @@
-import { inspect } from 'node:util';
-
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { format } from 'date-fns';
@@ -10,13 +9,15 @@ import {
   LolfiSessionsFinder,
   LolfiSessionToSynchronise,
 } from '../../infrastructure/finders/lolfi-sessions.finder';
+import { TransparenceAnomaliesRepository } from '../../infrastructure/transparence-anomalies.repository';
 import { LolfiJob } from '../lolfi-job.type';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { PrismaService } from 'src/modules/framework/database';
-import { Mattermost } from 'src/modules/framework/mattermost';
-import { SessionService } from 'src/modules/session/infrastructure/sessions.service';
+import { Db } from 'src/modules/framework/database';
+import { Tchap } from 'src/modules/framework/tchap';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
@@ -38,8 +39,8 @@ export class LolfiFilesIngestor {
 
   constructor(
     private readonly clock: Clock,
-    private readonly prisma: PrismaService,
-    private readonly mattermost: Mattermost,
+    private readonly db: Db,
+    private readonly tchap: Tchap,
     @Inject(API_CONFIG_TOKEN) config: ApiConfig,
     private readonly typeJuridictionIngestor: LolfiTypeJuridictionIngestor,
     private readonly juridictionIngestor: LolfiJuridictionIngestor,
@@ -53,8 +54,9 @@ export class LolfiFilesIngestor {
     private readonly candidateWishesIngestor: LolfiDesiderataIngestor,
     private readonly nominationsIngestor: LolfiTransparencesIngestor,
     private readonly lolfiSessions: LolfiSessionsFinder,
-    @Inject(forwardRef(() => SessionService))
-    private readonly sessions: SessionService,
+    private readonly anomalies: TransparenceAnomaliesRepository,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {
     this.frontendOriginUrl = config.frontendOriginUrl;
   }
@@ -103,11 +105,13 @@ export class LolfiFilesIngestor {
     sessions: readonly LolfiSessionToSynchronise[],
   ): Promise<void> {
     const lolfiSessionIds = sessions.map(({ id }) => id);
-    const [withSession, designations] = await Promise.all([
+    const [withSession, designations, alerted] = await Promise.all([
       this.sessions.internalFindSynchronisedLolfiSessions({ lolfiSessionIds }),
       this.lolfiSessions.findDesignations(lolfiSessionIds),
+      this.anomalies.findAlerted(lolfiSessionIds),
     ]);
 
+    const restored: number[] = [];
     const now = this.clock.now();
 
     for (const transparence of sessions) {
@@ -120,26 +124,46 @@ export class LolfiFilesIngestor {
         now,
       );
 
-      if (!reason) continue;
+      if (!reason) {
+        if (alerted.has(transparence.id)) restored.push(transparence.id);
+        continue;
+      }
 
       const label = transparence.name ?? 'sans libellé';
-      const publishedOn = format(transparence.creationDate.toDate(), 'dd/MM/yyyy');
+      const publishedOn = format(transparence.creationDate.toLocalStartOfDay(), 'dd/MM/yyyy');
       const message = `Transparence "${label}" (${transparence.id}) du ${publishedOn}: ${reason}`;
 
       this.logger.warn(message);
-      await this.prisma.ingestionJobError.create({ data: { jobId, error: message } }).catch((error) => {
+      await this.db.tx.ingestionJobError.create({ data: { jobId, error: message } }).catch((error) => {
         this.logger.error(`Failed recording the transparence ${transparence.id} of job #${jobId}`, error);
       });
 
-      await this.mattermost.alert({
-        title: ':alert: Transparence LOLFI incomplète',
+      // The job keeps reporting it every night, only the channel is spared the repetition
+      if (alerted.get(transparence.id) === reason) continue;
+
+      const sent = await this.tchap.alert({
         text: `${message}\n\n${this.frontendOriginUrl}/admin/jobs/${jobId}`,
+        title: '🚨 Transparence LOLFI incomplète',
       });
+
+      if (!sent) continue;
+
+      await this.anomalies
+        .recordAlert({ lolfiSessionId: transparence.id, reason, alertedAt: now })
+        .catch((error) => {
+          this.logger.error(`Failed recording the alert of transparence ${transparence.id}`, error);
+        });
     }
+
+    if (restored.length === 0) return;
+
+    // Uncaught on purpose: unlike the writes above, a failure here would swallow an identical relapse
+    await this.anomalies.forget(restored);
   }
 
+  @Transactional(Propagation.RequiresNew)
   private async succeedJob(jobId: number): Promise<void> {
-    await this.prisma.ingestionJob
+    await this.db.tx.ingestionJob
       .update({
         where: { id: jobId, status: 'RUNNING' },
         data: {
@@ -153,7 +177,7 @@ export class LolfiFilesIngestor {
   }
 
   private async failJob(jobId: number, error?: unknown): Promise<void> {
-    await this.prisma.ingestionJob
+    await this.db.tx.ingestionJob
       .update({
         where: { id: jobId, status: 'RUNNING' },
         data: { status: 'FAILED', endedAt: this.clock.now() },
@@ -164,19 +188,19 @@ export class LolfiFilesIngestor {
 
     if (!error) return;
 
-    await this.prisma.ingestionJobError
-      .create({ data: { jobId, error: inspect(error) } })
+    await this.db.tx.ingestionJobError
+      .create({ data: { jobId, error: describeErrorWithoutSecrets(error) } })
       .catch((createError) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, createError);
       });
   }
 
   private async ingestInternal(jobId: number, signal: AbortSignal): Promise<{ success: boolean }> {
-    const [lastSucceededJob, currentJob] = await this.prisma
-      .$transaction(async (tx) => {
-        const runningJob = await tx.ingestionJob.findFirst({
+    const [lastSucceededJob, currentJob] = await this.db
+      .withTransaction(async () => {
+        const runningJob = await this.db.tx.ingestionJob.findFirst({
           where: { status: 'RUNNING' },
-          select: { id: true },
+          select: { id: true } satisfies Prisma.IngestionJobSelect,
         });
 
         if (isDefined(runningJob)) {
@@ -185,7 +209,7 @@ export class LolfiFilesIngestor {
           throw new ConflictException();
         }
 
-        const lastSucceededJob = await tx.ingestionJob.findFirst({
+        const lastSucceededJob = await this.db.tx.ingestionJob.findFirst({
           orderBy: { endedAt: 'desc' },
           where: { status: 'SUCCEEDED' },
           select: {
@@ -195,10 +219,10 @@ export class LolfiFilesIngestor {
                 file: { select: { id: true, name: true } },
               },
             },
-          },
+          } satisfies Prisma.IngestionJobSelect,
         });
 
-        const currentJob = await tx.ingestionJob.update({
+        const currentJob = await this.db.tx.ingestionJob.update({
           where: { id: jobId, status: 'IDLE' },
           data: { status: 'RUNNING', startedAt: this.clock.now() },
           select: {
@@ -211,7 +235,7 @@ export class LolfiFilesIngestor {
                 file: { select: { id: true, name: true } },
               },
             },
-          },
+          } satisfies Prisma.IngestionJobSelect,
         });
 
         return [lastSucceededJob, currentJob] as const;
@@ -311,23 +335,21 @@ export class LolfiFilesIngestor {
   }
 
   private async cancel(jobId: number) {
-    await this.prisma
-      .$transaction(async (tx) => {
-        await tx.ingestionJob.updateMany({
-          data: { status: 'CANCELED', endedAt: this.clock.now() },
-          where: {
-            id: jobId,
-            status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
-          },
-        });
-
-        await tx.ingestionJobFile.updateMany({
-          where: { status: 'IDLE', jobId },
-          data: { status: 'CANCELED' },
-        });
-      })
-      .catch((e) => {
-        this.logger.error(`Failed to write job as canceled`, e);
+    try {
+      await this.db.tx.ingestionJob.updateMany({
+        data: { status: 'CANCELED', endedAt: this.clock.now() },
+        where: {
+          id: jobId,
+          status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] },
+        },
       });
+
+      await this.db.tx.ingestionJobFile.updateMany({
+        where: { status: 'IDLE', jobId },
+        data: { status: 'CANCELED' },
+      });
+    } catch (e) {
+      this.logger.error(`Failed to write job as canceled`, e);
+    }
   }
 }

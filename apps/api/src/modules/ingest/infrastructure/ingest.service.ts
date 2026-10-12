@@ -1,5 +1,3 @@
-import { inspect } from 'node:util';
-
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 
 import { isExpired } from '../domain/expired-job';
@@ -14,7 +12,8 @@ import {
 } from '../services/lolfi-archive-ingest';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
+import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 
 import {
   DetailedLolfiSession,
@@ -28,7 +27,7 @@ export class IngestService {
   constructor(
     private readonly clock: Clock,
     private readonly jobs: JobRunner,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly lolfiArchiveIngestor: LolfiArchiveIngestor,
     private readonly lolfiFilesIngestor: LolfiFilesIngestor,
     private readonly internalDetailsLolfiSessionQuery: InternalDetailsLolfiSessionQuery,
@@ -49,9 +48,9 @@ export class IngestService {
         errors: (IngestedLolfiArchiveFailed | { type: 'Unknown'; message: string })[];
       }
   > {
-    const runningJob = await this.prisma.ingestionJob.findFirst({
+    const runningJob = await this.db.tx.ingestionJob.findFirst({
       where: { status: 'RUNNING' },
-      select: { id: true, startedAt: true },
+      select: { id: true, startedAt: true } satisfies Prisma.IngestionJobSelect,
     });
 
     if (runningJob) {
@@ -67,57 +66,54 @@ export class IngestService {
     const start = this.clock.now();
     const result = await this.lolfiArchiveIngestor.ingest(archive, options);
 
-    return this.prisma.$transaction(async (tx) => {
-      const jobId = await this.prepareJob({ tx, result, start });
+    const jobId = await this.db.withTransaction(() => this.prepareJob({ result, start }));
 
-      if (!result.success) {
-        return { id: jobId, status: 'FAILED', errors: result.errors };
-      }
+    if (!result.success) {
+      return { id: jobId, status: 'FAILED', errors: result.errors };
+    }
 
-      try {
-        // TODO: check that starting a detached one-off is fast enough to fit in the Tx timeout
-        const metadata = await this.jobs.runDetached(jobId);
-        await tx.ingestionJob
-          .update({
-            where: { id: jobId },
-            data: { metadata: metadata.toJSON() },
-          })
-          .catch((error) => {
-            this.logger.error(`Failed recording metadata for job #${jobId}`, error);
-          });
-      } catch (e) {
-        await tx.ingestionJob
-          .update({
-            where: { id: jobId },
-            data: {
-              status: 'FAILED',
-              errors: { create: { error: inspect(e) } },
-            },
-          })
-          .catch((prismaError) => {
-            this.logger.error(`Failed failing job #${jobId}`, prismaError);
-          });
+    try {
+      const metadata = await this.jobs.runDetached(jobId);
+      await this.db.tx.ingestionJob
+        .update({
+          where: { id: jobId },
+          data: { metadata: metadata.toJSON() },
+        })
+        .catch((error) => {
+          this.logger.error(`Failed recording metadata for job #${jobId}`, error);
+        });
+    } catch (e) {
+      await this.db.tx.ingestionJob
+        .update({
+          where: { id: jobId },
+          data: {
+            status: 'FAILED',
+            errors: { create: { error: describeErrorWithoutSecrets(e) } },
+          },
+        })
+        .catch((prismaError) => {
+          this.logger.error(`Failed failing job #${jobId}`, prismaError);
+        });
 
-        return {
-          id: jobId,
-          status: 'FAILED',
-          errors: [{ type: 'Unknown', message: `Erreur technique` }],
-        };
-      }
+      return {
+        id: jobId,
+        status: 'FAILED',
+        errors: [{ type: 'Unknown', message: `Erreur technique` }],
+      };
+    }
 
-      return { id: jobId, status: 'STARTED' };
-    });
+    return { id: jobId, status: 'STARTED' };
   }
 
   private async expireJob(jobId: number): Promise<void> {
     const endedAt = this.clock.now();
 
-    await this.prisma.ingestionJob.update({
+    await this.db.tx.ingestionJob.update({
       where: { id: jobId },
       data: { status: 'FAILED', endedAt },
     });
 
-    await this.prisma.ingestionJobFile
+    await this.db.tx.ingestionJobFile
       .updateMany({
         where: { jobId, status: { notIn: ['FAILED', 'SUCCEEDED', 'CANCELED'] } },
         data: { status: 'FAILED', endedAt },
@@ -126,7 +122,7 @@ export class IngestService {
         this.logger.error(`Failed failing the files of job #${jobId}`, error);
       });
 
-    await this.prisma.ingestionJobError
+    await this.db.tx.ingestionJobError
       .create({
         data: { jobId, error: `Job abandonné: aucun statut final n'a été écrit` },
       })
@@ -135,21 +131,17 @@ export class IngestService {
       });
   }
 
-  private async prepareJob(props: {
-    start: Date;
-    result: IngestedLolfiArchive;
-    tx: Prisma.TransactionClient;
-  }): Promise<number> {
+  private async prepareJob(props: { start: Date; result: IngestedLolfiArchive }): Promise<number> {
     const now = this.clock.now();
-    const job = await props.tx.ingestionJob.create({
-      select: { id: true },
+    const job = await this.db.tx.ingestionJob.create({
+      select: { id: true } satisfies Prisma.IngestionJobSelect,
       data: props.result.success
         ? { status: 'IDLE' }
         : { status: 'FAILED', startedAt: props.start, endedAt: now },
     });
 
     if (props.result.success) {
-      await props.tx.ingestionJobFile.createMany({
+      await this.db.tx.ingestionJobFile.createMany({
         data: props.result.data.map((file) => ({
           jobId: job.id,
           fileId: file.id,
@@ -159,7 +151,7 @@ export class IngestService {
       });
 
       for (const file of withLolfiFileRequirements(props.result.data)) {
-        await props.tx.ingestionJobRequirement.createMany({
+        await this.db.tx.ingestionJobRequirement.createMany({
           data: file.requirements.map(({ requiredFileId }) => ({
             jobId: job.id,
             jobFileId: file.id,
@@ -168,7 +160,7 @@ export class IngestService {
         });
       }
     } else {
-      await props.tx.ingestionJobError.createMany({
+      await this.db.tx.ingestionJobError.createMany({
         data: props.result.errors.map(({ message }) => ({
           jobId: job.id,
           error: message,
@@ -180,10 +172,10 @@ export class IngestService {
   }
 
   async checkIngestionFreshness(): Promise<{ stale: boolean; lastSuccessAt: Date | null }> {
-    const lastSucceededJob = await this.prisma.ingestionJob.findFirst({
+    const lastSucceededJob = await this.db.tx.ingestionJob.findFirst({
       orderBy: { endedAt: 'desc' },
       where: { status: 'SUCCEEDED' },
-      select: { endedAt: true },
+      select: { endedAt: true } satisfies Prisma.IngestionJobSelect,
     });
 
     const lastSuccessAt = lastSucceededJob?.endedAt ?? null;

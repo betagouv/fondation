@@ -1,17 +1,25 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/framework/database';
+import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
+import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
-import { AffectationVersionFinder } from 'src/modules/session/infrastructure/finders/affectation-version.finder';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import type { AuditionSchedule } from 'src/utils/audition-schedule';
+import type { DateOnly } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
+import type { TimeOnly } from 'src/utils/time-only';
 
 import {
   Observation,
@@ -19,6 +27,14 @@ import {
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
+import {
+  type NominationFileObservation,
+  NominationFileObservationsFinder,
+} from './infrastructure/finders/nomination-file-observations.finder';
+import {
+  ObservantAuditionsFinder,
+  type ObservantAuditionWithObservations,
+} from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import {
   GetObservationDetailsQuery,
@@ -36,6 +52,7 @@ import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
+import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
@@ -43,47 +60,46 @@ export class ObservationService {
   private readonly logger = new Logger(ObservationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly observationRepository: ObservationRepository,
     private readonly getObservationDetailsQuery: GetObservationDetailsQuery,
     private readonly getObservationFileUrlQuery: GetObservationFileUrlQuery,
     private readonly listObservationsQuery: ListObservationsQuery,
     private readonly files: Files,
-    private readonly affectationVersionFinder: AffectationVersionFinder,
     private readonly listObservationsAttachmentsQuery: ListObservationsAttachmentsQuery,
     private readonly observationFinder: ObservationFinder,
+    private readonly nominationFileObservationsFinder: NominationFileObservationsFinder,
+    private readonly observantAuditionRepository: ObservantAuditionRepository,
+    private readonly observantAuditions: ObservantAuditionsFinder,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
+  @Transactional()
   async createObservation(command: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
-    magistratId: string;
     dateReception: Date;
     description: string | undefined | null;
     files: readonly { id: string }[];
+    magistratId: string;
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
     linkedAttachments: readonly {
-      observationId: string;
       fileId: string;
+      observationId: string;
     }[];
   }): Promise<{ id: string }> {
-    const [nominationFile, linkedFiles] = await this.prisma.$transaction(async (tx) => {
-      const txNominationFile = await this.observationFinder.findExistingObservation({
-        sessionId: command.sessionId,
-        nominationFileId: command.nominationFileId,
+    const nominationFile = await this.observationFinder.findExistingObservation({
+      magistratId: command.magistratId,
+      nominationFileId: command.nominationFileId,
+      sessionId: command.sessionId,
+    });
+    const { items: linkedFiles } = await this.observationFinder.findExistingFiles({
+      files: command.linkedAttachments.map((attachment) => ({
+        ...attachment,
         magistratId: command.magistratId,
-        tx,
-      });
-
-      const { items: txLinkedFiles } = await this.observationFinder.findExistingFiles({
-        tx,
-        files: command.linkedAttachments.map((attachment) => ({
-          ...attachment,
-          magistratId: command.magistratId,
-        })),
-      });
-
-      return [txNominationFile, txLinkedFiles];
+      })),
     });
 
     if (!nominationFile) {
@@ -98,13 +114,14 @@ export class ObservationService {
     }
 
     const observation = Observation.create({
-      linkedFiles,
-      nominationFile,
-      files: command.files,
       createdByUserId: command.userId,
-      description: command.description,
-      magistratId: command.magistratId,
       dateReception: command.dateReception,
+      description: command.description,
+      files: command.files,
+      linkedFiles,
+      magistratId: command.magistratId,
+      nominationFile,
+      sessionId: command.sessionId,
     });
 
     await this.observationRepository.persist(observation);
@@ -112,33 +129,44 @@ export class ObservationService {
     return { id: observation.id };
   }
 
-  async deleteObservation(command: { userId: string; observationId: string }): Promise<void> {
+  @Transactional()
+  async deleteObservation(command: {
+    impersonatorId: string | null;
+    observationId: string;
+    userId: string;
+  }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
 
-    observation.delete();
+    observation.delete({
+      ...command,
+      isLastOfObservant: await this.observationRepository.isLastOfObservant(observation),
+    });
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
   async updateObservation(command: {
-    observationId: string;
     dateReception: Date;
-    magistratId: string;
     description: string | null | undefined;
-    linkedFiles: readonly { observationId: string; fileId: string }[];
-    filesToAttach: readonly { id: string }[];
     fileIdsToDetach: readonly string[];
+    filesToAttach: readonly { id: string }[];
+    impersonatorId: string | null;
+    linkedFiles: readonly { fileId: string; observationId: string }[];
+    magistratId: string;
+    observationId: string;
+    userId: string;
   }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
 
     if (command.magistratId !== observation.magistratId) {
-      const existingObservation = await this.prisma.observation.findUnique({
+      const existingObservation = await this.db.tx.observation.findUnique({
+        select: { id: true } satisfies Prisma.ObservationSelect,
         where: {
           nominationFileId_magistratId: {
-            nominationFileId: observation.nominationFileId,
             magistratId: command.magistratId,
+            nominationFileId: observation.nominationFileId,
           },
         },
-        select: { id: true },
       });
 
       if (existingObservation) {
@@ -150,8 +178,11 @@ export class ObservationService {
 
     observation.update({
       dateReception: command.dateReception,
-      magistratId: command.magistratId,
       description: command.description,
+      impersonatorId: command.impersonatorId,
+      isLastOfObservant: await this.observationRepository.isLastOfObservant(observation),
+      magistratId: command.magistratId,
+      userId: command.userId,
     });
     observation.attachFiles({ files: command.filesToAttach });
     observation.detachFiles({ fileIds: command.fileIdsToDetach });
@@ -160,54 +191,121 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
-  listObservations(query: { nominationFileId: string }): Promise<ListObservationsResponseDto> {
+  /** @internal */
+  internalFindNominationFilesObservations(query: {
+    nominationFileIds: ReadonlySet<string>;
+    userId: string;
+  }): Promise<Map<string, NominationFileObservation[]>> {
+    return this.nominationFileObservationsFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindMagistratObservations(query: {
+    magistratId: string;
+  }): Promise<{ dateReception: Date; id: string; nominationFileId: string }[]> {
+    return this.nominationFileObservationsFinder.received(query);
+  }
+
+  /** @internal */
+  internalFindNominationFilesObservants(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Map<string, { id: string; name: string }[]>> {
+    return this.nominationFileObservationsFinder.observants(query);
+  }
+
+  /** @internal */
+  internalListObservantAuditions(query: { sessionId: string }): Promise<ObservantAuditionWithObservations[]> {
+    return this.observantAuditions.findWithObservations(query);
+  }
+
+  /** @internal */
+  internalFindObservantObservations(query: {
+    magistratIds: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, { nominationFileId: string; observationId: string }[]>> {
+    return this.observantAuditions.findObservations(query);
+  }
+
+  /** @internal */
+  internalFindObservantAuditions(predicate: {
+    magistratIds?: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, AuditionSchedule>> {
+    return this.observantAuditions.findByMagistratId(predicate);
+  }
+
+  @Transactional()
+  async scheduleObservantAudition(command: {
+    auditionDateTime: { date: DateOnly; time: TimeOnly } | null;
+    impersonatorId: string | null;
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const audition = await this.observantAuditionRepository.findByObservation(command);
+    if (command.auditionDateTime)
+      audition.schedule({ ...command, auditionDateTime: command.auditionDateTime });
+    else audition.unschedule(command);
+    await this.observantAuditionRepository.persist(audition);
+  }
+
+  @Transactional()
+  listObservations(query: {
+    nominationFileId: string;
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<ListObservationsResponseDto> {
     return this.listObservationsQuery.handle(query);
   }
 
   getObservationFileUrl(query: {
-    observationId: string;
     fileId: string;
+    observationId: string;
   }): Promise<GetObservationFileUrlResponseDto> {
     return this.getObservationFileUrlQuery.handle(query);
   }
 
   getObservationDetails(query: {
-    userId: string;
-    sessionId: string;
     nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
+    sessionId: string;
+    userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.getObservationDetailsQuery.handle(query);
   }
 
   async attachMemberCommentScreenshots(command: {
-    userId: string;
-    sessionId: string;
+    files: readonly StoredFile[];
     nominationFileId: string;
     observationId: string;
-    files: readonly StoredFile[];
+    sessionId: string;
+    userId: string;
   }): Promise<AttachedMemberCommentScreenshotsDto> {
-    const reporterIds = await this.affectationVersionFinder.findReporterIds({
-      nominationFileId: command.nominationFileId,
-      sessionId: command.sessionId,
-    });
-
-    const observation = await this.observationRepository.findById(command.observationId);
-
-    try {
-      observation.attachMemberCommentScreenshots({
-        userId: command.userId,
-        reporterIds,
-        files: command.files.map((f) => ({ id: f.id })),
+    await this.db.withTransaction(async () => {
+      const reporters = await this.transparences.internalFindPublishedReporters({
+        nominationFileIds: [command.nominationFileId],
       });
-    } catch (error) {
-      if (error instanceof UserNotAllowedToAttachScreenshotsError) {
-        throw new ForbiddenException();
-      }
-      throw error;
-    }
+      const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
-    await this.observationRepository.persist(observation);
+      const observation = await this.observationRepository.findById(command.observationId);
+
+      try {
+        observation.attachMemberCommentScreenshots({
+          files: command.files.map((f) => ({ id: f.id })),
+          reporterIds,
+          userId: command.userId,
+        });
+      } catch (error) {
+        if (error instanceof UserNotAllowedToAttachScreenshotsError) {
+          throw new ForbiddenException();
+        }
+        throw error;
+      }
+
+      await this.observationRepository.persist(observation);
+    });
 
     const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
 
@@ -227,25 +325,26 @@ export class ObservationService {
     };
   }
 
+  @Transactional()
   async writeMemberComment(command: {
-    userId: string;
-    sessionId: string;
+    comment: string;
     nominationFileId: string;
     observationId: string;
-    comment: string;
+    sessionId: string;
+    userId: string;
   }): Promise<void> {
-    const reporterIds = await this.affectationVersionFinder.findReporterIds({
-      nominationFileId: command.nominationFileId,
-      sessionId: command.sessionId,
+    const reporters = await this.transparences.internalFindPublishedReporters({
+      nominationFileIds: [command.nominationFileId],
     });
+    const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
     const observation = await this.observationRepository.findById(command.observationId);
 
     try {
       observation.writeMemberComment({
-        userId: command.userId,
-        reporterIds,
         comment: command.comment,
+        reporterIds,
+        userId: command.userId,
       });
     } catch (error) {
       if (error instanceof UserNotAllowedToWriteCommentError) {
@@ -257,11 +356,12 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
   async followUpWith(command: {
+    comment: string | null;
+    followUp: string | null;
     observationId: string;
     userId: string | null;
-    followUp: string | null;
-    comment: string | null;
   }): Promise<void> {
     const observation = await this.observationRepository.findById(command.observationId);
     observation.followUpWith(command);
@@ -269,9 +369,9 @@ export class ObservationService {
   }
 
   listObservationsAttachments(query: {
-    sessionId: string;
-    magistratId: string | undefined;
     excludeObservationId: string | undefined;
+    magistratId: string | undefined;
+    sessionId: string;
   }): Promise<ListedObservationsAttachmentsDto> {
     return this.listObservationsAttachmentsQuery.handle(query);
   }

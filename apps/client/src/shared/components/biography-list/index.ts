@@ -1,0 +1,1 @@
+export { BiographyList } from './BiographyList';

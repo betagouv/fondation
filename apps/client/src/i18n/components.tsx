@@ -12,19 +12,19 @@ function Formatted(props: React.PropsWithChildren) {
   return React.createElement(textComponent ?? React.Fragment, undefined, props.children);
 }
 
-export function FormattedAge(props: { value: Date | PlainDateOnly }) {
+export function FormattedAge(props: { value: PlainDateOnly }) {
   const format = useIntlAge();
   return <Formatted>{format(props.value)}</Formatted>;
 }
 
-export function FormattedPositionDuration(props: { value: Date | PlainDateOnly | null | undefined }) {
+export function FormattedPositionDuration(props: { value: PlainDateOnly | null | undefined }) {
   const formatDuration = useIntlPositionDuration();
   const formatted = formatDuration(props.value);
 
   return <Formatted>{formatted}</Formatted>;
 }
 
-export function FormattedBirthDate(props: { value: Date | PlainDateOnly | null | undefined }) {
+export function FormattedBirthDate(props: { value: PlainDateOnly | null | undefined }) {
   const formatBirthDate = useIntlBirthDate();
   const formatted = formatBirthDate(props.value);
 

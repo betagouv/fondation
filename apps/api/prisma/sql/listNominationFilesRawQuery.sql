@@ -14,6 +14,8 @@
 -- @param {String} $12:sortBy?
 -- @param {String} $13:sortOrder?
 -- @param {String} $14:sessionId
+-- @param $15:nominationFileIds?
+-- @param {Boolean} $16:missingEvaluation?
 
 SELECT
   ddn.id,
@@ -35,19 +37,43 @@ SELECT
   ddn.outcome,
   ddn.outcome_comment AS "outcomeComment",
   ddn.alert_hidden AS "alertHidden",
+  ddn.missing_evaluation AS "missingEvaluation",
+  ddn.missing_evaluation_comment AS "missingEvaluationComment",
   ddn.detected_jurisdiction_id AS "detectedJurisdictionId",
+  detected_jurisdiction.type_jur AS "detectedJurisdictionType",
   ddn.detected_targeted_function_id AS "detectedTargetedFunctionId",
+  ddn.detected_magistrat_id AS "detectedMagistratId",
+  CASE WHEN detected_magistrat.id IS NOT NULL THEN JSON_BUILD_OBJECT(
+    'firstName', detected_magistrat.first_name,
+    'lastName', detected_magistrat.last_name,
+    'marriedName', detected_magistrat.married_name
+  ) END AS "detectedMagistrat",
+
+  EXISTS (
+    SELECT 1
+    FROM nominations_context.nomination_file_attachment AS nfa
+    WHERE nfa.nomination_file_id = ddn.id
+  ) AS "hasAttachment",
+
+  EXISTS (
+    SELECT 1
+    FROM nominations_context.nomination_file_attachment AS nfa
+    WHERE nfa.nomination_file_id = ddn.id AND nfa."type" = 'FICHE_DE_JURIDICTION'
+  ) AS "hasJurisdictionSheet",
 
   TS_RANK(ddn."search", query) AS "queryRank",
 
   summaries."summary" AS summary,
   member_memo.memo AS "memberMemo",
 
-  COALESCE(observations.observations, ARRAY[]::JSON[]) AS observations,
   COALESCE(reporters.reporters, ARRAY[]::JSON[]) AS reporters
 
 FROM
   nominations_context.dossier_de_nomination AS ddn
+  LEFT JOIN data_administration_context.jurisdictions AS detected_jurisdiction
+    ON detected_jurisdiction.codejur = ddn.detected_jurisdiction_id
+  LEFT JOIN nominations_context.magistrat AS detected_magistrat
+    ON detected_magistrat.id = ddn.detected_magistrat_id
 
   LEFT JOIN LATERAL (
     SELECT
@@ -65,35 +91,6 @@ FROM
       LEFT JOIN identity_and_access_context."users" AS "user" ON "user".id = nfr.user_id
     WHERE nfr.nomination_file_id = ddn.id AND nfr.version_id = /* versionId */$1::UUID
   ) AS reporters ON TRUE
-
-  LEFT JOIN LATERAL (
-    SELECT ARRAY_AGG(sub_obs.observation) AS observations
-    FROM (
-      SELECT
-        JSON_BUILD_OBJECT(
-          'id', obs.id,
-          'followUp', obs.follow_up,
-          'followUpComment', obs.follow_up_comment,
-          'description', obs.description,
-          'dateReception', obs.date_reception,
-
-          'magistrat', JSON_BUILD_OBJECT('id', m.id, 'firstName', m.first_name, 'lastName', m.last_name),
-          'memberComments', JSON_AGG(
-            JSON_BUILD_OBJECT('comment', omc."comment")
-          )
-        ) AS observation
-
-      FROM nominations_context.observation AS obs
-        LEFT JOIN nominations_context.magistrat AS m ON m.id = obs.magistrat_id
-        LEFT JOIN nominations_context.observation_member_comment AS omc ON (
-          omc.observation_id = obs.id
-          AND omc.user_id = /* userId */$2::UUID
-        )
-
-      WHERE obs.nomination_file_id = ddn.id
-      GROUP BY obs.id, m.id
-    ) AS sub_obs
-  ) AS observations ON TRUE
 
   LEFT JOIN LATERAL (
     SELECT (ARRAY_AGG(member_memo))[1] AS "memo"
@@ -116,7 +113,9 @@ FROM
           nominations_context.summary_readers AS readers
           ON readers.summary_id = summaries.nomination_file_id
 
-      WHERE summaries.nomination_file_id = ddn.id
+      WHERE
+        summaries.nomination_file_id = ddn.id
+        AND TRIM(summaries."content") != ''
       GROUP BY summaries.nomination_file_id
     ) AS sub_summaries
   ) AS summaries ON TRUE,
@@ -177,6 +176,18 @@ WHERE (
 
   /* -- SEARCH -- */
   AND ($11::TEXT IS NULL OR ddn."search" @@ query)
+
+  /* -- IDS -- */
+  AND (
+    /* nominationFileIds */$15::UUID[] IS NULL
+    OR ddn.id = ANY(/* nominationFileIds */$15::UUID[])
+  )
+
+  /* -- MISSING EVALUATION -- */
+  AND (
+    /* missingEvaluation */$16::BOOLEAN IS NULL
+    OR ddn.missing_evaluation = /* missingEvaluation */$16::BOOLEAN
+  )
 )
 
 ORDER BY 

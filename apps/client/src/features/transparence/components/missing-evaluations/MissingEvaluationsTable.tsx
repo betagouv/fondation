@@ -1,0 +1,204 @@
+import { createColumnHelper, type CellContext } from '@tanstack/react-table';
+import { useMemo } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+
+import { NominationFilesExportButton } from '@/features/nomination-files-table/components/NominationFilesExportButton';
+import { SessionFilesTable } from '@/features/nomination-files-table/components/SessionFilesTable';
+import {
+  useNominationFilesTable,
+  type SessionOutcome,
+} from '@/features/nomination-files-table/context/files-table.context';
+import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { useExportFailure } from '@/features/nomination-files-table/hooks/useExportFailure';
+import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/useSessionFilesFilters';
+import { useSessionFilesTable } from '@/features/nomination-files-table/hooks/useSessionFilesTable';
+import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
+import { ReporterTagList } from '@/shared/components/reporter-tag';
+import type { FormationEnum } from '@/shared/enums/formation.enum';
+import { rowCell } from '@/shared/ui/new-table';
+import { TotalBadge } from '@/shared/ui/total-badge';
+import {
+  isUpdatable,
+  useListMissingEvaluationsAsExcelMutation,
+  useNominationFilesStatusCountsQuery,
+  type SessionNominationFile,
+} from '@queries/nomination-sessions.queries';
+
+import { MissingEvaluationCommentCell, MissingEvaluationCommentProvider } from './MissingEvaluationComment';
+import { MissingEvaluationDoneButton } from './MissingEvaluationDoneButton';
+
+const h = createColumnHelper<SessionNominationFile>();
+
+const fileNumberCell = rowCell<SessionNominationFile>((file) => file.content.numeroDeDossier);
+
+const magistratCell = rowCell<SessionNominationFile>((file) => (
+  <div className="flex flex-col items-start gap-y-0.5">
+    <span className="font-medium text-(--text-default-grey)">{file.content.nomMagistrat}</span>
+    <span className="text-xs leading-5">
+      <GradeAndPosition boldGrade={false} grade={file.content.grade} position={file.content.posteActuel} />
+    </span>
+  </div>
+));
+
+const posteCibleCell = rowCell<SessionNominationFile>((file) => (
+  <GradeAndPosition boldGrade={false} grade={file.content.gradeCible} position={file.content.posteCible} />
+));
+const reportersCell = rowCell<SessionNominationFile>((file) => (
+  <ReporterTagList reporters={file.reporters} />
+));
+const commentCell = rowCell<SessionNominationFile>((file) => (
+  <MissingEvaluationCommentCell
+    comment={file.missingEvaluationComment}
+    disabled={!isUpdatable(file)}
+    magistrat={file.content.nomMagistrat}
+    nominationFileId={file.id}
+  />
+));
+
+function EvaluationStatusCell(props: CellContext<SessionNominationFile, unknown>) {
+  const { sessionId } = useNominationFilesTable();
+  const file = props.row.original;
+
+  return (
+    <MissingEvaluationDoneButton
+      disabled={!isUpdatable(file)}
+      magistrat={file.content.nomMagistrat}
+      nominationFileId={file.id}
+      sessionId={sessionId}
+    />
+  );
+}
+
+function useMissingEvaluationsColumns() {
+  const { formatMessage } = useIntl();
+  const filters = useSessionFilesFilters();
+
+  return useMemo(
+    () => [
+      h.accessor('content.numeroDeDossier', {
+        id: 'fileNumber',
+        cell: fileNumberCell,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'N°' }),
+        size: 42,
+      }),
+
+      h.accessor('content.nomMagistrat', {
+        id: 'name',
+        cell: magistratCell,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Magistrat' }),
+        size: 250,
+      }),
+
+      h.accessor('content.posteCible', {
+        id: 'targetedPosition',
+        cell: posteCibleCell,
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Poste cible' }),
+        size: 240,
+      }),
+
+      h.accessor('reporters', {
+        cell: reportersCell,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Rapporteur(s)' }),
+        meta: { filters: filters.reporters },
+        size: 150,
+      }),
+
+      h.accessor('missingEvaluationComment', {
+        cell: commentCell,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Commentaire' }),
+        size: 260,
+      }),
+
+      h.display({
+        id: 'status',
+        cell: EvaluationStatusCell,
+        header: formatMessage({ defaultMessage: 'Statut de l’évaluation' }),
+        size: 200,
+      }),
+    ],
+    [filters, formatMessage],
+  );
+}
+
+function MissingEvaluationsTableInner(props: {
+  filtersSlot: Element | null;
+  scrollsWithPage?: boolean;
+  sessionId: string;
+  toolbarSlot: Element | null;
+}) {
+  const { formatMessage } = useIntl();
+  const columns = useMissingEvaluationsColumns();
+  const exportAsExcel = useListMissingEvaluationsAsExcelMutation();
+  const onExportFailure = useExportFailure();
+  const { data: counts } = useNominationFilesStatusCountsQuery({ sessionId: props.sessionId });
+  const filesTable = useSessionFilesTable({
+    columns,
+    restrictTo: { missingEvaluation: true },
+    sessionId: props.sessionId,
+  });
+
+  return (
+    <SessionFilesTable
+      emptyLabel={formatMessage({ defaultMessage: 'Aucune évaluation manquante' })}
+      filesTable={filesTable}
+      filtersSlot={props.filtersSlot}
+      scrollsWithPage={props.scrollsWithPage}
+      summary={
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <TotalBadge value={counts?.missingEvaluation ?? 0}>
+              <FormattedMessage defaultMessage="Total" />
+            </TotalBadge>
+            <TotalBadge value={counts?.missingEvaluationWithComment ?? 0}>
+              <FormattedMessage
+                defaultMessage="{count, plural, one {Commentaire} other {Commentaires}}"
+                values={{ count: counts?.missingEvaluationWithComment ?? 0 }}
+              />
+            </TotalBadge>
+          </div>
+
+          <NominationFilesExportButton
+            disabled={exportAsExcel.isPending || !counts?.missingEvaluation}
+            onExport={() =>
+              exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
+            }
+          />
+        </div>
+      }
+      toolbarSlot={props.toolbarSlot}
+    />
+  );
+}
+
+export function MissingEvaluationsTable(props: {
+  canManage: boolean;
+  filtersSlot: Element | null;
+  formation: FormationEnum;
+  outcomes: readonly SessionOutcome[];
+  scrollsWithPage?: boolean;
+  sessionId: string;
+  toolbarSlot: Element | null;
+}) {
+  return (
+    <NominationFilesTableProvider
+      canManage={props.canManage}
+      formation={props.formation}
+      outcomes={props.outcomes}
+      sessionId={props.sessionId}
+    >
+      <MissingEvaluationCommentProvider sessionId={props.sessionId}>
+        <MissingEvaluationsTableInner
+          filtersSlot={props.filtersSlot}
+          scrollsWithPage={props.scrollsWithPage}
+          sessionId={props.sessionId}
+          toolbarSlot={props.toolbarSlot}
+        />
+      </MissingEvaluationCommentProvider>
+    </NominationFilesTableProvider>
+  );
+}

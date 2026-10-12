@@ -1,0 +1,6 @@
+{
+  "exclude": ["dist/generated/**", "dist/main.e2e.js"],
+  "reporter": ["text", "html"],
+  "reports-dir": "coverage/e2e",
+  "temp-directory": "coverage/e2e/tmp"
+}

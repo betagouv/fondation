@@ -1,11 +1,12 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { SessionModule } from 'src/modules/session/session.module';
+import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
 
 import { LolfiSessionsFinder } from './infrastructure/finders/lolfi-sessions.finder';
 import { IngestController } from './infrastructure/ingest.controller';
 import { IngestService } from './infrastructure/ingest.service';
 import { InternalDetailsLolfiSessionQuery } from './infrastructure/queries/internal-details-lolfi-session.query';
+import { TransparenceAnomaliesRepository } from './infrastructure/transparence-anomalies.repository';
 import { JobsModule } from './jobs/jobs.module';
 import { JobFileIngestor } from './services/ingestors/job-file-ingestor';
 import { LolfiCandidatsIngestor } from './services/ingestors/lolfi-candidats.ingestor';
@@ -24,7 +25,7 @@ import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
 import { LolfiCryptoService } from './services/lolfi-crypto.service';
 
 @Module({
-  imports: [JobsModule, forwardRef(() => SessionModule)],
+  imports: [JobsModule, forwardRef(() => TransparenceModule)],
   controllers: [IngestController],
   exports: [IngestService],
   providers: [
@@ -44,8 +45,9 @@ import { LolfiCryptoService } from './services/lolfi-crypto.service';
     LolfiSessionsIngestor,
     LolfiTransparencesIngestor,
     LolfiTypeJuridictionIngestor,
-    LolfiSessionsFinder,
     InternalDetailsLolfiSessionQuery,
+    LolfiSessionsFinder,
+    TransparenceAnomaliesRepository,
   ],
 })
 export class IngestModule {}

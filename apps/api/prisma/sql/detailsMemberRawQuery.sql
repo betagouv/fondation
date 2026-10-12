@@ -43,7 +43,7 @@ FROM identity_and_access_context.users u
         'label', j.libelle
       )
     ) FILTER (WHERE j.codejur IS NOT NULL) AS "jurisdictions"
-    FROM data_administration_context.excluded_jurisdictions ej
+    FROM identity_and_access_context.excluded_jurisdictions ej
       LEFT JOIN data_administration_context.jurisdictions j
         ON j.codejur = ej.jurisdiction_id
     WHERE ej.user_id = u.id

@@ -1,0 +1,170 @@
+import { Transactional } from '@nestjs-cls/transactional';
+import { Injectable, NotFoundException } from '@nestjs/common';
+
+import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import {
+  PresentationPlanRenderContext,
+  PresentationPlanRenderer,
+} from '../services/renderers/presentation-plan.renderer';
+import { Prisma } from 'src/generated/prisma/client';
+import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
+import { Db } from 'src/modules/framework/database';
+import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { DateOnly } from 'src/utils/date-only';
+import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { dateToTimeOnly } from 'src/utils/time-only';
+
+@Injectable()
+export class FindPresentationPlanDocumentQuery {
+  constructor(
+    private readonly db: Db,
+    private readonly presentationPlanRenderer: PresentationPlanRenderer,
+  ) {}
+
+  @Transactional()
+  async handle(query: { id: string; forceNew?: boolean }): Promise<string> {
+    if (!query.forceNew) {
+      const plan = await this.db.tx.justicePresentationPlan.findUnique({
+        where: { id: query.id },
+        select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+      });
+
+      if (!plan) throw new NotFoundException();
+      if (plan.html) return plan.html;
+    }
+
+    const plan = await this.db.tx.justicePresentationPlan.findUnique({
+      where: { id: query.id },
+      select: {
+        id: true,
+        date: true,
+        time: true,
+        hasRenunciation: true,
+
+        justiceDepartmentContactName: true,
+
+        nominationFiles: {
+          select: {
+            agendaId: true,
+            number: true,
+            name: true,
+            targetedGrade: true,
+            targetedPosition: true,
+            outcome: true,
+            outcomeComment: true,
+            sessionId: true,
+            sessionName: true,
+          },
+        },
+
+        agendas: {
+          select: {
+            agendaId: true,
+            comment: true,
+            agenda: {
+              select: {
+                formation: true,
+                sessionId: true,
+                sessionName: true,
+                versions: {
+                  take: 2,
+                  orderBy: { version: 'desc' },
+                  select: {
+                    chairmanFirstName: true,
+                    chairmanId: true,
+                    chairmanLastName: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        secretaryFirstName: true,
+        secretaryLastName: true,
+      } satisfies Prisma.JusticePresentationPlanSelect,
+    });
+
+    if (!plan) throw new NotFoundException();
+
+    const sessions: PresentationPlanRenderContext['sessions'] = Map.groupBy(
+      plan.agendas,
+      ({ agenda }) => agenda.sessionId,
+    )
+      .values()
+      .map((sessionAgendas) => {
+        const { agenda } = assertIsDefined(
+          sessionAgendas.find(({ agenda }) => isDefined(agenda)),
+          `unknown agenda`,
+        );
+        const { sessionId, sessionName, formation } = agenda;
+
+        const agendas = Map.groupBy(sessionAgendas, ({ agenda }) => {
+          const { chairmanFirstName, chairmanId, chairmanLastName } = chairmanOf(agenda);
+          return chairmanId || `${chairmanFirstName}|${chairmanLastName}`;
+        })
+          .values()
+          .map((group) => {
+            const agendaIds = new Set(group.map((a) => a.agendaId));
+            const nominationFiles = plan.nominationFiles.filter(
+              (f): f is typeof f & { targetedPosition: string; outcome: DocNominationFileOutcomeEnum } =>
+                agendaIds.has(f.agendaId) && isDefined(f.targetedPosition) && isDefined(f.outcome),
+            );
+
+            const { agenda: firstAgenda } = assertIsDefined(
+              group.find(({ agenda }) => isDefined(agenda)),
+              `unknown agenda`,
+            );
+            const { chairmanFirstName, chairmanLastName } = chairmanOf(firstAgenda);
+
+            return {
+              nominationFiles,
+              chairman: { firstName: chairmanFirstName, lastName: chairmanLastName },
+              comments: group.map(({ comment }) => comment),
+            };
+          })
+          .toArray();
+
+        return {
+          agendas,
+          id: sessionId,
+          name: sessionName,
+          // TODO: change when other are available
+          typeDeSaisine: TypeDeSaisineEnum.TRANSPARENCE_GDS,
+          formation: prismaFormationEnumToFormationEnum(formation),
+        };
+      })
+      .toArray();
+
+    const html = this.presentationPlanRenderer.html({
+      sessions,
+      date: DateOnly.fromUtcDate(plan.date),
+      time: dateToTimeOnly(plan.time),
+      hasRenunciation: plan.hasRenunciation,
+      justiceContactName: plan.justiceDepartmentContactName,
+      typeDeSaisine: sessions[0]!.typeDeSaisine,
+      formation: sessions[0]!.formation,
+      secretary: { firstName: plan.secretaryFirstName, lastName: plan.secretaryLastName },
+    });
+
+    await this.db.tx.justicePresentationPlan.update({
+      where: { id: query.id },
+      data: { html },
+    });
+
+    return html;
+  }
+}
+
+function chairmanOf(agenda: {
+  versions: {
+    chairmanFirstName: string;
+    chairmanId: string | null;
+    chairmanLastName: string;
+    status: 'DRAFT' | 'VALIDATED';
+  }[];
+}) {
+  return assertIsDefined(agendaContentOf(agenda.versions), 'unknown agenda version');
+}

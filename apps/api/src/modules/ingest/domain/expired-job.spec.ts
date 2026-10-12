@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { isExpired } from './expired-job';
 
 describe('isExpired', () => {

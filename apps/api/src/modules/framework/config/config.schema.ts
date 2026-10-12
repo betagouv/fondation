@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 export const ConfigSchema = z.object({
   isProduction: z.prefault(z.boolean(), process.env.NODE_ENV === 'production'),
+  // staging runs as production: only DEPLOY_ENV tells them apart, and a production lacking it stays production
+  isTestEnvironment: z.prefault(
+    z.boolean(),
+    process.env.NODE_ENV !== 'production' || process.env.DEPLOY_ENV === 'staging',
+  ),
 
   appName: z.string().default('fondation-api'),
   appVersion: z.prefault(z.string().optional(), process.env.APP_VERSION),
@@ -45,8 +50,6 @@ export const ConfigSchema = z.object({
     process.env.INBOUND_ALLOWED_API_TOKENS ?? '',
   ),
 
-  chromiumExecutablePath: z.prefault(z.string().optional(), process.env.CHROMIUM_EXECUTABLE_PATH),
-
   scalingo: z.preprocess(
     () => ({}),
     z.object({
@@ -55,9 +58,59 @@ export const ConfigSchema = z.object({
     }),
   ),
 
-  mattermostWebhook: z.prefault(z.url().nullish(), process.env.MATTERMOST_WEBHOOK),
+  tchap: z.preprocess(
+    () => ({}),
+    z
+      .object({
+        accessToken: z.prefault(z.string().trim().nonempty().optional(), process.env.TCHAP_ACCESS_TOKEN),
+        homeserverUrl: z.prefault(z.url().regex(/[^/]$/).optional(), process.env.TCHAP_HOMESERVER_URL),
+        roomId: z.prefault(z.string().startsWith('!').optional(), process.env.TCHAP_ROOM_ID),
+      })
+      .transform(({ accessToken, homeserverUrl, roomId }) =>
+        accessToken && homeserverUrl && roomId ? { accessToken, homeserverUrl, roomId } : undefined,
+      ),
+  ),
 
   lolfiScriptDigest: z.prefault(z.string().nullish(), process.env.LOLFI_SCRIPT_DIGEST),
+
+  gotenberg: z.preprocess(
+    () => ({}),
+    z.object({
+      apiUrl: z.prefault(z.url().regex(/[^/]$/), process.env.GOTENBERG_API_URL!),
+    }),
+  ),
+
+  proConnect: z.preprocess(
+    () => ({}),
+    z
+      .object({
+        domain: z.prefault(
+          z
+            .url({ protocol: /https/ })
+            .refine((x) => new URL(x).origin === x)
+            .optional(),
+          process.env.PRO_CONNECT_DOMAIN,
+        ),
+        clientId: z.prefault(
+          z
+            .string()
+            .trim()
+            .optional()
+            .transform((x) => (x === '' ? undefined : x)),
+          process.env.PRO_CONNECT_CLIENT_ID,
+        ),
+        clientSecret: z.prefault(
+          z
+            .string()
+            .trim()
+            .optional()
+            .transform((x) => (x === '' ? undefined : x)),
+          process.env.PRO_CONNECT_CLIENT_SECRET,
+        ),
+      })
+      .optional()
+      .transform((x) => (x ? (x.domain && x.clientId && x.clientSecret ? x : undefined) : x)),
+  ),
 
   s3: z.preprocess(
     () => ({}),
@@ -100,7 +153,7 @@ export const ConfigSchema = z.object({
               z.string(),
               process.env.S3_ENCRYPTION_KEY || /** @deprecated */ process.env.SCW_ENCRYPTION_KEY!,
             )
-          : z.undefined(),
+          : z.undefined().optional(),
     }),
   ),
 });

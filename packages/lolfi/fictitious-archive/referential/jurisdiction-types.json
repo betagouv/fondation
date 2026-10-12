@@ -1,0 +1,98 @@
+[
+  {
+    "id": "CA",
+    "label": "Cour d'appel"
+  },
+  {
+    "id": "_NR",
+    "label": "Non renseigné"
+  },
+  {
+    "id": "TJ",
+    "label": "Tribunal judiciaire"
+  },
+  {
+    "id": "CC",
+    "label": "Cour de Cassation"
+  },
+  {
+    "id": "CD",
+    "label": "Chambre Détachée"
+  },
+  {
+    "id": "CHA",
+    "label": "Chambre d'Appel"
+  },
+  {
+    "id": "TGI",
+    "label": "Tribunal de Grande Instance"
+  },
+  {
+    "id": "CHD",
+    "label": "Chambre détachée"
+  },
+  {
+    "id": "PE",
+    "label": "Parquet Européen"
+  },
+  {
+    "id": "PNA",
+    "label": "Parquet National Anti-Terroriste"
+  },
+  {
+    "id": "PNAC",
+    "label": "Parquet National Anti-Criminalité Organisée"
+  },
+  {
+    "id": "PNF",
+    "label": "Parquet National Financier"
+  },
+  {
+    "id": "TP",
+    "label": "Tribunal de Police"
+  },
+  {
+    "id": "TI",
+    "label": "Tribunal d'Instance"
+  },
+  {
+    "id": "TPR",
+    "label": "Tribunal de Proximité"
+  },
+  {
+    "id": "ENG",
+    "label": "Ecole Nationale des Greffes"
+  },
+  {
+    "id": "TSA",
+    "label": "Tribunal Supérieur d'Appel"
+  },
+  {
+    "id": "TPI",
+    "label": "Tribunal de Première Instance"
+  },
+  {
+    "id": "SEC",
+    "label": "Section Détachée"
+  },
+  {
+    "id": "AC",
+    "label": "Administration Centrale"
+  },
+  {
+    "id": "SAB",
+    "label": "Sans affectation"
+  },
+  {
+    "id": "DET",
+    "label": "Détachement"
+  },
+  {
+    "id": "IGJ",
+    "label": "Inspection Générale de la Justice"
+  },
+  {
+    "id": "IGSJ",
+    "label": "Inspection Générale des Serv. Jud."
+  }
+]

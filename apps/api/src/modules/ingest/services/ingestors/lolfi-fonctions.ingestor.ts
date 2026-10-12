@@ -1,11 +1,10 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { Magistrat } from 'shared-models';
-
 import { LolfiJob } from '../lolfi-job.type';
 import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
-import { PrismaService } from 'src/modules/framework/database';
+import { Db } from 'src/modules/framework/database';
 import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 import { JobFileIngestor } from './job-file-ingestor';
@@ -16,7 +15,7 @@ export class LolfiFonctionsIngestor {
 
   constructor(
     private readonly ingestor: JobFileIngestor,
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -58,13 +57,14 @@ export class LolfiFonctionsIngestor {
     return { success: success && mappingResult.success };
   }
 
+  @Transactional()
   private flush(props: {
     items: RawFunction[];
     jobId: number;
     fileId: string;
     result: { success: boolean };
   }) {
-    return this.prisma.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
+    return this.db.tx.$queryRawTyped(insertFunctionsRawQuery(props.items)).catch((error) => {
       this.logger.error(`Failed flushing FONCTIONS.xml chunk`, error);
       props.result.success = false;
     });
@@ -80,11 +80,7 @@ const RawFunctionSchema = z.object({
       error: (iss) => `0, 1 ou 2 attendu. ${JSON.stringify(iss.input)} fourni`,
     })
     .transform((x) =>
-      x === '0'
-        ? null
-        : formationEnumToPrismaFormationEnum(
-            x === '1' ? Magistrat.Formation.SIEGE : Magistrat.Formation.PARQUET,
-          ),
+      x === '0' ? null : formationEnumToPrismaFormationEnum(x === '1' ? 'SIEGE' : 'PARQUET'),
     ),
 
   fonction_m: z.string().trim().nonempty().nullable(),

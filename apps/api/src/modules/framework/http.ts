@@ -8,6 +8,11 @@ import { catchError, tap, throwError, type Observable } from 'rxjs';
 
 const INTERNAL_HTTP_SERVICE = Symbol();
 
+// Logs and Sentry spans never get the query, which may carry a token
+export function loggableUrl(url: string | undefined): string | undefined {
+  return url?.split('?')[0];
+}
+
 /** for some reason, Sentry instrumentation doesn't trace the http.client stack */
 @Injectable()
 class InstrumentedHttpService implements Required<HttpService> {
@@ -87,12 +92,13 @@ class InstrumentedHttpService implements Required<HttpService> {
 
   request<T = any>(config: AxiosRequestConfig): Observable<AxiosResponse<T>> {
     const { method, url } = config;
-    this.logger.debug(`${method} ${url}`);
+    const safeUrl = loggableUrl(url);
+    this.logger.debug(`${method} ${safeUrl}`);
 
     return Sentry.startSpan(
       {
         op: 'http.client',
-        name: `${method} ${url}`,
+        name: `${method} ${safeUrl}`,
       },
       (span) => {
         span.setAttributes(InstrumentedHttpService.requestAttributes(config));
@@ -190,7 +196,6 @@ class HttpModule {
             const instance = axios.create();
             retry(instance, {
               onRetry(count) {
-                console.log('retry', count);
                 Sentry.getActiveSpan()?.setAttribute('http.request.resend_count', count);
               },
             });

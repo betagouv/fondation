@@ -1,0 +1,77 @@
+h1 {
+  font-size: 1rem;
+}
+
+main {
+  h2 {
+    font-size: 1.1rem;
+    margin-top: 2rem;
+    break-after: avoid;
+    font-weight: bold;
+    font-family: Montserrat, sans-serif;
+    color: var(--gold);
+  }
+
+  ul {
+    list-style-type: '- ';
+    padding-left: 1rem;
+  }
+
+  ol {
+    list-style: none;
+    padding-left: 1rem;
+    break-before: avoid;
+  }
+
+  p {
+    font-size: 0.8rem;
+    line-height: 1.5rem;
+    text-align: justify;
+    text-wrap: pretty;
+    break-inside: avoid;
+    text-indent: 0;
+  }
+
+  li {
+    font-size: 0.8rem;
+    break-inside: avoid;
+    line-height: 1.5rem;
+  }
+
+  li + li {
+    margin-top: 1rem;
+  }
+
+  .footer {
+    break-before: avoid;
+    break-inside: avoid;
+  }
+
+  .footer p.end-time {
+    margin: 3rem 0 1rem 0;
+    font-size: 0.8rem;
+  }
+
+  .signatures {
+    break-before: avoid;
+    break-inside: avoid;
+    margin-top: 10rem;
+    font-size: 0.8rem;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    row-gap: 10rem;
+
+    div {
+      max-width: 33%;
+
+      p {
+        margin: 0;
+        text-indent: 0;
+        text-align: left;
+        text-wrap: pretty;
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-const OBSERVATION_FOLLOW_UPS = ['REFERENCE', 'ALERT', 'INTERESTING'] as const;
+const OBSERVATION_FOLLOW_UPS = ['ALERT', 'INTERESTING', 'REFERENCE'] as const;
 export type ObservationFollowUpEnum = (typeof OBSERVATION_FOLLOW_UPS)[number];
 
 export class ObservationFollowUp {

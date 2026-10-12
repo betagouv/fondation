@@ -1,4 +1,12 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
+import {
+  ForbiddenException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   Report,
@@ -7,8 +15,10 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
-import { PrismaService } from 'src/modules/framework/database';
+import { Prisma } from 'src/generated/prisma/client';
+import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
@@ -16,68 +26,29 @@ export class ReportRepository {
   private readonly logger = new Logger(ReportRepository.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly db: Db,
     private readonly files: Files,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   async find(props: { id: string; reporterId: string }): Promise<Report> {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const report = await tx.report.findUnique({
-        where: { id: props.id, reporterId: props.reporterId, isDeleted: false },
-        select: { id: true, sessionId: true, nominationFileId: true },
-      });
-      if (!report) return null;
-
-      /*
-       * TODO:
-       *  the reporter's full name, session and nominationFile are only used to create the file PATH,
-       *  and is quite overkill for this use-case without the foreign keys.
-       *
-       *  WE SHOULD DELETE THIS BEHAVIOR IN FAVOR OF SOMETHING THAT MAKES SENSE.
-       */
-      const user = await tx.user.findUnique({
-        where: { id: props.reporterId },
-        select: { firstName: true, lastName: true },
-      });
-      if (!user) return null;
-
-      const { firstName, lastName } = user;
-      const reporterFullName =
-        lastName.toUpperCase() + ' ' + (firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase());
-
-      const session = await tx.session.findUnique({
-        select: { name: true, deletedAt: true, archivedAt: true },
-        where: { id: report?.sessionId },
-      });
-
-      if (!session) return null;
-      if (session.archivedAt) {
-        this.logger.warn(`session ${report.sessionId} is archived`);
-        throw new ForbiddenException();
-      }
-      if (session.deletedAt) {
-        this.logger.warn(`session ${report.sessionId} is deleted`);
-        throw new ForbiddenException();
-      }
-
-      const dossier = await tx.dossierDeNomination.findUnique({
-        where: { id: report.nominationFileId },
-      });
-      if (!dossier || !dossier.name) return null;
-
-      return {
-        id: report.id,
-        reporterFullName,
-        sessionName: session.name,
-        nomAspirant: dossier.name,
-      };
+    const report = await this.db.tx.report.findUnique({
+      select: { id: true, sessionId: true } satisfies Prisma.ReportSelect,
+      where: { id: props.id, isDeleted: false, reporterId: props.reporterId },
     });
+    if (!report) throw new NotFoundException();
 
-    if (!result) throw new NotFoundException();
+    const state = await this.sessions.internalFindSessionState({ sessionId: report.sessionId });
+    if (state !== 'OPEN') {
+      this.logger.warn(`session ${report.sessionId} is ${state.toLowerCase()}`);
+      throw new ForbiddenException();
+    }
 
-    return Report.from(result);
+    return Report.from({ id: report.id });
   }
 
+  @Transactional(Propagation.Mandatory)
   async persist(report: Report): Promise<void> {
     for (const message of report.messages) {
       if (message instanceof ReportFilesAttached) {
@@ -95,54 +66,48 @@ export class ReportRepository {
   }
 
   private async persistReportFilesDetached(message: ReportFilesDetached) {
-    await this.prisma.$transaction(async (tx) => {
-      const report = await tx.report.findFirst({
-        where: { id: message.id, reporterId: message.reporterId },
-        include: {
-          files: {
-            where: { file: { name: { in: message.fileNames as string[] } } },
-            include: { file: { select: { name: true, path: true, id: true } } },
-          },
+    const report = await this.db.tx.report.findFirst({
+      include: {
+        files: {
+          include: { file: { select: { id: true, name: true, path: true } } },
+          where: { file: { name: { in: message.fileNames as string[] } } },
         },
-      });
-
-      const files = (report?.files ?? []).map(({ file }) => ({
-        id: file.id,
-        path: file.path,
-      }));
-
-      if (files.length > 0) {
-        await tx.reportFile.deleteMany({
-          where: { fileId: { in: files.map(({ id }) => id) } },
-        });
-
-        this.files.delete(files);
-      }
+      } satisfies Prisma.ReportInclude,
+      where: { id: message.id, reporterId: message.reporterId },
     });
+
+    const files = (report?.files ?? []).map(({ file }) => ({
+      id: file.id,
+      path: file.path,
+    }));
+    if (files.length === 0) return;
+
+    await this.db.tx.reportFile.deleteMany({
+      where: { fileId: { in: files.map(({ id }) => id) } },
+    });
+
+    this.files.delete(files);
   }
 
   private async persistReportFilesAttached(message: ReportFilesAttached) {
-    const fileIds = message.files.map(({ id }) => id);
-    await this.prisma.$transaction(async (tx) => {
-      await tx.reportFile.createMany({
-        data: fileIds.map((fileId) => ({
-          fileId,
-          usage: message.usage,
-          reportId: message.id,
-        })),
-      });
+    await this.db.tx.reportFile.createMany({
+      data: message.files.map(({ id }) => ({
+        fileId: id,
+        reportId: message.id,
+        usage: message.usage,
+      })),
     });
   }
 
   private async persistReportUpdated(message: ReportUpdated) {
-    return this.prisma.report.update({
+    return this.db.tx.report.update({
       where: { id: message.id },
       data: { state: message.data.status, comment: message.data.comment },
     });
   }
 
   private async persistReportRuleValidationUpdated(message: ReportRuleValidationUpdated) {
-    return this.prisma.report.update({
+    return this.db.tx.report.update({
       where: { id: message.id },
       data: {
         reportRules: {

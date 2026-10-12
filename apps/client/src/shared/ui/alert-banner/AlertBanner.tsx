@@ -1,0 +1,65 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import clsx from 'clsx';
+import type { ReactNode } from 'react';
+
+const ALERTING = 'text-sm-plus font-medium';
+const RESOLVED = 'text-sm leading-6';
+
+const TONES = {
+  error: `bg-(--background-contrast-error) text-(--text-default-error) ${ALERTING}`,
+  info: `bg-(--background-contrast-info) text-(--text-default-info) ${RESOLVED}`,
+  neutral: `bg-(--background-contrast-grey) text-(--text-default-grey) ${RESOLVED}`,
+  warning: `bg-(--background-contrast-warning) text-(--text-default-warning) ${ALERTING}`,
+};
+
+export function AlertBanner(props: {
+  align?: 'center' | 'start';
+  children?: ReactNode;
+  className?: string;
+  fullWidth?: boolean;
+  icon?: string;
+  message: ReactNode;
+  tone: keyof typeof TONES;
+}) {
+  const content = (
+    <div
+      className={clsx(
+        'flex min-h-6 gap-2',
+        props.align === 'center' || props.fullWidth ? 'items-center' : 'items-start',
+        props.fullWidth ? 'fr-container justify-center py-3 text-center' : TONES[props.tone],
+        props.className,
+      )}
+    >
+      {props.icon && <span aria-hidden className={clsx('fr-icon--sm shrink-0', props.icon)} />}
+      <span>{props.message}</span>
+      {props.children}
+    </div>
+  );
+
+  return props.fullWidth ? <div className={TONES[props.tone]}>{content}</div> : content;
+}
+
+const ACTION_CLASS =
+  'min-h-0! px-3.5! py-0! whitespace-nowrap text-inherit! underline underline-offset-4 hover:bg-transparent! hover:decoration-2';
+
+export function AlertBannerAction(props: { children: ReactNode; disabled?: boolean; onClick: () => void }) {
+  return (
+    <Button
+      className={clsx(ACTION_CLASS, 'ml-auto shrink-0')}
+      disabled={props.disabled}
+      onClick={props.onClick}
+      priority="tertiary no outline"
+      size="small"
+    >
+      {props.children}
+    </Button>
+  );
+}
+
+export function AlertBannerLink(props: { children: ReactNode; to: string }) {
+  return (
+    <Button className={ACTION_CLASS} linkProps={{ to: props.to }} priority="tertiary no outline" size="small">
+      {props.children}
+    </Button>
+  );
+}

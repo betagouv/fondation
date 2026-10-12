@@ -10,7 +10,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
-    "incremental": true
+    "incremental": true,
+    "resolveJsonModule": true
   },
-  "include": ["./src/**/*", "./test/**/*"]
+  "include": ["./src/**/*", "./test/**/*", "./fictitious-archive/**/*"]
 }

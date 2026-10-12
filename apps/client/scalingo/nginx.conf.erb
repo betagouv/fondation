@@ -7,6 +7,10 @@ location / {
   try_files $uri /index.html;
 }
 
+location /api/ {
+  return 404;
+}
+
 location /assets/ {
   add_header Cache-Control "public, max-age=2592000, immutable"; # 30 days
   try_files $uri =404;

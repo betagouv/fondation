@@ -6,10 +6,13 @@ model AffectationVersion {
   statut              PrismaStatutAffectationEnum @default(BROUILLON)
   datePublication     DateTime?                   @map("date_publication") @db.Timestamp(6)
   auteurPublicationId String?                     @map("auteur_publication") @db.Uuid
+  // the person whose change reopened the affectations after a publication, null when the application did
+  createdBy           String?                     @map("created_by") @db.Uuid
 
   affectations NominationFileToReporter[]
   session      Session                    @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user         User?                      @relation(fields: [auteurPublicationId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  user         User?                      @relation(fields: [auteurPublicationId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "affectation_version_publisher")
+  author       User?                      @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "affectation_version_author")
 
   @@unique(fields: [sessionId, version])
   @@map("affectation")
@@ -39,7 +42,6 @@ enum PrismaNominationFileOutcomeEnum {
   SUSPENDED
   REMOVED
   WITHDRAWN
-  ASSESSING
   WAITING_DSJ
 
   @@map("nomination_file_outcome_enum")
@@ -47,15 +49,22 @@ enum PrismaNominationFileOutcomeEnum {
 }
 
 model DossierDeNomination {
-  id             String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt      DateTime                         @default(now()) @map("created_at") @db.Timestamp(6)
-  sessionId      String                           @map("session_id") @db.Uuid
+  id                String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt         DateTime                         @default(now()) @map("created_at") @db.Timestamp(6)
+  sessionId         String                           @map("session_id") @db.Uuid
   //// @deprecated
-  priorite       PrismaPrioriteEnum?              @ignore
-  priorities     PrismaPrioriteEnum[]             @default([])
-  comment        String?                          @map("comment") @db.Text
-  outcome        PrismaNominationFileOutcomeEnum?
-  outcomeComment String?                          @map("outcome_comment")
+  priorite          PrismaPrioriteEnum?              @ignore
+  priorities        PrismaPrioriteEnum[]             @default([])
+  comment           String?                          @map("comment") @db.Text
+  auditionDate      DateTime?                        @map("audition_date") @db.Date
+  auditionTime      DateTime?                        @map("audition_time") @db.Time(0)
+  /// the secretariat's choice, null to follow the position: see isAuditionRequired
+  auditionRequested Boolean?                         @map("audition_requested")
+  outcome           PrismaNominationFileOutcomeEnum?
+  outcomeComment    String?                          @map("outcome_comment")
+  missingEvaluation Boolean                          @default(false) @map("missing_evaluation")
+
+  missingEvaluationComment String? @map("missing_evaluation_comment")
 
   number  Int?
   dueDate DateTime? @map("due_date") @db.Date
@@ -95,8 +104,11 @@ model DossierDeNomination {
   session                    Session                                 @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   commentAccess              CommentAccess[]                         @ignore
   observations               Observation[]
+  auditionVersions           NominationFileAuditionVersion[]
+  publishedAuditions         PublishedNominationFileAudition[]
   memberMemos                MemberMemo[]
   summary                    Summary?
+  attachments                NominationFileAttachment[]
   agendaInclusions           AgendaNominationFile[]
   presentationPlanInclusions JusticePresentationPlanNominationFile[]
   officialReportInclusions   OfficialReportNominationFile[]
@@ -107,9 +119,34 @@ model DossierDeNomination {
   detectedTargetedPosition Position?     @relation(fields: [detectedTargetedPositionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@unique([sessionId, externalId], name: "sessionExternalId")
+  // the target of the observation key, which ties an observation to the session of its file
+  @@unique([id, sessionId], map: "dossier_de_nomination_id_session_id_key")
   @@index([sessionId, sortableTargetedGrade])
   @@index([search], map: "nomination_file_search_idx_gin", type: Gin)
   @@map("dossier_de_nomination")
+  @@schema("nominations_context")
+}
+
+model NominationFileAttachment {
+  nominationFileId String                                 @map("nomination_file_id") @db.Uuid
+  fileId           String                                 @map("file_id") @db.Uuid
+  type             PrismaNominationFileAttachmentTypeEnum
+  createdAt        DateTime                               @default(now()) @map("created_at")
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  file           File                @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([nominationFileId, fileId], name: "primaryKey")
+  @@map("nomination_file_attachment")
+  @@schema("nominations_context")
+}
+
+enum PrismaNominationFileAttachmentTypeEnum {
+  FICHE_DE_JURIDICTION
+  NOTE_INTENTION
+  AUTRE
+
+  @@map("nomination_file_attachment_type_enum")
   @@schema("nominations_context")
 }
 
@@ -130,21 +167,33 @@ model CommentAccess {
 }
 
 model Session {
-  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
-  version                 Int                     @default(1)
-  name                    String
-  formation               PrismaFormationEnum
-  typeDeSaisine           PrismaTypeDeSaisineEnum @map("type_de_saisine")
-  sessionImportId         String                  @unique(map: "session_session_import_id_unique") @map("session_import_id")
-  date                    DateTime                @db.Date
-  observationsClosingDate DateTime                @map("observations_closing_date") @db.Date
-  dueDate                 DateTime?               @map("due_date") @db.Date
-  positionStartDate       DateTime?               @map("position_start_date") @db.Date
-  lolfiSessionId          Int?                    @map("lolfi_session_id")
-  isValidated             Boolean                 @default(false) @map("is_validated")
-  validatedBy             String?                 @map("validated_by") @db.Uuid
-  validatedAt             DateTime?               @map("validated_at")
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  name          String
+  formation     PrismaFormationEnum
+  typeDeSaisine PrismaTypeDeSaisineEnum @map("type_de_saisine")
+  date          DateTime                @db.Date
+  comment       String?
+
+  /// @deprecated - unused to delete
+  version                 Int       @default(1) @ignore
+  /// @deprecated - unused to delete
+  sessionImportId         String    @unique(map: "session_session_import_id_unique") @default(dbgenerated("(gen_random_uuid())::text")) @map("session_import_id") @ignore
+  /// @deprecated - see SessionTransparenceGds.observationsClosingDate
+  observationsClosingDate DateTime? @map("observations_closing_date") @ignore @db.Date
+  /// @deprecated - see SessionTransparenceGds.dueDate
+  dueDate                 DateTime? @map("due_date") @ignore @db.Date
+  /// @deprecated - see SessionTransparenceGds.positionStartDate
+  positionStartDate       DateTime? @map("position_start_date") @ignore @db.Date
+
+  /// @deprecated - see SessionTransparenceGds.lolfiSessionId
+  lolfiSessionId Int? @map("lolfi_session_id") @ignore
+
+  /// @deprecated - validatedAt is enough
+  isValidated Boolean   @default(false) @map("is_validated") @ignore
+  validatedBy String?   @map("validated_by") @db.Uuid
+  validatedAt DateTime? @map("validated_at")
 
   // wee need to keep the session since LOLFI could update an existing session
   deletedAt DateTime? @map("deleted_at")
@@ -154,15 +203,56 @@ model Session {
   archivedBy String?   @map("archived_by") @db.Uuid
 
   affectationVersions  AffectationVersion[]
-  dossierDeNominations DossierDeNomination[]
   attachments          SessionAttachment[]
-  validator            User?                 @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletionAuthor       User?                 @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
-  archiver             User?                 @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
+  auditionPublications AuditionPublication[]
+  commentVersions     SessionCommentVersion[]
+  validator           User?                   @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletionAuthor      User?                   @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
+  archiver            User?                   @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
+
+  transparenceGds SessionTransparenceGds?
+
+  dossierDeNominations DossierDeNomination[]
+  observantAuditions   ObservantAudition[]
+  observantAuditionVersions ObservantAuditionVersion[]
 
   @@index([deletedAt])
   @@index([archivedAt])
+  @@index([typeDeSaisine])
   @@map("session")
+  @@schema("nominations_context")
+}
+
+model SessionTransparenceGds {
+  sessionId String @id @map("session_id") @db.Uuid
+
+  dueDate                 DateTime? @map("due_date") @db.Date
+  positionStartDate       DateTime? @map("position_start_date") @db.Date
+  observationsClosingDate DateTime  @map("observations_closing_date") @db.Date
+
+  lolfiSessionId Int? @map("lolfi_session_id")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lolfiSessionId])
+  @@map("session_transparence_gds")
+  @@schema("nominations_context")
+}
+
+model SessionCommentVersion {
+  sessionId      String   @map("session_id") @db.Uuid
+  writtenAt      DateTime @map("written_at")
+  writtenBy      String?  @map("written_by") @db.Uuid
+  /// the admin who actually wrote it while impersonating `writtenBy`
+  impersonatorId String?  @map("impersonator_id") @db.Uuid
+  comment        String?
+
+  session      Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  author       User?   @relation(fields: [writtenBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_comment_version_author")
+  impersonator User?   @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_comment_version_impersonator")
+
+  @@id([sessionId, writtenAt])
+  @@map("session_comment_version")
   @@schema("nominations_context")
 }
 
@@ -277,4 +367,76 @@ enum PrismaFormationEnum {
 
   @@map("formation")
   @@schema("public")
+}
+
+// one row per change of the audition, never updated: who scheduled, moved or removed it and when
+model NominationFileAuditionVersion {
+  nominationFileId String    @map("nomination_file_id") @db.Uuid
+  writtenAt        DateTime  @map("written_at")
+  writtenBy        String?   @map("written_by") @db.Uuid
+  /// the admin who actually wrote it while impersonating `writtenBy`
+  impersonatorId   String?   @map("impersonator_id") @db.Uuid
+  /// both empty once the audition is removed
+  date             DateTime? @db.Date
+  time             DateTime? @db.Time(0)
+  requested        Boolean?
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  author         User?               @relation(fields: [writtenBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "nomination_file_audition_version_author")
+  impersonator   User?               @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "nomination_file_audition_version_impersonator")
+
+  @@id([nominationFileId, writtenAt])
+  @@map("nomination_file_audition_version")
+  @@schema("nominations_context")
+}
+
+// one row per publication of the auditions table to the members, never updated: the members only see
+// the auditions of the last one, the secretariat keeps working on the current state
+model AuditionPublication {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId      String   @map("session_id") @db.Uuid
+  publishedAt    DateTime @map("published_at")
+  publishedBy    String?  @map("published_by") @db.Uuid
+  /// the admin who actually published while impersonating `publishedBy`
+  impersonatorId String?  @map("impersonator_id") @db.Uuid
+
+  impersonator            User?                             @relation(fields: [impersonatorId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "audition_publication_impersonator")
+  nominationFileAuditions PublishedNominationFileAudition[]
+  observantAuditions      PublishedObservantAudition[]
+  publisher               User?                             @relation(fields: [publishedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "audition_publication_publisher")
+  session                 Session                           @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("audition_publication")
+  @@schema("nominations_context")
+}
+
+// the audition of a proposed magistrat as published, only for the files the secretariat acted on
+model PublishedNominationFileAudition {
+  publicationId    String    @map("publication_id") @db.Uuid
+  nominationFileId String    @map("nomination_file_id") @db.Uuid
+  date             DateTime? @db.Date
+  requested        Boolean?
+  time             DateTime? @db.Time(0)
+
+  nominationFile DossierDeNomination @relation(fields: [nominationFileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  publication    AuditionPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([publicationId, nominationFileId])
+  @@map("published_nomination_file_audition")
+  @@schema("nominations_context")
+}
+
+// the audition of an observant as published
+model PublishedObservantAudition {
+  publicationId String   @map("publication_id") @db.Uuid
+  magistratId   String   @map("magistrat_id") @db.Uuid
+  date          DateTime @db.Date
+  time          DateTime @db.Time(0)
+
+  magistrat   Magistrat           @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  publication AuditionPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([publicationId, magistratId])
+  @@map("published_observant_audition")
+  @@schema("nominations_context")
 }

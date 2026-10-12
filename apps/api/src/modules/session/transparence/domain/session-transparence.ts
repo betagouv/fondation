@@ -1,0 +1,848 @@
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
+import * as policies from 'src/modules/shared/policies/nomination-file.policies';
+import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { DateOnly } from 'src/utils/date-only';
+import { makeId } from 'src/utils/id';
+import { isDefined } from 'src/utils/is-defined';
+import { partition } from 'src/utils/iterables';
+import { TimeOnly } from 'src/utils/time-only';
+
+import type { PublishableAuditions } from './audition-publication';
+import { AutoAffectations } from './auto-affectation';
+import { NominationFileSnapshot } from './nomination-file-snapshot';
+import {
+  LodamTransparenceFile,
+  LodamTransparenceFileEntity,
+  LolfiTransparenceFile,
+} from './transparence-file';
+
+export class SessionTransparenceFileReportersAffected {
+  constructor(
+    readonly sessionId: string,
+    readonly versionId: string | null,
+    readonly affectations: readonly {
+      nominationFileId: string;
+      reporterIds: readonly string[];
+    }[],
+  ) {}
+}
+
+export class SessionTransparenceFilePrioritiesUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly priorities: readonly PriorityEnum[],
+  ) {}
+}
+
+export class SessionTransparenceAffectationVersionPublished {
+  constructor(
+    readonly sessionId: string,
+    readonly versionId: string | undefined,
+    readonly userId: string,
+  ) {}
+}
+
+export class SessionTransparenceAffectationVersionCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly version: { id: string; version: number },
+    /** whose change reopened the affectations, null when the application did */
+    readonly authorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly name: string,
+    readonly typeDeSaisine: TypeDeSaisineEnum,
+    readonly formation: FormationEnum,
+    readonly date: DateOnly,
+    readonly observationClosingDate: DateOnly,
+    readonly dueDate: DateOnly | null,
+    readonly positionStartDate: DateOnly | null,
+    readonly lolfiSessionId: number | null,
+  ) {}
+}
+
+export class LodamSessionTransparenceFilesCreated {
+  constructor(
+    readonly sessionId: string,
+    readonly files: readonly LodamTransparenceFileEntity[],
+  ) {}
+}
+
+export class SessionTransparenceLolfiFilesAssociated {
+  constructor(
+    readonly sessionId: string,
+    readonly files: readonly LolfiTransparenceFile[],
+  ) {}
+}
+
+export class SessionTransparenceFilesObserversUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileObservers: readonly {
+      id: string;
+      observers: readonly string[];
+    }[],
+  ) {}
+}
+
+export class SessionTransparenceAttachmentAdded {
+  constructor(
+    readonly sessionId: string,
+    readonly file: { id: string },
+  ) {}
+}
+
+export class SessionTransparenceAttachmentRemoved {
+  constructor(
+    readonly sessionId: string,
+    readonly fileId: string,
+  ) {}
+}
+
+export class SessionTransparenceFileAttachmentAdded {
+  constructor(
+    readonly nominationFileId: string,
+    readonly file: { id: string },
+    readonly type: NominationFileAttachmentTypeEnum,
+  ) {}
+}
+
+export class SessionTransparenceFileAttachmentRemoved {
+  constructor(
+    readonly nominationFileId: string,
+    readonly fileId: string,
+  ) {}
+}
+
+export class SessionTransparenceUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly data: {
+      date: DateOnly;
+      dueDate: DateOnly | null;
+      name: string;
+      observationsClosingDate: DateOnly;
+      positionStartDate: DateOnly | null;
+    },
+  ) {}
+}
+
+export class SessionTransparenceCommentWritten {
+  constructor(
+    readonly sessionId: string,
+    readonly comment: string | null,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceOutcomeDefined {
+  constructor(
+    readonly nominationFileId: string,
+    readonly outcome: NominationFileOutcomeEnum | null,
+    readonly comment: string | null,
+  ) {}
+}
+
+export class SessionTransparenceAuditionScheduled {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly auditionDateTime: { date: DateOnly; time: TimeOnly },
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceAuditionRequestDefined {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly requested: boolean,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceAuditionsPublished {
+  constructor(
+    readonly sessionId: string,
+    readonly auditions: PublishableAuditions,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceAuditionUnScheduled {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly userId: string,
+    readonly impersonatorId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceFileMemberMemoWritten {
+  constructor(
+    readonly userId: string,
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly memo: string,
+  ) {}
+}
+
+export class SessionTransparenceFileAlertHidden {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+  ) {}
+}
+
+export class SessionTransparenceFileMissingEvaluationUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly missingEvaluation: boolean,
+  ) {}
+}
+
+export class SessionTransparenceFileMissingEvaluationCommentUpdated {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly comment: string | null,
+  ) {}
+}
+
+export class SessionTransparenceValidated {
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string | null,
+  ) {}
+}
+
+export class SessionTransparenceDeleted {
+  constructor(
+    readonly id: string,
+    readonly userId: string,
+  ) {}
+}
+
+export class SessionTransparenceArchived {
+  constructor(
+    readonly sessionId: string,
+    readonly userId: string,
+  ) {}
+}
+
+type NominationSessionEvent =
+  | LodamSessionTransparenceFilesCreated
+  | SessionTransparenceFileAlertHidden
+  | SessionTransparenceAuditionRequestDefined
+  | SessionTransparenceAuditionScheduled
+  | SessionTransparenceAuditionsPublished
+  | SessionTransparenceAuditionUnScheduled
+  | SessionTransparenceCommentWritten
+  | SessionTransparenceFileMemberMemoWritten
+  | SessionTransparenceFileMissingEvaluationUpdated
+  | SessionTransparenceFileMissingEvaluationCommentUpdated
+  | SessionTransparenceOutcomeDefined
+  | SessionTransparenceLolfiFilesAssociated
+  | SessionTransparenceAffectationVersionCreated
+  | SessionTransparenceAffectationVersionPublished
+  | SessionTransparenceAttachmentAdded
+  | SessionTransparenceAttachmentRemoved
+  | SessionTransparenceFileAttachmentAdded
+  | SessionTransparenceFileAttachmentRemoved
+  | SessionTransparenceCreated
+  | SessionTransparenceFilePrioritiesUpdated
+  | SessionTransparenceFileReportersAffected
+  | SessionTransparenceFilesObserversUpdated
+  | SessionTransparenceUpdated
+  | SessionTransparenceValidated
+  | SessionTransparenceDeleted
+  | SessionTransparenceArchived;
+
+type SessionTransparenceAffectationVersion = {
+  id: string;
+  isDraft: boolean;
+  version: number;
+};
+
+export class NonFormationMemberDefinedAsReporter extends Error {
+  constructor() {
+    super(`Impossible d'affecter un membre d'une formation incompatible avec cette session`);
+  }
+}
+
+export class SessionTransparenceAffectationHasUnknownReporter extends Error {
+  constructor(
+    readonly errors: readonly {
+      fileNumber: number;
+      reporters: readonly string[];
+    }[],
+  ) {
+    super(`Impossible d'affecter un membre inconnu`);
+  }
+}
+
+export class UnknownNominationFiles extends Error {
+  constructor(readonly unknownFileNumbers: number[]) {
+    super(unknownFileNumbers.length > 1 ? `Dossiers inconnus` : 'Dossier inconnu');
+  }
+}
+
+export class CantUpdateNominationFiles extends Error {
+  constructor(readonly fileIds: Set<string>) {
+    super();
+  }
+}
+
+export class SessionTransparenceIsNotDeletable extends Error {
+  constructor(readonly sessionId: string) {
+    super();
+  }
+}
+
+export class SessionTransparenceIsNotArchivable extends Error {
+  constructor(readonly unreportedFileCount: number) {
+    super();
+  }
+}
+
+export class SessionTransparenceIsArchived extends Error {
+  constructor(readonly sessionId: string) {
+    super();
+  }
+}
+
+export class CannotScheduleAuditionOnNominationFile extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
+export class UnrequestedAuditionCannotBeScheduled extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
+export class PositionAuditionCannotBeDismissed extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
+export class SessionTransparence {
+  private constructor(
+    readonly id: string,
+    readonly formation: FormationEnum,
+    readonly version: SessionTransparenceAffectationVersion | null,
+    private files: Map<
+      string,
+      {
+        auditionRequired: boolean;
+        canScheduleAudition: boolean;
+        canUpdate: boolean;
+        positionRequiresAudition: boolean;
+      }
+    >,
+  ) {}
+
+  static from(props: {
+    formation: FormationEnum;
+    id: string;
+    nominationFiles: readonly NominationFileSnapshot[];
+    version: SessionTransparenceAffectationVersion | null;
+  }) {
+    const files = new Map(
+      props.nominationFiles.map(
+        (file) =>
+          [
+            file.id,
+            {
+              auditionRequired: file.auditionRequired,
+              canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
+              canUpdate: !policies.nominationFileLock(file, { archivedAt: null }),
+              positionRequiresAudition: file.positionRequiresAudition,
+            },
+          ] as const,
+      ),
+    );
+
+    return new SessionTransparence(props.id, props.formation, props.version, files);
+  }
+
+  static create(command: {
+    date: DateOnly;
+    dueDate: DateOnly | null;
+    formation: FormationEnum;
+    lolfiSessionId: number | null;
+    name: string;
+    observationClosingDate: DateOnly | null;
+    positionStartDate: DateOnly | null;
+    typeDeSaisine: 'TRANSPARENCE_GDS';
+  }): SessionTransparence {
+    const session = SessionTransparence.from({
+      formation: command.formation,
+      id: makeId('NominationSessionId'),
+      nominationFiles: [],
+      version: null,
+    });
+
+    const observationClosingDate = command.observationClosingDate ?? command.date.plusDays(7);
+
+    session.#messages.push(
+      new SessionTransparenceCreated(
+        session.id,
+        command.name,
+        command.typeDeSaisine,
+        command.formation,
+        command.date,
+        observationClosingDate,
+        command.dueDate,
+        command.positionStartDate,
+        command.lolfiSessionId,
+      ),
+    );
+
+    return session;
+  }
+
+  static createLodamNominationTreeAndAffectMembers(
+    command: CreateLodamSessionTransparenceCommand,
+  ): SessionTransparence {
+    const session = this.create({ ...command, lolfiSessionId: null });
+    session.validate({ userId: command.userId });
+
+    const memberPerFullName = new Map(
+      command.formationMembers.map((member) => [member.fullName.toLowerCase(), member] as const),
+    );
+    const nominationFileEntities: LodamTransparenceFileEntity[] = [];
+    const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
+    const affectations: {
+      nominationFileId: string;
+      reporterIds: readonly string[];
+    }[] = [];
+
+    for (const file of command.files) {
+      const reporterIds: string[] = [];
+      const fileUnknownReporters: string[] = [];
+
+      for (const reporter of file.reporters) {
+        const member = memberPerFullName.get(reporter.toLowerCase());
+
+        if (member) {
+          reporterIds.push(member.id);
+        } else {
+          fileUnknownReporters.push(reporter);
+        }
+      }
+
+      if (fileUnknownReporters.length) {
+        unknownReporters.push({
+          fileNumber: file.fileNumber,
+          reporters: fileUnknownReporters,
+        });
+      } else {
+        const nominationFileId = makeId('NominationFileId');
+        nominationFileEntities.push({ ...file, id: nominationFileId });
+
+        if (reporterIds.length > 0) {
+          affectations.push({ nominationFileId, reporterIds });
+        }
+      }
+    }
+
+    if (unknownReporters.length) {
+      throw new SessionTransparenceAffectationHasUnknownReporter(unknownReporters);
+    }
+
+    session.files = new Map(
+      nominationFileEntities.map(
+        (x) =>
+          [
+            x.id,
+            {
+              auditionRequired: false,
+              canScheduleAudition: true,
+              canUpdate: true,
+              positionRequiresAudition: false,
+            },
+          ] as const,
+      ),
+    );
+
+    session.#messages.push(new LodamSessionTransparenceFilesCreated(session.id, nominationFileEntities));
+
+    if (affectations.length > 0) {
+      session.affectNominationFileReporters({
+        affectations,
+        authorId: null,
+        formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+      });
+    }
+
+    return session;
+  }
+
+  associateLolfiFiles(command: { files: readonly LolfiTransparenceFile[] }): void {
+    this.#messages.push(new SessionTransparenceLolfiFilesAssociated(this.id, command.files));
+  }
+
+  setNominationFilePriority(props: { nominationFileId: string; priorities: PriorityEnum[] }) {
+    this.assertsCanUpdateFiles(props.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFilePrioritiesUpdated(this.id, props.nominationFileId, props.priorities),
+    );
+  }
+
+  affectNominationFileReporters(command: {
+    authorId: string | null;
+    formationMemberIds: Set<string>;
+    affectations: readonly {
+      nominationFileId: string;
+      reporterIds: readonly string[];
+    }[];
+  }) {
+    this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
+
+    let versionId = this.version?.id;
+
+    if (this.version && !this.version.isDraft) {
+      versionId = makeId('AffectationVersionId');
+      this.#messages.push(
+        new SessionTransparenceAffectationVersionCreated(
+          this.id,
+          { id: versionId, version: this.version.version + 1 },
+          command.authorId,
+        ),
+      );
+    }
+
+    const allReporterIds = Array.from(
+      new Set(command.affectations.flatMap(({ reporterIds }) => reporterIds)),
+    );
+
+    const allReportersAreFormationMembers = allReporterIds.every((reporterId) =>
+      command.formationMemberIds.has(reporterId),
+    );
+
+    if (!allReportersAreFormationMembers) {
+      throw new NonFormationMemberDefinedAsReporter();
+    }
+
+    this.#messages.push(
+      new SessionTransparenceFileReportersAffected(this.id, versionId ?? null, command.affectations),
+    );
+  }
+
+  publishAffectationVersion(props: { userId: string }) {
+    if (this.version && !this.version.isDraft) return;
+
+    this.#messages.push(
+      new SessionTransparenceAffectationVersionPublished(this.id, this.version?.id, props.userId),
+    );
+  }
+
+  autoAffectNominationFileReporters(command: {
+    authorId: string;
+    autoAffectations: AutoAffectations;
+    formationMemberIds: Set<string>;
+  }) {
+    const affectations = command.autoAffectations.distribute();
+    this.affectNominationFileReporters({
+      affectations,
+      authorId: command.authorId,
+      formationMemberIds: command.formationMemberIds,
+    });
+  }
+
+  updateNominationFileObservers(command: {
+    existingNominationFiles: readonly { id: string; fileNumber: number }[];
+    nominationFiles: readonly { fileNumber: number; observers: string[] }[];
+  }): void {
+    const existingNominationFiles = new Map(
+      command.existingNominationFiles.map((x) => [x.fileNumber, x.id] as const),
+    );
+
+    const files = command.nominationFiles.map((file) => {
+      const existingId = existingNominationFiles.get(file.fileNumber);
+      return existingId ? { id: existingId, observers: file.observers } : file;
+    });
+
+    const [knownFiles, unknownFiles] = partition(
+      files,
+      (file): file is { id: string; observers: string[] } => 'id' in file && isDefined(file.id),
+    );
+
+    if (unknownFiles.length > 0) {
+      throw new UnknownNominationFiles(unknownFiles.map(({ fileNumber }) => fileNumber));
+    }
+
+    this.assertsCanUpdateFiles(...knownFiles.map(({ id }) => id));
+    this.#messages.push(new SessionTransparenceFilesObserversUpdated(this.id, knownFiles));
+  }
+
+  addAttachments(command: { files: { id: string }[] }) {
+    for (const file of command.files) {
+      this.#messages.push(new SessionTransparenceAttachmentAdded(this.id, file));
+    }
+  }
+
+  removeAttachment(command: { fileId: string }) {
+    this.#messages.push(new SessionTransparenceAttachmentRemoved(this.id, command.fileId));
+  }
+
+  update(command: {
+    date: DateOnly;
+    dueDate: DateOnly | null;
+    name: string;
+    observationsClosingDate: DateOnly;
+    positionStartDate: DateOnly | null;
+  }): void {
+    this.#messages.push(new SessionTransparenceUpdated(this.id, command));
+  }
+
+  writeComment(command: { comment: string; impersonatorId: string | null; userId: string }): void {
+    this.#messages.push(
+      new SessionTransparenceCommentWritten(
+        this.id,
+        command.comment.trim() || null,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
+  }
+
+  defineNominationFileOutcome(command: { nominationFileId: string; outcome: NominationFileOutcome | null }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceOutcomeDefined(
+        command.nominationFileId,
+        command.outcome?.outcome ?? null,
+        command.outcome?.comment ?? null,
+      ),
+    );
+  }
+
+  unscheduleAudition(command: { impersonatorId: string | null; nominationFileId: string; userId: string }) {
+    this.#messages.push(
+      new SessionTransparenceAuditionUnScheduled(
+        this.id,
+        command.nominationFileId,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
+  }
+
+  defineAuditionRequest(command: {
+    impersonatorId: string | null;
+    nominationFileId: string;
+    requested: boolean;
+    userId: string;
+  }) {
+    this.assertsCanScheduleAudition(command.nominationFileId);
+    if (!command.requested && this.files.get(command.nominationFileId)?.positionRequiresAudition) {
+      throw new PositionAuditionCannotBeDismissed(command.nominationFileId);
+    }
+
+    this.#messages.push(
+      new SessionTransparenceAuditionRequestDefined(
+        this.id,
+        command.nominationFileId,
+        command.requested,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
+  }
+
+  publishAuditions(command: {
+    auditions: PublishableAuditions;
+    impersonatorId: string | null;
+    lastPublished: PublishableAuditions | null;
+    userId: string;
+  }) {
+    if (command.lastPublished?.equals(command.auditions)) return;
+
+    this.#messages.push(
+      new SessionTransparenceAuditionsPublished(
+        this.id,
+        command.auditions,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
+  }
+
+  scheduleAudition(command: {
+    auditionDateTime: { date: DateOnly; time: TimeOnly };
+    impersonatorId: string | null;
+    nominationFileId: string;
+    userId: string;
+  }) {
+    this.assertsCanScheduleAudition(command.nominationFileId);
+    // a date only comes once the audition is planned, by the position or the secretariat
+    if (!this.files.get(command.nominationFileId)?.auditionRequired) {
+      throw new UnrequestedAuditionCannotBeScheduled(command.nominationFileId);
+    }
+
+    this.#messages.push(
+      new SessionTransparenceAuditionScheduled(
+        this.id,
+        command.nominationFileId,
+        command.auditionDateTime,
+        command.userId,
+        command.impersonatorId,
+      ),
+    );
+  }
+
+  writeNominationFileMemberMemo(command: { userId: string; nominationFileId: string; memo: string }) {
+    const trimmed = command.memo.trim();
+    if (trimmed.length === 0) return;
+
+    this.#messages.push(
+      new SessionTransparenceFileMemberMemoWritten(
+        command.userId,
+        this.id,
+        command.nominationFileId,
+        trimmed,
+      ),
+    );
+  }
+
+  updateMissingEvaluation(command: { nominationFileId: string; missingEvaluation: boolean }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileMissingEvaluationUpdated(
+        this.id,
+        command.nominationFileId,
+        command.missingEvaluation,
+      ),
+    );
+
+    if (!command.missingEvaluation) {
+      this.#messages.push(
+        new SessionTransparenceFileMissingEvaluationCommentUpdated(this.id, command.nominationFileId, null),
+      );
+    }
+  }
+
+  updateMissingEvaluationComment(command: { nominationFileId: string; comment: string | null }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileMissingEvaluationCommentUpdated(
+        this.id,
+        command.nominationFileId,
+        command.comment,
+      ),
+    );
+  }
+
+  hideAlert(command: { nominationFileId: string }) {
+    this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
+  }
+
+  addNominationFileAttachments(command: {
+    files: { id: string }[];
+    nominationFileId: string;
+    type: NominationFileAttachmentTypeEnum;
+  }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    for (const file of command.files) {
+      this.#messages.push(
+        new SessionTransparenceFileAttachmentAdded(command.nominationFileId, file, command.type),
+      );
+    }
+  }
+
+  removeNominationFileAttachment(command: { nominationFileId: string; fileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileAttachmentRemoved(command.nominationFileId, command.fileId),
+    );
+  }
+
+  validate(command: { userId: string | null }): void {
+    this.#messages.push(new SessionTransparenceValidated(this.id, command.userId));
+  }
+
+  archive(command: { userId: string; unreportedFileCount: number }): void {
+    if (command.unreportedFileCount > 0) {
+      throw new SessionTransparenceIsNotArchivable(command.unreportedFileCount);
+    }
+
+    this.#messages.push(new SessionTransparenceArchived(this.id, command.userId));
+  }
+
+  delete(command: { userId: string; attachmentsCount: number; affectedReportersCount: number }): void {
+    if (command.attachmentsCount !== 0 || command.affectedReportersCount !== 0) {
+      throw new SessionTransparenceIsNotDeletable(this.id);
+    }
+
+    if (this.version?.isDraft) {
+      this.publishAffectationVersion(command);
+    }
+
+    this.#messages.push(new SessionTransparenceDeleted(this.id, command.userId));
+  }
+
+  private assertsCanScheduleAudition(nominationFileId: string): void {
+    this.assertsCanUpdateFiles(nominationFileId);
+
+    if (!this.files.get(nominationFileId)?.canScheduleAudition) {
+      throw new CannotScheduleAuditionOnNominationFile(nominationFileId);
+    }
+  }
+
+  private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
+    const nonUpdatableIds = new Set<string>();
+    for (const id of nominationFileIds) {
+      const file = this.files.get(id);
+      if (!file?.canUpdate) nonUpdatableIds.add(id);
+    }
+
+    if (nonUpdatableIds.size) {
+      throw new CantUpdateNominationFiles(nonUpdatableIds);
+    }
+  }
+
+  #messages: NominationSessionEvent[] = [];
+  get messages(): readonly NominationSessionEvent[] {
+    return this.#messages;
+  }
+}
+
+export type CreateLodamSessionTransparenceCommand = {
+  date: DateOnly;
+  dueDate: DateOnly | null;
+  files: readonly LodamTransparenceFile[];
+  formation: FormationEnum;
+  formationMembers: readonly { id: string; fullName: string }[];
+  name: string;
+  observationClosingDate: DateOnly;
+  positionStartDate: DateOnly | null;
+  typeDeSaisine: 'TRANSPARENCE_GDS';
+  userId: string | null;
+};

@@ -1,23 +1,53 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ACCEPTED_MIME_TYPES } from '@/constants/mimetypes.constants';
-import type { ReportStatusEnum } from '@/types/enums.types';
+import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
+import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
 import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
 
+import { memberKeys } from './members.queries';
+
 export const reportKeys = {
   reportById: (props: { reportId: string }) => ['report', props.reportId],
+  myReport: (props: { nominationFileId: string }) => ['report', 'mine', props.nominationFileId],
 };
 
-export function generateReportFilePublicUrl(props: { reportId: string; fileNames: readonly string[] }) {
-  return $api.reports
-    .getReportFilesUrl({
-      path: { reportId: props.reportId },
-      query: { fileNames: props.fileNames as string[] },
-    })
-    .then(({ data }) => data ?? null);
-}
+export const useMyReportQuery = (props: {
+  enabled: boolean;
+  nominationFileId: string;
+  sessionId: string;
+  userId: string | undefined;
+}) =>
+  useQuery({
+    enabled: props.enabled && !!props.userId,
+    queryFn: async () => {
+      const { data } = await $api.members.searchNominationFileMembersReport({
+        path: {
+          nominationFileId: props.nominationFileId,
+          sessionId: props.sessionId,
+          userId: props.userId ?? '',
+        },
+      });
+      return data?.reportId ?? null;
+    },
+    queryKey: reportKeys.myReport({ nominationFileId: props.nominationFileId }),
+  });
+
+export const useGenerateReportFilePublicUrlMutation = () =>
+  useMutation({
+    mutationFn: async (mutation: { fileName: string; reportId: string }): Promise<string> => {
+      const { data } = await $api.reports.getReportFilesUrl({
+        path: { reportId: mutation.reportId },
+        query: { fileNames: [mutation.fileName] },
+      });
+
+      const [file] = data?.items ?? [];
+      if (!file) throw new Error(`no public url for ${mutation.fileName}`);
+
+      return file.url;
+    },
+  });
 
 function updateCommentScreenshots(
   html: string,
@@ -66,16 +96,7 @@ export const useReportQuery = (reportId: string) =>
           ? updateCommentScreenshots(report.comment, report.screenshots)
           : report.comment || null;
 
-      const updatedSummaryContent =
-        report.summary && report.summary.screenshots.length
-          ? updateCommentScreenshots(report.summary.content, report.summary.screenshots)
-          : report.summary?.content || '';
-
-      return {
-        ...report,
-        comment: updatedComment,
-        summary: report.summary ? { ...report.summary, content: updatedSummaryContent } : null,
-      };
+      return { ...report, comment: updatedComment };
     },
   });
 
@@ -93,22 +114,10 @@ export function useUpdateReportMutation() {
     },
 
     onSuccess: (_, { reportId }) =>
-      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
-  });
-}
-
-export function useUpdateReportRuleValidationMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (props: { reportId: string; ruleId: string; isValidated: boolean }): Promise<void> => {
-      const { reportId, ruleId, isValidated } = props;
-      await $api.reports.updateReportRuleValidation({
-        path: { reportId, ruleId },
-        body: { isValidated },
-      });
-    },
-    onSuccess: (_, { reportId }) =>
-      queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
+        queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberSessionReports() }),
+      ]),
   });
 }
 
@@ -135,7 +144,8 @@ export function useAttachReportFilesMutation() {
     }) => {
       const { files, reportId, usage } = mutation;
       for (const file of files) {
-        if (!ACCEPTED_MIME_TYPES.includes(file.type)) throw new InvalidMimeTypeError({ fileName: file.name });
+        if (!SANITIZED_MIME_TYPES.includes(file.type))
+          throw new InvalidMimeTypeError({ fileName: file.name });
       }
 
       await $api.reports.attachFiles({

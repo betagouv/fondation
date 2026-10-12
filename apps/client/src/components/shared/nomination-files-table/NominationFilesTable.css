@@ -1,4 +1,0 @@
-table tr:has(.multi-reporters-alert) td,
-table tr:has(.position-hearing-alert) td {
-  background-color: var(--background-alt-red-marianne);
-}

@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["src/generated"],
+  "ignorePatterns": [".storybook/public/mockServiceWorker.js", "src/generated"],
   "singleQuote": true,
   "printWidth": 110,
   "trailingComma": "all",
@@ -16,7 +16,7 @@
     ]
   },
   "sortTailwindcss": {
-    "stylesheet": "./src/index.css",
+    "stylesheet": "./src/styles/index.css",
     "functions": ["clsx", "cn"],
     "preserveWhitespace": false
   }

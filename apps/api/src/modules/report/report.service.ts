@@ -1,9 +1,12 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-
-import { ReportFileUsage, Role, NominationFile } from 'shared-models';
 
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
+import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { isDefined } from 'src/utils/is-defined';
 
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
@@ -12,20 +15,33 @@ import {
   GetReportFileUrlsQuery,
   type GetReportFileUrlsResponseDto,
 } from './infrastructure/queries/get-report-file-urls.query';
+import {
+  type ListedMemberSessionReportsDto,
+  ListMemberSessionReportsQuery,
+} from './infrastructure/queries/list-member-session-reports.query';
+import {
+  type FoundNominationFileMembersReportDto,
+  SearchNominationFileMembersReportQuery,
+} from './infrastructure/queries/search-nomination-file-members-report.query';
 import { ReportRepository } from './infrastructure/report.repository';
+import { SessionReportsRepository } from './infrastructure/session-reports.repository';
 
 @Injectable()
 export class ReportService {
   constructor(
     private readonly reportRepository: ReportRepository,
+    private readonly sessionReportsRepository: SessionReportsRepository,
     private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
     private readonly detailReportQuery: DetailReportQuery,
+    private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
+    private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
     private readonly files: Files,
   ) {}
 
+  @Transactional()
   async attachFiles(command: {
     userId: string;
-    fileUsage: ReportFileUsage | undefined;
+    fileUsage: ReportFileUsageEnum | undefined;
     reportId: string;
     files: readonly { id: string }[];
   }): Promise<void> {
@@ -35,12 +51,13 @@ export class ReportService {
     });
     report.attachFiles({
       reporterId: command.userId,
-      fileUsage: command.fileUsage ?? ReportFileUsage.ATTACHMENT,
+      fileUsage: command.fileUsage ?? 'ATTACHMENT',
       files: command.files,
     });
     await this.reportRepository.persist(report);
   }
 
+  @Transactional()
   async detachFiles(command: {
     userId: string;
     reportId: string;
@@ -66,7 +83,7 @@ export class ReportService {
       userId: command.userId,
       reportId: command.reportId,
       files: command.files,
-      fileUsage: ReportFileUsage.EMBEDDED_SCREENSHOT,
+      fileUsage: 'EMBEDDED_SCREENSHOT',
     });
 
     const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
@@ -95,15 +112,46 @@ export class ReportService {
     return this.getReportFileUrlsQuery.handle(query);
   }
 
-  detailReport(query: { user: { id: string; role: Role }; reportId: string }): Promise<DetailedReportDto> {
+  detailReport(query: {
+    user: { id: string; role: RoleEnum };
+    reportId: string;
+  }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
   }
 
+  /** called by session within the publication transaction, for both to succeed or fail together */
+  @Transactional(Propagation.Mandatory)
+  async internalSyncReportsWithAffectations(command: {
+    affectations: readonly { nominationFileId: string; reporterId: string }[];
+    formation: FormationEnum;
+    sessionId: string;
+  }): Promise<void> {
+    const sessionReports = await this.sessionReportsRepository.find(command);
+    sessionReports.syncWith(command);
+    await this.sessionReportsRepository.persist(sessionReports);
+  }
+
+  listMemberSessionReports(query: {
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<ListedMemberSessionReportsDto> {
+    return this.listMemberSessionReportsQuery.handle(query);
+  }
+
+  searchNominationFileMembersReport(query: {
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<FoundNominationFileMembersReportDto> {
+    return this.searchNominationFileMembersReportQuery.handle(query);
+  }
+
+  @Transactional()
   async updateReport(command: {
     reportId: string;
     reporterId: string;
     data: {
-      status: NominationFile.ReportState | undefined;
+      status: ReportStateEnum | undefined;
       comment: string | undefined;
     };
   }) {
@@ -116,6 +164,7 @@ export class ReportService {
     await this.reportRepository.persist(report);
   }
 
+  @Transactional()
   async updateRuleValidation(command: {
     reportId: string;
     reporterId: string;

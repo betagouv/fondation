@@ -27,7 +27,9 @@ jobs:
     env:
       tags_current: ${{ needs.release.outputs.tags_current }}
       tags_previous: ${{ needs.release.outputs.tags_previous }}
-      MATTERMOST_WEBHOOK: ${{ secrets.MATTERMOST_WEBHOOK }}
+      TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
+      TCHAP_HOMESERVER_URL: ${{ vars.TCHAP_HOMESERVER_URL }}
+      TCHAP_ROOM_ID: ${{ vars.TCHAP_ROOM_ID }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -49,6 +51,9 @@ jobs:
             echo 'markdown<<EOF'
             node scripts/changelog ${tags_current} ${tags_previous}
             echo EOF
+            echo 'html<<EOF'
+            node scripts/changelog ${tags_current} ${tags_previous} --html
+            echo EOF
           } >> "$GITHUB_OUTPUT"
 
       - name: Outputs changelog
@@ -56,13 +61,21 @@ jobs:
           CHANGELOG: ${{ steps.changelog.outputs.markdown }}
         run: echo "$CHANGELOG" >> $GITHUB_STEP_SUMMARY
 
-      - name: Notify Mattermost
-        if: ${{ env.MATTERMOST_WEBHOOK != '' }}
+      - name: Notify Tchap
+        if: ${{ env.TCHAP_ACCESS_TOKEN != '' }}
+        continue-on-error: true
         env:
           CHANGELOG: ${{ steps.changelog.outputs.markdown }}
-          MATTERMOST_WEBHOOK: ${{ env.MATTERMOST_WEBHOOK }}
+          CHANGELOG_HTML: ${{ steps.changelog.outputs.html }}
+          DEPLOYER: ${{ github.actor }}
         run: |
-          jq -n --arg text "$CHANGELOG" '{attachments: [
-            { text:$text, title:"Changelog", fields: [{ short: true, title: "CC", value: "- @jquagliatini\n- @remi.boureau.lienard"}] }
-          ]}' \
-            | curl -XPOST -i -H 'Content-type: application/json' -d @- "$MATTERMOST_WEBHOOK"
+          room=$(jq -rn --arg id "$TCHAP_ROOM_ID" '$id | @uri')
+          jq -n --arg changelog "$CHANGELOG" --arg html "$CHANGELOG_HTML" --arg deployer "$DEPLOYER" '{
+              body: "Staging déployé par \($deployer)\n\n\($changelog)",
+              format: "org.matrix.custom.html",
+              formatted_body: "<strong>Staging déployé par \($deployer)</strong>\($html)",
+              msgtype: "m.text"
+            }' \
+            | curl --fail-with-body --silent --show-error -X PUT \
+                -H "Authorization: Bearer $TCHAP_ACCESS_TOKEN" -H 'Content-type: application/json' \
+                -d @- "$TCHAP_HOMESERVER_URL/_matrix/client/v3/rooms/$room/send/m.room.message/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"

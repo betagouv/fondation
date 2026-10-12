@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
-import { Role } from 'shared-models';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 import { JurisdictionId } from './jurisdiction';
 import { MemberDutyEnum, MemberTitleEnum } from './member-enums';
@@ -8,11 +8,11 @@ import { MemberDutyEnum, MemberTitleEnum } from './member-enums';
 export class Member {
   private constructor(
     readonly id: string,
-    readonly role: Role,
+    readonly role: RoleEnum,
     readonly jurisdictionIds: Set<JurisdictionId>,
   ) {}
 
-  static from(props: { id: string; role: Role; jurisdictionIds: Set<JurisdictionId> }): Member {
+  static from(props: { id: string; role: RoleEnum; jurisdictionIds: Set<JurisdictionId> }): Member {
     return new Member(props.id, props.role, props.jurisdictionIds ?? new Set());
   }
 
@@ -42,8 +42,8 @@ export class Member {
 
   updateTitle(title: MemberTitleEnum | null): void {
     if (
-      (title === 'PRESIDENT_PARQUET' && this.role === Role.MEMBRE_DU_SIEGE) ||
-      (title === 'PRESIDENT_SIEGE' && this.role === Role.MEMBRE_DU_PARQUET)
+      (title === 'PRESIDENT_PARQUET' && this.role === 'MEMBRE_DU_SIEGE') ||
+      (title === 'PRESIDENT_SIEGE' && this.role === 'MEMBRE_DU_PARQUET')
     ) {
       throw new IncompatibleTitle();
     }

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { ObservationFollowupEnum } from '@/types/enums.types';
+import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
 import * as $api from '@api/sdk';
@@ -8,12 +8,13 @@ import type {
   CreateObservationDto,
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
-  PaginatedNominationFiles,
+  ScheduleObservantAuditionDto,
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
 
-import { sessionKeys } from './nomination-sessions.queries';
+import { auditionKeys } from './auditions.queries';
+import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
@@ -21,6 +22,8 @@ export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number]
 export const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
+  allObservationDetails: () => ['observationDetails'] as const,
+  allObservations: () => ['observations'] as const,
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
@@ -168,7 +171,7 @@ export function useDeleteObservationMutation() {
     }): Promise<void> => {
       await $api.observations.deleteObservation({
         path: {
-          sessionId: mutation.nominationFileId,
+          sessionId: mutation.sessionId,
           nominationFileId: mutation.nominationFileId,
           observationId: mutation.observationId,
         },
@@ -176,6 +179,7 @@ export function useDeleteObservationMutation() {
     },
     onSuccess: (_, { sessionId, nominationFileId }) =>
       Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
@@ -242,6 +246,7 @@ export function useUpdateObservationMutation() {
     },
     onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observationDetails({
             sessionId,
@@ -311,15 +316,15 @@ export function useFollowUpOnObservationMutation() {
       sessionId: string;
       nominationFileId: string;
       observationId: string;
-      followUp: ObservationFollowupEnum | null;
+      followUp: ObservationFollowUpEnum | null;
       comment: string | null;
     }) => {
       const { sessionId, nominationFileId, observationId, followUp, comment } = mutation;
       const body =
         followUp === null
           ? // FIXME: issue with code generation
-            { followUp: null as unknown as ObservationFollowupEnum, comment: null }
-          : { followUp: followUp as ObservationFollowupEnum, comment };
+            { followUp: null as unknown as ObservationFollowUpEnum, comment: null }
+          : { followUp: followUp as ObservationFollowUpEnum, comment };
 
       await $api.observations.followUpOnObservation({
         body,
@@ -329,25 +334,18 @@ export function useFollowUpOnObservationMutation() {
     onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        (old: PaginatedNominationFiles | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === nominationFileId
-                ? {
-                    ...item,
-                    observations: item.observations.map((observation) =>
-                      observation.id === observationId
-                        ? { ...observation, followUp, followUpComment: comment }
-                        : observation,
-                    ),
-                  }
-                : item,
-            ),
-          };
-        },
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId
+            ? {
+                ...item,
+                observations: item.observations.map((observation) =>
+                  observation.id === observationId
+                    ? { ...observation, followUp, followUpComment: comment }
+                    : observation,
+                ),
+              }
+            : item,
+        ),
       );
 
       return queryClient.invalidateQueries({
@@ -383,3 +381,31 @@ export const useListObservationsAttachments = (query: {
         })
         .then(({ data = null }) => data),
   });
+
+// the audition belongs to the observant: every observation they made in the session shows it
+export function useScheduleObservantAuditionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      mutation: ScheduleObservantAuditionDto & {
+        nominationFileId: string;
+        observationId: string;
+        sessionId: string;
+      },
+    ) => {
+      const { nominationFileId, observationId, sessionId, ...body } = mutation;
+      await $api.observations.scheduleObservantAudition({
+        body,
+        path: { nominationFileId, observationId, sessionId },
+      });
+    },
+    onSuccess: (_, { sessionId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservationDetails() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservations() }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
+      ]),
+  });
+}

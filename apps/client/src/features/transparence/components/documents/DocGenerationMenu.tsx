@@ -1,0 +1,197 @@
+import { useMemo } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath } from 'react-router';
+
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
+import { formatDateOnly } from '@/utils/date-only.util';
+import { getNewAgendaPath, ROUTE_PATHS } from '@/utils/route-path.utils';
+import type { DocGenerationSessionReadinessDto } from '@api/types';
+import { useIsSessionReadyForDocGenerationQuery } from '@queries/agenda.queries';
+
+function AgendaBlockerHint(props: { blocker: DocGenerationSessionReadinessDto['agendaBlocker'] }) {
+  if (props.blocker === 'ARCHIVED') {
+    return <FormattedMessage defaultMessage="Cette transparence est archivée" />;
+  }
+
+  if (props.blocker === 'NO_AFFECTATION') {
+    return (
+      <FormattedMessage defaultMessage="Vous devez affecter des rapporteurs dans l'onglet Propositions" />
+    );
+  }
+
+  if (props.blocker === 'ALL_FILES_REPORTED') {
+    return (
+      <FormattedMessage defaultMessage="Toutes les propositions ont déjà été actées dans des ordres du jour restitués" />
+    );
+  }
+
+  return null;
+}
+
+function OfficialReportBlockerHint(props: {
+  blocker: DocGenerationSessionReadinessDto['officialReportBlocker'];
+}) {
+  const { blocker } = props;
+
+  const { formatList, formatMessage } = useIntl();
+
+  if (!blocker) return null;
+
+  if (blocker.reason === 'NO_AGENDA') {
+    return <FormattedMessage defaultMessage="Vous devez d'abord générer un ordre du jour" />;
+  }
+
+  if (blocker.reason === 'ALL_AGENDAS_REPORTED') {
+    return <FormattedMessage defaultMessage="Tous les ordres du jour ont déjà un procès-verbal" />;
+  }
+
+  if (blocker.reason === 'NEVER_PUBLISHED') {
+    return (
+      <FormattedMessage defaultMessage="Vous devez publier la transparence aux membres dans l'onglet Propositions" />
+    );
+  }
+
+  const agendas = blocker.agendas;
+
+  if (agendas.length === 0) {
+    return (
+      <FormattedMessage defaultMessage="Chaque proposition de l'ordre du jour doit avoir une issue et un rapporteur publié" />
+    );
+  }
+
+  function agendaName(agenda: (typeof agendas)[number]): string {
+    return formatMessage(
+      {
+        defaultMessage: `ODJ - {date} - {initials} ({count, plural,
+          one {1 proposition}
+          other {{count, number} propositions}})`,
+      },
+      {
+        count: agenda.filesCount,
+        date: formatDateOnly(agenda.meetingDate),
+        initials: agenda.chairmanInitials,
+      },
+    );
+  }
+
+  function formatMissing(agenda: (typeof agendas)[number]): string {
+    return formatList(
+      [
+        agenda.filesWithoutOutcome > 0 &&
+          formatMessage(
+            {
+              defaultMessage: `renseigner l'issue de {count, plural,
+                one {1 proposition}
+                other {{count, number} propositions}}`,
+            },
+            { count: agenda.filesWithoutOutcome },
+          ),
+        agenda.filesWithoutReporter > 0 &&
+          formatMessage(
+            {
+              defaultMessage: `affecter un rapporteur à {count, plural,
+                one {1 proposition}
+                other {{count, number} propositions}}`,
+            },
+            { count: agenda.filesWithoutReporter },
+          ),
+        agenda.filesWithUnpublishedReporter > 0 &&
+          formatMessage({ defaultMessage: 'publier la transparence aux membres' }),
+      ].filter((label) => typeof label === 'string'),
+      { type: 'conjunction' },
+    );
+  }
+
+  return (
+    <span className="flex flex-col items-start gap-1">
+      {agendas.map((agenda) => (
+        <span key={agenda.agendaId}>
+          <span className="font-bold">{agendaName(agenda)}</span>
+          {'\u00A0: '}
+          {formatMissing(agenda)}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export function DocGenerationMenu(props: { sessionId: string }) {
+  const { data: readiness } = useIsSessionReadyForDocGenerationQuery({
+    sessionId: props.sessionId,
+  });
+
+  const officialReportPath = useMemo(
+    () =>
+      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, {
+        sessionId: props.sessionId,
+      }),
+    [props.sessionId],
+  );
+
+  const canCreateAgenda = !!readiness?.canCreateAgenda;
+  const canCreateOfficialReport = !!readiness?.canCreateOfficialReport;
+
+  return (
+    <MenuRoot>
+      <MenuTrigger className="py-2!" iconId="fr-icon-folder-2-line" priority="primary" size="small">
+        <FormattedMessage defaultMessage="Générer la documentation" />
+        <i aria-hidden className="fr-icon-arrow-down-s-line fr-icon--sm fr-ml-1v" />
+      </MenuTrigger>
+
+      <MenuContent>
+        {!readiness ? null : canCreateAgenda ? (
+          <MenuItem className="px-3! py-2!" linkProps={{ to: getNewAgendaPath(props.sessionId) }}>
+            <span className="flex max-w-lg flex-col items-start gap-2 text-left whitespace-normal">
+              <span className="flex items-center gap-2">
+                <i aria-hidden className="ri-calendar-line fr-icon--sm" />
+                <FormattedMessage defaultMessage="Ordre du jour" />
+              </span>
+              {readiness.agendaWarning && (
+                <span className="text-xs leading-5 font-normal text-(--text-default-warning)">
+                  {readiness.agendaWarning === 'NEVER_PUBLISHED' ? (
+                    <FormattedMessage defaultMessage="Les affectations n'ont jamais été publiées : l'ordre du jour s'affichera sans aucun rapporteur" />
+                  ) : (
+                    <FormattedMessage defaultMessage="Des affectations ne sont pas encore publiées : l'ordre du jour reprendra les rapporteurs de la dernière publication" />
+                  )}
+                </span>
+              )}
+            </span>
+          </MenuItem>
+        ) : (
+          <MenuItem className="px-3! py-2!" disabled>
+            <span className="flex max-w-lg flex-col items-start gap-2 text-left whitespace-normal">
+              <span className="flex items-center gap-2">
+                <i aria-hidden className="ri-calendar-line fr-icon--sm" />
+                <FormattedMessage defaultMessage="Ordre du jour" />
+              </span>
+              <span className="text-xs leading-5 font-normal text-(--text-mention-grey)">
+                <AgendaBlockerHint blocker={readiness?.agendaBlocker ?? null} />
+              </span>
+            </span>
+          </MenuItem>
+        )}
+
+        {!readiness ? null : canCreateOfficialReport ? (
+          <MenuItem className="px-3! py-2!" linkProps={{ to: officialReportPath }}>
+            <span className="flex items-center gap-2">
+              <i aria-hidden className="ri-file-text-line fr-icon--sm" />
+              <FormattedMessage defaultMessage="Procès-verbal" />
+            </span>
+          </MenuItem>
+        ) : (
+          <MenuItem className="px-3! py-2!" disabled>
+            <span className="flex max-w-lg flex-col items-start gap-2 text-left whitespace-normal">
+              <span className="flex items-center gap-2">
+                <i aria-hidden className="ri-file-text-line fr-icon--sm" />
+                <FormattedMessage defaultMessage="Procès-verbal" />
+              </span>
+              <span className="text-xs leading-5 font-normal text-(--text-mention-grey)">
+                <OfficialReportBlockerHint blocker={readiness?.officialReportBlocker ?? null} />
+              </span>
+            </span>
+          </MenuItem>
+        )}
+      </MenuContent>
+    </MenuRoot>
+  );
+}

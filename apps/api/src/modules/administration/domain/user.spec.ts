@@ -1,5 +1,3 @@
-import { Role } from 'shared-models';
-
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import { User, UserDisplayTitleUpdated, UserEmailUpdated, UserRoleUpdated, UsersUntitled } from './user';
@@ -8,7 +6,7 @@ describe('User', () => {
   const baseProps = {
     id: 'user-1',
     role: AdminUserRole.from({
-      role: Role.ADJOINT_SECRETAIRE_GENERAL,
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
       duty: null,
       title: null,
     }),
@@ -33,7 +31,7 @@ describe('User', () => {
       role: AdminUserRole.from({
         duty: null,
         title: null,
-        role: Role.ADJOINT_SECRETAIRE_GENERAL,
+        role: 'ADJOINT_SECRETAIRE_GENERAL',
       }),
     });
 
@@ -47,7 +45,7 @@ describe('User', () => {
       new UserRoleUpdated(
         user.id,
         AdminUserRole.from({
-          role: Role.ADJOINT_SECRETAIRE_GENERAL,
+          role: 'ADJOINT_SECRETAIRE_GENERAL',
           duty: 'SECRETARY',
           title: 'FIRST_SECRETARY',
         }),
@@ -61,7 +59,7 @@ describe('User', () => {
       role: AdminUserRole.from({
         duty: 'PRESIDENT',
         title: 'PRESIDENT_PARQUET',
-        role: Role.MEMBRE_COMMUN,
+        role: 'MEMBRE_COMMUN',
       }),
     });
 
@@ -72,7 +70,7 @@ describe('User', () => {
       new UserRoleUpdated(
         user.id,
         AdminUserRole.from({
-          role: Role.MEMBRE_COMMUN,
+          role: 'MEMBRE_COMMUN',
           duty: null,
           title: null,
         }),

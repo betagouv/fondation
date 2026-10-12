@@ -32,7 +32,9 @@ generatorHandler({
 
     const schemas = datasource?.schemas.toSorted((a, b) => a.localeCompare(b)) ?? [];
 
-    const dbName = new URL(datasource?.url?.value ?? process.env[datasource?.url?.fromEnvVar] ?? '').pathname;
+    const dbUrl =
+      datasource?.url?.value ?? process.env[datasource?.url?.fromEnvVar ?? ''] ?? process.env.DATABASE_URL;
+    const dbName = new URL(dbUrl ?? '').pathname;
     assert.ok(dbName);
 
     const allSchemas = schemas.map((x) => `"${x}"`).join(',\n  ');

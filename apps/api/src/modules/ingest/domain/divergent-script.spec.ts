@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { isScriptDivergent } from './divergent-script';
 
 describe('isScriptDivergent', () => {
