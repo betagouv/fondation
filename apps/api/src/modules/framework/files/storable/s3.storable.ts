@@ -52,8 +52,11 @@ export class S3Storage implements Storage {
         ({ Bucket, contentByteSize }) =>
           r.succeed({ ...storable, bucket: Bucket!, byteSize: contentByteSize }),
 
-        // bucket is never used in case of deletion
-        () => r.fail({ ...storable, bucket: '', byteSize: 0 }),
+        (error) => {
+          this.logger.error(`Failed uploading ${storable.id}`, error);
+          // bucket is never used in case of deletion
+          r.fail({ ...storable, bucket: '', byteSize: 0 });
+        },
       );
     }
 
@@ -188,6 +191,8 @@ export class S3Storage implements Storage {
   private innerDelete(
     objects: readonly { path: StorablePath; versionId?: string }[],
   ): Promise<[unknown, DeleteObjectsCommandOutput | null]> {
+    if (objects.length === 0) return Promise.resolve([null, null]);
+
     return this.s3
       .send(
         this.s3.buildCommand(
@@ -231,7 +236,8 @@ export class S3Storage implements Storage {
               Body: content,
               Key: key(storable),
               ContentType: storable.mime,
-              Metadata: { id: storable.id, name: storable.name },
+              // S3 metadata travels in HTTP headers, which only carry ASCII
+              Metadata: { id: storable.id, name: encodeURIComponent(storable.name) },
             },
           }),
       )
