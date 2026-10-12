@@ -33,41 +33,51 @@ jobs:
       TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
       TCHAP_HOMESERVER_URL: ${{ vars.TCHAP_HOMESERVER_URL }}
       TCHAP_ROOM_ID: ${{ vars.TCHAP_ROOM_ID }}
-    # The tags only follow the staging iterations: a production release may span several of them,
-    # so its changelog would be wrong and only the version is announced
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        if: ${{ inputs.result == 'success' && inputs.environment == 'staging' }}
+        if: ${{ inputs.result == 'success' }}
         with:
           persist-credentials: false
           fetch-tags: true
-          fetch-depth: 200
+          fetch-depth: 0
 
       - name: Use Node.js
-        if: ${{ inputs.result == 'success' && inputs.environment == 'staging' }}
+        if: ${{ inputs.result == 'success' }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: '24.12.0'
           package-manager-cache: false
 
+      # The tags follow the staging iterations and a production release may span several of them.
+      # Production is deployed by a merge commit whose first parent is the previous production,
+      # so what the merge brought is exactly what got deployed
       - shell: bash
         id: changelog
-        if: ${{ inputs.result == 'success' && inputs.environment == 'staging' }}
+        if: ${{ inputs.result == 'success' }}
         env:
+          environment: ${{ inputs.environment }}
           tags_current: ${{ inputs.tags_current }}
           tags_previous: ${{ inputs.tags_previous }}
         run: |
+          if [[ "$environment" == 'production' ]]; then
+            git rev-parse --verify --quiet 'HEAD^2' > /dev/null || { echo 'production is not on a merge commit' >&2; exit 1; }
+            head='HEAD'
+            previous='HEAD^1'
+          else
+            head="$tags_current"
+            previous="$tags_previous"
+          fi
           {
             echo 'markdown<<EOF'
-            node scripts/changelog ${tags_current} ${tags_previous}
+            node scripts/changelog "$head" "$previous"
             echo EOF
             echo 'html<<EOF'
-            node scripts/changelog ${tags_current} ${tags_previous} --html
+            node scripts/changelog "$head" "$previous" --html
             echo EOF
           } >> "$GITHUB_OUTPUT"
 
       - name: Outputs changelog
-        if: ${{ inputs.result == 'success' && inputs.environment == 'staging' }}
+        if: ${{ inputs.result == 'success' }}
         env:
           CHANGELOG: ${{ steps.changelog.outputs.markdown }}
         run: echo "$CHANGELOG" >> $GITHUB_STEP_SUMMARY
@@ -85,6 +95,11 @@ jobs:
           VERSION: ${{ inputs.tags_current }}
         run: |
           if [[ "$RESULT" == 'success' ]]; then
+            # A Matrix event is refused beyond 64 KB, the full changelog stays in the run summary
+            if (( $(printf '%s%s' "$CHANGELOG" "$CHANGELOG_HTML" | wc -c) > 50000 )); then
+              CHANGELOG="Changelog complet : $RUN_URL"
+              CHANGELOG_HTML="<p><a href=\"$RUN_URL\">Changelog complet</a></p>"
+            fi
             message=$(jq -n --arg title "Déploiement $ENVIRONMENT $VERSION par $DEPLOYER" --arg changelog "$CHANGELOG" --arg html "$CHANGELOG_HTML" '{
               body: ([$title, $changelog] | map(select(length > 0)) | join("\n\n")),
               format: "org.matrix.custom.html",
