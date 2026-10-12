@@ -51,6 +51,7 @@ export function useCreateAgendaMutation() {
         queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
       });
       queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
     },
   });
 }
@@ -99,6 +100,7 @@ export function useUpdateAgendaMetadataMutation(sessionId: string, agendaId: str
       queryClient.invalidateQueries({ queryKey: agendaKeys.detailsAgendaMetadata({ agendaId }) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(agendaId) });
       queryClient.invalidateQueries({ queryKey: agendaKeys.documentBlocks(agendaId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 }
@@ -263,6 +265,7 @@ export function useDeleteAgenda(sessionId: string) {
       queryClient.invalidateQueries({
         queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
       });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 }
@@ -336,6 +339,7 @@ export function useCreateOfficialReportMutation() {
     onSuccess(_, { sessionId }) {
       queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(sessionId) });
       queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
     },
   });
 }
@@ -419,6 +423,7 @@ export function useDeleteOfficialReportMutation(sessionId: string) {
       queryClient.invalidateQueries({
         queryKey: agendaKeys.isSessionReadyForDocGeneration(sessionId),
       });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
     },
   });
 }

@@ -23,7 +23,7 @@ import type {
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
-import { agendaKeys, presentationPlanKeys } from './agenda.queries';
+import { agendaKeys, officialReportKeys, presentationPlanKeys } from './agenda.queries';
 import { archivedSessionKeys } from './archived-nomination-sessions.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
@@ -258,6 +258,7 @@ export function usePublishVersionMutation() {
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
           agendaKeys.findAgendaNominationFiles({ sessionId }),
+          officialReportKeys.all(),
         ),
       }),
   });
@@ -498,6 +499,7 @@ export const useUpdateNominationSessionMutation = () => {
 
     onSuccess: (_data, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 };
@@ -603,6 +605,7 @@ export function useDefineNominationFileOutcomeMutation(input: {
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
             agendaKeys.findSessionDocs(input.sessionId),
             agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
+            officialReportKeys.all(),
           ),
         }),
       ]),
@@ -632,6 +635,7 @@ export function useDefineNominationFilesOutcomeMutation(input: { sessionId: stri
           agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
           agendaKeys.findSessionDocs(input.sessionId),
           agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
+          officialReportKeys.all(),
           ...items.map(({ nominationFileId }) =>
             sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId: input.sessionId }),
           ),
