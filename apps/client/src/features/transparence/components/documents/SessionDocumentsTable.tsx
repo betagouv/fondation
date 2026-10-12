@@ -1,4 +1,4 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
+import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -83,30 +83,38 @@ function useAuthorship() {
   });
 }
 
+function StatusBadge(props: { children: NonNullable<ReactNode>; severity: BadgeProps['severity'] }) {
+  return (
+    <Badge as="span" className="rounded-full" noIcon severity={props.severity} small>
+      {props.children}
+    </Badge>
+  );
+}
+
 function DocumentStatus(props: { doc: SessionDocument }) {
   const { doc } = props;
 
   if (!doc.validatedAt) {
     return (
-      <Badge as="span" className="rounded-full" noIcon severity="new" small>
+      <StatusBadge severity="new">
         <FormattedMessage defaultMessage="brouillon" />
-      </Badge>
+      </StatusBadge>
     );
   }
 
   if (doc.draftChangesBy) {
     // the "Validé le" line underneath tells these changes sit on top of a validated version
     return (
-      <Badge as="span" className="rounded-full" noIcon severity="info" small>
+      <StatusBadge severity="info">
         <FormattedMessage defaultMessage="modifications en cours" />
-      </Badge>
+      </StatusBadge>
     );
   }
 
   return (
-    <Badge as="span" className="rounded-full" noIcon severity="success" small>
+    <StatusBadge severity="success">
       <FormattedMessage defaultMessage="validé" />
-    </Badge>
+    </StatusBadge>
   );
 }
 
@@ -115,13 +123,13 @@ function AgendaPresentationStatus(props: { doc: SessionDocument }) {
   if (doc.type !== 'agenda' || !doc.presentation) return null;
 
   return doc.presentation.status === 'PRESENTED' ? (
-    <Badge as="span" className="rounded-full" noIcon severity="success" small>
+    <StatusBadge severity="success">
       <FormattedMessage defaultMessage="Restitué" />
-    </Badge>
+    </StatusBadge>
   ) : (
-    <Badge as="span" className="rounded-full" noIcon severity="new" small>
+    <StatusBadge severity="new">
       <FormattedMessage defaultMessage="À restituer" />
-    </Badge>
+    </StatusBadge>
   );
 }
 
@@ -230,9 +238,9 @@ function OfficialReportCell(props: CellContext<SessionMeeting, unknown>) {
 
   return (
     <div className="flex w-full flex-col items-center gap-3 py-4">
-      <Badge as="span" className="rounded-full" noIcon severity="error" small>
+      <StatusBadge severity="error">
         <FormattedMessage defaultMessage="pv attendu" />
-      </Badge>
+      </StatusBadge>
       {agenda && newOfficialReport?.(agenda)}
     </div>
   );
