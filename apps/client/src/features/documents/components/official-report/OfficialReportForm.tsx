@@ -83,7 +83,7 @@ export function OfficialReportForm() {
 
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
-  const { data: agendas } = useListAgendasForNewOfficialReportQuery({
+  const { data: agendas, isFetchedAfterMount: areAgendasFresh } = useListAgendasForNewOfficialReportQuery({
     sessionId: session.id,
     ignoreOfficialReportId: officialReportId ?? undefined,
   });
@@ -175,13 +175,13 @@ export function OfficialReportForm() {
     return unsubscribe;
   }, [subscribe, setValues, agendas]);
 
-  // selected as the reader would, once the list is there, so the fields it fills follow
+  // a cached list can predate the notice and the selection is never redone once the fresh one arrives
   useEffect(() => {
-    if (officialReportId || !requestedAgendaId || getValues('agendaId')) return;
+    if (officialReportId || !requestedAgendaId || !areAgendasFresh || getValues('agendaId')) return;
     if (!agendas?.items.some(({ id }) => id === requestedAgendaId)) return;
 
     setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }, [agendas, getValues, officialReportId, requestedAgendaId, setValue]);
+  }, [agendas, areAgendasFresh, getValues, officialReportId, requestedAgendaId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {

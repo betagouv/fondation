@@ -271,8 +271,8 @@ export const officialReportKeys = {
   all: <const T extends unknown[]>(...parts: T) => ['officialReport', ...parts] as const,
 
   listSecretaries: () => officialReportKeys.all('listSecretaries'),
-  listAgendas: (sessionId: string) => officialReportKeys.all(sessionId, 'listAgendas'),
-  listMembers: (sessionId: string) => officialReportKeys.all(sessionId, 'listMembers'),
+  listAgendas: (query: { ignoreOfficialReportId?: string; sessionId: string }) =>
+    officialReportKeys.all('listAgendas', query.sessionId, query.ignoreOfficialReportId),
 
   details: (id: string | null | undefined) => officialReportKeys.all(id),
   document: (id: string) => officialReportKeys.all(id, 'document'),
@@ -284,7 +284,7 @@ export const useListAgendasForNewOfficialReportQuery = (query: {
   ignoreOfficialReportId?: string;
 }) =>
   useQuery({
-    queryKey: officialReportKeys.listAgendas(query.sessionId),
+    queryKey: officialReportKeys.listAgendas(query),
     queryFn: () =>
       $api.docs
         .listAgendasForNewOfficialReport({
@@ -524,6 +524,7 @@ export function useCreateJusticePresentationPlanMutation() {
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
+        queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') }),
       ]),
   });
 }
@@ -554,6 +555,7 @@ export function useUpdateJusticePresentationPlanMutation() {
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
+        queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') }),
       ]),
   });
 }
@@ -607,6 +609,7 @@ export function useUpdatePresentationPlanHtmlMutation(planId: string) {
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
     },
   });
 }
@@ -631,6 +634,7 @@ export function useValidatePresentationPlanMutation(mutation: { planId: string; 
     // validating takes the notice's agendas away from the other drafts, and a refused one has changed meanwhile
     onSettled: async (_, error) => {
       await queryClient.invalidateQueries({ queryKey: presentationPlanKeys.all() });
+      await queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
 
       if (!error) mutation.onSuccess?.();
     },
@@ -646,6 +650,7 @@ export function useResetPresentationPlanDocumentMutation(planId: string) {
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id: planId }) });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planMetadata({ id: planId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') });
     },
   });
 }
@@ -662,6 +667,7 @@ export function useDeleteJusticePresentationPlanMutation() {
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
+        queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') }),
       ]),
   });
 }
@@ -698,6 +704,7 @@ export function usePresentPlansMutation() {
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
+        queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') }),
       ]),
   });
 }
