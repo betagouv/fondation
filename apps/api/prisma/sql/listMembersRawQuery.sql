@@ -14,14 +14,15 @@ FROM
   identity_and_access_context."users" AS m
 
   LEFT JOIN LATERAL (
-    SELECT ARRAY_AGG(
-      JSONB_BUILD_OBJECT(
-        'id', j.codejur,
-        'label', j.libelle
-      )
-    ) FILTER (WHERE j.codejur IS NOT NULL) AS "jurisdictions"
-    FROM identity_and_access_context.excluded_jurisdictions ej
-      LEFT JOIN data_administration_context.jurisdictions j
+    SELECT
+      ARRAY_AGG(
+        JSONB_BUILD_OBJECT(
+          'id', j.codejur,
+          'label', j.libelle
+        )
+      ) FILTER (WHERE j.codejur IS NOT NULL) AS jurisdictions
+    FROM identity_and_access_context.excluded_jurisdictions AS ej
+      LEFT JOIN data_administration_context.jurisdictions AS j
         ON j.codejur = ej.jurisdiction_id
     WHERE ej.user_id = m.id
     GROUP BY ej.user_id
