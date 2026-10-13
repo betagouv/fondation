@@ -6,7 +6,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
 
-import { groupSessionDocuments, type AgendaDocument } from './session-document-groups';
+import {
+  groupSessionDocuments,
+  type AgendaDocument,
+  type OfficialReportDocument,
+} from './session-document-groups';
 import { SessionDocumentsTable, type SessionDocument } from './SessionDocumentsTable';
 
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'me' } }) }));
@@ -20,7 +24,7 @@ function MountProbe(props: { name: string; onMount: () => void }) {
   return <span>{props.name}</span>;
 }
 
-const DOCS: SessionDocument[] = [
+const DOCS: [AgendaDocument, OfficialReportDocument] = [
   {
     createdAt: CREATED_AT,
     createdBy: null,
@@ -82,13 +86,13 @@ describe('SessionDocumentsTable', () => {
     const [agenda] = DOCS;
 
     it('should call a document never validated a draft', () => {
-      render(table([{ ...agenda!, presentation: null, status: 'DRAFT', validatedAt: null }]));
+      render(table([{ ...agenda, presentation: null, status: 'DRAFT', validatedAt: null }]));
 
       expect(screen.getByText('brouillon')).toBeInTheDocument();
     });
 
     it('should call a validated document with nothing pending validated', () => {
-      render(table([agenda!]));
+      render(table([agenda]));
 
       expect(screen.getByText('validé')).toBeInTheDocument();
     });
@@ -96,7 +100,7 @@ describe('SessionDocumentsTable', () => {
     it.each(['PERSON', 'SYSTEM', 'PERSON_AND_SYSTEM'] as const)(
       'should say changes are in progress whoever opened the draft (%s)',
       (draftChangesBy) => {
-        render(table([{ ...agenda!, draftChangesBy }]));
+        render(table([{ ...agenda, draftChangesBy }]));
 
         expect(screen.getByText('modifications en cours')).toBeInTheDocument();
         expect(screen.queryByText('validé')).not.toBeInTheDocument();
@@ -114,14 +118,14 @@ describe('SessionDocumentsTable', () => {
     } as const;
 
     it('should tell a validated agenda is still to present', () => {
-      render(table([agenda!]));
+      render(table([agenda]));
 
       expect(screen.getByText('À restituer')).toBeInTheDocument();
       expect(screen.queryByText(/Restitué le/)).not.toBeInTheDocument();
     });
 
     it('should tell when and by whom an agenda was presented', () => {
-      render(table([{ ...agenda!, presentation: PRESENTED }]));
+      render(table([{ ...agenda, presentation: PRESENTED }]));
 
       expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
       expect(rowTexts()).toEqual([
@@ -130,23 +134,19 @@ describe('SessionDocumentsTable', () => {
     });
 
     it('should say "vous" to whoever presented the agenda', () => {
-      render(
-        table([{ ...agenda!, presentation: { ...PRESENTED, by: { id: 'me', name: 'Lucas Bernard' } } }]),
-      );
+      render(table([{ ...agenda, presentation: { ...PRESENTED, by: { id: 'me', name: 'Lucas Bernard' } } }]));
 
       expect(rowTexts()).toEqual([expect.stringContaining('Restitué le 15/03/2028 à 10h15 par vous')]);
     });
 
     it('should keep only the date of a presentation whose author and ending time are unknown', () => {
-      render(table([{ ...agenda!, presentation: { ...PRESENTED, by: null, endTime: null } }]));
+      render(table([{ ...agenda, presentation: { ...PRESENTED, by: null, endTime: null } }]));
 
       expect(rowTexts()).toEqual([expect.stringMatching(/Restitué le 15\/03\/2028(?! à)(?! par)/)]);
     });
 
     it('should not badge an agenda never validated, nor an official report', () => {
-      render(
-        table([{ ...agenda!, presentation: null, status: 'DRAFT', validatedAt: null }, officialReport!]),
-      );
+      render(table([{ ...agenda, presentation: null, status: 'DRAFT', validatedAt: null }, officialReport]));
 
       expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
     });
@@ -157,7 +157,7 @@ describe('SessionDocumentsTable', () => {
     render(
       table([
         {
-          ...agenda!,
+          ...agenda,
           draftChangesBy: 'PERSON',
           draftUpdate: { at: '2028-03-12T15:30:00.000Z', by: null, causes: [], origin: 'PERSON' },
         },
@@ -172,7 +172,7 @@ describe('SessionDocumentsTable', () => {
     render(
       table([
         {
-          ...agenda!,
+          ...agenda,
           draftChangesBy: 'SYSTEM',
           draftUpdate: {
             at: '2028-03-12T15:30:00.000Z',
@@ -196,7 +196,7 @@ describe('SessionDocumentsTable', () => {
     render(
       table([
         {
-          ...agenda!,
+          ...agenda,
           createdBy: { id: 'user-1', name: 'Camille Martin' },
           validatedBy: { id: 'me', name: 'Lucas Bernard' },
         },
@@ -321,9 +321,9 @@ describe('SessionDocumentsTable', () => {
     const [agenda] = DOCS;
     render(
       table([
-        { ...agenda!, id: 'agenda-march', meetingDate: { day: 12, month: 3, year: 2028 }, name: 'ODJ mars' },
+        { ...agenda, id: 'agenda-march', meetingDate: { day: 12, month: 3, year: 2028 }, name: 'ODJ mars' },
         {
-          ...agenda!,
+          ...agenda,
           id: 'agenda-january',
           meetingDate: { day: 8, month: 1, year: 2028 },
           name: 'ODJ janvier',
