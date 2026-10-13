@@ -339,6 +339,8 @@ chaque push (installation avec `npx husky`).
 Globalement, configurer son IDE pour utiliser ces configurations est le mieux. Le workspace PNPM
 peut cependant parfois provoquer des conflits.
 
+Une fois la pull request fusionnée dans `develop`, on déploie staging avec `bin/deploy-staging.sh`.
+
 ## Sécurité des dépendances
 
 PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml) :
