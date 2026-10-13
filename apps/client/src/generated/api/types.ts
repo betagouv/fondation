@@ -424,7 +424,12 @@ export type PaginatedNominationFiles = {
                 name: string;
             };
         }>;
-        memo: string | null;
+        /**
+         * null when the user keeps no personal notes on this file
+         */
+        memo: {
+            value: string | null;
+        } | null;
         summary: {
             id: string;
             canRead: boolean;
@@ -723,7 +728,12 @@ export type DetailedNominationFileDto = {
             name: string;
         };
     }>;
-    memo: string | null;
+    /**
+     * null when the user keeps no personal notes on this file
+     */
+    memo: {
+        value: string | null;
+    } | null;
     summary: {
         id: string;
         canRead: boolean;

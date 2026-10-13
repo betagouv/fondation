@@ -2,23 +2,25 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { CommentEditor } from '@/shared/ui/comment-editor';
 import { useUser } from '@queries/auth.queries';
 import { useWriteNominationFileMemberMemoMutation } from '@queries/members.queries';
 
-export function MemberMemo(props: { sessionId: string; nominationFileId: string; memo: string | null }) {
+export function MemberMemo(props: {
+  memo: { value: string | null } | null;
+  nominationFileId: string;
+  sessionId: string;
+}) {
   const { formatMessage } = useIntl();
   const { isArchived } = useArchivedSession();
-  const isSg = useIsSg();
   const { user } = useUser();
   const { mutateAsync } = useWriteNominationFileMemberMemoMutation();
 
   const [isDirty, setIsDirty] = useState(false);
   const showWarning = useUnsavedGuard('member-memo', isDirty);
 
-  if (!user || isSg) return null;
+  if (!user || !props.memo) return null;
 
   return (
     <div>
@@ -32,7 +34,7 @@ export function MemberMemo(props: { sessionId: string; nominationFileId: string;
       <CommentEditor
         ariaLabel={formatMessage({ defaultMessage: 'Mes notes' })}
         emptyLabel={<FormattedMessage defaultMessage="Aucune note" />}
-        initialValue={props.memo}
+        initialValue={props.memo.value}
         onDirtyChange={setIsDirty}
         onSave={async (value) => {
           await mutateAsync({

@@ -1,4 +1,5 @@
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
+import { isSecretariat, type RoleEnum } from '../role.enum';
 import { NominationFileLockEnum } from 'src/modules/shared/nomination-file-lock.enum';
 
 export function nominationFileLock(
@@ -16,4 +17,11 @@ export function canScheduleAudition(
   session: { archivedAt: Date | null | undefined },
 ): boolean {
   return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
+}
+
+export function canKeepMemberMemo(
+  file: { reporterIds: readonly string[] },
+  user: { id: string; role: RoleEnum },
+): boolean {
+  return !isSecretariat(user.role) && !file.reporterIds.includes(user.id);
 }

@@ -22,7 +22,7 @@ function MemberMemoStory(props: { isArchived: boolean; memo: string | null }) {
   return (
     <StoryQueryClient key={String(props.memo)} seed={seedMember}>
       <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
-        <MemberMemo memo={props.memo} nominationFileId="file-1" sessionId="session-1" />
+        <MemberMemo memo={{ value: props.memo }} nominationFileId="file-1" sessionId="session-1" />
       </ArchivedSessionContext>
     </StoryQueryClient>
   );

@@ -6,6 +6,7 @@ import {
 } from 'src/modules/shared/nomination-file-outcome.enum';
 import * as policies from 'src/modules/shared/policies/nomination-file.policies';
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
@@ -198,7 +199,7 @@ export class SessionTransparenceFileMemberMemoWritten {
     readonly userId: string,
     readonly sessionId: string,
     readonly nominationFileId: string,
-    readonly memo: string,
+    readonly memo: string | null,
   ) {}
 }
 
@@ -340,6 +341,12 @@ export class UnrequestedAuditionCannotBeScheduled extends Error {
 }
 
 export class PositionAuditionCannotBeDismissed extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
+export class MemberMemoNotAllowed extends Error {
   constructor(readonly nominationFileId: string) {
     super();
   }
@@ -714,16 +721,22 @@ export class SessionTransparence {
     );
   }
 
-  writeNominationFileMemberMemo(command: { userId: string; nominationFileId: string; memo: string }) {
-    const trimmed = command.memo.trim();
-    if (trimmed.length === 0) return;
+  writeNominationFileMemberMemo(command: {
+    memo: string;
+    nominationFileId: string;
+    reporterIds: readonly string[];
+    user: { id: string; role: RoleEnum };
+  }) {
+    if (!this.files.has(command.nominationFileId) || !policies.canKeepMemberMemo(command, command.user)) {
+      throw new MemberMemoNotAllowed(command.nominationFileId);
+    }
 
     this.#messages.push(
       new SessionTransparenceFileMemberMemoWritten(
-        command.userId,
+        command.user.id,
         this.id,
         command.nominationFileId,
-        trimmed,
+        command.memo.trim() || null,
       ),
     );
   }
