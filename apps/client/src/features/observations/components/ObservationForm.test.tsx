@@ -37,6 +37,7 @@ const MARTIN: MagistratSearchResult = {
   id: 'magistrat-1',
   lastName: 'Martin',
   name: 'MARTIN Léa',
+  status: 'ACTIVE',
   usedName: null,
 };
 
@@ -50,6 +51,7 @@ const DUPONT: MagistratSearchResult = {
   id: 'magistrat-2',
   lastName: 'Dupont',
   name: 'DUPONT Marc',
+  status: 'INACTIVE',
   usedName: null,
 };
 

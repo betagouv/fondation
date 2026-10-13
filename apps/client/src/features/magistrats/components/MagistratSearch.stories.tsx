@@ -19,6 +19,7 @@ const MAGISTRATS: SearchMagistratsResponseDto['items'] = Array.from({ length: 45
   id: `magistrat-${index + 1}`,
   lastName: 'MARTIN',
   name: `MARTIN Claire ${index + 1}`,
+  status: index % 10 === 9 ? 'INACTIVE' : 'ACTIVE',
   usedName: null,
 }));
 

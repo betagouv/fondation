@@ -1,3 +1,4 @@
+import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useId } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -7,7 +8,7 @@ import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 import type { FoundMagistrat } from '@queries/magistrats.queries';
 
 export function MagistratSearchCard(props: { context: 'sg' | 'membre'; magistrat: FoundMagistrat }) {
-  const { currentPosition, grade, id, name, usedName } = props.magistrat;
+  const { currentPosition, grade, id, name, status, usedName } = props.magistrat;
   const positionLabel = currentPosition?.function?.label ?? currentPosition?.jurisdiction.label;
   const titleId = useId();
 
@@ -16,12 +17,23 @@ export function MagistratSearchCard(props: { context: 'sg' | 'membre'; magistrat
       aria-labelledby={titleId}
       className="flex flex-col gap-2 border border-(--border-default-grey) p-6"
     >
-      <h2
-        className="fr-text--lg fr-mb-0 fr-icon-account-circle-fill fr-icon--sm flex items-center gap-2"
-        id={titleId}
-      >
-        {name}
-      </h2>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2
+          className="fr-text--lg fr-mb-0 fr-icon-account-circle-fill fr-icon--sm flex items-center gap-2"
+          id={titleId}
+        >
+          {name}
+        </h2>
+        {status === 'ACTIVE' ? (
+          <Badge noIcon severity="success" small>
+            <FormattedMessage defaultMessage="Actif" />
+          </Badge>
+        ) : (
+          <Badge noIcon small>
+            <FormattedMessage defaultMessage="Inactif" />
+          </Badge>
+        )}
+      </div>
       {usedName && (
         <p className="fr-mb-0">
           <FormattedMessage defaultMessage="Nom d'usage : {usedName}" values={{ usedName }} />

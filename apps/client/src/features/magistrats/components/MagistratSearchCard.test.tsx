@@ -15,6 +15,7 @@ const magistrat: FoundMagistrat = {
   id: 'magistrat-1',
   lastName: 'GAUTHIER',
   name: 'GAUTHIER Isabelle (ép. ROBERT)',
+  status: 'ACTIVE',
   usedName: null,
 };
 
@@ -41,5 +42,13 @@ describe('MagistratSearchCard', () => {
     renderCard(magistrat);
 
     expect(screen.queryByText(/Nom d'usage/)).not.toBeInTheDocument();
+  });
+
+  it('marks an inactive magistrat', () => {
+    renderCard({ ...magistrat, status: 'INACTIVE' });
+
+    expect(screen.getByRole('article', { name: 'GAUTHIER Isabelle (ép. ROBERT)' })).toHaveTextContent(
+      'Inactif',
+    );
   });
 });
