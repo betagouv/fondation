@@ -165,7 +165,7 @@ const observationHandlers = [
     const search = new URL(request.url).searchParams.get('search')?.toLowerCase() ?? '';
     const items = MAGISTRATS.filter(({ firstName, lastName }) =>
       `${firstName} ${lastName}`.toLowerCase().includes(search),
-    ).map((magistrat) => ({ ...magistrat, grade: null, usedName: null }));
+    ).map((magistrat) => ({ ...magistrat, currentPosition: null, grade: null, usedName: null }));
 
     return HttpResponse.json<SearchMagistratsResponseDto>({
       currentPageIndex: 0,
