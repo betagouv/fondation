@@ -43,7 +43,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
     hasJurisdictionSheet: false,
     id: 'nomination-file',
     isArchived: false,
-    memo: null,
+    memo: { value: null },
     missingEvaluation: false,
     missingEvaluationComment: null,
     observations: [],
