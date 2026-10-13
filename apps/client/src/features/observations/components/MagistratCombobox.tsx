@@ -6,22 +6,18 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { MAGISTRAT_SEARCH_MIN_LENGTH } from '@queries/magistrats.queries';
-import {
-  useSearchMagistratsQuery,
-  type MagistratSearchResult,
-  type Observant,
-} from '@queries/observations.queries';
+import { MAGISTRAT_SEARCH_MIN_LENGTH, type FoundMagistrat } from '@queries/magistrats.queries';
+import { useSearchMagistratsQuery, type Observant } from '@queries/observations.queries';
 
 const searchTermFor = (magistrat: Observant) => `${magistrat.lastName} ${magistrat.firstName}`;
 
-const currentPositionLabel = ({ currentPosition }: MagistratSearchResult) =>
+const currentPositionLabel = ({ currentPosition }: FoundMagistrat) =>
   [currentPosition?.function?.label, currentPosition?.jurisdiction.label].filter(Boolean).join(' ') || null;
 
-const magistratDetails = (magistrat: MagistratSearchResult) =>
+const magistratDetails = (magistrat: FoundMagistrat) =>
   [magistrat.grade, currentPositionLabel(magistrat)].filter(Boolean).join(' - ');
 
-const toObservant = (magistrat: MagistratSearchResult): Observant => ({
+const toObservant = (magistrat: FoundMagistrat): Observant => ({
   currentPosition: currentPositionLabel(magistrat),
   firstName: magistrat.firstName,
   id: magistrat.id,
@@ -55,7 +51,7 @@ export function MagistratCombobox(props: {
   const isOpen = showResults && debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const activeMagistrat = isOpen ? results[activeIndex] : undefined;
 
-  const select = (selected: MagistratSearchResult) => {
+  const select = (selected: FoundMagistrat) => {
     const observant = toObservant(selected);
     onChange(observant);
     setSearchTerm(searchTermFor(observant));

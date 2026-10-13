@@ -4,7 +4,8 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
-import type { MagistratSearchResult, Observation } from '@queries/observations.queries';
+import type { FoundMagistrat } from '@queries/magistrats.queries';
+import type { Observation } from '@queries/observations.queries';
 
 import { ObservationForm } from './ObservationForm';
 
@@ -13,7 +14,7 @@ type FormState = { isDirty: boolean; isValid: boolean };
 const createObservation = vi.fn();
 const updateObservation = vi.fn();
 
-let searchResults: MagistratSearchResult[] = [];
+let searchResults: FoundMagistrat[] = [];
 
 let linkableAttachments: { observationId: string; fileId: string; name: string }[] = [];
 
@@ -27,7 +28,7 @@ vi.mock('@queries/observations.queries', () => ({
 const PV = { observationId: 'other-observation', fileId: 'file-a', name: 'pv.pdf' };
 const NOTE = { observationId: 'other-observation', fileId: 'file-b', name: 'note.pdf' };
 
-const MARTIN: MagistratSearchResult = {
+const MARTIN: FoundMagistrat = {
   currentPosition: {
     function: { id: 'J', label: 'Juge' },
     jurisdiction: { id: 'TJ  NANTES', label: 'Tribunal judiciaire de Nantes' },
@@ -42,7 +43,7 @@ const MARTIN: MagistratSearchResult = {
   usedName: null,
 };
 
-const DUPONT: MagistratSearchResult = {
+const DUPONT: FoundMagistrat = {
   currentPosition: {
     function: null,
     jurisdiction: { id: 'TJ  RENNES', label: 'Tribunal judiciaire de Rennes' },

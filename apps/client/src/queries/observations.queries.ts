@@ -9,7 +9,6 @@ import type {
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   ScheduleObservantAuditionDto,
-  SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
 
@@ -19,7 +18,6 @@ import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.que
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type Observant = NonNullable<Observation['magistrat']>;
-export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
 
 export const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
