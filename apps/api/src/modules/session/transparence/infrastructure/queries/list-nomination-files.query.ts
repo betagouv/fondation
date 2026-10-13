@@ -265,7 +265,10 @@ export class ListNominationFilesQuery {
           observants: x.observers,
           outcome: x.outcome
             ? {
-                comment: x.outcomeComment,
+                comment: NominationFileOutcome.commentSeenBy({
+                  comment: x.outcomeComment,
+                  role: query.user.role,
+                }),
                 value: x.outcome as NominationFileOutcomeEnum,
               }
             : null,
