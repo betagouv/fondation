@@ -6,22 +6,32 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { useSearchMagistratsQuery, type MagistratSearchResult } from '@queries/observations.queries';
+import {
+  useSearchMagistratsQuery,
+  type MagistratSearchResult,
+  type Observant,
+} from '@queries/observations.queries';
 
-const searchTermFor = (magistrat: MagistratSearchResult) => `${magistrat.lastName} ${magistrat.firstName}`;
+const searchTermFor = (magistrat: Observant) => `${magistrat.lastName} ${magistrat.firstName}`;
+
+const currentPositionLabel = ({ currentPosition }: MagistratSearchResult) =>
+  [currentPosition?.function?.label, currentPosition?.jurisdiction.label].filter(Boolean).join(' ') || null;
 
 const magistratDetails = (magistrat: MagistratSearchResult) =>
-  [magistrat.grade, magistrat.currentPosition]
-    .flatMap((detail) => {
-      const trimmed = detail?.trim();
-      return trimmed ? [trimmed] : [];
-    })
-    .join(' - ');
+  [magistrat.grade, currentPositionLabel(magistrat)].filter(Boolean).join(' - ');
+
+const toObservant = (magistrat: MagistratSearchResult): Observant => ({
+  currentPosition: currentPositionLabel(magistrat),
+  firstName: magistrat.firstName,
+  id: magistrat.id,
+  lastName: magistrat.lastName,
+  name: magistrat.name,
+});
 
 export function MagistratCombobox(props: {
   errorMessage?: string;
-  magistrat: MagistratSearchResult | null;
-  onChange: (magistrat: MagistratSearchResult | null) => void;
+  magistrat: Observant | null;
+  onChange: (magistrat: Observant | null) => void;
 }) {
   const intl = useIntl();
   const { magistrat, onChange } = props;
@@ -45,8 +55,9 @@ export function MagistratCombobox(props: {
   const activeMagistrat = isOpen ? results[activeIndex] : undefined;
 
   const select = (selected: MagistratSearchResult) => {
-    onChange(selected);
-    setSearchTerm(searchTermFor(selected));
+    const observant = toObservant(selected);
+    onChange(observant);
+    setSearchTerm(searchTermFor(observant));
     setShowResults(false);
   };
 

@@ -10,14 +10,17 @@ SELECT
   m.married_name AS "marriedName",
   m.grade,
 
-  p.function_id AS "functionId",
-  p.jurisdiction_id AS "jurisdictionId",
-  m.admin_position AS "currentPosition",
+  f.id AS "functionId",
+  f.label AS "functionLabel",
+  j.codejur AS "jurisdictionId",
+  j.libelle AS "jurisdictionLabel",
 
   TS_RANK("search", query) AS "rank"
 
 FROM nominations_context."magistrat" m
-  LEFT JOIN data_administration_context."position" p ON p.id = m.current_position_id::INT,
+  LEFT JOIN data_administration_context."position" p ON p.id = NULLIF(m.current_position_id, '')::INT
+  LEFT JOIN data_administration_context."function" f ON f.id = p.function_id
+  LEFT JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id,
   TO_TSQUERY('unaccent_fr'::regconfig, $1::TEXT) AS "query"
 
 WHERE (

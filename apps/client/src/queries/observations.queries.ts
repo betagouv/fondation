@@ -17,6 +17,7 @@ import { auditionKeys } from './auditions.queries';
 import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
+export type Observant = NonNullable<Observation['magistrat']>;
 export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
 
 export const observationKeys = {

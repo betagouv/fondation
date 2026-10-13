@@ -91,6 +91,18 @@ test.describe('Magistrat E2E', () => {
     });
   });
 
+  test('should search a magistrat with the labels of their current position', async ({ agent, expect, valrose }) => {
+    const { data } = await agent.magistrats.searchMagistrats({ query: { search: 'valrose' }, throwOnError: true });
+
+    expect(data.items.find((magistrat) => magistrat.id === valrose.magistratId)).toMatchObject({
+      currentPosition: {
+        function: { id: 'PR', label: 'Procureur de la République' },
+        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+      },
+      grade: 'G3',
+    });
+  });
+
   test('should list the LOLFI phone numbers of a magistrat', async ({ agent, expect, valrose }) => {
     const phoneNumbers = await agent.magistrats.listMagistratPhoneNumbers({
       path: { magistratId: valrose.magistratId },

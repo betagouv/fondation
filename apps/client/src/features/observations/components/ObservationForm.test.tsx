@@ -28,16 +28,22 @@ const PV = { observationId: 'other-observation', fileId: 'file-a', name: 'pv.pdf
 const NOTE = { observationId: 'other-observation', fileId: 'file-b', name: 'note.pdf' };
 
 const MARTIN: MagistratSearchResult = {
-  currentPosition: 'Juge à Nantes',
+  currentPosition: {
+    function: { id: 'J', label: 'Juge' },
+    jurisdiction: { id: 'TJ  NANTES', label: 'Tribunal judiciaire de Nantes' },
+  },
   firstName: 'Léa',
-  grade: null,
+  grade: 'G1',
   id: 'magistrat-1',
   lastName: 'Martin',
   name: 'MARTIN Léa',
 };
 
 const DUPONT: MagistratSearchResult = {
-  currentPosition: 'Procureur à Rennes',
+  currentPosition: {
+    function: null,
+    jurisdiction: { id: 'TJ  RENNES', label: 'Tribunal judiciaire de Rennes' },
+  },
   firstName: 'Marc',
   grade: null,
   id: 'magistrat-2',
@@ -144,6 +150,31 @@ describe('ObservationForm linkable attachments', () => {
 });
 
 describe('ObservationForm magistrat combobox', () => {
+  it('describes each option by the grade and the labels of the current position', async () => {
+    const user = userEvent.setup();
+    searchResults = [MARTIN, DUPONT];
+    renderForm();
+
+    const [martin, dupont] = await search(user);
+
+    expect(martin).toHaveTextContent('G1 - Juge Tribunal judiciaire de Nantes');
+    expect(dupont).toHaveTextContent('Tribunal judiciaire de Rennes');
+    expect(dupont).not.toHaveTextContent('TJ');
+  });
+
+  it('labels the selected magistrat with their current position', async () => {
+    const user = userEvent.setup();
+    searchResults = [MARTIN];
+    renderForm();
+
+    const [martin] = await search(user);
+    await user.click(martin!);
+
+    expect(
+      screen.getByRole('button', { name: /MARTIN Léa - Juge Tribunal judiciaire de Nantes/ }),
+    ).toBeInTheDocument();
+  });
+
   it('exposes the results as options of a listbox', async () => {
     const user = userEvent.setup();
     searchResults = [MARTIN, DUPONT];

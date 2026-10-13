@@ -8,6 +8,8 @@ import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { toMagistratFullTextQuery } from 'src/utils/fulltext-search';
 
+import { PositionSchema } from './detail-magistrat.query';
+
 @Injectable()
 export class SearchMagistratsQuery {
   constructor(private readonly db: Db) {}
@@ -41,10 +43,12 @@ export class SearchMagistratsQuery {
       firstName,
       lastName,
       name: magistratFullName({ firstName, lastName, marriedName }),
-      currentPosition:
-        item.functionId && item.jurisdictionId
-          ? `${item.functionId} ${item.jurisdictionId}`
-          : item.currentPosition,
+      currentPosition: item.jurisdictionId
+        ? {
+            function: item.functionId ? { id: item.functionId, label: item.functionLabel } : null,
+            jurisdiction: { id: item.jurisdictionId, label: item.jurisdictionLabel },
+          }
+        : null,
     }));
 
     return paginate({
@@ -62,6 +66,6 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     lastName: z.string(),
     name: z.string(),
     grade: z.string().nullable(),
-    currentPosition: z.string().nullable(),
+    currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
   }),
 ) {}
