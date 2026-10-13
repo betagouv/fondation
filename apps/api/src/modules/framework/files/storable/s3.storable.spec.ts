@@ -1,6 +1,7 @@
 // oxlint-disable typescript/unbound-method
 import { Readable } from 'node:stream';
 
+import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { HttpService } from '@nestjs/axios';
 import {
@@ -22,6 +23,7 @@ import { S3Storage } from './s3.storable';
 import { makeStorablePath, Storable } from './storable.types';
 
 vi.mock('@aws-sdk/s3-request-presigner', () => ({ getSignedUrl: vi.fn() }));
+vi.mock('@aws-sdk/lib-storage', () => ({ Upload: vi.fn() }));
 
 describe('S3Storage', () => {
   let http: MockProxy<HttpService>;
@@ -81,9 +83,26 @@ describe('S3Storage', () => {
       });
     });
 
-    it('reports a failure when the upload throws', async () => {
+    it('percent-encodes the file name sent as object metadata', async () => {
+      vi.mocked(Upload).mockReturnValue({ done: () => Promise.resolve({ Bucket: 'reports' }) } as never);
+
+      await storage.put([{ ...object, name: 'Décision cœur.pdf' }]);
+
+      expect(Upload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({
+            Metadata: { id: object.id, name: 'D%C3%A9cision%20c%C5%93ur.pdf' },
+          }),
+        }),
+      );
+    });
+
+    it('reports and logs a failure when the upload throws', async () => {
+      const error = new Error('s3 down');
+      const logger = { error: vi.fn(), warn: noop } as unknown as Logger;
+      (storage as any).logger = logger;
       vi.spyOn(s3, 'buildCommand').mockReturnValue({
-        done: () => Promise.reject(new Error('s3 down')),
+        done: () => Promise.reject(error),
       } as never);
 
       const result = await storage.put([object]);
@@ -94,6 +113,18 @@ describe('S3Storage', () => {
         bucket: '',
         byteSize: 0,
       });
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining(object.id), error);
+    });
+
+    it('does not call s3 when rolling back without any uploaded object', async () => {
+      vi.spyOn(s3, 'buildCommand').mockReturnValue({
+        done: () => Promise.reject(new Error('s3 down')),
+      } as never);
+
+      const result = await storage.put([object]);
+      await result.rollback();
+
+      expect(s3.send).not.toHaveBeenCalled();
     });
   });
 

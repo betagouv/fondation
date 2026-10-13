@@ -379,7 +379,9 @@ export function useWriteNominationFileMemberMemoMutation() {
     onSuccess: (_, { nominationFileId, sessionId, memo }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-        mapCachedNominationFiles((item) => (item.id === nominationFileId ? { ...item, memo } : item)),
+        mapCachedNominationFiles((item) =>
+          item.id === nominationFileId ? { ...item, memo: { value: memo.trim() || null } } : item,
+        ),
       ),
   });
 }

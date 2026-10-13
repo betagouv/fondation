@@ -265,7 +265,10 @@ export class ListNominationFilesQuery {
           observants: x.observers,
           outcome: x.outcome
             ? {
-                comment: x.outcomeComment,
+                comment: NominationFileOutcome.commentSeenBy({
+                  comment: x.outcomeComment,
+                  role: query.user.role,
+                }),
                 value: x.outcome as NominationFileOutcomeEnum,
               }
             : null,
@@ -283,7 +286,12 @@ export class ListNominationFilesQuery {
         hasJurisdictionSheet: x.hasJurisdictionSheet,
         id: x.id,
         isArchived,
-        memo: x.memberMemo || null,
+        memo: nominationFilesPolicies.canKeepMemberMemo(
+          { reporterIds: x.reporters.map(({ user }) => user.id) },
+          query.user,
+        )
+          ? { value: x.memberMemo || null }
+          : null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
         observations: (observations.get(x.id) ?? []).map((obs) => ({
@@ -491,7 +499,10 @@ const NominationFileAffectationItemSchema = z.object({
       }),
     }),
   ),
-  memo: z.string().nullable(),
+  memo: z
+    .object({ value: z.string().nullable() })
+    .nullable()
+    .meta({ description: 'null when the user keeps no personal notes on this file' }),
   summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
   hasAttachment: z.boolean(),
   hasJurisdictionSheet: z.boolean(),

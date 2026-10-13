@@ -424,7 +424,12 @@ export type PaginatedNominationFiles = {
                 name: string;
             };
         }>;
-        memo: string | null;
+        /**
+         * null when the user keeps no personal notes on this file
+         */
+        memo: {
+            value: string | null;
+        } | null;
         summary: {
             id: string;
             canRead: boolean;
@@ -723,7 +728,12 @@ export type DetailedNominationFileDto = {
             name: string;
         };
     }>;
-    memo: string | null;
+    /**
+     * null when the user keeps no personal notes on this file
+     */
+    memo: {
+        value: string | null;
+    } | null;
     summary: {
         id: string;
         canRead: boolean;
@@ -910,11 +920,6 @@ export type PaginatedMemberListItemDto = {
         excludedJurisdictions: Array<{
             id: string;
             label: string | null;
-        }>;
-        stats: Array<{
-            year: number;
-            count: number;
-            targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
         }>;
     }>;
     totalCount: number;

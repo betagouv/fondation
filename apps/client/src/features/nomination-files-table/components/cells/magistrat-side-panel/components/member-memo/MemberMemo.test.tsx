@@ -12,15 +12,12 @@ import { authKeys } from '@queries/auth.queries';
 import { MemberMemo } from './MemberMemo';
 
 const MEMBER = { id: 'member-1', firstName: 'Jean', lastName: 'Petit', role: 'MEMBRE_DU_SIEGE' };
-const SG = { id: 'sg-1', firstName: 'Anne', lastName: 'Roy', role: 'ADJOINT_SECRETAIRE_GENERAL' };
 
-function renderMemo(
-  options: { user: typeof MEMBER; isArchived?: boolean; memo?: string | null } = { user: MEMBER },
-) {
+function renderMemo(options: { isArchived?: boolean; memo?: { value: string | null } | null } = {}) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
-  client.setQueryData(authKeys.introspectSession(), options.user);
+  client.setQueryData(authKeys.introspectSession(), MEMBER);
 
   function Wrapper(props: { children: ReactNode }) {
     return (
@@ -36,7 +33,11 @@ function renderMemo(
 
   return render(
     <Wrapper>
-      <MemberMemo memo={options.memo ?? null} nominationFileId="file-1" sessionId="session-1" />
+      <MemberMemo
+        memo={options.memo === undefined ? { value: null } : options.memo}
+        nominationFileId="file-1"
+        sessionId="session-1"
+      />
     </Wrapper>,
   );
 }
@@ -44,10 +45,10 @@ function renderMemo(
 describe('MemberMemo', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('renders nothing for the SG', () => {
-    renderMemo({ user: SG });
+  it('renders nothing on a file where the user keeps no notes', () => {
+    renderMemo({ memo: null });
 
-    expect(screen.queryByText('Commentaire')).not.toBeInTheDocument();
+    expect(screen.queryByText('Mes notes')).not.toBeInTheDocument();
   });
 
   it('saves the typed memo on Valider', async () => {
@@ -70,7 +71,7 @@ describe('MemberMemo', () => {
   });
 
   it('shows the memo read-only on an archived session', () => {
-    renderMemo({ user: MEMBER, isArchived: true, memo: 'Note figée' });
+    renderMemo({ isArchived: true, memo: { value: 'Note figée' } });
 
     expect(screen.getByText('Note figée')).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();

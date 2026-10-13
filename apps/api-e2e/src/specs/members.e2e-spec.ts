@@ -71,4 +71,41 @@ test.describe('Members E2E', () => {
       expect(member?.excludedJurisdictions).toEqual([expect.objectContaining({ id: expect.stringMatching(/LYON/i) })]);
     });
   });
+
+  test.describe('Given a user with role MEMBRE_COMMUN', () => {
+    test('writes, reads back then erases their notes on a file', async ({ logIn, sessions, expect }) => {
+      const session = await sessions.createOne({
+        name: `Notes (${randomUUID()})`,
+        createdAt: '22/04/2026',
+        candidates: [
+          {
+            firstName: 'ETIENNE',
+            lastName: 'TREVOUX',
+            position: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  LYON'],
+              function: seed.functions.PR,
+            },
+            targetPosition: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+              function: seed.functions.PR,
+            },
+          },
+        ],
+      });
+      const member = await logIn('MEMBRE_COMMUN');
+      const { data: files } = await member.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const file = { nominationFileId: files!.items[0]!.id, sessionId: session.id };
+      const path = { ...file, userId: member['@user']!.id };
+
+      await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path, throwOnError: true });
+      const written = await member.sessions.detailNominationFile({ path: file });
+      expect(written.data!.memo).toEqual({ value: 'À relire' });
+
+      await member.members.writeNominationFileMemberMemo({ body: { memo: '' }, path, throwOnError: true });
+      const erased = await member.sessions.detailNominationFile({ path: file });
+      expect(erased.data!.memo).toEqual({ value: null });
+    });
+  });
 });

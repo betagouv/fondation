@@ -8,7 +8,10 @@ import { Db } from 'src/modules/framework/database';
 import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { type NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
+import {
+  NominationFileOutcome,
+  type NominationFileOutcomeEnum,
+} from 'src/modules/shared/nomination-file-outcome.enum';
 import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { assertPgParams } from 'src/utils/assert-pg-params';
@@ -151,7 +154,15 @@ export class HydratedNominationFilesFinder {
         id: file.id,
         name: file.name,
         number: file.number,
-        outcome: file.outcome ? { comment: file.outcomeComment, value: file.outcome } : null,
+        outcome: file.outcome
+          ? {
+              comment: NominationFileOutcome.commentSeenBy({
+                comment: file.outcomeComment,
+                role: query.role,
+              }),
+              value: file.outcome,
+            }
+          : null,
         reporters: file.reporters,
         session: {
           date: DateOnly.fromUtcDate(file.session.date).toJson(),

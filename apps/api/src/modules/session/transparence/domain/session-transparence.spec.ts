@@ -11,6 +11,7 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
+  MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparence,
@@ -24,6 +25,7 @@ import {
   SessionTransparenceCreated,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileMemberMemoWritten,
   SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
@@ -1119,5 +1121,79 @@ describe('SessionTransparence', () => {
         type: 'AUTRE',
       }),
     ).toThrow(CantUpdateNominationFiles);
+  });
+
+  describe('writeNominationFileMemberMemo', () => {
+    const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
+    const session = () =>
+      SessionTransparence.from({
+        formation: 'SIEGE',
+        id: 'session-id',
+        nominationFiles: [
+          {
+            auditionRequired: false,
+            id: 'nomination-file-id-1',
+            isReported: false,
+            outcome: null,
+            positionRequiresAudition: false,
+          },
+        ],
+        version: null,
+      });
+
+    it('refuses notes on a file of another session', () => {
+      expect(() =>
+        session().writeNominationFileMemberMemo({
+          memo: 'À relire',
+          nominationFileId: 'unknown-nomination-file',
+          reporterIds: [],
+          user: member,
+        }),
+      ).toThrow(MemberMemoNotAllowed);
+    });
+
+    it('keeps the trimmed notes of a member', () => {
+      const transparence = session();
+      transparence.writeNominationFileMemberMemo({
+        memo: '  À relire  ',
+        nominationFileId: 'nomination-file-id-1',
+        reporterIds: ['member-2'],
+        user: member,
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMemberMemoWritten(
+          member.id,
+          'session-id',
+          'nomination-file-id-1',
+          'À relire',
+        ),
+      ]);
+    });
+
+    it('erases the notes once emptied', () => {
+      const transparence = session();
+      transparence.writeNominationFileMemberMemo({
+        memo: '   ',
+        nominationFileId: 'nomination-file-id-1',
+        reporterIds: [],
+        user: member,
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMemberMemoWritten(member.id, 'session-id', 'nomination-file-id-1', null),
+      ]);
+    });
+
+    it('refuses notes to a reporter of the file', () => {
+      expect(() =>
+        session().writeNominationFileMemberMemo({
+          memo: 'À relire',
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: [member.id],
+          user: member,
+        }),
+      ).toThrow(MemberMemoNotAllowed);
+    });
   });
 });
