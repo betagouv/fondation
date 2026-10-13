@@ -1,6 +1,6 @@
 import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
-import { canScheduleAudition, nominationFileLock } from './nomination-file.policies';
+import { canKeepMemberMemo, canScheduleAudition, nominationFileLock } from './nomination-file.policies';
 
 describe('nominationFileLock', () => {
   describe('given a non-archived session', () => {
@@ -57,4 +57,23 @@ describe('canScheduleAudition', () => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
   });
+});
+
+describe('canKeepMemberMemo', () => {
+  const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
+
+  it('lets a member keep notes on a file reported by others', () => {
+    expect(canKeepMemberMemo({ reporterIds: ['member-2'] }, member)).toBe(true);
+  });
+
+  it('keeps a reporter from taking notes on a file in their charge', () => {
+    expect(canKeepMemberMemo({ reporterIds: ['member-2', member.id] }, member)).toBe(false);
+  });
+
+  it.each(['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as const)(
+    'keeps the secretariat (%s) from taking notes',
+    (role) => {
+      expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
+    },
+  );
 });

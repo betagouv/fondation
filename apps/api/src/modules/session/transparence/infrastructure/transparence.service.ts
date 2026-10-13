@@ -724,12 +724,16 @@ export class TransparenceService {
     memo: string;
     nominationFileId: string;
     sessionId: string;
-    userId: string;
+    user: { id: string; role: RoleEnum };
   }) {
-    const session = await this.nominationSessionRepository.find(command.sessionId);
+    const { memo, nominationFileId, user } = command;
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([nominationFileId]),
+    });
+    const reporters = await this.versions.findPublishedReporters({ nominationFileIds: [nominationFileId] });
+    const reporterIds = (reporters.get(nominationFileId) ?? []).map(({ id }) => id);
 
-    const { userId, nominationFileId, memo } = command;
-    session.writeNominationFileMemberMemo({ memo, nominationFileId, userId });
+    session.writeNominationFileMemberMemo({ memo, nominationFileId, reporterIds, user });
 
     return this.nominationSessionRepository.persist(session);
   }
