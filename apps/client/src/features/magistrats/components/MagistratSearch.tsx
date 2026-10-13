@@ -47,25 +47,23 @@ export function MagistratSearch() {
         <h1 className="fr-mb-0">
           <FormattedMessage defaultMessage="Rechercher un magistrat" />
         </h1>
-        <div className="flex flex-wrap items-center gap-4">
-          <SearchBar
-            className="w-full md:w-96"
-            label={formatMessage({ defaultMessage: 'Rechercher par nom ou prénom' })}
-            onButtonClick={flush}
-            renderInput={(params) => (
-              <input {...params} onChange={(event) => setSearch(event.target.value)} value={search} />
-            )}
-          />
-          <p className="fr-mb-0" role="status">
-            {totalCount !== undefined && (
-              <FormattedMessage
-                defaultMessage="{totalCount, plural, one {# résultat} other {# résultats}}"
-                values={{ totalCount }}
-              />
-            )}
-          </p>
-        </div>
+        <SearchBar
+          className="w-full md:w-96"
+          label={formatMessage({ defaultMessage: 'Rechercher par nom ou prénom' })}
+          onButtonClick={flush}
+          renderInput={(params) => (
+            <input {...params} onChange={(event) => setSearch(event.target.value)} value={search} />
+          )}
+        />
       </div>
+      <p className="fr-sr-only" role="status">
+        {totalCount !== undefined && (
+          <FormattedMessage
+            defaultMessage="{totalCount, plural, one {# résultat} other {# résultats}}"
+            values={{ totalCount }}
+          />
+        )}
+      </p>
       {!isSearchable ? (
         <p className="fr-mt-6v">
           <FormattedMessage defaultMessage="Recherchez un magistrat par son prénom ou son nom." />
