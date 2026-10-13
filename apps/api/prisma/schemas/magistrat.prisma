@@ -35,6 +35,8 @@ model Magistrat {
 
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
 
+  status PrismaMagistratStatusEnum @default(ACTIVE)
+
   observations              Observation[]
   observantAuditions        ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
@@ -51,6 +53,14 @@ model Magistrat {
   @@index([usedName])
   @@index([professionalEmail])
   @@map("magistrat")
+  @@schema("nominations_context")
+}
+
+enum PrismaMagistratStatusEnum {
+  ACTIVE
+  INACTIVE
+
+  @@map("magistrat_status_enum")
   @@schema("nominations_context")
 }
 

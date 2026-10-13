@@ -1897,6 +1897,7 @@ export type SearchMagistratsResponseDto = {
         lastName: string;
         name: string;
         usedName: string | null;
+        status: 'ACTIVE' | 'INACTIVE';
         grade: string | null;
         currentPosition: {
             function: {

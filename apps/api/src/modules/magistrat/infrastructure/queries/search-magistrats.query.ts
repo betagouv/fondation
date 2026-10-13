@@ -37,20 +37,23 @@ export class SearchMagistratsQuery {
       ),
     );
 
-    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, usedName, ...item }) => ({
-      id,
-      grade,
-      firstName,
-      lastName,
-      name: magistratFullName({ firstName, lastName, marriedName }),
-      usedName: magistratUsedName({ lastName, marriedName, usedName }),
-      currentPosition: item.jurisdictionId
-        ? {
-            function: item.functionId ? { id: item.functionId, label: item.functionLabel } : null,
-            jurisdiction: { id: item.jurisdictionId, label: item.jurisdictionLabel },
-          }
-        : null,
-    }));
+    const items = resultItems.map(
+      ({ id, grade, firstName, lastName, marriedName, status, usedName, ...item }) => ({
+        id,
+        grade,
+        firstName,
+        lastName,
+        name: magistratFullName({ firstName, lastName, marriedName }),
+        usedName: magistratUsedName({ lastName, marriedName, usedName }),
+        status,
+        currentPosition: item.jurisdictionId
+          ? {
+              function: item.functionId ? { id: item.functionId, label: item.functionLabel } : null,
+              jurisdiction: { id: item.jurisdictionId, label: item.jurisdictionLabel },
+            }
+          : null,
+      }),
+    );
 
     return paginate({
       items,
@@ -67,6 +70,7 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     lastName: z.string(),
     name: z.string(),
     usedName: z.string().nullable(),
+    status: z.enum(['ACTIVE', 'INACTIVE']),
     grade: z.string().nullable(),
     currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
   }),

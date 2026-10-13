@@ -10,6 +10,7 @@ SELECT
   m.married_name AS "marriedName",
   m.used_name AS "usedName",
   m.grade,
+  m.status,
 
   f.id AS "functionId",
   f.label AS "functionLabel",
