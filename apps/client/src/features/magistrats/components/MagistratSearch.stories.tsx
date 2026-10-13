@@ -80,3 +80,7 @@ export const WithMoreResults: Story = {
 export const WithoutResult: Story = {
   parameters: { searchParams: '?recherche=durand' },
 };
+
+export const InMemberSpace: Story = {
+  parameters: { router: { initialEntries: ['/magistrats'] } },
+};

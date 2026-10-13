@@ -4,12 +4,16 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
 
 import { MagistratSearchCard } from './MagistratSearchCard';
 
 export function MagistratSearch() {
   const { formatMessage } = useIntl();
+  const isSgNavigation = useIsSgNavigation();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
   const [debouncedSearch, { flush }] = useDebounce(search.trim(), 400);
   const isSearchable = debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
@@ -20,6 +24,25 @@ export function MagistratSearch() {
 
   return (
     <>
+      <Breadcrumb
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de la recherche d'un magistrat" })}
+        breadcrumb={{
+          currentPageLabel: formatMessage({ defaultMessage: 'Rechercher un magistrat' }),
+          segments: [
+            isSgNavigation
+              ? {
+                  label: formatMessage({ defaultMessage: 'Secrétariat général' }),
+                  to: ROUTE_PATHS.SG.DASHBOARD,
+                }
+              : {
+                  label: formatMessage({ defaultMessage: 'Transparences' }),
+                  to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+                },
+          ],
+        }}
+        className="fr-mt-0"
+        id="magistrat-search-breadcrumb"
+      />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="fr-mb-0">
           <FormattedMessage defaultMessage="Rechercher un magistrat" />

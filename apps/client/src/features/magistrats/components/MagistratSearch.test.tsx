@@ -14,12 +14,12 @@ import { MagistratSearch } from './MagistratSearch';
 
 const searchMagistrats = vi.spyOn($api.magistrats, 'searchMagistrats');
 
-function renderSearch(props?: { searchParams: string }) {
+function renderSearch(props?: { path?: string; searchParams?: string }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const searchAt = (searchParams = '') => (
     <QueryClientProvider client={client}>
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-        <MemoryRouter initialEntries={['/secretariat-general/magistrats']}>
+        <MemoryRouter initialEntries={[props?.path ?? '/secretariat-general/magistrats']}>
           <NuqsTestingAdapter hasMemory searchParams={searchParams}>
             <MagistratSearch />
           </NuqsTestingAdapter>
@@ -34,6 +34,31 @@ function renderSearch(props?: { searchParams: string }) {
 describe('MagistratSearch', () => {
   beforeEach(() => {
     searchMagistrats.mockReset();
+  });
+
+  it('leads back to the secretariat general from its breadcrumb', () => {
+    renderSearch();
+
+    const breadcrumb = screen.getByRole('navigation', {
+      name: "Fil d'Ariane de la recherche d'un magistrat",
+    });
+    expect(within(breadcrumb).getByRole('link', { name: 'Secrétariat général' })).toHaveAttribute(
+      'href',
+      '/secretariat-general',
+    );
+    expect(within(breadcrumb).getByText('Rechercher un magistrat')).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('leads a member back to the transparences from the breadcrumb', () => {
+    renderSearch({ path: '/magistrats' });
+
+    const breadcrumb = screen.getByRole('navigation', {
+      name: "Fil d'Ariane de la recherche d'un magistrat",
+    });
+    expect(within(breadcrumb).getByRole('link', { name: 'Transparences' })).toHaveAttribute(
+      'href',
+      '/transparences',
+    );
   });
 
   it('invites to search by first or last name under 2 characters', async () => {
