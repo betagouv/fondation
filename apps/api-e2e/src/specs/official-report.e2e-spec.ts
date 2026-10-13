@@ -245,6 +245,52 @@ test.describe('Official report', () => {
     expect(afterDiscard.data).toMatchObject({ hasValidatedVersion: true, status: 'VALIDATED' });
   });
 
+  test('should give back the generated text of each part reset after a validation, and the written text when the draft is discarded', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const path = { officialReportId };
+    const sectionPath = { officialReportId, outcome: 'VALIDATED' } as const;
+
+    const partsOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path });
+      return document.data!.blocks.filter(({ kind }) => kind !== 'file');
+    };
+    const generated = await partsOf();
+
+    await agent.docs.editOfficialReportIntro({ body: { html: '<p>Introduction écrite</p>', outdated: false }, path });
+    await agent.docs.editOfficialReportConclusion({
+      body: { html: '<p>Conclusion écrite</p>', outdated: false },
+      path,
+    });
+    await agent.docs.editOfficialReportSectionTitle({ body: { text: 'Titre écrit' }, path: sectionPath });
+    await agent.docs.editOfficialReportSectionIntro({ body: { html: '<p>Section écrite</p>' }, path: sectionPath });
+    await agent.docs.validateOfficialReport({ path });
+
+    // the first reset forks a draft whose rows are brand new, and the others have to land there all the same
+    await agent.docs.resetOfficialReportIntro({ path });
+    await agent.docs.resetOfficialReportConclusion({ path });
+    await agent.docs.resetOfficialReportSectionTitle({ path: sectionPath });
+    await agent.docs.resetOfficialReportSectionIntro({ path: sectionPath });
+
+    expect(await partsOf()).toEqual(generated);
+    const reset = await agent.docs.detailsOfficialReport({ path });
+    expect(reset.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+
+    await agent.docs.discardOfficialReportDraft({ path });
+
+    expect(await partsOf()).toMatchObject([
+      { edited: true, html: '<p>Introduction écrite</p>', kind: 'intro' },
+      { edited: true, kind: 'section-title', text: 'Titre écrit' },
+      { edited: true, html: '<p>Section écrite</p>', kind: 'section-intro' },
+      { edited: true, html: '<p>Conclusion écrite</p>', kind: 'conclusion' },
+    ]);
+  });
+
   test('should take a block written by hand in the agenda, and say the agenda wrote it', async ({
     agent,
     docs,
@@ -334,6 +380,42 @@ test.describe('Official report', () => {
     expect(await filesOfValidatedVersionsReading(later)).toBe(0);
   });
 
+  test('should give a file of a validated report the sentence its agenda rewrote, once reset', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const agenda = await docs.agenda(session, { status: 'VALIDATED' });
+    const agendaId = agenda.id;
+    const { id: officialReportId } = await docs.officialReport(agenda, { status: 'VALIDATED' });
+
+    const agendaBlocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [firstBlock] = agendaBlocks.data!.blocks;
+
+    const later = `<strong>MME HANNAH ARENDT</strong>, réécrite après la validation du procès-verbal.`;
+    await agent.docs.editAgendaFileBlock({
+      body: { html: later, outdated: false },
+      path: { agendaId, fileId: firstBlock!.id },
+    });
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const reset = await agent.docs.resetOfficialReportFile({
+      path: { nominationFileId: firstBlock!.nominationFileId!, officialReportId },
+    });
+    expect(reset.response?.status).toBe(204);
+
+    const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(metadata.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const taken = document
+      .data!.blocks.filter((block) => block.kind === 'file')
+      .find((block) => block.nominationFileId === firstBlock!.nominationFileId);
+    expect(taken).toMatchObject({ fromAgenda: true, html: later, outdated: false });
+  });
+
   test('should refuse a second official report of an agenda', async ({ agent, docs, expect, member }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session);
@@ -354,6 +436,34 @@ test.describe('Official report', () => {
       path: { sessionId: session.id },
     });
     expect(second.response?.status).toBe(404);
+  });
+
+  test('should free the agenda of a deleted official report for a new one', async ({ agent, docs, expect, member }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const sessionId = session.id;
+    const [file] = session.files;
+    const agenda = await docs.agenda(session, { status: 'VALIDATED' });
+    const { id: officialReportId } = await docs.officialReport(agenda, { status: 'VALIDATED' });
+
+    const freeAgendaIds = async () => {
+      const found = await agent.docs.listAgendasForNewOfficialReport({ path: { sessionId } });
+      return found.data!.items.map(({ id }) => id);
+    };
+    const statusOfFile = async () => {
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      return files.data!.items.find(({ id }) => id === file!.id)?.content.status.value;
+    };
+
+    expect(await freeAgendaIds()).not.toContain(agenda.id);
+    expect(await statusOfFile()).toBe('DSJ_REPORTED');
+
+    const deleted = await agent.docs.deleteOfficialReport({ path: { officialReportId } });
+    expect(deleted.response?.status).toBe(204);
+
+    expect(await freeAgendaIds()).toContain(agenda.id);
+    expect(await statusOfFile()).toBe('DSJ_PLANNED');
+
+    await docs.officialReport(agenda);
   });
 
   test('should tell a person changing the metadata of a validated official report', async ({
