@@ -7,7 +7,7 @@ FROM nominations_context."magistrat" m
 WHERE (
   1=1
   AND ($1::TEXT IS NULL OR (
-    "search" @@ TO_TSQUERY('unaccent_fr'::regconfig, $1::TEXT)
+    "search" @@ TO_TSQUERY('unaccent_simple'::regconfig, $1::TEXT)
   ))
   AND ($2::UUID[] IS NULL OR (
     "id" != ALL($2::UUID[])
