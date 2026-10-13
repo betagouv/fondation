@@ -9,6 +9,7 @@ import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
 import { FeedbackHeaderButton } from '@/features/feedback/components/FeedbackHeaderButton';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
+import { useUser } from '@queries/auth.queries';
 
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
@@ -39,12 +40,32 @@ export const AppHeader = () => {
   const { formatMessage } = useIntl();
   const { pathname } = useLocation();
   const routeMatches = useRouteMatcher();
+  const { user } = useUser();
   const isUserSg = useIsSg();
   const isUserAdmin = useIsAdmin();
 
-  const shouldShowNavBar = (isUserAdmin || isUserSg) && pathname !== ROUTE_PATHS.LOGIN;
+  const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
-  const navigation: MainNavigationProps.Item[] = [
+  const magistratSearchText = (
+    <span className="fr-icon-search-line inline-flex flex-row-reverse items-center gap-2 before:size-4!">
+      {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+    </span>
+  );
+
+  const memberNavigation: MainNavigationProps.Item[] = [
+    {
+      isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]),
+      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
+      text: formatMessage({ defaultMessage: 'Accueil' }),
+    },
+    {
+      isActive: routeMatches([ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH], { end: true }),
+      linkProps: { to: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH },
+      text: magistratSearchText,
+    },
+  ];
+
+  const sgNavigation: MainNavigationProps.Item[] = [
     {
       isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true }),
       linkProps: { href: '/' },
@@ -79,10 +100,15 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.MAGISTRAT_SEARCH], { end: true }),
+      linkProps: { to: ROUTE_PATHS.SG.MAGISTRAT_SEARCH },
+      text: magistratSearchText,
+    },
   ];
 
   if (isUserAdmin) {
-    navigation.push({
+    sgNavigation.push({
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
@@ -141,7 +167,7 @@ export const AppHeader = () => {
     <Header
       brandTop="CSM"
       homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }}
-      navigation={shouldShowNavBar ? navigation : []}
+      navigation={shouldShowNavBar ? (isUserSg ? sgNavigation : memberNavigation) : []}
       operatorLogo={{
         alt: formatMessage({ defaultMessage: 'Conseil Supérieur de la Magistrature' }),
         imgUrl: '/logo.png',
