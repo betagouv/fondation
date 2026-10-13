@@ -216,6 +216,44 @@ test.describe('Notice', () => {
     });
   });
 
+  test('should free the files of an unpresented notice, and present it again with a single ending time', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const sessionId = session.id;
+    const agenda = await docs.agenda(session, { status: 'VALIDATED' });
+    await docs.officialReport(agenda, { status: 'VALIDATED' });
+    const { id: planId } = await docs.notice([agenda], { status: 'PRESENTED' });
+
+    const agendaBlocker = async () => {
+      const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
+      return readiness.data!.agendaBlocker;
+    };
+    expect(await agendaBlocker()).toBe('ALL_FILES_REPORTED');
+
+    const unpresented = await agent.docs.unPresentPlan({ path: { planId } });
+    expect(unpresented.response?.status).toBe(204);
+
+    expect(await agendaBlocker()).not.toBe('ALL_FILES_REPORTED');
+    const listed = await agent.docs.listNonPresentedPlans();
+    expect(listed.data!.items.find(({ id }) => id === planId)?.status).toBe('VALIDATED');
+    const metadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
+    expect(metadata.data!.presentation).toBeNull();
+
+    const unpresentedAgain = await agent.docs.unPresentPlan({ path: { planId } });
+    expect(unpresentedAgain.response?.status).toBe(400);
+
+    await agent.docs.presentPlan({ body: { endTime: { hours: 12, minutes: 0, seconds: 0 } }, path: { planId } });
+
+    const { data: html } = await agent.docs.generatePresentationPlanHtml({ parseAs: 'text', path: { planId } });
+    expect(String(html).match(/Heure de fin de la séance de restitution&nbsp;: \d\d:\d\d/g)).toEqual([
+      'Heure de fin de la séance de restitution&nbsp;: 12:00',
+    ]);
+  });
+
   test('should let the notice validated first take the agendas it shares with the drafts', async ({
     agent,
     docs,
