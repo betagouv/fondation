@@ -123,7 +123,7 @@ describe('SessionDocumentsTable', () => {
     it('should tell when and by whom an agenda was presented', () => {
       render(table([{ ...agenda!, presentation: PRESENTED }]));
 
-      expect(screen.getByText('Restitué')).toBeInTheDocument();
+      expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
       expect(rowTexts()).toEqual([
         expect.stringMatching(/Validé le 10\/03\/2028.*Restitué le 15\/03\/2028 à 10h15 par Camille Martin/),
       ]);
@@ -149,7 +149,6 @@ describe('SessionDocumentsTable', () => {
       );
 
       expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
-      expect(screen.queryByText('Restitué')).not.toBeInTheDocument();
     });
   });
 

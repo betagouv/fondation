@@ -120,13 +120,10 @@ function DocumentStatus(props: { doc: SessionDocument }) {
 
 function AgendaPresentationStatus(props: { doc: SessionDocument }) {
   const { doc } = props;
-  if (doc.type !== 'agenda' || !doc.presentation) return null;
+  // a presented agenda shows only its "Restitué le" trace underneath
+  if (doc.type !== 'agenda' || doc.presentation?.status !== 'TO_PRESENT') return null;
 
-  return doc.presentation.status === 'PRESENTED' ? (
-    <StatusBadge severity="success">
-      <FormattedMessage defaultMessage="Restitué" />
-    </StatusBadge>
-  ) : (
+  return (
     <StatusBadge severity="new">
       <FormattedMessage defaultMessage="À restituer" />
     </StatusBadge>
