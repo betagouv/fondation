@@ -157,7 +157,7 @@ function found(
   return {
     data: {
       currentPageIndex: 1,
-      items: items.map((item) => ({ ...item, firstName: '', lastName: '' })),
+      items: items.map((item) => ({ ...item, firstName: '', lastName: '', usedName: null })),
       totalCount: items.length,
       ...page,
     },
