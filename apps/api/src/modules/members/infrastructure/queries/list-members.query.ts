@@ -7,7 +7,6 @@ import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { listMembersRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class ListMembersQuery {
@@ -72,13 +71,6 @@ const MemberListItemDtoSchema = z.object({
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
   excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
-  stats: z.array(
-    z.object({
-      year: z.number().int().gt(1),
-      count: z.number().int().gte(0),
-      targetedGrade: z.enum(GradeEnum),
-    }),
-  ),
 });
 
 export class PaginatedMemberListItemDto extends createPaginatedZodDto(MemberListItemDtoSchema) {}
