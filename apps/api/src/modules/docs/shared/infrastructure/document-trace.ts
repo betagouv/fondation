@@ -25,6 +25,10 @@ export const draftTraceSchema = z
 
 type Person = { firstName: string; id: string; lastName: string } | null;
 
+function writerOf(person: Person): z.infer<typeof writerSchema> | null {
+  return person ? { id: person.id, name: fullname(person) } : null;
+}
+
 export const DRAFT_TRACE_SELECT = {
   author: { select: { firstName: true, id: true, lastName: true } },
   createdAt: true,
@@ -45,19 +49,17 @@ export function draftTrace(version: {
 }): z.infer<typeof draftTraceSchema> {
   if (version.status === 'VALIDATED') return null;
 
-  const writer = (person: Person) => (person ? { id: person.id, name: fullname(person) } : null);
-
   return {
     openedAt: version.createdAt.toISOString(),
-    openedBy: writer(version.author),
+    openedBy: writerOf(version.author),
     systemCauses: version.systemUpdates.map(({ cause }) => cause),
     systemUpdatedAt: version.systemUpdatedAt?.toISOString() ?? null,
     updatedAt: version.updatedAt?.toISOString() ?? null,
-    updatedBy: writer(version.editor),
+    updatedBy: writerOf(version.editor),
   };
 }
 
-/** when a document went through a step, validation or presentation, and who took it */
+/** when a document was validated, and by whom */
 export const traceSchema = z.object({ at: z.iso.datetime(), by: writerSchema.nullable() }).nullable();
 
 export const VALIDATION_TRACE_SELECT = {
@@ -71,7 +73,7 @@ export function traceOf(
 ): z.infer<typeof traceSchema> {
   if (!at) return null;
 
-  return { at: at.toISOString(), by: person ? { id: person.id, name: fullname(person) } : null };
+  return { at: at.toISOString(), by: writerOf(person ?? null) };
 }
 
 /** a restitution is dated by its notice and its ending time rather than by the click, which may come later */
@@ -88,7 +90,7 @@ export function presentationTraceOf(plan: {
   presenter: Person;
 }): z.infer<typeof presentationTraceSchema> {
   return {
-    by: plan.presenter ? { id: plan.presenter.id, name: fullname(plan.presenter) } : null,
+    by: writerOf(plan.presenter),
     date: DateOnly.fromUtcDate(plan.date).toJson(),
     endTime: plan.endTime ? dateToTimeOnly(plan.endTime) : null,
   };
