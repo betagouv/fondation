@@ -84,9 +84,11 @@ export function MagistratSearch() {
             )}
           </ul>
           {hasNextPage && (
-            <Button disabled={isFetchingNextPage} onClick={() => fetchNextPage()} priority="secondary">
-              <FormattedMessage defaultMessage="Voir plus" />
-            </Button>
+            <div className="fr-mt-6v flex justify-center">
+              <Button disabled={isFetchingNextPage} onClick={() => fetchNextPage()} priority="secondary">
+                <FormattedMessage defaultMessage="Voir plus" />
+              </Button>
+            </div>
           )}
         </>
       )}
