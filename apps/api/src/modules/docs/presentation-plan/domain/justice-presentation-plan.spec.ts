@@ -6,6 +6,7 @@ import {
   JusticePresentationPlanAgendaRemoved,
   JusticePresentationPlanAlreadyValidated,
   JusticePresentationPlanDeleted,
+  JusticePresentationPlanNotPresented,
   JusticePresentationPlanUpdated,
   type UpdateJusticePresentationPlanCommand,
 } from './justice-presentation-plan';
@@ -163,6 +164,14 @@ describe('JusticePresentationPlan', () => {
       plan.update(command);
 
       expect(plan.messages.map((m) => m.constructor)).toEqual([JusticePresentationPlanUpdated]);
+    });
+  });
+
+  describe('unPresent', () => {
+    it('should refuse to unpresent a notice not presented', () => {
+      const plan = aDraft({ agendaIds: ['agenda-1'], isValidated: true });
+
+      expect(() => plan.unPresent()).toThrow(JusticePresentationPlanNotPresented);
     });
   });
 });
