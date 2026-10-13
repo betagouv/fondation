@@ -1899,6 +1899,7 @@ export type SearchMagistratsResponseDto = {
         firstName: string;
         lastName: string;
         name: string;
+        usedName: string | null;
         grade: string | null;
         currentPosition: {
             function: {

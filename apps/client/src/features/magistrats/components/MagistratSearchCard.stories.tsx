@@ -14,6 +14,7 @@ const magistrat: FoundMagistrat = {
   id: 'magistrat-1',
   lastName: 'BACH',
   name: 'BACH Jean-Sébastien',
+  usedName: null,
 };
 
 const meta = {
@@ -23,7 +24,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Carte d'un magistrat trouvé par la recherche : la fonction de son poste actuel (ou sa juridiction quand le poste n'a pas de fonction), son grade et le code de sa juridiction, et un lien vers sa fiche dans l'espace courant.",
+          "Carte d'un magistrat trouvé par la recherche : son nom d'usage quand il diffère de son nom de naissance et de son nom marital, la fonction de son poste actuel (ou sa juridiction quand le poste n'a pas de fonction), son grade et le code de sa juridiction, et un lien vers sa fiche dans l'espace courant.",
       },
     },
     layout: 'padded',
@@ -38,6 +39,18 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const WithFunction: Story = {};
+
+export const WithUsedName: Story = {
+  args: {
+    magistrat: {
+      ...magistrat,
+      firstName: 'ISABELLE',
+      lastName: 'GAUTHIER',
+      name: 'GAUTHIER Isabelle (ép. ROBERT)',
+      usedName: 'GAUTHIER-ROBERT',
+    },
+  },
+};
 
 export const WithoutFunction: Story = {
   args: {

@@ -7,7 +7,7 @@ import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 import type { FoundMagistrat } from '@queries/magistrats.queries';
 
 export function MagistratSearchCard(props: { context: 'sg' | 'membre'; magistrat: FoundMagistrat }) {
-  const { currentPosition, grade, id, name } = props.magistrat;
+  const { currentPosition, grade, id, name, usedName } = props.magistrat;
   const positionLabel = currentPosition?.function?.label ?? currentPosition?.jurisdiction.label;
   const titleId = useId();
 
@@ -22,6 +22,11 @@ export function MagistratSearchCard(props: { context: 'sg' | 'membre'; magistrat
       >
         {name}
       </h2>
+      {usedName && (
+        <p className="fr-mb-0">
+          <FormattedMessage defaultMessage="Nom d'usage : {usedName}" values={{ usedName }} />
+        </p>
+      )}
       {positionLabel && <p className="fr-mb-0">{positionLabel}</p>}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="fr-mb-0 text-(--text-mention-grey)">
