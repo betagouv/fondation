@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,17 +14,21 @@ import { MagistratSearch } from './MagistratSearch';
 
 const searchMagistrats = vi.spyOn($api.magistrats, 'searchMagistrats');
 
-function renderSearch() {
+function renderSearch(props?: { searchParams: string }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const searchAt = (searchParams = '') => (
     <QueryClientProvider client={client}>
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
         <MemoryRouter>
-          <MagistratSearch context="sg" />
+          <NuqsTestingAdapter hasMemory searchParams={searchParams}>
+            <MagistratSearch context="sg" />
+          </NuqsTestingAdapter>
         </MemoryRouter>
       </IntlProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+  const view = render(searchAt(props?.searchParams));
+  return { navigateTo: (searchParams: string) => view.rerender(searchAt(searchParams)) };
 }
 
 describe('MagistratSearch', () => {
@@ -94,14 +99,67 @@ describe('MagistratSearch', () => {
     expect(await screen.findByText('Aucun résultat ne correspond aux valeurs saisies.')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('0 résultat');
   });
+
+  it('restores the search from the URL', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+    );
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('valr');
+  });
+
+  it('empties the search when the URL loses it, as when following the navigation link', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+    );
+    const { navigateTo } = renderSearch({ searchParams: '?recherche=valr' });
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+
+    navigateTo('');
+
+    expect(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
+    expect(await screen.findByText('Recherchez un magistrat par son prénom ou son nom.')).toBeInTheDocument();
+  });
+
+  it('adds the next magistrats from "Voir plus" until all are shown', async () => {
+    searchMagistrats
+      .mockResolvedValueOnce(
+        found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }], {
+          nextPageIndex: 2,
+          totalCount: 2,
+        }),
+      )
+      .mockResolvedValueOnce(
+        found([{ currentPosition: null, grade: null, id: 'magistrat-2', name: 'VALROSE Marc' }], {
+          totalCount: 2,
+        }),
+      );
+    const user = userEvent.setup();
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    await user.click(await screen.findByRole('button', { name: 'Voir plus' }));
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Voir plus' })).not.toBeInTheDocument();
+    expect(searchMagistrats).toHaveBeenLastCalledWith(
+      expect.objectContaining({ query: { page: 2, search: 'valr' } }),
+    );
+  });
 });
 
-function found(items: Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'id' | 'name'>[]) {
+function found(
+  items: Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'id' | 'name'>[],
+  page?: { nextPageIndex?: number; totalCount: number },
+) {
   return {
     data: {
       currentPageIndex: 1,
       items: items.map((item) => ({ ...item, firstName: '', lastName: '' })),
       totalCount: items.length,
+      ...page,
     },
   } as unknown as Awaited<ReturnType<typeof $api.magistrats.searchMagistrats>>;
 }

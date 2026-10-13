@@ -1,5 +1,6 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
-import { useState } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
@@ -9,10 +10,12 @@ import { MagistratSearchCard } from './MagistratSearchCard';
 
 export function MagistratSearch(props: { context: 'sg' | 'membre' }) {
   const { formatMessage } = useIntl();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
   const [debouncedSearch, { flush }] = useDebounce(search.trim(), 400);
   const isSearchable = debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
-  const { data } = useMagistratSearchQuery({ search: debouncedSearch });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useMagistratSearchQuery({
+    search: debouncedSearch,
+  });
   const totalCount = isSearchable ? data?.pages[0]?.totalCount : undefined;
 
   return (
@@ -49,15 +52,22 @@ export function MagistratSearch(props: { context: 'sg' | 'membre' }) {
           <FormattedMessage defaultMessage="Aucun résultat ne correspond aux valeurs saisies." />
         </p>
       ) : (
-        <ul className="fr-mt-6v flex list-none flex-col gap-4 ps-0">
-          {data?.pages.flatMap((page) =>
-            page.items.map((magistrat) => (
-              <li className="pb-0" key={magistrat.id}>
-                <MagistratSearchCard context={props.context} magistrat={magistrat} />
-              </li>
-            )),
+        <>
+          <ul className="fr-mt-6v flex list-none flex-col gap-4 ps-0">
+            {data?.pages.flatMap((page) =>
+              page.items.map((magistrat) => (
+                <li className="pb-0" key={magistrat.id}>
+                  <MagistratSearchCard context={props.context} magistrat={magistrat} />
+                </li>
+              )),
+            )}
+          </ul>
+          {hasNextPage && (
+            <Button disabled={isFetchingNextPage} onClick={() => fetchNextPage()} priority="secondary">
+              <FormattedMessage defaultMessage="Voir plus" />
+            </Button>
           )}
-        </ul>
+        </>
       )}
     </>
   );
