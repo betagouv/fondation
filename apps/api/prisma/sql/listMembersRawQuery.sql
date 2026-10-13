@@ -50,6 +50,6 @@ ORDER BY (
     WHEN $3::TEXT = 'firstName' THEN m.first_name
     ELSE m.last_name
   END
-) ASC
+) ASC, m.id ASC
 
 LIMIT $5::INT OFFSET $6::INT;
