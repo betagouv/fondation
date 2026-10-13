@@ -7,10 +7,11 @@ import { MagistratSearchCard } from './MagistratSearchCard';
 const magistrat: FoundMagistrat = {
   currentPosition: {
     function: { id: 'SGCSG', label: "Substitut général chargé d'un secrétariat général" },
-    jurisdiction: { id: 'TJ ORLEANS', label: "Tribunal judiciaire d'Orléans" },
+    jurisdiction: { id: 'TJ  ORLEANS', label: "Tribunal judiciaire d'Orléans" },
   },
   firstName: 'JEAN-SÉBASTIEN',
   grade: 'G1',
+  gradeAndJurisdiction: 'G1 - TJ ORLEANS',
   id: 'magistrat-1',
   lastName: 'BACH',
   name: 'BACH Jean-Sébastien',
@@ -63,12 +64,13 @@ export const WithoutFunction: Story = {
       ...magistrat,
       currentPosition: {
         function: null,
-        jurisdiction: { id: 'TJ RODEZ', label: 'Tribunal judiciaire de Rodez' },
+        jurisdiction: { id: 'TJ  RODEZ', label: 'Tribunal judiciaire de Rodez' },
       },
+      gradeAndJurisdiction: 'G1 - TJ RODEZ',
     },
   },
 };
 
 export const WithoutPosition: Story = {
-  args: { magistrat: { ...magistrat, currentPosition: null, grade: null } },
+  args: { magistrat: { ...magistrat, currentPosition: null, grade: null, gradeAndJurisdiction: null } },
 };

@@ -131,9 +131,10 @@ test.describe('Magistrat E2E', () => {
     expect(data.items[0]).toMatchObject({
       currentPosition: {
         function: { id: 'PR', label: 'Procureur de la République' },
-        jurisdiction: { id: 'CA LYON', label: "Cour d'appel de Lyon" },
+        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
       },
       grade: 'G3',
+      gradeAndJurisdiction: 'G3 - CA LYON',
     });
   });
 

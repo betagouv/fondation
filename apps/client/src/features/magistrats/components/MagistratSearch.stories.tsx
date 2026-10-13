@@ -12,10 +12,11 @@ const PAGE_SIZE = 20;
 const MAGISTRATS: SearchMagistratsResponseDto['items'] = Array.from({ length: 45 }, (_, index) => ({
   currentPosition: {
     function: { id: 'J', label: 'Juge' },
-    jurisdiction: { id: 'TJ LYON', label: 'Tribunal judiciaire de Lyon' },
+    jurisdiction: { id: 'TJ  LYON', label: 'Tribunal judiciaire de Lyon' },
   },
   firstName: `CLAIRE ${index + 1}`,
   grade: 'G2',
+  gradeAndJurisdiction: 'G2 - TJ LYON',
   id: `magistrat-${index + 1}`,
   lastName: 'MARTIN',
   name: `MARTIN Claire ${index + 1}`,

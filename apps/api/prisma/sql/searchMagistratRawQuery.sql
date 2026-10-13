@@ -14,7 +14,7 @@ SELECT
 
   f.id AS "functionId",
   f.label AS "functionLabel",
-  REGEXP_REPLACE(j.codejur, ' {2,}', ' ', 'g') AS "jurisdictionId",
+  j.codejur AS "jurisdictionId",
   j.libelle AS "jurisdictionLabel"
 
 FROM nominations_context."magistrat" m

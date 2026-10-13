@@ -169,6 +169,7 @@ const observationHandlers = [
       ...magistrat,
       currentPosition: null,
       grade: null,
+      gradeAndJurisdiction: null,
       status: 'ACTIVE' as const,
       usedName: null,
     }));

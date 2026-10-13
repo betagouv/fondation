@@ -12,6 +12,7 @@ const magistrat: FoundMagistrat = {
   currentPosition: null,
   firstName: 'ISABELLE',
   grade: 'G1',
+  gradeAndJurisdiction: 'G1',
   id: 'magistrat-1',
   lastName: 'GAUTHIER',
   name: 'GAUTHIER Isabelle (ép. ROBERT)',

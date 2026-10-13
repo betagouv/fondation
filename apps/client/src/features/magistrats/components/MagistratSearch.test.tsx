@@ -52,18 +52,20 @@ describe('MagistratSearch', () => {
         {
           currentPosition: {
             function: { id: 'PR', label: 'Procureur de la République' },
-            jurisdiction: { id: 'CA LYON', label: "Cour d'appel de Lyon" },
+            jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
           },
           grade: 'G3',
+          gradeAndJurisdiction: 'G3 - CA LYON',
           id: 'magistrat-1',
           name: 'VALROSE Honorine',
         },
         {
           currentPosition: {
             function: null,
-            jurisdiction: { id: 'TJ RODEZ', label: 'Tribunal judiciaire de Rodez' },
+            jurisdiction: { id: 'TJ  RODEZ', label: 'Tribunal judiciaire de Rodez' },
           },
           grade: 'G2',
+          gradeAndJurisdiction: 'G2 - TJ RODEZ',
           id: 'magistrat-2',
           name: 'VALROSE Marc',
         },
@@ -102,7 +104,7 @@ describe('MagistratSearch', () => {
 
   it('restores the search from the URL', async () => {
     searchMagistrats.mockResolvedValue(
-      found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+      found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
     );
     renderSearch({ searchParams: '?recherche=valr' });
 
@@ -112,7 +114,7 @@ describe('MagistratSearch', () => {
 
   it('empties the search when the URL loses it, as when following the navigation link', async () => {
     searchMagistrats.mockResolvedValue(
-      found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+      found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
     );
     const { navigateTo } = renderSearch({ searchParams: '?recherche=valr' });
     await screen.findByRole('article', { name: 'VALROSE Honorine' });
@@ -126,13 +128,13 @@ describe('MagistratSearch', () => {
   it('adds the next magistrats from "Voir plus" until all are shown', async () => {
     searchMagistrats
       .mockResolvedValueOnce(
-        found([{ currentPosition: null, grade: null, id: 'magistrat-1', name: 'VALROSE Honorine' }], {
+        found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }], {
           nextPageIndex: 2,
           totalCount: 2,
         }),
       )
       .mockResolvedValueOnce(
-        found([{ currentPosition: null, grade: null, id: 'magistrat-2', name: 'VALROSE Marc' }], {
+        found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-2', name: 'VALROSE Marc' }], {
           totalCount: 2,
         }),
       );
@@ -151,7 +153,7 @@ describe('MagistratSearch', () => {
 });
 
 function found(
-  items: Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'id' | 'name'>[],
+  items: Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'gradeAndJurisdiction' | 'id' | 'name'>[],
   page?: { nextPageIndex?: number; totalCount: number },
 ) {
   return {

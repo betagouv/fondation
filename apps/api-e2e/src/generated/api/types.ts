@@ -1899,6 +1899,7 @@ export type SearchMagistratsResponseDto = {
         usedName: string | null;
         status: 'ACTIVE' | 'INACTIVE';
         grade: string | null;
+        gradeAndJurisdiction: string | null;
         currentPosition: {
             function: {
                 id: string;
