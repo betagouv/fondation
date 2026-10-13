@@ -95,6 +95,7 @@ export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly st
         query: {
           search,
           ignore: ignoreIds?.join(',') || undefined,
+          limit: 10,
         },
       });
 
