@@ -186,7 +186,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
               priority="secondary"
               size="small"
             >
-              <FormattedMessage defaultMessage="Voir mon dossier" />
+              <FormattedMessage defaultMessage="Voir mon rapport" />
             </Button>
           )}
         </div>
