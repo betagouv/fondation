@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { RequiredLabel } from '@/shared/ui/required-label';
+import { MAGISTRAT_SEARCH_MIN_LENGTH } from '@queries/magistrats.queries';
 import {
   useSearchMagistratsQuery,
   type MagistratSearchResult,
@@ -51,7 +52,7 @@ export function MagistratCombobox(props: {
 
   const { data, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
   const results = data ?? [];
-  const isOpen = showResults && debouncedSearch.length >= 2;
+  const isOpen = showResults && debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const activeMagistrat = isOpen ? results[activeIndex] : undefined;
 
   const select = (selected: MagistratSearchResult) => {

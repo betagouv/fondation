@@ -14,6 +14,7 @@ import type {
 } from '@api/types';
 
 import { auditionKeys } from './auditions.queries';
+import { MAGISTRAT_SEARCH_MIN_LENGTH } from './magistrats.queries';
 import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
@@ -89,7 +90,7 @@ function updateMemberCommentImages(
 
 export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly string[]) {
   return useQuery({
-    enabled: search.length >= 2,
+    enabled: search.length >= MAGISTRAT_SEARCH_MIN_LENGTH,
     queryKey: observationKeys.searchMagistrats({ search }),
     queryFn: async () => {
       const { data } = await $api.magistrats.searchMagistrats({
