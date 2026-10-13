@@ -12,27 +12,24 @@ SELECT
 
   f.id AS "functionId",
   f.label AS "functionLabel",
-  j.codejur AS "jurisdictionId",
-  j.libelle AS "jurisdictionLabel",
-
-  TS_RANK("search", query) AS "rank"
+  REGEXP_REPLACE(j.codejur, ' {2,}', ' ', 'g') AS "jurisdictionId",
+  j.libelle AS "jurisdictionLabel"
 
 FROM nominations_context."magistrat" m
   LEFT JOIN data_administration_context."position" p ON p.id = NULLIF(m.current_position_id, '')::INT
   LEFT JOIN data_administration_context."function" f ON f.id = p.function_id
-  LEFT JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id,
-  TO_TSQUERY('unaccent_fr'::regconfig, $1::TEXT) AS "query"
+  LEFT JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id
 
 WHERE (
   1=1
   AND ($1::TEXT IS NULL OR (
-    "search" @@ "query"
+    m.search @@ TO_TSQUERY('unaccent_fr'::regconfig, $1::TEXT)
   ))
   AND ($2::UUID[] IS NULL OR (
     m.id != ALL($2::UUID[])
   ))
 )
 
-ORDER BY "rank" DESC, m.last_name ASC, m.first_name ASC
+ORDER BY m.last_name ASC, m.first_name ASC, m.id ASC
 
 OFFSET $3 LIMIT $4;

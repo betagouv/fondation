@@ -91,13 +91,47 @@ test.describe('Magistrat E2E', () => {
     });
   });
 
-  test('should search a magistrat with the labels of their current position', async ({ agent, expect, valrose }) => {
-    const { data } = await agent.magistrats.searchMagistrats({ query: { search: 'valrose' }, throwOnError: true });
+  test('should search magistrats by the beginning of their name, sorted by last name', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(97 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    const candidate = { position, targetPosition: position };
+    await sessions.createOne({
+      candidates: [
+        { ...candidate, firstName: 'ALINE', lastName: `${lastName}B` },
+        { ...candidate, firstName: 'ZOE', lastName: `${lastName}A` },
+        { ...candidate, firstName: 'BRUNO', lastName: `${lastName}A` },
+        { ...candidate, firstName: 'BRUNO', lastName: `${lastName}A` },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
 
-    expect(data.items.find((magistrat) => magistrat.id === valrose.magistratId)).toMatchObject({
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: lastName.slice(0, 8) },
+      throwOnError: true,
+    });
+
+    const homonymIds = data.items.slice(0, 2).map((magistrat) => magistrat.id);
+    expect(homonymIds).toEqual(homonymIds.toSorted());
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([
+      `${lastName.toUpperCase()}A Bruno`,
+      `${lastName.toUpperCase()}A Bruno`,
+      `${lastName.toUpperCase()}A Zoe`,
+      `${lastName.toUpperCase()}B Aline`,
+    ]);
+    expect(data.items[0]).toMatchObject({
       currentPosition: {
         function: { id: 'PR', label: 'Procureur de la République' },
-        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+        jurisdiction: { id: 'CA LYON', label: "Cour d'appel de Lyon" },
       },
       grade: 'G3',
     });
